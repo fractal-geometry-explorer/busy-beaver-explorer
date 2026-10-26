@@ -1,0 +1,166 @@
+/* Rigorous 2-adic refinement of the clean-tape cycle (C port of rec/nrefine.py).
+   Class n = rho (mod 2^k), n = 2^k j + rho with j large: every position is a*j + b.  A swap/merge test is decided
+   when a = 0 (mod 4); otherwise the class is split on the next binary digit of n.  A settled class has the same
+   cycle for every large j: jump, rounds and longest right-end chain (model.c's definition).
+   Usage: nref K_max [cap]   -> one line per digit level; settled classes with chain >= 8 are listed. */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+typedef long long ll;
+typedef struct { ll a, b; } Q;
+static ll jreq;   /* smallest j for which every comparison made so far comes out as in the symbolic run */
+static inline void need_j(ll v) { if (v > jreq) jreq = v; }
+static inline int qcmp(Q x, Q y) {
+    if (x.a != y.a) {
+        ll d = y.a - x.a, D = y.b - x.b;           /* actual difference y - x = d*j + D; symbolic sign = sign(d) */
+        ll t = d > 0 ? -D : D, ad = d > 0 ? d : -d;  /* need ad*j > t */
+        if (t >= 0) need_j(t / ad + 1);
+        return x.a < y.a ? -1 : 1;
+    }
+    if (x.b != y.b) return x.b < y.b ? -1 : 1; return 0;
+}
+static inline Q qadd(Q x, ll c) { x.b += c; return x; }
+#define MAXM 256
+static char T[MAXM]; static Q P[MAXM]; static int A[MAXM]; static int nm;
+static Q W; static int halted, bad, need; static int need_end, need_round, cur_round, renewals; static ll rat_n[64], rat_d[64], off_n[64]; static int nrat;
+static Q endd[8192]; static int endr[8192]; static int nend;
+static ll minsep[3][4][4]; static ll minsep_n[3][4][4], CURN;
+static int ti(char t) { return t == 'G' ? 0 : t == 'M' ? 1 : t == 'W' ? 2 : 3; }
+static const int LENT[4] = {3, 2, 2, 3};
+static void probe(int phase) {   /* separations between neighbouring marks, evaluated at j = 1 (the smallest member) */
+    int idx[MAXM], k = 0;
+    for (int i = 0; i < nm; i++) if (A[i]) idx[k++] = i;
+    for (int i = 1; i < k; i++) { int v = idx[i], j = i - 1;
+        while (j >= 0 && (P[idx[j]].a > P[v].a || (P[idx[j]].a == P[v].a && P[idx[j]].b > P[v].b))) { idx[j + 1] = idx[j]; j--; } idx[j + 1] = v; }
+    for (int i = 0; i + 1 < k; i++) {
+        int a = idx[i], b = idx[i + 1];
+        ll sp = (P[b].a + P[b].b) - (P[a].a + P[a].b + LENT[ti(T[a])]);
+        int x = ti(T[a]), y = ti(T[b]);
+        if (sp < minsep[phase][x][y]) { minsep[phase][x][y] = sp; minsep_n[phase][x][y] = CURN; }
+    }
+}
+static int add(char t, Q p) { for (int i = 0; i < nm; i++) if (!A[i]) { T[i] = t; P[i] = p; A[i] = 1; return i; }
+    if (nm >= MAXM) { bad = 9; return 0; } T[nm] = t; P[nm] = p; A[nm] = 1; return nm++; }
+static int first_right(Q x) { int b = -1; for (int i = 0; i < nm; i++) if (A[i] && qcmp(P[i], x) > 0 && (b < 0 || qcmp(P[i], P[b]) < 0)) b = i; return b; }
+static int last_mark(void) { int b = -1; for (int i = 0; i < nm; i++) if (A[i] && (b < 0 || qcmp(P[i], P[b]) > 0)) b = i; return b; }
+static int packet_back(Q x) {
+    probe(2);
+    int b = -1; for (int i = 0; i < nm; i++) if (A[i] && qcmp(P[i], x) < 0 && T[i] != 'M' && (b < 0 || qcmp(P[i], P[b]) > 0)) b = i;
+    if (b < 0) return -1;
+    if (T[b] == 'B') { halted = 1; return -1; }
+    if (T[b] == 'G') { P[b].b += 2; return b; }
+    Q q = P[b]; T[b] = 'M'; P[b] = qadd(q, -1); return add('G', qadd(q, 1));
+}
+static int shift_from(Q x) {
+    probe(1);
+    int k = first_right(x);
+    if (k < 0) { W.b += 2; add('M', qadd(W, -2)); return packet_back(qadd(W, -2)); }
+    if (T[k] == 'M') { T[k] = 'G'; return k; }
+    if (T[k] == 'W') { T[k] = 'B'; return packet_back(P[k]); }
+    if (T[k] == 'B') { T[k] = 'W'; P[k].b += 2; return packet_back(P[k]); }
+    bad = 2; return -1;
+}
+static void do_round(void) {
+    int gap = -1; for (int i = 0; i < nm; i++) if (A[i] && T[i] == 'G' && qcmp(P[i], (Q){0, 1}) == 0) gap = i;
+    while (gap >= 0 && !halted && !bad && !need) {
+        probe(0);
+        Q g = P[gap]; int m = first_right(g);
+        if (m < 0) { A[gap] = 0; W.b += 3; add('M', qadd(W, -2)); gap = packet_back(qadd(W, -2)); continue; }
+        if (T[m] == 'M') {
+            Q d = { P[m].a - g.a, P[m].b - g.b - 3 };
+            if (d.a % 4) { need = 1; need_end = (m == last_mark()); need_round = cur_round; return; }
+            int r4 = (int)(((d.b % 4) + 4) % 4);
+            if (d.a > 0 && d.b < 0) need_j((-d.b + d.a - 1) / d.a);   /* the integer distance must not be negative */
+            if (d.a < 0 || (d.a == 0 && d.b < 0) || (r4 & 1)) { bad = 3; return; }
+            if (m == last_mark() && nend < 8192) { endd[nend] = d; endr[nend++] = r4; }
+            Q h = { d.a / 2, d.b / 2 };
+            if (r4 == 0) { P[m] = (Q){ g.a + h.a, g.b + h.b - 1 }; P[gap] = (Q){ g.a + h.a, g.b + h.b + 1 }; }
+            else { A[gap] = 0; T[m] = 'W'; P[m] = (Q){ g.a + h.a, g.b + h.b + 3 }; gap = packet_back(P[m]); }
+        } else if (T[m] == 'W') { Q x = P[m]; A[gap] = 0; A[m] = 0; gap = shift_from(x); }
+        else if (T[m] == 'B') { T[m] = 'W'; P[m].b -= 1; gap = shift_from(P[m]); }
+        else { bad = 4; return; }
+    }
+    if (halted || bad || need) return;
+    ll extra = 2;
+    for (int i = 0; i < nm; i++) if (A[i] && T[i] == 'M' && qcmp(P[i], (Q){0, 0}) == 0) { T[i] = 'W'; P[i].b = 1; extra = 4; }
+    for (int i = 0; i < nm; i++) if (A[i]) P[i].b += extra;
+    W.b += extra; add('G', (Q){0, 1});
+}
+static int chain_len(void) {
+    int best = nend > 0 ? 1 : 0, cur = 1;
+    for (int i = 1; i < nend; i++) {
+        Q p = endr[i-1] == 2 ? (Q){ endd[i-1].a / 2, (endd[i-1].b - 2) / 2 } : (Q){ endd[i-1].a / 2, endd[i-1].b / 2 + 4 };
+        if (qcmp(endd[i], p) == 0) { cur++; if (cur > best) best = cur; } else cur = 1;
+    }
+    return best;
+}
+/* 0 settled, 1 split, 2 halt, 3 bad, 4 too long */
+static int cycle(int k, ll rho, ll *jump, int *rounds, int *chain) {
+    nm = 0; halted = bad = need = 0; nend = 0; jreq = 0;
+    W = (Q){ 1LL << (k + 1), 2 * rho + 6 };
+    add('G', (Q){0, 1}); add('M', qadd(W, -2));
+    renewals = 0; nrat = 0;
+    for (int r = 1; r <= 20000; r++) {
+        cur_round = r; do_round();
+        if (need) return 1;
+        { int al = 0, endm = 0, g1 = 0; Q e = qadd(W, -2); for (int i = 0; i < nm; i++) if (A[i]) { al++; if (T[i] == 'M' && qcmp(P[i], e) == 0) endm = 1; if (T[i] == 'G') g1 = 1; }
+          if (al == 3 && endm && g1) { int mm = 0, mi = -1; for (int i = 0; i < nm; i++) if (A[i] && T[i] == 'M') { mm++; if (qcmp(P[i], e) != 0) mi = i; }
+            if (mm == 2) { if (nrat < 64 && mi >= 0) { ll a = P[mi].a, b = W.a; ll g = a, h = b; while (h) { ll t = g % h; g = h; h = t; } rat_n[nrat] = a / g; rat_d[nrat] = b / g;
+                  /* offset of the line E = (b/a) m + c: c = W.b - (b/a)*P.b, scaled by a/g */ off_n[nrat] = (W.b * (a / g)) - (b / g) * P[mi].b; nrat++; }
+              renewals++; } } }
+        if (halted) return 2;
+        if (bad) return 3;
+        int alive = 0, ok = 0; Q e = qadd(W, -2);
+        for (int i = 0; i < nm; i++) if (A[i]) { alive++; if (T[i] == 'M' && qcmp(P[i], e) == 0) ok = 1; }
+        if (alive == 2 && ok) { *jump = (W.b - (2 * rho + 6)) / 2; *rounds = r; *chain = chain_len(); return 0; }
+    }
+    return 4;
+}
+static int cycle_int(ll n, ll *jump, int *rounds, int *chain) {
+    nm = 0; halted = bad = need = 0; nend = 0; jreq = 0;
+    W = (Q){ 0, 2 * n + 6 };
+    add('G', (Q){0, 1}); add('M', qadd(W, -2));
+    renewals = 0; nrat = 0;
+    for (int r = 1; r <= 20000; r++) {
+        cur_round = r; do_round();
+        if (need) return 1;
+        { int al = 0, endm = 0, g1 = 0; Q e = qadd(W, -2); for (int i = 0; i < nm; i++) if (A[i]) { al++; if (T[i] == 'M' && qcmp(P[i], e) == 0) endm = 1; if (T[i] == 'G') g1 = 1; }
+          if (al == 3 && endm && g1) { int mm = 0, mi = -1; for (int i = 0; i < nm; i++) if (A[i] && T[i] == 'M') { mm++; if (qcmp(P[i], e) != 0) mi = i; }
+            if (mm == 2) { if (nrat < 64 && mi >= 0) { ll a = P[mi].a, b = W.a; ll g = a, h = b; while (h) { ll t = g % h; g = h; h = t; } rat_n[nrat] = a / g; rat_d[nrat] = b / g;
+                  /* offset of the line E = (b/a) m + c: c = W.b - (b/a)*P.b, scaled by a/g */ off_n[nrat] = (W.b * (a / g)) - (b / g) * P[mi].b; nrat++; }
+              renewals++; } } }
+        if (halted) return 2;
+        if (bad) return 3;
+        int alive = 0, ok = 0; Q e = qadd(W, -2);
+        for (int i = 0; i < nm; i++) if (A[i]) { alive++; if (T[i] == 'M' && qcmp(P[i], e) == 0) ok = 1; }
+        if (alive == 2 && ok) { *jump = (W.b - (2 * n + 6)) / 2; *rounds = r; *chain = chain_len(); return 0; }
+    }
+    return 4;
+}
+
+static unsigned long long s[2];
+static unsigned long long rnd(void) { unsigned long long s1 = s[0]; const unsigned long long s0 = s[1]; s[0] = s0;
+    s1 ^= s1 << 23; s[1] = s1 ^ s0 ^ (s1 >> 17) ^ (s0 >> 26); return s[1] + s0; }
+int main(int argc, char **argv) {
+    long long N = atoll(argv[1]); int B = atoi(argv[2]); s[0] = 4242 + atoll(argv[3]); s[1] = 0x9E3779B97F4A7C15ULL;
+    for (int a = 0; a < 3; a++) for (int x = 0; x < 4; x++) for (int y = 0; y < 4; y++) minsep[a][x][y] = 1LL << 62;
+    /* distinct line types (slope ratio, offset) at each return index, counted over sampled n */
+    #define MT 200000
+    static ll tn[16][MT], td[16][MT], to[16][MT]; static int nt[16]; static long long hits[16]; static long long tc[16][MT];
+    for (long long it = 0; it < N; it++) {
+        ll n = (ll)(rnd() >> (64 - B)) | (1LL << (B - 1)); if (n & 1) n ^= 1;
+        for (int k = 1; k < B - 1; k++) {
+            ll jump; int rounds, chain; ll rho = n & ((1LL << k) - 1);
+            int st = cycle(k, rho, &jump, &rounds, &chain);
+            if (st == 1) continue;
+            if (st == 0 && jreq <= (n >> k)) {
+                for (int r = 0; r < nrat && r < 16; r++) { hits[r]++; int f = 0;
+                    for (int q = 0; q < nt[r]; q++) if (tn[r][q] == rat_n[r] && td[r][q] == rat_d[r] && to[r][q] == off_n[r]) { f = 1; tc[r][q]++; break; }
+                    if (!f && nt[r] < MT) { tn[r][nt[r]] = rat_n[r]; td[r][nt[r]] = rat_d[r]; to[r][nt[r]] = off_n[r]; tc[r][nt[r]] = 1; nt[r]++; } }
+            }
+            break;
+        }
+    }
+    for (int r = 0; r < 12; r++) if (hits[r]) printf("return %d: %lld cycles reach it, %d distinct lines E = (b/a) m + c among them\n", r, hits[r], nt[r]);
+    for (int r = 0; r < 3; r++) for (int q = 0; q < nt[r] && q < 12; q++) printf("   return %d line: E = (%lld/%lld) m + %lld/%lld   share of cycles %.5f\n", r, td[r][q], tn[r][q], to[r][q], tn[r][q], (double)tc[r][q] / hits[0]);
+}
