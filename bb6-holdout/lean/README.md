@@ -1,0 +1,83 @@
+# Formalization of the mark rules in Lean 4
+
+Started October 25. Self-contained (no Mathlib): Lean 4 core only, so it can be checked with a bare `lean` binary.
+
+## What is here
+
+| File | Content |
+|---|---|
+| `BB6/Basic.lean` | The machine: states, the transition table of `1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0LD1RE`, tapes as two streams `Nat → Bool` (nearest cell first; the head reads `r 0`), `step`, `steps n`, and the chaining lemma `steps_seq`. Pattern builders `cons`, `app` (a word), `rep n w` (a word repeated), `blank`, with the re-bracketing lemmas `rep_add`, `rep_app_comm`. |
+| `BB6/Cycles.lean` | The three cycle lemmas, by induction on the repeat count: `pass` (E> (01)^k → (01)^k E>, 2k steps), `shift` (A> (01)^k → (10)^k A>, 2k steps), `carry` ((10)^k A>1 1 → A>1 1 (10)^k, 4k steps); and `rep_shift'`, `rep_cons2`, the two re-bracketing facts the rules need. |
+| `BB6/Rules.lean` | **Generated** by `gen_rules.py` from `rec/proofs.py`: the 21 mark rules (BOUNCE, SWAP, MERGE, WALLBOUNCE, the MEET and BLOCK families, the PACKET rules, and PACKET→block halting), each a theorem `steps (count) start = some end` for all surrounding tapes `L R` and all repeat counts `m j`. The proof of each follows the Python prover's trace: stretches of single steps are discharged by `rfl` (the step function evaluates on the symbolic pattern; it never needs `L` or `R`), and the cycle lemmas are applied where the Python prover applied them, with the explicit re-bracketing rewrites in between. |
+| `BB6/Iter.lean` | The repeated bounces `BOUNCE^k` and `WALLBOUNCE^k` by induction on k, with their step counts 6km + 6k² + 24k and 6km + 3k² + 9k. |
+| `BB6/Rows.lean` | The first two rows of the round recurrence as composite theorems: gap meets marker across 4k cells (k bounces then a swap, 6k² + 24k + 21 steps) and across 4k + 2 cells (k bounces then a merge, 6k² + 30k + 31 steps). |
+| `BB6/Rows2.lean` | The remaining composite rows: the gap meets a wall across `(10)^k` — k wall bounces, then the MEET rule for what the shift finds (marker, wall, block, blank tape, end marker) — and the gap with nothing to its right (k wall bounces, then GAP→blank end). With the single rules this covers every row of the round recurrence table. |
+| `BB6/Marks.lean` | Marks with positions: `stripe`, `build prev pos ms W` (the tape from a cell on, given the marks to the right and the width), `roundStart ms W`; the first two rows read off positions: `row_swap` (marker at 4k + 4 → marker at 2k, gap at 2k + 2, marks beyond unchanged), `row_swap_end` (the marker met is the end marker), `row_merge` (marker at 4k + 6 → packet at 2k, wall at 2k + 5). |
+| `BB6/Model.lean` | **The mark model as a Lean function**: `Model.round : MState → Outcome` computes the marks and width after one round from those before it (the rows of the recurrence table, ported from the certificate checkers' simulator), with outcomes `next`, `halt` and `uncovered` (a configuration the proven rules do not cover). Executable: `Test.lean` runs it side by side with the machine's own `steps` from the first round start (the tape after 17 steps from blank) and compares the tapes cell by cell at every round start: 200 rounds, 8.5 million machine steps, no mismatch. |
+| `BB6/Mid.lean` | Configurations in the middle of a round: `buildL` (the tape left of a point, nearest cell first), `midCfg msL g msR W` (head on the gap at g), `pktCfg msL x msR W` (packet at x). The two marker events for **any** such configuration (gap preceded by a stripe cell, marker followed by one or the end marker): `ev_swap` (marker at g + 3 + 4k → marker at g + 2k − 1, gap at g + 2k + 1) and `ev_merge` (marker at g + 3 + 4k + 2 → packet at g + 2k − 1, wall at g + 2k + 4). |
+| `BB6/Pkt.lean` | The packet phase: `build_even`/`build_odd` (moving the start of the right-hand tape), `ev_pkt_marker` (the packet crosses a marker: it stays, the packet moves to y − 2; 4(j+1) + 5 steps), `ev_pkt_gap` (the packet reaches the sleeping gap: it wakes two cells right; 4j + 7 steps). |
+| `BB6/Pkt2.lean` | The packet stops: `ev_pkt_wall` (wall → marker at w − 1, gap wakes at w + 1), `ev_pkt_leftend` (a new round, every mark shifted by 2: `shiftMarks`), `ev_pkt_leftend_marker` (a marker on cell 0 becomes the wall `W 5`, shift by 4), `ev_pkt_block` (`steps … = none`: the machine halts). |
+| `BB6/Gap2.lean` | The gap phase: `buildL_eq`/`build_eq` (the stripe forms around a point), `ev_gap_end` (nothing to the right: end marker at W + 1, width W + 3, packet), and the gap meeting a wall followed by a marker (`ev_gap_wall_marker`: gap and wall vanish, gap opens at the marker), a second wall (`_wall`: it becomes a block, packet), a block (`_block`: wall two cells further right, packet), blank tape (`_blank`: end marker at W, width W + 2, packet), the end marker (`_endmarker`: new end marker at W + 1, width W + 3, packet). |
+| `BB6/Blk.lean` | The gap meeting a block: `ev_gap_block_marker` (block → wall at p − 1, gap opens at the marker), `_wall`, `_block`, `_blank` (a marker forms at p − 2, the gap wakes at p, and the mark the shift found changes as in the wall case). Also `build_free`/`build_step` (reading one cell off the right-hand tape) and the remark on canonical widths (the cell W − 1 is a 1). |
+| `BB6/Contact.lean` | Contact conditions read off cell values: `oneBefore` (cell g − 1 reads 1: a 1-mark may touch the gap), `zeroAfter`, `zeroBefore`; moving a point across any number of stripe cells (`buildL_add`, `build_sub`); the tape next to a touching mark (`oneBefore_tail`, …). |
+| `BB6/Events.lean` | Every gap-phase event again, under those weaker conditions (`ev_swap'`, `ev_merge'`, `ev_gap_end'`, `ev_gap_wall_*'`, `ev_gap_block_*'`, `ev_pkt_block'`): exactly the configurations the mark model treats as covered. |
+| `BB6/PktRun.lean` | **The packet phase as a whole.** Well-formedness of the two sides of a point (`leftOK`, `rightOK`: order and stripe parities of the marks, and the width's parity: the cell W − 1 is a 1), the mark model's packet phase in zipper form (`pktBack`, `pktLand`: crossing runs of markers, stopping at a gap, wall, block or the left end), and the theorems `pktBack_run` (the machine arrives where `pktBack` says) and `pktBack_wf` (what it produces is well formed). |
+| `BB6/Round.lean` | **The gap phase and the round.** `gapEvent` (one event of the gap phase, zipper form), `gapEvent_ok` (the machine reaches the configuration it names, which is well formed, or halts), `roundZ` (events until a packet ends the round), and the round theorems: `roundZ_run`, `round_run` (from a well-formed round start the machine reaches the next round start the model computes, or halts when the model says halt), `rounds_run` (n rounds), `first_round_start` (blank tape → the first round start in 17 steps, exactly), `blank_rounds` (**from blank tape, the machine reaches whatever `roundsZ` computes for any number of rounds, unless the model reports `uncovered`**). Also `build_pad` and `build_trailing_wall` (two facts about the end of the tape, see below). |
+| `BB6/SymForm.lean` | **Symbolic positions.** Integer affine forms in a leaf's coordinates y (`YForm`; a leaf is a coset x = x0 + B y, so every position becomes integral in y), with halving only when every coefficient is even, residues decided when every coefficient is divisible by the modulus, and order decided on the cone of large gaps by a checked certificate `D·p = Σ μⱼ tⱼ + c` (μⱼ ≥ 0): `posCheck_sound`, `sgn_sound`, `ltDec_sound`, `eqDec_sound`. The search for μ (exact Gauss–Jordan, `posCert`) is untrusted; only the check is. |
+| `BB6/SymRound.lean` | **The zipper model on symbolic positions**, branch for branch (`symPktLand`, `symPktBack`, `symPktFrom`, `symGapEvent`, `symRoundZ`, `symRoundsZ`), with soundness theorems: at every point of the cone, a concrete state agreeing with the symbolic one has a concrete outcome agreeing with the symbolic outcome (`symGapEvent_sound`, `symRoundZ_sound`, `symRoundsZ_sound`). `symRightOK` decides well-formedness of a symbolic round start, and `leaf_run` turns a checked leaf into a statement about the machine: at every point of the cone, the machine runs from the leaf's round start to the computed round start without halting. |
+| `BB6/SymSplit.lean` | **Classes split with coverage by construction.** Splitting on coordinate i substitutes yᵢ = 2zᵢ + ε in every form, so the two children contain every point of the parent (`cover_split`); a `Tree` of splits whose leaves all pass `Tree.ok` (a decided symbolic run from a well-formed start) gives, at every point of the root class inside the cone, a machine run of the leaf's rounds that does not halt (`Tree.sound`). No lattice or partition argument is needed. |
+| `Explore.lean` | The untrusted tree builder for the endgame (compiled to native code through `lean -c`; see `cbuild/`): it chooses splits from the first residue a round leaves undecided, stops a leaf where the Python checker's classification stops, and checks every tree with `Tree.ok`. |
+| `BB6/Meets.lean` | **End meetings.** `meetsZ` lists the distances of a round's end meetings (the gap meeting the end marker), following `roundZ`; its symbolic mirror is proved to agree (`symMeetsZ_sound`, `symMeetsRounds_sound`); `Tree.okNC` adds "every end meeting at distance ≥ 3" to `Tree.ok`, and `Tree.soundNC` gives, at every point of the class, no halt **and no close**. |
+| `thm/gen_exit.py`, `thm/gen_endgame.py` | Write `ExitTheorem.lean` and `EndgameTheorem.lean`: the split trees as data, `Tree.ok` / `Tree.okNC` on them by `native_decide`, and the corollaries `exit_no_halt` and `endgame_no_close` stated in plain terms (naturals a, b, c, E with parities and gaps). |
+| `gen_rules.py` | The generator (reads the rule table and runs the symbolic prover; emits Lean). |
+| `check.sh` | Compiles everything with a bare `lean` (no lake). |
+
+## Design
+
+* A pattern with unknown surroundings is a configuration whose streams are variables. Because the step function
+  reads only `r 0`, a `rfl` proof of `steps n c = some c'` can only succeed if the n steps never look at `L` or
+  `R`; this is the Lean counterpart of the Python prover's "the simulator raises if it would read a context".
+* A repeat `(10)^m` is `rep m [true, false] s`. Unrolling one copy is definitional (`rep (m+1) w s = app w (rep m w s)`),
+  so single steps can walk into a repeat by `rfl` when its count is a successor. Crossing a whole repeat is one of
+  the three cycle lemmas. The only non-definitional facts about repeats are `rep_app_comm` (a repeat absorbs a copy
+  behind it) and `rep_shift'` (`x (y x)^n = (x y)^n x`), proved by induction.
+* The step counts are exact; the rule counts are checked by `omega` against the sum of the segments.
+
+## Status
+
+* Checked with Lean 4 v4.34 built from source in this container (release binaries are not reachable from it):
+  `./check.sh` compiles all 17 files in under a minute; no `sorry`; every theorem depends at most on Lean's three
+  standard axioms (`propext`, `Quot.sound`, `Classical.choice`), the rules on none or the first two (`BB6.lean` prints
+  the audit).
+* **The round theorem is proved.** One round of the machine, from the tape any well-formed mark state denotes, is one
+  round of the mark model (`roundZ`), or a halt where the model says halt. With `first_round_start` this gives
+  `blank_rounds`: from blank tape the machine follows the model for as many rounds as the model covers. The model's
+  `uncovered` (configurations no proven rule covers: marks touching where a rule needs a stripe cell, an odd meeting
+  distance, …) makes no claim.
+* The zipper model `roundZ` was checked against the list model `Model.round` (the port of the certificate checkers'
+  simulator): identical for the 200 rounds from the first round start, and on 20,000 random well-formed round starts
+  no outcome differs where both make a claim.
+* **A correction to the simulator** (Python checkers, C explorers and `Model.lean`), found by this comparison. When a
+  shift reaches a block that ends the tape (block in the last three cells), the simulator writes a wall in the last
+  two cells, partly past the width: the same tape as no wall and width W − 1, but a mark the simulator later treats as
+  real. A shift that reaches that "trailing wall" turns it into a block past the width, where the machine forms an end
+  marker. In 1,500 random well-formed starts run 8 rounds each, the list model gave a wrong tape in 2 (always this
+  sequence); the zipper model never did (it cannot: it is proved), and covered at least as many rounds in every case.
+  `roundZ` writes the canonical form (no wall, width W − 1); `build_trailing_wall` is the fact that the two are the same
+  tape. Whether any certified run passes through this sequence is audited in the lab notes ("The trailing wall").
+* **Certificates checked through the proved model.** `CheckExit.lean` and `CheckEndgame.lean` (run with
+  `lean --run`) read a certificate file and run every leaf through `symRoundsZ`: the exit certificate checks completely
+  (all 358 leaves, every round covered, every shape as claimed) once the cone threshold is Γ = 390 (the Python checker
+  needs 255: the proved model makes a few extra decisions, at the end of the tape and for the guards of its
+  subtractions, with larger margins). By `leaf_run` this is a statement about the machine for every member of every
+  leaf with all gaps ≥ 390. What is not yet in Lean: the partition check (that the leaves' cosets cover the start
+  class), and the bookkeeping of end meetings that classifies break and clean-tape exits.
+* **Two certificate results are Lean theorems** (`thm/ExitTheorem.lean`, `thm/EndgameTheorem.lean`; split trees as
+  data, checked by `native_decide`, which trusts Lean's compiler in addition to its kernel): `exit_no_halt` (every loop
+  state with gaps ≥ 390 runs to a round start without halting) and `endgame_no_close` (every phase-0 pass start with
+  R ≤ 4096 outside {2, 4, 8, 16, 24, 32, 48, 64, 176} and gaps ≥ 448 runs to a round start without halting and without
+  an end meeting at distance ≤ 2). Coverage is by construction (coordinate splits), so no partition argument is used.
+* Next layers: (1) the same checks by kernel evaluation (no compiler trust), or a smaller trusted base by checking a
+  compact certificate per tree; (2) the route-tree certificate (two variables, with
+  recorded split outcomes); (4) the halting characterisation (a halt is PACKET→block, which needs an end meeting at
+  distance ≤ 2).
