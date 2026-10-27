@@ -24,6 +24,7 @@ import BB6.Ends
 import BB6.PassTree
 import BB6.HaltClose
 import BB6.HaltStretch
+import BB6.BlockHalt
 
 /-! Axiom audit: every theorem of the development should depend on at most `propext`, `Quot.sound`,
 `Classical.choice` (the standard three) — in practice the rules depend on none of them. -/
@@ -77,3 +78,4 @@ import BB6.HaltStretch
 #print axioms BB6.Sym.PTree.sound
 #print axioms BB6.Sym.PTree.explore_ok
 #print axioms BB6.Sym.passMass_cut
+#print axioms BB6.block_end_halt

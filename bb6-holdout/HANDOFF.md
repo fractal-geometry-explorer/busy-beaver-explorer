@@ -44,7 +44,8 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    chain to a last pass start that is in a closing class, cut at every depth, or followed by a wider clean tape the run
    halts from. Where the cone's edge leaves a round undecided, the explorer cleaves the class at the bound (`cleave`),
    so the cut classes (2.0% of a start class at 20 splits, 3.8% for R ≥ 178) are nearly all where the depth ran out.
-   Some cut classes are real halts (1/8 of the pass starts with R = 6). The original note:
+   Some cut classes are real halts: every pass start with R = 6, b ≡ 2 (mod 8), W ≡ 2 (mod 4) and gaps ≥ 448 halts
+   (`pass_r6_halt`, `lean/thm/PassHaltR6.lean`). The original note:
    **The loop's end for every width as one Lean theorem.** Prove the pass map (R → R/16, L → L/64) with R free
    using the symbolic runner (`BB6/SymRound`, `BB6/SymSplit`), then induct over passes, combined with
    `endgame_no_close` for R ≤ 4096: "a run through the loop closes only from R ∈ {2, 4, 8, 16, 24, 32, 48, 64, 176}
@@ -62,15 +63,15 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    without a close where the run leaves three walls. With the pass-start trees (`pass_halt_chain`) as what a halt from
    an entry needs, `blank_halt_pass` (`lean/thm/PassEntryHalt.lean`) follows the whole run: a halt from blank tape
    needs such a clean tape, or a pass start wider than 2⁴¹ in a cut class of its pass-start tree at every depth. Some
-   of those pass starts halt (1/8 of those with R = 6). But the plain clean-tape tree follows the run on through every
-   entry, so the run reaches such a pass start only after a clean tape that the plain tree leaves open at every depth
-   (`blank_halt_open`): at 36 digits one of the 404,061 cut classes that meet a loop entry in the tree with entries. And
-   it reaches none with R < 178 (`blank_halt_small`, `lean/thm/SmallEndHalt.lean`): past a loop entry that passes the
-   small-end check (`lean/BB6/SmallEnd.lean`; all 28,660 at 36 digits do) the loop's chain ends at R ≥ 178, so the pass
-   start a halt needs is in the tree for R ≥ 178 (`passTreeSym`), whose cuts at the depths measured are all depth cuts,
-   none at a round decided as a halt. What remains is which of the open clean tapes the run reaches, and from those,
-   which of the open pass starts with R ≥ 178; `blank_halt_open_small` (`lean/thm/OpenSmallHalt.lean`) states the two
-   together, and `never_halts_of_open` turns them into the two questions left.
+   of those pass starts halt (1/8 of those with R = 6, `pass_r6_halt`). But the plain clean-tape tree follows the run on
+   through every entry, so the run reaches such a pass start only after a clean tape that the plain tree leaves open at
+   every depth (`blank_halt_open`): at 36 digits one of the 404,061 cut classes that meet a loop entry in the tree with
+   entries. And it reaches none with R < 178 (`blank_halt_small`, `lean/thm/SmallEndHalt.lean`): past a loop entry that
+   passes the small-end check (`lean/BB6/SmallEnd.lean`; all 28,660 at 36 digits do) the loop's chain ends at R ≥ 178,
+   so the pass start a halt needs is in the tree for R ≥ 178 (`passTreeSym`), whose cuts at the depths measured are all
+   depth cuts, none at a round decided as a halt. What remains is which of the open clean tapes the run reaches, and
+   from those, which of the open pass starts with R ≥ 178; `blank_halt_open_small` (`lean/thm/OpenSmallHalt.lean`)
+   states the two together, and `never_halts_of_open` turns them into the two questions left.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
