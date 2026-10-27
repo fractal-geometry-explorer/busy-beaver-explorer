@@ -123,10 +123,13 @@ def cut(t, kind, root, prefix, budget):
 
 
 def pieces_lean(kind, pieces):
+    """A piece may carry its own kind as a fifth entry (trees of different checks in one module)."""
     out = []
-    for name, tm, st, _ in pieces:
+    for p in pieces:
+        name, tm, st = p[0], p[1], p[2]
+        k = p[4] if len(p) > 4 else kind
         out.append(f'def {name} : Tree := {tm}\n')
-        out.append(f'theorem {name}_ok : {kind.stmt(name, st)} := by\n  decide +kernel\n')
+        out.append(f'theorem {name}_ok : {k.stmt(name, st)} := by\n  decide +kernel\n')
     return '\n'.join(out)
 
 

@@ -8,7 +8,12 @@ with the marks G 1, W a, W b, W c = E − R − 1 and width E; the cone gaps are
 when a round is undecided it splits a coordinate (the first one whose split decides the round in both children), and
 it stops a leaf where the Python checker's classification stops: a close (an end meeting at a constant distance ≤ 2:
 here the round is either uncovered or the end meeting is recorded), a break (an end meeting off the predicted chain),
-a pass (shapes GWWW, GBW, GMB after the first pass), or leaving phase 0 (round 1 not GBW, round 2 not GMB). -/
+a pass (shapes GWWW, GBW, GMB after the first pass), or leaving phase 0 (round 1 not GBW, round 2 not GMB).
+
+Usage: `ExploreNC Rmax Γ [R,R,…] out` writes one tree per R (lines `R tokens…`); `ExploreNC sym Rlo Γ out` writes one
+tree for every R ≥ Rlo, with R = 2 y₃ a fourth coordinate.  `thm/EndgameTheorem.lean` is generated from
+`ExploreNC sym 178 448 thm/endgame_sym.txt` and `ExploreNC 0 448 6,10,12,…,174 thm/endgame_small.txt` (the even R < 178
+outside the closing set). -/
 
 instance : Inhabited Tree := ⟨.leaf 0⟩
 

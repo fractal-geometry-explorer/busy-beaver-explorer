@@ -485,19 +485,33 @@ theorem sgn_sound (p : YForm) (ts : List YForm) (Γ : Int) (y : List Int) (hy : 
         · omega
   | none => exact sgnInv_sound p ts Γ (coneInv ts) y hy
 
-/-- `a < b` on the cone, when decided. -/
+/-- `a < b` on the cone, when decided.  The forms take integer values, so `a < b` fails exactly when
+`b − a − 1 < 0`: the second test decides the differences that are at most 0 on the cone without being negative. -/
 def ltDec (a b : YForm) (ts : List YForm) (Γ : Int) : Option Bool :=
   match sgn (b.sub a) ts Γ with
   | some .pos => some true
   | some _ => some false
-  | none => none
+  | none =>
+    match sgn ((b.sub a).addc (-1)) ts Γ with
+    | some .neg => some false
+    | _ => none
 
 theorem ltDec_sound (a b : YForm) (ts : List YForm) (Γ : Int) (y : List Int) (hy : inCone ts Γ y) (r : Bool)
     (h : ltDec a b ts Γ = some r) : (a.eval y < b.eval y ↔ r = true) := by
   have hs := sgn_sound (b.sub a) ts Γ y hy
   unfold ltDec at h
   cases hsg : sgn (b.sub a) ts Γ with
-  | none => rw [hsg] at h; cases h
+  | none =>
+    rw [hsg] at h
+    have hs1 := (sgn_sound ((b.sub a).addc (-1)) ts Γ y hy).2.1
+    cases hsg1 : sgn ((b.sub a).addc (-1)) ts Γ with
+    | none => rw [hsg1] at h; cases h
+    | some s =>
+      rw [hsg1] at h
+      cases s with
+      | neg => cases h; have := hs1 hsg1; simp only [eval_addc, eval_sub] at this; simp; omega
+      | pos => cases h
+      | zero => cases h
   | some s =>
     rw [hsg] at h
     cases s with
