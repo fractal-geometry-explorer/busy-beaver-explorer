@@ -25,16 +25,12 @@ def routeTree (Γ d : Nat) : RTree :=
 theorem route_tree_ok (Γ d : Nat) : (routeTree Γ d).ok Γ 1000 false rtStart.1 rtStart.2.1 rtStart.2.2 = true :=
   RTree.explore_ok _ _ _ _ _ _ _ _
 
-/-- **From a two-marker state with wide gaps, the machine reaches the next clean tape, unless the start is in a cut
-class.**  For every Γ ≥ 8, every depth d, and all naturals m, E with m even, E odd and both gaps at least Γ
-(m ≥ Γ, E − m ≥ Γ), the machine started from the round start G 1, M m, M E − 2 (width E) runs n rounds of the mark
-model to a round start without halting, and either n ≥ 1 and that round start is a clean tape (the gap at 1, at most
-one marker, the end marker), or (m/2, (E − 1)/2) lies in one of the cut classes of `routeTree Γ d`. -/
-theorem route_tree_clean (Γ d m E : Nat) (hΓ : 8 ≤ Γ) (hm : m % 2 = 0) (hE : E % 2 = 1) (h1 : Γ ≤ m)
-    (h2 : m + Γ ≤ E) :
-    ∃ n k ms' W', roundsZ 1000 n [⟨.M, m⟩, ⟨.M, E - 2⟩] E = .newRound ms' W' ∧
-      steps k (roundStart [⟨.M, m⟩, ⟨.M, E - 2⟩] E) = some (roundStart ms' W') ∧
-      ((routeTree Γ d).cutMem [(m : Int) / 2, ((E : Int) - 1) / 2] = true ∨ (0 < n ∧ cleanTape ms' W')) := by
+/-- The two-marker state G 1, M m, M E − 2 (width E; m even, E odd, both gaps at least Γ ≥ 8) is a well-formed round
+start that agrees with the start class at the point (m/2, (E − 1)/2) of its cone. -/
+theorem rtStart_point (Γ m E : Nat) (hΓ : 8 ≤ Γ) (hm : m % 2 = 0) (hE : E % 2 = 1) (h1 : Γ ≤ m) (h2 : m + Γ ≤ E) :
+    inCone rtStart.2.2 Γ [(m : Int) / 2, ((E : Int) - 1) / 2] ∧
+      agL [(m : Int) / 2, ((E : Int) - 1) / 2] rtStart.1 [⟨.M, m⟩, ⟨.M, E - 2⟩] ∧
+      agN [(m : Int) / 2, ((E : Int) - 1) / 2] rtStart.2.1 E ∧ roundWF [⟨.M, m⟩, ⟨.M, E - 2⟩] E := by
   let y : List Int := [(m : Int) / 2, ((E : Int) - 1) / 2]
   have hy : inCone rtStart.2.2 Γ y := by
     intro t ht
@@ -49,8 +45,21 @@ theorem route_tree_clean (Γ d m E : Nat) (hΓ : 8 ≤ Γ) (hm : m % 2 = 0) (hE 
     simp only [roundWF, rightOK, mval, mlen]
     refine ⟨by omega, ?_, by omega, ?_, by omega, ?_⟩
     all_goals (simp; omega)
+  exact ⟨hy, hs, hW, hwf⟩
+
+/-- **From a two-marker state with wide gaps, the machine reaches the next clean tape, unless the start is in a cut
+class.**  For every Γ ≥ 8, every depth d, and all naturals m, E with m even, E odd and both gaps at least Γ
+(m ≥ Γ, E − m ≥ Γ), the machine started from the round start G 1, M m, M E − 2 (width E) runs n rounds of the mark
+model to a round start without halting, and either n ≥ 1 and that round start is a clean tape (the gap at 1, at most
+one marker, the end marker), or (m/2, (E − 1)/2) lies in one of the cut classes of `routeTree Γ d`. -/
+theorem route_tree_clean (Γ d m E : Nat) (hΓ : 8 ≤ Γ) (hm : m % 2 = 0) (hE : E % 2 = 1) (h1 : Γ ≤ m)
+    (h2 : m + Γ ≤ E) :
+    ∃ n k ms' W', roundsZ 1000 n [⟨.M, m⟩, ⟨.M, E - 2⟩] E = .newRound ms' W' ∧
+      steps k (roundStart [⟨.M, m⟩, ⟨.M, E - 2⟩] E) = some (roundStart ms' W') ∧
+      ((routeTree Γ d).cutMem [(m : Int) / 2, ((E : Int) - 1) / 2] = true ∨ (0 < n ∧ cleanTape ms' W')) := by
+  obtain ⟨hy, hs, hW, hwf⟩ := rtStart_point Γ m E hΓ hm hE h1 h2
   obtain ⟨n, k, ms', W', h1', h2', h3'⟩ :=
-    RTree.sound Γ 1000 (routeTree Γ d) false _ _ _ (route_tree_ok Γ d) y rfl hy _ _ hs hW hwf
+    RTree.sound Γ 1000 (routeTree Γ d) false _ _ _ (route_tree_ok Γ d) _ rfl hy _ _ hs hW hwf
   refine ⟨n, k, ms', W', h1', h2', ?_⟩
   rcases h3' with h | ⟨h, hc⟩
   · exact Or.inl h

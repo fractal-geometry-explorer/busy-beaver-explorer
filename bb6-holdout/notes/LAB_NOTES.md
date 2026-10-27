@@ -2497,6 +2497,34 @@ R ≥ 178 the cut leaves hold 8.8%. At 20 splits they hold 2.4% for R < 178 (1.6
 round, 0.1% at the decided halt) and 4.1% for R ≥ 178: the depth cuts shrink, and the undecided rounds, which are final
 leaves, grow slowly.
 
+**Route exclusion: the loop entries of the route tree cannot close (October 27; `../lean/BB6/RouteEntry.lean`,
+`../lean/BB6/EntryTree.lean`, `../lean/thm/RouteEntryHalt.lean`, `../lean/ROUTE_TREE.md`).** The route tree in Lean
+followed the loop's passes like any other rounds, splitting on R's digits until its depth ran out, so most of its cut
+classes were runs inside the loop. A second tree stops a path at the first round start from which no member of its
+class closes through the loop, decided on the class:
+- The entry check (`entryOK`): a phase-0 pass start (three walls, a odd, b even, W even, R = W − c − 1 even and at
+  least 2) with every gap ≥ 448 and width ≥ 2²⁴, so that by `loop_halt_wide` a close through the loop is p full passes
+  after at most one half pass. After p full passes a close needs R = 16^p·r with r in the closing set {2, 4, 8, 16,
+  24, 32, 48, 64, 176} and L₁ = 64^p·ℓ with ℓ in r's class and ≡ 3 (mod 7) (`loopL1_mod7`). R and L₁ are affine on the
+  class; the check bounds L₁ between two affine functions of R on the cone (slopes and offsets computed from the ratio
+  L₁/R along the cone's edges and at its corner, then only checked), so at a close ℓ lies in a window of width about
+  (β − α)·r/4^p. Beyond a computed P only ℓ = 0 fits, and 0 is not ≡ 3 (mod 7); below it each candidate (p, r, ℓ)
+  fixes the point by Cramer's rule, and the check shows that it is not an integer point of the cone. From W ≡ 2
+  (mod 4) the same check runs on the forms after a half pass (2R′ = R, 2L₁′ = L₁ + 35W − 147R − 60).
+- A seventh kind of node, `entry`, checked by a given test (`RTree.okE`, sound by `RTree.soundE`); the explorer
+  `RTree.exploreE` is proved (`exploreE_okE`), so `route_tree_entry` holds at every depth and cone constant with
+  nothing evaluated: from every two-marker state with both gaps ≥ Γ, a halt-free run to a clean tape or to an entry
+  that cannot close, unless the start is in a cut class. With `loop_halt_wide`: `entry_halt`, `route_halt` and
+  `blank_halt_route`, a halt from such an entry needs the loop's chain to end without a close (`LoopEnd`) and a stuck
+  configuration after it. Standard axioms only.
+- At Γ = 2²⁶: 101,855 cut classes at 36 digits instead of 407,087 (measure 1.48 × 10⁻⁶), 357,237 at 40 instead of
+  1,682,946 (3.25 × 10⁻⁷); 5,981 and 21,123 entries, 0.84 % of the start class at both depths. Every pass start the
+  tree meets passes the check except 94 at 36 digits (measure 401 / 2³⁶), where a gap of 448 is not decided on the
+  whole class; the other cut classes' runs meet no three-wall round start within the depth: they are the deep routes
+  outside the loop. So the σ ceilings ("Route ceilings", October 23) are not needed for the entries the tree reaches:
+  from them the loop cannot close at any width. The tree with entries is also faster to build (66 s at 36 digits and
+  230 s at 40, against 233 s and 16 min).
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:

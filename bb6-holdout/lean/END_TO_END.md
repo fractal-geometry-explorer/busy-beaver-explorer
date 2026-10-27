@@ -247,6 +247,7 @@ tree over the widths ≥ 2²⁰ leaves the same 1,660,024 classes open at 36 dig
 | `thm/LoopHalt.lean`, `thm/ExitHalt.lean` | `loop_chain_halt`: a halt from a phase-0 pass start with gaps ≥ 448 needs a stuck configuration after the loop's chain from it; `exit_halt_needs_contact`: one from a loop state, after the certified exit stretch; `loop_halt_sigma`: beyond the σ bound, a close needs a half pass or a round-7 break on the way; `loop_halt_wide`: from a width ≥ 2²⁴, no round-7 break; `loop_halt_leaves`: and the chain ends where the run leaves three walls | `loop_step` and `halt_after_rounds`, by induction on the halting time (each step takes at least one machine step: `passStart_ne`); `exit_stretch` |
 | `BB6/PassTree.lean`, `thm/PassHalt.lean` | `PTree.sound`: a pass-start tree's check gives, at every point of its class, a cut leaf, the left countdown in the closing class, or a halt-free run to a close-free landing of the chain or a wider clean tape; `PTree.explore_ok`: every tree the explorer builds passes the check; `pass_next`: from every pass start with gaps ≥ 448, at every depth; `pass_halt_chain`: a halt from a pass start of width ≥ 2¹³ follows the chain to a last pass start in a closing class, or cut at every depth, or goes on to a wider clean tape | the proved explorer, nothing evaluated; induction on the halting time through `landing_wide` and `halt_after_rounds` |
 | `thm/EndToEnd.lean` | `clean_chain`, `blank_halt_clean_from`, `blank_halt_clean`, `blank_halt_clean_kernel`, `blank_halt_loop`, `blank_halt_sigma`, `blank_halt_wide`, `blank_halt_exit`, `blank_halt_structure`, `blank_halt_structure_kernel`, `never_halts_of_cut_classes`, `never_halts_of_cut_classes_kernel` | strong induction on the halting time: at each clean tape, either it is cut at every depth, or some depth decides it and the run goes on to a wider clean tape, which takes at least one machine step |
+| `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean` (`ROUTE_TREE.md`) | `route_tree_clean`, `route_tree_entry`: from every two-marker state with both gaps ≥ Γ, a halt-free run to a clean tape, or (`routeTreeE`) to a loop entry from which no point of its class closes through the loop, unless the start is in a cut class; `entry_halt`, `route_halt`, `blank_halt_route`: a halt from such an entry needs the loop's chain to end without a close and a stuck configuration after it, and so does a halt from blank tape at each such two-marker state it passes, unless the state is cut at every depth | `RTree.sound`, `RTree.soundE` with the proved explorers (`explore_ok`, `exploreE_okE`); `entryOK_sound` and `loop_halt_wide`; nothing evaluated |
 | `thm/CleanMass.lean`, `thm/CleanMass40.lean` | `clean_tree_cut_mass`, `clean_tree_cut_mass40`: the leaf counts and cut measure of `cleanTree 36` and `cleanTree 40` | `exploreMassW` evaluated by `native_decide`; used by no theorem about the machine |
 | `thm/CleanKernelMass.lean` | `clean_kernel_cut_mass`: the leaf counts and cut measure of `cleanTreeG 2²⁰ 36` | `exploreMassW`, `native_decide`; used by no theorem about the machine |
 | `BB6/CleanRange.lean` | `directOK_sound`: a run of the mark model from a clean tape to a wider one, as a statement about the machine; `RTree.cuts1_sound`: the cut classes of a one-variable tree as residues of W/2; `rangeOK_sound`: every clean tape of width in [lo, hi) that the tree leaves open runs directly to a wider one | proved, standard axioms |
@@ -355,12 +356,18 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   without halting; a C computation, not in Lean), at least 2⁶¹.
 * **Item 3** is a statement about the stretches after a pass start, not a claim that a halt goes through the loop.
   The σ bound says that from a pass start beyond it a close through the loop needs a half pass or a round-7 break on
-  the way (and from a width ≥ 2²⁴ a round-7 break is out); it does not bound σ itself. How late a run can enter the
-  loop (the σ ceilings of the route tree's entries, `ROUTE_TREE.md`) is evaluated, not proved, and a run that leaves
-  the loop can come back to a pass start later.
+  the way (and from a width ≥ 2²⁴ a round-7 break is out); it does not bound σ itself. For the routes from
+  two-marker states with both gaps at least Γ, the loop entries the route tree reaches are proved not to close at any
+  width (`blank_halt_route`, `ROUTE_TREE.md`); past the loop's end only the pass-start trees follow the run
+  (`pass_halt_chain`, with their cut classes), and a run that leaves the loop can come back to a pass start later.
 * **The pass starts that a pass-start tree cuts at every depth** (`pass_halt_chain`). Nothing is said about them, and
   some of them halt: 1/8 of the pass starts with R = 6 close at distance 0 in round 7, and the machine halts there.
-* The **two-marker route tree** (`route_tree_clean`) is not used here.
+* The **two-marker route trees** (`ROUTE_TREE.md`) are not used by the theorems above: the machine's run reaches
+  two-marker states with a small first gap again and again ("Why a one-variable tree", above). `blank_halt_route`
+  (`thm/RouteEntryHalt.lean`) states what they give for a halting run from blank tape, at each two-marker state with
+  both gaps at least Γ that it passes: unless the state is in a cut class of `routeTreeE Γ d` at every depth d, the
+  run reaches the next clean tape or a loop entry from which the loop's chain ends without a close, and the halt comes
+  after that.
 
 ## How to check
 
@@ -384,7 +391,7 @@ python3 thm/gen_prefix.py checkpoints.txt thm 8
 | `thm/PrefixPieces*.lean`, `thm/ExitPieces*.lean`, `thm/EndgamePieces*.lean` (kernel, 4 modules at a time; the prefix pieces take about 2 min of it) | 3 min 49 s |
 | `thm/PrefixKernel.lean`, `EndgameTheorem.lean`, `ExitTheorem.lean`, `ExitHalt.lean`, `LoopTheorem.lean`, `LoopHalt.lean`, `PassHalt.lean` | seconds |
 | `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 20 s |
-| `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean` | seconds |
+| `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean`, `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean` | seconds |
 | `thm/CleanMass.lean` (36 digits, 3.2 million leaves) | 4 min 46 s |
 | `thm/CleanKernelMass.lean` (36 digits, cone 2²⁰) | 5 min 27 s |
 | `thm/CleanDirect.lean` (the 36-digit tree, then 26,508,327 direct runs) | 13 min 22 s |

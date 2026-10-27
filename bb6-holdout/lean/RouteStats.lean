@@ -1,19 +1,21 @@
 import CleanTheorem
-import RouteTheorem
+import RouteEntryTheorem
 open BB6 BB6.Sym
 
 /-! # Running the explorer (untrusted driver: statistics and tree files only)
 
 The theorems use the proved explorer of `BB6/RouteExplore.lean` directly (`cleanTree d` in `thm/CleanTheorem.lean`,
-`routeTree Γ d` in `thm/RouteTheorem.lean`); no file this driver writes is read by any proof.  It builds the same tree
+`routeTree Γ d` in `thm/RouteTheorem.lean`, `routeTreeE Γ d` in `thm/RouteEntryTheorem.lean`); no file this driver
+writes is read by any proof.  It builds the same tree
 and prints what it looks like: the leaf counts, the cut measure, the longest path in rounds, and the cut leaves above
 the full depth (where a round could not be decided by a residue split, for example an undecided order test), and it
 can write the tree, one token per node: `C` cut, `K` clean, `A`n n rounds, `S`i split on coordinate i, `H`i`,`s
-shear, `D`z the member y₀ = z run directly (dropped).
+shear, `D`z the member y₀ = z run directly (dropped), `N` a loop entry that cannot close.
 
-usage (after `check_end.sh` has built the shared library and the theorem files):
-  lean --load-dynlib=cbuild/so/libBB6all.so --run RouteStats.lean clean 4294967296 36 [tree.txt]
-  lean --load-dynlib=cbuild/so/libBB6all.so --run RouteStats.lean route 8000000 36 [tree.txt]
+usage (after `check_route.sh --fast` has built the shared library and the theorem files):
+  lean --load-dynlib=cbuild/so/libBB6.so --run RouteStats.lean clean 4294967296 36 [tree.txt]
+  lean --load-dynlib=cbuild/so/libBB6.so --run RouteStats.lean route 8000000 36 [tree.txt]
+  lean --load-dynlib=cbuild/so/libBB6.so --run RouteStats.lean entry 67108864 36 [tree.txt]
 (`clean` Γ d is `cleanTreeG Γ d`: Γ = 2³² is `cleanTree d`, Γ = 2⁴¹ the tree of `thm/EndToEndDirect.lean`.) -/
 
 /-- Merge runs of rounds: `adv 1 (adv 1 t)` becomes `adv 2 t`. -/
@@ -37,6 +39,7 @@ def scan (D : Nat) : RTree → Nat → Nat → List (Nat × Nat) × Nat
     (a ++ b, max ra rb)
   | .shear _ _ t, d, r => scan D t d r
   | .drop _ t, d, r => scan D t d r
+  | .entry, _, r => ([], r)
 
 def ser : RTree → Array String → Array String
   | .cut, acc => acc.push "C"
@@ -45,16 +48,20 @@ def ser : RTree → Array String → Array String
   | .split i t0 t1, acc => ser t1 (ser t0 (acc.push ("S" ++ toString i)))
   | .shear i s t, acc => ser t (acc.push ("H" ++ toString i ++ "," ++ toString s))
   | .drop z t, acc => ser t (acc.push ("D" ++ toString z))
+  | .entry, acc => acc.push "N"
 
 def main (args : List String) : IO Unit := do
   let kind := args.getD 0 "clean"
   let Γ := (args.getD 1 "4294967296").toNat!
   let d := (args.getD 2 "24").toNat!
-  let t := merge (if kind == "route" then routeTree Γ d else cleanTreeG Γ d)
+  let t := merge (if kind == "route" then routeTree Γ d else if kind == "entry" then routeTreeE Γ d
+    else cleanTreeG Γ d)
   let (ncut, nclean) := t.leaves
   let mass := t.cutMass d
-  IO.println s!"{kind} tree, depth {d}, Γ = {Γ}: leaves cut {ncut}, clean {nclean}"
+  IO.println s!"{kind} tree, depth {d}, Γ = {Γ}: leaves cut {ncut}, clean {nclean}, entry {t.entries}"
   IO.println s!"cut measure {mass} / 2^{d} = {mass.toFloat / (2 ^ d : Nat).toFloat}"
+  if kind == "entry" then
+    IO.println s!"entry measure {t.entryMass d} / 2^{d} = {(t.entryMass d).toFloat / (2 ^ d : Nat).toFloat}"
   let (early, rmax) := scan d t 0 0
   IO.println s!"most rounds on a path {rmax}; cut leaves above depth {d}: {early.length}"
   for (dd, r) in early.take 20 do IO.println s!"  cut at depth {dd} after {r} rounds"
