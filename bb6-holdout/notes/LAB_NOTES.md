@@ -2038,9 +2038,11 @@ are left as they were run.
   checker, fixed or not, prints the per-gap margins and an overall cone threshold of 447 rather than 255.)
 - *Exhaustive check.* The fixed `nrefdfs2` to 54 digits (48 parts at split level 26, about 4.3 CPU hours,
   `../dfs/merged54_fixed.txt`) reproduces `merged54.txt` line for line (the levels 1 to 54 of the 56-, 58- and 60-digit
-  runs also agree, up to the known tie at level 35), and the corrected case occurs 0 times in all 48 parts. So the
-  audit, which reached 46 digits, now reaches 54; the 60-digit result is unaffected wherever the fixed engine has been
-  run.
+  runs also agree, up to the known tie at level 35), and the corrected case occurs 0 times in all 48 parts. To 56
+  digits (96 parts at split level 28, about 11.3 CPU hours, `../dfs/merged56_fixed.txt`) the fixed engine reproduces
+  `merged56.txt` line for line, again with the corrected case 0 times in every part. So the audit, which reached 46
+  digits, now reaches 56: levels 1 to 56 of the 60-digit result are confirmed with the fixed engine; levels 57 to 60
+  still rest on the unfixed run (about 70 more CPU hours to rerun).
 
 **Formalization, third layer: the certificates through the proved model (October 26; `BB6/SymForm`, `BB6/SymRound`,
 `CheckEndgame.lean`, `CheckExit.lean`).** A certificate leaf is a coset x = x0 + B·y; substituted into the start
