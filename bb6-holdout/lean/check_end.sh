@@ -21,8 +21,9 @@
 #      thm/RouteEntryHalt.lean, nothing evaluated), the clean-tape tree with loop entries and its chain from blank
 #      tape (thm/CleanEntryTheorem.lean, thm/CleanEntryHalt.lean, nothing evaluated), that chain joined to the
 #      pass-start trees, with the plain clean-tape tree taken first where it resolves a clean tape
-#      (thm/PassEntryHalt.lean), and the same with loop entries from which the loop's chain ends at no small right end
-#      (thm/CleanSmallTheorem.lean, thm/SmallEndHalt.lean, nothing evaluated); prints the axioms of the final theorems;
+#      (thm/PassEntryHalt.lean), the same with loop entries from which the loop's chain ends at no small right end
+#      (thm/CleanSmallTheorem.lean, thm/SmallEndHalt.lean, nothing evaluated), and the two together
+#      (thm/OpenSmallHalt.lean); prints the axioms of the final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,
 #      thm/CleanSmallMass.lean, about 5 minutes each), and with --deep also at 40 digits
@@ -91,5 +92,6 @@ stage EndToEndDirect
 stage CleanEntryHalt
 stage PassEntryHalt
 stage SmallEndHalt
+stage OpenSmallHalt
 $LEAN thm/EndToEndAxioms.lean
 echo "END TO END CHECKED"

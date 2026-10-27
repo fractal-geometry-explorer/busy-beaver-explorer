@@ -2658,6 +2658,18 @@ measured are all depth cuts, none at a round decided as a halt, falling with dep
 splits); `blank_halt_small_kernel` is the same from 2²⁰ with the kernel alone (the plain tree below 2³⁷). What stays
 open past the loop is that tree's depth cuts, on the lines of pass starts that the clean tapes' classes lead to.
 
+**Both together (October 27; `../lean/thm/OpenSmallHalt.lean`).** `clean_entry_chain_open` and `blank_halt_open_of`
+now take the test of the loop entries as a parameter (`../lean/thm/PassEntryHalt.lean`), so the order of
+`blank_halt_open` (the plain clean-tape tree's step where that tree resolves a clean tape, the tree with entries
+otherwise) works with the small-end check too. With `cleanTreeGS` and `entry_small_halt`, `blank_halt_open_small`: a
+halt from blank tape needs a clean tape of width ≥ 2⁴¹ that `cleanTreeG 2⁴¹ d` leaves open at every depth, and either
+`cleanTreeGS 2⁴¹ d` leaves it open too and the mark model reaches a contact from it, or the run from it passes a loop
+entry and reaches a pass start with R ≥ 178 that `passTreeSym d` leaves open at every depth, and halts from there
+(`blank_halt_open_small_kernel` from 2²⁰, the kernel alone). `never_halts_of_open` states what is left as two
+questions: if the machine halts from no clean tape that both trees leave open at every depth, and from no pass start
+with R ≥ 178 that `passTreeSym` leaves open at every depth and that the run reaches from a clean tape that `cleanTreeG`
+leaves open at every depth, then it does not halt from blank tape.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:
