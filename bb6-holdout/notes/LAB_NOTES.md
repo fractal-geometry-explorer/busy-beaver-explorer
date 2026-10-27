@@ -2248,6 +2248,24 @@ reaches, the model covers the close-free stretch through the pass starts with ga
 halt needs a stuck configuration either there, with R₁ in the closing set and L₁ in its class, or after the run leaves
 the loop. `exit_halt_needs_contact` gives the same after a loop state's exit event.
 
+**The prefix in the kernel, to 2²⁰ (October 27; `../lean/thm/PrefixKernel.lean`, `../lean/thm/gen_prefix.py`).**
+The last `native_decide` that is not a tree is `prefix_ok`, 1,204,297,272 rounds from the first round start to the
+clean tape of width 2³². Lean's kernel evaluates `roundsZ` at about 600 rounds a second (1.6 to 2 ms a round and
+about 200 kB of memory per round inside one theorem, whatever the fuel; a copy of the round with Boolean tests in
+place of decidable propositions was only 1.35 times faster), so the full prefix would take weeks. The run to 2²⁰ is
+294,033 rounds: `blank_prefix_kernel` checks it in 59 stretches of 5,000 rounds (`(roundsZ 1000 5000 ms W).isRound
+ms' W' = true` by `decide +kernel`, 8 modules, 2 minutes on 4 cores) chained by `roundsZ_chain`, with the standard
+axioms only. Every power of two from 2¹⁶ to 2³² is itself a clean tape of the run (2¹⁶ after 18,368 rounds, 2²²
+after 1,176,058, 2²⁴ after 4,704,284; the rounds grow as 0.28 W), so the prefix can stop at any of them. What a
+lower prefix costs elsewhere is the clean-tape tree's cone: `ExploreCT` at depth 36 leaves cut mass 1,660,086 /
+2³⁶ = 2.42 × 10⁻⁵ at cone 2³², 2.45 × 10⁻⁵ at 2²⁴ (174 cuts before depth 36), 2.54 × 10⁻⁵ at 2²² (465) and 2.94 ×
+10⁻⁵ at 2²⁰ (1,074). At depth 20 the trees for cones 2²⁴ and 2³² are identical; a cone 2^k starts failing near depth
+k − 1. The early cuts are edge effects: in the class W = 2 + 2²⁰z (z ≥ 1) a comparison reads 4z = 4, true only at
+the class's smallest member, and in W = 2¹⁹ + 2 + 2²⁰z it reads 2 + 4z = 4, true only at the rational point z = 1/2.
+Two of these, at depth 19, carry most of the extra mass at cone 2²⁰. Dropping a class's smallest member by a direct
+run (and adding W ≥ W* + 2 to the cone) would remove both kinds. With the tree's soundness proved for every cone (the
+route-tree thread), an end-to-end theorem without `native_decide` then needs only this prefix.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:
