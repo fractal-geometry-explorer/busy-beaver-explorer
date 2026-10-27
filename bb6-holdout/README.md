@@ -118,6 +118,9 @@ mark rules interactively.
   of 1.93 × 10⁻⁶ at 44, by `native_decide` on all cores, `lean/BB6/MassPar.lean`), but not the number of open classes
   at a fixed number of digits: nearly every one holds a 2-adic value of W/2 that no depth settles, so closing them
   needs an argument that uses that W is an integer (`lean/END_TO_END.md`, "Deeper trees").
+  Each such class holds a Cantor set of these values, not one (below every class cut at 24 digits but 2 the tree still
+  cuts 42 to 304 classes at 36 digits), so no never-zero countdown can close a class, and an argument from integrality
+  would have to settle a question of the Collatz kind (`integ/INTEGRALITY.md`).
 - *The route tree* (`lean/thm/RouteTheorem.lean`, `lean/ROUTE_TREE.md`): `route_tree_clean`, the certificate's
   two-marker route tree as a theorem about the machine, at every depth and cone constant, with the standard axioms
   only (the same explorer); at 36 and 40 digits its cut classes are the Python certificate's (measure 5.9 × 10⁻⁶ and
@@ -197,6 +200,7 @@ python3 check_tree.py tree36_leaves.txt          # hours
 | `stepper/` | the mark-rule engine of the stepper page (`engine.js`) and the Node scripts run on it |
 | `m2/` | the first JavaScript explorations of the machine (event and round extraction) |
 | `lock/` | locks for the extra-wall loops (October 27): P and Q pass maps as Lean theorems, the quadratic never-zero countdown of Q, locks for every periodic word, why mixtures have none, and why no such lock can settle the open cases, whose runs almost never reach the loop; the return pieces that make up two-marker runs, with the eight largest and their countdowns as Lean theorems, and the two-marker states that halt (`lock/LOCK_NOTES.md`) |
+| `integ/` | whether the fact that widths are whole numbers can close the open clean-tape classes (October 27): the branching below every open class as Lean-evaluated counts, the branching of single two-marker segments, why no lock can exist for a class, and the search for invariants modulo odd primes (`integ/INTEGRALITY.md`) |
 | `sib/` | a simulator for any six-state machine from blank tape |
 
 The notes are a working log kept as the research went. Paths in them such as `../csearch/gx3.c` are relative to

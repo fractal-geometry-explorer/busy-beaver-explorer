@@ -746,6 +746,10 @@ every class it lies in open at every depth, and as measured nearly every cut cla
 brings the number of cut classes at b digits down to zero, only their measure. Closing classes takes an argument that
 uses that W is an integer, as the loop's lock does: after p full passes L₁ is 64^p·ℓ, and since L₁ ≡ 3 (mod 7) is never
 0, an integer makes finitely many passes, while the 2-adic point at L₁ = 0 makes infinitely many.
+A cut class holds not one of these values but a Cantor set of them (`../integ/INTEGRALITY.md`, October 27): below every
+class cut at 24 digits but 2, the tree of depth 36 still cuts between 42 and 304 classes (`../integ/SpineCount.lean`,
+`native_decide`), so a never-zero countdown for a class would vanish at infinitely many 2-adic points, and no lock of
+the loop's kind can close one.
 
 What the cut paths are made of (`CutShapes.lean`, untrusted, at 36 digits; the shapes at the cut agree with
 `../lock/ShapeStats.lean`): 512,565 of the 1,255,963 (41%) stop at a two-marker state G 1, M m, M W − 2, and most others
