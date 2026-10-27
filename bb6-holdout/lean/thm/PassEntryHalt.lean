@@ -28,6 +28,31 @@ theorem LoopChain.reach {ms : List Mark} {W R : Nat} {ks : List StepKind} {ms' :
     obtain ⟨t, ht⟩ := ih
     exact ⟨kk + t, steps_seq hk ht⟩
 
+/-- **The landings lie on one plane.**  At a landing of the loop's chain, of any of the three kinds, the walls a and b
+and the right end R′ satisfy 2(b − a) = W − 2R′ − 6: the step's map on the left countdown and its first wall
+(`StepMap`, `StepWall`) tie the first wall to the others, so the landings are a family of three coordinates where the
+pass starts have four. -/
+theorem landing_plane {n E R : Nat} {L : Int} {ms : List Mark} {W : Nat} (hl : Landing n E R L ms W) :
+    ∃ a b c R', ms = [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩] ∧ c + R' + 1 = W ∧ 2 * ((b : Int) - a) = W - 2 * R' - 6 := by
+  obtain ⟨k, a, b, c, R', rfl, -, -, -, hc, -, -, hm, hw⟩ := hl
+  refine ⟨a, b, c, R', rfl, hc, ?_⟩
+  cases k with
+  | full =>
+    obtain ⟨-, e1, e2, e3⟩ := hm
+    simp only [StepWall] at hw
+    unfold loopL1 at e2
+    omega
+  | half =>
+    obtain ⟨-, e1, e2, e3, -⟩ := hm
+    simp only [StepWall] at hw
+    unfold loopL1 at e2
+    omega
+  | break7 =>
+    obtain ⟨-, e1, e2, e3⟩ := hm
+    simp only [StepWall] at hw
+    unfold loopL1 at e2
+    omega
+
 /-- **A halt from a loop entry that cannot close.**  If the machine halts T steps after a loop entry that cannot close
 (`EntryNoClose`), then its run follows the loop's chain (`LoopChain`) to a last pass start with walls a₁, b₁ and
 W₁ − R₁ − 1 that lies in a cut leaf of its pass-start tree at every depth (`PassCut`), which it reaches after t steps
