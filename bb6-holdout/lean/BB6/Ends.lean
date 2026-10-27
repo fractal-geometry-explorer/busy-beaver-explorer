@@ -5,22 +5,25 @@ import BB6.Loop
 
 The no-close trees certify a stretch of rounds without a close from each phase-0 pass start.  A statement about the
 machine has to say where that stretch ends: "the run makes some number n of rounds without a close" holds with n = 0
-for any start, so it carries nothing.  The ends, as facts about the mark model's run from a pass start:
+for any start, so it carries nothing.  The ends, as facts about the mark model's run from a pass start of width E with
+right end R and left countdown L:
 
-* `LeftPhase0 n ms`: the run is not in the loop's phase 0: after round 1 the marks are not B, W (the round start is
-  not G B W), or after round 2 not M, B (not G M B);
-* `ChainBreak ds`: the end meetings left the halving chain: two consecutive ones at distances d, d′ with d′ ≠ d/2 + 4
-  (d ≡ 0 mod 4), d′ ≠ (d − 2)/2 (d ≡ 2 mod 4), or d odd;
-* `PassStart fuel R L ms W`: the run is at a phase-0 pass start again (three walls, a odd, b even, W even) after a
-  full pass: its right end is R′ = R/16 (even, at least 2) and its left countdown L₁′ = L/64, and the next two rounds
-  start G B W and G M B.
+* the run has left the loop, at a round start that is not three walls (`NotWWW`): it left phase 0 (`LeftPhase0 n ms`:
+  after round 1 the marks are not B, W, or after round 2 not M, B), or its end meetings left the halving chain
+  (`ChainBreak ds`: two consecutive ones at distances d, d′ with d′ ≠ d/2 + 4 for d ≡ 0 mod 4, d′ ≠ (d − 2)/2 for
+  d ≡ 2 mod 4, or d odd);
+* or the run is at a landing of the loop's chain (`Landing`): three walls with the phase-0 parities (a odd, b even,
+  width W ≡ 0 mod 4), right end R′ even and at least 2, reached by one of three steps (`StepMap`): a full pass
+  (8 rounds; R′ = R/16, L₁′ = L/64, W = E + 24), a half pass (2 rounds, from E ≡ 2 mod 4; R′ = R/2,
+  L₁′ = (L + 35E − 147R − 60)/2, W = E + 6) or a break of the end-meeting chain at round 7
+  (R′ = (476E + 980R − L + 15984)/4704, L₁′ = (L + 1120E + 1666R + 50328)/96, W = E + 24).
 
-None of them holds after zero rounds (`LeftPhase0` needs n = 1 or 2, `ChainBreak` two meetings, `PassStart` a smaller
-right end).  A stretch from a loop state (three walls, either phase: the exit) ends at an `ExitEvent`: a clean tape
-(`CleanTape`), a `ChainBreak`, or a loop state again after a full pass of 8 rounds (`LoopReturn`); none of them holds
-after zero rounds either.  `Tree.okEnd` checks a tree as `Tree.okNC` does and, at each leaf, one of the ends of its
-kind (`EndSpec`); for a right end in the closing set a leaf may instead show that the left countdown L₁ is in a given
-residue class.  `Tree.soundEnd` is the statement for the machine.
+None of them holds after zero rounds: the start is three walls, and each step takes rounds.  A stretch from a loop
+state (three walls, either phase: the exit) ends at an `ExitEvent`: a clean tape (`CleanTape`), a `ChainBreak`, or a
+loop state again after a full pass of 8 rounds (`LoopReturn`); none of them holds after zero rounds either.
+`Tree.okEnd` checks a tree as `Tree.okNC` does and, at each leaf, one of the ends of its kind (`EndSpec`); for a right
+end in the closing set a leaf may instead show that the left countdown L₁ is in a given residue class.
+`Tree.soundEnd` is the statement for the machine.
 -/
 
 namespace BB6
@@ -43,31 +46,53 @@ def passL1 : List Mark → Nat → Int
   | [_, m₂, m₃], W => loopL1 m₂.p m₃.p W
   | _, _ => 0
 
-/-- After a full pass from a pass start with right end R and left countdown L: a phase-0 pass start (walls at a, b, c,
-width W, with a odd, b even, W even) whose right end R′ = W − c − 1 is R/16, even and at least 2, whose left countdown
-is L/64, and from which the next two rounds start G B W and G M B. -/
-def PassStart (fuel R : Nat) (L : Int) (ms : List Mark) (W : Nat) : Prop :=
-  ∃ a b c R', ms = [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩] ∧ a % 2 = 1 ∧ b % 2 = 0 ∧ W % 2 = 0 ∧ c + R' + 1 = W ∧
-    R' % 2 = 0 ∧ 2 ≤ R' ∧ 16 * R' = R ∧ 64 * loopL1 b c W = L ∧
-    ∃ m₁ W₁ m₂ W₂, roundZ fuel [] 1 ms W = .newRound m₁ W₁ ∧ m₁.map Mark.t = [.B, .W] ∧
-      roundZ fuel [] 1 m₁ W₁ = .newRound m₂ W₂ ∧ m₂.map Mark.t = [.M, .B]
+/-- The kinds of step of the loop's chain, from a pass start to the next three-wall round start with the phase-0
+parities: a full pass, a half pass, and a break of the end-meeting chain at round 7. -/
+inductive StepKind
+  | full
+  | half
+  | break7
+  deriving DecidableEq, Repr
 
-/-- Where a stretch from a pass start with right end R and left countdown L may end: after n rounds, with end
-meetings `ds`, at the round start `ms`, `W`. -/
-def EndEvent (fuel R : Nat) (L : Int) (n : Nat) (ds : List Nat) (ms : List Mark) (W : Nat) : Prop :=
-  LeftPhase0 n ms ∨ ChainBreak ds ∨ PassStart fuel R L ms W
+/-- The map of a step of kind `k`, after `n` rounds from a pass start of width E with right end R and left countdown
+L, to a round start of width W with right end R′ and left countdown L′.  A full pass takes 8 rounds, R′ = R/16,
+L′ = L/64 and W = E + 24; a half pass 2 rounds, from E ≡ 2 (mod 4), R′ = R/2, L′ = (L + 35E − 147R − 60)/2 and
+W = E + 6; a break of the chain at round 7 has 4704 R′ = 476E + 980R − L + 15984, 96 L′ = L + 1120E + 1666R + 50328
+and W = E + 24. -/
+def StepMap : StepKind → Nat → Nat → Nat → Int → Nat → Nat → Int → Prop
+  | .full, n, E, R, L, W, R', L' => n = 8 ∧ 16 * R' = R ∧ 64 * L' = L ∧ W = E + 24
+  | .half, n, E, R, L, W, R', L' =>
+    n = 2 ∧ 2 * R' = R ∧ 2 * L' = L + 35 * (E : Int) - 147 * (R : Int) - 60 ∧ W = E + 6 ∧ E % 4 = 2
+  | .break7, n, E, R, L, W, R', L' =>
+    n = 7 ∧ 4704 * (R' : Int) = 476 * (E : Int) + 980 * (R : Int) - L + 15984 ∧
+      96 * L' = L + 1120 * (E : Int) + 1666 * (R : Int) + 50328 ∧ W = E + 24
+
+/-- A landing of the loop's chain, after `n` rounds from a pass start of width E with right end R and left countdown
+L: three walls at a, b, c with the phase-0 parities (a odd, b even, W ≡ 0 mod 4), right end R′ = W − c − 1 even and
+at least 2, and the map of a step from (E, R, L) to (W, R′, L₁′), with L₁′ = `loopL1 b c W`. -/
+def Landing (n E R : Nat) (L : Int) (ms : List Mark) (W : Nat) : Prop :=
+  ∃ k a b c R', ms = [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩] ∧ a % 2 = 1 ∧ b % 2 = 0 ∧ W % 4 = 0 ∧ c + R' + 1 = W ∧
+    R' % 2 = 0 ∧ 2 ≤ R' ∧ StepMap k n E R L W R' (loopL1 b c W)
+
+/-- The round start is not three walls. -/
+def NotWWW (ms : List Mark) : Prop := ∀ a b c, ms ≠ [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩]
+
+/-- Where a stretch from a pass start of width E with right end R and left countdown L may end: after n rounds, with
+end meetings `ds`, at the round start `ms`, `W`: the run left phase 0 or the halving chain, at a round start that is
+not three walls, or it is at a landing of the loop's chain. -/
+def EndEvent (E R : Nat) (L : Int) (n : Nat) (ds : List Nat) (ms : List Mark) (W : Nat) : Prop :=
+  ((LeftPhase0 n ms ∨ ChainBreak ds) ∧ NotWWW ms) ∨ Landing n E R L ms W
 
 /-- A phase-0 pass start with right end R and every gap at least 448: the start classes of the endgame trees. -/
 def PassStart448 (ms : List Mark) (W R : Nat) : Prop :=
   ∃ a b, ms = [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] ∧ a % 2 = 1 ∧ b % 2 = 0 ∧ W % 2 = 0 ∧ R % 2 = 0 ∧ 2 ≤ R ∧
     448 ≤ a ∧ a + 448 ≤ b ∧ b + 448 + R + 1 ≤ W
 
-/-- Where the loop's run from a pass start ends: an end event of its last stretch at which the run is not at a pass
-start with every gap at least 448 after a full pass (from each of those the run is followed on, whichever end event
-holds there).  A half pass, for one, ends the run here: it leaves phase 0 at its second round, where it is at a pass
-start again, with R/2. -/
-def LoopEnd (fuel R : Nat) (L : Int) (n : Nat) (ds : List Nat) (ms : List Mark) (W : Nat) : Prop :=
-  EndEvent fuel R L n ds ms W ∧ ¬ (PassStart fuel R L ms W ∧ ∃ R', PassStart448 ms W R')
+/-- Where the loop's chain ends: an end event at which the run is not at a pass start with every gap at least 448 (a
+round start that is not three walls, or a landing with a gap below 448); from a landing with every gap at least 448
+the run is followed on. -/
+def LoopEnd (E R : Nat) (L : Int) (n : Nat) (ds : List Nat) (ms : List Mark) (W : Nat) : Prop :=
+  EndEvent E R L n ds ms W ∧ ¬ ∃ R', PassStart448 ms W R'
 
 /-- A clean tape: only the end marker is left, at W − 2. -/
 def CleanTape (ms : List Mark) (W : Nat) : Prop := ms = [⟨.M, W - 2⟩]
@@ -85,23 +110,22 @@ def ExitEvent (n : Nat) (ds : List Nat) (ms : List Mark) (W : Nat) : Prop :=
 /-- Which end events a tree's leaves end at: those of a stretch from a pass start, or from a loop state. -/
 inductive EndSpec | endgame | exit
 
-/-- The end events of `sp` (the right end `R` and the left countdown `L` of the start are used by `.endgame` only). -/
+/-- The end events of `sp` (the width `E`, right end `R` and left countdown `L` of the start are used by `.endgame`
+only). -/
 def SpecEvent : EndSpec → Nat → Nat → Int → Nat → List Nat → List Mark → Nat → Prop
-  | .endgame, fuel, R, L, n, ds, ms, W => EndEvent fuel R L n ds ms W
+  | .endgame, E, R, L, n, ds, ms, W => EndEvent E R L n ds ms W
   | .exit, _, _, _, n, ds, ms, W => ExitEvent n ds ms W
 
 theorem chainBreak_prefix {ds : List Nat} (h : ChainBreak ds) (p : List Nat) : ChainBreak (p ++ ds) := by
   obtain ⟨l₁, d, d', l₂, rfl, hn⟩ := h
   exact ⟨p ++ l₁, d, d', l₂, by simp, hn⟩
 
-/-- No end event after zero rounds from a start with right end R (walls at a, b, E − R − 1 with R + 1 ≤ E). -/
-theorem not_endEvent_zero (fuel R : Nat) (L : Int) (a b E : Nat) (hRE : R + 1 ≤ E) :
-    ¬ EndEvent fuel R L 0 [] [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E := by
-  rintro (h | ⟨l₁, d, d', l₂, h, -⟩ | ⟨a', b', c', R', h, -, -, -, hc, -, h2, hR, -⟩)
-  · rcases h with ⟨h, -⟩ | ⟨h, -⟩ <;> cases h
-  · cases l₁ <;> simp at h
-  · simp only [List.cons.injEq, Mark.mk.injEq, true_and, and_true] at h
-    omega
+/-- No end event after zero rounds from a three-wall start of width E. -/
+theorem not_endEvent_zero (E R : Nat) (L : Int) (a b c : Nat) :
+    ¬ EndEvent E R L 0 [] [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩] E := by
+  rintro (⟨-, h⟩ | ⟨k, _, _, _, _, -, -, -, -, -, -, -, hm⟩)
+  · exact h a b c rfl
+  · cases k <;> simp [StepMap] at hm
 
 /-- No exit event after zero rounds from a loop state. -/
 theorem not_exitEvent_zero (a b c E : Nat) : ¬ ExitEvent 0 [] [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩] E := by
@@ -114,6 +138,28 @@ end BB6
 
 namespace BB6.Sym
 open BB6
+
+/-- The start's width, right end and left countdown as forms, which a tree check carries along (substituted with the
+start). -/
+structure SForms where
+  E : YForm
+  R : YForm
+  L : YForm
+
+def SForms.subst (f : SForms) (i : Nat) (ε : Int) : SForms := ⟨f.E.subst i ε, f.R.subst i ε, f.L.subst i ε⟩
+def SForms.skew (f : SForms) (i j : Nat) (s : Int) : SForms := ⟨f.E.skew i j s, f.R.skew i j s, f.L.skew i j s⟩
+
+/-- At `y` the forms take the values E, R and L. -/
+def SForms.Ag (y : List Int) (f : SForms) (E R : Nat) (L : Int) : Prop :=
+  agN y f.E E ∧ agN y f.R R ∧ L = f.L.eval y
+
+theorem SForms.ag_subst {z : List Int} {i : Nat} {ε : Int} (hi : i < z.length) {f : SForms} {E R : Nat} {L : Int}
+    (h : f.Ag (lift z i ε) E R L) : (f.subst i ε).Ag z E R L :=
+  ⟨agN_subst hi h.1, agN_subst hi h.2.1, by rw [h.2.2]; exact (eval_subst f.L i ε z hi).symm⟩
+
+theorem SForms.ag_skew {z : List Int} {i j : Nat} {s : Int} (hi : i < z.length) (hj : j < z.length) {f : SForms}
+    {E R : Nat} {L : Int} (h : f.Ag (skewLift z i j s) E R L) : (f.skew i j s).Ag z E R L :=
+  ⟨agN_skew hi hj h.1, agN_skew hi hj h.2.1, by rw [h.2.2]; exact (eval_skew f.L i j s z hi hj).symm⟩
 
 section
 variable (ts : List YForm) (Γ : Int)
@@ -224,84 +270,107 @@ theorem leftP0Check_sound {y : List Int} {n : Nat} {ss : List SMark} {ms : List 
   simp only [Bool.or_eq_true, Bool.and_eq_true, beq_iff_eq, Bool.not_eq_true', decide_eq_false_iff_not] at h
   exact h
 
-variable (fuel : Nat)
+/-- The round start is not three walls when its forms are not. -/
+theorem notWWW_of_none {y : List Int} {ss : List SMark} {ms : List Mark} (hs : agL y ss ms) (h : swwwOf ss = none) :
+    NotWWW ms := by
+  intro a b c hm
+  have := (wwwOf_agree hs).1 h
+  rw [hm] at this
+  simp [wwwOf] at this
 
-/-- The round start is a pass start after a full pass from a start with right end `sR` and left countdown `sL`
-(`PassStart`): R′ · 16 and L₁′ · 64 are the same forms as `sR` and `sL`. -/
-def passStartCheck (sR sL : YForm) (ss : List SMark) (sW : YForm) : Bool :=
+/-- The map of a step of kind `k` as identities of forms (`StepMap`): `f` the start's forms, `n` the rounds, `sW`,
+`R'`, `L'` the landing's width, right end and left countdown. -/
+def stepMapCheck (f : SForms) (n : Nat) (sW R' L' : YForm) : StepKind → Bool
+  | .full => n == 8 && sameForm (R'.smul 16) f.R && sameForm (L'.smul 64) f.L && sameForm sW (f.E.addc 24)
+  | .half => n == 2 && sameForm (R'.smul 2) f.R &&
+      sameForm (L'.smul 2) (((f.L.add (f.E.smul 35)).sub (f.R.smul 147)).addc (-60)) &&
+      sameForm sW (f.E.addc 6) && f.E.modDec 4 == some 2
+  | .break7 => n == 7 && sameForm (R'.smul 4704) ((((f.E.smul 476).add (f.R.smul 980)).sub f.L).addc 15984) &&
+      sameForm (L'.smul 96) (((f.L.add (f.E.smul 1120)).add (f.R.smul 1666)).addc 50328) &&
+      sameForm sW (f.E.addc 24)
+
+theorem stepMapCheck_sound {y : List Int} {f : SForms} {E R : Nat} {L : Int} (hf : f.Ag y E R L) {n : Nat}
+    {sW R' L' : YForm} {W R'v : Nat} (hW : agN y sW W) (hR' : agN y R' R'v) {k : StepKind}
+    (h : stepMapCheck f n sW R' L' k = true) : StepMap k n E R L W R'v (L'.eval y) := by
+  obtain ⟨hE, hR, hL⟩ := hf
+  unfold agN at hE hR hW hR'
+  cases k with
+  | full =>
+    simp only [stepMapCheck, Bool.and_eq_true, beq_iff_eq] at h
+    obtain ⟨⟨⟨hn, e1⟩, e2⟩, e3⟩ := h
+    have q1 := sameForm_sound e1 y
+    have q2 := sameForm_sound e2 y
+    have q3 := sameForm_sound e3 y
+    simp only [eval_smul, eval_addc] at q1 q2 q3
+    exact ⟨hn, by omega, by omega, by omega⟩
+  | half =>
+    simp only [stepMapCheck, Bool.and_eq_true, beq_iff_eq] at h
+    obtain ⟨⟨⟨⟨hn, e1⟩, e2⟩, e3⟩, e4⟩ := h
+    have q1 := sameForm_sound e1 y
+    have q2 := sameForm_sound e2 y
+    have q3 := sameForm_sound e3 y
+    have m4 := eval_mod _ 4 2 e4 y
+    simp only [eval_smul, eval_addc, eval_add, eval_sub] at q1 q2 q3
+    exact ⟨hn, by omega, by omega, by omega, by omega⟩
+  | break7 =>
+    simp only [stepMapCheck, Bool.and_eq_true, beq_iff_eq] at h
+    obtain ⟨⟨⟨hn, e1⟩, e2⟩, e3⟩ := h
+    have q1 := sameForm_sound e1 y
+    have q2 := sameForm_sound e2 y
+    have q3 := sameForm_sound e3 y
+    simp only [eval_smul, eval_addc, eval_add, eval_sub] at q1 q2 q3
+    exact ⟨hn, by omega, by omega, by omega⟩
+
+/-- The round start is a landing of the loop's chain (`Landing`) after `n` rounds from the start with forms `f`:
+three walls with the phase-0 parities decided, a right end decidedly at least 2, and the map of one of the steps. -/
+def landingCheck (f : SForms) (n : Nat) (ss : List SMark) (sW : YForm) : Bool :=
   match swwwOf ss with
   | none => false
   | some (a, b, c) =>
     let R' := (sW.sub c).addc (-1)
-    a.modDec 2 == some 1 && b.modDec 2 == some 0 && sW.modDec 2 == some 0 && R'.modDec 2 == some 0 &&
-    ltDec (YForm.const 1) R' ts Γ == some true && sameForm (R'.smul 16) sR &&
-    sameForm ((L1Form b c sW).smul 64) sL &&
-    (match symRoundZ ts Γ fuel [] (YForm.const 1) ss sW with
-     | some (.newRound s1 w1) =>
-       decide (s1.map SMark.t = [.B, .W]) &&
-       (match symRoundZ ts Γ fuel [] (YForm.const 1) s1 w1 with
-        | some (.newRound s2 _) => decide (s2.map SMark.t = [.M, .B])
-        | _ => false)
-     | _ => false)
+    let L' := L1Form b c sW
+    a.modDec 2 == some 1 && b.modDec 2 == some 0 && sW.modDec 4 == some 0 && R'.modDec 2 == some 0 &&
+    ltDec (YForm.const 1) R' ts Γ == some true &&
+    (stepMapCheck f n sW R' L' .full || stepMapCheck f n sW R' L' .half || stepMapCheck f n sW R' L' .break7)
 
-theorem passStartCheck_sound {y : List Int} (hy : inCone ts Γ y) {sR sL : YForm} {R : Nat} {L : Int}
-    (hR : agN y sR R) (hL : L = sL.eval y) {ss : List SMark} {sW : YForm} {ms : List Mark} {W : Nat}
-    (hs : agL y ss ms) (hW : agN y sW W) (h : passStartCheck ts Γ fuel sR sL ss sW = true) :
-    PassStart fuel R L ms W := by
+theorem landingCheck_sound {y : List Int} (hy : inCone ts Γ y) {f : SForms} {E R : Nat} {L : Int}
+    (hf : f.Ag y E R L) {n : Nat} {ss : List SMark} {sW : YForm} {ms : List Mark} {W : Nat} (hs : agL y ss ms)
+    (hW : agN y sW W) (h : landingCheck ts Γ f n ss sW = true) : Landing n E R L ms W := by
   have hag := wwwOf_agree hs
-  unfold passStartCheck at h
+  unfold landingCheck at h
   cases hsw : swwwOf ss with
   | none => rw [hsw] at h; cases h
-  | some f =>
-    obtain ⟨fa, fb, fc⟩ := f
+  | some fs =>
+    obtain ⟨fa, fb, fc⟩ := fs
     rw [hsw] at h
     obtain ⟨a, b, c, rfl, h1, h2, h3⟩ := hag.2 fa fb fc hsw
-    simp only [Bool.and_eq_true, beq_iff_eq] at h
-    obtain ⟨⟨⟨⟨⟨⟨⟨pa, pb⟩, pW⟩, pR⟩, g2⟩, e16⟩, e64⟩, hrun⟩ := h
+    simp only [Bool.and_eq_true, Bool.or_eq_true, beq_iff_eq] at h
+    obtain ⟨⟨⟨⟨⟨pa, pb⟩, pW⟩, pR⟩, g2⟩, hk⟩ := h
     have ma := modDec_nat h1 (m := 2) pa
     have mb := modDec_nat h2 (m := 2) pb
-    have mW := modDec_nat hW (m := 2) pW
+    have mW := modDec_nat hW (m := 4) pW
     have l2 := (ltDec_sound _ _ ts Γ y hy true g2).mpr rfl
-    have q16 := sameForm_sound e16 y
-    have q64 := sameForm_sound e64 y
     have pR' := eval_mod _ 2 0 pR y
-    unfold agN at h2 h3 hW hR
-    simp only [eval_const, eval_addc, eval_sub, eval_smul, eval_L1Form] at l2 q16 q64 pR'
-    -- the first lookahead round
-    cases hr1 : symRoundZ ts Γ fuel [] (YForm.const 1) ss sW with
-    | none => rw [hr1] at hrun; cases hrun
-    | some r1 =>
-      rw [hr1] at hrun
-      cases r1 with
-      | newRound s1 w1 =>
-        simp only [Bool.and_eq_true, decide_eq_true_eq] at hrun
-        obtain ⟨t1, hrun2⟩ := hrun
-        have ag1 := symRoundZ_sound ts Γ hy fuel [] [] (YForm.const 1) 1 _ _ sW W _ trivial (agN_const y 1)
-          hs hW hr1
-        generalize hc1 : roundZ fuel [] 1 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩] W = cr1 at ag1
-        cases cr1 with
-        | newRound m₁ W₁ =>
-          cases hr2 : symRoundZ ts Γ fuel [] (YForm.const 1) s1 w1 with
-          | none => rw [hr2] at hrun2; cases hrun2
-          | some r2 =>
-            rw [hr2] at hrun2
-            cases r2 with
-            | newRound s2 w2 =>
-              simp only [decide_eq_true_eq] at hrun2
-              have ag2 := symRoundZ_sound ts Γ hy fuel [] [] (YForm.const 1) 1 _ _ _ _ _ trivial (agN_const y 1)
-                ag1.1 ag1.2 hr2
-              generalize hc2 : roundZ fuel [] 1 m₁ W₁ = cr2 at ag2
-              cases cr2 with
-              | newRound m₂ W₂ =>
-                refine ⟨a, b, c, W - c - 1, rfl, by omega, by omega, by omega, by omega, by omega, by omega, by omega,
-                  ?_, m₁, W₁, m₂, W₂, hc1, ?_, hc2, ?_⟩
-                · rw [hL, ← q64, ← h2, ← h3, ← hW]; simp only [loopL1]
-                · rw [← agL_types ag1.1]; exact t1
-                · rw [← agL_types ag2.1]; exact hrun2
-              | _ => exact absurd ag2 id
-            | _ => simp at hrun2
-        | _ => exact absurd ag1 id
-      | _ => simp at hrun
+    have hL' : loopL1 b c W = (L1Form fb fc sW).eval y := by
+      have h2' := h2
+      have h3' := h3
+      have hW' := hW
+      unfold agN at h2' h3' hW'
+      rw [eval_L1Form, ← h2', ← h3', ← hW']; simp only [loopL1]
+    have h3' := h3
+    have hW' := hW
+    unfold agN at h3' hW'
+    simp only [eval_const, eval_addc, eval_sub] at l2 pR'
+    have hR'ag : agN y ((sW.sub fc).addc (-1)) (W - c - 1) := by
+      unfold agN; simp only [eval_addc, eval_sub]; omega
+    have key : ∀ k, stepMapCheck f n sW ((sW.sub fc).addc (-1)) (L1Form fb fc sW) k = true →
+        Landing n E R L [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩] W := fun k hk' =>
+      ⟨k, a, b, c, W - c - 1, rfl, by omega, by omega, by omega, by omega, by omega, by omega,
+        by rw [hL']; exact stepMapCheck_sound hf hW hR'ag hk'⟩
+    rcases hk with (hk | hk) | hk
+    · exact key _ hk
+    · exact key _ hk
+    · exact key _ hk
 
 end
 
@@ -366,7 +435,7 @@ theorem brkLast_sound {ts : List YForm} {Γ : Int} {y : List Int} (hy : inCone t
 /-! ## The end event at a leaf -/
 
 section
-variable (ts : List YForm) (Γ : Int) (fuel : Nat)
+variable (ts : List YForm) (Γ : Int)
 
 /-- The round start is a clean tape (`CleanTape`). -/
 def cleanCheck (ss : List SMark) (sW : YForm) : Bool :=
@@ -424,24 +493,24 @@ theorem loopRetCheck_sound {y : List Int} {n : Nat} {ss : List SMark} {sW : YFor
     exact ⟨hn, a, b, c, rfl, by omega, by omega, by omega, by omega⟩
 
 /-- The end event of `sp` at a leaf: after `n` rounds, with the end meeting forms `ds` (the last one before the leaf's
-subtree first), at the round start `ss`, `sW`; `sR` and `sL` are the right end and the left countdown of the start. -/
-def evCheck (sp : EndSpec) (n : Nat) (ds : List YForm) (sR sL : YForm) (ss : List SMark) (sW : YForm) : Bool :=
+subtree first), at the round start `ss`, `sW`; `f` holds the start's width, right end and left countdown. -/
+def evCheck (sp : EndSpec) (n : Nat) (ds : List YForm) (f : SForms) (ss : List SMark) (sW : YForm) : Bool :=
   match sp with
-  | .endgame => leftP0Check n ss || brkList ts Γ ds || passStartCheck ts Γ fuel sR sL ss sW
+  | .endgame => landingCheck ts Γ f n ss sW || ((leftP0Check n ss || brkList ts Γ ds) && (swwwOf ss).isNone)
   | .exit => cleanCheck ts Γ ss sW || brkList ts Γ ds || loopRetCheck n ss sW
 
-theorem evCheck_sound (sp : EndSpec) {y : List Int} (hy : inCone ts Γ y) {sR sL : YForm} {R : Nat} {L : Int}
-    (hR : agN y sR R) (hL : L = sL.eval y) {n : Nat} {last : Option YForm} {prev : List Nat} (hl : LastAg y last prev)
+theorem evCheck_sound (sp : EndSpec) {y : List Int} (hy : inCone ts Γ y) {f : SForms} {E R : Nat} {L : Int}
+    (hf : f.Ag y E R L) {n : Nat} {last : Option YForm} {prev : List Nat} (hl : LastAg y last prev)
     {ds : List YForm} {ns : List Nat} (hd : agLN y ds ns) {ss : List SMark} {ms : List Mark} {sW : YForm} {W : Nat}
-    (hs : agL y ss ms) (hW : agN y sW W) (h : evCheck ts Γ fuel sp n (last.toList ++ ds) sR sL ss sW = true) :
-    SpecEvent sp fuel R L n (prev ++ ns) ms W := by
+    (hs : agL y ss ms) (hW : agN y sW W) (h : evCheck ts Γ sp n (last.toList ++ ds) f ss sW = true) :
+    SpecEvent sp E R L n (prev ++ ns) ms W := by
   cases sp with
   | endgame =>
-    simp only [evCheck, Bool.or_eq_true] at h
-    rcases h with (h | h) | h
-    · exact Or.inl (leftP0Check_sound hs h)
-    · exact Or.inr (Or.inl (brkLast_sound hy hl hd h))
-    · exact Or.inr (Or.inr (passStartCheck_sound ts Γ fuel hy hR hL hs hW h))
+    simp only [evCheck, Bool.or_eq_true, Bool.and_eq_true] at h
+    rcases h with h | ⟨h | h, hn⟩
+    · exact Or.inr (landingCheck_sound ts Γ hy hf hs hW h)
+    · exact Or.inl ⟨Or.inl (leftP0Check_sound hs h), notWWW_of_none hs (Option.isNone_iff_eq_none.mp hn)⟩
+    · exact Or.inl ⟨Or.inr (brkLast_sound hy hl hd h), notWWW_of_none hs (Option.isNone_iff_eq_none.mp hn)⟩
   | exit =>
     simp only [evCheck, Bool.or_eq_true] at h
     rcases h with (h | h) | h
@@ -462,82 +531,82 @@ def clsCheck (cls : Option (Int × Int)) (sL : YForm) : Bool :=
   | none => false
 
 /-- As `Tree.okNC`, and each leaf's run ends at an end event of `sp` (`evCheck`; `r0`: the rounds before this
-subtree, `last`: the last end meeting before it).  For `.endgame` (`EndEvent`): it left phase 0, its end meetings left
-the chain, or it is at a pass start after a full pass (right end `sR`/16, left countdown `sL`/64); for `.exit`
-(`ExitEvent`): a clean tape, a break of the chain, or a loop state again after 8 rounds.  Or the leaf is a close leaf,
-at which the left countdown `sL` is decidedly in the class `cls`.  `sR`, `sL` and `last` are substituted along with
-the start. -/
+subtree, `last`: the last end meeting before it).  For `.endgame` (`EndEvent`): it left phase 0 or its end meetings
+left the chain, at a round start that is not three walls, or it is at a landing of the loop's chain (`Landing`); for
+`.exit` (`ExitEvent`): a clean tape, a break of the chain, or a loop state again after 8 rounds.  Or the leaf is a
+close leaf, at which the left countdown `f.L` is decidedly in the class `cls`.  The start's forms `f` and `last` are
+substituted along with the start. -/
 def Tree.okEnd (k : Nat) (cls : Option (Int × Int)) (sp : EndSpec) :
-    Tree → Bool → List SMark → YForm → List YForm → YForm → YForm → Nat → Option YForm → Bool
-  | .leaf n, wf, ss, sW, ts, sR, sL, r0, last =>
-    clsCheck cls sL ||
+    Tree → Bool → List SMark → YForm → List YForm → SForms → Nat → Option YForm → Bool
+  | .leaf n, wf, ss, sW, ts, f, r0, last =>
+    clsCheck cls f.L ||
     ((wf || symRightOK ts Γ (YForm.const 4) false sW ss) &&
      (match symMeetsRounds ts Γ fuel n ss sW with
       | some ds => allGe3 ts Γ ds &&
         (match symRoundsZ ts Γ fuel n ss sW with
-         | some (.newRound ss' sW') => evCheck ts Γ fuel sp (r0 + n) (last.toList ++ ds) sR sL ss' sW'
+         | some (.newRound ss' sW') => evCheck ts Γ sp (r0 + n) (last.toList ++ ds) f ss' sW'
          | _ => false)
       | none => false))
-  | .adv n t, wf, ss, sW, ts, sR, sL, r0, last =>
+  | .adv n t, wf, ss, sW, ts, f, r0, last =>
     (wf || symRightOK ts Γ (YForm.const 4) false sW ss) &&
     (match symMeetsRounds ts Γ fuel n ss sW with
      | some ds => allGe3 ts Γ ds &&
        (match symRoundsZ ts Γ fuel n ss sW with
-        | some (.newRound ss' sW') => t.okEnd k cls sp true ss' sW' ts sR sL (r0 + n) (lastOf last ds)
+        | some (.newRound ss' sW') => t.okEnd k cls sp true ss' sW' ts f (r0 + n) (lastOf last ds)
         | _ => false)
      | none => false)
-  | .node i t0 t1, wf, ss, sW, ts, sR, sL, r0, last =>
+  | .node i t0 t1, wf, ss, sW, ts, f, r0, last =>
     decide (i < k) &&
-      t0.okEnd k cls sp wf (substL ss i 0) (sW.subst i 0) (substT ts i 0) (sR.subst i 0) (sL.subst i 0) r0
+      t0.okEnd k cls sp wf (substL ss i 0) (sW.subst i 0) (substT ts i 0) (f.subst i 0) r0
         (last.map (·.subst i 0)) &&
-      t1.okEnd k cls sp wf (substL ss i 1) (sW.subst i 1) (substT ts i 1) (sR.subst i 1) (sL.subst i 1) r0
+      t1.okEnd k cls sp wf (substL ss i 1) (sW.subst i 1) (substT ts i 1) (f.subst i 1) r0
         (last.map (·.subst i 1))
-  | .skew i j s t, wf, ss, sW, ts, sR, sL, r0, last =>
+  | .skew i j s t, wf, ss, sW, ts, f, r0, last =>
     decide (i < k) && decide (j < k) && decide (i ≠ j) &&
-      t.okEnd k cls sp wf (skewL ss i j s) (sW.skew i j s) (skewT ts i j s) (sR.skew i j s) (sL.skew i j s) r0
+      t.okEnd k cls sp wf (skewL ss i j s) (sW.skew i j s) (skewT ts i j s) (f.skew i j s) r0
         (last.map (·.skew i j s))
 
-/-- The check's state at a subtree: start state, right end and left countdown (substituted along with the start). -/
-abbrev EState := SState × YForm × YForm
+/-- The check's state at a subtree: the start state and the start's forms (substituted along with the start). -/
+abbrev EState := SState × SForms
 
-def esSplit (es : EState) (i : Nat) (ε : Int) : EState := (stSplit es.1 i ε, es.2.1.subst i ε, es.2.2.subst i ε)
-def esSkew (es : EState) (i j : Nat) (s : Int) : EState := (stSkew es.1 i j s, es.2.1.skew i j s, es.2.2.skew i j s)
+def esSplit (es : EState) (i : Nat) (ε : Int) : EState := (stSplit es.1 i ε, es.2.subst i ε)
+def esSkew (es : EState) (i j : Nat) (s : Int) : EState := (stSkew es.1 i j s, es.2.skew i j s)
 
 variable {Γ fuel} in
 theorem Tree.okEnd_node {k i : Nat} {cls : Option (Int × Int)} {sp : EndSpec} {wf : Bool} {t0 t1 : Tree}
     {es : EState} (hi : i < k)
     (h0 : t0.okEnd Γ fuel k cls sp wf (esSplit es i 0).1.1 (esSplit es i 0).1.2.1 (esSplit es i 0).1.2.2
-      (esSplit es i 0).2.1 (esSplit es i 0).2.2 0 none = true)
+      (esSplit es i 0).2 0 none = true)
     (h1 : t1.okEnd Γ fuel k cls sp wf (esSplit es i 1).1.1 (esSplit es i 1).1.2.1 (esSplit es i 1).1.2.2
-      (esSplit es i 1).2.1 (esSplit es i 1).2.2 0 none = true) :
-    (Tree.node i t0 t1).okEnd Γ fuel k cls sp wf es.1.1 es.1.2.1 es.1.2.2 es.2.1 es.2.2 0 none = true := by
+      (esSplit es i 1).2 0 none = true) :
+    (Tree.node i t0 t1).okEnd Γ fuel k cls sp wf es.1.1 es.1.2.1 es.1.2.2 es.2 0 none = true := by
   simp only [Tree.okEnd, Bool.and_eq_true, decide_eq_true_eq, Option.map_none]; exact ⟨⟨hi, h0⟩, h1⟩
 
 variable {Γ fuel} in
 theorem Tree.okEnd_skew {k i j : Nat} {cls : Option (Int × Int)} {sp : EndSpec} {wf : Bool} {s : Int} {t : Tree}
     {es : EState} (hi : i < k) (hj : j < k) (hij : i ≠ j)
     (h : t.okEnd Γ fuel k cls sp wf (esSkew es i j s).1.1 (esSkew es i j s).1.2.1 (esSkew es i j s).1.2.2
-      (esSkew es i j s).2.1 (esSkew es i j s).2.2 0 none = true) :
-    (Tree.skew i j s t).okEnd Γ fuel k cls sp wf es.1.1 es.1.2.1 es.1.2.2 es.2.1 es.2.2 0 none = true := by
+      (esSkew es i j s).2 0 none = true) :
+    (Tree.skew i j s t).okEnd Γ fuel k cls sp wf es.1.1 es.1.2.1 es.1.2.2 es.2 0 none = true := by
   simp only [Tree.okEnd, Bool.and_eq_true, decide_eq_true_eq, Option.map_none]; exact ⟨⟨⟨hi, hj⟩, hij⟩, h⟩
 
-/-- **A checked end tree, for the machine.**  At every point of the root class inside the cone, either the left
-countdown is in the class `cls` (a close leaf), or the machine runs from the round start for the rounds recorded on
-the way to the leaf without halting, reaching a round start, every end meeting on the way is at distance at least 3,
-and the run ends at an end event of `sp` (`SpecEvent`; `r0` rounds and the end meetings `prev` before this
-subtree). -/
+/-- **A checked end tree, for the machine.**  At every point of the root class inside the cone, where the start's
+forms `f` take the values E, R and L, either the left countdown L is in the class `cls` (a close leaf), or the machine
+runs from the round start for the rounds recorded on the way to the leaf without halting, reaching a round start,
+every end meeting on the way is at distance at least 3, and the run ends at an end event of `sp` (`SpecEvent`; `r0`
+rounds and the end meetings `prev` before this subtree). -/
 theorem Tree.soundEnd (k : Nat) (cls : Option (Int × Int)) (sp : EndSpec) (t : Tree) :
-    ∀ (wf : Bool) (ss : List SMark) (sW : YForm) (ts : List YForm) (sR sL : YForm) (r0 : Nat) (last : Option YForm),
-    t.okEnd Γ fuel k cls sp wf ss sW ts sR sL r0 last = true → ∀ (y : List Int), y.length = k → inCone ts Γ y →
-    ∀ (ms : List Mark) (Wn R : Nat) (L : Int) (prev : List Nat), agL y ss ms → agN y sW Wn → agN y sR R →
-    L = sL.eval y → (wf = true → roundWF ms Wn) → LastAg y last prev →
+    ∀ (wf : Bool) (ss : List SMark) (sW : YForm) (ts : List YForm) (f : SForms) (r0 : Nat) (last : Option YForm),
+    t.okEnd Γ fuel k cls sp wf ss sW ts f r0 last = true → ∀ (y : List Int), y.length = k → inCone ts Γ y →
+    ∀ (ms : List Mark) (Wn E R : Nat) (L : Int) (prev : List Nat), agL y ss ms → agN y sW Wn → f.Ag y E R L →
+    (wf = true → roundWF ms Wn) → LastAg y last prev →
     (∃ m c, cls = some (m, c) ∧ L % m = c) ∨
     ∃ n kk ms' Wn', steps kk (roundStart ms Wn) = some (roundStart ms' Wn') ∧
       roundsZ fuel n ms Wn = .newRound ms' Wn' ∧ (∀ d ∈ meetsRounds fuel n ms Wn, 3 ≤ d) ∧
-      SpecEvent sp fuel R L (r0 + n) (prev ++ meetsRounds fuel n ms Wn) ms' Wn' := by
+      SpecEvent sp E R L (r0 + n) (prev ++ meetsRounds fuel n ms Wn) ms' Wn' := by
   induction t with
   | leaf n =>
-    intro wf ss sW ts sR sL r0 last h y _ hy ms Wn R L prev hs hW hR hL hwf hlast
+    intro wf ss sW ts f r0 last h y _ hy ms Wn E R L prev hs hW hf hwf hlast
     simp only [Tree.okEnd] at h
     rcases (Bool.or_eq_true _ _).mp h with hc | h'
     · left
@@ -548,7 +617,7 @@ theorem Tree.soundEnd (k : Nat) (cls : Option (Int × Int)) (sp : EndSpec) (t : 
         obtain ⟨m, c⟩ := p
         rw [hcls] at hc
         simp only [beq_iff_eq] at hc
-        exact ⟨m, c, rfl, by rw [hL]; exact eval_mod sL m c hc y⟩
+        exact ⟨m, c, rfl, by rw [hf.2.2]; exact eval_mod f.L m c hc y⟩
     · right
       simp only [Bool.and_eq_true] at h'
       obtain ⟨hwf', hmt⟩ := h'
@@ -573,11 +642,11 @@ theorem Tree.soundEnd (k : Nat) (cls : Option (Int × Int)) (sp : EndSpec) (t : 
             | newRound ms' Wn' =>
               obtain ⟨kk, hk, -⟩ := rounds_run fuel n ms Wn hrwf (by rw [hcr]; intro h; cases h)
               rw [hcr] at hk
-              exact ⟨n, kk, ms', Wn', hk, hcr, hge, evCheck_sound ts Γ fuel sp hy hR hL hlast hds hag.1 hag.2 hrun⟩
+              exact ⟨n, kk, ms', Wn', hk, hcr, hge, evCheck_sound ts Γ sp hy hf hlast hds hag.1 hag.2 hrun⟩
             | _ => exact absurd hag id
           | _ => simp at hrun
   | adv n t ih =>
-    intro wf ss sW ts sR sL r0 last h y hlen hy ms Wn R L prev hs hW hR hL hwf hlast
+    intro wf ss sW ts f r0 last h y hlen hy ms Wn E R L prev hs hW hf hwf hlast
     simp only [Tree.okEnd, Bool.and_eq_true] at h
     obtain ⟨hwf', hmt⟩ := h
     have hrwf := wf_of_check Γ hy hs hW hwf hwf'
@@ -601,8 +670,8 @@ theorem Tree.soundEnd (k : Nat) (cls : Option (Int × Int)) (sp : EndSpec) (t : 
           | newRound ms' Wn' =>
             obtain ⟨kk, hk, hw'⟩ := rounds_run fuel n ms Wn hrwf (by rw [hcr]; intro h; cases h)
             rw [hcr] at hk hw'
-            rcases ih true ss' sW' ts sR sL (r0 + n) (lastOf last ds) hrun y hlen hy ms' Wn' R L
-                (prev ++ meetsRounds fuel n ms Wn) hag.1 hag.2 hR hL (fun _ => hw')
+            rcases ih true ss' sW' ts f (r0 + n) (lastOf last ds) hrun y hlen hy ms' Wn' E R L
+                (prev ++ meetsRounds fuel n ms Wn) hag.1 hag.2 hf (fun _ => hw')
                 (lastOf_ag ds _ last prev hlast hds) with hc | ⟨n₂, kk₂, ms'', Wn'', hk₂, hr₂, hge₂, hev⟩
             · exact Or.inl hc
             · right
@@ -618,27 +687,24 @@ theorem Tree.soundEnd (k : Nat) (cls : Option (Int × Int)) (sp : EndSpec) (t : 
           | _ => exact absurd hag id
         | _ => simp at hrun
   | node i t0 t1 ih0 ih1 =>
-    intro wf ss sW ts sR sL r0 last h y hlen hy ms Wn R L prev hs hW hR hL hwf hlast
+    intro wf ss sW ts f r0 last h y hlen hy ms Wn E R L prev hs hW hf hwf hlast
     simp only [Tree.okEnd, Bool.and_eq_true, decide_eq_true_eq] at h
     obtain ⟨⟨hi, h0⟩, h1⟩ := h
     obtain ⟨ε, z, hε, hzl, rfl⟩ := cover_split y i (by omega)
     have hiz : i < z.length := by omega
     rcases hε with rfl | rfl
-    · exact ih0 _ _ _ _ _ _ _ _ h0 z (by rw [hzl]; exact hlen) (inCone_subst hiz hy) ms Wn R L prev
-        (agL_subst hiz hs) (agN_subst hiz hW) (agN_subst hiz hR) (by rw [hL, eval_subst sL i 0 z hiz]) hwf
-        (lastAg_subst hiz hlast)
-    · exact ih1 _ _ _ _ _ _ _ _ h1 z (by rw [hzl]; exact hlen) (inCone_subst hiz hy) ms Wn R L prev
-        (agL_subst hiz hs) (agN_subst hiz hW) (agN_subst hiz hR) (by rw [hL, eval_subst sL i 1 z hiz]) hwf
-        (lastAg_subst hiz hlast)
+    · exact ih0 _ _ _ _ _ _ _ h0 z (by rw [hzl]; exact hlen) (inCone_subst hiz hy) ms Wn E R L prev
+        (agL_subst hiz hs) (agN_subst hiz hW) (SForms.ag_subst hiz hf) hwf (lastAg_subst hiz hlast)
+    · exact ih1 _ _ _ _ _ _ _ h1 z (by rw [hzl]; exact hlen) (inCone_subst hiz hy) ms Wn E R L prev
+        (agL_subst hiz hs) (agN_subst hiz hW) (SForms.ag_subst hiz hf) hwf (lastAg_subst hiz hlast)
   | skew i j s t ih =>
-    intro wf ss sW ts sR sL r0 last h y hlen hy ms Wn R L prev hs hW hR hL hwf hlast
+    intro wf ss sW ts f r0 last h y hlen hy ms Wn E R L prev hs hW hf hwf hlast
     simp only [Tree.okEnd, Bool.and_eq_true, decide_eq_true_eq] at h
     obtain ⟨⟨⟨hi, hj⟩, hij⟩, ht⟩ := h
     obtain ⟨z, hzl, rfl⟩ := cover_skew y i j s hij (by omega)
     have hiz : i < z.length := by omega
     have hjz : j < z.length := by omega
-    exact ih _ _ _ _ _ _ _ _ ht z (by rw [hzl]; exact hlen) (inCone_skew hiz hjz hy) ms Wn R L prev
-      (agL_skew hiz hjz hs) (agN_skew hiz hjz hW) (agN_skew hiz hjz hR) (by rw [hL, eval_skew sL i j s z hiz hjz])
-      hwf (lastAg_skew hiz hjz hlast)
+    exact ih _ _ _ _ _ _ _ ht z (by rw [hzl]; exact hlen) (inCone_skew hiz hjz hy) ms Wn E R L prev
+      (agL_skew hiz hjz hs) (agN_skew hiz hjz hW) (SForms.ag_skew hiz hjz hf) hwf (lastAg_skew hiz hjz hlast)
 
 end BB6.Sym

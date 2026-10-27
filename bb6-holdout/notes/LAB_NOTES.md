@@ -2373,6 +2373,35 @@ walls 2,895, 8,798, 11,987, width 12,164 (R = 176, L₁ = −256), and closes 13
 loop can start, not σ itself. How late a run can enter the loop is what the σ ceilings of the route tree measure, and
 they are evaluated, not proved; a run that leaves the loop can also come back to a pass start later (above).
 
+**The loop's chain in Lean (October 27; `../lean/BB6/Ends.lean`, `../lean/thm/LoopTheorem.lean`, `LoopHalt.lean`,
+`EndToEnd.lean`).** The half passes and round-7 breaks above ended the loop's run. Now the end event states all three
+steps with their exact maps, and the run is followed through every landing:
+- From a pass start of width E with right end R and left countdown L₁ the end event (`EndEvent`) is: the run left
+  phase 0 or the halving chain, at a round start that is not three walls (`NotWWW`); or it is at a landing
+  (`Landing`): three walls with a odd, b even, W′ ≡ 0 (mod 4) and R′ even, at least 2, with one of three maps
+  (`StepMap`): a full pass (8 rounds; 16 R′ = R, 64 L₁′ = L₁, W′ = E + 24), a half pass (2 rounds, from
+  E ≡ 2 mod 4; 2 R′ = R, 2 L₁′ = L₁ + 35E − 147R − 60, W′ = E + 6) or a chain break at round 7 (4704 R′ =
+  476E + 980R − L₁ + 15984, 96 L₁′ = L₁ + 1120E + 1666R + 50328, W′ = E + 24). The two lookahead rounds of the old
+  `PassStart` are gone, and the tree checks carry the start's width as a third form (`SForms`). The 342 endgame and
+  57 exit subtree checks pass in the kernel with it (154 s on 4 cores; the trees are unchanged), so the two mod-4
+  facts (a half pass starts from E ≡ 2 mod 4, every landing has W′ ≡ 0 mod 4) are checked now, not only observed.
+- `LoopChain` lists the steps from pass start to pass start, each landing with gaps ≥ 448. `loop_chain_halt`: if
+  the machine halts from a pass start with gaps ≥ 448, its run follows the chain to its last pass start, where it is
+  in a closing class or goes on close-free to the chain's end (`LoopEnd`: a round start that is not three walls, or
+  a landing with a gap below 448), and the halt needs a stuck configuration after that. A round-7 break can raise R,
+  so the induction is on the halting time; a step takes at least one machine step because the width grows and
+  three-wall round starts of different widths differ at cell W′ − 1 (`passStart_ne`).
+- A half pass is only ever the first step (`LoopChain.half_first`): every landing has W′ ≡ 0 mod 4.
+- σ: a chain that ends in a closing class has R³/L₁² ≤ 176³/256² at the start of its last run of full passes
+  (`LoopChain.sigma`). At a round-7 landing 32 R′ = 4E + 4R − b + 110 ≥ 3E + 5R + 559 and
+  96 L₁′ = 147b + 1008E + 2058R + 50142 ≤ 3066E (b ≤ E − R − 449), so the bound there needs
+  27 E³ · 65536 · 9216 ≤ 32768 · 5451776 · 3066² · E², that is E ≤ 1.03 × 10⁸ < 2²⁷ (`break7_sigma`). Widths only
+  grow along the chain, so from a pass start of width ≥ 2²⁷ a chain that ends in a closing class has no round-7
+  break: it is p full passes (R = 16^p R₁, L₁ = 64^p L₁′), or one half pass from W ≡ 2 mod 4 and then p full passes
+  (R = 2 · 16^p R₁, 2 · 64^p L₁′ = L₁ + 35W − 147R − 60) (`LoopChain.close_wide`, `loop_halt_wide`,
+  `blank_halt_wide`). From a pass start beyond the bound, a close through the loop needs a half pass or a round-7
+  break on the way (`loop_halt_sigma`, `blank_halt_sigma`). Standard axioms only.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:

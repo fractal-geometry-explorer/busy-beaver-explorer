@@ -5,8 +5,8 @@ open BB6 BB6.Sym
 
 The phase-0 pass starts: walls at a = 1 + 2 y₀, b = 2 y₁ and c = E − R − 1, width E = 2 y₂, with the cone gaps a,
 b − a and c − b.  `startR R` fixes R; in `symStart` the right end R = 2 y₃ is a fourth coordinate, with R ≥ 178 a
-fourth cone form.  The tree checks carry the right end and the left countdown L₁ = 147 b + 280 E − 392 c − 578
-(`startE`, `symStartE`). -/
+fourth cone form.  The tree checks carry the width, the right end and the left countdown
+L₁ = 147 b + 280 E − 392 c − 578 (`startE`, `symStartE`). -/
 
 /-- The right ends from whose pass starts the run can close. -/
 def closingSet : List Nat := [2, 4, 8, 16, 24, 32, 48, 64, 176]
@@ -39,7 +39,8 @@ def startR (R : Nat) : SState :=
   ([⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩], E, [a, b.sub a, c.sub b])
 
 def startE (R : Nat) : EState :=
-  (startR R, YForm.const R, L1Form ⟨0, [0, 2, 0]⟩ ((⟨0, [0, 0, 2]⟩ : YForm).addc (-(R : Int) - 1)) ⟨0, [0, 0, 2]⟩)
+  let E : YForm := ⟨0, [0, 0, 2]⟩
+  (startR R, ⟨E, YForm.const R, L1Form ⟨0, [0, 2, 0]⟩ (E.addc (-(R : Int) - 1)) E⟩)
 
 def symStart : SState :=
   let a : YForm := ⟨1, [2, 0, 0, 0]⟩
@@ -52,4 +53,4 @@ def symStart : SState :=
 def symStartE : EState :=
   let E : YForm := ⟨0, [0, 0, 2, 0]⟩
   let R : YForm := ⟨0, [0, 0, 0, 2]⟩
-  (symStart, R, L1Form ⟨0, [0, 2, 0, 0]⟩ ((E.sub R).addc (-1)) E)
+  (symStart, ⟨E, R, L1Form ⟨0, [0, 2, 0, 0]⟩ ((E.sub R).addc (-1)) E⟩)

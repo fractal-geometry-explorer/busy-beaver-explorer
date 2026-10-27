@@ -82,7 +82,7 @@ class Kind:
 
 
 def es_proj(es):
-    return f'({es}).1.1 ({es}).1.2.1 ({es}).1.2.2 ({es}).2.1 ({es}).2.2 0 none'
+    return f'({es}).1.1 ({es}).1.2.1 ({es}).1.2.2 ({es}).2 0 none'
 
 
 OKEND = lambda args: Kind('okEnd', args, 'esSplit', 'esSkew', es_proj, 'Tree.okEnd')
