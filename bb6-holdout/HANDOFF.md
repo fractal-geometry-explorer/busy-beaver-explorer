@@ -29,9 +29,12 @@ self-contained except for the large intermediate outputs mentioned in `README.md
 
 ## Next steps (as proposed at handoff)
 
-1. **Done (October 27):** `loop_no_close` in `lean/thm/LoopTheorem.lean`, with `loop_pass` (R free) in
-   `lean/thm/LoopPass.lean`; see the lean README. What remains of this item is the σ bound, which needs the L₁
-   classes of the closing R in Lean. The original note:
+1. **Done in part (October 27):** `endgame_stretch` (with the L₁ classes of the closing R) and `loop_stretch` in
+   `lean/thm/EndgameTheorem.lean` and `LoopTheorem.lean`; see the lean README. The stretches now end at stated events
+   (`lean/BB6/Ends.lean`): the first versions (`endgame_no_close`, `loop_no_close`, `loop_pass`, `exit_no_halt`)
+   held with zero rounds. What remains is the σ bound, which also needs the pass map (R′ = R/16, L₁′ = L₁/64) as an
+   end-event check (the retired `loop_pass` stated it only where its tree chose to stop) and a way across half
+   passes. The original note:
    **The loop's end for every width as one Lean theorem.** Prove the pass map (R → R/16, L → L/64) with R free
    using the symbolic runner (`BB6/SymRound`, `BB6/SymSplit`), then induct over passes, combined with
    `endgame_no_close` for R ≤ 4096: "a run through the loop closes only from R ∈ {2, 4, 8, 16, 24, 32, 48, 64, 176}
@@ -44,6 +47,7 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
 3. **Remove the compiler trust** from the two theorems (kernel evaluation, or compact per-tree certificates).
+   Done for the exit and endgame trees (October 27: `decide +kernel`, subtree by subtree).
 4. **The route-tree certificate in Lean** (the "ways into the loop have ceilings" results).
 5. **Research**: of the three open questions (routes deeper than the tree, halts carried by the extra-wall loop
    alone, marks touching), the most promising is a lock for the extra-wall loops analogous to the plain loop's

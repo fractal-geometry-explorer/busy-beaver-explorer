@@ -2183,11 +2183,70 @@ undecided comparisons into `some false` and never changes a decided one, so ever
 with `cut` leaves, like the clean-tape tree, may cut less when they are rebuilt). With it, the tree for all R ≥ 178
 (`thm/endgame_sym.txt`, built by `ExploreNC sym 178 448`) is complete with 200 leaves. Two other ideas tried on the
 way turned out not to be needed: tightening each cone bound to the next value its form takes at integer points (by
-the gcd of its coefficients), and a second inverse for cones with an upper bound on R. The 79 even R < 178 outside the closing set keep one tree each
-(`thm/endgame_small.txt`, 1,543 leaves). Together they need 4,948 rounds of checks instead of 117,947: 306 subtree
+the gcd of its coefficients), and a second inverse for cones with an upper bound on R. The 79 even R < 178 outside
+the closing set keep one tree each (`thm/endgame_small.txt`, 1,543 leaves). Together they need 4,948 rounds of checks instead of 117,947: 306 subtree
 theorems in four modules, 95 s on 4 cores (about 0.06 s per round, under 1 GB per module), where `native_decide` took
 14 s. `loop_no_close` still goes through `loop_pass` for R ≥ 4097, so its stretch runs through every pass of the
 loop. `blank_halt_structure` now rests on `native_decide` only for `prefix_ok` and `clean_tree_ok`.
+
+**The stretches must say where they end (October 27; `../lean/BB6/Ends.lean`, `../lean/thm/EndgameTheorem.lean`,
+`LoopTheorem.lean`, `ExitTheorem.lean`).** `exit_no_halt`, `endgame_no_close`, `loop_no_close` and item 3 of
+`blank_halt_structure` all had the form "there are n rounds the model covers from the start, without a halt and with
+every end meeting at distance ≥ 3". With n = 0 that holds for every start, with no tree at all: `roundsZ fuel 0 ms W =
+.newRound ms W`, `steps 0 c = some c` and `meetsRounds fuel 0 ms W = []`; the whole proof of the conclusion of
+`endgame_no_close`, with no hypothesis used, is `⟨0, 0, _, _, rfl, rfl, fun _ h => by simp [meetsRounds] at h⟩`.
+`loop_pass` had the same problem one round later: its end "not a phase-0 pass start" holds after the first round from
+every pass start (the round start is G B W). The trees did certify long close-free stretches, but the theorems did
+not say so. The fix is to name where a stretch ends, as facts about the model's run that never hold after zero
+rounds (`not_endEvent_zero`, `not_exitEvent_zero`):
+
+- from a phase-0 pass start (`EndEvent`): the run leaves phase 0 (round 1 not G B W, or round 2 not G M B), two
+  consecutive end meetings leave the halving chain (d′ ≠ d/2 + 4 for d ≡ 0 mod 4, d′ ≠ (d − 2)/2 for d ≡ 2 mod 4, or
+  d odd: `ChainBreak`), or the run is at a phase-0 pass start with a smaller even right end 2 ≤ R′ < R whose next two
+  rounds are G B W and G M B (`PassStart`; the lookahead makes it a pass start in fact, not just three walls with the
+  right parities);
+- from a loop state (`ExitEvent`): a clean tape (only the end marker, at W′ − 2), a chain break, or three walls with
+  the loop's parities again after exactly 8 rounds (a full pass).
+
+`Tree.okEnd` checks these at every leaf with proved symbolic tests (`brkDec` decides a break from a decided residue
+of d and a nonzero, ordered or odd difference of d′ from the chain's prediction); the chain is read off the proved
+end meetings (`meetsRounds`), and the builder (`ExploreNC.lean`, which now also builds the exit tree) classifies
+breaks with the same meetings. Results, all evaluated by the kernel with the standard axioms only:
+
+- `endgame_stretch`: the tree for every R ≥ 178 (200 leaves) and one tree for each even R < 178, now including the
+  closing set (1,677 leaves; 342 subtree theorems, 143 s on 4 cores). For R in the closing set a leaf may instead be
+  a close leaf, and every close leaf shows L₁ in R's class: L₁ ≡ 0 mod 2 (R = 2, 4), 0 mod 8 (8), 0 mod 32 (16),
+  32 mod 64 (24), 0 mod 64 (32), 0 mod 128 (48, 64, 176); with `loopL1_mod7` (L₁ ≡ 3 mod 7 for every b, c, E) these
+  are the classes 10 mod 14, 24 mod 56, 192 mod 224, 416 mod 448, 192 mod 448 and 640 mod 896 of the October 22
+  table. So the table's "L₁ must be" column is now a Lean theorem: from a pass start with gaps ≥ 448, a close before
+  the run leaves phase 0, breaks the chain or reaches the next pass start needs R in the closing set and L₁ in R's
+  class. The 2-adic parts were all decided by the trees' splits; no close leaf needed a separate argument.
+- `loop_stretch`: strong induction on R through the pass starts with every gap ≥ 448 at which the stretches end,
+  using only `endgame_stretch` (the loop tree for R ≥ 4097 is no longer needed: the R ≥ 178 tree covers every width).
+  Within the loop a close comes only from a pass start whose R is in the closing set and whose L₁ is in that R's
+  class; otherwise the run ends at `LoopEnd`, an end event at which it is not at a pass start with every gap ≥ 448.
+  The induction goes on from such a pass start whichever end event the tree reports there: a half pass leaves phase 0
+  at its second round (G B W, then G W W W), where the run is at a pass start again. A pass start with a gap below
+  448 does occur: from the pass start a = 449, b = 926, E = 1504, R = 128 (L₁ = 17,664 ≡ 0 mod 256, the pass class)
+  the pass ends after 8 rounds at the phase-0 pass start with walls 393, 1,146, 1,519, width 1,528, R′ = 8 and
+  L₁′ = 276 = L₁/64, whose first gap is 393 (`RunWalls.lean 449 926 1504 128 9`). So a pass cannot promise gaps
+  ≥ 448, and the induction continues only where they hold. The half-pass example above (`RunWalls.lean 601 11016
+  20010 5632 23`) now reads differently: `loop_stretch` follows it through the half pass (round 2, R = 2,816: the run
+  left phase 0, but it is at three walls followed by G B W and G M B, a `PassStart`; L₁ = 729,088 = L₁/2 + 35E/2 −
+  147R/2 − 30) and the pass to R = 176 (round 10), where L₁ = 11,392 ≡ 640 mod 896 is in 176's class; the close at
+  round 23 is the close that class allows. The G W W W with R = 22 at round 16 is not a pass start in this sense (it
+  is followed by G B W and G M W), and the end meetings stay on the halving chain from 5,630 down to 2.
+- `exit_stretch`: the exit tree is unchanged (358 leaves, the certificate's classes), and every leaf now ends at an
+  exit event: 298 chain breaks, 58 clean tapes, 2 full passes.
+- `loop_pass` and its tree are retired (`LoopPass.lean`, `LoopPieces*.lean`, `gen_loop.py`, `ExploreLoop.lean`). The
+  pass map it stated (R′ = R/16, L₁′ = L₁/64, or R′ = R/2) held only at the leaves where its tree chose to stop at a
+  pass start, so it never said that a pass happens. Putting the pass map back as a check on the `PassStart` end is
+  what the σ bound needs next, with a way across half passes.
+
+Item 3 of `blank_halt_structure` now reads: from every pass start with gaps ≥ 448 that the run from blank tape
+reaches, the model covers the close-free stretch through the pass starts with gaps ≥ 448 to the last of them, and a
+halt needs a stuck configuration either there, with R₁ in the closing set and L₁ in its class, or after the run leaves
+the loop. `exit_halt_needs_contact` gives the same after a loop state's exit event.
 
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,

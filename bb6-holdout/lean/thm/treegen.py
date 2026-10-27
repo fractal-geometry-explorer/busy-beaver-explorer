@@ -2,9 +2,9 @@
 written as Lean terms, and its check cut into subtrees.  One `decide +kernel` evaluation of a whole tree's check keeps
 every intermediate term in the kernel's caches (it runs out of memory), so each subtree whose check runs at most
 `budget` rounds gets its own theorem, and the theorem for the whole tree is assembled from them by the node and skew
-lemmas (`Tree.ok_node`, `Tree.ok_skew` and their `okNC`, `okLoop` versions), which only unfold one step of the check.
-An `adv n` above a cut is moved down into the subtrees below it (each runs the n rounds itself).  The subtree
-theorems are spread over several modules of about equal cost (`piece_modules`), which compile in parallel."""
+lemmas (`Tree.okEnd_node`, `Tree.okEnd_skew`), which only unfold one step of the check.  An `adv n` above a cut is
+moved down into the subtrees below it (each runs the n rounds itself).  The subtree theorems are spread over several
+modules of about equal cost (`piece_modules`), which compile in parallel."""
 import sys
 
 sys.setrecursionlimit(1000000)
@@ -71,8 +71,8 @@ def leaves(t):
 
 
 class Kind:
-    """How a check is stated: `check` (ok, okNC, okLoop), its fixed arguments, the state constructors and the
-    projections of a state onto the check's arguments."""
+    """How a check is stated: `check` (`okEnd`), its fixed arguments, the state constructors and the projections of a
+    state onto the check's arguments."""
 
     def __init__(self, check, args, split, skew, proj, lemma):
         self.check, self.args, self.split, self.skew, self.proj, self.lemma = check, args, split, skew, proj, lemma
@@ -81,17 +81,11 @@ class Kind:
         return f'{tree}.{self.check} {self.args} false {self.proj(st)} = true'
 
 
-def st_proj(st):
-    return f'({st}).1 ({st}).2.1 ({st}).2.2'
+def es_proj(es):
+    return f'({es}).1.1 ({es}).1.2.1 ({es}).1.2.2 ({es}).2.1 ({es}).2.2 0 none'
 
 
-def ls_proj(ls):
-    return f'({ls}).1.1 ({ls}).1.2.1 ({ls}).1.2.2 ({ls}).2.1 ({ls}).2.2'
-
-
-OK = lambda args: Kind('ok', args, 'stSplit', 'stSkew', st_proj, 'Tree.ok')
-OKNC = lambda args: Kind('okNC', args, 'stSplit', 'stSkew', st_proj, 'Tree.okNC')
-OKLOOP = lambda args: Kind('okLoop', args, 'lsSplit', 'lsSkew', ls_proj, 'Tree.okLoop')
+OKEND = lambda args: Kind('okEnd', args, 'esSplit', 'esSkew', es_proj, 'Tree.okEnd')
 
 
 def cut(t, kind, root, prefix, budget):

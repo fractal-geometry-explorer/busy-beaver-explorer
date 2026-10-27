@@ -1,16 +1,17 @@
 #!/bin/bash
 # Check the end-to-end theorem (run ./check.sh first):
 #   1. the proved modules BB6/RouteTree.lean and BB6/CleanTree.lean (seconds);
-#   2. the exit, loop and endgame trees, evaluated by Lean's kernel (`decide +kernel`; no compiler is trusted): the
-#      generated modules thm/ExitPieces*.lean, thm/LoopPieces*.lean and thm/EndgamePieces*.lean hold one theorem per
-#      subtree and compile in parallel (JOBS at a time, default 4; about 1 GB of memory each), and
-#      thm/ExitTheorem.lean, thm/LoopPass.lean and thm/EndgameTheorem.lean assemble them;
+#   2. the exit and endgame trees, evaluated by Lean's kernel (`decide +kernel`; no compiler is trusted): the
+#      generated modules thm/ExitPieces*.lean and thm/EndgamePieces*.lean hold one theorem per subtree and compile in
+#      parallel (JOBS at a time, default 4; about 1 GB of memory each), and thm/ExitTheorem.lean and
+#      thm/EndgameTheorem.lean assemble them;
 #   3. the BB6 modules compiled to a shared library (lean -c, leanc), loaded with --load-dynlib so that native_decide
 #      runs the proved checks as native code (this adds the C compiler to the trusted base; without it the prefix
 #      alone takes about an hour in Lean's interpreter);
-#   4. the theorem files: the halts after the exit and the loop, the blank-tape prefix (thm/Prefix.lean, about
-#      4 minutes), the clean-tape tree (thm/CleanTheorem.lean, generated from thm/clean_tree36.txt.gz by
-#      thm/gen_clean.py), and thm/EndToEnd.lean; prints the axioms of the final theorems.
+#   4. the theorem files: the loop through its passes (thm/LoopTheorem.lean), the halts after the exit and the loop,
+#      the blank-tape prefix (thm/Prefix.lean, about 4 minutes), the clean-tape tree (thm/CleanTheorem.lean,
+#      generated from thm/clean_tree36.txt.gz by thm/gen_clean.py), and thm/EndToEnd.lean; prints the axioms of the
+#      final theorems.
 # usage: LEAN=/path/to/lean LEANLIB=/path/to/lib/lean [JOBS=4] ./check_end.sh [--interpreted]
 set -e
 cd "$(dirname "$0")"
@@ -21,9 +22,9 @@ DEPTH=36
 GAMMA=4294967296
 JOBS=${JOBS:-4}
 for f in RouteTree CleanTree; do echo "== BB6/$f.lean"; $LEAN BB6/$f.lean -o out/BB6/$f.olean; done
-for f in ExitStart LoopStart EndgameStart; do echo "== thm/$f.lean"; $LEAN thm/$f.lean -o out/$f.olean; done
-PIECES=$(cd thm && ls ExitPieces*.lean LoopPieces*.lean EndgamePieces*.lean | sed 's/\.lean$//')
-echo "== thm/ExitPieces*.lean, thm/LoopPieces*.lean, thm/EndgamePieces*.lean (kernel, $JOBS at a time)"
+for f in ExitStart EndgameStart; do echo "== thm/$f.lean"; $LEAN thm/$f.lean -o out/$f.olean; done
+PIECES=$(cd thm && ls ExitPieces*.lean EndgamePieces*.lean | sed 's/\.lean$//')
+echo "== thm/ExitPieces*.lean, thm/EndgamePieces*.lean (kernel, $JOBS at a time)"
 start=$(date +%s)
 printf '%s\n' $PIECES | xargs -P "$JOBS" -I{} "$LEAN" thm/{}.lean -o out/{}.olean
 echo "   $(( $(date +%s) - start )) s"
@@ -46,7 +47,7 @@ if [ ! -f thm/CleanTheorem.lean ] || [ thm/clean_tree$DEPTH.txt.gz -nt thm/Clean
   gunzip -c thm/clean_tree$DEPTH.txt.gz > thm/clean_tree$DEPTH.txt
   python3 thm/gen_clean.py thm/clean_tree$DEPTH.txt thm/CleanTheorem.lean $DEPTH $GAMMA
 fi
-for f in EndgameTheorem ExitTheorem ExitHalt LoopPass LoopTheorem LoopHalt Prefix CleanTheorem; do
+for f in EndgameTheorem ExitTheorem ExitHalt LoopTheorem LoopHalt Prefix CleanTheorem; do
   echo "== thm/$f.lean"
   start=$(date +%s)
   $LEAN $DYN thm/$f.lean -o out/$f.olean

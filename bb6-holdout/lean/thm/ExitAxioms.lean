@@ -1,3 +1,5 @@
-import ExitTheorem
-#check @exit_no_halt
-#print axioms exit_no_halt
+import ExitHalt
+#check @exit_stretch
+#print axioms exit_stretch
+#check @BB6.exit_halt_needs_contact
+#print axioms BB6.exit_halt_needs_contact

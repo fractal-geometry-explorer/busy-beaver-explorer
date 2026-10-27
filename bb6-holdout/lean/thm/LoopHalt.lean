@@ -1,70 +1,54 @@
 import LoopTheorem
 import BB6.HaltStretch
-import BB6.RouteTree
 
 /-!
-# A halt from a pass start, for every R, needs a contact after the loop's end
+# A halt from a pass start needs a contact after the loop's end
 
-`loop_no_close` states the steps and the end meetings of the run; `loop_no_close_rounds` is the same induction, also
-keeping the fact that the mark model covers those rounds (`roundsZ … = .newRound`), which is what `halt_after_rounds`
-needs.  With it, `loop_halt_needs_contact` extends `endgame_halt_needs_contact` (`thm/EndgameHalt.lean`), whose
-stretch ends where the endgame tree ends, to the stretch through the loop's passes: if the machine halts from a
-phase-0 pass start with R even, R ≥ 2 and outside the closing set, it first completes the whole close-free stretch
-through the loop's passes, and the mark model, run on from where that stretch ends, reaches a stuck configuration (a
-close at the right end or an interior contact).
+`loop_stretch` with `halt_after_rounds`: if the machine halts from a phase-0 pass start whose gaps are all at least 448
+(`PassStart448`), it first gets through the close-free stretch `loop_stretch` certifies, through the pass starts whose
+gaps are again all at least 448 to the last of them, `ms₁ W₁` with right end R₁ ≤ R.  From there, either R₁ is in the
+closing set and L₁ is in R₁'s class (`InCloseClass`), and the mark model, run on from `ms₁ W₁`, reaches a stuck
+configuration; or the run goes on close-free to where it leaves the loop (`LoopEnd`: an end event at which it is not
+at a pass start with every gap at least 448), and the model reaches a stuck
+configuration from there.  A stuck configuration is a close at the right end or an interior contact (`stuck_cases`).
 -/
 
 namespace BB6
 open BB6.Sym
 
-/-- `loop_no_close`, keeping that the mark model covers the rounds. -/
-theorem loop_no_close_rounds : ∀ (R : Nat), R % 2 = 0 → 2 ≤ R → closingSet.contains R = false →
-    ∀ (a b E : Nat), a % 2 = 1 → b % 2 = 0 → E % 2 = 0 → 448 ≤ a → a + 448 ≤ b → b + 448 + R + 1 ≤ E →
-    ∃ n ms' W', roundsZ 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E = .newRound ms' W' ∧
-      ∀ d ∈ meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E, 3 ≤ d := by
-  intro R
-  induction R using Nat.strongRecOn with
-  | ind R ih =>
-    intro hR hR2 hS a b E ha hb hE h1 h2 h3
-    by_cases hR4 : R ≤ 4096
-    · obtain ⟨n, -, ms', W', -, hr, hm⟩ := endgame_no_close R hR hR2 hS a b E ha hb hE h1 h2 h3
-      exact ⟨n, ms', W', hr, hm⟩
-    · obtain ⟨n₁, -, ms₁, W₁, -, hr₁, hm₁, hout⟩ :=
-        loop_pass R a b E hR (by omega) ha hb hE h1 h2 h3
-      rcases hout with hn | ⟨a', b', R', rfl, ha', hb', hW', hR', g1, g2, g3, g176, hlt, -⟩
-      · exact ⟨n₁, ms₁, W₁, hr₁, hm₁⟩
-      · obtain ⟨n₂, ms₂, W₂, hr₂, hm₂⟩ :=
-          ih R' hlt hR' (by omega) (not_closing g176) a' b' W₁ ha' hb' hW' g1 g2 g3
-        refine ⟨n₁ + n₂, ms₂, W₂, ?_, ?_⟩
-        · rw [roundsZ_add 1000 n₁ n₂ _ _ _ _ hr₁]; exact hr₂
-        · rw [meetsRounds_append 1000 n₁ n₂ _ _ _ _ hr₁]
-          intro d hd
-          rcases List.mem_append.mp hd with hd | hd
-          · exact hm₁ d hd
-          · exact hm₂ d hd
-
-/-- **A halt from a pass start needs a contact after the loop's end, for every R.**  If the machine halts from a
-phase-0 pass start (walls at a, b, E − R − 1, width E; a odd, b even, E even, R even ≥ 2 outside the closing set,
-every gap ≥ 448), the mark model covers a close-free stretch from it (every end meeting at distance ≥ 3) through
-every pass the run makes, ending at a round start `ms' W'`; and the model, run on from `ms' W'`, reaches a stuck
-configuration: a close at the right end or an interior contact (`stuck_cases`). -/
-theorem loop_halt_needs_contact (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R) (hS : closingSet.contains R = false)
-    (a b E : Nat) (ha : a % 2 = 1) (hb : b % 2 = 0) (hE : E % 2 = 0)
-    (h1 : 448 ≤ a) (h2 : a + 448 ≤ b) (h3 : b + 448 + R + 1 ≤ E) (T : Nat)
-    (hT : steps T (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E) = none) :
-    ∃ n ms' W', roundsZ 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E = .newRound ms' W' ∧
-      (∀ d ∈ meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E, 3 ≤ d) ∧
-      ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t) := by
-  obtain ⟨n, ms', W', hr, hm⟩ := loop_no_close_rounds R hR hR2 hS a b E ha hb hE h1 h2 h3
-  have hwf : roundWF [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E := by
-    simp only [roundWF, rightOK, mval, mlen, iff_true]
+/-- A pass start with every gap at least 448 is a well-formed round start without gap marks. -/
+theorem PassStart448.wf {ms : List Mark} {W R : Nat} (h : PassStart448 ms W R) : roundWF ms W ∧ noG ms := by
+  obtain ⟨a, b, rfl, ha, hb, hW, hR, hR2, h1, h2, h3⟩ := h
+  refine ⟨?_, ?_⟩
+  · simp only [roundWF, rightOK, mval, mlen, iff_true]
     omega
-  have hG : noG [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] := by
-    intro m hm
+  · intro m hm
     simp only [List.mem_cons, List.mem_nil_iff, or_false] at hm
     rcases hm with rfl | rfl | rfl <;> simp
-  obtain ⟨-, -, -, -, -, t, ht, htw, hts⟩ := halt_after_rounds 1000 n _ E ms' W' hwf hG hr T hT
-  exact ⟨n, ms', W', hr, hm, t, ht, htw, stuck_cases hts⟩
+
+/-- **A halt from a pass start needs a contact after the loop's end.**  If the machine halts from a phase-0 pass start
+with right end R and every gap at least 448, the mark model covers a close-free stretch from it (every end meeting at
+distance at least 3) to the last pass start `ms₁ W₁` with gaps again all at least 448 (right end R₁ ≤ R), and then
+either R₁ is in the closing set with L₁ in its class and the model reaches a stuck configuration from `ms₁ W₁`, or the
+model covers a further close-free stretch to where the run leaves the loop (`LoopEnd`) and reaches a stuck
+configuration from there: a close at the right end or an interior contact. -/
+theorem loop_halt_needs_contact (R : Nat) (ms : List Mark) (W : Nat) (hP : PassStart448 ms W R) (T : Nat)
+    (hT : steps T (roundStart ms W) = none) :
+    ∃ n₁ ms₁ W₁ R₁, roundsZ 1000 n₁ ms W = .newRound ms₁ W₁ ∧ (∀ d ∈ meetsRounds 1000 n₁ ms W, 3 ≤ d) ∧
+      PassStart448 ms₁ W₁ R₁ ∧ R₁ ≤ R ∧
+      ((InCloseClass ms₁ W₁ R₁ ∧ ∃ t, Reach ⟨[], 1, ms₁, W₁⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
+        ∃ n₂ ms' W', roundsZ 1000 n₂ ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n₂ ms₁ W₁, 3 ≤ d) ∧
+          LoopEnd 1000 R₁ n₂ (meetsRounds 1000 n₂ ms₁ W₁) ms' W' ∧
+          ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) := by
+  obtain ⟨hwf, hG⟩ := hP.wf
+  obtain ⟨n₁, -, ms₁, W₁, R₁, -, hr₁, hm₁, hP₁, hle, hrest⟩ := loop_stretch R ms W hP
+  obtain ⟨hwf₁, hG₁⟩ := hP₁.wf
+  obtain ⟨k₁, -, -, hT₁, -, t, ht, htw, hts⟩ := halt_after_rounds 1000 n₁ ms W ms₁ W₁ hwf hG hr₁ T hT
+  refine ⟨n₁, ms₁, W₁, R₁, hr₁, hm₁, hP₁, hle, ?_⟩
+  rcases hrest with hc | ⟨n₂, -, ms', W', -, hr₂, hm₂, he⟩
+  · exact Or.inl ⟨hc, t, ht, htw, stuck_cases hts⟩
+  · obtain ⟨-, -, -, -, -, t', ht', htw', hts'⟩ := halt_after_rounds 1000 n₂ ms₁ W₁ ms' W' hwf₁ hG₁ hr₂ _ hT₁
+    exact Or.inr ⟨n₂, ms', W', hr₂, hm₂, he, t', ht', htw', stuck_cases hts'⟩
 
 #print axioms loop_halt_needs_contact
 
