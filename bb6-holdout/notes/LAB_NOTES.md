@@ -2990,3 +2990,111 @@ eleven closing placements at widths 2,048 to 3,072, three are on this route (R =
 eight the end is met one to four more times before the halving chain starts (for R = 402: 400, 204, then 510, 254,
 …, 0); one of them halves from 766 = 3 · 2⁸ − 2 (766, 382, …, 10, 4, then 6, 2, 0). Four of the eight families of
 `open_halt_families` are of that kind, as is the landing at 16,292 (364, 1,356, then 1,022, …).
+
+**The chain's last pass start is wide, and the run from blank tape reaches none of the halting families (October 27,
+night; `../lean/BB6/WideEntry.lean`, `../lean/thm/CleanWideTheorem.lean`, `../lean/thm/WideHalt.lean`).** Where can
+the loop's chain from a loop entry end on a pass start that halts? Every pass start with R ≥ 178 known to halt is in a
+family that fixes R and W − b and moves the width and the middle wall together (`open_halt_families`,
+`reentry_open_halt`), so the question
+is first one of landings on such a family. The steps' maps, from a pass start with walls at a, b and E − R − 1, width
+E and L₁ = 147b − 112E + 392R − 186 (b′ from L₁′ and the landing's own L₁; each division is exact where the step
+happens):
+
+| step | W′ | R′ | b′ |
+|---|---|---|---|
+| full pass | E + 24 | R/16 | (b + 48E − 8R + 1,250)/64 |
+| half pass, E ≡ 2 (mod 4) | E + 6 | R/2 | (b + E − R + 10)/2 |
+| round-7 break | E + 24 | (4E + 4R − b + 110)/32 | (3b + 16E − 6R + 446)/32 |
+
+Solved for the start, a landing on the member (W₀ + 2^k t, R₀, b₀ + 2^k t) of a family needs, after a full pass,
+R = 16R₀, E = W₀ − 24 + 2^k t and b = 64b₀ − 48W₀ + 128R₀ − 98 + 2^(k+4) t; after a half pass, R = 2R₀,
+E = W₀ − 6 + 2^k t ≡ 2 (mod 4) and E − b = 2(W₀ − b₀ − R₀ − 1); after a round-7 break, E = W₀ − 24 + 2^k t,
+b = 4E + 4R − 32R₀ + 110 and 6R = 32b₀ − 28W₀ + 96R₀ − 104 + 2^(k+2) t. The start's gaps (b ≤ E − R − 449) bound the
+width: a full pass lands on the family only at W′ ≤ (64D₀ − 144R₀ − 375)/15 (D₀ = W₀ − b₀), a round-7 break only at
+W′ ≤ (32R₀ − 487)/3. A half pass is only ever the first step (every landing has W ≡ 0 mod 4), so its start is a loop
+entry, and so is a pass start the chain ends at with no step. For the eight families, the widths up to which each way
+onto them is open (none: the bound is below W₀):
+
+| family (W₀, R₀, b₀) | full pass | round-7 break | half pass from an entry with W ≤ 32R | an entry with W ≤ 32R |
+|---|---|---|---|---|
+| (2,368, 466, 1,274) | none | 4,808 | 29,830 | 14,912 |
+| (2,376, 402, 956) | none | 4,125 | 25,734 | 12,864 |
+| (2,460, 578, 1,304) | none | 6,003 | 36,998 | 18,496 |
+| (2,656, 178, 2,010) | none | none | 11,398 | 5,696 |
+| (2,760, 914, 1,084) | none | 9,587 | 58,502 | 29,248 |
+| (2,872, 474, 1,794) | none | 4,893 | 30,342 | 15,168 |
+| (2,962, 210, 2,288) | none | none | 13,446 | 6,720 |
+| (13,400, 186, 9,698) | 13,984 (the first member, `full_pass_open_halt`) | none | none | none |
+
+The loop entries the run reaches are early. At 36 digits over the widths ≥ 2⁴¹, every member of each of the 28,660
+entry classes has R > W/29.02 and W − b > 0.4558W (R, b and W are affine in the class's coordinate, so each ratio is
+monotone along a class, smallest at the cone's edge or at infinity; `../lean/EntryForms.lean` prints the classes).
+`EntryWide` asks W ≤ 32R at the entry, and `cleanWideOK` decides it on the class; the clean-tape tree with that test
+too, `cleanTreeGW`, has the same counts as `cleanTreeGS` at 36 digits (`thm/CleanWideMass.lean`, 3 min 41 s).
+
+From such an entry every pass start of the chain is wide (`step_wide`, `LoopChain.wide_end`): a full pass lands with
+64(W′ − b′) = 16E − b + 128R′ + 286 ≥ 15E + 144R′ + 735, so 15W′ ≤ 64(W′ − b′); a round-7 break with
+32R′ ≥ 3E + 5R + 559, so W′ ≤ 64R′ + 6; the half pass with W′ = E + 6 ≤ 32R + 6 = 64R′ + 6. So the chain's last pass
+start has W ≤ 64R + 6 or 15W ≤ 64(W − b), hence W ≤ 32(W − b + 2R) + 6. The eight families have R₀ ≤ 914 and
+D₀ ≤ 3,702, so they have the shape only up to width 58,502, the 21 of `reentry_open_halt` (R₀ = 178 and
+D₀ = 2^(j+2) − 378 for j = 10 to 30) only below 2³⁵ (`reentryFams_wide`), and the pass start a halt needs is wider than
+2⁴¹: `blank_halt_not_family`. More generally, a halting class the run from blank tape could use at unbounded widths must
+have W − b + 2R growing with the width, at least (W − 6)/32.
+
+On the main route of the halts (the halting-classes thread, untrusted), the first end meeting off the chain is at x = (W
+− b + 2R + 14)/4, and the halving to 0 needs x = 2^j − 2 or 3 · 2^j − 2, so Q = W − b + 2R + 22 is 2^m or 3 · 2^m (m = j
++ 2). The 21 are on it at x = 2^j − 2, and four of the eight: x = 510, 254, 510 and 1,022 for (2,368, 466), (2,656,
+178), (2,872, 474) and (13,400, 186); for the other four (W − b + 2R + 14)/4 is 559.5, 581.5, 879.5 and 277, none of the
+form 2^j − 2, and their runs meet the end one to four more times before the halving starts. With the shape, a pass start
+on the lane Q = 2^m has W ≤ 2^(m+5) + 6 (`wideShape_pow2`): each lane is bounded, and a halt on the main route past a
+pass start wider than 2⁴¹ needs m ≥ 36.
+
+No residue keeps the run off the lanes. Along an entry class z ↦ (b, W, R) is affine, so Q = q₀ + q₁z; at the 28,660
+entries v₂(q₁) is 1 (28,034 classes), 2 (338), 3 (18), 4 (6), 5 (246) or 7 (18), and on the subclasses after chain steps
+it is often 0. Then c · 2^n = Q has a solution exactly when c · 2^n ≡ q₀ (mod q₁), which with q₁ = 2^v·u (u odd) fixes n
+≥ v modulo the order of 2 mod u, or leaves none; nothing 2-adic is preserved. But solutions in the cone are rare. Over
+every entry class and every chain shape (an optional half pass, then a word of up to three full passes or round-7
+breaks), on the subclass where the steps' divisions are exact (the steps' inequalities and walls not imposed, so a
+superset of the chains): 42,187 (class, shape) pairs (28,660 with no step, 6,939 F, 848 B, 1,454 FF, 2,065 FB, 36 BF, 48
+BB, 195 FBF, 8 FBB, one each of BFF and BFB, 1,853 H, 35 HF, 21 HB, 16 HFB, 4 HBB, 3 HFBB; the other words admit no
+exact class), and for c = 1 and 3 every n < 4,096. Two solutions, both at an entry with no step: the class (D = 16) with
+W = 27,964 + 131,072z, b = 3,664 + 17,158z, R = 10,374 + 48,636z has Q = 45,070 + 211,186z = 2¹⁷² at z ≈ 2^154.3, width
+≈ 2^171.3; the class (D = 15) with W = 55,100 + 65,536z, b = 16,578 + 19,718z, R = 14,202 + 16,892z has Q = 66,948 +
+79,602z = 3 · 2⁹² at width ≈ 2^93.3. The 1,845 entry classes at 28 digits give the same two exponents. Below n = 65,536
+there are 46 solutions, on 19 of the 84,374 lines (on a line they recur with the order of 2 modulo the odd part of q₁:
+every 4,422 for the second). Neither point halts: run in the mark model (`../lean/RunWalls.lean`), each meets the end at
+R − 2 in round 2 and then only at distances of the order of the width, never at x, and reaches a wider clean tape, the
+first in round 8 (32 cells wider), the second in round 19 (74 wider). So Q = c · 2^m is far from enough for the main
+route: the rest of the route depends on residues of b and the walls that these two do not have. The search covers the
+main route only (`../runs/lanes.py`, affine forms per class and step, then `../runs/lanehit.c`, c · 2^n mod q₁ for n <
+4,096 in 128-bit arithmetic, 3 s).
+
+Re-entries. The halts do not end on the off-chain halving itself: the run enters the loop again, and the close comes
+from the chain of the re-entry. On the main route with R ≡ 2 (mod 8) (rounds WWW, BW, MWWM, WWWM, BWM, then MB, MWW,
+MB, MWW), round 9 is a phase-0 pass start with every gap at least 448, W ≡ 2 (mod 4) and R′ = Q/32; a half pass takes
+it to round 11 with R′ = Q/64 = 2^(j−4) and W′ = W + 36 ≡ 0 (mod 4), and full passes take that down to R = 16 or 32 in
+a halting class (at j = 20, R = 178: rounds 11, 19, 27 and 35 with R = 2¹⁶, 2¹², 2⁸, 16 and L₁ = −2²⁶, −2²⁰, −2¹⁴,
+−256, then the close at round 43). The left countdown there is affine in the pass start's walls: at round 11
+
+    L₁′ = (−98b + 91W + 637R + 5,738)/256 = (49 · 2^(j+3) + 441R − 7W + 3,582)/256
+
+exactly, at all 438 runs of the fit (R ≡ 2 mod 8 classes of the halting-classes table at scales 10, 11, 13, 14, 17, 21,
+22, 25, 30 and 33, two members each where the table has them) and at 60 more at scales 12, 16, 20, 24, 26, 28, 31 and
+32 (`../runs/reentry.py fit`). A halt then needs the chain of full passes from round 11 to end below 178, which by
+`noSmall_sigma` needs R′³/L₁′² ≤ 177³/9 = 616,137. For a pass start with the wide shape both are bounded: R′ is
+2^(j−4) and |L₁′| at most about 2^(j+2). Over every pass start of the lane with the shape and width at least 2⁴¹
+(scales j ≥ 35; there are none below), the least R′³/L₁′² is 1.94 × 10⁶ at j = 35, 1.92 × 10⁶ at j = 36, and it
+doubles with each scale after (`../runs/reentry.py sigma`). So the main route with R ≡ 2 (mod 8) gives no halt at a pass
+start that a halt from blank tape can need. This is untrusted (the route's eleven rounds and the form of L₁′ are
+observed on the model, not proved), and it covers the main route with R ≡ 2 (mod 8) only. With R ≡ 6 (mod 8) the
+three-wall start at round 7 has R′ = Q/16 and is not a round-7 break of the loop's chain (that needs
+32R′ = 4W − b + 4R + 110, which no member meets), so `break7_noSmall` does not apply there; the other routes re-enter at
+other rounds (round 5 with R′ = 128 and L₁′ = 12,288 for (2,962, 210, 2,288), round 7 with R′ = 256 and
+L₁′ = 356,352 for the 16,292 landing), and the same check needs their R′ and L₁′ as forms. The principle carries over
+wherever R′ is a fixed fraction of Q: by the shape Q ≥ (W − 6)/32, and |L₁′| ≤ 280W′ + 186 for every pass start, so
+R′³/L₁′² grows like the width.
+
+The run itself agrees (the blank-tape follower of the simulation thread to width 2³², untrusted): of its 882,301 pass
+starts with every gap at least 448 (878,495 entries, 3,670 half-pass landings, 40 round-7 breaks and 22 full passes,
+no chain longer than two steps), every one has 15W ≤ 64(W − b), none is a member of the 29 families, and no Q is a
+power of two or three times one.

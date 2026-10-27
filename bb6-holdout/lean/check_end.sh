@@ -1,8 +1,8 @@
 #!/bin/bash
 # Check the end-to-end theorem (run ./check.sh first):
 #   1. the proved modules BB6/RouteTree.lean, BB6/CleanTree.lean, BB6/RouteExplore.lean, BB6/CleanRange.lean,
-#      BB6/RouteEntry.lean, BB6/EntryTree.lean, BB6/CleanEntryTree.lean, BB6/SmallEnd.lean and BB6/MassPar.lean
-#      (seconds);
+#      BB6/RouteEntry.lean, BB6/EntryTree.lean, BB6/CleanEntryTree.lean, BB6/SmallEnd.lean, BB6/WideEntry.lean and
+#      BB6/MassPar.lean (seconds);
 #   2. the exit and endgame trees and the run from blank tape to width 2^20, evaluated by Lean's kernel
 #      (`decide +kernel`; no compiler is trusted): the generated modules thm/ExitPieces*.lean and
 #      thm/EndgamePieces*.lean hold one theorem per subtree, thm/PrefixPieces*.lean one per stretch of 5,000 rounds;
@@ -30,10 +30,12 @@
 #      pass-start trees, with the plain clean-tape tree taken first where it resolves a clean tape
 #      (thm/PassEntryHalt.lean), the same with loop entries from which the loop's chain ends at no small right end
 #      (thm/CleanSmallTheorem.lean, thm/SmallEndHalt.lean, nothing evaluated), and the two together
-#      (thm/OpenSmallHalt.lean); prints the axioms of the final theorems;
+#      (thm/OpenSmallHalt.lean), and with loop entries whose right end is at least a 32nd of the width, from which the
+#      chain ends at a pass start of the wide shape that none of the 29 families above meets above width 2^35
+#      (thm/CleanWideTheorem.lean, thm/WideHalt.lean, nothing evaluated); prints the axioms of the final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,
-#      thm/CleanSmallMass.lean, about 5 minutes each), with --deep also at 40 digits
+#      thm/CleanSmallMass.lean, thm/CleanWideMass.lean, about 5 minutes each), with --deep also at 40 digits
 #      (thm/CleanMass40.lean, thm/CleanDirectMass40.lean, about half an hour each; thm/CleanEntryMass40.lean, evaluated
 #      on all cores by BB6/MassPar.lean), and with --deeper also that of the tree with loop entries at 44 digits
 #      (thm/CleanEntryMass44.lean, two hours of CPU, about an hour beside the --deep files on 4 cores).  No theorem
@@ -51,7 +53,7 @@ for a in "$@"; do
     --interpreted) INTERP=1 ;; --deep) DEEP=1 ;; --deeper) DEEPER=1 ;; *) echo "unknown option $a"; exit 1 ;;
   esac
 done
-for f in RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree SmallEnd MassPar; do
+for f in RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree SmallEnd WideEntry MassPar; do
   echo "== BB6/$f.lean"; $LEAN BB6/$f.lean -o out/BB6/$f.olean
 done
 for f in ExitStart EndgameStart PrefixBase; do echo "== thm/$f.lean"; $LEAN thm/$f.lean -o out/$f.olean; done
@@ -62,7 +64,7 @@ printf '%s\n' $PIECES | xargs -P "$JOBS" -I{} "$LEAN" thm/{}.lean -o out/{}.olea
 echo "   $(( $(date +%s) - start )) s"
 DYN=""
 if [ -z "$INTERP" ]; then
-  MODS="Basic Cycles Rules Iter Rows Rows2 Marks Model Mid Pkt Pkt2 Gap2 Blk Contact Events PktRun Round SymForm SymRound SymSplit Meets HaltClose HaltStretch Loop Ends RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree SmallEnd MassPar"
+  MODS="Basic Cycles Rules Iter Rows Rows2 Marks Model Mid Pkt Pkt2 Gap2 Blk Contact Events PktRun Round SymForm SymRound SymSplit Meets HaltClose HaltStretch Loop Ends RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree SmallEnd WideEntry MassPar"
   mkdir -p cbuild/so
   OBJS=""
   for f in $MODS; do
@@ -92,12 +94,15 @@ export -f compile
 export LEAN DYN
 stage() { printf '%s\n' "$@" | xargs -P "$JOBS" -I{} bash -c 'compile {}'; }
 stage PrefixKernel EndgameTheorem ExitTheorem Prefix CleanTheorem RouteTheorem
-stage CleanEntryTheorem CleanSmallTheorem
+# each imports the one before (seconds each)
+stage CleanEntryTheorem
+stage CleanSmallTheorem
+stage CleanWideTheorem
 DEEPMASS=""
 [ -n "$DEEP" ] && DEEPMASS="CleanMass40 CleanDirectMass40 CleanEntryMass40"
 [ -n "$DEEPER" ] && DEEPMASS="$DEEPMASS CleanEntryMass44"
 stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass CleanEntryMass CleanEntryKernelMass \
-  CleanSmallMass ExitHalt LoopTheorem RouteEntryTheorem
+  CleanSmallMass CleanWideMass ExitHalt LoopTheorem RouteEntryTheorem
 stage LoopHalt
 stage EndToEnd RouteEntryHalt PassHalt PassHaltR6
 stage EndToEndDirect PassHaltClasses
@@ -105,5 +110,6 @@ stage CleanEntryHalt PassOpenHalt
 stage PassEntryHalt
 stage SmallEndHalt
 stage OpenSmallHalt
+stage WideHalt
 $LEAN thm/EndToEndAxioms.lean
 echo "END TO END CHECKED"
