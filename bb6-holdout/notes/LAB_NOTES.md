@@ -2171,7 +2171,6 @@ certified stretch can come back to phase-0 pass starts and close later. The read
 only from a pass start whose R is in the closing set" holds only for the end chain inside each certified stretch.
 `thm/EndToEnd.lean` states the loop part accordingly: a halt comes only after the stretch.
 
-
 **The endgame checked by the kernel, with one tree for every R ≥ 178 (October 27; `../lean/thm/EndgamePieces*.lean`,
 `EndgameTheorem.lean`).** `endgame_no_close` no longer uses `native_decide`, and it no longer needs R ≤ 4096: it holds
 for every even R ≥ 2 outside the closing set. A tree with R as a coordinate (R = 2y₃, with the cone form R ≥ 178) had
@@ -2188,6 +2187,52 @@ the gcd of its coefficients), and a second inverse for cones with an upper bound
 theorems in four modules, 95 s on 4 cores (about 0.06 s per round, under 1 GB per module), where `native_decide` took
 14 s. `loop_no_close` still goes through `loop_pass` for R ≥ 4097, so its stretch runs through every pass of the
 loop. `blank_halt_structure` now rests on `native_decide` only for `prefix_ok` and `clean_tree_ok`.
+
+**Trees built by a proved explorer; the end-to-end statement at every depth (October 27;
+`../lean/BB6/RouteExplore.lean`).** The route-tree and clean-tape theorems no longer check a tree that an untrusted
+program wrote out. `RTree.explore` and `RTree.exploreW` build the trees inside Lean the way `ExploreRT` and `ExploreCT`
+did (rounds one at a time, a split on the first undecided digit with a shear when both coordinates enter it, a stop
+at a clean tape, a cut after d splits), and `explore_ok` / `exploreW_okW` prove by induction on the exploration that
+every tree they build passes `RTree.ok` / `RTree.okW`. So `route_tree_clean` (for every depth and every cone constant)
+and `clean_tree_step` (for every depth) hold with the standard axioms only; no tree is evaluated in a proof, and the
+generators, the tree files and the decoders are gone. What the depth changes is only how many classes are cut, and
+that is evaluated on its own (`exploreMass`, the same exploration without building the tree, by `native_decide`). It
+reproduces the earlier trees: the 36-digit route tree has 407,087 cut and 539,120 clean leaves and the 40-digit one
+1,682,946 and 2,266,244, the Python certificate's numbers; the 36-digit clean-tape tree has 1,660,017 cut and
+1,507,364 closed leaves (with the integer-aware `ltDec`; 1,660,016 before), and the 40-digit one 9,188,787 and 8,107,467
+(measure 9,190,118 / 2⁴⁰ ≈ 8.4 × 10⁻⁶). The end-to-end theorem now reads at every depth: a halt from blank tape needs a clean tape of
+width ≥ 2³² that is in a cut class of the clean-tape tree at every depth d (`clean_chain` asks at each clean tape
+whether some depth decides it), and with the kernel-checked endgame, `blank_halt_structure` rests on `native_decide`
+only for the prefix. The exit stretch is now part of it (`blank_halt_exit`), since `decodeTree` no longer clashes.
+(Its loop and exit items, as stated, also hold with zero rounds, since they do not say where the stretch ends; those
+statements are being changed to name the end of the stretch. The clean-tape items do not use them.) The
+cut classes are the exhaustive check's open classes to within a few (1,930 at 20 digits, 10,722 at 24, 57,934 at 28,
+303,560 at 32, 1,660,017 against 1,660,024 at 36). One difference matters for "every depth": a class with a
+comparison that comes out differently for its smallest member is cut whatever the depth (7 classes at depth 31 to 35
+for the 36-digit tree, measure 76 / 2³⁶ ≈ 1.1 × 10⁻⁹), where the exhaustive check decides the class above a threshold
+and runs the members below it directly. At depth 31, for example, the class W = 2 + 2³²z (z ≥ 1) has after 30 rounds
+its first marker at 4z, and the round asks whether it is exactly 3 cells from the gap: 4z = 4, true only for
+W = 2³² + 2.
+
+**Clean tapes below 2⁴¹ run one by one in Lean; the end-to-end bound raised to 2⁴¹ (October 27;
+`../lean/BB6/CleanRange.lean`, `../lean/thm/CleanDirect.lean`, `../lean/thm/EndToEndDirect.lean`).** The same remedy
+as the exhaustive check's, proved. `directOK W` runs the mark model from the clean tape of width W (at most 10,000
+rounds) until a one-marker clean tape wider than W, `RTree.cuts1` lists the cut classes of a clean-tape tree as
+residues of W/2, and `rangeOK_sound`: every clean tape in a range of widths that the tree leaves open passes
+`directOK`. Evaluated on the 36-digit tree for [2³², 2⁴¹) (`native_decide`, 26,509,316 clean tapes, about 7 minutes of
+native code after the 4.5 minutes of the tree; the longest needs 127 rounds), it gives `clean_step_direct`: every
+clean tape of width in [2³², 2⁴¹) reaches a wider one, with no exception. Above 2⁴¹ the chain uses the tree with the
+cone W ≥ 2⁴¹, where the comparisons above are decided: `cleanTreeG 2⁴¹ d` has no cut above full depth through 36
+digits, and its cut classes are the exhaustive check's open classes (1,930, 10,722, 57,934, 303,560 and
+1,660,024 at 20, 24, 28, 32 and 36 digits; at 36 compared class by class). At 40 digits it has 9,188,899 against
+9,188,898: the edge moves with the cone. Two leaves at depth 40 have an undecided comparison: in the class
+W = 2 + 2⁴¹z the first marker is at 4z after 39 rounds and the test 4z = 4 holds only for W = 2⁴¹ + 2 (the depth-31
+example one level below the cone's exponent), and in the class W = 2⁴⁰ + 2 + 2⁴¹z it is at 2 + 4z, where 2 + 4z = 4
+is false for every member but true at z = 1/2, inside the cone over the rationals. The exhaustive check, with exact
+integer thresholds and direct runs below them, leaves the first open too and settles the second. So `blank_halt_clean_direct`: a halt from blank tape needs
+a clean tape of width ≥ 2⁴¹ in the cut classes of that tree at every depth, then a stuck configuration; it adds the
+direct runs to what `blank_halt_clean` trusts. "Cut at every depth" is still just the conjunction of its finite-depth
+instances, and what carries information is the measure at each evaluated depth.
 
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
