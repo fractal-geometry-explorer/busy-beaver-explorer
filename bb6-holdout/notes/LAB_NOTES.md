@@ -286,7 +286,8 @@ largest jump is 345 (n = 1,222,608,482,984,076,798). The closest-approach minima
 So within the mark model **every clean tape n < 2^61 ≈ 2.3 × 10^18 reaches the next clean tape without halting**, and
 the machine needs at least 0.5·(2^61)³/345 ≈ **1.8 × 10^52 steps** to reach a clean tape ≥ 2^61. Widths below 2^62 are
 covered, so by the sharp lock a halt beyond needs σ ≥ 55.6 at the plain loop's first pass start. (The audit of the
-trailing-wall slip covers this engine to 46 digits; see "The trailing wall".)
+trailing-wall slip covered this engine to 46 digits; the whole run was later repeated with the fixed engine, with the
+same output: see "The trailing wall, fixed".)
 
 **The mark model against the real machine, at these sizes** (October 20, night). The certified macro simulation
 (`cycles.py`: the proven rules applied to the real tape, with every rule's preconditions checked) runs a whole cycle
@@ -2041,8 +2042,10 @@ are left as they were run.
   runs also agree, up to the known tie at level 35), and the corrected case occurs 0 times in all 48 parts. To 56
   digits (96 parts at split level 28, about 11.3 CPU hours, `../dfs/merged56_fixed.txt`) the fixed engine reproduces
   `merged56.txt` line for line, again with the corrected case 0 times in every part. So the audit, which reached 46
-  digits, now reaches 56: levels 1 to 56 of the 60-digit result are confirmed with the fixed engine; levels 57 to 60
-  still rest on the unfixed run (about 70 more CPU hours to rerun).
+  digits, now reaches 56. Finally the whole 60-digit run was repeated with the fixed engine (384 parts at split level
+  31, as `../dfs/K60/`, run in four ranges on four machines, about 70 CPU hours, `../dfs/merged60_fixed.txt`): it
+  reproduces `merged60.txt` line for line, totals included, and the corrected case occurs 0 times in all 384 parts.
+  **The 60-digit result stands with the fixed engine**: no clean tape below 2^61 reaches a halt in the mark model.
 
 **Formalization, third layer: the certificates through the proved model (October 26; `BB6/SymForm`, `BB6/SymRound`,
 `CheckEndgame.lean`, `CheckExit.lean`).** A certificate leaf is a coset x = x0 + B·y; substituted into the start
