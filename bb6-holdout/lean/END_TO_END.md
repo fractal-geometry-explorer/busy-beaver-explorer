@@ -449,13 +449,18 @@ So every part of a halting run from blank tape is followed: from clean tape to c
 the loop at the entries, through the loop by its chain, and past the loop's end by the pass-start trees, to the next
 landing of the chain or a wider clean tape. What is left are two kinds of cut classes. The clean-tape tree's have
 measure 1.83 × 10⁻⁵ at 36 digits, and their number grows about 1.52-fold per digit, so their measure shrinks with
-depth. The pass-start trees' are 2.4% of a start class at 20 splits for R < 178 and 4.1% for R ≥ 178, and they do not
-shrink to nothing, since some of them are real halts (1/8 of the pass starts with R = 6, above). So no depth of the
-pass-start trees can show that their cut classes do not halt. What `blank_halt_pass` leaves open is whether the run
-from blank tape reaches one of the pass starts that halt, or a clean tape of the cut classes. The pass starts it can
-reach that way are the last pass starts of loop chains from the clean-tape tree's entries; following the entries'
-classes through the chain and into the pass-start trees would say which of the pass-start trees' cut classes those
-are.
+depth. The pass-start trees' are 2.4% of a start class at 20 splits for R < 178 and 4.1% for R ≥ 178. Those for
+small R do not shrink to nothing, since some of them are real halts (1/8 of the pass starts with R = 6, above), so no
+depth of the pass-start trees can show that their cut classes do not halt. What `blank_halt_pass` leaves open is
+whether the run from blank tape reaches one of the pass starts that halt, or a clean tape of the cut classes.
+
+The pass starts the run can reach this way are the last pass starts of loop chains from the clean-tape tree's
+entries. At each of those entries the right end R is affine in the class's coordinate with a nonzero coefficient, never
+constant: all 28,660 entries at 36 digits over the widths ≥ 2⁴¹, 25,058 of them (99% of the entries' measure) with a
+coefficient of 2-adic valuation 2 (`EntryStats.lean`, untrusted). A full pass, R → R/16 on the subclass where 16
+divides R, keeps R so. So a chain from an entry ends at R₁ < 178 only at isolated members of the entry's class, and
+apart from those the pass starts it reaches are in the tree for R ≥ 178, whose cut classes fall from 8.8% of a class
+at 16 splits to 4.1% at 20, with no decided halt among them.
 
 ## What is trusted
 

@@ -2559,7 +2559,9 @@ of width ≥ 2⁴¹ in a cut class of the clean-tape tree with loop entries at e
 in a cut class of its pass-start tree at every depth, reached along the loop's chain from such an entry, and it halts
 from there; `blank_halt_pass_kernel` is the same from 2²⁰ with the kernel alone. Unlike the clean-tape tree's cut
 classes, the pass-start trees' do not shrink to nothing (1/8 of the pass starts with R = 6 halt), so what is open is
-which pass starts the run reaches: the last pass starts of loop chains from the clean-tape tree's entries.
+which pass starts the run reaches: the last pass starts of loop chains from the clean-tape tree's entries. At every
+one of those entries R is affine in the class's coordinate with a nonzero coefficient (28,660 entries at 36 digits,
+`EntryStats.lean`), so the chains end at R₁ < 178 only at isolated members, and otherwise in the tree for R ≥ 178.
 
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
