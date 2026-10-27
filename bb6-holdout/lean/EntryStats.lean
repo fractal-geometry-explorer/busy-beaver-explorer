@@ -6,7 +6,9 @@ open BB6 BB6.Sym
 Walks the clean-tape tree with loop entries (`cleanTreeGE Γ d`, `thm/CleanEntryTheorem.lean`) the way the proved
 explorer `RTree.exploreWE` builds it, and sorts its cut leaves by the first three-wall round start on their path and
 the first test of `cleanEntryOK` that it fails there (parities, gaps, width, middle wall, the exclusions after full
-passes or after a half pass, or "not decided wider").  No proof reads anything it prints.
+passes or after a half pass, or "not decided wider").  It also sorts the loop entries by the form of their right end
+R on the class: constant, or affine in the class's coordinate, by the 2-adic valuation of its coefficient.  No proof
+reads anything it prints.
 
 usage (after `check_route.sh --fast` has built the shared library):
   lean --load-dynlib=cbuild/so/libBB6.so --run EntryStats.lean 2199023255552 36 -/
@@ -44,6 +46,29 @@ structure Acc3 where
   threeW : Nat := 0
   -- the number of three-wall starts met on a cut path, histogram
   nmet : Array Nat := Array.replicate 20 0
+  -- the loop entries: all, those with R constant on the class, and the others by the 2-adic valuation of R's
+  -- coefficient (counts and measures)
+  entries : Nat := 0
+  entryMass : Nat := 0
+  constR : Nat := 0
+  coefV : Array Nat := Array.replicate 64 0
+  coefVMass : Array Nat := Array.replicate 64 0
+
+/-- The 2-adic valuation of a nonzero integer. -/
+partial def v2 (n : Int) : Nat := if n % 2 == 0 then v2 (n / 2) + 1 else 0
+
+/-- Record a loop entry by the form of its right end R = W − c − 1 on the class. -/
+def entryForm (ss : List SMark) (sW : YForm) (D : Nat) (acc : Acc3) : Acc3 :=
+  match swwwOf ss with
+  | none => acc
+  | some (_, _, c) =>
+    let R := (sW.sub c).addc (-1)
+    let acc := { acc with entries := acc.entries + 1, entryMass := acc.entryMass + 2 ^ D }
+    let g : Int := R.c.foldl (fun g x => (Int.gcd g x : Int)) 0
+    if g == 0 then { acc with constR := acc.constR + 1 }
+    else
+      let v := min (v2 g) 63
+      { acc with coefV := acc.coefV.modify v (· + 1), coefVMass := acc.coefVMass.modify v (· + 2 ^ D) }
 
 partial def walk (Γ : Int) (fuel B : Nat) : Nat → Nat → Nat → Bool → List SMark → YForm → YForm → List YForm → Nat →
     Nat → Nat → Acc3 → Acc3
@@ -52,7 +77,7 @@ partial def walk (Γ : Int) (fuel B : Nat) : Nat → Nat → Nat → Bool → Li
                nmet := acc.nmet.modify (min met 19) (· + 1) }
   | S + 1, d, nd, moved, ss, sW, w0, ts, D, first, met, acc =>
     if (moved && symClean1 ss sW && widerB sW w0 ts Γ) = true then acc else
-    if cleanEntryOK Γ ts ss sW w0 = true then acc else
+    if cleanEntryOK Γ ts ss sW w0 = true then entryForm ss sW D acc else
     let r := failReason Γ ts ss sW w0
     let (first, met) := if r == 99 then (first, met) else (if first == 0 then r else first, met + 1)
     let cut := fun (acc : Acc3) =>
@@ -98,3 +123,8 @@ def main (args : List String) : IO Unit := do
   for i in [0:10] do
     IO.println s!"  {names[i]!}: cut {a.cuts[i]!} (measure {a.mass[i]!}/2^{d})"
   IO.println s!"  three-wall starts met on a cut path: {a.nmet.toList}"
+  IO.println s!"loop entries: {a.entries} (measure {a.entryMass}/2^{d}); R constant on the class: {a.constR}"
+  for v in [0:64] do
+    if a.coefV[v]! > 0 then
+      IO.println
+        s!"  R affine, its coefficient of 2-adic valuation {v}: {a.coefV[v]!} (measure {a.coefVMass[v]!}/2^{d})"

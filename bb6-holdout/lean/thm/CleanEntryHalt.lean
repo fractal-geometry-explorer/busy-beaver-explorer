@@ -160,14 +160,38 @@ theorem blank_halt_clean_entry (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = 
     (fun d W => (cleanTreeGE directWidth d).cutMem [(W : Int) / 2, 0] = true)
     (fun d W hW h => clean_tree_entry_step directWidth d W (by decide) hW h) (by decide) (by decide) hk₀ T hT
 
+/-- **The kernel's step, with the loop entries.**  For every clean tape of even width W ≥ 2²⁰ and every depth d, with
+the plain clean-tape tree over the widths ≥ 2²⁰ if W < 2²⁴ (`clean_tree_step_G`; there the loop entries' width test,
+2²⁴, is not decided on the classes) and the tree with loop entries over the widths ≥ 2²⁴ if not
+(`clean_tree_entry_step`): W/2 is in a cut class of that tree, or the run reaches a wider clean tape after at least one
+round, or a wider loop entry that cannot close. -/
+theorem clean_entry_step_kernel (d W : Nat) (hW : W % 2 = 0) (h : kernelPrefixWidth ≤ W) :
+    ∃ n k ms' W', roundsZ 1000 n [⟨.M, W - 2⟩] W = .newRound ms' W' ∧
+      steps k (roundStart [⟨.M, W - 2⟩] W) = some (roundStart ms' W') ∧
+      (((W < 2 ^ 24 → (cleanTreeG kernelPrefixWidth d).cutMem [(W : Int) / 2, 0] = true) ∧
+          (2 ^ 24 ≤ W → (cleanTreeGE (2 ^ 24) d).cutMem [(W : Int) / 2, 0] = true)) ∨
+        (0 < n ∧ ms' = [⟨.M, W' - 2⟩] ∧ W < W') ∨ (EntryNoClose ms' W' ∧ W < W')) := by
+  by_cases hl : W < 2 ^ 24
+  · obtain ⟨n, k, ms', W', hr, hk, hc⟩ := clean_tree_step_G kernelPrefixWidth d W (by decide) hW h
+    refine ⟨n, k, ms', W', hr, hk, ?_⟩
+    rcases hc with hc | hc
+    · exact Or.inl ⟨fun _ => hc, fun h' => absurd h' (Nat.not_le.mpr hl)⟩
+    · exact Or.inr (Or.inl hc)
+  · obtain ⟨n, k, ms', W', hr, hk, hc⟩ := clean_tree_entry_step (2 ^ 24) d W (by decide) hW (Nat.le_of_not_lt hl)
+    refine ⟨n, k, ms', W', hr, hk, ?_⟩
+    rcases hc with hc | hc | hc
+    · exact Or.inl ⟨fun h' => absurd h' hl, fun _ => hc⟩
+    · exact Or.inr (Or.inl hc)
+    · exact Or.inr (Or.inr hc)
+
 /-- **The same, checked by the kernel alone.**  `blank_halt_clean_entry_from` from the kernel's prefix to 2²⁰
-(`blank_prefix_kernel`), with the plain clean-tape tree over the widths ≥ 2²⁰ for the clean tapes below 2²⁴
-(`clean_tree_step_G`; there the loop entries' width test, 2²⁴, is not decided on the classes) and the tree with loop
-entries over the widths ≥ 2²⁴ above: if the machine, started on blank tape, halts after T steps, then either it
-reaches a clean tape of even width W ≥ 2²⁰ that is cut at every depth, by `cleanTreeG 2²⁰ d` if W < 2²⁴ and by
-`cleanTreeGE 2²⁴ d` if not, halts from there, and the mark model reaches a stuck configuration from there; or it
-reaches a loop entry of width W > 2²⁰ that cannot close, halts from there, and the loop's chain from there ends without
-a close, as in `blank_halt_clean_entry`.  Nothing here is evaluated by compiled code. -/
+(`blank_prefix_kernel`), with the plain clean-tape tree over the widths ≥ 2²⁰ for the clean tapes below 2²⁴ and the
+tree with loop entries over the widths ≥ 2²⁴ above (`clean_entry_step_kernel`): if the machine, started on blank tape,
+halts after T steps, then either it reaches a clean tape of even width W ≥ 2²⁰ that is cut at every depth, by
+`cleanTreeG 2²⁰ d` if W < 2²⁴ and by `cleanTreeGE 2²⁴ d` if not, halts from there, and the mark model reaches a stuck
+configuration from there; or it reaches a loop entry of width W > 2²⁰ that cannot close, halts from there, and the
+loop's chain from there ends without a close, as in `blank_halt_clean_entry`.  Nothing here is evaluated by compiled
+code. -/
 theorem blank_halt_clean_entry_kernel (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :
     (∃ W k, kernelPrefixWidth ≤ W ∧ W % 2 = 0 ∧
       (W < 2 ^ 24 → ∀ d, (cleanTreeG kernelPrefixWidth d).cutMem [(W : Int) / 2, 0] = true) ∧
@@ -181,29 +205,9 @@ theorem blank_halt_clean_entry_kernel (T : Nat) (hT : steps T ⟨blank, blank, .
         ∃ n ms' W', roundsZ 1000 n ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n ms₁ W₁, 3 ≤ d) ∧
           (LeftPhase0 n ms' ∨ ChainBreak (meetsRounds 1000 n ms₁ W₁)) ∧ NotWWW ms' ∧
           ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t) := by
-  -- the step: the plain tree below 2²⁴, the tree with entries above
-  have hStep : ∀ d W, W % 2 = 0 → kernelPrefixWidth ≤ W →
-      ∃ n k ms' W', roundsZ 1000 n [⟨.M, W - 2⟩] W = .newRound ms' W' ∧
-        steps k (roundStart [⟨.M, W - 2⟩] W) = some (roundStart ms' W') ∧
-        (((W < 2 ^ 24 → (cleanTreeG kernelPrefixWidth d).cutMem [(W : Int) / 2, 0] = true) ∧
-            (2 ^ 24 ≤ W → (cleanTreeGE (2 ^ 24) d).cutMem [(W : Int) / 2, 0] = true)) ∨
-          (0 < n ∧ ms' = [⟨.M, W' - 2⟩] ∧ W < W') ∨ (EntryNoClose ms' W' ∧ W < W')) := by
-    intro d W hW h
-    by_cases hl : W < 2 ^ 24
-    · obtain ⟨n, k, ms', W', hr, hk, hc⟩ := clean_tree_step_G kernelPrefixWidth d W (by decide) hW h
-      refine ⟨n, k, ms', W', hr, hk, ?_⟩
-      rcases hc with hc | hc
-      · exact Or.inl ⟨fun _ => hc, fun h' => absurd h' (Nat.not_le.mpr hl)⟩
-      · exact Or.inr (Or.inl hc)
-    · obtain ⟨n, k, ms', W', hr, hk, hc⟩ := clean_tree_entry_step (2 ^ 24) d W (by decide) hW (Nat.le_of_not_lt hl)
-      refine ⟨n, k, ms', W', hr, hk, ?_⟩
-      rcases hc with hc | hc | hc
-      · exact Or.inl ⟨fun h' => absurd h' hl, fun _ => hc⟩
-      · exact Or.inr (Or.inl hc)
-      · exact Or.inr (Or.inr hc)
   obtain ⟨k₀, hk₀⟩ := blank_prefix_kernel
   rcases blank_halt_clean_entry_from kernelPrefixWidth kernelPrefixWidth kernelPrefixWidth k₀ (by decide)
-      (stepsBelow_self _) _ hStep (by decide) (Nat.le_refl _) hk₀ T hT with
+      (stepsBelow_self _) _ clean_entry_step_kernel (by decide) (Nat.le_refl _) hk₀ T hT with
       ⟨W, k, h1, h2, hcut, h3⟩ | h
   · exact Or.inl ⟨W, k, h1, h2, fun hl d => (hcut d).1 hl, fun hl d => (hcut d).2 hl, h3⟩
   · exact Or.inr h

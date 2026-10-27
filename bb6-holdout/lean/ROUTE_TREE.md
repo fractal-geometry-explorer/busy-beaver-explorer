@@ -186,7 +186,9 @@ The Python checker takes hours on the same trees.
   entries the tree with loop entries settles: from those the loop cannot close at any width. What is left are the 94
   pass starts at 36 digits whose gaps are not all decided to be at least 448 (measure 401 / 2^36).
 * **What happens after the loop.** From an entry, a halt needs the loop's chain to end where the run leaves three
-  walls, and a stuck configuration after that; the run after the loop's end is not followed.
+  walls, and a stuck configuration after that; the run after the loop's end is not followed here. The pass-start trees
+  follow it (`pass_halt_chain`), and `blank_halt_pass` joins them to the clean-tape tree's loop entries
+  (`END_TO_END.md`).
 * **The measure of deeper trees.** The theorem holds at every depth; only the measure of the cut classes needs
   evaluation, and that grows with the leaf count (about 1.43-fold per digit): the 46-, 62- and 64-digit trees (up to
   about 10⁹ leaves) are out of reach of one evaluation.
