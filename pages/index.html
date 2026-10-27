@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Busy Beaver Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 28px; }
+h1, h2 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+p { margin: 0; }
+a { color: var(--link); }
+.top { display: grid; gap: 10px; max-width: 66ch; }
+section { display: grid; gap: 12px; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.card { display: grid; gap: 6px; align-content: start; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; color: var(--ink); text-decoration: none; }
+.card:hover { border-color: var(--muted); }
+.card:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.card b { font-family: var(--font-display); font-size: 0.92rem; color: var(--link); }
+.card span { font-size: 0.92rem; color: var(--muted); }
+footer { font-size: 0.88rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <h1>Busy Beaver Explorer</h1>
+    <p>Interactive pages on two six-state Turing machines: a BB(6) holdout and the current BB(6) champion.</p>
+  </header>
+
+  <section>
+    <h2>The holdout</h2>
+    <p class="machine">1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0LD1RE</p>
+    <div class="cards">
+      <a class="card" href="closing-gap-rule-map.html">
+        <b>Closing-gap rule map</b>
+        <span>A summary of the research: what each rule does, the mark model, the loop and how it ends, and what is established and how firmly.</span>
+      </a>
+      <a class="card" href="mark-rule-stepper.html">
+        <b>Mark-rule stepper</b>
+        <span>Steps the mark rules one round at a time from a tape you choose. On small tapes each round is also run on the bare machine and compared.</span>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2>The BB(6) champion</h2>
+    <p class="machine">1RB1RA_1RC1RZ_1LD0RF_1RA0LE_0LD1RC_1RA0RE (mxdys, 2025)</p>
+    <div class="cards">
+      <a class="card" href="champion-rule-map.html">
+        <b>Champion rule map</b>
+        <span>What each of the champion's twelve rules does, sorted into routines.</span>
+      </a>
+      <a class="card" href="champion-explorer.html">
+        <b>Champion explorer</b>
+        <span>Runs the champion step by step and decodes its tape into a countdown, a phase, a middle counter and a pile.</span>
+      </a>
+    </div>
+  </section>
+
+  <footer>Source and research notes: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></footer>
+</main>
+</body>
+</html>
