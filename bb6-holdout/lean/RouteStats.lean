@@ -9,7 +9,7 @@ The theorems use the proved explorer of `BB6/RouteExplore.lean` directly (`clean
 and prints what it looks like: the leaf counts, the cut measure, the longest path in rounds, and the cut leaves above
 the full depth (where a round could not be decided by a residue split, for example an undecided order test), and it
 can write the tree, one token per node: `C` cut, `K` clean, `A`n n rounds, `S`i split on coordinate i, `H`i`,`s
-shear.
+shear, `D`z the member y₀ = z run directly (dropped).
 
 usage (after `check_end.sh` has built the shared library and the theorem files):
   lean --load-dynlib=cbuild/so/libBB6all.so --run RouteStats.lean clean 4294967296 36 [tree.txt]
@@ -23,6 +23,7 @@ def merge : RTree → RTree
     | u => .adv n u
   | .split i t0 t1 => .split i (merge t0) (merge t1)
   | .shear i s t => .shear i s (merge t)
+  | .drop z t => .drop z (merge t)
   | t => t
 
 /-- The cut leaves above depth `D`: (depth, rounds on the path), and the most rounds on any path. -/
@@ -35,6 +36,7 @@ def scan (D : Nat) : RTree → Nat → Nat → List (Nat × Nat) × Nat
     let (b, rb) := scan D t1 (d + 1) r
     (a ++ b, max ra rb)
   | .shear _ _ t, d, r => scan D t d r
+  | .drop _ t, d, r => scan D t d r
 
 def ser : RTree → Array String → Array String
   | .cut, acc => acc.push "C"
@@ -42,6 +44,7 @@ def ser : RTree → Array String → Array String
   | .adv n t, acc => ser t (acc.push ("A" ++ toString n))
   | .split i t0 t1, acc => ser t1 (ser t0 (acc.push ("S" ++ toString i)))
   | .shear i s t, acc => ser t (acc.push ("H" ++ toString i ++ "," ++ toString s))
+  | .drop z t, acc => ser t (acc.push ("D" ++ toString z))
 
 def main (args : List String) : IO Unit := do
   let kind := args.getD 0 "clean"

@@ -52,7 +52,8 @@ else. How much it leaves open depends on Γ and d, and that is evaluated separat
   symbolically: `symClean`) and `cut` (no claim). `RTree.ok` is the check and `RTree.sound` its soundness theorem for
   the machine: through `symRoundsZ_sound`, `rounds_run` and `steps_seq_any`, at every point of the root class inside
   the cone. Coverage is by construction (every point of a class lies in one child of each split, and a shear is
-  invertible), so no partition or prefix-code check is needed.
+  invertible), so no partition or prefix-code check is needed. (A sixth kind, `drop z`, which runs the smallest member
+  of a class directly, is used only by the clean-tape trees, `END_TO_END.md`; `RTree.ok` rejects it.)
 * `BB6/RouteExplore.lean` (proved, standard axioms only): `RTree.explore` builds the tree from the start class. It runs
   rounds one at a time; when a round is undecided it finds the first meeting whose distance is not decided mod 2 or
   mod 4 and splits on that digit (a shear first when both coordinates enter it); it stops a path at the first clean

@@ -12,7 +12,8 @@ a split of a coset on one binary digit of any linear form is a shear followed by
 `RTree` is such a tree with the rounds stored on its edges (`adv n`: run n rounds, which must be decided), so the
 check never replays a round twice.  Its leaves are `clean` (the state reached is a clean tape, checked) and `cut`
 (not followed further: no claim).  `RTree.sound` is the statement for the machine; `RTree.cutMem` follows a point
-down the tree, so the statement names exactly the starts it makes no claim for.
+down the tree, so the statement names exactly the starts it makes no claim for.  (A sixth kind of node, `drop`, runs
+the smallest member of a class directly; only the clean-tape trees use it, `BB6/CleanTree.lean`.)
 
 Everything here is for two coordinates (the classes of (m, E)).
 -/
@@ -172,6 +173,8 @@ inductive RTree where
   | split (i : Nat) (t0 t1 : RTree)
   /-- change coordinates: yᵢ = zᵢ + s·zⱼ, j = 1 − i -/
   | shear (i : Nat) (s : Int) (t : RTree)
+  /-- the member y₀ = z, the smallest of the class, is run directly; the rest of the class (y₀ ≥ z + 1) continues -/
+  | drop (z : Int) (t : RTree)
   deriving Repr, Inhabited
 
 variable (Γ : Int) (fuel : Nat)
@@ -189,6 +192,7 @@ def RTree.ok : RTree → Bool → List SMark → YForm → List YForm → Bool
     decide (i < 2) && t0.ok moved (substL ss i 0) (sW.subst i 0) (substT ts i 0) &&
       t1.ok moved (substL ss i 1) (sW.subst i 1) (substT ts i 1)
   | .shear i s t, moved, ss, sW, ts => t.ok moved (shearL ss i s) (sW.shear i s) (shearT ts i s)
+  | .drop _ _, _, _, _, _ => false
 
 /-- Follow a point down the tree: `true` when it ends in a `cut` leaf. -/
 def RTree.cutMem : RTree → List Int → Bool
@@ -198,6 +202,7 @@ def RTree.cutMem : RTree → List Int → Bool
   | .split i t0 t1, y =>
     if y.getD i 0 % 2 = 0 then t0.cutMem (y.set i (y.getD i 0 / 2)) else t1.cutMem (y.set i (y.getD i 0 / 2))
   | .shear i s t, y => t.cutMem (shearDown y i s)
+  | .drop z t, y => if y.getD 0 0 = z then false else t.cutMem y
 
 /-- The measure of the cut leaves, as a numerator over 2^D (each split halves). -/
 def RTree.cutMass : Nat → RTree → Nat
@@ -206,6 +211,7 @@ def RTree.cutMass : Nat → RTree → Nat
   | D, .adv _ t => t.cutMass D
   | D, .split _ t0 t1 => t0.cutMass (D - 1) + t1.cutMass (D - 1)
   | D, .shear _ _ t => t.cutMass D
+  | D, .drop _ t => t.cutMass D
 
 def RTree.depth : RTree → Nat
   | .cut => 0
@@ -213,6 +219,7 @@ def RTree.depth : RTree → Nat
   | .adv _ t => t.depth
   | .split _ t0 t1 => max t0.depth t1.depth + 1
   | .shear _ _ t => t.depth
+  | .drop _ t => t.depth
 
 def RTree.leaves : RTree → Nat × Nat
   | .cut => (1, 0)
@@ -220,6 +227,7 @@ def RTree.leaves : RTree → Nat × Nat
   | .adv _ t => t.leaves
   | .split _ t0 t1 => (t0.leaves.1 + t1.leaves.1, t0.leaves.2 + t1.leaves.2)
   | .shear _ _ t => t.leaves
+  | .drop _ t => t.leaves
 
 /-- **A checked route tree, for the machine.**  At every point `y` of the root class inside the cone, from a
 well-formed round start that agrees with the root, the machine runs `n` rounds of the mark model to a round start —
@@ -299,5 +307,8 @@ theorem RTree.sound (t : RTree) : ∀ (moved : Bool) (ss : List SMark) (sW : YFo
       rw [hzz] at hl
       rw [← hl] at hy hs hW
       exact ih _ _ _ _ h [a, b] rfl (inCone_shear hy) ms Wn (agL_shear hs) (agN_shear hW) hwf
+  | drop z t _ =>
+    intro moved ss sW ts h
+    simp [RTree.ok] at h
 
 end BB6.Sym

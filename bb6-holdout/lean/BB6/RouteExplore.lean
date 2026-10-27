@@ -14,8 +14,13 @@ digit a round does not decide (a shear first when both coordinates enter it), an
 explorer gives up, and only their measure (`exploreMass`, `exploreMassW`) needs evaluation, which no claim about the
 machine depends on.
 
-A path is also cut after `S` steps (rounds and splits; the explorers use 10,000 plus the depth, far beyond the longest
-path), where a round halts, is not covered or has an undecided order test, and where no digit decides a round.
+A path is also cut after `S` steps (rounds, splits and drops; the explorers use 10,000 plus the depth, far beyond the
+longest path), where a round halts, is not covered or has an undecided order test, and where no digit decides a round.
+`RTree.exploreW` first tries one more thing where no digit decides a round: the comparisons at the edge of the cone,
+undecided on a class although they fail only below its smallest member or at it, are what the exhaustive check
+handles by running the small members directly, and the explorer does the same: it drops the smallest member (a
+`drop` node, `BB6/CleanTree.lean`: that member is run with the model, and the rest of the class goes on with the cone
+starting at the next member), at most `B` times in a class.
 -/
 
 namespace BB6.Sym
@@ -182,43 +187,66 @@ theorem exploreMass_eq : ∀ (S d D : Nat) (moved : Bool) (ss : List SMark) (sW 
 
 /-! ## Clean-tape trees -/
 
-/-- Build a clean-tape tree (`S` steps, `d` splits): stop at a one-marker clean tape after at least one round whose
-width is decided to be larger than the start's (`w0`). -/
-def RTree.exploreW : Nat → Nat → Bool → List SMark → YForm → YForm → List YForm → RTree
-  | 0, _, _, _, _, _, _ => .cut
-  | S + 1, d, moved, ss, sW, w0, ts =>
+/-- The smallest y₀ on the cone, from its forms that are free of y₁ and increasing in y₀ (`none` if there are none):
+the largest of their integer thresholds ⌈(Γ − k)/c₀⌉.  Only the explorer uses it; `dropOK` checks its result. -/
+def coneMin (ts : List YForm) (Γ : Int) : Option Int :=
+  ts.foldl (fun acc t =>
+    let c := t.c.getD 0 0
+    if free1 t && decide (0 < c) then
+      let m := (Γ - t.k + c - 1) / c
+      some (match acc with | some a => max a m | none => m)
+    else acc) none
+
+variable (B : Nat)
+
+/-- Build a clean-tape tree (`S` steps, `d` splits, `nd` drops left in the class): stop at a one-marker clean tape
+after at least one round whose width is decided to be larger than the start's (`w0`).  Where a round is not decided
+and no residue split decides it, drop the smallest member of the class (`drop`, checked by `dropOK`); each class
+(each split's children afresh) has `B` drops. -/
+def RTree.exploreW : Nat → Nat → Nat → Bool → List SMark → YForm → YForm → List YForm → RTree
+  | 0, _, _, _, _, _, _, _ => .cut
+  | S + 1, d, nd, moved, ss, sW, w0, ts =>
     if (moved && symClean1 ss sW && widerB sW w0 ts Γ) = true then .clean else
     match symRoundZ ts Γ fuel [] (YForm.const 1) ss sW with
-    | some (.newRound ss' sW') => .adv 1 (RTree.exploreW S d true ss' sW' w0 ts)
+    | some (.newRound ss' sW') => .adv 1 (RTree.exploreW S d nd true ss' sW' w0 ts)
     | some _ => .cut
     | none =>
-      match d with
-      | 0 => .cut
-      | d + 1 =>
-        match splitStep ts Γ ss sW with
-        | none => .cut
-        | some (none, i) =>
-          if i < 2 then
-            .split i (RTree.exploreW S d moved (substL ss i 0) (sW.subst i 0) (w0.subst i 0) (substT ts i 0))
-              (RTree.exploreW S d moved (substL ss i 1) (sW.subst i 1) (w0.subst i 1) (substT ts i 1))
+      match splitStep ts Γ ss sW with
+      | none =>
+        match nd, coneMin ts Γ with
+        | nd + 1, some z =>
+          if dropOK Γ fuel z ss sW w0 ts = true then
+            .drop z (RTree.exploreW S d nd moved ss sW w0 [dropCone Γ z])
           else .cut
-        | some (some (j, s), i) =>
+        | _, _ => .cut
+      | some (none, i) =>
+        match d with
+        | 0 => .cut
+        | d + 1 =>
+          if i < 2 then
+            .split i (RTree.exploreW S d B moved (substL ss i 0) (sW.subst i 0) (w0.subst i 0) (substT ts i 0))
+              (RTree.exploreW S d B moved (substL ss i 1) (sW.subst i 1) (w0.subst i 1) (substT ts i 1))
+          else .cut
+      | some (some (j, s), i) =>
+        match d with
+        | 0 => .cut
+        | d + 1 =>
           if i < 2 then
             .shear j s (.split i
-              (RTree.exploreW S d moved (substL (shearL ss j s) i 0) ((sW.shear j s).subst i 0)
+              (RTree.exploreW S d B moved (substL (shearL ss j s) i 0) ((sW.shear j s).subst i 0)
                 ((w0.shear j s).subst i 0) (substT (shearT ts j s) i 0))
-              (RTree.exploreW S d moved (substL (shearL ss j s) i 1) ((sW.shear j s).subst i 1)
+              (RTree.exploreW S d B moved (substL (shearL ss j s) i 1) ((sW.shear j s).subst i 1)
                 ((w0.shear j s).subst i 1) (substT (shearT ts j s) i 1)))
           else .cut
 
 /-- **Every explored clean-tape tree passes the check.** -/
-theorem RTree.exploreW_okW : ∀ (S d : Nat) (moved : Bool) (ss : List SMark) (sW w0 : YForm) (ts : List YForm),
-    (RTree.exploreW Γ fuel S d moved ss sW w0 ts).okW Γ fuel moved ss sW w0 ts = true := by
+theorem RTree.exploreW_okW : ∀ (S d nd : Nat) (moved : Bool) (ss : List SMark) (sW w0 : YForm) (ts : List YForm),
+    (RTree.exploreW Γ fuel B S d nd moved ss sW w0 ts).okW Γ fuel moved ss sW w0 ts = true := by
   intro S
   induction S with
-  | zero => intro d moved ss sW w0 ts; rfl
+  | zero => intro d nd moved ss sW w0 ts; rfl
   | succ S ih =>
-    intro d moved ss sW w0 ts
+    intro d nd moved ss sW w0 ts
     simp only [RTree.exploreW]
     split
     · next hc => simpa [RTree.okW] using hc
@@ -226,67 +254,90 @@ theorem RTree.exploreW_okW : ∀ (S d : Nat) (moved : Bool) (ss : List SMark) (s
       · next ss' sW' hr => simp [RTree.okW, symRoundsZ, hr, ih]
       · rfl
       · split
-        · rfl
+        · split
+          · split
+            · next hd => simp [RTree.okW, hd, ih]
+            · rfl
+          · rfl
         · split
           · rfl
           · split
             · next hi => simp [RTree.okW, hi, ih]
             · rfl
+        · split
+          · rfl
           · split
             · next hi => simp [RTree.okW, hi, ih]
             · rfl
 
 /-- The cut measure and the leaf counts of `RTree.exploreW`, without the tree. -/
-def exploreMassW : Nat → Nat → Nat → Bool → List SMark → YForm → YForm → List YForm → Nat × Nat × Nat
-  | 0, _, D, _, _, _, _, _ => (2 ^ D, 1, 0)
-  | S + 1, d, D, moved, ss, sW, w0, ts =>
+def exploreMassW : Nat → Nat → Nat → Nat → Bool → List SMark → YForm → YForm → List YForm → Nat × Nat × Nat
+  | 0, _, _, D, _, _, _, _, _ => (2 ^ D, 1, 0)
+  | S + 1, d, nd, D, moved, ss, sW, w0, ts =>
     if (moved && symClean1 ss sW && widerB sW w0 ts Γ) = true then (0, 0, 1) else
     match symRoundZ ts Γ fuel [] (YForm.const 1) ss sW with
-    | some (.newRound ss' sW') => exploreMassW S d D true ss' sW' w0 ts
+    | some (.newRound ss' sW') => exploreMassW S d nd D true ss' sW' w0 ts
     | some _ => (2 ^ D, 1, 0)
     | none =>
-      match d with
-      | 0 => (2 ^ D, 1, 0)
-      | d + 1 =>
-        match splitStep ts Γ ss sW with
-        | none => (2 ^ D, 1, 0)
-        | some (none, i) =>
+      match splitStep ts Γ ss sW with
+      | none =>
+        match nd, coneMin ts Γ with
+        | nd + 1, some z =>
+          if dropOK Γ fuel z ss sW w0 ts = true then
+            exploreMassW S d nd D moved ss sW w0 [dropCone Γ z]
+          else (2 ^ D, 1, 0)
+        | _, _ => (2 ^ D, 1, 0)
+      | some (none, i) =>
+        match d with
+        | 0 => (2 ^ D, 1, 0)
+        | d + 1 =>
           if i < 2 then
-            let a := exploreMassW S d (D - 1) moved (substL ss i 0) (sW.subst i 0) (w0.subst i 0) (substT ts i 0)
-            let b := exploreMassW S d (D - 1) moved (substL ss i 1) (sW.subst i 1) (w0.subst i 1) (substT ts i 1)
+            let a := exploreMassW S d B (D - 1) moved (substL ss i 0) (sW.subst i 0) (w0.subst i 0)
+              (substT ts i 0)
+            let b := exploreMassW S d B (D - 1) moved (substL ss i 1) (sW.subst i 1) (w0.subst i 1)
+              (substT ts i 1)
             (a.1 + b.1, a.2.1 + b.2.1, a.2.2 + b.2.2)
           else (2 ^ D, 1, 0)
-        | some (some (j, s), i) =>
+      | some (some (j, s), i) =>
+        match d with
+        | 0 => (2 ^ D, 1, 0)
+        | d + 1 =>
           if i < 2 then
-            let a := exploreMassW S d (D - 1) moved (substL (shearL ss j s) i 0) ((sW.shear j s).subst i 0)
+            let a := exploreMassW S d B (D - 1) moved (substL (shearL ss j s) i 0) ((sW.shear j s).subst i 0)
               ((w0.shear j s).subst i 0) (substT (shearT ts j s) i 0)
-            let b := exploreMassW S d (D - 1) moved (substL (shearL ss j s) i 1) ((sW.shear j s).subst i 1)
+            let b := exploreMassW S d B (D - 1) moved (substL (shearL ss j s) i 1) ((sW.shear j s).subst i 1)
               ((w0.shear j s).subst i 1) (substT (shearT ts j s) i 1)
             (a.1 + b.1, a.2.1 + b.2.1, a.2.2 + b.2.2)
           else (2 ^ D, 1, 0)
 
-theorem exploreMassW_eq : ∀ (S d D : Nat) (moved : Bool) (ss : List SMark) (sW w0 : YForm) (ts : List YForm),
-    exploreMassW Γ fuel S d D moved ss sW w0 ts =
-      ((RTree.exploreW Γ fuel S d moved ss sW w0 ts).cutMass D,
-        (RTree.exploreW Γ fuel S d moved ss sW w0 ts).leaves) := by
+theorem exploreMassW_eq : ∀ (S d nd D : Nat) (moved : Bool) (ss : List SMark) (sW w0 : YForm) (ts : List YForm),
+    exploreMassW Γ fuel B S d nd D moved ss sW w0 ts =
+      ((RTree.exploreW Γ fuel B S d nd moved ss sW w0 ts).cutMass D,
+        (RTree.exploreW Γ fuel B S d nd moved ss sW w0 ts).leaves) := by
   intro S
   induction S with
-  | zero => intro d D moved ss sW w0 ts; rfl
+  | zero => intro d nd D moved ss sW w0 ts; rfl
   | succ S ih =>
-    intro d D moved ss sW w0 ts
+    intro d nd D moved ss sW w0 ts
     simp only [exploreMassW, RTree.exploreW]
     split
     · rfl
     · split
-      · simp only [RTree.cutMass, RTree.leaves]; exact ih _ _ _ _ _ _ _
+      · simp only [RTree.cutMass, RTree.leaves]; exact ih _ _ _ _ _ _ _ _
       · rfl
       · split
-        · rfl
+        · split
+          · split
+            · simp only [RTree.cutMass, RTree.leaves]; exact ih _ _ _ _ _ _ _ _
+            · rfl
+          · rfl
         · split
           · rfl
           · split
             · simp only [RTree.cutMass, RTree.leaves, ih]
             · rfl
+        · split
+          · rfl
           · split
             · simp only [RTree.cutMass, RTree.leaves, ih]
             · rfl
