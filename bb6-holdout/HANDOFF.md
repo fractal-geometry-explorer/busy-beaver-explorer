@@ -88,8 +88,12 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    `lean/thm/WideHalt.lean`): with W ≤ 32R checked at the loop entries (`lean/BB6/WideEntry.lean`; all 28,660 at 36
    digits pass), the chain's last pass start has W ≤ 64R + 6 or 15W ≤ 64(W − b), and a family, with R and W − b fixed,
    has that shape only below width 32(W − b + 2R) + 6: the eight below 58,502, the 21 below 2³⁵, while the run's pass
-   starts are wider than 2⁴¹. What is left of the second question is the pass starts of that shape
-   (`never_halts_of_wide`).
+   starts are wider than 2⁴¹. The chain's last pass start even has 15W ≤ 64(W − b) (`blank_halt_open_far`,
+   `lean/thm/FarHalt.lean`), and with that none of the eight routes by which the 72 halting classes of a census
+   (R = 178 to 198, W − b ≤ 8,192) close can start from it past 2⁴¹ (untrusted, `runs/reentry.py sigma`). A census at
+   R = 200 to 262 finds more routes, among them classes at R = 230 that close with no pass start after the first,
+   which R′³/L₁′² does not reach. What is left of the second question is the pass starts of that shape
+   (`never_halts_of_far`) on the other routes.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.

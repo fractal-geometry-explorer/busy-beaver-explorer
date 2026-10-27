@@ -32,14 +32,16 @@
 #      (thm/CleanSmallTheorem.lean, thm/SmallEndHalt.lean, nothing evaluated), and the two together
 #      (thm/OpenSmallHalt.lean), and with loop entries whose right end is at least a 32nd of the width, from which the
 #      chain ends at a pass start of the wide shape that none of the 29 families above meets above width 2^35
-#      (thm/CleanWideTheorem.lean, thm/WideHalt.lean, nothing evaluated); prints the axioms of the final theorems;
+#      (thm/CleanWideTheorem.lean, thm/WideHalt.lean, nothing evaluated), and with loop entries whose middle wall is
+#      far from the end, from which the chain ends at a pass start with 15W <= 64(W - b) (thm/CleanFarTheorem.lean,
+#      thm/FarHalt.lean, nothing evaluated); prints the axioms of the final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,
-#      thm/CleanSmallMass.lean, thm/CleanWideMass.lean, about 5 minutes each), with --deep also at 40 digits
-#      (thm/CleanMass40.lean, thm/CleanDirectMass40.lean, about half an hour each; thm/CleanEntryMass40.lean, evaluated
-#      on all cores by BB6/MassPar.lean), and with --deeper also that of the tree with loop entries at 44 digits
-#      (thm/CleanEntryMass44.lean, two hours of CPU, about an hour beside the --deep files on 4 cores).  No theorem
-#      about the machine uses them.
+#      thm/CleanSmallMass.lean, thm/CleanWideMass.lean, thm/CleanFarMass.lean, about 5 minutes each), with --deep
+#      also at 40 digits (thm/CleanMass40.lean, thm/CleanDirectMass40.lean, about half an hour each;
+#      thm/CleanEntryMass40.lean, evaluated on all cores by BB6/MassPar.lean), and with --deeper also that of the tree
+#      with loop entries at 44 digits (thm/CleanEntryMass44.lean, two hours of CPU, about an hour beside the --deep
+#      files on 4 cores).  No theorem about the machine uses them.
 # usage: LEAN=/path/to/lean LEANLIB=/path/to/lib/lean [JOBS=4] ./check_end.sh [--interpreted] [--deep] [--deeper]
 set -e
 cd "$(dirname "$0")"
@@ -97,12 +99,12 @@ stage PrefixKernel EndgameTheorem ExitTheorem Prefix CleanTheorem RouteTheorem
 # each imports the one before (seconds each)
 stage CleanEntryTheorem
 stage CleanSmallTheorem
-stage CleanWideTheorem
+stage CleanWideTheorem CleanFarTheorem
 DEEPMASS=""
 [ -n "$DEEP" ] && DEEPMASS="CleanMass40 CleanDirectMass40 CleanEntryMass40"
 [ -n "$DEEPER" ] && DEEPMASS="$DEEPMASS CleanEntryMass44"
 stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass CleanEntryMass CleanEntryKernelMass \
-  CleanSmallMass CleanWideMass ExitHalt LoopTheorem RouteEntryTheorem
+  CleanSmallMass CleanWideMass CleanFarMass ExitHalt LoopTheorem RouteEntryTheorem
 stage LoopHalt
 stage EndToEnd RouteEntryHalt PassHalt PassHaltR6
 stage EndToEndDirect PassHaltClasses
@@ -111,5 +113,6 @@ stage PassEntryHalt
 stage SmallEndHalt
 stage OpenSmallHalt
 stage WideHalt
+stage FarHalt
 $LEAN thm/EndToEndAxioms.lean
 echo "END TO END CHECKED"
