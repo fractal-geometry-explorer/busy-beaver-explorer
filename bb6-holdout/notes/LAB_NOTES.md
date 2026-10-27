@@ -2549,6 +2549,18 @@ path at the same loop entries as the route tree:
   start within the depth (`EntryStats.lean`): the loop's entries are settled, and what is left are runs that stay
   outside the loop for 36 digits.
 
+**From blank tape past the loop's end (October 27; `../lean/thm/PassEntryHalt.lean`).** `pass_halt_chain` is what a
+halt from a loop entry needs in `clean_entry_chain`. A loop entry that cannot close (`EntryNoClose`) is a pass start of
+width ≥ 2²⁴ with every gap ≥ 448 and, when W ≡ 2 (mod 4), the middle wall ≥ 896 below the width, which is what
+`pass_halt_chain` asks for. Of its three ends, the closing class is out there (`EntryNoClose.no_close`), which leaves a
+last pass start of the chain cut at every depth of its pass-start tree, or a wider clean tape that the run reaches and
+halts from (`entry_pass_halt`). So `blank_halt_pass` follows the whole run from blank tape: a halt needs a clean tape
+of width ≥ 2⁴¹ in a cut class of the clean-tape tree with loop entries at every depth, or a pass start wider than 2⁴¹
+in a cut class of its pass-start tree at every depth, reached along the loop's chain from such an entry, and it halts
+from there; `blank_halt_pass_kernel` is the same from 2²⁰ with the kernel alone. Unlike the clean-tape tree's cut
+classes, the pass-start trees' do not shrink to nothing (1/8 of the pass starts with R = 6 halt), so what is open is
+which pass starts the run reaches: the last pass starts of loop chains from the clean-tape tree's entries.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:
