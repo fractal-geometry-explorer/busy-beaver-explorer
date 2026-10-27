@@ -2,21 +2,24 @@
 # Check the end-to-end theorem (run ./check.sh first):
 #   1. the proved modules BB6/RouteTree.lean, BB6/CleanTree.lean, BB6/RouteExplore.lean and BB6/CleanRange.lean
 #      (seconds);
-#   2. the exit, loop and endgame trees, evaluated by Lean's kernel (`decide +kernel`; no compiler is trusted): the
-#      generated modules thm/ExitPieces*.lean, thm/LoopPieces*.lean and thm/EndgamePieces*.lean hold one theorem per
-#      subtree and compile in parallel (JOBS at a time, default 4; about 1 GB of memory each), and
-#      thm/ExitTheorem.lean, thm/LoopPass.lean and thm/EndgameTheorem.lean assemble them;
+#   2. the exit and endgame trees and the run from blank tape to width 2^20, evaluated by Lean's kernel
+#      (`decide +kernel`; no compiler is trusted): the generated modules thm/ExitPieces*.lean and
+#      thm/EndgamePieces*.lean hold one theorem per subtree, thm/PrefixPieces*.lean one per stretch of 5,000 rounds;
+#      they compile in parallel (JOBS at a time, default 4; about 1 GB of memory each), and thm/ExitTheorem.lean,
+#      thm/EndgameTheorem.lean and thm/PrefixKernel.lean assemble them;
 #   3. the BB6 modules compiled to a shared library (lean -c, leanc), loaded with --load-dynlib so that native_decide
 #      runs the evaluated checks as native code (this adds the C compiler to the trusted base; without it the prefix
 #      alone takes about an hour in Lean's interpreter);
-#   4. the theorem files, in stages whose files are independent and compile JOBS at a time: the halts after the
-#      exit, the loop and the endgame, the blank-tape prefix (thm/Prefix.lean, about 4 minutes), the clean-tape
+#   4. the theorem files, in stages whose files are independent and compile JOBS at a time: the kernel-checked run to
+#      width 2^20 (thm/PrefixKernel.lean), the loop through its passes (thm/LoopTheorem.lean), the halts after the
+#      exit and the loop, the blank-tape prefix to width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape
 #      tree at every depth (thm/CleanTheorem.lean, the proved explorer, nothing evaluated), the clean tapes of width in
-#      [2³², 2⁴¹) run one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and
+#      [2^32, 2^41) run one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and
 #      thm/EndToEndDirect.lean; prints the axioms of the final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
-#      thm/CleanDirectMass.lean, about 5 minutes each), and with --deep also at 40 digits (thm/CleanMass40.lean,
-#      thm/CleanDirectMass40.lean, about half an hour each).  No theorem about the machine uses them.
+#      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, about 5 minutes each), and with --deep also at 40 digits
+#      (thm/CleanMass40.lean, thm/CleanDirectMass40.lean, about half an hour each).  No theorem about the machine uses
+#      them.
 # usage: LEAN=/path/to/lean LEANLIB=/path/to/lib/lean [JOBS=4] ./check_end.sh [--interpreted] [--deep]
 set -e
 cd "$(dirname "$0")"
@@ -29,9 +32,9 @@ for a in "$@"; do
   case $a in --interpreted) INTERP=1 ;; --deep) DEEP=1 ;; *) echo "unknown option $a"; exit 1 ;; esac
 done
 for f in RouteTree CleanTree RouteExplore CleanRange; do echo "== BB6/$f.lean"; $LEAN BB6/$f.lean -o out/BB6/$f.olean; done
-for f in ExitStart LoopStart EndgameStart; do echo "== thm/$f.lean"; $LEAN thm/$f.lean -o out/$f.olean; done
-PIECES=$(cd thm && ls ExitPieces*.lean LoopPieces*.lean EndgamePieces*.lean | sed 's/\.lean$//')
-echo "== thm/ExitPieces*.lean, thm/LoopPieces*.lean, thm/EndgamePieces*.lean (kernel, $JOBS at a time)"
+for f in ExitStart EndgameStart PrefixBase; do echo "== thm/$f.lean"; $LEAN thm/$f.lean -o out/$f.olean; done
+PIECES=$(cd thm && ls PrefixPieces*.lean ExitPieces*.lean EndgamePieces*.lean | sed 's/\.lean$//')
+echo "== thm/PrefixPieces*.lean, thm/ExitPieces*.lean, thm/EndgamePieces*.lean (kernel, $JOBS at a time)"
 start=$(date +%s)
 printf '%s\n' $PIECES | xargs -P "$JOBS" -I{} "$LEAN" thm/{}.lean -o out/{}.olean
 echo "   $(( $(date +%s) - start )) s"
@@ -66,10 +69,10 @@ compile() {
 export -f compile
 export LEAN DYN
 stage() { printf '%s\n' "$@" | xargs -P "$JOBS" -I{} bash -c 'compile {}'; }
-stage EndgameTheorem ExitTheorem LoopPass Prefix CleanTheorem
+stage PrefixKernel EndgameTheorem ExitTheorem Prefix CleanTheorem
 DEEPMASS=""
 [ -n "$DEEP" ] && DEEPMASS="CleanMass40 CleanDirectMass40"
-stage $DEEPMASS CleanDirect CleanMass CleanDirectMass ExitHalt LoopTheorem
+stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass ExitHalt LoopTheorem
 stage LoopHalt
 stage EndToEnd
 stage EndToEndDirect

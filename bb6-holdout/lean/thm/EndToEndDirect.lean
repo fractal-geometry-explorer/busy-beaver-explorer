@@ -13,7 +13,7 @@ evaluation `clean_direct_ok` (`native_decide`) to what `blank_halt_clean` trusts
 namespace BB6
 open BB6.Sym
 
-theorem stepsBelow_direct : StepsBelow directWidth := clean_step_direct
+theorem stepsBelow_direct : StepsBelow cleanGamma directWidth := clean_step_direct
 
 /-- **What a halt from blank tape needs, above 2⁴¹.**  If the machine, started on blank tape, halts after T steps,
 then it first reaches a clean tape of even width W ≥ 2⁴¹ with W/2 in a cut class of the clean-tape tree over the
@@ -24,7 +24,9 @@ theorem blank_halt_clean_direct (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ =
       steps k ⟨blank, blank, .A⟩ = some (roundStart [⟨.M, W - 2⟩] W) ∧
       steps (T - k) (roundStart [⟨.M, W - 2⟩] W) = none ∧
       ∃ t, Reach ⟨[], 1, [⟨.M, W - 2⟩], W⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t) := by
-  obtain ⟨W, k, -, h⟩ := blank_halt_clean_from directWidth (by decide) stepsBelow_direct T hT
+  obtain ⟨k₀, hk₀⟩ := blank_prefix
+  obtain ⟨W, k, -, h⟩ := blank_halt_clean_from cleanGamma directWidth prefixWidth k₀ (by decide) (by decide)
+    stepsBelow_direct (by decide) (by decide) hk₀ T hT
   exact ⟨W, k, h⟩
 
 /-- **The open question, reduced, above 2⁴¹.**  If the machine does not halt from any clean tape of even width

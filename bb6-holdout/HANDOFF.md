@@ -29,9 +29,12 @@ self-contained except for the large intermediate outputs mentioned in `README.md
 
 ## Next steps (as proposed at handoff)
 
-1. **Done (October 27):** `loop_no_close` in `lean/thm/LoopTheorem.lean`, with `loop_pass` (R free) in
-   `lean/thm/LoopPass.lean`; see the lean README. What remains of this item is the σ bound, which needs the L₁
-   classes of the closing R in Lean. The original note:
+1. **Done in part (October 27):** `endgame_stretch` (with the L₁ classes of the closing R) and `loop_stretch` in
+   `lean/thm/EndgameTheorem.lean` and `LoopTheorem.lean`; see the lean README. The stretches now end at stated events
+   (`lean/BB6/Ends.lean`): the first versions (`endgame_no_close`, `loop_no_close`, `loop_pass`, `exit_no_halt`)
+   held with zero rounds. What remains is the σ bound, which also needs the pass map (R′ = R/16, L₁′ = L₁/64) as an
+   end-event check (the retired `loop_pass` stated it only where its tree chose to stop) and a way across half
+   passes. The original note:
    **The loop's end for every width as one Lean theorem.** Prove the pass map (R → R/16, L → L/64) with R free
    using the symbolic runner (`BB6/SymRound`, `BB6/SymSplit`), then induct over passes, combined with
    `endgame_no_close` for R ≤ 4096: "a run through the loop closes only from R ∈ {2, 4, 8, 16, 24, 32, 48, 64, 176}
@@ -42,8 +45,7 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    clean-tape tree at every depth (at 36 digits: measure 2.4 × 10⁻⁵), then a stuck contact. With the members of the
    cut classes below 2⁴¹ run one by one (`blank_halt_clean_direct`), the clean tape is at least 2⁴¹ wide. What
    remains is those clean tapes themselves (and, for the loop, the σ bound). The loop and exit items of
-   `blank_halt_structure`, as stated, also hold with zero rounds; their statements are being changed to name the end
-   of the stretch.
+   `blank_halt_structure` name where their stretches end (item 1).
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
@@ -51,8 +53,12 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    Done for the route tree and the clean-tape tree (October 27): they are built by an explorer proved to build only
    trees that pass the check (`lean/BB6/RouteExplore.lean`), so their theorems hold at every depth with the standard
    axioms only; only the measures of their cut classes are evaluated. The exit, loop and endgame trees are checked by
-   Lean's kernel (`decide +kernel`, October 27). What still uses `native_decide` is the blank-tape prefix (10⁹
-   rounds, out of the kernel's reach) and the direct runs below 2⁴¹.
+   Lean's kernel (`decide +kernel`, October 27). What still uses `native_decide` is the blank-tape prefix to 2³² (10⁹
+   rounds, out of the kernel's reach) and the direct runs below 2⁴¹. **Done for the end-to-end statement from 2²⁰
+   (October 27):** the run to 2²⁰ is kernel-checked (`blank_prefix_kernel`, 294,033 rounds, 2 minutes on 4 cores),
+   and with the clean-tape tree over the widths ≥ 2²⁰ it gives `blank_halt_structure_kernel` (`lean/thm/EndToEnd.lean`)
+   with the standard axioms only; its cut classes have measure 2.9 × 10⁻⁵ at 36 digits against 2.4 × 10⁻⁵ from 2³², the
+   difference coming from the cone's edge.
 4. **The route-tree certificate in Lean** (the "ways into the loop have ceilings" results). Done (October 27) for the
    tree itself: `route_tree_clean` at every depth and cone constant (`lean/ROUTE_TREE.md`), with the certificate's
    cut classes at 36 and 40 digits. The ceilings are not in Lean.

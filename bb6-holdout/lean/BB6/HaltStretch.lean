@@ -16,7 +16,7 @@ a halt needs a close at the right end.
 **A halt from the start of a covered stretch needs a contact after the stretch.**  The model's rounds are runs of
 `Step` (`roundZ_reach`, `roundsZ_reach`), `Step` keeps well-formedness and the invariants (`reach_inv`), and so
 `halt_after_rounds`: if `roundsZ fuel n ms W = .newRound ms' W'` (the shape the certified stretches give, e.g.
-`Tree.sound`, `Tree.soundNC`, `exit_no_halt`) and the machine halts from `roundStart ms W`, then it halts from
+`Tree.sound`, `Tree.soundNC`, `Tree.soundEnd`) and the machine halts from `roundStart ms W`, then it halts from
 `roundStart ms' W'`, and the model, run on from that round start, reaches a stuck configuration.  Chaining stretches
 this way, a halt needs an interior contact or a close at the right end after the last certified stretch.
 -/

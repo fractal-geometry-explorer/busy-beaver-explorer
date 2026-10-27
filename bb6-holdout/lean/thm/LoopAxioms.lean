@@ -1,5 +1,5 @@
-import LoopTheorem
-#check @loop_pass
-#print axioms loop_pass
-#check @loop_no_close
-#print axioms loop_no_close
+import LoopHalt
+#check @loop_stretch
+#print axioms loop_stretch
+#check @BB6.loop_halt_needs_contact
+#print axioms BB6.loop_halt_needs_contact

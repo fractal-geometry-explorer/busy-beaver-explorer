@@ -2182,10 +2182,10 @@ undecided comparisons into `some false` and never changes a decided one, so ever
 with `cut` leaves, like the clean-tape tree, may cut less when they are rebuilt). With it, the tree for all R ≥ 178
 (`thm/endgame_sym.txt`, built by `ExploreNC sym 178 448`) is complete with 200 leaves. Two other ideas tried on the
 way turned out not to be needed: tightening each cone bound to the next value its form takes at integer points (by
-the gcd of its coefficients), and a second inverse for cones with an upper bound on R. The 79 even R < 178 outside the closing set keep one tree each
-(`thm/endgame_small.txt`, 1,543 leaves). Together they need 4,948 rounds of checks instead of 117,947: 306 subtree
-theorems in four modules, 95 s on 4 cores (about 0.06 s per round, under 1 GB per module), where `native_decide` took
-14 s. `loop_no_close` still goes through `loop_pass` for R ≥ 4097, so its stretch runs through every pass of the
+the gcd of its coefficients), and a second inverse for cones with an upper bound on R. The 79 even R < 178 outside
+the closing set keep one tree each (`thm/endgame_small.txt`, 1,543 leaves). Together they need 4,948 rounds of
+checks instead of 117,947: 306 subtree theorems in four modules, 95 s on 4 cores (about 0.06 s per round, under 1 GB
+per module), where `native_decide` took 14 s. `loop_no_close` still goes through `loop_pass` for R ≥ 4097, so its stretch runs through every pass of the
 loop. `blank_halt_structure` now rests on `native_decide` only for `prefix_ok` and `clean_tree_ok`.
 
 **Trees built by a proved explorer; the end-to-end statement at every depth (October 27;
@@ -2233,6 +2233,104 @@ integer thresholds and direct runs below them, leaves the first open too and set
 a clean tape of width ≥ 2⁴¹ in the cut classes of that tree at every depth, then a stuck configuration; it adds the
 direct runs to what `blank_halt_clean` trusts. "Cut at every depth" is still just the conjunction of its finite-depth
 instances, and what carries information is the measure at each evaluated depth.
+
+**The stretches must say where they end (October 27; `../lean/BB6/Ends.lean`, `../lean/thm/EndgameTheorem.lean`,
+`LoopTheorem.lean`, `ExitTheorem.lean`).** `exit_no_halt`, `endgame_no_close`, `loop_no_close` and item 3 of
+`blank_halt_structure` all had the form "there are n rounds the model covers from the start, without a halt and with
+every end meeting at distance ≥ 3". With n = 0 that holds for every start, with no tree at all: `roundsZ fuel 0 ms W =
+.newRound ms W`, `steps 0 c = some c` and `meetsRounds fuel 0 ms W = []`; the whole proof of the conclusion of
+`endgame_no_close`, with no hypothesis used, is `⟨0, 0, _, _, rfl, rfl, fun _ h => by simp [meetsRounds] at h⟩`.
+`loop_pass` had the same problem one round later: its end "not a phase-0 pass start" holds after the first round from
+every pass start (the round start is G B W). The trees did certify long close-free stretches, but the theorems did
+not say so. The fix is to name where a stretch ends, as facts about the model's run that never hold after zero
+rounds (`not_endEvent_zero`, `not_exitEvent_zero`):
+
+- from a phase-0 pass start (`EndEvent`): the run leaves phase 0 (round 1 not G B W, or round 2 not G M B), two
+  consecutive end meetings leave the halving chain (d′ ≠ d/2 + 4 for d ≡ 0 mod 4, d′ ≠ (d − 2)/2 for d ≡ 2 mod 4, or
+  d odd: `ChainBreak`), or the run is at a phase-0 pass start with a smaller even right end 2 ≤ R′ < R whose next two
+  rounds are G B W and G M B (`PassStart`; the lookahead makes it a pass start in fact, not just three walls with the
+  right parities);
+- from a loop state (`ExitEvent`): a clean tape (only the end marker, at W′ − 2), a chain break, or three walls with
+  the loop's parities again after exactly 8 rounds (a full pass).
+
+`Tree.okEnd` checks these at every leaf with proved symbolic tests (`brkDec` decides a break from a decided residue
+of d and a nonzero, ordered or odd difference of d′ from the chain's prediction); the chain is read off the proved
+end meetings (`meetsRounds`), and the builder (`ExploreNC.lean`, which now also builds the exit tree) classifies
+breaks with the same meetings. Results, all evaluated by the kernel with the standard axioms only:
+
+- `endgame_stretch`: the tree for every R ≥ 178 (200 leaves) and one tree for each even R < 178, now including the
+  closing set (1,677 leaves; 342 subtree theorems, 143 s on 4 cores). For R in the closing set a leaf may instead be
+  a close leaf, and every close leaf shows L₁ in R's class: L₁ ≡ 0 mod 2 (R = 2, 4), 0 mod 8 (8), 0 mod 32 (16),
+  32 mod 64 (24), 0 mod 64 (32), 0 mod 128 (48, 64, 176); with `loopL1_mod7` (L₁ ≡ 3 mod 7 for every b, c, E) these
+  are the classes 10 mod 14, 24 mod 56, 192 mod 224, 416 mod 448, 192 mod 448 and 640 mod 896 of the October 22
+  table. So the table's "L₁ must be" column is now a Lean theorem: from a pass start with gaps ≥ 448, a close before
+  the run leaves phase 0, breaks the chain or reaches the next pass start needs R in the closing set and L₁ in R's
+  class. The 2-adic parts were all decided by the trees' splits; no close leaf needed a separate argument.
+- `loop_stretch`: strong induction on R through the pass starts with every gap ≥ 448 at which the stretches end,
+  using only `endgame_stretch` (the loop tree for R ≥ 4097 is no longer needed: the R ≥ 178 tree covers every width).
+  Within the loop a close comes only from a pass start whose R is in the closing set and whose L₁ is in that R's
+  class; otherwise the run ends at `LoopEnd`, an end event at which it is not at a pass start with every gap ≥ 448.
+  The induction goes on from such a pass start whichever end event the tree reports there: a half pass leaves phase 0
+  at its second round (G B W, then G W W W), where the run is at a pass start again. A pass start with a gap below
+  448 does occur: from the pass start a = 449, b = 926, E = 1504, R = 128 (L₁ = 17,664 ≡ 0 mod 256, the pass class)
+  the pass ends after 8 rounds at the phase-0 pass start with walls 393, 1,146, 1,519, width 1,528, R′ = 8 and
+  L₁′ = 276 = L₁/64, whose first gap is 393 (`RunWalls.lean 449 926 1504 128 9`). So a pass cannot promise gaps
+  ≥ 448, and the induction continues only where they hold. The half-pass example above (`RunWalls.lean 601 11016
+  20010 5632 23`) now reads differently: `loop_stretch` follows it through the half pass (round 2, R = 2,816: the run
+  left phase 0, but it is at three walls followed by G B W and G M B, a `PassStart`; L₁ = 729,088 = L₁/2 + 35E/2 −
+  147R/2 − 30) and the pass to R = 176 (round 10), where L₁ = 11,392 ≡ 640 mod 896 is in 176's class; the close at
+  round 23 is the close that class allows. The G W W W with R = 22 at round 16 is not a pass start in this sense (it
+  is followed by G B W and G M W), and the end meetings stay on the halving chain from 5,630 down to 2.
+- `exit_stretch`: the exit tree is unchanged (358 leaves, the certificate's classes), and every leaf now ends at an
+  exit event: 298 chain breaks, 58 clean tapes, 2 full passes.
+- `loop_pass` and its tree are retired (`LoopPass.lean`, `LoopPieces*.lean`, `gen_loop.py`, `ExploreLoop.lean`). The
+  pass map it stated (R′ = R/16, L₁′ = L₁/64, or R′ = R/2) held only at the leaves where its tree chose to stop at a
+  pass start, so it never said that a pass happens. Putting the pass map back as a check on the `PassStart` end is
+  what the σ bound needs next, with a way across half passes.
+
+Items 3 and 4 of `blank_halt_structure` (`blank_halt_loop`, `blank_halt_exit`) now read: from every pass start with
+gaps ≥ 448 that the run from blank tape reaches, the model covers the close-free stretch through the pass starts with
+gaps ≥ 448 to the last of them, and a halt needs a stuck configuration either there, with R₁ in the closing set and
+L₁ in its class, or after the run leaves the loop; and from every loop state with gaps ≥ 390 it reaches, the model
+covers the exit stretch to an exit event, and a halt needs a stuck configuration after it. (This replaces the
+weaker statements of the entry above, which held with zero rounds.)
+
+**The prefix in the kernel, to 2²⁰ (October 27; `../lean/thm/PrefixKernel.lean`, `../lean/thm/gen_prefix.py`).**
+The last `native_decide` that is not a tree is `prefix_ok`, 1,204,297,272 rounds from the first round start to the
+clean tape of width 2³². Lean's kernel evaluates `roundsZ` at about 600 rounds a second (1.6 to 2 ms a round and
+about 200 kB of memory per round inside one theorem, whatever the fuel; a copy of the round with Boolean tests in
+place of decidable propositions was only 1.35 times faster), so the full prefix would take weeks. The run to 2²⁰ is
+294,033 rounds: `blank_prefix_kernel` checks it in 59 stretches of 5,000 rounds (`(roundsZ 1000 5000 ms W).isRound
+ms' W' = true` by `decide +kernel`, 8 modules, 2 minutes on 4 cores) chained by `roundsZ_chain`, with the standard
+axioms only. Every power of two from 2¹⁶ to 2³² is itself a clean tape of the run (2¹⁶ after 18,368 rounds, 2²²
+after 1,176,058, 2²⁴ after 4,704,284; the rounds grow as 0.28 W), so the prefix can stop at any of them. What a
+lower prefix costs elsewhere is the clean-tape tree's cone: at depth 36 the tree leaves cut mass 1,660,086 / 2³⁶ =
+2.42 × 10⁻⁵ at cone 2³², 2.45 × 10⁻⁵ at 2²⁴ (174 cuts before depth 36), 2.54 × 10⁻⁵ at 2²² (465) and 2.94 × 10⁻⁵ at
+2²⁰ (1,074; measured with `ExploreCT`, and at 2²⁰ again with the proved explorer, below). At depth 20 the trees for
+cones 2²⁴ and 2³² are identical; a cone 2^k starts failing near depth k − 1. The early cuts are edge effects: in the
+class W = 2 + 2²⁰z (z ≥ 1) a comparison reads 4z = 4, true only at the class's smallest member, and in W = 2¹⁹ + 2 +
+2²⁰z it reads 2 + 4z = 4, true only at the rational point z = 1/2. Two of these, at depth 19, carry most of the extra
+mass at cone 2²⁰. Dropping a class's smallest member by a direct run (and adding W ≥ W* + 2 to the cone) would remove
+both kinds. With the tree's soundness proved for every cone, this prefix is all that an end-to-end theorem without
+`native_decide` still needed (next entry).
+
+**End to end in the kernel alone (October 27; `../lean/thm/EndToEnd.lean`, `../lean/thm/CleanKernelMass.lean`).**
+`blank_halt_clean_from` now takes the prefix as hypotheses (a clean tape of even width W₀ that the run from blank tape
+reaches) and a lower end A for the clean tapes covered in between (`StepsBelow A B`: every clean tape of width in
+[A, B) reaches a wider one). With the kernel's prefix to 2²⁰ and A = B = 2²⁰, so that nothing is run in between, the
+chain uses the clean-tape tree over the widths ≥ 2²⁰ from the first clean tape on: `blank_halt_clean_kernel`,
+`blank_halt_structure_kernel` and `never_halts_of_cut_classes_kernel` hold with `propext`, `Classical.choice` and
+`Quot.sound` alone. Every tree in them is either checked by `decide +kernel` (exit, endgame) or built by the proved
+explorer (clean tapes), and the prefix is checked by `decide +kernel` in stretches; no compiled code is trusted. They
+say what `blank_halt_structure` says, except that the clean tape a halt needs is only known to be at least 2²⁰ wide,
+in the cut classes of the tree over the widths ≥ 2²⁰ at every depth. At 36 digits those are 1,653,905 classes of
+measure 2,018,149 / 2³⁶ ≈ 2.9 × 10⁻⁵, against 1,660,017 of measure 1,660,086 / 2³⁶ ≈ 2.4 × 10⁻⁵ from 2³²: fewer
+classes, but 1,074 of them cut above full depth (7 from 2³²), 2 at depth 19 (measure 262,144 / 2³⁶) and the others
+from depth 22 to 35 (103,174 / 2³⁶; 1, 4, 3, 3, 13, 14, 14, 23, 30, 53, 106, 179, 290 and 339 at depths 22 to
+35). So the edge of the cone W ≥ 2²⁰ is not one pair of classes, as it is at depth 31 for 2³² and at depth 40 for
+2⁴¹, but a band of classes near the cone's bound. The direct run of a class's smallest member would remove it, and
+should bring the kernel-only theorems' measure down to about that from 2³² (with `ExploreCT`, 1,660,100 / 2³⁶ at cone
+2²⁰ and 1,660,557 / 2³⁶ at 2¹⁶ when every early cut drops its smallest member and goes on).
 
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
