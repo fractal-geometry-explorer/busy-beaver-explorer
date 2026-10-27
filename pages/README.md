@@ -6,7 +6,7 @@ Fonts and fall back to system fonts offline. `index.html` is a landing page that
 
 | page | machine | what it shows |
 |---|---|---|
-| [`proof-status.html`](proof-status.html) | the holdout | where the formal proof stands: what `blank_halt_open_small` and its kernel-only version say, what each result trusts, what is open, and how to check it |
+| [`proof-status.html`](proof-status.html) | the holdout | where the formal proof stands: what `blank_halt_open_far` and its kernel-only version say, what each result trusts, what is open, and how to check it |
 | [`closing-gap-rule-map.html`](closing-gap-rule-map.html) | the holdout `1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0LD1RE` | the summary of the research in [`../bb6-holdout`](../bb6-holdout): what each rule does, the mark model, the loop and how it ends, and the table "What is established, and how firmly" |
 | [`mark-rule-stepper.html`](mark-rule-stepper.html) | the holdout | steps the mark rules one round at a time from a tape you choose; on small tapes each round is also run on the bare machine and compared |
 | [`champion-rule-map.html`](champion-rule-map.html) | the BB(6) champion `1RB1RA_1RC1RZ_1LD0RF_1RA0LE_0LD1RC_1RA0RE` (mxdys, 2025) | what each of the champion's twelve rules does, sorted into routines |
