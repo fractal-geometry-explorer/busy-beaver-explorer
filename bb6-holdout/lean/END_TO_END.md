@@ -16,8 +16,9 @@ three walls. The pass-start trees (`thm/PassHalt.lean`) follow the run on from t
 of the clean-tape tree with loop entries at every depth, or a pass start wider than 2⁴¹ in a cut class of its pass-start
 tree at every depth. Some pass starts in those classes do halt (`pass_r6_halt`, `thm/PassHaltR6.lean`). But the run
 reaches such a pass start only after a clean tape that the clean-tape tree without loop entries leaves open at every
-depth, since that tree follows the run on through every entry (`blank_halt_open`). And it reaches none with a right end
-below 178, where all the known halts are (`thm/SmallEndHalt.lean`, `blank_halt_small`, below): past a loop entry from
+depth, since that tree follows the run on through every entry (`blank_halt_open`). And its loop chain ends at none
+with a right end below 178, where every known halt from a pass start closes (`thm/SmallEndHalt.lean`,
+`blank_halt_small`, below): past a loop entry from
 which no run of full passes ends at a right end below 178, the loop's chain ends at R ≥ 178, and at 36 digits every loop
 entry is such an entry. So the question is whether the run from blank tape reaches one of the clean tapes of
 `blank_halt_clean_direct`, and, if it passes a loop entry after it, one of the pass starts in the tree for every R ≥ 178
@@ -307,6 +308,34 @@ steps later). Of 40 random pass starts of width below 4,300 for each R, 14 halt 
 none with R = 10, 22 or 64. So the cut classes of the pass-start trees do not shrink to nothing; what `pass_halt_chain`
 says is that a halt through a pass start needs one of them, or a closing class, or a clean tape after it.
 
+**Every close at the right end is a halt** (`BB6/CloseHalt.lean`, `BB6/HaltTree.lean`, `thm/PassHaltClasses.lean`).
+Every round that the model leaves uncovered in the samples ends at one configuration: the gap meets the end marker at
+distance 0, a marker touches the gap from the left, and nothing lies past the end marker (`EndClose0`). From there the
+machine halts 54 steps later, whatever lies further left (`end_close_local`, by `rfl`). Every event of the model is a
+run of the machine (`Step.run`), so a close that the model reaches from a well-formed start is a halt
+(`reach_close_halt`); with `halt_needs_end_close` the machine halts exactly when the model reaches one, wherever no
+interior contact is reachable and every close at the right end is of this kind (`halt_iff_end_close`; both conditions
+measured, not proved). The close run (`closeRun`, and `symCloseRun` on a class) follows the model across rounds to that
+close, so it proves halts: of a concrete start, and of every member of a class (`symCloseRun_halt`). A halting tree
+(`HTree.ofPTree`) has a pass-start tree's splits and a `halt` leaf wherever the close run closes a close or cut leaf's
+class, and every pass start in a halting leaf halts, at every depth (`pass_halt_leaf`, nothing evaluated). At 12 to 20
+splits the halting leaves are eight classes, by residues of the middle wall b and the width W (`HaltClass`): every pass
+start with R = 2; with R = 4, those with W ≡ 0 (mod 4) and b ≡ 6 (mod 8) or W ≡ 2 (mod 4) and b ≡ 0 (mod 4) (3/8);
+with R = 6, the eighth of `pass_r6_halt`; and with W ≡ 0 (mod 4), those with R = 8 and b ≡ 30 (mod 32), R = 16 and
+b ≡ 30 (mod 64), R = 32 and b ≡ 30 + 16W (mod 128), and R = 48 and b ≡ 158 + 48W (mod 256) (1/32, 1/64, 1/128 and
+1/256). No other R < 178 has one, though 24, 64 and 176 are in the closing set. Apart from R = 6's, they are exactly
+the close leaves: every close leaf of the pass-start trees halts. `pass_class_halt` proves that each class halts (the
+close run on each class, evaluated by the kernel, about two seconds for all eight), and `chain_class_halt` that a pass
+start whose loop chain reaches one halts. In 600,000 random pass starts with R < 178 (widths 2¹² to 2³⁰), the model's
+run ends at a one-marker clean tape (98.1%) or at the close (1.9%) and nowhere else, and every run that ends at the
+close passes through a pass start in one of the classes. With R from 178 to 4,176 one run in 400,000 closes: from
+walls at 786,501, 1,023,966 and 1,073,891 and width 1,074,148 (R = 256), it lands at R = 32 and then at R = 16, in a
+class (`pass_halt_example_r256`). A halt from blank tape cannot end its loop chain in a class: `blank_halt_small` puts
+the chain's last pass start at R ≥ 178, cut at every depth. Past it the run could still reach a class by entering the
+loop again, through an end meeting off the chain whose own halving chain runs to 0: in samples run to the next landing
+or clean tape, three of twelve million starts with R from 50 to 176 did (at width 2¹², through an end meeting at 254;
+`pass_halt_example_reentry`), and none of ten million with R ≥ 178 (`../notes/LAB_NOTES.md`).
+
 Where the cone's edge leaves a round undecided and no residue split decides it (the first mark next to the gap at a
 round start, where the members with the smallest value of the mark's position take another branch), the explorer
 cleaves the class (`cleave`, at most `passCleaves` = 8 times on a path): the slice where that position takes its
@@ -393,6 +422,7 @@ from a clean tape that `cleanTreeG 2⁴¹ d` leaves open at every depth.
 | `thm/LoopHalt.lean`, `thm/ExitHalt.lean` | `loop_chain_halt`: a halt from a phase-0 pass start with gaps ≥ 448 needs a stuck configuration after the loop's chain from it; `exit_halt_needs_contact`: one from a loop state, after the certified exit stretch; `loop_halt_sigma`: beyond the σ bound, a close needs a half pass or a round-7 break on the way; `loop_halt_wide`: from a width ≥ 2²⁴, no round-7 break; `loop_halt_leaves`: and the chain ends where the run leaves three walls | `loop_step` and `halt_after_rounds`, by induction on the halting time (each step takes at least one machine step: `passStart_ne`); `exit_stretch` |
 | `BB6/PassTree.lean`, `thm/PassHalt.lean` | `PTree.sound`: a pass-start tree's check gives, at every point of its class, a cut leaf, the left countdown in the closing class, or a halt-free run to a close-free landing of the chain or a wider clean tape; `PTree.explore_ok`: every tree the explorer builds passes the check (it cleaves a class where the cone's edge leaves a round undecided); `pass_next`: from every pass start with gaps ≥ 448, at every depth; `pass_halt_chain`: a halt from a pass start of width ≥ 2¹³ follows the chain to a last pass start in a closing class, or cut at every depth, or goes on to a wider clean tape | the proved explorer, nothing evaluated; induction on the halting time through `landing_wide` and `halt_after_rounds` |
 | `BB6/BlockHalt.lean`, `thm/PassHaltR6.lean` | `block_end_halt'`: from a round start whose only mark is a block three cells before an odd width W ≥ 9, the machine halts within W + 65 steps; `pass_r6_halt`: every phase-0 pass start with R = 6, b ≡ 2 (mod 8), W ≡ 2 (mod 4) and gaps ≥ 448 halts | `pass` and 72 steps by `rfl`; the six rounds on the class by `symRoundsZ`, `decide +kernel` |
+| `BB6/CloseHalt.lean`, `BB6/HaltTree.lean`, `thm/PassHaltClasses.lean` | `reach_close_halt`: a close at the right end with the end marker at distance 0 (`EndClose0`) that the model reaches from a well-formed start is a halt; `halt_iff_end_close`: where no interior contact is reachable and every such close is of this kind, the machine halts exactly when the model reaches one; `closeRun_sound`, `symCloseRun_halt`: the close run proves halts, of a start and of a class; `pass_halt_leaf`: every pass start in a halting leaf of a pass-start tree halts, at every depth; `pass_class_halt`: every pass start in a halting class (`HaltClass`: R = 2, 3/8 of R = 4, 1/8 of R = 6, 1/32, 1/64, 1/128 and 1/256 of R = 8, 16, 32 and 48) halts; `chain_class_halt`: so does every pass start whose loop chain reaches one | the model's events as runs of the machine (`gapEvent_ok`, `pktBack_run`, `pktLand_run`) and the close's 54 steps by `rfl`; `HTree.sound` and `HTree.ofPTree_ok`, nothing evaluated; the close run on each class by `decide +kernel` |
 | `thm/EndToEnd.lean` | `clean_chain`, `blank_halt_clean_from`, `blank_halt_clean`, `blank_halt_clean_kernel`, `blank_halt_loop`, `blank_halt_sigma`, `blank_halt_wide`, `blank_halt_exit`, `blank_halt_structure`, `blank_halt_structure_kernel`, `never_halts_of_cut_classes`, `never_halts_of_cut_classes_kernel` | strong induction on the halting time: at each clean tape, either it is cut at every depth, or some depth decides it and the run goes on to a wider clean tape, which takes at least one machine step |
 | `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean` (`ROUTE_TREE.md`) | `route_tree_clean`, `route_tree_entry`: from every two-marker state with both gaps ≥ Γ, a halt-free run to a clean tape, or (`routeTreeE`) to a loop entry from which no point of its class closes through the loop, unless the start is in a cut class; `entry_halt`, `route_halt`, `blank_halt_route`: a halt from such an entry needs the loop's chain to end without a close where the run leaves three walls, and a stuck configuration after it, and so does a halt from blank tape at each such two-marker state it passes, unless the state is cut at every depth | `RTree.sound`, `RTree.soundE` with the proved explorers (`explore_ok`, `exploreE_okE`); `entryOK_sound`, `EntryNoClose.no_close` (`LoopChain.close_wide`) and `loop_halt_leaves`; nothing evaluated |
 | `thm/CleanMass.lean`, `thm/CleanMass40.lean` | `clean_tree_cut_mass`, `clean_tree_cut_mass40`: the leaf counts and cut measure of `cleanTree 36` and `cleanTree 40` | `exploreMassW` evaluated by `native_decide`; used by no theorem about the machine |
@@ -565,10 +595,10 @@ such isolated members: the chain from a loop entry never ends below 178.
 
 ## No small right end past the loop
 
-The trees for R < 178 are where the pass starts that halt live: 1/8 of those with R = 6 (`pass_r6_halt`), and every
-round the model left uncovered in a sample of 1,000 random pass starts per R came for R in {4, 6, 8, 16, 32, 48, 64}.
-`thm/SmallEndHalt.lean` shows that the run from blank tape reaches none of them past a loop entry: the loop's chain
-from an entry ends at a right end R ≥ 178.
+The trees for R < 178 are where the pass starts that halt live: the halting classes (`pass_class_halt`, among them 1/8
+of those with R = 6, `pass_r6_halt`), and every round the model left uncovered in a sample of 1,000 random pass starts
+per R came for R in {4, 6, 8, 16, 32, 48, 64}. `thm/SmallEndHalt.lean` shows that the run from blank tape ends no loop
+chain at one of them past a loop entry: the loop's chain from an entry ends at a right end R ≥ 178.
 
 A run of full passes divides R by 16 and the left countdown L₁ by 64, so it ends at a right end r < 178 only if
 R = 16^p·r and L₁ = 64^p·ℓ, with ℓ ≡ 3 (mod 7) as every left countdown is (64 ≡ 1 mod 7); `NoSmallAt R L₁` says this
@@ -598,8 +628,9 @@ with nothing evaluated; where the check fails, the path goes on as in the plain 
 `blank_halt_small_from` chains it as `blank_halt_pass_from` does (`clean_entry_chain_of`: `clean_entry_chain` for any
 property of the entries). So `blank_halt_small`: a halt from blank tape needs a clean tape of width ≥ 2⁴¹ cut at
 every depth of `cleanTreeGS 2⁴¹ d`, or a pass start wider than 2⁴¹ with R ≥ 178 cut at every depth of
-`passTreeSym d`. The trees for R < 178, with their halts, are not reached. `blank_halt_small_kernel` is the same from
-the kernel's prefix to 2²⁰, with the plain tree below 2³⁷ and `cleanTreeGS 2³⁷ d` above (`clean_small_step_kernel`).
+`passTreeSym d`. The loop's chain ends in none of the trees for R < 178, with their halts. `blank_halt_small_kernel`
+is the same from the kernel's prefix to 2²⁰, with the plain tree below 2³⁷ and `cleanTreeGS 2³⁷ d` above
+(`clean_small_step_kernel`).
 
 ## The open clean tapes come first
 
@@ -699,7 +730,8 @@ LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh   # the theorem file
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh --deep   # also the 40-digit measures
 # the tree's statistics, or the tree itself (optional, after check_end.sh; Γ = 2²⁰, 2³² or 2⁴¹):
 LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run RouteStats.lean clean 4294967296 36 tree.txt
-# the pass-start trees' leaves by kind, d splits deep (optional, after check_end.sh; R < 178, sym for R ≥ 178, or all):
+# the pass-start trees' leaves by kind and their halting leaves, d splits deep (optional, after check_end.sh; R < 178,
+# sym for R ≥ 178, or all):
 LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run PassStats.lean 16 6 64 sym
 # the loop entries followed in the clean tape's coordinate (optional, after check_end.sh; Γ, d, e splits, landings):
 LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run ReachStats.lean 2199023255552 28 12 4
@@ -713,7 +745,7 @@ python3 thm/gen_prefix.py checkpoints.txt thm 8
 | step | time |
 |---|---|
 | `thm/PrefixPieces*.lean`, `thm/ExitPieces*.lean`, `thm/EndgamePieces*.lean` (kernel, 4 modules at a time; the prefix pieces take about 2 min of it) | 3 min 49 s |
-| `thm/PrefixKernel.lean`, `EndgameTheorem.lean`, `ExitTheorem.lean`, `ExitHalt.lean`, `LoopTheorem.lean`, `LoopHalt.lean`, `PassHalt.lean`, `PassHaltR6.lean` | seconds |
+| `thm/PrefixKernel.lean`, `EndgameTheorem.lean`, `ExitTheorem.lean`, `ExitHalt.lean`, `LoopTheorem.lean`, `LoopHalt.lean`, `PassHalt.lean`, `PassHaltR6.lean`, `PassHaltClasses.lean` | seconds |
 | `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 20 s |
 | `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean`, `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean`, `thm/CleanEntryTheorem.lean`, `thm/CleanEntryHalt.lean`, `thm/PassEntryHalt.lean`, `thm/CleanSmallTheorem.lean`, `thm/SmallEndHalt.lean`, `thm/OpenSmallHalt.lean` | seconds |
 | `thm/CleanEntryMass.lean` (36 digits, cone 2⁴¹, with loop entries) | 5 min 1 s |
