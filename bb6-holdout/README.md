@@ -36,6 +36,16 @@ mark rules interactively.
 
   The number of rounds in all three is existential (the round where the run breaks off, cleans the tape, completes a pass
   or leaves phase 0, chosen per class by an untrusted program), and nothing is claimed for R in the closing set.
+- *End to end from blank tape* (`lean/thm/EndToEnd.lean`, `lean/END_TO_END.md`; also `native_decide`):
+  `blank_halt_structure` says that if the machine halts from blank tape, it first reaches a clean tape of even width
+  W ≥ 2³² with W/2 in one of the cut classes of a 36-digit clean-tape tree (1,660,016 residue classes, measure
+  2.4 × 10⁻⁵) and halts from there; the mark model run from that clean tape reaches a close at the right end or an
+  interior contact; and every pass start (R outside the closing set) the run passes is followed by the loop's
+  close-free stretch, the halt coming only after it. `never_halts_of_cut_classes` is the same read backwards: the
+  question is reduced to the clean tapes of width ≥ 2³² in the cut classes. The pieces: the model's run from blank
+  tape to the clean tape of width 2³² (`thm/Prefix.lean`, 1.2 × 10⁹ rounds), and the clean-tape tree
+  (`BB6/CleanTree.lean`, `thm/CleanTheorem.lean`): from every clean tape of width ≥ 2³² outside the cut classes, the
+  machine reaches a wider clean tape without halting.
 
 **Proved by certificates with independent checkers** (`cert/`): the exact end of the loop (40,991 classes; 83,699
 for starts in either phase), the short exit from the loop (358 classes), and the route tree to 36 and 40 digits.
@@ -76,6 +86,8 @@ LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/EndgameHalt.lean                          
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopPass.lean -o out/LoopPass.olean
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopTheorem.lean -o out/LoopTheorem.olean
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopAxioms.lean
+# end to end (all the theorem files above, the prefix and the clean-tape tree, as native code; about 15 minutes):
+LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh
 ```
 
 `thm/gen_exit.py` and `thm/gen_endgame.py` regenerate the theorem files from the trees (`thm/exit_tree.txt`,

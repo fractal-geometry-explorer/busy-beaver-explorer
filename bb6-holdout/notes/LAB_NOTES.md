@@ -2109,6 +2109,27 @@ shown by the runs above, not by the theorem. A "close" in the Python sense (an e
 meeting at d ≤ 2, from which a halt can begin in later rounds) is not the same as `uncovered`: at d = 2 the rules
 still cover the round, so the proved model carries on there, and close leaves make no non-halting claim either way.
 
+
+**End to end (October 27; `../lean/END_TO_END.md`, `../lean/thm/EndToEnd.lean`).** The Lean results now combine into
+one statement about the machine on blank tape, `blank_halt_structure`: if it halts, then (1) it first reaches a clean
+tape of even width W ≥ 2³² with W/2 in one of the cut classes of a 36-digit clean-tape tree (1,660,016 residue
+classes, measure 2.4 × 10⁻⁵) and halts from there; (2) the mark model, run from that clean tape, reaches a stuck
+configuration (a close at the right end or an interior contact); (3) every phase-0 pass start it passes with R outside
+the closing set is followed by the loop's close-free stretch, and the halt needs a stuck configuration after it, for
+every R (`loop_halt_needs_contact`, extending the endgame version beyond R ≤ 4096). (The same holds after every loop
+state with the exit stretch, `exit_halt_needs_contact`, but `ExitTheorem` and `EndgameTheorem` both define a top-level
+`decodeTree` and cannot be imported together yet.) Read backwards (`never_halts_of_cut_classes`): the machine never halts if no clean tape of width
+≥ 2³² in a cut class halts. Three new pieces carry it. *The prefix:* the mark model runs 1,204,297,272 rounds from the
+first round start to the clean tape of width exactly 2³² (`native_decide`, 4 minutes as native code). *The clean-tape
+tree:* `RTree.okW` checks a route tree over the one number W whose leaves are one-marker clean tapes decided to be
+wider than the start; it is the exhaustive check's class tree, proved, and its cut classes grow 1.52-fold per digit
+like the exhaustive check's open classes. *The chain:* strong induction on the halting time, since a run to a wider
+clean tape takes at least one step (clean tapes of different widths differ in cell W − 1). The two-marker route tree
+could not be chained this way: the machine's own run reaches two-marker states with a tiny gap (m = 56 at width
+34,478,025), outside any cone of large gaps. Also found: `thm/LoopTheorem.lean` no longer compiled once
+`endgame_no_close` gained its `roundsZ` conjunct (the two pull requests merged in that order); fixed, and
+`BB6.Sym.sameForm` moved to `SymSplit` so that `Loop` and `RouteTree` can be imported together.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:
