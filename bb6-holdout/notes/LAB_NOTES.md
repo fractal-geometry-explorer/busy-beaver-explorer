@@ -2607,6 +2607,33 @@ own growth (about 1.52-fold per digit, 101,837 cut classes at 30 digits and 1,25
 right-end theory" (item 4, "Why verification is expensive") puts down to returns to a GMM state, each costing about
 3.5 digits, not to closeness to the end.
 
+**The open clean tapes come first (October 27; `../lean/thm/PassEntryHalt.lean`, `../lean/ReachStats.lean`).**
+`blank_halt_clean_direct` and `blank_halt_pass` follow the same halting run with two clean-tape trees:
+`cleanTreeG 2⁴¹ d`, which follows the run through the loop round by round, and `cleanTreeGE 2⁴¹ d`, which stops at the
+loop entries that cannot close. The two split alike until a path of the second meets an entry, where the same path of
+the first goes on; so a clean tape that the first resolves at some depth reaches a wider clean tape, whatever the second
+does with it. `clean_entry_chain_open` runs the chain over clean tapes in that order (the plain tree's step where that
+tree does not cut the clean tape at every depth, else the step of the tree with entries, recording at an entry that the
+plain tree left the clean tape open), and with `entry_pass_halt` it gives `blank_halt_open`: a halt needs a clean tape
+of width ≥ 2⁴¹ that `cleanTreeG 2⁴¹ d` leaves open at every depth, and either `cleanTreeGE 2⁴¹ d` leaves it open too and
+the mark model reaches a contact from it, or the run from it passes a loop entry and reaches a pass start that its
+pass-start tree leaves open at every depth, and halts from there (`blank_halt_open_kernel` from 2²⁰). So the open pass
+starts are not a second open set beside the open clean tapes but come after them: at 36 digits after one of the 404,061
+of the 1,660,024 cut classes that meet an entry in the tree with entries (5.9 × 10⁻⁶; the other 1,255,963 are cut by
+both).
+
+How far past an entry the run has to be followed (untrusted, `ReachStats.lean`): the pass-start explorer rooted at each
+loop entry of `cleanTreeGE 2⁴¹ d`, in the clean tape's own coordinate (one live coordinate, where the trees over all
+pass starts have four), and restarted at each landing of the loop's chain, so that a path ends at a wider clean tape, a
+cut or a close. At d = 28 the tree has 1,845 entries (0.13% of the clean tapes); of their measure 13.5% is still cut 8
+splits past the entry, 4.57% at 12 and 1.51% at 16; at d = 20 (24 entries) 4.55% at 12, 1.50% at 16 and 0.51% at 20,
+about 0.76-fold per split, with no cut at a decided round, no close and nothing still landing. About 0.3% of the
+entries' measure lands once on the way (0.1% at d = 20) and almost none twice. The plain tree, which follows the same
+runs round by round with the digits it has left, leaves 0.44% of the entries' measure open at 36 digits. Every landing
+lies on the plane 2(b − a) = W − 2R − 6 (`landing_plane`, from the step's maps on L₁ and the first wall), so the pass
+starts after a landing form a family of three coordinates; the explorer as it stands cannot root a tree on that plane,
+since its cone needs as many forms as coordinates.
+
 **No small right end past the loop (October 27; `../lean/BB6/SmallEnd.lean`, `../lean/thm/SmallEndHalt.lean`).** The
 pass starts that `blank_halt_pass` leaves open include real halts, all with small right ends (1/8 of R = 6; in a sample,
 uncovered rounds only for R in {4, 6, 8, 16, 32, 48, 64}). The run from blank tape reaches no pass start with R < 178
