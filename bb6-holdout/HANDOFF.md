@@ -42,7 +42,9 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    (`lean/BB6/PassTree.lean`, `lean/thm/PassHalt.lean`, built by a proved explorer) follow the run to the next close-free
    landing or a wider clean tape at every depth: `pass_halt_chain` gives, from a halting pass start of width ≥ 2¹³, the
    chain to a last pass start that is in a closing class, cut at every depth, or followed by a wider clean tape the run
-   halts from. Some cut classes are real halts (1/8 of the pass starts with R = 6). The original note:
+   halts from. Where the cone's edge leaves a round undecided, the explorer cleaves the class at the bound (`cleave`),
+   so the cut classes (2.0% of a start class at 20 splits, 3.8% for R ≥ 178) are nearly all where the depth ran out.
+   Some cut classes are real halts (1/8 of the pass starts with R = 6). The original note:
    **The loop's end for every width as one Lean theorem.** Prove the pass map (R → R/16, L → L/64) with R free
    using the symbolic runner (`BB6/SymRound`, `BB6/SymSplit`), then induct over passes, combined with
    `endgame_no_close` for R ≤ 4096: "a run through the loop closes only from R ∈ {2, 4, 8, 16, 24, 32, 48, 64, 176}

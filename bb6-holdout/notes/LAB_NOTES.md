@@ -2563,6 +2563,35 @@ which pass starts the run reaches: the last pass starts of loop chains from the 
 one of those entries R is affine in the class's coordinate with a nonzero coefficient (28,660 entries at 36 digits,
 `EntryStats.lean`), so the chains end at R₁ < 178 only at isolated members, and otherwise in the tree for R ≥ 178.
 
+**Cleaving the cone's edge (October 27; `../lean/BB6/PassTree.lean`, `../lean/PassStats.lean`).** The pass-start
+trees' cuts at a round left undecided, with no undecided residue to split on, were the one kind of cut that more depth
+did not shrink (0.5% of a class at 16 splits, 0.7% at 20). Traced at 14 splits for R = 10, 22, 42, 74 and 158
+(untrusted, a copy of the symbolic round that reports where it stops), all 189 such leaves stop at the round's first
+event, where the first mark's position p is compared with the gap at 1: p − 4 = 2, p − 4 = 0 or p < 4. Asked of z3 on
+the integer points of each leaf's cone, 146 of them (77%) are genuine: the members with the smallest p take the other
+branch, and no residue separates them from the rest. In the other 43 no integer point of the cone does (15 equalities,
+which `eqDec` decides only over the rationals, and 28 order tests that `ltDec`'s rounding to integers decides in one
+direction only).
+
+A new node, `cleave i c σ j0 j1`, splits such a class at the bound of a coordinate on the cone's integer points. The
+check asks that σ(yᵢ − c) ≥ 0 be decided on the class (by `ltDec`, which rounds to integers), then goes on with the
+slice yᵢ = c, where coordinate i is fixed and cone form j0 is dropped (one coordinate less), and with the rest, where
+cone form j1 is replaced by σ(yᵢ − c) ≥ 1. The soundness proof needs only that every point of the class lies in one of
+the two (`inCone_pin`, `inCone_set`), and `cutMem` sends a point to the slice when yᵢ = c, so `PassCut` keeps its
+shape. The explorer brings p onto the class's last live coordinate by Euclid steps (skews with any multiplier), finds
+its bound by bisection, gives up the cone forms whose loss still leaves the next round decided where one does, and
+makes at most 8 cleaves on a path (`passCleaves`). It is proved like the rest (`explore_ok`), so `pass_next` and
+`pass_halt_chain` hold as before, at every depth with nothing evaluated.
+
+Measures (`PassStats.lean`, fractions of a start class; the slices have measure 0, and their leaves are counted apart):
+at 20 splits the cut leaves hold 2.0% of a class R < 178 on average (1.8% where the depth ran out, 0.14% at R = 6's
+decided halt, 4 × 10⁻⁶ at rounds that no cleave decides), against 2.4% before, and 3.8% for R ≥ 178, all of it where the
+depth ran out, against 4.1%; at 16 splits 4.6% and 8.8%; at 24 splits 1.6% for R ≥ 178 (5 × 10⁻⁶ undecided): the depth
+cuts fall about 0.8-fold per split. The 175,107 cleaves at 20 splits in the trees for R < 178 have 391,807 leaves in
+their slices, half of them cut (a slice goes on to the same depth as its class). A budget of 16 or 32 cleaves on a path
+leaves the undecided rounds where they are: those few classes are ones where no cleave applies, not ones that ran out of
+cleaves.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:

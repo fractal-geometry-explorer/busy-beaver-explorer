@@ -241,10 +241,16 @@ R, 14 halt with R = 4, 3 with R = 6, 7 with R = 8, none with R = 10, 22 or 64. S
 do not shrink to nothing; what `pass_halt_chain` says is that a halt through a pass start needs one of them, or a
 closing class, or a clean tape after it.
 
-The cut leaves' measure (`PassStats.lean`; fractions of a start class): at 16 splits 4.8% on average over the trees for
-R < 178 (4.2% where the depth ran out, 0.5% where a round is undecided and its undecided residue is not found, 0.1% at a
-decided halt, R = 6's 1/8), and 8.8% for R ≥ 178; at 20 splits 2.4% (1.6%, 0.7% and 0.1%) and 4.1%. Landings take 12% of
-a class, clean tapes 81%, close leaves 1.6%.
+Where the cone's edge leaves a round undecided and no residue split decides it (the first mark next to the gap at a
+round start, where the members with the smallest value of the mark's position take another branch), the explorer
+cleaves the class (`cleave`, at most `passCleaves` = 8 times on a path): the slice where that position takes its
+extreme value goes on with one coordinate less, and the rest under a cone with that bound moved by one. The cut
+leaves' measure (`PassStats.lean`; fractions of a start class, the slices having measure 0): at 16 splits 4.6% on
+average over the trees for R < 178 (4.5% where the depth ran out, 0.1% at a decided halt, R = 6's 1/8), and 8.8% for
+R ≥ 178; at 20 splits 2.0% (1.8% and 0.1%, and 4 × 10⁻⁶ at rounds that no cleave decides) and 3.8%, all of it where
+the depth ran out; at 24 splits 1.6% for R ≥ 178 (the depth cuts fall about 0.8-fold per split). Before the cleaves it was
+2.4% and 4.1% at 20 splits, with 0.7% of a class at undecided rounds, which more depth did not shrink. Landings take
+12% of a class, clean tapes 84%, close leaves 1.6%.
 
 **Why the stretches name their ends** (October 27). The first versions of items 3 and 4 said only "the model covers n
 rounds from the start, with no close, and the halt needs a stuck configuration after them". With n = 0 that is just
@@ -296,7 +302,7 @@ configuration from there. `blank_halt_pass_kernel` is the same from 2²⁰, with
 | `thm/EndgameTheorem.lean`, `thm/LoopTheorem.lean` | `endgame_stretch`: from a phase-0 pass start with gaps ≥ 448, a close needs R in the closing set and L₁ in R's class, and otherwise the run is close-free to an end event: a round start that is not three walls after it leaves phase 0 or breaks the chain, or a landing (a full pass, a half pass or a round-7 break, with its exact map on E, R and L₁); `loop_step`, `LoopChain`: the chain of these steps through pass starts with gaps ≥ 448; `LoopChain.sigma`: a chain that ends in a closing class has R³/L₁² ≤ 176³/256² at the start of its last run of full passes; `break7_sigma`, `LoopChain.close_wide`: from a width ≥ 2²⁴ it makes no round-7 break | the endgame trees checked by the kernel (`Tree.okEnd`, `decide +kernel`); the closing classes with L₁ ≡ 3 mod 7 |
 | `thm/ExitTheorem.lean` | `exit_stretch`: from a loop state with gaps ≥ 390, the run is close-free to an exit event (`ExitEvent`) | the exit tree checked by the kernel (`Tree.okEnd`, `decide +kernel`) |
 | `thm/LoopHalt.lean`, `thm/ExitHalt.lean` | `loop_chain_halt`: a halt from a phase-0 pass start with gaps ≥ 448 needs a stuck configuration after the loop's chain from it; `exit_halt_needs_contact`: one from a loop state, after the certified exit stretch; `loop_halt_sigma`: beyond the σ bound, a close needs a half pass or a round-7 break on the way; `loop_halt_wide`: from a width ≥ 2²⁴, no round-7 break; `loop_halt_leaves`: and the chain ends where the run leaves three walls | `loop_step` and `halt_after_rounds`, by induction on the halting time (each step takes at least one machine step: `passStart_ne`); `exit_stretch` |
-| `BB6/PassTree.lean`, `thm/PassHalt.lean` | `PTree.sound`: a pass-start tree's check gives, at every point of its class, a cut leaf, the left countdown in the closing class, or a halt-free run to a close-free landing of the chain or a wider clean tape; `PTree.explore_ok`: every tree the explorer builds passes the check; `pass_next`: from every pass start with gaps ≥ 448, at every depth; `pass_halt_chain`: a halt from a pass start of width ≥ 2¹³ follows the chain to a last pass start in a closing class, or cut at every depth, or goes on to a wider clean tape | the proved explorer, nothing evaluated; induction on the halting time through `landing_wide` and `halt_after_rounds` |
+| `BB6/PassTree.lean`, `thm/PassHalt.lean` | `PTree.sound`: a pass-start tree's check gives, at every point of its class, a cut leaf, the left countdown in the closing class, or a halt-free run to a close-free landing of the chain or a wider clean tape; `PTree.explore_ok`: every tree the explorer builds passes the check (it cleaves a class where the cone's edge leaves a round undecided); `pass_next`: from every pass start with gaps ≥ 448, at every depth; `pass_halt_chain`: a halt from a pass start of width ≥ 2¹³ follows the chain to a last pass start in a closing class, or cut at every depth, or goes on to a wider clean tape | the proved explorer, nothing evaluated; induction on the halting time through `landing_wide` and `halt_after_rounds` |
 | `thm/EndToEnd.lean` | `clean_chain`, `blank_halt_clean_from`, `blank_halt_clean`, `blank_halt_clean_kernel`, `blank_halt_loop`, `blank_halt_sigma`, `blank_halt_wide`, `blank_halt_exit`, `blank_halt_structure`, `blank_halt_structure_kernel`, `never_halts_of_cut_classes`, `never_halts_of_cut_classes_kernel` | strong induction on the halting time: at each clean tape, either it is cut at every depth, or some depth decides it and the run goes on to a wider clean tape, which takes at least one machine step |
 | `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean` (`ROUTE_TREE.md`) | `route_tree_clean`, `route_tree_entry`: from every two-marker state with both gaps ≥ Γ, a halt-free run to a clean tape, or (`routeTreeE`) to a loop entry from which no point of its class closes through the loop, unless the start is in a cut class; `entry_halt`, `route_halt`, `blank_halt_route`: a halt from such an entry needs the loop's chain to end without a close where the run leaves three walls, and a stuck configuration after it, and so does a halt from blank tape at each such two-marker state it passes, unless the state is cut at every depth | `RTree.sound`, `RTree.soundE` with the proved explorers (`explore_ok`, `exploreE_okE`); `entryOK_sound`, `EntryNoClose.no_close` (`LoopChain.close_wide`) and `loop_halt_leaves`; nothing evaluated |
 | `thm/CleanMass.lean`, `thm/CleanMass40.lean` | `clean_tree_cut_mass`, `clean_tree_cut_mass40`: the leaf counts and cut measure of `cleanTree 36` and `cleanTree 40` | `exploreMassW` evaluated by `native_decide`; used by no theorem about the machine |
@@ -449,7 +455,7 @@ So every part of a halting run from blank tape is followed: from clean tape to c
 the loop at the entries, through the loop by its chain, and past the loop's end by the pass-start trees, to the next
 landing of the chain or a wider clean tape. What is left are two kinds of cut classes. The clean-tape tree's have
 measure 1.83 × 10⁻⁵ at 36 digits, and their number grows about 1.52-fold per digit, so their measure shrinks with
-depth. The pass-start trees' are 2.4% of a start class at 20 splits for R < 178 and 4.1% for R ≥ 178. Those for
+depth. The pass-start trees' are 2.0% of a start class at 20 splits for R < 178 and 3.8% for R ≥ 178. Those for
 small R do not shrink to nothing, since some of them are real halts (1/8 of the pass starts with R = 6, above), so no
 depth of the pass-start trees can show that their cut classes do not halt. What `blank_halt_pass` leaves open is
 whether the run from blank tape reaches one of the pass starts that halt, or a clean tape of the cut classes.
@@ -460,7 +466,7 @@ constant: all 28,660 entries at 36 digits over the widths ≥ 2⁴¹, 25,058 of 
 coefficient of 2-adic valuation 2 (`EntryStats.lean`, untrusted). A full pass, R → R/16 on the subclass where 16
 divides R, keeps R so. So a chain from an entry ends at R₁ < 178 only at isolated members of the entry's class, and
 apart from those the pass starts it reaches are in the tree for R ≥ 178, whose cut classes fall from 8.8% of a class
-at 16 splits to 4.1% at 20, with no decided halt among them.
+at 16 splits to 3.8% at 20 and 1.6% at 24, with no decided halt among them.
 
 ## What is trusted
 
