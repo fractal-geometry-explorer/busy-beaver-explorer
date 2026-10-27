@@ -374,7 +374,12 @@ them. A full pass from a pass start with every gap at least 448 lands on the pla
 such points with R ≥ 178 and width up to 16,384, two close, at widths 13,400 and 16,292, and both are real full-pass
 landings. The first lies in an eighth family, and `full_pass_open_halt` proves its chain: the pass start with walls at
 449, 1,182 and 10,399 and width 13,376 (R = 2,976) makes a full pass onto walls at 3,187, 9,698 and 13,213 and width
-13,400 (R = 186), which `passTreeSym` leaves open at every depth and from which the machine halts. Three of the eleven
+13,400 (R = 186), which `passTreeSym` leaves open at every depth and from which the machine halts. Its route repeats
+at every scale: the run meets the end at R − 2, then off the chain at (W − b + 2R + 14)/4, which W − b = 2^(j+2) − 2R − 22
+puts at 2^j − 2, whose halving chain runs to the close, and for each j from 10 to 30 the kernel checks a family with
+R = 178 there (`reentry_open_halt`, `reentryFams_shape`; the meetings are 176, 2^j − 2, 2^(j−1) − 2, …, 2, 0). For
+each such j and each R ≡ 2 (mod 4) tried, a symbolic search of the model's rounds finds exactly one class of b that
+closes, modulo about 2^(1.5j + 2): about 1.5 binary digits per halving (untrusted, `HaltClasses.lean`). Three of the eleven
 placements of the scan are landings of a half pass, the first step of a chain from a loop entry. Two in 18.4 million
 is about the rate of random pass starts at those widths, and the pass-start tree run on the full-pass landings alone
 leaves as much of its class open as `passTreeSym` does (8.6% at 16 splits, against 8.8%; untrusted). Random starts at
@@ -459,7 +464,7 @@ from a clean tape that `cleanTreeG 2⁴¹ d` leaves open at every depth.
 | `BB6/PassTree.lean`, `thm/PassHalt.lean` | `PTree.sound`: a pass-start tree's check gives, at every point of its class, a cut leaf, the left countdown in the closing class, or a halt-free run to a close-free landing of the chain or a wider clean tape; `PTree.explore_ok`: every tree the explorer builds passes the check (it cleaves a class where the cone's edge leaves a round undecided); `pass_next`: from every pass start with gaps ≥ 448, at every depth; `pass_halt_chain`: a halt from a pass start of width ≥ 2¹³ follows the chain to a last pass start in a closing class, or cut at every depth, or goes on to a wider clean tape | the proved explorer, nothing evaluated; induction on the halting time through `landing_wide` and `halt_after_rounds` |
 | `BB6/BlockHalt.lean`, `thm/PassHaltR6.lean` | `block_end_halt'`: from a round start whose only mark is a block three cells before an odd width W ≥ 9, the machine halts within W + 65 steps; `pass_r6_halt`: every phase-0 pass start with R = 6, b ≡ 2 (mod 8), W ≡ 2 (mod 4) and gaps ≥ 448 halts | `pass` and 72 steps by `rfl`; the six rounds on the class by `symRoundsZ`, `decide +kernel` |
 | `BB6/CloseHalt.lean`, `BB6/HaltTree.lean`, `thm/PassHaltClasses.lean` | `reach_close_halt`: a close at the right end with the end marker at distance 0 (`EndClose0`) that the model reaches from a well-formed start is a halt; `halt_iff_end_close`: where no interior contact is reachable and every such close is of this kind, the machine halts exactly when the model reaches one; `closeRun_sound`, `symCloseRun_halt`: the close run proves halts, of a start and of a class; `pass_halt_leaf`: every pass start in a halting leaf of a pass-start tree halts, at every depth; `pass_class_halt`: every pass start in a halting class (`HaltClass`: R = 2, 3/8 of R = 4, 1/8 of R = 6, 1/32, 1/64, 1/128 and 1/256 of R = 8, 16, 32 and 48) halts; `chain_class_halt`: so does every pass start whose loop chain reaches one | the model's events as runs of the machine (`gapEvent_ok`, `pktBack_run`, `pktLand_run`) and the close's 54 steps by `rfl`; `HTree.sound` and `HTree.ofPTree_ok`, nothing evaluated; the close run on each class by `decide +kernel` |
-| `thm/PassOpenHalt.lean` | `family_open_halt`: every pass start with walls at a, b and b + 467 and width b + 646 (R = 178), a odd, a ≥ 448, b − a ≥ 448 and b ≡ 2,010 (mod 2¹⁴), lies in a cut leaf of `passTreeSym` at every depth and halts; `sym_open_halt`, `sym_open_halt_wide`: such pass starts at every width, and above 2⁴¹; `open_halt_families`: the same for eight families (first wall free, the other walls and the width moved by multiples of 2¹³ to 2¹⁷); `full_pass_open_halt`: a full pass of the loop's chain (`LoopChain`, R = 2,976 to R = 186) lands on a member of the eighth; `sym_open_of_run`: a pass start with R ≥ 178 whose model run leaves a round uncovered before any possible checkpoint is cut at every depth | `pass_next` with `no_checkpoint`; the model's rounds on each family (`symOpenRun`, `symRoundsZ_sound`) and the close run (`symCloseRun_halt`) by `decide +kernel`, as are the full pass's eight rounds (`rounds_run`) |
+| `thm/PassOpenHalt.lean` | `family_open_halt`: every pass start with walls at a, b and b + 467 and width b + 646 (R = 178), a odd, a ≥ 448, b − a ≥ 448 and b ≡ 2,010 (mod 2¹⁴), lies in a cut leaf of `passTreeSym` at every depth and halts; `sym_open_halt`, `sym_open_halt_wide`: such pass starts at every width, and above 2⁴¹; `open_halt_families`: the same for eight families (first wall free, the other walls and the width moved by multiples of 2¹³ to 2¹⁷); `full_pass_open_halt`: a full pass of the loop's chain (`LoopChain`, R = 2,976 to R = 186) lands on a member of the eighth; `reentry_open_halt`: the eighth's route at each scale j from 10 to 30, a family with R = 178 and W − b = 2^(j+2) − 378 (`reentryFams_shape`); `sym_open_of_run`: a pass start with R ≥ 178 whose model run leaves a round uncovered before any possible checkpoint is cut at every depth | `pass_next` with `no_checkpoint`; the model's rounds on each family (`symOpenRun`, `symRoundsZ_sound`) and the close run (`symCloseRun_halt`) by `decide +kernel`, as are the full pass's eight rounds (`rounds_run`) |
 | `thm/EndToEnd.lean` | `clean_chain`, `blank_halt_clean_from`, `blank_halt_clean`, `blank_halt_clean_kernel`, `blank_halt_loop`, `blank_halt_sigma`, `blank_halt_wide`, `blank_halt_exit`, `blank_halt_structure`, `blank_halt_structure_kernel`, `never_halts_of_cut_classes`, `never_halts_of_cut_classes_kernel` | strong induction on the halting time: at each clean tape, either it is cut at every depth, or some depth decides it and the run goes on to a wider clean tape, which takes at least one machine step |
 | `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean` (`ROUTE_TREE.md`) | `route_tree_clean`, `route_tree_entry`: from every two-marker state with both gaps ≥ Γ, a halt-free run to a clean tape, or (`routeTreeE`) to a loop entry from which no point of its class closes through the loop, unless the start is in a cut class; `entry_halt`, `route_halt`, `blank_halt_route`: a halt from such an entry needs the loop's chain to end without a close where the run leaves three walls, and a stuck configuration after it, and so does a halt from blank tape at each such two-marker state it passes, unless the state is cut at every depth | `RTree.sound`, `RTree.soundE` with the proved explorers (`explore_ok`, `exploreE_okE`); `entryOK_sound`, `EntryNoClose.no_close` (`LoopChain.close_wide`) and `loop_halt_leaves`; nothing evaluated |
 | `thm/CleanMass.lean`, `thm/CleanMass40.lean` | `clean_tree_cut_mass`, `clean_tree_cut_mass40`: the leaf counts and cut measure of `cleanTree 36` and `cleanTree 40` | `exploreMassW` evaluated by `native_decide`; used by no theorem about the machine |
@@ -706,7 +711,8 @@ tree for every R ≥ 178. What is left is two questions (`never_halts_of_open`):
 that both trees leave open at every depth, and does it halt from a pass start with R ≥ 178 that `passTreeSym` leaves
 open at every depth and that the run reaches from a clean tape that `cleanTreeG` leaves open at every depth. In the
 second, the reaching is what matters: such pass starts that halt exist at every width (`sym_open_halt`,
-`open_halt_families`), and the loop's chain can land on one after a full pass (`full_pass_open_halt`).
+`open_halt_families`) and at every scale of the third gap tried (`reentry_open_halt`), and the loop's chain can land on
+one after a full pass (`full_pass_open_halt`).
 
 ## Deeper trees: the open classes keep their number
 
@@ -807,7 +813,7 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   `blank_halt_open_small`). Which of those with R ≥ 178 that `passTreeSym` cuts at every depth it can reach from there
   is not worked out; at the depths measured that tree's cuts are all depth cuts, none at a round decided as a halt, and
   they shrink with depth (8.8%, 3.8% and 1.6% of a class at 16, 20 and 24 splits). Some of them halt, at every width
-  (`sym_open_halt`, `open_halt_families`), also where a full pass of the loop's chain lands
+  (`sym_open_halt`, `open_halt_families`, `reentry_open_halt`), also where a full pass of the loop's chain lands
   (`full_pass_open_halt`).
 * The **two-marker route trees** (`ROUTE_TREE.md`) are not used by the theorems above: the machine's run reaches
   two-marker states with a small first gap again and again ("Why a one-variable tree", above). `blank_halt_route`
@@ -834,6 +840,9 @@ LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run 
 LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run ProjPar.lean 36 4 2199023255552
 # the round shapes on the cut paths, with their periodic tails (optional, after check_end.sh; Γ, d):
 LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run CutShapes.lean 2199023255552 36
+# the class of pass starts with R ≥ 178 that halts at a scale j, a family's checks, a run's rounds (optional, after
+# check_end.sh; search pow j rlo rhi K S, fam W₀ R₀ b₀ k, trace n a b W R):
+LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run HaltClasses.lean search pow 12 178 198 24 54
 # the checkpoints of the run to 2²⁰ and the kernel-checked prefix from them (optional; the files are in the repository):
 LEAN_PATH=/path/to/lib/lean:out lean --run PrefixGen.lean 1048576 5000 checkpoints.txt
 python3 thm/gen_prefix.py checkpoints.txt thm 8

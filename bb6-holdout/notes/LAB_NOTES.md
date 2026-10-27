@@ -2937,3 +2937,56 @@ On symbolic positions around the first (a₁ and W₁ moved by 2²⁰, R₁ fixe
 128 + (W₁ − b₁ − 3,702)/32: the route depends on the walls through W₁ − b₁ and residues. On the band W₁ − b₁ grows
 like W₁/4, so a close there at a larger width needs a re-entry with right end of the order W₁/128 and a halving chain
 of about log₂ of that, which is why these closes thin out with the width as for random pass starts.
+
+**How the pass starts with R ≥ 178 halt: one class of the middle wall per scale (October 27, night;
+`../lean/thm/PassOpenHalt.lean`, `../lean/HaltClasses.lean`).** The full-pass landing at width 13,400 (walls 3,187,
+9,698 and 13,213, R = 186) shows the mechanism. Its round starts are three walls, then BW, MWWM, WWWM and BWM: the
+end is met at 184 = R − 2 in round 1, on the loop's chain, and in round 4 at x = (W − b + 2R + 14)/4 = 1,022, off
+the chain. From there the end meetings halve, x → (x − 2)/2: 510, 254, 126, 62, 30, 14, 6, 2, 0, about two rounds
+per halving, through three-wall round starts with right ends 128, 64, 8 and 4 (the loop entered again), to the close
+at distance 0 in round 22, which is a halt (`reach_close_halt`). The halving reaches 0 only from x = 2^j − 2, and only
+when the walls line up at every halving. So with W − b = 2^(j+2) − 2R − 22 the meeting off the chain is at 2^j − 2,
+and what is left is which middle walls make every halving work.
+
+A symbolic search answers it (`HaltClasses.lean search pow j`: the class a = 1 + 2y₀, b = 2y₁,
+W = b + 2^(j+2) − 2R − 22 followed by `symRoundZ`, split where a round is undecided, at most 1.5j + 6 splits; each
+class that reaches a round that is not a new round start goes to the close run). For every j from 10 to 32 and every
+R ≡ 2 (mod 4) tried (178 to 198 at every j; at j = 10 all 258 from 178 to 1,206, at j = 11 to 698, at j = 12 to 242),
+exactly one class of b closes, modulo 2^k with k = 1.5j + 2 for even j and 1.5j + 1.5 or 1.5j + 2.5 for odd j (by j
+mod 4 and R mod 8; k(j + 4) = k(j) + 6), the close in round 2j + 1 or 2j + 2, and the first wall free (any odd
+a ≥ 448 with b ≥ a + 448): each halving costs about 1.5 binary digits of b. R ≡ 0 (mod 4) gives no class at j = 10
+except at multiples of 256 (seven classes at R = 256, 512, 768 and 1,024, on other routes). `reentry_open_halt`
+proves the class with R = 178 for each j from 10 to 30 (the kernel's checks take about 35 s for all 21); on a member
+with a = 449 the meetings are 176, 2^j − 2, 2^(j−1) − 2, …, 2, 0.
+
+Within a scale the class moves affinely with R in steps of 8: for R = 178 + 8s, b ≡ β_j + 520s (mod 2^k), the
+middle wall moving by 65 per unit of R; for R = 182 + 8s, b ≡ β′_j + δ_j s with 13(δ_j + 112) small modulo 2^k,
+thirteen lanes. (Fitted from three consecutive R and checked on the third; at j = 10 on all of R = 178 to 1,206 and at
+j = 12 on R = 178 to 242; an extrapolation elsewhere.) Only the classes with R ≡ 2 (mod 8) are open at every depth of
+`passTreeSym` (`symOpenRun` succeeds: at j = 10, 11, 12, 14, 16, 20 and 24 for R = 178, 186 and 194, and for R = 178
+at every j from 10 to 30). With R ≡ 6 (mod 8) the run has three walls at round 5 and lands at round 7, a round-7
+break of the loop's chain, and that chain ends at a small right end in a closing class: such a pass start is not the
+last of its chain, and a halt from blank tape needs the last one at R ≥ 178 (`blank_halt_small`).
+
+Where a full pass lands on them. With D = W − b, a full pass from a pass start with every gap at least 448 lands at
+a = W/2 − D + R + 3, W ≡ 0 (mod 4), with 4D − 8R + 63 ≤ W ≤ (64D − 144R − 375)/15, from the pass start with width
+W − 24, right end 16R, middle wall 64b − 48W + 128R − 98 and any first wall. At a scale D is fixed by R, and a
+halting landing needs b = W − D in the class modulo 2^k and in a window of about 4D/15, which is empty for
+R > 2^(j−1) − 44. Against the window, the R ≡ 2 (mod 8) lane drifts by 632 per step of 8 in R (520 + 112) and each
+R ≡ 6 (mod 8) lane by 1,328 per 104. So a lane crosses the window at scale j with odds of about 10 · 2^(−j/2), and
+then gives about 2^j/632 landings in a row. Every crossing for j from 10 to 32 (both lanes, every R up to where the
+window closes; `../runs/halt_lanes.py`), each checked on the model (`HaltClasses.lean land`: the full pass onto it
+from a first wall of 449, every end meeting at least 3, then the close):
+
+| scale j | width W | a | b | R | R mod 8 |
+|---|---|---|---|---|---|
+| 10 | 13,400 | 3,187 | 9,698 | 186 | 2: open at every depth (`full_pass_open_halt`) |
+| 11 | 29,404 | 7,201 | 21,678 | 222 | 6: lands at round 7 |
+| 14 | 235,724 − 336t | 57,457 + 144t | 173,614 − 128t | 1,702 + 104t | 6, for t = 0 to 8 |
+
+None for j = 12, 13 or 15 to 32. With the landing at 16,292 (R = 366, other route) these are all the halting
+full-pass landings known; only the first is open at every depth. The other routes are not searched yet: of the
+eleven closing placements at widths 2,048 to 3,072, three are on this route (R = 178, 466 and 474), and in the other
+eight the end is met one to four more times before the halving chain starts (for R = 402: 400, 204, then 510, 254,
+…, 0); one of them halves from 766 = 3 · 2⁸ − 2 (766, 382, …, 10, 4, then 6, 2, 0). Four of the eight families of
+`open_halt_families` are of that kind, as is the landing at 16,292 (364, 1,356, then 1,022, …).
