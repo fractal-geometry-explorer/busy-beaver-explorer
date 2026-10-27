@@ -86,7 +86,11 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    nearly all of them routes that meet no three-wall round start within the tree's depth.
 5. **Research**: of the three open questions (routes deeper than the tree, halts carried by the extra-wall loop
    alone, marks touching), the most promising is a lock for the extra-wall loops analogous to the plain loop's
-   never-zero countdown.
+   never-zero countdown. **Done as far as it goes (October 27, `lock/LOCK_NOTES.md`):** Q and every periodic word have
+   never-zero quadratic locks, mixtures have none (hand-built mixed tapes halt), and the open cases of
+   `blank_halt_pass` almost never reach the extra-wall loop (0.09% of the clean-tape tree's cut classes at 36 digits,
+   under 1% of the pass-start trees' undecided cut measure at 20 splits), so no such lock can settle them. What keeps
+   them open is long runs of two- and three-mark rounds, about one digit per round.
 
 ## Practical notes
 
