@@ -36,8 +36,7 @@ In words: if the machine halts from blank tape, then
    stretch the model covers through every pass of the loop, and the halt needs a stuck configuration after it.
 
 The same holds after every loop state with the exit stretch (`exit_halt_needs_contact`, `thm/ExitHalt.lean`), but it is
-not part of the conjunction: `thm/ExitTheorem.lean` and `thm/EndgameTheorem.lean` both define a top-level
-`decodeTree`, so no file can import both.
+not part of the conjunction.
 
 `never_halts_of_cut_classes` is item 1 read backwards: the open question is now only about the clean tapes of width at
 least 2³² in the cut classes.
@@ -79,13 +78,15 @@ the start (the builder checks `widerB` before it stops a path, and `RTree.okW` c
 
 ## What is trusted
 
-Lean's kernel, plus Lean's compiler through `native_decide` for the evaluated checks: `prefix_ok`, `clean_tree_ok`,
-the endgame trees and the loop tree (`#print axioms blank_halt_structure` lists `prefix_ok`, `clean_tree_ok`,
-`endgame_trees_ok`, `endgame_trees_cover` and `loop_tree_ok` besides `propext`, `Classical.choice` and `Quot.sound`). `check_end.sh` also compiles the BB6
-modules to a shared library and loads it with `--load-dynlib`, so that `native_decide` runs native code; this adds the
-C compiler to the trusted base (`--interpreted` avoids it, at about an hour for the prefix alone). The prefix cannot be
-moved to kernel evaluation at any reasonable cost (10⁹ rounds); the trees could be, as `native_decide` is being
-replaced in the other theorem files.
+Lean's kernel, plus Lean's compiler through `native_decide` for the evaluated checks: `prefix_ok`, `clean_tree_ok`
+and the endgame trees (`#print axioms blank_halt_structure` lists `prefix_ok`, `clean_tree_ok`, `endgame_trees_ok` and
+`endgame_trees_cover` besides `propext`, `Classical.choice` and `Quot.sound`). The loop tree is checked by the kernel
+itself (`decide +kernel`, subtree by subtree in `thm/LoopPieces*.lean`, assembled in `thm/LoopPass.lean`), and so is
+the exit tree. `check_end.sh` also compiles the BB6 modules to a shared library and loads it with `--load-dynlib`, so
+that `native_decide` runs native code; this adds the C compiler to the trusted base (`--interpreted` avoids it, at
+about an hour for the prefix alone). The prefix cannot be moved to kernel evaluation at any reasonable cost (10⁹
+rounds); the endgame and clean-tape trees could be, at a cost: the endgame trees as they stand need 117,947 rounds of
+checks, about 3 hours of kernel time.
 
 ## What is not claimed
 
@@ -102,18 +103,20 @@ replaced in the other theorem files.
 
 ```sh
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check.sh       # the BB6 modules
-LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh   # the trees, the prefix and EndToEnd (about 15 minutes)
+LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh   # the trees, the prefix and EndToEnd (about 11 minutes)
 # rebuild the clean-tape tree (optional, 18 minutes):
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./cbuild_ct.sh && ./cbuild/ExploreCT 36 4294967296 thm/clean_tree36.txt
 ```
 
-## Running time (Lean 4.34.0 release build, native code via `--load-dynlib`, while other jobs shared the machine)
+## Running time (Lean 4.34.0 release build, native code via `--load-dynlib`, 4 cores)
 
 | step | time |
 |---|---|
-| `thm/EndgameTheorem.lean` | 4 min |
-| `thm/ExitTheorem.lean` | 1 min |
-| `thm/LoopPass.lean`, `LoopTheorem.lean`, `LoopHalt.lean`, `ExitHalt.lean` | seconds |
-| `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 13 s |
-| `thm/CleanTheorem.lean` (36 digits, 3.2 million leaves; 2.3 GB of memory) | 7 min 27 s |
+| `thm/ExitPieces*.lean`, `thm/LoopPieces*.lean` (kernel, 4 modules at a time) | 46 s |
+| `thm/EndgameTheorem.lean` | 14 s |
+| `thm/ExitTheorem.lean`, `ExitHalt.lean`, `LoopPass.lean`, `LoopTheorem.lean`, `LoopHalt.lean` | seconds |
+| `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 33 s |
+| `thm/CleanTheorem.lean` (36 digits, 3.2 million leaves; 2.3 GB of memory) | 4 min 9 s |
 | `thm/EndToEnd.lean` | seconds |
+
+The whole of `check_end.sh` took 10 min 42 s.

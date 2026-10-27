@@ -45,8 +45,6 @@ def isConstLe2 (d : YForm) : Bool := match d.constVal with | some v => v ≤ 2 |
 def predD (d : YForm) (merge : Bool) : Option YForm :=
   if merge then (d.addc (-2)).half? else (d.half?).map (·.addc 4)
 
-def sameForm (f g : YForm) : Bool := f.k == g.k && coeffEq f.c g.c
-
 inductive Kind | close | brk | pass | notphase0 | cap
   deriving Repr, BEq
 
@@ -185,7 +183,57 @@ def relAdv (rp : Nat) : Tree → Tree
   | .node i a b => .node i (relAdv rp a) (relAdv rp b)
   | .skew i j s t => .skew i j s (relAdv rp t)
 
+/-- The start class with R free (R = 2 y₃, as in `ExploreLoop`): cone gaps a, b − a, c − b and R ≥ Rlo. -/
+def startSym (Γ Rlo : Int) : List SMark × YForm × List YForm :=
+  let a : YForm := ⟨1, [2, 0, 0, 0]⟩
+  let b : YForm := ⟨0, [0, 2, 0, 0]⟩
+  let E : YForm := ⟨0, [0, 0, 2, 0]⟩
+  let R : YForm := ⟨0, [0, 0, 0, 2]⟩
+  let c := (E.sub R).addc (-1)
+  ([⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩], E, [a, b.sub a, c.sub b, R.addc (Γ - Rlo)])
+
+def countKinds (leaves : List Leaf) : List (String × Nat) := Id.run do
+  let mut counts : List (String × Nat) := []
+  for lf in leaves do
+    let key := reprStr lf.kind
+    counts := match counts.find? (·.1 == key) with
+      | some _ => counts.map (fun p => if p.1 == key then (p.1, p.2 + 1) else p)
+      | none => counts ++ [(key, 1)]
+  return counts
+
+/-- The leaves of a tree whose own check fails, with the form of R there (untrusted diagnostics). -/
+partial def failingLeaves (Γ : Int) (k : Nat) : Tree → Bool → List SMark → YForm → List YForm → YForm →
+    List (Nat × String)
+  | .leaf n, wf, ss, sW, ts, sR =>
+    if (Tree.leaf n).okNC Γ 1000 k wf ss sW ts then [] else [(n, s!"R = {sR.k} + {sR.c}")]
+  | .adv n t, wf, ss, sW, ts, sR =>
+    if !(Tree.adv n (.leaf 0)).okNC Γ 1000 k wf ss sW ts then [(n, s!"adv fails; R = {sR.k} + {sR.c}")] else
+    match symRoundsZ ts Γ 1000 n ss sW with
+    | some (.newRound ss' sW') => failingLeaves Γ k t true ss' sW' ts sR
+    | _ => [(n, "adv rounds fail")]
+  | .node i t0 t1, wf, ss, sW, ts, sR =>
+    failingLeaves Γ k t0 wf (substL ss i 0) (sW.subst i 0) (substT ts i 0) (sR.subst i 0) ++
+      failingLeaves Γ k t1 wf (substL ss i 1) (sW.subst i 1) (substT ts i 1) (sR.subst i 1)
+  | .skew i j s t, wf, ss, sW, ts, sR =>
+    failingLeaves Γ k t wf (skewL ss i j s) (sW.skew i j s) (skewT ts i j s) (sR.skew i j s)
+
+/-- `sym Rlo Γ out`: one tree for every even R ≥ Rlo, R a fourth coordinate. -/
+def mainSym (args : List String) : IO Unit := do
+  let Rlo : Int := (args.getD 1 "178").toInt!
+  let Γ : Int := (args.getD 2 "448").toInt!
+  let (ss, sW, ts) := startSym Γ Rlo
+  let (t, leaves) := build 4 ts Γ ss sW 60 24
+  let t := relAdv 0 t
+  let ok := t.ok Γ 1000 4 false ss sW ts
+  let nc := t.okNC Γ 1000 4 false ss sW ts
+  IO.println s!"R ≥ {Rlo} free: leaves {leaves.length}; tree checked: {ok}; no close: {nc}; Γ = {Γ}"
+  IO.println s!"leaf kinds: {countKinds leaves}"
+  for (n, d) in failingLeaves Γ 4 t false ss sW ts ⟨0, [0, 0, 0, 2]⟩ do
+    IO.println s!"  failing leaf ({n} rounds): {d}"
+  IO.FS.writeFile (args.getD 3 "endgame_sym.txt") (String.intercalate " " (ser t))
+
 def main (args : List String) : IO Unit := do
+  if args.getD 0 "" == "sym" then mainSym args else
   let Rmax := (args.getD 0 "64").toNat!
   let Γ : Int := (args.getD 1 "448").toInt!
   let mut total := 0

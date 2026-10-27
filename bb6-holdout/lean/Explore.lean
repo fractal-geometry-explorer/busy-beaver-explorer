@@ -45,8 +45,6 @@ def isConstLe2 (d : YForm) : Bool := match d.constVal with | some v => v ≤ 2 |
 def predD (d : YForm) (merge : Bool) : Option YForm :=
   if merge then (d.addc (-2)).half? else (d.half?).map (·.addc 4)
 
-def sameForm (f g : YForm) : Bool := f.k == g.k && coeffEq f.c g.c
-
 inductive Kind | close | brk | pass | notphase0 | cap
   deriving Repr, BEq
 

@@ -3,7 +3,8 @@ written as Lean terms, and its check cut into subtrees.  One `decide +kernel` ev
 every intermediate term in the kernel's caches (it runs out of memory), so each subtree whose check runs at most
 `budget` rounds gets its own theorem, and the theorem for the whole tree is assembled from them by the node and skew
 lemmas (`Tree.ok_node`, `Tree.ok_skew` and their `okNC`, `okLoop` versions), which only unfold one step of the check.
-An `adv n` above a cut is moved down into the subtrees below it (each runs the n rounds itself)."""
+An `adv n` above a cut is moved down into the subtrees below it (each runs the n rounds itself).  The subtree
+theorems are spread over several modules of about equal cost (`piece_modules`), which compile in parallel."""
 import sys
 
 sys.setrecursionlimit(1000000)
@@ -94,7 +95,7 @@ OKLOOP = lambda args: Kind('okLoop', args, 'lsSplit', 'lsSkew', ls_proj, 'Tree.o
 
 
 def cut(t, kind, root, prefix, budget):
-    """Returns (skeleton term, proof term, pieces); a piece is (name, subtree term, state expression)."""
+    """Returns (skeleton term, proof term, pieces); a piece is (name, subtree term, state expression, cost)."""
     pieces = []
 
     def go(t, st, pend):
@@ -103,7 +104,9 @@ def cut(t, kind, root, prefix, budget):
             return go(t[2], st, pend + t[1])
         if cost(t) + pend <= budget or t[0] == 'L':
             name = f'{prefix}{len(pieces)}'
-            pieces.append((name, term(('A', pend, t) if pend > 0 else t), st))
+            if pend > 0:
+                t = ('A', pend + t[1], t[2]) if t[0] == 'A' else ('A', pend, t)
+            pieces.append((name, term(t), st, cost(t)))
             return name, f'{name}_ok'
         if t[0] == 'N':
             sa, pa = go(t[2], f'{kind.split} {wrap(st)} {t[1]} 0', pend)
@@ -121,7 +124,31 @@ def cut(t, kind, root, prefix, budget):
 
 def pieces_lean(kind, pieces):
     out = []
-    for name, tm, st in pieces:
+    for name, tm, st, _ in pieces:
         out.append(f'def {name} : Tree := {tm}\n')
         out.append(f'theorem {name}_ok : {kind.stmt(name, st)} := by\n  decide +kernel\n')
     return '\n'.join(out)
+
+
+def piece_modules(pieces, n):
+    """Spread the pieces over n modules of about equal cost (largest first, each to the cheapest module so far);
+    returns the lists of pieces, each in tree order."""
+    bins = [[] for _ in range(n)]
+    load = [0] * n
+    for idx in sorted(range(len(pieces)), key=lambda i: -pieces[i][3]):
+        b = min(range(n), key=lambda j: load[j])
+        bins[b].append(idx)
+        load[b] += pieces[idx][3]
+    return [[pieces[i] for i in sorted(b)] for b in bins if b], load
+
+
+def write_modules(outdir, base, header, kind, pieces, n):
+    """Write the piece modules `{base}0.lean`, … (each `header`, then its pieces); returns their module names."""
+    import os
+    mods, load = piece_modules(pieces, n)
+    names = []
+    for i, ps in enumerate(mods):
+        name = f'{base}{i}'
+        open(os.path.join(outdir, name + '.lean'), 'w').write(header + '\n' + pieces_lean(kind, ps))
+        names.append(name)
+    return names, load

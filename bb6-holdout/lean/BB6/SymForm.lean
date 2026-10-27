@@ -266,6 +266,16 @@ theorem dot_cons_drop (a : Int) (as : List Int) : ∀ (y : List Int) (i : Nat),
     simp only [List.drop_succ_cons, List.getD_cons_succ]
     exact dot_cons_drop a as ws i
 
+/-- Every entry of `as` past the length of `us` is zero. -/
+def zeroBeyond : List Int → List (List Int) → Bool
+  | [], _ => true
+  | a :: as, [] => a == 0 && zeroBeyond as []
+  | _ :: as, _ :: us => zeroBeyond as us
+
+theorem zeroBeyond_nil : ∀ (as : List Int), zeroBeyond as [] = as.all (· == 0)
+  | [] => rfl
+  | a :: as => by simp only [zeroBeyond, List.all_cons, zeroBeyond_nil as]
+
 /-- A claimed inverse of the gap forms' coefficient matrix, scaled by `D`: the combination `Σⱼ uᵢⱼ tⱼ` of the gap
 forms, with `uᵢ` the i-th entry of `us`, is the form `D yᵢ + κᵢ`.  `invCheck` decides the claim, so where the
 inverse comes from (`coneInv`) is not part of the trusted base. -/
@@ -285,14 +295,19 @@ def invCheck (ts : List YForm) (ci : ConeInv) : Bool := 0 < ci.D && invRows ts c
 
 theorem invRows_sound (ts : List YForm) (D : Int) (y : List Int) :
     ∀ (i : Nat) (us : List (List Int)) (κs : List Int), invRows ts D i us κs = true →
-    ∀ as : List Int, as.length ≤ us.length →
+    ∀ as : List Int, zeroBeyond as us = true →
     dot (lincomb as us) (ts.map (·.eval y)) = dot as κs + D * dot as (y.drop i) := by
   intro i us
   induction us generalizing i with
   | nil =>
-    intro κs _ as has
-    have : as = [] := List.eq_nil_of_length_eq_zero (by simpa using has)
-    subst this; simp [lincomb]
+    intro κs h as has
+    cases κs with
+    | nil =>
+      rw [zeroBeyond_nil] at has
+      have hl : lincomb as [] = [] := by cases as <;> rfl
+      rw [dot_zero as (y.drop i) has, hl]
+      simp
+    | cons _ _ => simp [invRows] at h
   | cons u us ih =>
     intro κs h as has
     cases κs with
@@ -305,7 +320,7 @@ theorem invRows_sound (ts : List YForm) (D : Int) (y : List Int) :
       | cons a as =>
         have hu : dot u (ts.map (·.eval y)) = κ + D * y.getD i 0 := by
           rw [← eval_combo, YForm.eval, dot_coeffEq _ _ y hc, dot_unitL, hk]
-        have hih := ih (i + 1) κs hr as (by simp at has; omega)
+        have hih := ih (i + 1) κs hr as (by simpa [zeroBeyond] using has)
         rw [dot_lincomb] at hih ⊢
         simp only [List.map, dot, dot_cons_drop, hu, hih]
         rw [Int.mul_add, Int.mul_add, Int.mul_left_comm a D]; omega
@@ -395,7 +410,7 @@ def sgnMu (μ : List Int) (e : Int) (n : Nat) : Option Sgn :=
 /-- The sign of `p` on the cone from a checked inverse: `μ = Σᵢ pᵢ uᵢ` and `c = D p₀ − Σᵢ pᵢ κᵢ` give
 `D · p = Σⱼ μⱼ tⱼ + c`. -/
 def sgnInv (p : YForm) (ts : List YForm) (Γ : Int) (ci : ConeInv) : Option Sgn :=
-  if invCheck ts ci && decide (p.c.length ≤ ci.us.length) then
+  if invCheck ts ci && zeroBeyond p.c ci.us then
     sgnMu (lincomb p.c ci.us) (ci.D * p.k - dot p.c ci.κ + Γ * sumL (lincomb p.c ci.us)) ts.length
   else none
 

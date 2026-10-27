@@ -14,9 +14,8 @@ The pieces, all theorems about the machine `1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0
   the mark model, run from there, to reach a stuck configuration: a close at the right end or an interior contact.
 * `loop_halt_needs_contact` (`thm/LoopHalt.lean`): a halt from a phase-0 pass start whose R is outside the closing set
   comes only after the close-free stretch the loop's trees certify from it, and needs a stuck configuration after that
-  stretch.  (`exit_halt_needs_contact`, the same after a loop state's exit stretch, is not imported here:
-  `thm/ExitTheorem.lean` and `thm/EndgameTheorem.lean` both define a top-level `decodeTree`, so they cannot be
-  imported together.)
+  stretch.  (`exit_halt_needs_contact` (`thm/ExitHalt.lean`), the same after a loop state's exit stretch, is not
+  imported here.)
 
 `clean_chain` chains the clean-tape steps by strong induction on the halting time (a run from a clean tape to a wider
 one takes at least one step, `roundStart_one_ne`), and `blank_halt_structure` puts everything together.
