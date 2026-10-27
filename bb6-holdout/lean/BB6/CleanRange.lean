@@ -14,49 +14,7 @@ This is how the exhaustive check (`../csearch/nrefdfs2.c`) covers the small memb
 namespace BB6.Sym
 open BB6
 
-/-! ## Direct runs -/
-
-/-- A one-marker clean tape wider than `W0`. -/
-def wider1 (ms : List Mark) (W W0 : Nat) : Bool :=
-  match ms with
-  | [⟨.M, p⟩] => p + 2 == W && decide (W0 < W)
-  | _ => false
-
-theorem wider1_eq {ms : List Mark} {W W0 : Nat} (h : wider1 ms W W0 = true) : ms = [⟨.M, W - 2⟩] ∧ W0 < W := by
-  unfold wider1 at h
-  split at h
-  · rename_i p
-    simp only [Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at h
-    exact ⟨by rw [show p = W - 2 by omega], h.2⟩
-  · cases h
-
-/-- Run at most `g` rounds from a round start, until a one-marker clean tape wider than `W0`. -/
-def toWider (fuel W0 : Nat) : Nat → List Mark → Nat → Bool
-  | 0, _, _ => false
-  | g + 1, ms, W =>
-    match roundZ fuel [] 1 ms W with
-    | .newRound ms' W' => wider1 ms' W' W0 || toWider fuel W0 g ms' W'
-    | _ => false
-
-theorem toWider_sound (fuel W0 : Nat) : ∀ (g : Nat) (ms : List Mark) (W : Nat), toWider fuel W0 g ms W = true →
-    ∃ n W', 0 < n ∧ roundsZ fuel n ms W = .newRound [⟨.M, W' - 2⟩] W' ∧ W0 < W' := by
-  intro g
-  induction g with
-  | zero => intro ms W h; cases h
-  | succ g ih =>
-    intro ms W h
-    simp only [toWider] at h
-    split at h
-    · next ms' W' hr =>
-      simp only [Bool.or_eq_true] at h
-      rcases h with h | h
-      · obtain ⟨rfl, hlt⟩ := wider1_eq h
-        exact ⟨1, W', Nat.one_pos, by simp [roundsZ, hr], hlt⟩
-      · obtain ⟨n, W'', -, hr', hlt⟩ := ih ms' W' h
-        refine ⟨n + 1, W'', by omega, ?_, hlt⟩
-        simp only [roundsZ, hr]
-        exact hr'
-    · cases h
+/-! ## Direct runs (`toWider`, `BB6/CleanTree.lean`) -/
 
 /-- From the clean tape of width `W`, the model reaches a wider one-marker clean tape within 10,000 rounds. -/
 def directOK (W : Nat) : Bool := toWider 1000 W 10000 [⟨.M, W - 2⟩] W
@@ -84,6 +42,7 @@ def RTree.cuts1 : RTree → Nat → Nat → Option (List (Nat × Nat))
       | _, _ => none
     else none
   | .shear _ _ _, _, _ => none
+  | .drop _ t, r, k => t.cuts1 r k
 
 theorem RTree.cuts1_sound (t : RTree) : ∀ (r k : Nat) (L : List (Nat × Nat)), t.cuts1 r k = some L → r < 2 ^ k →
     ∀ (a : Nat), t.cutMem [(a : Int), 0] = true → ∃ p ∈ L, (r + 2 ^ k * a) % 2 ^ p.2 = p.1 := by
@@ -139,6 +98,13 @@ theorem RTree.cuts1_sound (t : RTree) : ∀ (r k : Nat) (L : List (Nat × Nat)),
   | shear i s t ih =>
     intro r k L h
     simp [RTree.cuts1] at h
+  | drop z t ih =>
+    intro r k L h hr a hc
+    simp only [RTree.cuts1] at h
+    simp only [RTree.cutMem, List.getD_cons_zero] at hc
+    split at hc
+    · cases hc
+    · exact ih r k L h hr a hc
 
 /-! ## Running every member of every cut class in a range -/
 
