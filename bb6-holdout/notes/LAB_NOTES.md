@@ -2457,6 +2457,46 @@ run reached a one-marker clean tape every time, without a close: in 3 to 58 roun
 about 0.8-fold per round (through repeating shapes such as G M M M, G W M M, G M M). About 14% of the runs pass a
 three-wall round start on the way.
 
+**Past the chain's end: pass-start trees (October 27; `../lean/BB6/PassTree.lean`, `../lean/thm/PassHalt.lean`,
+`../lean/PassStats.lean`).** The endgame trees stop where the loop's chain ends. A pass-start tree follows the run on
+from the pass start, one round at a time, to the next checkpoint: a landing of the chain reached with every end meeting
+on the way at distance ≥ 3 (a step of `LoopChain`), or a one-marker clean tape decidedly wider than the start. The
+rounds past the chain need more digits of the start, so the trees have cut leaves, and like the clean-tape trees they
+are built by an explorer proved to build only trees that pass their check (`PTree.explore_ok`): `pass_next` holds at
+every depth with nothing evaluated. `pass_halt_chain` chains the checkpoints by induction on the halting time: a halt
+from a pass start of width ≥ 2¹³ (with b + 896 ≤ W when W ≡ 2 mod 4) follows the chain through every landing
+(`landing_wide`) to a last pass start that is in a closing class (and a stuck configuration follows), or in a cut leaf
+of its tree at every depth, or from which the run reaches a wider clean tape of even width and halts from it in fewer
+steps. That is the shape the clean-tape trees' induction needs at a loop entry.
+
+*Distance 2 is not a close.* The first version cut a path at every end meeting below distance 3, as the endgame trees
+do. But in the closing classes the endgame trees' close is an end meeting at distance 2 after which the round model
+goes on to a new round start (R = 4 in round 2, 8 in round 3, 16 in round 5, 32 in round 8, 24 in round 9, 48 in round
+11), and so is R = 6's in round 5. The trees now run on through such rounds with a flag for whether the path so far is
+close-free; only a close-free landing is a `land` leaf, and past any other landing the tree runs on to a clean tape. A
+path ends at a decided round only where the model decides the round as something other than a new round start: a
+halt, or the close at distance 0, which the model leaves uncovered. That took R = 22's cut measure at 16 splits from
+17% to 5%.
+
+*Some pass starts halt.* Those decided ends are real. 1/8 of the pass starts with R = 6 (outside the closing set) leave
+phase 0 at round 2 (G M W), meet the end at distance 2 in round 5 and at distance 0 in round 7, at every width (in
+the model, 5 of 48 random ones of width about 2²⁰). Run on the machine itself, every such start tried halts: from walls
+743, 1,802, 3,319 and width 3,326 after 11,362,209 steps, and all 49 of the class among 400 random R = 6 starts of
+width below 8,400 (a C and a Python simulator from `roundStart` as defined in `BB6/Marks.lean`). Of 40 random pass
+starts of width below 4,300 for each R, 14 halt with R = 4, 3 with R = 6, 7 with R = 8, none with R = 10, 22 or 64.
+The closing set describes closes within the chain; after the run leaves it a small R can still close. (The 100,000
+starts above drew R uniformly up to W/2, where R = 6 practically never comes up.) So the pass-start trees' cut classes
+do not shrink to nothing, and what `pass_halt_chain` says is that a halt through a pass start needs one of them, a
+closing class, or a clean tape after it.
+
+*Measures* (`PassStats.lean`, fractions of a start class). At 16 splits the cut leaves hold 4.8% of a class R < 178 on
+average: 4.2% where the depth ran out, 0.5% at a round left undecided with no undecided residue found (a marker at 2 +
+4(y₁ + y₂), next to the gap, where the rational cone does not know that a well-formed round start has its first mark at
+4 or beyond), and 0.1% at a decided halt (R = 6's eighth). Landings take 12%, clean tapes 81% and close leaves 1.6%. For
+R ≥ 178 the cut leaves hold 8.8%. At 20 splits they hold 2.4% for R < 178 (1.6% at the depth, 0.7% at an undecided
+round, 0.1% at the decided halt) and 4.1% for R ≥ 178: the depth cuts shrink, and the undecided rounds, which are final
+leaves, grow slowly.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:

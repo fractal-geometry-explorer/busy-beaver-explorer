@@ -12,7 +12,9 @@
 #      alone takes about an hour in Lean's interpreter);
 #   4. the theorem files, in stages whose files are independent and compile JOBS at a time: the kernel-checked run to
 #      width 2^20 (thm/PrefixKernel.lean), the loop through its passes (thm/LoopTheorem.lean), the halts after the
-#      exit and the loop, the blank-tape prefix to width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape
+#      exit and the loop, the pass-start trees from a pass start to the next landing or clean tape at every depth
+#      (thm/PassHalt.lean, the proved explorer of BB6/PassTree.lean, nothing evaluated), the blank-tape prefix to
+#      width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape
 #      tree at every depth (thm/CleanTheorem.lean, the proved explorer, nothing evaluated), the clean tapes of width in
 #      [2^32, 2^41) run one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and
 #      thm/EndToEndDirect.lean; prints the axioms of the final theorems;
@@ -74,6 +76,7 @@ DEEPMASS=""
 [ -n "$DEEP" ] && DEEPMASS="CleanMass40 CleanDirectMass40"
 stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass ExitHalt LoopTheorem
 stage LoopHalt
+stage PassHalt
 stage EndToEnd
 stage EndToEndDirect
 $LEAN thm/EndToEndAxioms.lean

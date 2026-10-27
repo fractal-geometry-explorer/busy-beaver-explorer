@@ -38,7 +38,11 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    `loop_chain_halt` follows a halting run through every landing with gaps ≥ 448 (`LoopChain`), and the σ bound is a
    theorem: a close through the loop needs R³/L₁² ≤ 176³/256², i.e. log₂W ≤ σ + 6.38, at the start of the chain's
    last run of full passes (`LoopChain.sigma`, `loop_halt_sigma`, `blank_halt_sigma`); from a width ≥ 2²⁴ the chain to
-   a close has no round-7 break (`LoopChain.close_wide`, `blank_halt_wide`). The original note:
+   a close has no round-7 break (`LoopChain.close_wide`, `blank_halt_wide`). Past the chain's end, pass-start trees
+   (`lean/BB6/PassTree.lean`, `lean/thm/PassHalt.lean`, built by a proved explorer) follow the run to the next close-free
+   landing or a wider clean tape at every depth: `pass_halt_chain` gives, from a halting pass start of width ≥ 2¹³, the
+   chain to a last pass start that is in a closing class, cut at every depth, or followed by a wider clean tape the run
+   halts from. Some cut classes are real halts (1/8 of the pass starts with R = 6). The original note:
    **The loop's end for every width as one Lean theorem.** Prove the pass map (R → R/16, L → L/64) with R free
    using the symbolic runner (`BB6/SymRound`, `BB6/SymSplit`), then induct over passes, combined with
    `endgame_no_close` for R ≤ 4096: "a run through the loop closes only from R ∈ {2, 4, 8, 16, 24, 32, 48, 64, 176}

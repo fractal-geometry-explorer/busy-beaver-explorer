@@ -48,6 +48,14 @@ mark rules interactively.
     At a round-7 landing that needs E < 2²⁴, so from a pass start of width ≥ 2²⁴ a close through the loop is p full
     passes after at most one half pass (`LoopChain.close_wide`, `blank_halt_wide`). The bound is attained
     (R = 2,816, L₁ = −16,384: one pass to R = 176, L₁ = −256, then a close).
+  - **Past the chain's end** (`BB6/PassTree.lean`, `thm/PassHalt.lean`): pass-start trees, built by an explorer proved
+    to build only checked trees, follow the run on to the next landing (close-free, a step of the chain) or a wider
+    one-marker clean tape, at every depth with nothing evaluated (`pass_next`). By induction on the halting time, a
+    halt from a pass start of width ≥ 2¹³ follows the chain to a last pass start that is in a closing class, or in a
+    cut class of its tree at every depth, or from which the run goes on to a wider clean tape and halts from there
+    (`pass_halt_chain`). Some cut classes are real halts: 1/8 of the pass starts with R = 6 leave the loop at round 2
+    and close at distance 0 in round 7, and the machine halts there (from walls 743, 1,802, 3,319, width 3,326, after
+    11,362,209 steps).
 
   The number of rounds in all three is existential (chosen per class by an untrusted program), but each stretch ends at
   its stated event. The first versions (`exit_no_halt`, `endgame_no_close`, `loop_no_close`, `loop_pass`) said only
