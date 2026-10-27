@@ -2817,3 +2817,34 @@ see "The two-marker reduction".)
 A halt needs about log2(n) meetings, which through this loop needs a b-digit n to meet 2.5 conditions per meeting. A
 proof that runs are bounded would need to show that every entry line stays a bounded 2-adic distance (relative to its
 depth) from the target. That is not proved.
+
+**Pass starts with R ≥ 178 that halt, open at every depth (October 27, night; `../lean/thm/PassOpenHalt.lean`).** The
+closes past the loop chain's end of "Every close at the right end is a halt" above also come from R ≥ 178, at small
+widths. Followed the same way (to the next landing reached with every end meeting ≥ 3, or a wider clean tape), of 50
+million random pass starts with R from 178 to 376 and width 2¹¹ to 1.5 × 2¹¹ (two seeds of 25 million, gaps ≥ 448)
+nine close, of 50 million at 2¹² 14, and of 25 million each at 2²⁰, 2³⁰ and 2⁴¹ none (untrusted). Every close traced
+starts a new halving chain at an end meeting off the chain: at 254 (the five traced at 2¹¹, two at 2¹²), at 766
+(766, 382, 190, 94, 46, 22, 10, 4, 6, 2, 0; twice) or at 982 (982, 490, 244, 126, …). Several closes share their
+right part and differ only in the first wall: R = 178 with walls 2,010 and 2,477 and width 2,656 three times (first
+walls 1,523, 1,419 and 745), and R = 190, 196, 198 and 310 twice each.
+
+The first, walls 1,523, 2,010 and 2,477 and width 2,656, closes in round 19 for every odd first wall from 449 to 1,561
+(all 557), and with the two right walls and the end moved right together by j · 2¹⁴ (every j up to 20,000, and 20,000
+random j < 2³⁰ with a random first wall), but by none of 2,000 odd multiples of 2¹³. The kernel proves the family: on
+symbolic positions (first wall 2z₀ + 1, middle wall 2,010 + 2¹⁴z₁, cone a ≥ 448 and b − a ≥ 448), none of the model's
+first 18 round starts is three walls after 2, 7 or 8 rounds or a lone marker, round 19 is left uncovered, and the
+close run reaches the close (`symOpenRun`, `symCloseRun`, each well under a second in the kernel). Since a checkpoint
+of `pass_next` is a landing (three walls after 2, 7 or 8 rounds) or a clean tape (a lone marker), every member lies in
+a cut leaf of `passTreeSym` at every depth (`family_open_halt`), so there are such pass starts at every width
+(`sym_open_halt`) and above 2⁴¹ (`sym_open_halt_wide`). The second question of `never_halts_of_open` is about whether
+the run from blank tape reaches one, not about the pass starts themselves.
+
+Why random starts at large widths do not close this way: the end meetings off the chain lie at distances of the order
+of the width, and a chain from there has about log₂ of the distance steps to survive. Per run (400,000 runs per width,
+R from 178 to 376), the share with an end meeting off the chain below 2¹⁰ is 35.7% at width 2¹¹, 27.9% at 2¹², 11.4%
+at 2¹⁴, 4.0% at 2¹⁶, 1.3% at 2¹⁸, 0.38% at 2²⁰, 0.032% at 2²⁴, 3 in 400,000 at 2³⁰ and none at 2⁴¹: about 0.55-fold per
+doubling of the width. Being in the tree of 0 is not what is rare: under `ChainNext` 80% of all even numbers reach 0
+(the rest reach the fixed point 8), and 80% of these meetings do, at every width; what is rare is a meeting near the
+end, and the chain surviving from it. The family has its first meeting off the chain at 254 because that meeting is
+set by the right end and the two walls next to it, which the family fixes; at a given width only its first wall is
+free.
