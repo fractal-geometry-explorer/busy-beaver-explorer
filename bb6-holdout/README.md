@@ -55,7 +55,7 @@ mark rules interactively.
     cut class of its tree at every depth, or from which the run goes on to a wider clean tape and halts from there
     (`pass_halt_chain`). Some cut classes are real halts: 1/8 of the pass starts with R = 6 leave the loop at round 2
     and close at distance 0 in round 7, and the machine halts there (from walls 743, 1,802, 3,319, width 3,326, after
-    11,362,209 steps).
+    11,362,209 steps; for the whole class in Lean, `pass_r6_halt`).
 
   The number of rounds in all three is existential (chosen per class by an untrusted program), but each stretch ends at
   its stated event. The first versions (`exit_no_halt`, `endgame_no_close`, `loop_no_close`, `loop_pass`) said only
@@ -85,10 +85,16 @@ mark rules interactively.
   the widths ≥ 2²⁰ takes over from there. Its cut classes are the same (1,660,024 at 36 digits).
   With the loop entries and the pass-start trees (`lean/thm/CleanEntryHalt.lean`, `lean/thm/PassEntryHalt.lean`),
   `blank_halt_pass` follows the whole run: a halt from blank tape needs a clean tape of width ≥ 2⁴¹ in a cut class of
-  the clean-tape tree with loop entries at every depth (1,255,963 classes at 36 digits, measure 1.83 × 10⁻⁵), or a
-  pass start wider than 2⁴¹ in a cut class of its pass-start tree at every depth, reached from a loop entry that cannot
-  close along the loop's chain. Some pass starts in those classes halt (1/8 of those with R = 6), so the question is
-  whether the run reaches one of them, or one of those clean tapes.
+  the clean-tape tree with loop entries at every depth (1,255,963 classes at 36 digits, measure 1.83 × 10⁻⁵), or a pass
+  start wider than 2⁴¹ in a cut class of its pass-start tree at every depth, reached from a loop entry that cannot close
+  along the loop's chain. Some pass starts in those classes halt (1/8 of those with R = 6, `pass_r6_halt`). But the
+  plain clean-tape tree follows the run on through every entry, so the run reaches such a pass start only after a clean
+  tape that the plain tree leaves open at every depth (`blank_halt_open`; at 36 digits one of the 404,061 of its
+  1,660,024 cut classes that meet a loop entry). And it reaches none with a right end below 178, where all the known
+  halts are: `blank_halt_small` (`lean/thm/SmallEndHalt.lean`) puts the pass start a halt needs in the tree for R ≥ 178,
+  since past a loop entry that passes a small-end check (every entry at 36 digits does) the loop's chain ends at R ≥ 178
+  (full passes keep R³/L₁², and a round-7 break from a width ≥ 2³⁷ lands above 177³/9). So the question is whether the
+  run reaches one of the open clean tapes, and from those, one of the open pass starts with R ≥ 178.
 - *The route tree* (`lean/thm/RouteTheorem.lean`, `lean/ROUTE_TREE.md`): `route_tree_clean`, the certificate's
   two-marker route tree as a theorem about the machine, at every depth and cone constant, with the standard axioms
   only (the same explorer); at 36 and 40 digits its cut classes are the Python certificate's (measure 5.9 × 10⁻⁶ and
@@ -167,7 +173,7 @@ python3 check_tree.py tree36_leaves.txt          # hours
 | `runs/` | the 64-digit route-tree summary, the exact plateau exits, and the pattern maps |
 | `stepper/` | the mark-rule engine of the stepper page (`engine.js`) and the Node scripts run on it |
 | `m2/` | the first JavaScript explorations of the machine (event and round extraction) |
-| `lock/` | locks for the extra-wall loops (October 27): P and Q pass maps as Lean theorems, the quadratic never-zero countdown of Q, locks for every periodic word, and why mixtures have none (`lock/LOCK_NOTES.md`) |
+| `lock/` | locks for the extra-wall loops (October 27): P and Q pass maps as Lean theorems, the quadratic never-zero countdown of Q, locks for every periodic word, why mixtures have none, and why no such lock can settle the open cases, whose runs almost never reach the loop (`lock/LOCK_NOTES.md`) |
 | `sib/` | a simulator for any six-state machine from blank tape |
 
 The notes are a working log kept as the research went. Paths in them such as `../csearch/gx3.c` are relative to

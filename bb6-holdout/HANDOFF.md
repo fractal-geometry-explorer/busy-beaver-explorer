@@ -63,8 +63,14 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    without a close where the run leaves three walls. With the pass-start trees (`pass_halt_chain`) as what a halt from
    an entry needs, `blank_halt_pass` (`lean/thm/PassEntryHalt.lean`) follows the whole run: a halt from blank tape
    needs such a clean tape, or a pass start wider than 2⁴¹ in a cut class of its pass-start tree at every depth. Some
-   of those pass starts halt (1/8 of those with R = 6, `pass_r6_halt`), so what remains is which of them the run can
-   reach.
+   of those pass starts halt (1/8 of those with R = 6, `pass_r6_halt`). But the plain clean-tape tree follows the run on
+   through every entry, so the run reaches such a pass start only after a clean tape that the plain tree leaves open at
+   every depth (`blank_halt_open`): at 36 digits one of the 404,061 cut classes that meet a loop entry in the tree with
+   entries. And it reaches none with R < 178 (`blank_halt_small`, `lean/thm/SmallEndHalt.lean`): past a loop entry that
+   passes the small-end check (`lean/BB6/SmallEnd.lean`; all 28,660 at 36 digits do) the loop's chain ends at R ≥ 178,
+   so the pass start a halt needs is in the tree for R ≥ 178 (`passTreeSym`), whose cuts at the depths measured are all
+   depth cuts, none at a round decided as a halt. What remains is which of the open clean tapes the run reaches, and
+   from those, which of the open pass starts with R ≥ 178.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
@@ -88,7 +94,11 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    nearly all of them routes that meet no three-wall round start within the tree's depth.
 5. **Research**: of the three open questions (routes deeper than the tree, halts carried by the extra-wall loop
    alone, marks touching), the most promising is a lock for the extra-wall loops analogous to the plain loop's
-   never-zero countdown.
+   never-zero countdown. **Done as far as it goes (October 27, `lock/LOCK_NOTES.md`):** Q and every periodic word have
+   never-zero quadratic locks, mixtures have none (hand-built mixed tapes halt), and the open cases of
+   `blank_halt_pass` almost never reach the extra-wall loop (0.09% of the clean-tape tree's cut classes at 36 digits,
+   under 1% of the pass-start trees' undecided cut measure at 20 splits), so no such lock can settle them. What keeps
+   them open is long runs of two- and three-mark rounds, about one digit per round.
 
 ## Practical notes
 

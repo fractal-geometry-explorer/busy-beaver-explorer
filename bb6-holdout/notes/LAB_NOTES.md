@@ -2592,6 +2592,72 @@ their slices, half of them cut (a slice goes on to the same depth as its class).
 leaves the undecided rounds where they are: those few classes are ones where no cleave applies, not ones that ran out of
 cleaves.
 
+**The open cases do not run through the extra-wall loop (October 27, evening; `../lock/ShapeStats.lean`,
+`../lock/PassShapes.lean`, `../lock/LOCK_NOTES.md` section 6).** The lock for the extra-wall loops was meant to settle
+what `blank_halt_pass` leaves open. Two untrusted drivers walk the clean-tape tree with loop entries and the pass-start
+trees (with their cleaves) step by step as the proved explorers build them, and record the round shapes on every cut
+path. Of the 1,255,963 cut classes of the clean-tape tree at 36 digits (Γ = 2⁴¹), 1,098 (0.09%) meet the extra-wall
+pass start `G W W W W` anywhere on their path, and 1,061,623 (85%) never hold more than two walls in a round start.
+Nearly all the paths have 32 to 63 rounds, about one per digit, and they stop at two- and three-mark rounds (`G M M`
+41%, `G B` 15%, `G W M M` 13%, then `G M W M`, `G W M M M`, `G M B`, ...). In the pass-start trees at 20 splits, four
+walls carry 0.95% of the cut measure for R ≥ 178 and 0.82% for R < 178 (apart from R = 6's decided halt, which never
+meets them). So no lock for those loops can settle either case, and with the hand-built mixed halts no lock covers
+the loop's mixtures anyway. What keeps the classes open is long runs of two- and three-mark rounds: the class tree's
+own growth (about 1.52-fold per digit, 101,837 cut classes at 30 digits and 1,255,963 at 36), which "Summary of the
+right-end theory" (item 4, "Why verification is expensive") puts down to returns to a GMM state, each costing about
+3.5 digits, not to closeness to the end.
+
+**The open clean tapes come first (October 27; `../lean/thm/PassEntryHalt.lean`, `../lean/ReachStats.lean`).**
+`blank_halt_clean_direct` and `blank_halt_pass` follow the same halting run with two clean-tape trees:
+`cleanTreeG 2⁴¹ d`, which follows the run through the loop round by round, and `cleanTreeGE 2⁴¹ d`, which stops at the
+loop entries that cannot close. The two split alike until a path of the second meets an entry, where the same path of
+the first goes on; so a clean tape that the first resolves at some depth reaches a wider clean tape, whatever the second
+does with it. `clean_entry_chain_open` runs the chain over clean tapes in that order (the plain tree's step where that
+tree does not cut the clean tape at every depth, else the step of the tree with entries, recording at an entry that the
+plain tree left the clean tape open), and with `entry_pass_halt` it gives `blank_halt_open`: a halt needs a clean tape
+of width ≥ 2⁴¹ that `cleanTreeG 2⁴¹ d` leaves open at every depth, and either `cleanTreeGE 2⁴¹ d` leaves it open too and
+the mark model reaches a contact from it, or the run from it passes a loop entry and reaches a pass start that its
+pass-start tree leaves open at every depth, and halts from there (`blank_halt_open_kernel` from 2²⁰). So the open pass
+starts are not a second open set beside the open clean tapes but come after them: at 36 digits after one of the 404,061
+of the 1,660,024 cut classes that meet an entry in the tree with entries (5.9 × 10⁻⁶; the other 1,255,963 are cut by
+both).
+
+How far past an entry the run has to be followed (untrusted, `ReachStats.lean`): the pass-start explorer rooted at each
+loop entry of `cleanTreeGE 2⁴¹ d`, in the clean tape's own coordinate (one live coordinate, where the trees over all
+pass starts have four), and restarted at each landing of the loop's chain, so that a path ends at a wider clean tape, a
+cut or a close. At d = 28 the tree has 1,845 entries (0.13% of the clean tapes); of their measure 13.5% is still cut 8
+splits past the entry, 4.57% at 12 and 1.51% at 16; at d = 20 (24 entries) 4.55% at 12, 1.50% at 16 and 0.51% at 20,
+about 0.76-fold per split, with no cut at a decided round, no close and nothing still landing. About 0.3% of the
+entries' measure lands once on the way (0.1% at d = 20) and almost none twice. The plain tree, which follows the same
+runs round by round with the digits it has left, leaves 0.44% of the entries' measure open at 36 digits. Every landing
+lies on the plane 2(b − a) = W − 2R − 6 (`landing_plane`, from the step's maps on L₁ and the first wall), so the pass
+starts after a landing form a family of three coordinates; the explorer as it stands cannot root a tree on that plane,
+since its cone needs as many forms as coordinates.
+
+**No small right end past the loop (October 27; `../lean/BB6/SmallEnd.lean`, `../lean/thm/SmallEndHalt.lean`).** The
+pass starts that `blank_halt_pass` leaves open include real halts, all with small right ends (1/8 of R = 6; in a sample,
+uncovered rounds only for R in {4, 6, 8, 16, 32, 48, 64}). The run from blank tape reaches no pass start with R < 178
+past a loop entry. A run of full passes ends at r < 178 only if R = 16^p·r and L₁ = 64^p·ℓ with ℓ ≡ 3 (mod 7), so
+|ℓ| ≥ 3; full passes keep R³/L₁² (16³ = 64²), which there is r³/ℓ² ≤ 177³/9 ≈ 2¹⁹·²⁰. So R³/L₁² above that keeps the
+small ends out for good, and a round-7 break supplies it: from a width E ≥ 2³⁷ it lands with 32R′ ≥ S = 3E + 5R and
+0 < 96L₁′ ≤ 385S, so R′³/L₁′² ≥ S/527,023 > 177³/9 (with E ≥ 2³⁶ the margin is gone). A half pass is only the first
+step. So the chain from a pass start of width ≥ 2³⁷ from which no run of full passes ends small, nor one after a half
+pass, ends at R ≥ 178 (`LoopChain.small_end`).
+
+At the clean-tape tree's loop entries R and L₁ are affine in the class's coordinate z, so R³/L₁² grows like z. At 36
+digits over the widths ≥ 2⁴¹ (untrusted, from a dump of the entries' forms): R³/L₁² > 177³/9 at every member of 28,516
+of the 28,660 entries; the other 144 (0.11% of the entries' measure) fall short only below widths of 2⁴³·⁵, at 933,158
+members in all. Checked exactly instead (for each p and each r < 178, R = 16^p·r fixes z; is it an integer point of the
+cone with 64^p dividing L₁ there?), no member of any entry ends small, with or without a half pass. The check is
+`smallOK` in Lean, with the linear bounds of `exclCert` for the passes beyond P, and it goes into the clean-tape tree's
+entry test (`cleanSmallOK`, `cleanTreeGS`), so `clean_tree_small_step` holds at every depth with nothing evaluated; at
+36 digits the tree has the same counts as `cleanTreeGE` (1,255,963 cut classes, 28,660 entries;
+`../lean/thm/CleanSmallMass.lean`). `blank_halt_small`: a halt from blank tape needs a clean tape of width ≥ 2⁴¹ cut at
+every depth, or a pass start wider than 2⁴¹ with R ≥ 178 cut at every depth of `passTreeSym`, whose cuts at the depths
+measured are all depth cuts, none at a round decided as a halt, falling with depth (8.8%, 3.8% and 1.6% at 16, 20 and 24
+splits); `blank_halt_small_kernel` is the same from 2²⁰ with the kernel alone (the plain tree below 2³⁷). What stays
+open past the loop is that tree's depth cuts, on the lines of pass starts that the clean tapes' classes lead to.
+
 **Pass starts that halt, in Lean (October 27; `../lean/BB6/BlockHalt.lean`, `../lean/thm/PassHaltR6.lean`).** The
 halting eighth of R = 6 (*Some pass starts halt*, above) is a theorem now, `pass_r6_halt`: from every phase-0 pass start
 with R = 6, b ≡ 2 (mod 8), W ≡ 2 (mod 4) and gaps ≥ 448, the machine halts. That class is where the R = 6 pass-start
@@ -2605,7 +2671,8 @@ seventh round is the one the model leaves uncovered, and `block_end_halt'` takes
 `roundStart [⟨.B, W′ − 3⟩] W′` with W′ odd, the head crosses the stripe in W′ − 7 steps (`pass`), meets the block at
 distance 0, and the machine halts 71 steps later, one cell left of where the stripe ended (those 72 steps are checked by
 `rfl` for any tape on the left, `block_end_local`). Standard axioms only; the start with walls 743, 1,802 and 3,319 and
-width 3,326 is `pass_r6_halt_example`.
+width 3,326 is `pass_r6_halt_example`. These halts are out of reach of the run from blank tape: past a loop entry it
+reaches no pass start with R < 178 (`blank_halt_small`, above).
 
 *Where the uncovered rounds are* (untrusted, `roundZ` through `lean -c`). From 1,000 random pass starts of width about
 2³⁰ for each R (gaps ≥ 448), the model was run to a clean tape or to a round it leaves uncovered. Every uncovered round
