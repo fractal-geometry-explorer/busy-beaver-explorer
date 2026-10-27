@@ -57,7 +57,9 @@ cd lean
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check.sh        # all 21 files, about a minute; prints the axioms
 # the two theorems (13 and 40 minutes of native_decide evaluation):
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/ExitTheorem.lean -o out/ExitTheorem.olean
+LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/ExitHalt.lean                                  # after ExitTheorem: a halt needs a contact after the exit
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/EndgameTheorem.lean -o out/EndgameTheorem.olean
+LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/EndgameHalt.lean                               # after EndgameTheorem
 ```
 
 `thm/gen_exit.py` and `thm/gen_endgame.py` regenerate the theorem files from the trees (`thm/exit_tree.txt`,
