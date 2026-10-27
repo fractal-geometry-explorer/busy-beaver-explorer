@@ -97,7 +97,8 @@ In words: if the machine halts from blank tape, then
    {2, 4, 8, 16, 24, 32, 48, 64, 176} and the left countdown in R₁'s class (`InCloseClass`; then
    **R³/L₁² ≤ 176³/256²** at the start of the chain's last run of full passes, `SigmaOK`: log₂W ≤ σ + 6.38, below),
    or after a further close-free stretch to where the run leaves the chain (`LoopEnd`: a round start that is not three
-   walls after the run left phase 0 or the halving chain, or a landing with a gap below 448);
+   walls after the run left phase 0 or the halving chain, or a landing with a gap below 448, which from a width
+   ≥ 2¹³ needs a half pass from a middle wall within 896 of the end: below);
 4. every **loop state** it passes on the way (walls at a, b, c, width E, a odd, b even, c odd, E even, every gap ≥ 390)
    is followed by the certified exit stretch, close-free to where it ends (`ExitEvent`: a clean tape, a break of the
    end-meeting chain, or a loop state again after a full pass), and the halt needs a stuck configuration after it.
@@ -112,11 +113,14 @@ makes no round-7 break.
 are of three kinds, and the end event (`Landing`, `StepMap` in `BB6/Ends.lean`) states each with its exact map on the
 width E, the right end R and the left countdown L₁, as identities of forms checked by the kernel at every such leaf:
 
-| step | rounds | R′ | L₁′ | W′ |
-|---|---|---|---|---|
-| full pass | 8 | R/16 | L₁/64 | E + 24 |
-| half pass, from E ≡ 2 (mod 4) | 2 | R/2 | (L₁ + 35E − 147R − 60)/2 | E + 6 |
-| break of the end-meeting chain at round 7 | 7 | (476E + 980R − L₁ + 15984)/4704 | (L₁ + 1120E + 1666R + 50328)/96 | E + 24 |
+| step | rounds | R′ | L₁′ | W′ | first wall a′ (`StepWall`) |
+|---|---|---|---|---|---|
+| full pass | 8 | R/16 | L₁/64 | E + 24 | (b + 4c + 12E + 678)/64 |
+| half pass, from E ≡ 2 (mod 4) | 2 | R/2 | (L₁ + 35E − 147R − 60)/2 | E + 6 | b/2 + 5 |
+| break of the end-meeting chain at round 7 | 7 | (476E + 980R − L₁ + 15984)/4704 | (L₁ + 1120E + 1666R + 50328)/96 | E + 24 | (b + c + E + 135)/16 |
+
+(b and c = E − R − 1 are the start's middle and last walls; the landing's middle wall follows from L₁′: it is
+(b + 8c + 40E + 1258)/64, (b + c + 11)/2 and (3b + 6c + 10E + 452)/32.)
 
 Of the trees' 1,877 leaves, 3 land after a full pass (one of them inside the closing class of R = 64), 44 after a half
 pass (R ≡ 0 mod 4, R ≥ 8) and 12 after a round-7 break (R ≡ 12 mod 16); every other leaf ends at a round start that
@@ -126,6 +130,15 @@ R′ = (4E + 4R − b + 110)/32 is set by the width rather than divided, and in 
 the chain is followed by induction on the halting time, not on R (`loop_chain_halt`): each step takes at least one
 machine step, because the width grows and round starts of different widths are different configurations
 (`passStart_ne`).
+
+**Wide landings keep their gaps** (October 27). From these maps, every landing from a pass start of width E ≥ 2¹³
+with every gap at least 448 is again a pass start with every gap at least 448 (`landing_wide`; a full pass needs
+E ≥ 2,334 for a′ ≥ 448, a round-7 break E ≥ 6,138), except a half pass from a start whose middle wall b is within
+896 of the end: its landing's last gap is (E − b)/2. Since a half pass is only ever the first step, the chain from a
+pass start of width ≥ 2¹³ (with b + 896 ≤ E if E ≡ 2 mod 4) ends only where the run leaves phase 0 or the halving
+chain at a round start that is not three walls (`loopEnd_wide`); `loop_halt_leaves` is `loop_halt_wide` with that
+end. Below 2¹³ a pass can land with a gap below 448: from walls 449, 926, 1,375 and width 1,504 (R = 128) a full pass
+lands at walls 393, 1,146, 1,519 (`lean --run RunWalls.lean 449 926 1504 128 9`).
 
 **The σ bound** (October 27). At a pass start of width W with right end R and left countdown L₁, put s = log₂(W/R),
 λ = log₂(|L₁|/W) and σ = 3s + 2λ (the notes' measure of how late a run enters the loop); then log₂W = σ + 3 log₂R −
@@ -185,7 +198,7 @@ tree over the widths ≥ 2²⁰ leaves the same 1,660,024 classes open at 36 dig
 | `thm/CleanTheorem.lean` | `clean_tree_step_G`: for every Γ ≥ 6 and every depth d, from every clean tape of even width W ≥ Γ, the machine reaches a wider clean tape without halting, unless W/2 is in a cut class of `cleanTreeG Γ d`; `clean_tree_step` is Γ = 2³² (`cleanTree d`) | `RTree.soundW` and `exploreW_okW`; nothing evaluated |
 | `thm/EndgameTheorem.lean`, `thm/LoopTheorem.lean` | `endgame_stretch`: from a phase-0 pass start with gaps ≥ 448, a close needs R in the closing set and L₁ in R's class, and otherwise the run is close-free to an end event: a round start that is not three walls after it leaves phase 0 or breaks the chain, or a landing (a full pass, a half pass or a round-7 break, with its exact map on E, R and L₁); `loop_step`, `LoopChain`: the chain of these steps through pass starts with gaps ≥ 448; `LoopChain.sigma`: a chain that ends in a closing class has R³/L₁² ≤ 176³/256² at the start of its last run of full passes; `break7_sigma`, `LoopChain.close_wide`: from a width ≥ 2²⁴ it makes no round-7 break | the endgame trees checked by the kernel (`Tree.okEnd`, `decide +kernel`); the closing classes with L₁ ≡ 3 mod 7 |
 | `thm/ExitTheorem.lean` | `exit_stretch`: from a loop state with gaps ≥ 390, the run is close-free to an exit event (`ExitEvent`) | the exit tree checked by the kernel (`Tree.okEnd`, `decide +kernel`) |
-| `thm/LoopHalt.lean`, `thm/ExitHalt.lean` | `loop_chain_halt`: a halt from a phase-0 pass start with gaps ≥ 448 needs a stuck configuration after the loop's chain from it; `exit_halt_needs_contact`: one from a loop state, after the certified exit stretch; `loop_halt_sigma`: beyond the σ bound, a close needs a half pass or a round-7 break on the way; `loop_halt_wide`: from a width ≥ 2²⁴, no round-7 break | `loop_step` and `halt_after_rounds`, by induction on the halting time (each step takes at least one machine step: `passStart_ne`); `exit_stretch` |
+| `thm/LoopHalt.lean`, `thm/ExitHalt.lean` | `loop_chain_halt`: a halt from a phase-0 pass start with gaps ≥ 448 needs a stuck configuration after the loop's chain from it; `exit_halt_needs_contact`: one from a loop state, after the certified exit stretch; `loop_halt_sigma`: beyond the σ bound, a close needs a half pass or a round-7 break on the way; `loop_halt_wide`: from a width ≥ 2²⁴, no round-7 break; `loop_halt_leaves`: and the chain ends where the run leaves three walls | `loop_step` and `halt_after_rounds`, by induction on the halting time (each step takes at least one machine step: `passStart_ne`); `exit_stretch` |
 | `thm/EndToEnd.lean` | `clean_chain`, `blank_halt_clean_from`, `blank_halt_clean`, `blank_halt_clean_kernel`, `blank_halt_loop`, `blank_halt_sigma`, `blank_halt_wide`, `blank_halt_exit`, `blank_halt_structure`, `blank_halt_structure_kernel`, `never_halts_of_cut_classes`, `never_halts_of_cut_classes_kernel` | strong induction on the halting time: at each clean tape, either it is cut at every depth, or some depth decides it and the run goes on to a wider clean tape, which takes at least one machine step |
 | `thm/CleanMass.lean`, `thm/CleanMass40.lean` | `clean_tree_cut_mass`, `clean_tree_cut_mass40`: the leaf counts and cut measure of `cleanTree 36` and `cleanTree 40` | `exploreMassW` evaluated by `native_decide`; used by no theorem about the machine |
 | `thm/CleanKernelMass.lean` | `clean_kernel_cut_mass`: the leaf counts and cut measure of `cleanTreeG 2²⁰ 36` | `exploreMassW`, `native_decide`; used by no theorem about the machine |

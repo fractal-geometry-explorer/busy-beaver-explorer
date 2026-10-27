@@ -2431,6 +2431,32 @@ steps with their exact maps, and the run is followed through every landing:
   `blank_halt_wide`). From a pass start beyond the bound, a close through the loop needs a half pass or a round-7
   break on the way (`loop_halt_sigma`, `blank_halt_sigma`). Standard axioms only.
 
+**Wide landings keep their gaps (October 27; `../lean/BB6/Ends.lean`, `../lean/thm/LoopTheorem.lean`, `LoopHalt.lean`).**
+The chain ended (`LoopEnd`) either where the run leaves three walls or at a landing with a gap below 448, from which
+the trees do not follow it. The second kind is an end of the formal chain, not of the loop. The landing's first wall
+was not part of the end event, so nothing said when it happens. It is now (`StepWall`), read off random landings
+through the proved model (`roundZ`) and then checked by the kernel at every landing leaf of the endgame trees. With
+c = E − R − 1:
+- full pass: 64a′ = b + 4c + 12E + 678, and from L₁′ the middle wall 64b′ = b + 8c + 40E + 1258;
+- half pass: 2a′ = b + 10, 2b′ = b + c + 11;
+- round-7 break: 16a′ = b + c + E + 135, 32b′ = 3b + 6c + 10E + 452.
+The fit was exact on 60,000 landings at widths 2¹¹ to 2²¹ (three-wall round starts with the phase-0 parities at
+rounds 2, 7 and 8 that satisfy none of the three step maps were set aside; they are not landings of the chain, whose
+landing leaves all satisfy a step map). So from a pass start
+of width E ≥ 2¹³ with every gap ≥ 448, every landing is again such a pass start (`landing_wide`). A full pass needs
+E ≥ 2,334 for a′ ≥ 448, a round-7 break E ≥ 6,138. The exception is a half pass from a start whose middle wall is
+within 896 of the end: its landing's last gap is (E − b)/2, and E − b ≤ 895 needs R ≤ 446. A half pass is only ever
+the first step, so from a pass start of width ≥ 2¹³ (with b + 896 ≤ E when E ≡ 2 mod 4) the chain ends only where the
+run leaves phase 0 or the halving chain at a round start that is not three walls (`loopEnd_wide`). `loop_halt_leaves`
+puts this together with `loop_halt_wide`: from a width ≥ 2²⁴, a halt through the loop closes from a closing class
+reached by p full passes after at most one half pass, or the run leaves three walls and the halt comes after that.
+Below 2¹³ the exception is real: from walls 449, 926, 1,375 and width 1,504 a full pass lands at 393, 1,146, 1,519.
+
+*After the loop* (untrusted, `roundZ` through `lean --run`). From 100,000 random pass starts of width about 2²⁰, the
+run reached a one-marker clean tape every time, without a close: in 3 to 58 rounds, median 6, with a tail falling
+about 0.8-fold per round (through repeating shapes such as G M M M, G W M M, G M M). About 14% of the runs pass a
+three-wall round start on the way.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:

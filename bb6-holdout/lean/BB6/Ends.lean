@@ -67,12 +67,22 @@ def StepMap : StepKind → Nat → Nat → Nat → Int → Nat → Nat → Int �
     n = 7 ∧ 4704 * (R' : Int) = 476 * (E : Int) + 980 * (R : Int) - L + 15984 ∧
       96 * L' = L + 1120 * (E : Int) + 1666 * (R : Int) + 50328 ∧ W = E + 24
 
+/-- The first wall A′ of the round start after a step of kind `k` from a pass start of width E with right end R and
+left countdown L, whose walls are at b = (L + 112E − 392R + 186)/147 and c = E − R − 1: after a full pass
+64A′ = b + 4c + 12E + 678, after a half pass 2A′ = b + 10, after a break of the chain at round 7
+16A′ = b + c + E + 135. -/
+def StepWall : StepKind → Nat → Nat → Int → Nat → Prop
+  | .full, E, R, L, A' => 9408 * (A' : Int) = L + 2464 * (E : Int) - 980 * (R : Int) + 99264
+  | .half, E, R, L, A' => 294 * (A' : Int) = L + 112 * (E : Int) - 392 * (R : Int) + 1656
+  | .break7, E, R, L, A' => 2352 * (A' : Int) = L + 406 * (E : Int) - 539 * (R : Int) + 19884
+
 /-- A landing of the loop's chain, after `n` rounds from a pass start of width E with right end R and left countdown
 L: three walls at a, b, c with the phase-0 parities (a odd, b even, W ≡ 0 mod 4), right end R′ = W − c − 1 even and
-at least 2, and the map of a step from (E, R, L) to (W, R′, L₁′), with L₁′ = `loopL1 b c W`. -/
+at least 2, the map of a step from (E, R, L) to (W, R′, L₁′), with L₁′ = `loopL1 b c W`, and the step's first wall
+a (`StepWall`). -/
 def Landing (n E R : Nat) (L : Int) (ms : List Mark) (W : Nat) : Prop :=
   ∃ k a b c R', ms = [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩] ∧ a % 2 = 1 ∧ b % 2 = 0 ∧ W % 4 = 0 ∧ c + R' + 1 = W ∧
-    R' % 2 = 0 ∧ 2 ≤ R' ∧ StepMap k n E R L W R' (loopL1 b c W)
+    R' % 2 = 0 ∧ 2 ≤ R' ∧ StepMap k n E R L W R' (loopL1 b c W) ∧ StepWall k E R L a
 
 /-- The round start is not three walls. -/
 def NotWWW (ms : List Mark) : Prop := ∀ a b c, ms ≠ [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩]
@@ -123,7 +133,7 @@ theorem chainBreak_prefix {ds : List Nat} (h : ChainBreak ds) (p : List Nat) : C
 /-- No end event after zero rounds from a three-wall start of width E. -/
 theorem not_endEvent_zero (E R : Nat) (L : Int) (a b c : Nat) :
     ¬ EndEvent E R L 0 [] [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩] E := by
-  rintro (⟨-, h⟩ | ⟨k, _, _, _, _, -, -, -, -, -, -, -, hm⟩)
+  rintro (⟨-, h⟩ | ⟨k, _, _, _, _, -, -, -, -, -, -, -, hm, -⟩)
   · exact h a b c rfl
   · cases k <;> simp [StepMap] at hm
 
@@ -321,8 +331,27 @@ theorem stepMapCheck_sound {y : List Int} {f : SForms} {E R : Nat} {L : Int} (hf
     simp only [eval_smul, eval_addc, eval_add, eval_sub] at q1 q2 q3
     exact ⟨hn, by omega, by omega, by omega⟩
 
+/-- The first wall of a step's landing as an identity of forms (`StepWall`): `f` the start's forms, `A'` the
+landing's first wall. -/
+def stepWallCheck (f : SForms) (A' : YForm) : StepKind → Bool
+  | .full => sameForm (A'.smul 9408) (((f.L.add (f.E.smul 2464)).sub (f.R.smul 980)).addc 99264)
+  | .half => sameForm (A'.smul 294) (((f.L.add (f.E.smul 112)).sub (f.R.smul 392)).addc 1656)
+  | .break7 => sameForm (A'.smul 2352) (((f.L.add (f.E.smul 406)).sub (f.R.smul 539)).addc 19884)
+
+theorem stepWallCheck_sound {y : List Int} {f : SForms} {E R : Nat} {L : Int} (hf : f.Ag y E R L) {A' : YForm}
+    {a : Nat} (ha : agN y A' a) {k : StepKind} (h : stepWallCheck f A' k = true) : StepWall k E R L a := by
+  obtain ⟨hE, hR, hL⟩ := hf
+  unfold agN at hE hR ha
+  cases k <;>
+  · simp only [stepWallCheck] at h
+    have q := sameForm_sound h y
+    simp only [eval_smul, eval_addc, eval_add, eval_sub] at q
+    simp only [StepWall]
+    omega
+
 /-- The round start is a landing of the loop's chain (`Landing`) after `n` rounds from the start with forms `f`:
-three walls with the phase-0 parities decided, a right end decidedly at least 2, and the map of one of the steps. -/
+three walls with the phase-0 parities decided, a right end decidedly at least 2, and the map and first wall of one
+of the steps. -/
 def landingCheck (f : SForms) (n : Nat) (ss : List SMark) (sW : YForm) : Bool :=
   match swwwOf ss with
   | none => false
@@ -331,7 +360,9 @@ def landingCheck (f : SForms) (n : Nat) (ss : List SMark) (sW : YForm) : Bool :=
     let L' := L1Form b c sW
     a.modDec 2 == some 1 && b.modDec 2 == some 0 && sW.modDec 4 == some 0 && R'.modDec 2 == some 0 &&
     ltDec (YForm.const 1) R' ts Γ == some true &&
-    (stepMapCheck f n sW R' L' .full || stepMapCheck f n sW R' L' .half || stepMapCheck f n sW R' L' .break7)
+    ((stepMapCheck f n sW R' L' .full && stepWallCheck f a .full) ||
+      (stepMapCheck f n sW R' L' .half && stepWallCheck f a .half) ||
+      (stepMapCheck f n sW R' L' .break7 && stepWallCheck f a .break7))
 
 theorem landingCheck_sound {y : List Int} (hy : inCone ts Γ y) {f : SForms} {E R : Nat} {L : Int}
     (hf : f.Ag y E R L) {n : Nat} {ss : List SMark} {sW : YForm} {ms : List Mark} {W : Nat} (hs : agL y ss ms)
@@ -364,13 +395,13 @@ theorem landingCheck_sound {y : List Int} (hy : inCone ts Γ y) {f : SForms} {E 
     have hR'ag : agN y ((sW.sub fc).addc (-1)) (W - c - 1) := by
       unfold agN; simp only [eval_addc, eval_sub]; omega
     have key : ∀ k, stepMapCheck f n sW ((sW.sub fc).addc (-1)) (L1Form fb fc sW) k = true →
-        Landing n E R L [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩] W := fun k hk' =>
+        stepWallCheck f fa k = true → Landing n E R L [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩] W := fun k hk' hw =>
       ⟨k, a, b, c, W - c - 1, rfl, by omega, by omega, by omega, by omega, by omega, by omega,
-        by rw [hL']; exact stepMapCheck_sound hf hW hR'ag hk'⟩
-    rcases hk with (hk | hk) | hk
-    · exact key _ hk
-    · exact key _ hk
-    · exact key _ hk
+        by rw [hL']; exact stepMapCheck_sound hf hW hR'ag hk', stepWallCheck_sound hf h1 hw⟩
+    rcases hk with (⟨hk, hw⟩ | ⟨hk, hw⟩) | ⟨hk, hw⟩
+    · exact key _ hk hw
+    · exact key _ hk hw
+    · exact key _ hk hw
 
 end
 

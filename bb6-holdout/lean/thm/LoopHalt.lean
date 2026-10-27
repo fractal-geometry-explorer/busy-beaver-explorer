@@ -184,8 +184,43 @@ theorem loop_halt_wide (R : Nat) (ms : List Mark) (W : Nat) (hP : PassStart448 m
   · exact ⟨ks, ms₁, W₁, R₁, hch, Or.inl ⟨hc, hch.close_wide hc hW, ht⟩⟩
   · exact ⟨ks, ms₁, W₁, R₁, hch, Or.inr he⟩
 
+/-- **From a wide pass start, the loop's chain ends where the run leaves three walls.**  If the machine halts from a
+phase-0 pass start of width W ≥ 2²⁴ with walls at a, b, W − R − 1 and every gap at least 448 (and, if W ≡ 2 mod 4,
+the middle wall at least 896 from the end), then `loop_halt_wide` holds with its end made precise: the chain either
+reaches a closing class through p full passes, after at most one half pass, or it ends where the run, close-free,
+has left phase 0 or the halving chain at a round start that is not three walls, and the halt needs a stuck
+configuration after that.  Every landing of the chain is again a pass start with every gap at least 448
+(`landing_wide`). -/
+theorem loop_halt_leaves (R a b W : Nat) (hP : PassStart448 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W R)
+    (hW : 2 ^ 24 ≤ W) (hh : W % 4 = 2 → b + 896 ≤ W) (T : Nat)
+    (hT : steps T (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W) = none) :
+    ∃ ks ms₁ W₁ R₁, LoopChain [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W R ks ms₁ W₁ R₁ ∧
+      ((InCloseClass ms₁ W₁ R₁ ∧
+          (∃ p, (ks = List.replicate p .full ∧ R = 16 ^ p * R₁ ∧
+              passL1 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W = 64 ^ p * passL1 ms₁ W₁) ∨
+            (ks = .half :: List.replicate p .full ∧ W % 4 = 2 ∧ R = 2 * 16 ^ p * R₁ ∧
+              2 * 64 ^ p * passL1 ms₁ W₁ =
+                passL1 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W + 35 * (W : Int) - 147 * (R : Int) - 60)) ∧
+          ∃ t, Reach ⟨[], 1, ms₁, W₁⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
+        ∃ n ms' W', roundsZ 1000 n ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n ms₁ W₁, 3 ≤ d) ∧
+          (LeftPhase0 n ms' ∨ ChainBreak (meetsRounds 1000 n ms₁ W₁)) ∧ NotWWW ms' ∧
+          ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) := by
+  obtain ⟨ks, ms₁, W₁, R₁, hch, hc | ⟨n, ms', W', hr, hm, he, ht⟩⟩ := loop_halt_wide R _ W hP hW T hT
+  · exact ⟨ks, ms₁, W₁, R₁, hch, Or.inl hc⟩
+  · obtain ⟨a₁, b₁, rfl, -⟩ := id hch.stop
+    have hW₁ : W ≤ W₁ := by have := hch.width; omega
+    have hh₁ : W₁ % 4 = 2 → b₁ + 896 ≤ W₁ := by
+      rcases hch.stop_mod with ⟨hms, rfl, rfl⟩ | h4
+      · simp only [List.cons.injEq, Mark.mk.injEq, true_and, and_true] at hms
+        obtain ⟨-, rfl⟩ := hms
+        exact hh
+      · omega
+    have hl := loopEnd_wide hch.stop (Nat.le_trans (by decide : 2 ^ 13 ≤ 2 ^ 24) (Nat.le_trans hW hW₁)) hh₁ he
+    exact ⟨ks, _, W₁, R₁, hch, Or.inr ⟨n, ms', W', hr, hm, hl.1, hl.2, ht⟩⟩
+
 #print axioms loop_chain_halt
 #print axioms loop_halt_sigma
 #print axioms loop_halt_wide
+#print axioms loop_halt_leaves
 
 end BB6
