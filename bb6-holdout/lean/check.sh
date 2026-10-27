@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 LEAN=${LEAN:-lean}
 mkdir -p out/BB6
 export LEAN_PATH="$LEANLIB:$PWD/out"
-for f in Basic Cycles Rules Iter Rows Rows2 Marks Model Mid Pkt Pkt2 Gap2 Blk Contact Events PktRun Round SymForm SymRound SymSplit Meets HaltClose HaltStretch; do
+for f in Basic Cycles Rules Iter Rows Rows2 Marks Model Mid Pkt Pkt2 Gap2 Blk Contact Events PktRun Round SymForm SymRound SymSplit Meets HaltClose HaltStretch Loop; do
   echo "== BB6/$f.lean"
   $LEAN BB6/$f.lean -o out/BB6/$f.olean
 done

@@ -19,6 +19,7 @@ import BB6.SymForm
 import BB6.SymRound
 import BB6.SymSplit
 import BB6.Meets
+import BB6.Loop
 import BB6.HaltClose
 import BB6.HaltStretch
 
@@ -61,6 +62,8 @@ import BB6.HaltStretch
 #print axioms BB6.Sym.Tree.sound
 #print axioms BB6.Sym.symMeetsZ_sound
 #print axioms BB6.Sym.Tree.soundNC
+#print axioms BB6.meetsRounds_append
+#print axioms BB6.Sym.Tree.soundLoop
 #print axioms BB6.halt_needs_contact
 #print axioms BB6.blank_halt_needs_contact
 #print axioms BB6.halt_needs_close

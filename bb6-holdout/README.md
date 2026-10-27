@@ -27,7 +27,14 @@ mark rules interactively.
     start (walls at a, b, E − R − 1, width E; every gap ≥ 448) runs to a round start without halting and without an
     end meeting at distance ≤ 2.
 
-  The number of rounds in both is existential (the round where the run breaks off, cleans the tape, completes a pass
+  - `loop_no_close` (`thm/LoopTheorem.lean`): the same as `endgame_no_close` for **every** even R ≥ 2 outside the
+    closing set, at any width. For R ≥ 4097 one tree with R as a free coordinate (`loop_pass`, `thm/LoopPass.lean`)
+    follows the run to where it leaves the loop or reaches another phase-0 pass start with gaps ≥ 448 and R′ = R/16,
+    L₁′ = L₁/64 (the pass map), or R′ = R/2 on one short branch; strong induction on R through those pass starts
+    ends in the endgame trees. So a run through the loop can close only from a pass start whose R is in the closing
+    set. (The bound log₂W ≤ σ + 6.38 also needs the L₁ classes of the closing R, which are not in Lean.)
+
+  The number of rounds in all three is existential (the round where the run breaks off, cleans the tape, completes a pass
   or leaves phase 0, chosen per class by an untrusted program), and nothing is claimed for R in the closing set.
 
 **Proved by certificates with independent checkers** (`cert/`): the exact end of the loop (40,991 classes; 83,699
@@ -59,12 +66,16 @@ programs in `csearch/` are kept as they were run.
 
 ```sh
 cd lean
-LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check.sh        # all 21 files, about a minute; prints the axioms
+LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check.sh        # all 24 files, about a minute; prints the axioms
 # the two theorems (13 and 40 minutes of native_decide evaluation):
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/ExitTheorem.lean -o out/ExitTheorem.olean
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/ExitHalt.lean                                  # after ExitTheorem: a halt needs a contact after the exit
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/EndgameTheorem.lean -o out/EndgameTheorem.olean
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/EndgameHalt.lean                               # after EndgameTheorem
+# the loop's end for every width (under a minute, then the induction; needs EndgameTheorem.olean):
+LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopPass.lean -o out/LoopPass.olean
+LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopTheorem.lean -o out/LoopTheorem.olean
+LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopAxioms.lean
 ```
 
 `thm/gen_exit.py` and `thm/gen_endgame.py` regenerate the theorem files from the trees (`thm/exit_tree.txt`,

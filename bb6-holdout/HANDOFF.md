@@ -29,7 +29,10 @@ self-contained except for the large intermediate outputs mentioned in `README.md
 
 ## Next steps (as proposed at handoff)
 
-1. **The loop's end for every width as one Lean theorem.** Prove the pass map (R → R/16, L → L/64) with R free
+1. **Done (October 27):** `loop_no_close` in `lean/thm/LoopTheorem.lean`, with `loop_pass` (R free) in
+   `lean/thm/LoopPass.lean`; see the lean README. What remains of this item is the σ bound, which needs the L₁
+   classes of the closing R in Lean. The original note:
+   **The loop's end for every width as one Lean theorem.** Prove the pass map (R → R/16, L → L/64) with R free
    using the symbolic runner (`BB6/SymRound`, `BB6/SymSplit`), then induct over passes, combined with
    `endgame_no_close` for R ≤ 4096: "a run through the loop closes only from R ∈ {2, 4, 8, 16, 24, 32, 48, 64, 176}
    at its last pass start, hence log₂W ≤ σ + 6.38".
