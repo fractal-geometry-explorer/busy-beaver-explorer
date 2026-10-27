@@ -31,8 +31,10 @@ mark rules interactively.
     closing set, at any width. For R ≥ 4097 one tree with R as a free coordinate (`loop_pass`, `thm/LoopPass.lean`)
     follows the run to where it leaves the loop or reaches another phase-0 pass start with gaps ≥ 448 and R′ = R/16,
     L₁′ = L₁/64 (the pass map), or R′ = R/2 on one short branch; strong induction on R through those pass starts
-    ends in the endgame trees. So a run through the loop can close only from a pass start whose R is in the closing
-    set. (The bound log₂W ≤ σ + 6.38 also needs the L₁ classes of the closing R, which are not in Lean.)
+    ends in the endgame trees. So within the stretch the trees certify, a run through the loop closes only from a pass
+    start whose R is in the closing set; after the stretch ends, a run can come back to phase-0 pass starts and close
+    later (an example from R = 22, and the loop tree's R/2 "half pass", are in the notes, October 27). (The bound
+    log₂W ≤ σ + 6.38 also needs the L₁ classes of the closing R, which are not in Lean, and a way across half passes.)
 
   The number of rounds in all three is existential (the round where the run breaks off, cleans the tape, completes a pass
   or leaves phase 0, chosen per class by an untrusted program), and nothing is claimed for R in the closing set.

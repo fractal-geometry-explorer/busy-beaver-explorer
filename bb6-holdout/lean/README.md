@@ -38,6 +38,7 @@ Started October 25. Self-contained (no Mathlib): Lean 4 core only, so it can be 
 | `thm/Prefix.lean` | **From blank tape to width 2³².** `blank_prefix`: the mark model, 1,204,297,272 rounds from the first round start, reaches the clean tape of width exactly 2³² (`native_decide`; 4 minutes as native code), so the machine reaches it from blank tape without halting. |
 | `thm/LoopHalt.lean` | `loop_no_close_rounds` (`loop_no_close`, also keeping that the model covers the rounds) and `loop_halt_needs_contact`: a halt from a phase-0 pass start with any R outside the closing set needs a stuck configuration after the loop's close-free stretch. |
 | `thm/EndToEnd.lean`, `check_end.sh`, `END_TO_END.md` | **End to end.** `clean_chain` (strong induction on the halting time through the clean-tape tree), `blank_halt_structure` (a halt from blank tape needs a clean tape of width ≥ 2³² in a cut class, then a stuck contact; and every pass start with R outside the closing set on the way is followed by the loop's close-free stretch first) and `never_halts_of_cut_classes`. `check_end.sh` checks everything from the theorem files on. |
+| `RunWalls.lean` | Untrusted: runs the mark model from a three-wall round start and prints each round's end meetings and positions (`lean --run RunWalls.lean a b E R rounds`), used for the half-pass example in the notes. |
 | `gen_rules.py` | The generator (reads the rule table and runs the symbolic prover; emits Lean). |
 | `check.sh` | Compiles everything with a bare `lean` (no lake). |
 

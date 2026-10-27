@@ -2130,6 +2130,24 @@ could not be chained this way: the machine's own run reaches two-marker states w
 `endgame_no_close` gained its `roundsZ` conjunct (the two pull requests merged in that order); fixed, and
 `BB6.Sym.sameForm` moved to `SymSplit` so that `Loop` and `RouteTree` can be imported together.
 
+
+**What `loop_no_close` does and does not say: a half pass, and a close after the stretch (October 27).** One of the
+1,327 leaves of the loop tree (`thm/loop_tree.txt`) is not a full pass: from a phase-0 pass start with b ≡ 0, E ≡ 2
+and R ≡ 0 (mod 4), two rounds (G B W, then G W W W) reach another phase-0 pass start with walls b/2 + 5, (b + E − R)/2
++ 5, E − R/2 + 5 and width E + 6: R′ = R/2, and the left countdown is not divided but replaced, L₁′ = L₁/2 + 35E/2 −
+147R/2 − 30. The notes' theorem of October 23 ("R = 16^p·r with r in the closing set, L₁ in fixed classes") assumes
+the pass start is followed by G B W and G M B, which excludes this step, so it does not contradict it; but the σ bound
+cannot be carried through a half pass, and the Lean statement covers these states too. An example run (`lean --run
+../lean/RunWalls.lean 601 11016 20010 5632 23`, model rounds): from the pass start a = 601, b = 11,016, c = 14,377, E
+= 20,010 (R = 5,632 = 2·16·176, outside the closing chain) the run makes the half pass to R = 2,816, a pass, a second
+half pass to R = 176 (round 10), a pass to a phase-0 pass start with a = 469, b = 10,474, E = 20,058 and R = 22 (round
+16; every gap ≥ 448, R outside the closing set), and closes six rounds later (an end meeting at distance 2). That is
+consistent with `endgame_no_close` and `loop_no_close`, whose stretch from R = 22 stops before the close (the number
+of rounds is existential, chosen by the tree), but it shows what the theorems do not say: a run that leaves a
+certified stretch can come back to phase-0 pass starts and close later. The reading "a run through the loop can close
+only from a pass start whose R is in the closing set" holds only for the end chain inside each certified stretch.
+`thm/EndToEnd.lean` states the loop part accordingly: a halt comes only after the stretch.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:
