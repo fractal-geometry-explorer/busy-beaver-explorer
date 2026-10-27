@@ -97,6 +97,10 @@ mark rules interactively.
   run reaches one of the open clean tapes, and from those, one of the open pass starts with R ≥ 178:
   `blank_halt_open_small` (`lean/thm/OpenSmallHalt.lean`) states the two together, and `never_halts_of_open` says that a
   negative answer to both would show the machine never halts.
+  Deeper trees shrink the open clean tapes' measure (6,582,732 classes of measure 6.0 × 10⁻⁶ at 40 digits, 33,928,389
+  of 1.93 × 10⁻⁶ at 44, by `native_decide` on all cores, `lean/BB6/MassPar.lean`), but not the number of open classes
+  at a fixed number of digits: nearly every one holds a 2-adic value of W/2 that no depth settles, so closing them
+  needs an argument that uses that W is an integer (`lean/END_TO_END.md`, "Deeper trees").
 - *The route tree* (`lean/thm/RouteTheorem.lean`, `lean/ROUTE_TREE.md`): `route_tree_clean`, the certificate's
   two-marker route tree as a theorem about the machine, at every depth and cone constant, with the standard axioms
   only (the same explorer); at 36 and 40 digits its cut classes are the Python certificate's (measure 5.9 × 10⁻⁶ and

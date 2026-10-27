@@ -1,7 +1,8 @@
 #!/bin/bash
 # Check the end-to-end theorem (run ./check.sh first):
 #   1. the proved modules BB6/RouteTree.lean, BB6/CleanTree.lean, BB6/RouteExplore.lean, BB6/CleanRange.lean,
-#      BB6/RouteEntry.lean, BB6/EntryTree.lean, BB6/CleanEntryTree.lean and BB6/SmallEnd.lean (seconds);
+#      BB6/RouteEntry.lean, BB6/EntryTree.lean, BB6/CleanEntryTree.lean, BB6/SmallEnd.lean and BB6/MassPar.lean
+#      (seconds);
 #   2. the exit and endgame trees and the run from blank tape to width 2^20, evaluated by Lean's kernel
 #      (`decide +kernel`; no compiler is trusted): the generated modules thm/ExitPieces*.lean and
 #      thm/EndgamePieces*.lean hold one theorem per subtree, thm/PrefixPieces*.lean one per stretch of 5,000 rounds;
@@ -27,21 +28,25 @@
 #      (thm/OpenSmallHalt.lean); prints the axioms of the final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,
-#      thm/CleanSmallMass.lean, about 5 minutes each), and with --deep also at 40 digits
-#      (thm/CleanMass40.lean, thm/CleanDirectMass40.lean, about half an hour each).  No theorem about the machine uses
-#      them.
-# usage: LEAN=/path/to/lean LEANLIB=/path/to/lib/lean [JOBS=4] ./check_end.sh [--interpreted] [--deep]
+#      thm/CleanSmallMass.lean, about 5 minutes each), with --deep also at 40 digits
+#      (thm/CleanMass40.lean, thm/CleanDirectMass40.lean, about half an hour each; thm/CleanEntryMass40.lean, evaluated
+#      on all cores by BB6/MassPar.lean), and with --deeper also that of the tree with loop entries at 44 digits
+#      (thm/CleanEntryMass44.lean, two hours of CPU, about an hour beside the --deep files on 4 cores).  No theorem
+#      about the machine uses them.
+# usage: LEAN=/path/to/lean LEANLIB=/path/to/lib/lean [JOBS=4] ./check_end.sh [--interpreted] [--deep] [--deeper]
 set -e
 cd "$(dirname "$0")"
 LEAN=${LEAN:-lean}
 LEANC=${LEANC:-$(dirname "$LEAN")/leanc}
 export LEAN_PATH="$LEANLIB:$PWD/out"
 JOBS=${JOBS:-4}
-INTERP=""; DEEP=""
+INTERP=""; DEEP=""; DEEPER=""
 for a in "$@"; do
-  case $a in --interpreted) INTERP=1 ;; --deep) DEEP=1 ;; *) echo "unknown option $a"; exit 1 ;; esac
+  case $a in
+    --interpreted) INTERP=1 ;; --deep) DEEP=1 ;; --deeper) DEEPER=1 ;; *) echo "unknown option $a"; exit 1 ;;
+  esac
 done
-for f in RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree SmallEnd; do
+for f in RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree SmallEnd MassPar; do
   echo "== BB6/$f.lean"; $LEAN BB6/$f.lean -o out/BB6/$f.olean
 done
 for f in ExitStart EndgameStart PrefixBase; do echo "== thm/$f.lean"; $LEAN thm/$f.lean -o out/$f.olean; done
@@ -52,7 +57,7 @@ printf '%s\n' $PIECES | xargs -P "$JOBS" -I{} "$LEAN" thm/{}.lean -o out/{}.olea
 echo "   $(( $(date +%s) - start )) s"
 DYN=""
 if [ -z "$INTERP" ]; then
-  MODS="Basic Cycles Rules Iter Rows Rows2 Marks Model Mid Pkt Pkt2 Gap2 Blk Contact Events PktRun Round SymForm SymRound SymSplit Meets HaltClose HaltStretch Loop Ends RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree SmallEnd"
+  MODS="Basic Cycles Rules Iter Rows Rows2 Marks Model Mid Pkt Pkt2 Gap2 Blk Contact Events PktRun Round SymForm SymRound SymSplit Meets HaltClose HaltStretch Loop Ends RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree SmallEnd MassPar"
   mkdir -p cbuild/so
   OBJS=""
   for f in $MODS; do
@@ -84,7 +89,8 @@ stage() { printf '%s\n' "$@" | xargs -P "$JOBS" -I{} bash -c 'compile {}'; }
 stage PrefixKernel EndgameTheorem ExitTheorem Prefix CleanTheorem RouteTheorem
 stage CleanEntryTheorem CleanSmallTheorem
 DEEPMASS=""
-[ -n "$DEEP" ] && DEEPMASS="CleanMass40 CleanDirectMass40"
+[ -n "$DEEP" ] && DEEPMASS="CleanMass40 CleanDirectMass40 CleanEntryMass40"
+[ -n "$DEEPER" ] && DEEPMASS="$DEEPMASS CleanEntryMass44"
 stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass CleanEntryMass CleanEntryKernelMass \
   CleanSmallMass ExitHalt LoopTheorem RouteEntryTheorem
 stage LoopHalt
