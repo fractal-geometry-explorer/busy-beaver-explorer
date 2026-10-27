@@ -54,11 +54,13 @@ theorem endgame_trees_cover :
 {2, 4, 8, 16, 24, 32, 48, 64, 176}, and every phase-0 pass start — walls at a, b and c = E − R − 1, width E, with a
 odd, b even, E even and every gap at least 448 — the machine runs a number of rounds (up to the round at which this
 start's pass completes, its end-meeting chain breaks, or it leaves phase 0, per the tree) without halting, reaching a
-round start, and every end meeting on the way is at distance at least 3: the run does not close. -/
+round start (the one `roundsZ` computes: the mark model covers these rounds), and every end meeting on the way is at
+distance at least 3: the run does not close. -/
 theorem endgame_no_close (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R) (hR4 : R ≤ 4096) (hS : closingSet.contains R = false)
     (a b E : Nat) (ha : a % 2 = 1) (hb : b % 2 = 0) (hE : E % 2 = 0)
     (h1 : 448 ≤ a) (h2 : a + 448 ≤ b) (h3 : b + 448 + R + 1 ≤ E) :
     ∃ n kk ms' W', steps kk (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E) = some (roundStart ms' W') ∧
+      roundsZ 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E = .newRound ms' W' ∧
       ∀ d ∈ meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E, 3 ≤ d := by
   -- the tree for R
   have hcov := endgame_trees_cover
@@ -84,5 +86,5 @@ theorem endgame_no_close (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R) (hR4 : R ≤
     refine ⟨⟨rfl, ?_⟩, ⟨rfl, ?_⟩, ⟨rfl, ?_⟩, trivial⟩ <;>
       simp only [agN, y, startR, YForm.eval, YForm.addc, dot] <;> omega
   have hW : agN y (startR R').2.1 E := by simp only [agN, y, startR, YForm.eval, dot]; omega
-  obtain ⟨n, kk, ms', W', hk, -, hmeets⟩ := Tree.soundNC 448 1000 3 t _ _ _ ht y rfl hy _ _ hs hW
-  exact ⟨n, kk, ms', W', hk, hmeets⟩
+  obtain ⟨n, kk, ms', W', hk, hr, hmeets⟩ := Tree.soundNC 448 1000 3 t _ _ _ ht y rfl hy _ _ hs hW
+  exact ⟨n, kk, ms', W', hk, hr, hmeets⟩
