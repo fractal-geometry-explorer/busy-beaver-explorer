@@ -80,8 +80,10 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    from those, which of the open pass starts with R ≥ 178; `blank_halt_open_small` (`lean/thm/OpenSmallHalt.lean`)
    states the two together, and `never_halts_of_open` turns them into the two questions left. Some of those open pass
    starts with R ≥ 178 halt, at every width (`sym_open_halt`, `lean/thm/PassOpenHalt.lean`: a family with R = 178
-   whose run leaves the loop, enters it again through an end meeting at 254 and closes), so the second question is
-   whether the run reaches one.
+   whose run leaves the loop, enters it again through an end meeting at 254 and closes; `open_halt_families`: eight
+   such families, from an exhaustive scan of the widths 2,048 to 3,072 and a scan of where full passes land), and the
+   loop's chain can land on one after a full pass (`full_pass_open_halt`), so the second question is whether the run
+   reaches one.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.

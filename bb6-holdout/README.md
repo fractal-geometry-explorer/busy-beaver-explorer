@@ -66,7 +66,10 @@ mark rules interactively.
     loop again, through an end meeting off the chain whose halving chain runs to 0, and close. A family with R = 178
     does so at every width (walls a, b and b + 467, width b + 646, b ≡ 2,010 mod 2¹⁴, such as walls 1,523, 2,010 and
     2,477 and width 2,656, which closes in round 19), and the pass-start tree for R ≥ 178 leaves all of it open at
-    every depth (`family_open_halt`, `sym_open_halt`).
+    every depth (`family_open_halt`, `sym_open_halt`). Seven more such families are proved (`open_halt_families`;
+    an exhaustive scan of the widths 2,048 to 3,072 finds eleven closing placements, seven of which repeat at every
+    width), and a full pass of the loop's chain can land on one (`full_pass_open_halt`: from R = 2,976 to R = 186 at
+    width 13,400).
 
   The number of rounds in all three is existential (chosen per class by an untrusted program), but each stretch ends at
   its stated event. The first versions (`exit_no_halt`, `endgame_no_close`, `loop_no_close`, `loop_pass`) said only
@@ -109,7 +112,8 @@ mark rules interactively.
   run reaches one of the open clean tapes, and from those, one of the open pass starts with R ≥ 178:
   `blank_halt_open_small` (`lean/thm/OpenSmallHalt.lean`) states the two together, and `never_halts_of_open` says that a
   negative answer to both would show the machine never halts. The second is about reaching: open pass starts with
-  R ≥ 178 that halt exist at every width (`sym_open_halt`, `lean/thm/PassOpenHalt.lean`).
+  R ≥ 178 that halt exist at every width (`sym_open_halt`, `open_halt_families`, `lean/thm/PassOpenHalt.lean`), also
+  where a full pass of the loop's chain lands (`full_pass_open_halt`).
   Deeper trees shrink the open clean tapes' measure (6,582,732 classes of measure 6.0 × 10⁻⁶ at 40 digits, 33,928,389
   of 1.93 × 10⁻⁶ at 44, by `native_decide` on all cores, `lean/BB6/MassPar.lean`), but not the number of open classes
   at a fixed number of digits: nearly every one holds a 2-adic value of W/2 that no depth settles, so closing them

@@ -2888,3 +2888,52 @@ doubling of the width. Being in the tree of 0 is not what is rare: under `ChainN
 end, and the chain surviving from it. The family has its first meeting off the chain at 254 because that meeting is
 set by the right end and the two walls next to it, which the family fixes; at a given width only its first wall is
 free.
+
+**Every pass start with R ≥ 178 that halts at widths 2,048 to 3,072, and where a full pass lands (October 27, night;
+`../lean/thm/PassOpenHalt.lean`).** Since the closes above do not depend on the first wall, a scan can try a few first
+walls per placement of the others. Every even width W from 2,048 to 3,072, every even R ≥ 178 and every even middle
+wall b with b ≥ 898 and a third gap of at least 448, with the first wall at 449, b − 449 and an odd one halfway,
+followed as above (to the next landing with every end meeting ≥ 3, or a wider clean tape): 74.6 million placements,
+224 million runs, about half an hour on three cores (untrusted). Eleven placements close, each for all three first
+walls and, run for every first wall, for all of them: (W, R, b) = (2,368, 466, 1,274), (2,376, 402, 956),
+(2,460, 578, 1,304), (2,572, 548, 990), (2,656, 178, 2,010), (2,704, 406, 1,534), (2,760, 914, 1,084), (2,812, 190,
+1,646), (2,860, 310, 1,970), (2,872, 474, 1,794) and (2,962, 210, 2,288). Width 2,048 alone, with every first wall:
+3,031,864 pass starts, 3,160 landings, none close. Every route meets the end at R − 2, sometimes once more on its
+chain (400, 204), and after at most four more meetings it meets the end off the chain at 254, 510, 766 or 1,022
+(2⁸ − 2, 2⁹ − 2, 3 · 2⁸ − 2, 2¹⁰ − 2), whose halving chain runs through three-wall round starts whose right end halves
+in two rounds or drops to an eighth in six (R = 64, 32, 4 and 2 at rounds 9, 11, 17 and 19 for three of them) to the
+close in round 18 to 26.
+
+Seven of the eleven repeat with the other walls and the width moved right by every multiple of 2^k: the close run on
+the class (first wall 2z₀ + 1, middle wall b + 2^k z₁, the third wall and the end moved with it) closes for k = 15,
+14, 14, 14, 15, 15 and 13, and the model's run on it reaches no possible checkpoint in the 18 to 24 rounds before the
+close. `open_halt_families` proves these seven and the one below at every width (`Fam.open_halt`, `Fam.ok` by the
+kernel for all eight, a few seconds). For (2,572, 548, 990), (2,704, 406, 1,534), (2,812, 190, 1,646) and (2,860, 310,
+1,970) the close run fails on every such class up to k = 29, also with the moves multiplied by 3, 7, 9, 21, 63 or
+315; for the last, with the moves by 2²⁰ the symbolic run is undecided at round 20, where the right end is at
+5 + 512 z₁: the route depends on the width itself, and works only near 2,860. Three of the eleven are landings of a
+half pass (the first step of the loop's chain from a loop entry) from a pass start with every gap at least 448:
+(2,656, 178, 2,010) from b = 1,716 and R = 356, (2,704, 406, 1,534) from b = 1,172 and R = 812, (2,860, 310, 1,970)
+from b = 1,696 and R = 620, each at width W − 6.
+
+Where a full pass lands. A full pass from a pass start (b, E, R) lands at W₁ = E + 24, R₁ = R/16, on the plane
+2(b₁ − a₁) = W₁ − 2R₁ − 6 (`landing_plane`), with 64a₁ = b + 16E − 4R + 674 (`StepWall`), so
+b = 64a₁ − 16W₁ + 64R₁ − 290; the start's gaps (b ≥ 898, E − R − 1 − b ≥ 448) put a₁ in the band
+16W₁ − 64R₁ + 1,188 ≤ 64a₁ ≤ 17W₁ − 80R₁ − 183, of width about W₁/64, which for R₁ ≥ 178 is empty below
+W₁ = 4,218; the landing's third gap is then between about 15W₁/64 and W₁/4. Every such point with R₁ ≥ 178, W₁ ≡ 0
+(mod 4) from 4,220 to 16,384 and every landing gap at least 448: 18,417,270 points, of which 35,693 land again,
+18,381,575 reach a wider clean tape and 2 close, (W₁, R₁, a₁, b₁) = (13,400, 186, 3,187, 9,698) and (16,292, 366,
+3,833, 11,610). Both are real landings: the full pass from walls 449, 1,182 and 10,399 and width 13,376 (R = 2,976),
+and from walls 449, 7,774 and 10,411 and width 16,268 (R = 5,856), reaches them in eight rounds. The first meets the
+end at 184, then at 1,022, and closes in round 22 through round starts with R = 128, 64, 8 and 4; it is the eighth
+family (k = 17), and `full_pass_open_halt` proves the chain: `LoopChain` with one full pass onto it, open at every
+depth of `passTreeSym`, halting. The second repeats with k = 16 but passes three walls in round 7 (R = 256), which
+`symOpenRun` cannot tell from a landing. Two in 18.4 million is about the rate of random pass starts of those widths,
+and the explorer run on the band as its start class (three coordinates: a₁, W₁/4, R₁/2, cone b ≥ 898,
+E − R − 1 − b ≥ 448 and R₁ ≥ 178) leaves 40.2%, 19.2% and 8.6% of it cut at 8, 12 and 16 splits, against 41.4%, 19.4%
+and 8.8% for `passTreeSym`: restricting the open question to where the loop's chain can land gains nothing there.
+
+On symbolic positions around the first (a₁ and W₁ moved by 2²⁰, R₁ fixed), the round start at round 9 has right end
+128 + (W₁ − b₁ − 3,702)/32: the route depends on the walls through W₁ − b₁ and residues. On the band W₁ − b₁ grows
+like W₁/4, so a close there at a larger width needs a re-entry with right end of the order W₁/128 and a halving chain
+of about log₂ of that, which is why these closes thin out with the width as for random pass starts.
