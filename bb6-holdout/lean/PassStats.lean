@@ -1,4 +1,4 @@
-import PassHalt
+import PassHaltClasses
 import BB6.PassTree
 open BB6 BB6.Sym
 
@@ -11,7 +11,9 @@ measure of its leaves by kind, as fractions of the start class: landings, clean 
 leaves by why they are cut: the depth ran out (`depth`), the round is decided as something other than a new round
 start, a halt or a close the model does not cover, with the left countdown outside the closing class (`decided`), or
 the round is undecided and neither a residue nor a cleave decides it (`other`).  The slices of the cleaves have
-measure 0; their leaves are counted (`slice leaves`, of which `cut`). -/
+measure 0; their leaves are counted (`slice leaves`, of which `cut`).  Last, the measure of the close and cut leaves
+whose class the close run closes (`halting`; `symCloseRun` from the round start reached, which `HTree.ofPTree` runs
+from the start, so these are the halting leaves of `pass_halt_leaf`, `thm/PassHaltClasses.lean`). -/
 
 structure PStats where
   dep : Nat := 0
@@ -23,10 +25,11 @@ structure PStats where
   cleaves : Nat := 0
   sliceLeaves : Nat := 0
   sliceCuts : Nat := 0
+  halt : Nat := 0
 
 def PStats.add (a b : PStats) : PStats :=
   ⟨a.dep + b.dep, a.dec + b.dec, a.oth + b.oth, a.land + b.land, a.clean + b.clean, a.close + b.close,
-    a.cleaves + b.cleaves, a.sliceLeaves + b.sliceLeaves, a.sliceCuts + b.sliceCuts⟩
+    a.cleaves + b.cleaves, a.sliceLeaves + b.sliceLeaves, a.sliceCuts + b.sliceCuts, a.halt + b.halt⟩
 
 /-- A leaf of measure 2^D (kind 0 depth, 1 decided, 2 other, 3 landing, 4 clean, 5 close), or a slice's leaf. -/
 def PStats.leaf (inSlice : Bool) (D kind : Nat) : PStats :=
@@ -41,6 +44,11 @@ def PStats.leaf (inSlice : Bool) (D kind : Nat) : PStats :=
     | 4 => { clean := 2 ^ D }
     | _ => { close := 2 ^ D }
 
+/-- A close or cut leaf of measure 2^D, outside the slices, whose class the close run closes from the round start
+reached. -/
+def PStats.halting (inSlice : Bool) (D : Nat) (ss : List SMark) (sW : YForm) (ts : List YForm) : PStats :=
+  if !inSlice && symCloseRun ts 448 closeFuel [] (YForm.const 1) ss sW then { halt := 2 ^ D } else {}
+
 /-- The leaves of `PTree.explore` (numerators over 2^D), step by step as it builds them. -/
 def passStats (k : Nat) (cls : Option (Int × Int)) (inSlice : Bool) :
     Nat → Nat → Nat → Nat → Bool → Bool → Nat → List SMark → YForm → List YForm → SForms → PStats
@@ -49,15 +57,15 @@ def passStats (k : Nat) (cls : Option (Int × Int)) (inSlice : Bool) :
     match passAct 448 1000 k cls (nb != 0) wf cf n ss sW ts f with
     | .land => .leaf inSlice D 3
     | .clean => .leaf inSlice D 4
-    | .close => .leaf inSlice D 5
+    | .close => (PStats.leaf inSlice D 5).add (.halting inSlice D ss sW ts)
     | .cut =>
       let decided := (wf || symRightOK ts 448 (YForm.const 4) false sW ss) &&
         (match symRoundsZ ts 448 1000 1 ss sW with | some (.newRound _ _) => false | some _ => true | none => false)
-      .leaf inSlice D (if decided then 1 else 2)
+      (PStats.leaf inSlice D (if decided then 1 else 2)).add (.halting inSlice D ss sW ts)
     | .adv ss' sW' => passStats k cls inSlice S d D nb true (cf && meetsGe3 448 1000 ts ss sW) (n + 1) ss' sW' ts f
     | .split i =>
       match d with
-      | 0 => .leaf inSlice D 0
+      | 0 => (PStats.leaf inSlice D 0).add (.halting inSlice D ss sW ts)
       | d + 1 =>
         (passStats k cls inSlice S d (D - 1) nb wf cf n (substL ss i 0) (sW.subst i 0) (substT ts i 0)
           (f.subst i 0)).add
@@ -83,7 +91,7 @@ def runOne (d : Nat) (which : String) : IO Unit := do
         (startR R).2.2 (startE R).2
   let t1 ← IO.monoMsNow
   let fl (x : Nat) : Float := x.toFloat / (2 : Float) ^ d.toFloat
-  IO.println s!"{which} d={d}: cut {fl (r.dep + r.dec + r.oth)} (depth {fl r.dep}, decided {fl r.dec}, other {fl r.oth}), landing {fl r.land}, clean {fl r.clean}, close {fl r.close}; cleaves {r.cleaves}, slice leaves {r.sliceLeaves} (cut {r.sliceCuts}) ({t1 - t0} ms)"
+  IO.println s!"{which} d={d}: cut {fl (r.dep + r.dec + r.oth)} (depth {fl r.dep}, decided {fl r.dec}, other {fl r.oth}), landing {fl r.land}, clean {fl r.clean}, close {fl r.close}; cleaves {r.cleaves}, slice leaves {r.sliceLeaves} (cut {r.sliceCuts}); halting {fl r.halt} ({t1 - t0} ms)"
 
 def main (args : List String) : IO Unit := do
   let d := (args.getD 0 "12").toNat!

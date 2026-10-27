@@ -2702,7 +2702,64 @@ of them in the class above and at round 7, as are all 525 of 4,000; R = 48: 2), 
 (R = 4: 104, R = 8: 92, R = 16: 15, R = 64: 1), or a block far off and a wall at W − 3 (R = 4: 270, R = 16: 20,
 R = 32: 19, R = 64: 7); there were none for R = 10, 12, 22, 24, 100 or 176. The first shape is `block_end_halt'`. The
 other two pass a mark first, so their halts need the gap phase up to the end (`Reach` to an `EndClose` state,
-`../lean/BB6/HaltStretch.lean`) and are not in Lean yet.
+`../lean/BB6/HaltStretch.lean`); the next entry puts them in Lean.
+
+**Every close at the right end is a halt; the halting classes (October 27; `../lean/BB6/CloseHalt.lean`,
+`../lean/BB6/HaltTree.lean`, `../lean/thm/PassHaltClasses.lean`).** All three shapes above end at one configuration of
+the gap phase: the gap meets the end marker at distance 0, a marker touches the gap from the left, and nothing lies past
+the end marker (`EndClose0`: the right marks are a marker at g + 3 and W = g + 5). From there the machine halts after 54
+steps, without reading left of the touching marker (`end_close_local`, by `rfl` for any tape on the left; with a
+trailing stripe (01)ʲ after the end marker it takes 3j² + 19j + 54 steps, but no sampled close has one). Every event
+of the model is a run of the machine (`Step.run`, from `gapEvent_ok` and the packet theorems), so a close that the
+model reaches from a well-formed start is a halt (`reach_close_halt`). With `halt_needs_end_close` this is an
+equivalence: where no interior contact is reachable and every close at the right end is of this kind (both measured,
+not proved), the machine halts exactly when the model reaches one (`halt_iff_end_close`). The close run (`closeRun`;
+`symCloseRun` on symbolic positions) runs the model event by event across rounds and says whether it reaches the close;
+on a class its success proves that every member halts (`symCloseRun_halt`).
+
+A halting tree (`HTree`) has the splits of a pass-start tree, with a `halt` leaf wherever the close run closes a close
+or cut leaf's class from the root's round start (`HTree.ofPTree`, which passes the check by construction), and every
+pass start in a halting leaf halts, at every depth (`pass_halt_leaf`, nothing evaluated). The halting leaves, at 12, 16
+and 20 splits (`PassStats.lean`, which now prints their measure): every pass start with R = 2 (the whole tree is one
+close leaf); with R = 4, W ≡ 0 (mod 4) and b ≡ 6 (mod 8), or W ≡ 2 (mod 4) and b ≡ 0 (mod 4) (3/8); with R = 6, the
+eighth of `pass_r6_halt`; with W ≡ 0 (mod 4), R = 8 and b ≡ 30 (mod 32), R = 16 and b ≡ 30 (mod 64), R = 32 and
+b ≡ 30 + 16W (mod 128), R = 48 and b ≡ 158 + 48W (mod 256) (1/32, 1/64, 1/128, 1/256). No other R < 178 has any, though
+24, 64 and 176 are in the closing set. Apart from R = 6's cut at a decided round, the halting leaves are exactly the
+close leaves: every close leaf of the pass-start trees halts. These are the eight classes of `HaltClass`;
+`pass_class_halt` proves that each one halts (the close run on the class, evaluated by the kernel, about two seconds for
+all eight, standard axioms only), and `chain_class_halt` that a pass start whose loop chain reaches one halts. Concrete
+examples: walls 731, 1,886, 5,603 and width 5,652 (R = 48, in a class); walls 1,561, 2,440, 5,033 and width 5,042
+(R = 8, outside the classes, two rounds from walls 1,225, 3,742, 5,043 and width 5,048 with R = 4, inside), by the
+close run on the start.
+
+*Every close the model sees goes through a class* (untrusted, `roundZ` and `closeRun` through `lean -c`). From
+100,000 random pass starts with R < 178 at each of the widths 2¹², 2¹⁴, 2¹⁶, 2²⁰, 2²⁴ and 2³⁰ (gaps ≥ 448), the model
+was run until a one-marker clean tape or a round it leaves uncovered: 98.1% reach a clean tape and 1.9% the close, and
+nothing else happens (no other uncovered round, no halt of the model, no run past 2,000 rounds). Every run that reaches
+the close passes through a pass start in one of the classes, all but 0.4% of them through one with every gap ≥ 448.
+With R from 178 to 4,176 (400,000 starts at widths 2¹⁶ to 2³⁰), one run closes: walls 786,501, 1,023,966, 1,073,891
+and width 1,074,148 (R = 256), which lands at R = 32 after six rounds and at R = 16, in a class, after eight
+(`pass_halt_example_r256`). So the halts from pass starts that the model sees are these classes and the chains into
+them. A halt from blank tape cannot end its loop chain in one: `blank_halt_small` puts the chain's last pass start at
+R ≥ 178, cut at every depth of `passTreeSym`. Past that pass start the run could still reach a class, by entering the
+loop again (next paragraph).
+
+*Past the chain's end, a close needs the loop again* (untrusted, as above). From two million random pass starts per
+range and width (R from 50 to 80, 82 to 176, 178 to 976 and 1,000 to 4,998; widths 2¹², 2¹³ and 2¹⁶; gaps ≥ 448), the
+model was run to the first landing of the chain reached with every end meeting at distance ≥ 3 (as the `land` leaves of
+the pass-start trees: the step's map and first wall exactly), a wider one-marker clean tape, or a round it leaves
+uncovered. 12.6% land and the rest reach a clean tape, except three runs that close, all at width 2¹²: walls 4,453 (or
+3,437: the first wall is gone after round 1), 5,166, 5,957 and width 6,028 (R = 70), and walls 645, 4,862, 5,789 and
+width 5,920 (R = 130; `pass_halt_example_reentry`, the close run on the start). None closes from R ≥ 178, in ten million
+starts (the range from 1,000 at 2¹³ and 2¹⁶ only). The three closes take one route: after the chain breaks, an end
+meeting at 254 = 2⁸ − 2 that does not continue the halving chain of the meeting before it (`ChainNext`) starts a new
+chain, 254, 126, 62, 30, 14, 6, 2, 0, through three-wall round starts whose first wall is below 448 (327 with R = 128;
+23 with R = 32) and then pass starts with every gap ≥ 448 in a class (R = 4 with b ≡ 6 mod 8, R = 16 with b ≡ 30 mod 64,
+W ≡ 0 mod 4), where the close comes. So in these samples the run closes past the chain's end only by entering the loop
+again, through an end meeting whose halving chain runs to 0 unbroken. End meetings off the chain are far from the end
+(in 20,000 runs at width 2¹³ none below W/2⁷ for R ≥ 82; for R ≥ 178 at 2¹⁶, the smallest end meeting of a run, the
+chain's own included, is below 17 in 0.05% of the runs), so the new chain has many steps to survive, which is rare, and
+rarer at larger widths.
 
 **What keeps two-marker runs open (October 27, night; `../lock/LOCK_NOTES.md` section 7).** The open classes are long
 runs of two-marker rounds ("The open cases do not run through the extra-wall loop" above), so the runs from one GMM
@@ -2800,3 +2857,34 @@ see "The two-marker reduction".)
 A halt needs about log2(n) meetings, which through this loop needs a b-digit n to meet 2.5 conditions per meeting. A
 proof that runs are bounded would need to show that every entry line stays a bounded 2-adic distance (relative to its
 depth) from the target. That is not proved.
+
+**Pass starts with R ≥ 178 that halt, open at every depth (October 27, night; `../lean/thm/PassOpenHalt.lean`).** The
+closes past the loop chain's end of "Every close at the right end is a halt" above also come from R ≥ 178, at small
+widths. Followed the same way (to the next landing reached with every end meeting ≥ 3, or a wider clean tape), of 50
+million random pass starts with R from 178 to 376 and width 2¹¹ to 1.5 × 2¹¹ (two seeds of 25 million, gaps ≥ 448)
+nine close, of 50 million at 2¹² 14, and of 25 million each at 2²⁰, 2³⁰ and 2⁴¹ none (untrusted). Every close traced
+starts a new halving chain at an end meeting off the chain: at 254 (the five traced at 2¹¹, two at 2¹²), at 766
+(766, 382, 190, 94, 46, 22, 10, 4, 6, 2, 0; twice) or at 982 (982, 490, 244, 126, …). Several closes share their
+right part and differ only in the first wall: R = 178 with walls 2,010 and 2,477 and width 2,656 three times (first
+walls 1,523, 1,419 and 745), and R = 190, 196, 198 and 310 twice each.
+
+The first, walls 1,523, 2,010 and 2,477 and width 2,656, closes in round 19 for every odd first wall from 449 to 1,561
+(all 557), and with the two right walls and the end moved right together by j · 2¹⁴ (every j up to 20,000, and 20,000
+random j < 2³⁰ with a random first wall), but by none of 2,000 odd multiples of 2¹³. The kernel proves the family: on
+symbolic positions (first wall 2z₀ + 1, middle wall 2,010 + 2¹⁴z₁, cone a ≥ 448 and b − a ≥ 448), none of the model's
+first 18 round starts is three walls after 2, 7 or 8 rounds or a lone marker, round 19 is left uncovered, and the
+close run reaches the close (`symOpenRun`, `symCloseRun`, each well under a second in the kernel). Since a checkpoint
+of `pass_next` is a landing (three walls after 2, 7 or 8 rounds) or a clean tape (a lone marker), every member lies in
+a cut leaf of `passTreeSym` at every depth (`family_open_halt`), so there are such pass starts at every width
+(`sym_open_halt`) and above 2⁴¹ (`sym_open_halt_wide`). The second question of `never_halts_of_open` is about whether
+the run from blank tape reaches one, not about the pass starts themselves.
+
+Why random starts at large widths do not close this way: the end meetings off the chain lie at distances of the order
+of the width, and a chain from there has about log₂ of the distance steps to survive. Per run (400,000 runs per width,
+R from 178 to 376), the share with an end meeting off the chain below 2¹⁰ is 35.7% at width 2¹¹, 27.9% at 2¹², 11.4%
+at 2¹⁴, 4.0% at 2¹⁶, 1.3% at 2¹⁸, 0.38% at 2²⁰, 0.032% at 2²⁴, 3 in 400,000 at 2³⁰ and none at 2⁴¹: about 0.55-fold per
+doubling of the width. Being in the tree of 0 is not what is rare: under `ChainNext` 80% of all even numbers reach 0
+(the rest reach the fixed point 8), and 80% of these meetings do, at every width; what is rare is a meeting near the
+end, and the chain surviving from it. The family has its first meeting off the chain at 254 because that meeting is
+set by the right end and the two walls next to it, which the family fixes; at a given width only its first wall is
+free.

@@ -56,6 +56,17 @@ mark rules interactively.
     (`pass_halt_chain`). Some cut classes are real halts: 1/8 of the pass starts with R = 6 leave the loop at round 2
     and close at distance 0 in round 7, and the machine halts there (from walls 743, 1,802, 3,319, width 3,326, after
     11,362,209 steps; for the whole class in Lean, `pass_r6_halt`).
+  - **Every close at the right end is a halt** (`BB6/CloseHalt.lean`, `thm/PassHaltClasses.lean`): a close with the
+    end marker at distance 0 that the model reaches is a halt 54 steps later (`reach_close_halt`). Every close leaf of
+    the pass-start trees halts; with R = 6's eighth they are eight classes by residues of b and W (all of R = 2, 3/8 of
+    R = 4, 1/32 to 1/256 of R = 8, 16, 32 and 48), proved to halt (`pass_class_halt`), as is every pass start whose
+    loop chain reaches one (`chain_class_halt`). In 600,000 random pass starts the model's run ends at a clean tape
+    or at that close, and every close passes through one of the classes.
+  - **Pass starts with R ≥ 178 that halt** (`thm/PassOpenHalt.lean`): past the loop chain's end the run can enter the
+    loop again, through an end meeting off the chain whose halving chain runs to 0, and close. A family with R = 178
+    does so at every width (walls a, b and b + 467, width b + 646, b ≡ 2,010 mod 2¹⁴, such as walls 1,523, 2,010 and
+    2,477 and width 2,656, which closes in round 19), and the pass-start tree for R ≥ 178 leaves all of it open at
+    every depth (`family_open_halt`, `sym_open_halt`).
 
   The number of rounds in all three is existential (chosen per class by an untrusted program), but each stretch ends at
   its stated event. The first versions (`exit_no_halt`, `endgame_no_close`, `loop_no_close`, `loop_pass`) said only
@@ -90,13 +101,15 @@ mark rules interactively.
   along the loop's chain. Some pass starts in those classes halt (1/8 of those with R = 6, `pass_r6_halt`). But the
   plain clean-tape tree follows the run on through every entry, so the run reaches such a pass start only after a clean
   tape that the plain tree leaves open at every depth (`blank_halt_open`; at 36 digits one of the 404,061 of its
-  1,660,024 cut classes that meet a loop entry). And it reaches none with a right end below 178, where all the known
-  halts are: `blank_halt_small` (`lean/thm/SmallEndHalt.lean`) puts the pass start a halt needs in the tree for R ≥ 178,
+  1,660,024 cut classes that meet a loop entry). And its loop chain ends at none with a right end below 178, where
+  every known halt from a pass start closes: `blank_halt_small` (`lean/thm/SmallEndHalt.lean`) puts the pass start a
+  halt needs in the tree for R ≥ 178,
   since past a loop entry that passes a small-end check (every entry at 36 digits does) the loop's chain ends at R ≥ 178
   (full passes keep R³/L₁², and a round-7 break from a width ≥ 2³⁷ lands above 177³/9). So the question is whether the
   run reaches one of the open clean tapes, and from those, one of the open pass starts with R ≥ 178:
   `blank_halt_open_small` (`lean/thm/OpenSmallHalt.lean`) states the two together, and `never_halts_of_open` says that a
-  negative answer to both would show the machine never halts.
+  negative answer to both would show the machine never halts. The second is about reaching: open pass starts with
+  R ≥ 178 that halt exist at every width (`sym_open_halt`, `lean/thm/PassOpenHalt.lean`).
   Deeper trees shrink the open clean tapes' measure (6,582,732 classes of measure 6.0 × 10⁻⁶ at 40 digits, 33,928,389
   of 1.93 × 10⁻⁶ at 44, by `native_decide` on all cores, `lean/BB6/MassPar.lean`), but not the number of open classes
   at a fixed number of digits: nearly every one holds a 2-adic value of W/2 that no depth settles, so closing them

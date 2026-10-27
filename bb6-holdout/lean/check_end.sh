@@ -15,8 +15,12 @@
 #      width 2^20 (thm/PrefixKernel.lean), the loop through its passes (thm/LoopTheorem.lean), the halts after the
 #      exit and the loop, the pass-start trees from a pass start to the next landing or clean tape at every depth
 #      (thm/PassHalt.lean, the proved explorer of BB6/PassTree.lean, nothing evaluated), the eighth of the pass starts
-#      with R = 6 that halt (thm/PassHaltR6.lean, six rounds on the class evaluated by the kernel), the blank-tape
-#      prefix to width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape tree at every depth
+#      with R = 6 that halt (thm/PassHaltR6.lean, six rounds on the class evaluated by the kernel), the eight classes
+#      of pass starts that the mark model takes to a close at distance 0, each a halt (thm/PassHaltClasses.lean, the
+#      model run on each class by the kernel), a family of pass starts with R = 178 at every width that halt and that
+#      the pass-start tree for R >= 178 leaves open at every depth (thm/PassOpenHalt.lean, the model run on the family
+#      by the kernel), the blank-tape prefix to width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape tree at
+#      every depth
 #      (thm/CleanTheorem.lean, the proved explorer, nothing evaluated), the clean tapes of width in [2^32, 2^41) run
 #      one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and thm/EndToEndDirect.lean, the routes
 #      from two-marker states with their loop entries (thm/RouteTheorem.lean, thm/RouteEntryTheorem.lean,
@@ -95,8 +99,8 @@ stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass CleanEntry
   CleanSmallMass ExitHalt LoopTheorem RouteEntryTheorem
 stage LoopHalt
 stage EndToEnd RouteEntryHalt PassHalt PassHaltR6
-stage EndToEndDirect
-stage CleanEntryHalt
+stage EndToEndDirect PassHaltClasses
+stage CleanEntryHalt PassOpenHalt
 stage PassEntryHalt
 stage SmallEndHalt
 stage OpenSmallHalt
