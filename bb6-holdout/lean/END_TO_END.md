@@ -477,6 +477,8 @@ from a clean tape that `cleanTreeG 2⁴¹ d` leaves open at every depth.
 | `thm/SmallEndHalt.lean` | `noSmall_sigma`, `break7_noSmall`, `LoopChain.small_end`: the chain from a pass start of width ≥ 2³⁷ with `NoSmallAt` (and after a half pass) ends at R ≥ 178; `entry_small_halt`; `blank_halt_small`, `blank_halt_small_kernel`: from blank tape, a clean tape cut at every depth or a pass start with R ≥ 178 cut at every depth of `passTreeSym` | R³/L₁² through the chain's steps; `entry_pass_halt` and `clean_entry_chain_of`; nothing evaluated |
 | `thm/OpenSmallHalt.lean` | `blank_halt_open_small`, `blank_halt_open_small_kernel`: the clean tape is cut at every depth by `cleanTreeG`, and then by `cleanTreeGS` too, or a pass start with R ≥ 178 cut at every depth of `passTreeSym` follows; `never_halts_of_open`: the open question as two questions | `blank_halt_open_of` with `clean_tree_small_step` (or `clean_small_step_kernel`) and `entry_small_halt`; nothing evaluated |
 | `thm/CleanEntryMass.lean`, `thm/CleanEntryKernelMass.lean` | `clean_tree_entry_cut_mass`, `clean_entry_kernel_cut_mass`: the leaf counts and measures of `cleanTreeGE 2⁴¹ 36` and `cleanTreeGE 2²⁴ 36` | `exploreMassWE`, `native_decide`; used by no theorem about the machine |
+| `BB6/MassPar.lean` | `massPrefix_eq`: the tally of `exploreMassWE` is that of the leaves above a split level plus the tallies of the nodes on it; `massPar_eq`: the same with the nodes' tallies computed as parallel tasks | proved, standard axioms |
+| `thm/CleanEntryMass40.lean`, `thm/CleanEntryMass44.lean` | `clean_tree_entry_cut_mass40`, `clean_tree_entry_cut_mass44`: the leaf counts and measures of `cleanTreeGE 2⁴¹ 40` and `cleanTreeGE 2⁴¹ 44` | `massPar` (`massPar_eq`), `native_decide`; used by no theorem about the machine |
 
 ## Why a one-variable tree over clean tapes, and not the two-marker route tree
 
@@ -706,6 +708,56 @@ open at every depth and that the run reaches from a clean tape that `cleanTreeG`
 second, the reaching is what matters: such pass starts that halt exist at every width (`sym_open_halt`,
 `open_halt_families`), and the loop's chain can land on one after a full pass (`full_pass_open_halt`).
 
+## Deeper trees: the open classes keep their number
+
+The clean tapes that both trees leave open are those in the cut classes of `cleanTreeGE 2⁴¹ d`. A deeper tree cuts
+them finer, and the measure of what stays cut falls about 0.76-fold per digit (`thm/CleanEntryMass40.lean`,
+`thm/CleanEntryMass44.lean`; `native_decide`, used by no theorem about the machine):
+
+| depth | cut | clean | entries | cut measure | entries' measure |
+|---|---|---|---|---|---|
+| 36 | 1,255,963 | 1,163,068 | 28,660 | 1.83 × 10⁻⁵ | 1.34 × 10⁻³ |
+| 40 | 6,582,732 | 6,106,591 | 169,631 | 5.99 × 10⁻⁶ | 1.34 × 10⁻³ |
+| 44 | 33,928,389 | 32,073,443 | 734,274 | 1.93 × 10⁻⁶ | 1.34 × 10⁻³ |
+
+These are evaluated on all cores: `BB6/MassPar.lean` cuts `exploreMassWE` at its 8th split level (`massPrefix`, and
+`massPrefix_eq`: the tally is that of the leaves above the level plus those of the nodes on it, at most 2⁸) and
+computes the nodes' tallies as tasks (`massPar`); logically `(Task.spawn f).get = f ()`, so `massPar_eq` follows from
+`massPrefix_eq`, and native code runs the tasks in parallel (the 40-digit tree in 6 min 38 s on 4 cores instead of 22
+minutes on one).
+
+Their **number** at a fixed number of digits does not fall. Below almost every class cut at b digits, the tree of
+depth b + r still has a cut leaf (`ProjPar.lean`, untrusted):
+
+| cut at b digits | still cut below at b + r digits |
+|---|---|
+| 1,706 (b = 20) | 1,705 (r = 8) |
+| 20,402 (b = 26) | 20,402 (r = 8) |
+| 46,101 (b = 28) | 46,092 (r = 4) |
+| 236,207 (b = 32) | 236,117 (r = 4) |
+| 1,255,963 (b = 36) | 1,255,820 (r = 4) |
+
+The open subtree below a cut class keeps branching (about 1.5-fold per digit) and almost never dies out. A
+class that is cut at every depth holds a 2-adic value of W/2 whose run the tree never settles (the tree branches
+finitely, so the cut classes below it have an infinite path), and the tree reads W/2 only as a 2-adic number on its
+cone: an integer is set apart from the other 2-adic numbers only at the cone's edge, where a drop runs the smallest
+member directly. So a 2-adic value that is not a width and never settles, such as the fixed point of a loop, keeps
+every class it lies in open at every depth, and as measured nearly every cut class holds one: no depth of this tree
+brings the number of cut classes at b digits down to zero, only their measure. Closing classes takes an argument that
+uses that W is an integer, as the loop's lock does: after p full passes L₁ is 64^p·ℓ, and since L₁ ≡ 3 (mod 7) is never
+0, an integer makes finitely many passes, while the 2-adic point at L₁ = 0 makes infinitely many.
+
+What the cut paths are made of (`CutShapes.lean`, untrusted, at 36 digits; the shapes at the cut agree with
+`../lock/ShapeStats.lean`): 512,565 of the 1,255,963 (41%) stop at a two-marker state G 1, M m, M W − 2, and most others
+a few rounds after one (127,863 two rounds after, 124,416 three); below the 8th split 85% of the paths pass 5 to 9
+two-marker states. 133,177 (10.6%) end in a periodic stretch of round shapes (period at most 8, at least two periods):
+the two-round loop G B → G W W (58,349) and loops through two-marker states, G M M → G M M M → G W M M (40,628), a
+seven-round loop through G B and G W W (11,563) and G M M → G M W (7,279). The other 89% are aperiodic runs through
+two-marker states, reading about one digit of W/2 per round, as the orbit of a Collatz-like map reads the digits of
+its start. `../lock/LOCK_NOTES.md` (section 7) takes these runs apart into about 14,000 exact return pieces, from one
+two-marker state to the next: each piece repeated alone is bounded by a never-zero countdown, like the loops above
+(`../rec/twomarker_loops.py`), but no countdown is shared by the pieces, so none settles a class.
+
 ## What is trusted
 
 `blank_halt_clean`, `blank_halt_structure` and `never_halts_of_cut_classes`: Lean's kernel, plus Lean's compiler
@@ -736,8 +788,9 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
 * **The clean tapes left open at every depth.** Nothing is said about them: whether the machine halts from one of them
   is exactly what remains open. At each depth they lie in the cut classes of that depth, the exhaustive check's open
   classes at 36 and 40 digits, whose measure falls about 0.76-fold per digit; that it falls to zero is a measurement,
-  not a theorem (with the drops no class is cut at every depth for a reason of method, as the edge classes above
-  were). In Lean such a clean tape is at least 2⁴¹ wide
+  not a theorem (with the drops no class is cut at every depth because of the cone's edge, as the edge classes above
+  were). Their number at a fixed number of digits does not fall with depth: nearly every cut class holds a 2-adic
+  value of W/2 that no depth settles ("Deeper trees", above). In Lean such a clean tape is at least 2⁴¹ wide
   (`blank_halt_clean_direct`); combined with the exhaustive check (every clean tape below 2⁶¹ reaches the next one
   without halting; a C computation, not in Lean), at least 2⁶¹.
 * **Item 3** is a statement about the stretches after a pass start, not a claim that a halt goes through the loop.
@@ -769,6 +822,7 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check.sh       # the BB6 modules
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh   # the theorem files, the direct runs, the 36-digit measures
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh --deep   # also the 40-digit measures
+LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh --deep --deeper  # and the 44-digit measure
 # the tree's statistics, or the tree itself (optional, after check_end.sh; Γ = 2²⁰, 2³² or 2⁴¹):
 LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run RouteStats.lean clean 4294967296 36 tree.txt
 # the pass-start trees' leaves by kind and their halting leaves, d splits deep (optional, after check_end.sh; R < 178,
@@ -776,6 +830,10 @@ LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run 
 LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run PassStats.lean 16 6 64 sym
 # the loop entries followed in the clean tape's coordinate (optional, after check_end.sh; Γ, d, e splits, landings):
 LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run ReachStats.lean 2199023255552 28 12 4
+# whether deeper trees close the cut classes at b digits (optional, after check_end.sh; b, r more splits, Γ):
+LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run ProjPar.lean 36 4 2199023255552
+# the round shapes on the cut paths, with their periodic tails (optional, after check_end.sh; Γ, d):
+LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run CutShapes.lean 2199023255552 36
 # the checkpoints of the run to 2²⁰ and the kernel-checked prefix from them (optional; the files are in the repository):
 LEAN_PATH=/path/to/lib/lean:out lean --run PrefixGen.lean 1048576 5000 checkpoints.txt
 python3 thm/gen_prefix.py checkpoints.txt thm 8
@@ -797,7 +855,9 @@ python3 thm/gen_prefix.py checkpoints.txt thm 8
 | `thm/CleanDirect.lean` (the 36-digit tree, then 26,508,327 direct runs) | 13 min 22 s |
 | `thm/CleanDirectMass.lean` (36 digits, cone 2⁴¹) | 5 min 29 s |
 | `thm/CleanMass40.lean`, `thm/CleanDirectMass40.lean` (40 digits, `--deep`) | 30 min each |
+| `thm/CleanEntryMass40.lean` (40 digits, cone 2⁴¹, with loop entries, `massPar` on 4 cores, `--deep`) | 6 min 38 s alone (24 min of CPU), 14 min 54 s beside the other `--deep` files |
+| `thm/CleanEntryMass44.lean` (44 digits, the same, `--deeper`) | 58 min 51 s beside the `--deep` files (2 h 2 min of CPU) |
 
 The whole of `check_end.sh --deep` took 38 min 51 s (4 cores; the files of a stage run in parallel, and the two
-40-digit measures, side by side, set the time); without `--deep` it took 21 min 37 s when last measured, before the
-drop nodes.
+40-digit measures, side by side, set the time); without `--deep` it took 22 min 6 s when last measured (October 27,
+evening). `check_end.sh --deep --deeper` took 71 min 19 s, the 44-digit measure setting the time.
