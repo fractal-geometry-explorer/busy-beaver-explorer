@@ -2784,6 +2784,46 @@ m = E − 5; the narrowest gaps at every width up to 262,143 add no other (`../l
 H ∩ {E ≤ 262,143} = {(4, 9), (4, 13), (12, 17)}. The machine reaches none of them: its narrowest GMM state is (4, 15),
 whose segment leads to (14, 27), and widths never shrink.
 
+**Deeper trees keep the number of open clean-tape classes (October 27, evening; `../lean/BB6/MassPar.lean`,
+`../lean/thm/CleanEntryMass40.lean`, `../lean/thm/CleanEntryMass44.lean`, `../lean/ProjPar.lean`,
+`../lean/CutShapes.lean`).** The plan was to shrink the 1,255,963 cut classes of the clean-tape tree with loop entries
+at 36 digits (Γ = 2⁴¹), ideally to zero, by going deeper or by a new invariant. Going deeper shrinks their measure, not
+their number.
+- *Measure.* At 40 digits the tree cuts 6,582,732 classes of measure 5.99 × 10⁻⁶ (6,106,591 clean leaves, 169,631 loop
+  entries), at 44 digits 33,928,389 of measure 1.93 × 10⁻⁶ (32,073,443 clean, 734,274 entries), both evaluated by
+  `native_decide`: about 0.76-fold per digit, as from 32 to 36. The evaluation is cut at the 8th split level
+  (`massPrefix`, with `massPrefix_eq`: the whole tally is that of the leaves above the level plus the tallies of the
+  nodes on it), and the subtrees are computed as `Task`s (`massPar`; logically `(Task.spawn f).get = f ()`, so
+  `massPar_eq` is `massPrefix_eq`). On 4 cores the 40-digit tree takes 6 min 38 s instead of 22 minutes.
+- *Number.* Below almost every class cut at b digits, the tree of depth b + r still has a cut leaf (`ProjPar.lean`):
+  1,706 classes at 20 digits keep 1,705 at 28; 20,402 at 26 keep all 20,402 at 34; 46,101 at 28 keep 46,092 at 32;
+  236,207 at 32 keep 236,117 at 36; 1,255,963 at 36 keep 1,255,820 at 40. The open subtree below a cut class branches
+  about 1.5-fold per digit (×5.15 from 40 to 44 digits) and almost never dies out. A class cut at every depth holds a
+  2-adic value of W/2 that the tree never settles (König: the tree branches finitely), and the tree tells an integer
+  from the other 2-adic values only at the cone's edge, where a drop runs the smallest member directly. So any 2-adic
+  value that is not a width and never settles keeps its classes open at every depth, and as measured nearly every cut
+  class holds one; no depth brings the number of cut classes at b digits down, and zero would need no such value to
+  exist at all, which is stronger than the question itself (it would say something of every 2-adic W/2, not only of the
+  integers). The growth says the set of never-settled 2-adic values has dimension about log₂ 1.51 ≈ 0.6. Closing classes
+  takes an argument that uses that W is an integer, as the loop's lock does (L₁ ≡ 3 mod 7 is never 0, so an integer
+  makes finitely many passes, while the 2-adic point at L₁ = 0 makes infinitely many).
+- *What keeps them open* (`CutShapes.lean`, at 36 digits; the shapes at the cut agree with `../lock/ShapeStats.lean`):
+  512,565 cut paths (41%) stop exactly at a two-marker state G 1, M m, M W − 2, and most others a few rounds after one
+  (127,863 two rounds after, 124,416 three); below the 8th split 85% of the paths pass 5 to 9 two-marker states. Only
+  133,177 (10.6%) end in a periodic stretch (period ≤ 8, two periods or more): G B → G W W (58,349), and three loops
+  through two-marker states, G M M → G M M M → G W M M (40,628), G M M → G M W → G W W → G B → G W W → G B → G W M M
+  (11,563) and G M M → G M W (7,279). The rest, 89%, are aperiodic runs through two-marker states, about one digit of
+  W/2 per round.
+- *The loops through two-marker states have locks like the plain loop's* (`../rec/twomarker_loops.py`: fitted exactly on
+  thousands of runs of the round function of `../rec/clean_recurrence.py`, W odd and m even; not in Lean).
+  G M M → G M M M → G W M M → G M M maps m′ = m/8 + 3W/4 + 9/4, W′ = W + 12, so L = 49m − 42W + 450 has L′ = L/8 and
+  L ≡ 2 (mod 7): never 0, at most log₈|L| times round the loop, fixed point m ≈ 6W/7. The seven-round loop maps
+  m′ = m/32 + 15W/16 + 219/16, W′ = W + 24, so L = 961m − 930W + 9462 has L′ = L/32 and L ≡ 7 (mod 31), fixed point
+  m ≈ 30W/31. G M M → G M W → G M M maps m′ = m/4, W′ = W + 6. Entry leaves for them, as for the plain loop, would
+  settle at most the 10% of cut paths that end inside one, and the run after each loop's end would need a tree of its
+  own; the aperiodic runs, most of what is open, have no loop to lock ("What keeps two-marker runs open", above: their
+  return pieces each have a countdown, but none is shared).
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:

@@ -116,6 +116,11 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    multiply 1.66-fold per digit, so no lock or integrality argument settles a class. The two-marker states up to width
    262,143 that halt are (4, 9), (4, 13) and (12, 17); the October 20 scan had missed the first and the last, and the
    machine reaches none of them.
+   **Deeper trees do not close them either (October 27, `lean/END_TO_END.md`, "Deeper trees"):** at 40 and 44 digits
+   the clean-tape tree with loop entries leaves 6,582,732 and 33,928,389 classes (measure 6.0 × 10⁻⁶ and 1.93 × 10⁻⁶,
+   `native_decide`), but below almost every class cut at b digits a deeper tree still cuts, so the number of open
+   classes at b digits stays put: each holds a 2-adic value of W/2 that no depth settles, and only an argument that
+   uses that W is an integer could close it.
 
 ## Practical notes
 
