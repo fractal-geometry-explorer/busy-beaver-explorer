@@ -83,7 +83,10 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    whose run leaves the loop, enters it again through an end meeting at 254 and closes; `open_halt_families`: eight
    such families, from an exhaustive scan of the widths 2,048 to 3,072 and a scan of where full passes land), and the
    loop's chain can land on one after a full pass (`full_pass_open_halt`), so the second question is whether the run
-   reaches one.
+   reaches one. It reaches none of the eight (`blank_halt_not_family`, `lean/thm/WideHalt.lean`): with W ≤ 32R checked
+   at the loop entries (`lean/BB6/WideEntry.lean`; all 28,660 at 36 digits pass), the chain's last pass start has
+   W ≤ 64R + 6 or 15W ≤ 64(W − b), and a family, with R and W − b fixed, has that shape only below width 58,502. What
+   is left of the second question is the pass starts of that shape (`never_halts_of_wide`).
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
