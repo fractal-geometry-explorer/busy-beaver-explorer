@@ -62,7 +62,11 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    without a close where the run leaves three walls. With the pass-start trees (`pass_halt_chain`) as what a halt from
    an entry needs, `blank_halt_pass` (`lean/thm/PassEntryHalt.lean`) follows the whole run: a halt from blank tape
    needs such a clean tape, or a pass start wider than 2⁴¹ in a cut class of its pass-start tree at every depth. Some
-   of those pass starts halt (1/8 of those with R = 6), so what remains is which of them the run can reach.
+   of those pass starts halt (1/8 of those with R = 6), so what remains is which of them the run can reach. None with
+   R < 178 (`blank_halt_small`, `lean/thm/SmallEndHalt.lean`): past a loop entry that passes the small-end check
+   (`lean/BB6/SmallEnd.lean`; all 28,660 at 36 digits do) the loop's chain ends at R ≥ 178, so the pass start a halt
+   needs is in the tree for R ≥ 178 (`passTreeSym`), whose cuts at the depths measured are all depth cuts, none at
+   a round decided as a halt.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.

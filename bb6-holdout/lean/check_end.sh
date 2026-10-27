@@ -1,7 +1,7 @@
 #!/bin/bash
 # Check the end-to-end theorem (run ./check.sh first):
 #   1. the proved modules BB6/RouteTree.lean, BB6/CleanTree.lean, BB6/RouteExplore.lean, BB6/CleanRange.lean,
-#      BB6/RouteEntry.lean, BB6/EntryTree.lean and BB6/CleanEntryTree.lean (seconds);
+#      BB6/RouteEntry.lean, BB6/EntryTree.lean, BB6/CleanEntryTree.lean and BB6/SmallEnd.lean (seconds);
 #   2. the exit and endgame trees and the run from blank tape to width 2^20, evaluated by Lean's kernel
 #      (`decide +kernel`; no compiler is trusted): the generated modules thm/ExitPieces*.lean and
 #      thm/EndgamePieces*.lean hold one theorem per subtree, thm/PrefixPieces*.lean one per stretch of 5,000 rounds;
@@ -19,11 +19,13 @@
 #      (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and thm/EndToEndDirect.lean, the routes from
 #      two-marker states with their loop entries (thm/RouteTheorem.lean, thm/RouteEntryTheorem.lean,
 #      thm/RouteEntryHalt.lean, nothing evaluated), the clean-tape tree with loop entries and its chain from blank
-#      tape (thm/CleanEntryTheorem.lean, thm/CleanEntryHalt.lean, nothing evaluated), and that chain joined to the
-#      pass-start trees (thm/PassEntryHalt.lean); prints the axioms of the final theorems;
+#      tape (thm/CleanEntryTheorem.lean, thm/CleanEntryHalt.lean, nothing evaluated), that chain joined to the
+#      pass-start trees (thm/PassEntryHalt.lean), and the same with loop entries from which the loop's chain ends at
+#      no small right end (thm/CleanSmallTheorem.lean, thm/SmallEndHalt.lean, nothing evaluated); prints the axioms of
+#      the final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,
-#      about 5 minutes each), and with --deep also at 40 digits
+#      thm/CleanSmallMass.lean, about 5 minutes each), and with --deep also at 40 digits
 #      (thm/CleanMass40.lean, thm/CleanDirectMass40.lean, about half an hour each).  No theorem about the machine uses
 #      them.
 # usage: LEAN=/path/to/lean LEANLIB=/path/to/lib/lean [JOBS=4] ./check_end.sh [--interpreted] [--deep]
@@ -37,7 +39,7 @@ INTERP=""; DEEP=""
 for a in "$@"; do
   case $a in --interpreted) INTERP=1 ;; --deep) DEEP=1 ;; *) echo "unknown option $a"; exit 1 ;; esac
 done
-for f in RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree; do
+for f in RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree SmallEnd; do
   echo "== BB6/$f.lean"; $LEAN BB6/$f.lean -o out/BB6/$f.olean
 done
 for f in ExitStart EndgameStart PrefixBase; do echo "== thm/$f.lean"; $LEAN thm/$f.lean -o out/$f.olean; done
@@ -48,7 +50,7 @@ printf '%s\n' $PIECES | xargs -P "$JOBS" -I{} "$LEAN" thm/{}.lean -o out/{}.olea
 echo "   $(( $(date +%s) - start )) s"
 DYN=""
 if [ -z "$INTERP" ]; then
-  MODS="Basic Cycles Rules Iter Rows Rows2 Marks Model Mid Pkt Pkt2 Gap2 Blk Contact Events PktRun Round SymForm SymRound SymSplit Meets HaltClose HaltStretch Loop Ends RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree"
+  MODS="Basic Cycles Rules Iter Rows Rows2 Marks Model Mid Pkt Pkt2 Gap2 Blk Contact Events PktRun Round SymForm SymRound SymSplit Meets HaltClose HaltStretch Loop Ends RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree SmallEnd"
   mkdir -p cbuild/so
   OBJS=""
   for f in $MODS; do
@@ -78,15 +80,16 @@ export -f compile
 export LEAN DYN
 stage() { printf '%s\n' "$@" | xargs -P "$JOBS" -I{} bash -c 'compile {}'; }
 stage PrefixKernel EndgameTheorem ExitTheorem Prefix CleanTheorem RouteTheorem
-stage CleanEntryTheorem
+stage CleanEntryTheorem CleanSmallTheorem
 DEEPMASS=""
 [ -n "$DEEP" ] && DEEPMASS="CleanMass40 CleanDirectMass40"
-stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass CleanEntryMass CleanEntryKernelMass ExitHalt \
-  LoopTheorem RouteEntryTheorem
+stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass CleanEntryMass CleanEntryKernelMass \
+  CleanSmallMass ExitHalt LoopTheorem RouteEntryTheorem
 stage LoopHalt
 stage EndToEnd RouteEntryHalt PassHalt
 stage EndToEndDirect
 stage CleanEntryHalt
 stage PassEntryHalt
+stage SmallEndHalt
 $LEAN thm/EndToEndAxioms.lean
 echo "END TO END CHECKED"
