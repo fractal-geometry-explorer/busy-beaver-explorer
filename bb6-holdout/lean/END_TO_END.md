@@ -7,7 +7,11 @@ where a halt would have to come from: a clean tape of width at least 2³² that 
 measure 2.4 × 10⁻⁵, at 40 digits 9,188,898 of measure 8.4 × 10⁻⁶. With the clean tapes below 2⁴¹ in those classes run
 one by one (`thm/EndToEndDirect.lean`, 26,508,327 runs), the clean tape a halt needs is at least 2⁴¹ wide. The same
 statement from width 2²⁰ (`blank_halt_structure_kernel`) is checked by Lean's kernel alone, with no `native_decide`;
-the tree it uses, over the widths ≥ 2²⁰, leaves the same classes open.
+the tree it uses, over the widths ≥ 2²⁰, leaves the same classes open. With the loop entries
+(`thm/CleanEntryHalt.lean`, below), the clean-tape tree also stops at the pass starts from which no member of the
+class can close through the loop, and a halt needs a clean tape in its cut classes at every depth (at 36 digits
+1,255,963 classes, measure 1.83 × 10⁻⁵, over the widths ≥ 2⁴¹), or such a loop entry, from which the loop's chain ends
+without a close where the run leaves three walls.
 
 ## The statement
 
@@ -79,6 +83,22 @@ theorem never_halts_of_cut_classes_kernel
       (∀ d, (cleanTreeG kernelPrefixWidth d).cutMem [(W : Int) / 2, 0] = true) →
       ∀ T, steps T (roundStart [⟨.M, W - 2⟩] W) ≠ none) :
     ∀ T, steps T ⟨blank, blank, .A⟩ ≠ none
+
+theorem blank_halt_clean_entry (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :   -- thm/CleanEntryHalt.lean
+    (∃ W k, directWidth ≤ W ∧ W % 2 = 0 ∧ (∀ d, (cleanTreeGE directWidth d).cutMem [(W : Int) / 2, 0] = true) ∧
+      steps k ⟨blank, blank, .A⟩ = some (roundStart [⟨.M, W - 2⟩] W) ∧
+      steps (T - k) (roundStart [⟨.M, W - 2⟩] W) = none ∧
+      ∃ t, Reach ⟨[], 1, [⟨.M, W - 2⟩], W⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
+    ∃ ms W k, directWidth < W ∧ EntryNoClose ms W ∧ steps k ⟨blank, blank, .A⟩ = some (roundStart ms W) ∧
+      steps (T - k) (roundStart ms W) = none ∧
+      ∃ R ks ms₁ W₁ R₁, PassStart448 ms W R ∧ LoopChain ms W R ks ms₁ W₁ R₁ ∧
+        ∃ n ms' W', roundsZ 1000 n ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n ms₁ W₁, 3 ≤ d) ∧
+          (LeftPhase0 n ms' ∨ ChainBreak (meetsRounds 1000 n ms₁ W₁)) ∧ NotWWW ms' ∧
+          ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)
+
+theorem blank_halt_clean_entry_kernel (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) : …
+  -- the same from 2²⁰ (kernelPrefixWidth, the kernel's prefix), with no native_decide: the clean tape is cut at
+  -- every depth by cleanTreeG kernelPrefixWidth d if W < 2²⁴, by cleanTreeGE (2 ^ 24) d if not
 ```
 
 In words: if the machine halts from blank tape, then
@@ -233,6 +253,12 @@ is run in between. The lower cone costs nothing in the cut classes: with the con
 tree over the widths ≥ 2²⁰ leaves the same 1,660,024 classes open at 36 digits as the trees over the widths ≥ 2³² and
 ≥ 2⁴¹ (`thm/CleanKernelMass.lean`).
 
+`blank_halt_clean_entry` (`thm/CleanEntryHalt.lean`) is items 1 and 2 above 2⁴¹ with the loop entries: the clean-tape
+tree with loop entries (`cleanTreeGE`) stops a path at the first pass start from which no member of its class can close
+through the loop, and a halt needs either a clean tape of width ≥ 2⁴¹ in its cut classes at every depth, or such a
+loop entry, wider than 2⁴¹, from which the loop's chain ends without a close where the run leaves three walls (below,
+"The clean tapes' loop entries"). `blank_halt_clean_entry_kernel` is the same from 2²⁰, with no `native_decide`.
+
 ## The pieces
 
 | file | result | how |
@@ -247,13 +273,17 @@ tree over the widths ≥ 2²⁰ leaves the same 1,660,024 classes open at 36 dig
 | `thm/LoopHalt.lean`, `thm/ExitHalt.lean` | `loop_chain_halt`: a halt from a phase-0 pass start with gaps ≥ 448 needs a stuck configuration after the loop's chain from it; `exit_halt_needs_contact`: one from a loop state, after the certified exit stretch; `loop_halt_sigma`: beyond the σ bound, a close needs a half pass or a round-7 break on the way; `loop_halt_wide`: from a width ≥ 2²⁴, no round-7 break; `loop_halt_leaves`: and the chain ends where the run leaves three walls | `loop_step` and `halt_after_rounds`, by induction on the halting time (each step takes at least one machine step: `passStart_ne`); `exit_stretch` |
 | `BB6/PassTree.lean`, `thm/PassHalt.lean` | `PTree.sound`: a pass-start tree's check gives, at every point of its class, a cut leaf, the left countdown in the closing class, or a halt-free run to a close-free landing of the chain or a wider clean tape; `PTree.explore_ok`: every tree the explorer builds passes the check; `pass_next`: from every pass start with gaps ≥ 448, at every depth; `pass_halt_chain`: a halt from a pass start of width ≥ 2¹³ follows the chain to a last pass start in a closing class, or cut at every depth, or goes on to a wider clean tape | the proved explorer, nothing evaluated; induction on the halting time through `landing_wide` and `halt_after_rounds` |
 | `thm/EndToEnd.lean` | `clean_chain`, `blank_halt_clean_from`, `blank_halt_clean`, `blank_halt_clean_kernel`, `blank_halt_loop`, `blank_halt_sigma`, `blank_halt_wide`, `blank_halt_exit`, `blank_halt_structure`, `blank_halt_structure_kernel`, `never_halts_of_cut_classes`, `never_halts_of_cut_classes_kernel` | strong induction on the halting time: at each clean tape, either it is cut at every depth, or some depth decides it and the run goes on to a wider clean tape, which takes at least one machine step |
-| `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean` (`ROUTE_TREE.md`) | `route_tree_clean`, `route_tree_entry`: from every two-marker state with both gaps ≥ Γ, a halt-free run to a clean tape, or (`routeTreeE`) to a loop entry from which no point of its class closes through the loop, unless the start is in a cut class; `entry_halt`, `route_halt`, `blank_halt_route`: a halt from such an entry needs the loop's chain to end without a close and a stuck configuration after it, and so does a halt from blank tape at each such two-marker state it passes, unless the state is cut at every depth | `RTree.sound`, `RTree.soundE` with the proved explorers (`explore_ok`, `exploreE_okE`); `entryOK_sound` and `loop_halt_wide`; nothing evaluated |
+| `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean` (`ROUTE_TREE.md`) | `route_tree_clean`, `route_tree_entry`: from every two-marker state with both gaps ≥ Γ, a halt-free run to a clean tape, or (`routeTreeE`) to a loop entry from which no point of its class closes through the loop, unless the start is in a cut class; `entry_halt`, `route_halt`, `blank_halt_route`: a halt from such an entry needs the loop's chain to end without a close where the run leaves three walls, and a stuck configuration after it, and so does a halt from blank tape at each such two-marker state it passes, unless the state is cut at every depth | `RTree.sound`, `RTree.soundE` with the proved explorers (`explore_ok`, `exploreE_okE`); `entryOK_sound`, `EntryNoClose.no_close` (`LoopChain.close_wide`) and `loop_halt_leaves`; nothing evaluated |
 | `thm/CleanMass.lean`, `thm/CleanMass40.lean` | `clean_tree_cut_mass`, `clean_tree_cut_mass40`: the leaf counts and cut measure of `cleanTree 36` and `cleanTree 40` | `exploreMassW` evaluated by `native_decide`; used by no theorem about the machine |
 | `thm/CleanKernelMass.lean` | `clean_kernel_cut_mass`: the leaf counts and cut measure of `cleanTreeG 2²⁰ 36` | `exploreMassW`, `native_decide`; used by no theorem about the machine |
 | `BB6/CleanRange.lean` | `directOK_sound`: a run of the mark model from a clean tape to a wider one, as a statement about the machine; `RTree.cuts1_sound`: the cut classes of a one-variable tree as residues of W/2; `rangeOK_sound`: every clean tape of width in [lo, hi) that the tree leaves open runs directly to a wider one | proved, standard axioms |
 | `thm/CleanDirect.lean` | `clean_step_direct`: every clean tape of even width in [2³², 2⁴¹) reaches a wider clean tape, with no exception | `rangeOK` on `cleanTree 36` evaluated by `native_decide` (26,508,327 members of the cut classes, each run to a wider clean tape), and `clean_tree_step` for the rest |
 | `thm/EndToEndDirect.lean` | `blank_halt_clean_direct`, `never_halts_of_cut_classes_direct` | `blank_halt_clean_from` (`thm/EndToEnd.lean`: the chain from a clean tape the run reaches, for any bounds A ≤ B with every clean tape of width in [A, B) reaching a wider one, with the tree `cleanTreeG B d` above B) with the prefix to 2³², A = 2³² and B = 2⁴¹ |
 | `thm/CleanDirectMass.lean`, `thm/CleanDirectMass40.lean` | `clean_direct_cut_mass`, `clean_direct_cut_mass40`: the leaf counts and cut measure of `cleanTreeG 2⁴¹ 36` and `cleanTreeG 2⁴¹ 40` | `exploreMassW`, `native_decide`; used by no theorem about the machine |
+| `BB6/CleanEntryTree.lean` | `RTree.okWE` / `RTree.soundWE`: a clean-tape tree with `entry` leaves checked by a given test; `RTree.exploreWE`: the explorer `RTree.exploreW` that also stops a path at the first round start passing the test, with `exploreWE_okWE`; `cleanEntryOK`: `entryOK` (`BB6/RouteEntry.lean`) and the entry decided to be wider than the start | proved, standard axioms |
+| `thm/CleanEntryTheorem.lean` | `clean_tree_entry_step`: for every Γ ≥ 6 and every depth d, from every clean tape of even width W ≥ Γ, the machine reaches a wider clean tape or a wider loop entry that cannot close (`EntryNoClose`) without halting, unless W/2 is in a cut class of `cleanTreeGE Γ d` | `RTree.soundWE` and `exploreWE_okWE`; nothing evaluated |
+| `thm/CleanEntryHalt.lean` | `clean_entry_chain`: the chain over clean tapes for bounds A and B as in `blank_halt_clean_from`, with, as hypotheses, the step at each width ≥ B (to a cut class, a wider clean tape or a wider loop entry that cannot close) and what a halt from a loop entry needs (a property `Q` of the entry, or a wider clean tape the run reaches from it); `blank_halt_clean_entry_from`, `blank_halt_clean_entry` (prefix to 2³², direct runs to 2⁴¹, the tree with entries above), `blank_halt_clean_entry_kernel` (from 2²⁰, the plain tree below 2²⁴ and the tree with entries above; no `native_decide`) | strong induction on the halting time, as `clean_chain`; at an entry, `entry_halt` |
+| `thm/CleanEntryMass.lean`, `thm/CleanEntryKernelMass.lean` | `clean_tree_entry_cut_mass`, `clean_entry_kernel_cut_mass`: the leaf counts and measures of `cleanTreeGE 2⁴¹ 36` and `cleanTreeGE 2²⁴ 36` | `exploreMassWE`, `native_decide`; used by no theorem about the machine |
 
 ## Why a one-variable tree over clean tapes, and not the two-marker route tree
 
@@ -328,6 +358,53 @@ to a wider one in at most 127 rounds), and with `clean_tree_step` for the other 
 every clean tape of width in [2³², 2⁴¹) reaches a wider one. `blank_halt_clean_from` (`thm/EndToEnd.lean`) is the chain for any such bound B,
 with the tree over the widths ≥ B above it, and `blank_halt_clean_direct` is the case B = 2⁴¹.
 
+## The clean tapes' loop entries
+
+On its way from one clean tape to the next, the run may reach a phase-0 pass start, and the clean-tape tree then
+follows the loop's passes round by round, splitting on the digits of W/2 that each pass consumes, until its depth runs
+out. `cleanTreeGE Γ d` (`thm/CleanEntryTheorem.lean`, built by `RTree.exploreWE`, `BB6/CleanEntryTree.lean`) is the
+same exploration, except that it stops a path at the first round start that passes `cleanEntryOK`: the route tree's
+entry check (`entryOK`, `ROUTE_TREE.md`), decided on the whole class, and the entry decided to be wider than the
+start. The check asks for a phase-0 pass start with every gap at least 448, width at least 2²⁴ and, when W ≡ 2
+(mod 4), the middle wall at least 896 below the width, from which no member of the class closes through the loop
+(`EntryNoClose`): after p full passes a close needs R = 16^p·r with r in the closing set and L₁ = 64^p·ℓ with ℓ in r's
+class and ℓ ≡ 3 (mod 7), and the check bounds L₁ by R on the cone, so that beyond a computed P only ℓ = 0 fits, and
+shows that every candidate below P misses the class's integer points (on these classes of one coordinate R = 16^p·r
+fixes the point directly, `solveOut1`). Where the check fails, the path goes on as in `cleanTreeG Γ d`, so the cut
+classes of `cleanTreeGE Γ d` are among those of `cleanTreeG Γ d`.
+
+From such an entry the loop's chain reaches no closing class (`EntryNoClose.no_close`: from a width ≥ 2²⁴ a close is
+p full passes after at most one half pass, `LoopChain.close_wide`, and the check excludes both), and with the
+middle-wall condition every landing of the chain is again a pass start with every gap at least 448 (`landing_wide`).
+So a halt from the entry needs the chain to end where the run, close-free, leaves phase 0 or the halving chain at a
+round start that is not three walls, and a stuck configuration after that (`entry_halt`, from `loop_halt_leaves`).
+
+`clean_entry_chain` chains the clean tapes as `clean_chain` does, by strong induction on the halting time, with what a
+halt from a loop entry needs as a hypothesis: for each entry and each halting time, either a property `Q` of the entry
+and the time left, or a wider clean tape of even width that the run reaches from the entry after at least one step,
+from which the chain goes on. `blank_halt_clean_entry_from` takes `Q` from `entry_halt`, so there the entries end the
+chain. A theorem that follows the run from where the loop's chain ends to the next clean tape (or into classes of its
+own) fits the second alternative and carries the chain on through the entries.
+
+The cut classes (untrusted survey with the same explorer; `thm/CleanEntryMass.lean` evaluates the tree that
+`blank_halt_clean_entry` uses):
+
+| cone | depth | clean | cut (without entries) | cut measure | entries | entries' measure |
+|---|---|---|---|---|---|---|
+| W ≥ 2³² | 32 | 220,290 | 236,213 (303,560) | 5.5 × 10⁻⁵ | 5,423 | 1.34 × 10⁻³ |
+| W ≥ 2³² | 36 | 1,163,106 | 1,256,031 (1,660,024) | 1.83 × 10⁻⁵ | 28,639 | 1.34 × 10⁻³ |
+| W ≥ 2⁴¹ | 36 | 1,163,068 | 1,255,963 (1,660,024) | 1.83 × 10⁻⁵ | 28,660 | 1.34 × 10⁻³ |
+| W ≥ 2²⁴ | 36 | 1,169,027 | 1,263,032 (1,660,024) | 1.84 × 10⁻⁵ | 28,382 | 1.33 × 10⁻³ |
+
+The entries take a quarter of the cut classes away at both depths, and the entries' measure hardly changes from 32 to
+36 digits: nearly all of them are met within the first 32 splits. The cut classes still grow about 1.52-fold per
+digit, as without entries: none of the cut classes' runs meets a three-wall round start within the depth (at 32 and
+36 digits over the widths ≥ 2⁴¹, `EntryStats.lean`), so what is left are the runs that stay outside the loop. Over the
+widths ≥ 2²⁰ the entries' width test (2²⁴) is decided on few classes (246 entries at 36 digits), so
+`blank_halt_clean_entry_kernel` uses the plain tree over the widths ≥ 2²⁰ below 2²⁴ and the tree with entries over the
+widths ≥ 2²⁴ above (`thm/CleanEntryKernelMass.lean` evaluates the latter); `clean_entry_chain` takes the step at each
+width as a hypothesis, so the two trees fit in one chain.
+
 ## What is trusted
 
 `blank_halt_clean`, `blank_halt_structure` and `never_halts_of_cut_classes`: Lean's kernel, plus Lean's compiler
@@ -338,6 +415,9 @@ endgame trees are checked by the kernel itself (`decide +kernel`, subtree by sub
 adds the direct runs (`clean_direct_ok`). `check_end.sh` compiles the BB6 modules to a shared library and loads it
 with `--load-dynlib`, so that `native_decide` runs native code; this adds the C compiler to the trusted base
 (`--interpreted` avoids it, at about an hour for the prefix alone).
+
+`blank_halt_clean_entry`: as `blank_halt_clean_direct`; the tree with loop entries is not evaluated (the proved
+explorer). `blank_halt_clean_entry_kernel`: Lean's kernel alone.
 
 `blank_halt_clean_kernel`, `blank_halt_structure_kernel` and `never_halts_of_cut_classes_kernel`: Lean's kernel
 alone (`#print axioms` lists `propext`, `Classical.choice` and `Quot.sound`, nothing else). The prefix to 2³² cannot be
@@ -358,8 +438,9 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   The σ bound says that from a pass start beyond it a close through the loop needs a half pass or a round-7 break on
   the way (and from a width ≥ 2²⁴ a round-7 break is out); it does not bound σ itself. For the routes from
   two-marker states with both gaps at least Γ, the loop entries the route tree reaches are proved not to close at any
-  width (`blank_halt_route`, `ROUTE_TREE.md`); past the loop's end only the pass-start trees follow the run
-  (`pass_halt_chain`, with their cut classes), and a run that leaves the loop can come back to a pass start later.
+  width (`blank_halt_route`, `ROUTE_TREE.md`), and so are the clean-tape tree's (`blank_halt_clean_entry`); past the
+  loop's end only the pass-start trees follow the run (`pass_halt_chain`, with their cut classes), and a run that
+  leaves the loop can come back to a pass start later.
 * **The pass starts that a pass-start tree cuts at every depth** (`pass_halt_chain`). Nothing is said about them, and
   some of them halt: 1/8 of the pass starts with R = 6 close at distance 0 in round 7, and the machine halts there.
 * The **two-marker route trees** (`ROUTE_TREE.md`) are not used by the theorems above: the machine's run reaches
@@ -391,7 +472,9 @@ python3 thm/gen_prefix.py checkpoints.txt thm 8
 | `thm/PrefixPieces*.lean`, `thm/ExitPieces*.lean`, `thm/EndgamePieces*.lean` (kernel, 4 modules at a time; the prefix pieces take about 2 min of it) | 3 min 49 s |
 | `thm/PrefixKernel.lean`, `EndgameTheorem.lean`, `ExitTheorem.lean`, `ExitHalt.lean`, `LoopTheorem.lean`, `LoopHalt.lean`, `PassHalt.lean` | seconds |
 | `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 20 s |
-| `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean`, `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean` | seconds |
+| `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean`, `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean`, `thm/CleanEntryTheorem.lean`, `thm/CleanEntryHalt.lean` | seconds |
+| `thm/CleanEntryMass.lean` (36 digits, cone 2⁴¹, with loop entries) | 5 min 1 s |
+| `thm/CleanEntryKernelMass.lean` (36 digits, cone 2²⁴, with loop entries) | 5 min 6 s |
 | `thm/CleanMass.lean` (36 digits, 3.2 million leaves) | 4 min 46 s |
 | `thm/CleanKernelMass.lean` (36 digits, cone 2²⁰) | 5 min 27 s |
 | `thm/CleanDirect.lean` (the 36-digit tree, then 26,508,327 direct runs) | 13 min 22 s |

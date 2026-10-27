@@ -2525,6 +2525,30 @@ class closes through the loop, decided on the class:
   from them the loop cannot close at any width. The tree with entries is also faster to build (66 s at 36 digits and
   230 s at 40, against 233 s and 16 min).
 
+**The clean tapes' loop entries (October 27; `../lean/BB6/CleanEntryTree.lean`, `../lean/thm/CleanEntryHalt.lean`,
+`../lean/END_TO_END.md`).** The clean-tape tree (the class tree over W/2 of the exhaustive check, in Lean) now stops a
+path at the same loop entries as the route tree:
+- The entry check on the clean-tape tree's classes, which have one coordinate: R = 16^p·r fixes the class's point
+  directly (`solveOut1`), where the route tree's two coordinates need Cramer's rule. Both trees' entries now also ask,
+  when W ≡ 2 (mod 4), for the middle wall at least 896 below the width: then a half pass at the start lands on a pass
+  start with every gap ≥ 448 again (`landing_wide`), so from the entry the loop's chain reaches no closing class
+  (`EntryNoClose.no_close`) and ends where the run leaves phase 0 or the halving chain at a round start that is not
+  three walls (`entry_halt`, now from `loop_halt_leaves`). The test never fails at the trees' entries at 32 and 36
+  digits.
+- `clean_tree_entry_step` (every depth, nothing evaluated): from every clean tape of width W ≥ Γ, a halt-free run to a
+  wider clean tape or to a wider loop entry that cannot close, unless W/2 is in a cut class. `clean_entry_chain` chains
+  these steps by induction on the halting time, with the step and what a halt from an entry needs as hypotheses (a
+  property of the entry, or a wider clean tape reached from it, from which the chain goes on), so a theorem that
+  follows the run past the loop's end plugs in directly. `blank_halt_clean_entry`: a halt from blank tape needs a clean
+  tape of width ≥ 2⁴¹ cut at every depth, or such an entry from which the loop's chain ends without a close where the
+  run leaves three walls; `blank_halt_clean_entry_kernel` is the same from 2²⁰ with the kernel alone (the plain tree
+  below 2²⁴, where the entries' width test is decided on few classes, and the tree with entries above).
+- Over the widths ≥ 2⁴¹ the cut classes at 36 digits fall from 1,660,024 to 1,255,963 (measure 1.83 × 10⁻⁵); 28,660
+  entries carry 0.13 % of the clean tapes, nearly all of it met within 32 splits (5,423 entries, the same measure, at
+  32 digits). The cut classes still grow about 1.52-fold per digit, and none of their runs meets a three-wall round
+  start within the depth (`EntryStats.lean`): the loop's entries are settled, and what is left are runs that stay
+  outside the loop for 36 digits.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:

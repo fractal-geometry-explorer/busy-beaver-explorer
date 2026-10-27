@@ -1,10 +1,11 @@
 #!/bin/bash
 # Check the route-tree development (run ./check.sh first):
-#   1. the proved modules BB6/RouteTree.lean, BB6/RouteExplore.lean, BB6/RouteEntry.lean and BB6/EntryTree.lean
-#      (seconds);
+#   1. the proved modules BB6/RouteTree.lean, BB6/RouteExplore.lean, BB6/RouteEntry.lean, BB6/EntryTree.lean and
+#      BB6/CleanEntryTree.lean (seconds);
 #   2. thm/RouteTheorem.lean: the route tree built by the proved explorer, at every depth and every cone constant
-#      (nothing evaluated, seconds), thm/RouteEntryTheorem.lean, the route tree with loop entries the same way, and
-#      thm/CleanTheorem.lean, the clean-tape tree (seconds);
+#      (nothing evaluated, seconds), thm/RouteEntryTheorem.lean, the route tree with loop entries the same way,
+#      thm/CleanTheorem.lean, the clean-tape tree, and thm/CleanEntryTheorem.lean, the clean-tape tree with loop
+#      entries (seconds);
 #   3. thm/RouteMass.lean and thm/RouteEntryMass.lean: the leaf counts and cut measures of the 36-digit trees,
 #      evaluated by native_decide; with DEPTH=40 also thm/RouteMass40.lean and thm/RouteEntryMass40.lean (the 40-digit
 #      trees).  No theorem about the machine uses them.
@@ -22,9 +23,13 @@ case $DEPTH in
   40) MASS="RouteMass RouteEntryMass RouteMass40 RouteEntryMass40" ;;
   *) echo "DEPTH must be 36 or 40"; exit 1 ;;
 esac
-MODS="Basic Cycles Rules Iter Rows Rows2 Marks Model Mid Pkt Pkt2 Gap2 Blk Contact Events PktRun Round SymForm SymRound SymSplit Meets HaltClose HaltStretch Loop Ends RouteTree CleanTree RouteExplore RouteEntry EntryTree"
-for f in RouteTree CleanTree RouteExplore RouteEntry EntryTree; do echo "== BB6/$f.lean"; $LEAN BB6/$f.lean -o out/BB6/$f.olean; done
-for f in RouteTheorem RouteEntryTheorem CleanTheorem; do echo "== thm/$f.lean"; $LEAN thm/$f.lean -o out/$f.olean; done
+MODS="Basic Cycles Rules Iter Rows Rows2 Marks Model Mid Pkt Pkt2 Gap2 Blk Contact Events PktRun Round SymForm SymRound SymSplit Meets HaltClose HaltStretch Loop Ends RouteTree CleanTree RouteExplore RouteEntry EntryTree CleanEntryTree"
+for f in RouteTree CleanTree RouteExplore RouteEntry EntryTree CleanEntryTree; do
+  echo "== BB6/$f.lean"; $LEAN BB6/$f.lean -o out/BB6/$f.olean
+done
+for f in RouteTheorem RouteEntryTheorem CleanTheorem CleanEntryTheorem; do
+  echo "== thm/$f.lean"; $LEAN thm/$f.lean -o out/$f.olean
+done
 $LEAN thm/RouteAxioms.lean
 [ "$1" = "--no-theorem" ] && { echo "ROUTE TREE THEOREM CHECKED"; exit 0; }
 DYN=""
