@@ -57,7 +57,7 @@ deeper exhaustive runs were made with the uninstrumented program. See "The trail
 (October 27):** the checkers, the C engines current work uses (`nrefdfs2`, `lined`, `rtree3d`, `rtree3e`, `gx3`) and
 the stepper now write the canonical form, as the proved model does, and `simtest/` checks every one of them against
 the proved model on random tapes. With the fixed programs the certificates (exit, endgame, any-phase, 36-digit route tree) check with unchanged output, and the
-exhaustive check to 54 digits reproduces `dfs/merged54.txt` exactly, with the corrected case never occurring. The other
+exhaustive check to 56 digits reproduces `dfs/merged56.txt` exactly, with the corrected case never occurring. The other
 programs in `csearch/` are kept as they were run.
 
 ## How to check
