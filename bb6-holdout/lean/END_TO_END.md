@@ -21,12 +21,22 @@ theorem blank_halt_clean (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) 
 theorem blank_halt_loop (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :
     ∀ (R : Nat) (ms : List Mark) (W k : Nat), PassStart448 ms W R →
       steps k ⟨blank, blank, .A⟩ = some (roundStart ms W) →
-      ∃ n₁ ms₁ W₁ R₁, roundsZ 1000 n₁ ms W = .newRound ms₁ W₁ ∧ (∀ d ∈ meetsRounds 1000 n₁ ms W, 3 ≤ d) ∧
-        PassStart448 ms₁ W₁ R₁ ∧ R₁ ≤ R ∧
-        ((InCloseClass ms₁ W₁ R₁ ∧ ∃ t, Reach ⟨[], 1, ms₁, W₁⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
+      ∃ n₁ ms₁ W₁ R₁ p, roundsZ 1000 n₁ ms W = .newRound ms₁ W₁ ∧ (∀ d ∈ meetsRounds 1000 n₁ ms W, 3 ≤ d) ∧
+        PassStart448 ms₁ W₁ R₁ ∧ R = 16 ^ p * R₁ ∧ passL1 ms W = 64 ^ p * passL1 ms₁ W₁ ∧
+        ((InCloseClass ms₁ W₁ R₁ ∧ SigmaOK R (passL1 ms W) ∧
+            ∃ t, Reach ⟨[], 1, ms₁, W₁⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
           ∃ n₂ ms' W', roundsZ 1000 n₂ ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n₂ ms₁ W₁, 3 ≤ d) ∧
-            LoopEnd 1000 R₁ n₂ (meetsRounds 1000 n₂ ms₁ W₁) ms' W' ∧
+            LoopEnd 1000 R₁ (passL1 ms₁ W₁) n₂ (meetsRounds 1000 n₂ ms₁ W₁) ms' W' ∧
             ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t))
+
+theorem blank_halt_sigma (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :   -- the σ bound
+    ∀ (R : Nat) (ms : List Mark) (W k : Nat), PassStart448 ms W R → ¬ SigmaOK R (passL1 ms W) →
+      steps k ⟨blank, blank, .A⟩ = some (roundStart ms W) →
+      ∃ n₁ ms₁ W₁ R₁ p, …as above… ∧
+        ∃ n₂ ms' W', roundsZ 1000 n₂ ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n₂ ms₁ W₁, 3 ≤ d) ∧
+          LoopEnd 1000 R₁ (passL1 ms₁ W₁) n₂ (meetsRounds 1000 n₂ ms₁ W₁) ms' W' ∧
+          ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)
+-- SigmaOK R L := 256 ^ 2 * R ^ 3 ≤ 176 ^ 3 * L ^ 2
 
 theorem blank_halt_exit (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :
     ∀ a b c E k, …loop state, gaps ≥ 390… →
@@ -73,25 +83,51 @@ In words: if the machine halts from blank tape, then
 2. the mark model, run on from that clean tape, reaches a **stuck configuration**: a close at the right end (the gap
    meets the end marker at distance 0, or touches a block at the end of the tape) or an interior contact;
 3. every **phase-0 pass start** it passes on the way (walls at a, b, E − R − 1, width E, a odd, b even, E even, every
-   gap ≥ 448: `PassStart448`) is followed by a close-free stretch the model covers, through the pass starts whose gaps
-   are again all ≥ 448 to the last of them (right end R₁ ≤ R), and the halt needs a stuck configuration after it:
-   either right there, with R₁ in the closing set {2, 4, 8, 16, 24, 32, 48, 64, 176} and L₁ in R₁'s class
-   (`InCloseClass`), or after a further close-free stretch to where the run leaves the loop (`LoopEnd`: it leaves
-   phase 0, its end meetings leave the halving chain, or it reaches the next pass start, and it is not at a pass
-   start with every gap ≥ 448 there);
+   gap ≥ 448: `PassStart448`; left countdown L₁ = 147 b + 280 E − 392 (E − R − 1) − 578) is followed by a close-free
+   stretch the model covers, through p full passes, each to a pass start whose gaps are again all ≥ 448, to the last
+   of them (right end R₁ = R/16^p, left countdown L₁/64^p), and the halt needs a stuck configuration after it: either
+   right there, with R₁ in the closing set {2, 4, 8, 16, 24, 32, 48, 64, 176} and the left countdown in R₁'s class
+   (`InCloseClass`), and then **R³/L₁² ≤ 176³/256²** at the first pass start (`SigmaOK`: log₂W ≤ σ + 6.38, below),
+   or after a further close-free stretch to where the run leaves the loop (`LoopEnd`: it leaves phase 0, its end
+   meetings leave the halving chain, or it makes a full pass, and it is not at a pass start with every gap ≥ 448
+   after a full pass there);
 4. every **loop state** it passes on the way (walls at a, b, c, width E, a odd, b even, c odd, E even, every gap ≥ 390)
    is followed by the certified exit stretch, close-free to where it ends (`ExitEvent`: a clean tape, a break of the
    end-meeting chain, or a loop state again after a full pass), and the halt needs a stuck configuration after it.
 
 `blank_halt_clean` is items 1 and 2, `blank_halt_loop` item 3, `blank_halt_exit` item 4, and `blank_halt_structure`
-all four.
+all four. `blank_halt_sigma` is item 3 at a pass start beyond the σ bound: there the run does not close through the
+loop, and the halt needs a stuck configuration after the loop's end.
+
+**The σ bound** (October 27). At a pass start of width W with right end R and left countdown L₁, put s = log₂(W/R),
+λ = log₂(|L₁|/W) and σ = 3s + 2λ (the notes' measure of how late a run enters the loop); then log₂W = σ + 3 log₂R −
+2 log₂|L₁|. A full pass divides R by 16 and L₁ by 64 exactly (the pass map, now part of the end event `PassStart`,
+checked at every pass-start leaf of the endgame trees), so R³/L₁² is the same at every pass start the loop's run goes
+through, and `loop_stretch` returns the number p of passes with R = 16^p·R₁ and L₁ = 64^p·L₁′. At a close the right
+end is in the closing set and L₁′ in its class; with L₁′ ≡ 3 (mod 7) each class bounds |L₁′| from below (4 for
+R₁ = 2 and 4, 24 for 8, 32 for 16 and 24, 192 for 32, 256 for 48, 64 and 176), and R₁³/L₁′² is at most 176³/256²
+(`sigma_close`, the R₁ = 176 class with |L₁′| = 256). So a close through the loop needs R³/L₁² ≤ 176³/256² ≈ 83.19
+at the first pass start already (`sigma_through_passes`), that is log₂W ≤ σ + 6.38: the bound of the notes
+(October 22), now a theorem. It is attained: from the pass start with walls 601, 1,630, 9,323 and width 12,140
+(R = 2,816, L₁ = −16,384, so R³/L₁² = 176³/256² exactly) the run makes a full pass to R = 176, L₁ = −256 (walls
+2,895, 8,798, 11,987, width 12,164) and closes 13 rounds later (`lean --run RunWalls.lean 601 1630 12140 2816 24`).
+
+The loop's run is followed through full passes only. Two other ways back to three walls with the phase-0 parities
+end it, with `LoopEnd` there (identities of forms at the endgame trees' leaves): a half pass (44 leaves: from the pass
+start of the other phase, followed by G B W and G W W W, the run leaves phase 0 at round 2 with R′ = R/2, W′ = E + 6,
+and L₁′ = L₁/2 + 35E/2 − 147R/2 − 30, not L₁ scaled), and a chain break at round 7 (12 leaves, R ≡ 12 mod 16:
+W′ = E + 24 and R′ = (4E + 4R − b + 110)/32, a right end set by the width rather than divided, R′ ≥ R in the trees
+for R < 178). Where the run lands on a pass start with gaps ≥ 448 it is covered in its own right (item 3 holds at
+every such pass start the run passes), and σ is measured there, at the first pass start of a stretch of full passes,
+as in the notes.
 
 **Why the stretches name their ends** (October 27). The first versions of items 3 and 4 said only "the model covers n
 rounds from the start, with no close, and the halt needs a stuck configuration after them". With n = 0 that is just
 the round theorem: it holds for every start, with no tree. The trees' leaves now end at events stated in
 `BB6/Ends.lean`, none of which holds after zero rounds, so the stretches are real: from a pass start the run is
-followed until it leaves phase 0, breaks the end-meeting chain, or reaches the next pass start, and through every pass
-start whose gaps stay ≥ 448; from a loop state, until a clean tape, a chain break, or a loop state again.
+followed until it leaves phase 0, breaks the end-meeting chain, or makes a full pass to the next pass start, and
+through every such pass start whose gaps stay ≥ 448; from a loop state, until a clean tape, a chain break, or a loop
+state again.
 
 `never_halts_of_cut_classes` is item 1 read backwards: the open question is now only about the clean tapes of width
 at least 2³² that the tree leaves open at every depth. Since `∀ d` includes d = 36 and d = 40, such a clean tape lies
@@ -120,10 +156,10 @@ of measure 1,660,086 / 2³⁶ ≈ 2.4 × 10⁻⁵ over the widths ≥ 2³².
 | `BB6/CleanTree.lean` | `RTree.okW` / `RTree.soundW`: a route tree whose `clean` leaves are one-marker clean tapes **wider** than the start; `roundStart_one_ne`: clean tapes of different widths are different configurations | proved, standard axioms |
 | `BB6/RouteExplore.lean` | `RTree.exploreW`: builds the clean-tape tree to any depth; `exploreW_okW`: every tree it builds passes `RTree.okW`; `exploreMassW`: its cut measure and leaf counts without the tree | proved, standard axioms |
 | `thm/CleanTheorem.lean` | `clean_tree_step_G`: for every Γ ≥ 6 and every depth d, from every clean tape of even width W ≥ Γ, the machine reaches a wider clean tape without halting, unless W/2 is in a cut class of `cleanTreeG Γ d`; `clean_tree_step` is Γ = 2³² (`cleanTree d`) | `RTree.soundW` and `exploreW_okW`; nothing evaluated |
-| `thm/EndgameTheorem.lean`, `thm/LoopTheorem.lean` | `endgame_stretch`: from a phase-0 pass start with gaps ≥ 448, a close needs R in the closing set and L₁ in R's class, and otherwise the run is close-free to an end event; `loop_stretch`: the same through every pass start with gaps ≥ 448 | the endgame trees checked by the kernel (`Tree.okEnd`, `decide +kernel`); strong induction on R |
+| `thm/EndgameTheorem.lean`, `thm/LoopTheorem.lean` | `endgame_stretch`: from a phase-0 pass start with gaps ≥ 448, a close needs R in the closing set and L₁ in R's class, and otherwise the run is close-free to an end event (it leaves phase 0, breaks the chain, or makes a full pass to the next pass start, R → R/16, L₁ → L₁/64); `loop_stretch`: the same through p full passes to pass starts with gaps ≥ 448, R = 16^p·R₁, L₁ = 64^p·L₁′; `sigma_through_passes`: a close through the loop needs R³/L₁² ≤ 176³/256² at the first pass start | the endgame trees checked by the kernel (`Tree.okEnd`, `decide +kernel`); strong induction on R; the closing classes with L₁ ≡ 3 mod 7 |
 | `thm/ExitTheorem.lean` | `exit_stretch`: from a loop state with gaps ≥ 390, the run is close-free to an exit event (`ExitEvent`) | the exit tree checked by the kernel (`Tree.okEnd`, `decide +kernel`) |
-| `thm/LoopHalt.lean`, `thm/ExitHalt.lean` | `loop_halt_needs_contact`, `exit_halt_needs_contact`: a halt from a phase-0 pass start with gaps ≥ 448, or from a loop state, needs a stuck configuration after the certified close-free stretch | `loop_stretch`, `exit_stretch` and `halt_after_rounds` |
-| `thm/EndToEnd.lean` | `clean_chain`, `blank_halt_clean_from`, `blank_halt_clean`, `blank_halt_clean_kernel`, `blank_halt_loop`, `blank_halt_exit`, `blank_halt_structure`, `blank_halt_structure_kernel`, `never_halts_of_cut_classes`, `never_halts_of_cut_classes_kernel` | strong induction on the halting time: at each clean tape, either it is cut at every depth, or some depth decides it and the run goes on to a wider clean tape, which takes at least one machine step |
+| `thm/LoopHalt.lean`, `thm/ExitHalt.lean` | `loop_halt_needs_contact`, `exit_halt_needs_contact`: a halt from a phase-0 pass start with gaps ≥ 448, or from a loop state, needs a stuck configuration after the certified close-free stretch; `loop_halt_sigma`: beyond the σ bound, after the loop's end | `loop_stretch`, `exit_stretch` and `halt_after_rounds` |
+| `thm/EndToEnd.lean` | `clean_chain`, `blank_halt_clean_from`, `blank_halt_clean`, `blank_halt_clean_kernel`, `blank_halt_loop`, `blank_halt_sigma`, `blank_halt_exit`, `blank_halt_structure`, `blank_halt_structure_kernel`, `never_halts_of_cut_classes`, `never_halts_of_cut_classes_kernel` | strong induction on the halting time: at each clean tape, either it is cut at every depth, or some depth decides it and the run goes on to a wider clean tape, which takes at least one machine step |
 | `thm/CleanMass.lean`, `thm/CleanMass40.lean` | `clean_tree_cut_mass`, `clean_tree_cut_mass40`: the leaf counts and cut measure of `cleanTree 36` and `cleanTree 40` | `exploreMassW` evaluated by `native_decide`; used by no theorem about the machine |
 | `thm/CleanKernelMass.lean` | `clean_kernel_cut_mass`: the leaf counts and cut measure of `cleanTreeG 2²⁰ 36` | `exploreMassW`, `native_decide`; used by no theorem about the machine |
 | `BB6/CleanRange.lean` | `directOK_sound`: a run of the mark model from a clean tape to a wider one, as a statement about the machine; `RTree.cuts1_sound`: the cut classes of a one-variable tree as residues of W/2; `rangeOK_sound`: every clean tape of width in [lo, hi) that the tree leaves open runs directly to a wider one | proved, standard axioms |
@@ -234,9 +270,9 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   (`blank_halt_clean_direct`); combined with the exhaustive check (every clean tape below 2⁶¹ reaches the next one
   without halting; a C computation, not in Lean), at least 2⁶¹.
 * **Item 3** is a statement about the stretches after a pass start, not a claim that a halt goes
-  through the loop. The σ bound (log₂W ≤ σ + 6.38 at the first pass start) is still not in Lean: the L₁ classes of
-  the closing R are (`endgame_stretch`), but it also needs the pass map (R′ = R/16, L₁′ = L₁/64) and a way across
-  half passes.
+  through the loop. The σ bound says that a run whose pass start is beyond it does not close through the loop from
+  there; it does not bound σ itself. How late a run can enter the loop (the σ ceilings of the route tree's entries,
+  `ROUTE_TREE.md`) is evaluated, not proved, and a run that leaves the loop can come back to a pass start later.
 * The **two-marker route tree** (`route_tree_clean`) is not used here.
 
 ## How to check

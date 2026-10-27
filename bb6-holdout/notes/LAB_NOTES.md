@@ -2332,6 +2332,47 @@ from depth 22 to 35 (103,174 / 2³⁶; 1, 4, 3, 3, 13, 14, 14, 23, 30, 53, 106, 
 should bring the kernel-only theorems' measure down to about that from 2³² (with `ExploreCT`, 1,660,100 / 2³⁶ at cone
 2²⁰ and 1,660,557 / 2³⁶ at 2¹⁶ when every early cut drops its smallest member and goes on).
 
+**The σ bound in Lean (October 27; `../lean/BB6/Ends.lean`, `../lean/thm/LoopTheorem.lean`, `LoopHalt.lean`,
+`EndToEnd.lean`).** First a native test of the endgame trees as they were: of their 1,877 leaves (200 for R ≥ 178,
+1,677 for R < 178), only three end at a pass start by `passStartCheck`, all at round 8: one in the tree for R ≥ 178,
+one for R = 128, and one for R = 64 inside R = 64's closing class (the pass coset L₁ ≡ 0 mod 256 lies in 0 mod 128).
+All three satisfy the pass map as identities of forms, 16 R′ = R and 64 L₁′ = L₁. Every other leaf ends at
+`LeftPhase0` (round 1 or 2) or at a chain break, or shows L₁ in the closing class of its R. So the pass map became
+part of the end event: `PassStart fuel R L ms W` now requires 16 R′ = R and 64 L₁′ = L (R′ < R follows), and
+`passStartCheck` checks both with `sameForm`. The tree for R ≥ 178 now carries its real L₁ form (`symStartE`; it
+carried 0, since no closing class needs it there). The 342 endgame subtree checks pass unchanged in the kernel
+(2 min 17 s for them and the exit pieces on 4 cores), and the builder `ExploreNC` (which now stops a leaf only at a
+full pass) rebuilds the three tree files byte for byte.
+
+`loop_stretch` now follows the run through full passes only: it goes on from an end state that is a `PassStart` (with
+the map) with gaps ≥ 448, and returns the number p of passes, with R = 16^p R₁ and L₁ = 64^p L₁′ (`passL1` is the left
+countdown of a three-wall round start). Two other kinds of leaf come back to three walls with the phase-0 parities
+(a survey of all leaves; each map below is an identity of forms at its leaves):
+- 44 half passes (the tree for R ≥ 178 and R = 8, 12, …, 176): from a pass start of the other phase, followed by
+  G B W and G W W W, the leaf is `LeftPhase0` at round 2, with R′ = R/2, W′ = E + 6, 2 L₁′ = L₁ + 35E − 147R − 60 and
+  a ≥ 448;
+- 12 chain breaks at round 7 (the tree for R ≥ 178 and R = 12, 28, …, 172): W′ = E + 24,
+  R′ = (4E + 4R − b + 110)/32 and 96 L₁′ = L₁ + 1120E + 1666R + 50328. In the small trees R′ ≥ R: the right end is
+  set again by the width, not divided. Whether a ≥ 448 is not decided there.
+
+The loop's run ends at both (`LoopEnd`). Where the run lands on a pass start with gaps ≥ 448, that is a start of its
+own in `blank_halt_loop`, and σ is measured there, at the first pass start of a stretch of full passes. Then:
+- `sigma_close`: at a pass start in a closing class, R³/L₁² ≤ 176³/256² (with L₁ ≡ 3 mod 7 the classes give
+  |L₁| ≥ 4, 4, 24, 32, 32, 192, 256, 256, 256 for R = 2, 4, 8, 16, 24, 32, 48, 64, 176);
+- `sigma_passes`: a pass multiplies R³ and L₁² by the same 4096 (as a statement, R → 16R and L₁ → 64L₁ keep
+  `SigmaOK`);
+- `sigma_through_passes`: a close through the loop needs R³/L₁² ≤ 176³/256² at the first pass start, which is
+  log₂W ≤ σ + 6.38 (log₂W = σ + 3 log₂R − 2 log₂|L₁|);
+- `loop_halt_sigma`, `blank_halt_sigma`: from a pass start with gaps ≥ 448 beyond the bound, a halt comes only after
+  the loop's end, and needs a stuck configuration there. Standard axioms only.
+
+The bound is attained: from walls 601, 1,630, 9,323 and width 12,140 (R = 2,816, L₁ = −16,384, so R³/L₁² = 83.1875 =
+176³/256² exactly) the run makes the full pass G B W, G M B, G M W W, G M B, G M W W, G W W W, G B W, G W W W to
+walls 2,895, 8,798, 11,987, width 12,164 (R = 176, L₁ = −256), and closes 13 rounds later, at round 21 (`lean --run
+../lean/RunWalls.lean 601 1630 12140 2816 24`). What the theorem does not say: it bounds where a close through the
+loop can start, not σ itself. How late a run can enter the loop is what the σ ceilings of the route tree measure, and
+they are evaluated, not proved; a run that leaves the loop can also come back to a pass start later (above).
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:
