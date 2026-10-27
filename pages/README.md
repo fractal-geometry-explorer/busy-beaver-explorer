@@ -1,7 +1,8 @@
 # Pages
 
 Four self-contained HTML pages. Open any of them in a browser; they need no server. They load two fonts from Google
-Fonts and fall back to system fonts offline.
+Fonts and fall back to system fonts offline. `index.html` is a landing page that links to the four, and
+`.github/workflows/pages.yml` publishes this folder to GitHub Pages on every push to main.
 
 | page | machine | what it shows |
 |---|---|---|
