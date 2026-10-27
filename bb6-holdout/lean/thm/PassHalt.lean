@@ -12,7 +12,9 @@ distance at least 3, or a one-marker clean tape wider than the start (`pass_next
 closing class or the start lies in a cut leaf of its tree.  An end meeting at distance 2 does not stop a tree where
 the round model goes on from it to a new round start.  There is one tree for each right end R < 178 (`passTreeR`) and
 one for every R ≥ 178, with R a coordinate (`passTreeSym`).  The trees are built by the proved explorer
-(`PTree.explore_ok`), so `pass_next` holds at every depth d with nothing evaluated.
+(`PTree.explore_ok`), so `pass_next` holds at every depth d with nothing evaluated.  Where the cone's edge leaves a
+round undecided, the explorer cleaves the class (`cleave`, at most `passCleaves` times on a path): the slice of its
+smallest members in one coordinate goes on with one coordinate less, the rest under a tighter cone.
 
 `pass_halt_chain` chains the checkpoints by induction on the halting time, from a pass start of width at least 2¹³
 with every gap at least 448 (and, if W ≡ 2 mod 4, the middle wall at least 896 from the end): every landing on the way
@@ -25,24 +27,29 @@ in fewer steps.
 namespace BB6
 open BB6.Sym
 
+/-- The cleaves the explorer may make on a path. -/
+def passCleaves : Nat := 8
+
 /-- The pass-start tree for the pass starts with right end R < 178 (the class `startR R`), `d` splits deep. -/
 def passTreeR (R d : Nat) : PTree :=
-  PTree.explore 448 1000 3 (closeClass R) (10000 + d) d false true 0 (startR R).1 (startR R).2.1 (startR R).2.2
-    (startE R).2
+  PTree.explore 448 1000 3 (closeClass R) (10000 + d) d passCleaves false true 0 (startR R).1 (startR R).2.1
+    (startR R).2.2 (startE R).2
 
 /-- The pass-start tree for the pass starts with right end R ≥ 178 (the class `symStart`), `d` splits deep. -/
 def passTreeSym (d : Nat) : PTree :=
-  PTree.explore 448 1000 4 none (10000 + d) d false true 0 symStart.1 symStart.2.1 symStart.2.2 symStartE.2
+  PTree.explore 448 1000 4 none (10000 + d) d passCleaves false true 0 symStart.1 symStart.2.1 symStart.2.2
+    symStartE.2
 
 theorem passTreeR_ok (R d : Nat) :
     (passTreeR R d).ok 448 1000 3 (closeClass R) false true 0 (startR R).1 (startR R).2.1 (startR R).2.2
       (startE R).2 = true :=
-  PTree.explore_ok 448 1000 3 (closeClass R) (10000 + d) d false true 0 (startR R).1 (startR R).2.1 (startR R).2.2
-    (startE R).2
+  PTree.explore_ok 448 1000 3 (closeClass R) (10000 + d) d passCleaves false true 0 (startR R).1 (startR R).2.1
+    (startR R).2.2 (startE R).2
 
 theorem passTreeSym_ok (d : Nat) :
     (passTreeSym d).ok 448 1000 4 none false true 0 symStart.1 symStart.2.1 symStart.2.2 symStartE.2 = true :=
-  PTree.explore_ok 448 1000 4 none (10000 + d) d false true 0 symStart.1 symStart.2.1 symStart.2.2 symStartE.2
+  PTree.explore_ok 448 1000 4 none (10000 + d) d passCleaves false true 0 symStart.1 symStart.2.1 symStart.2.2
+    symStartE.2
 
 /-- The pass start with walls at a, b and W − R − 1, width W and right end R lies in a cut leaf of its pass-start
 tree `d` splits deep (at the point ((a − 1)/2, b/2, W/2), and R/2 for R ≥ 178). -/
