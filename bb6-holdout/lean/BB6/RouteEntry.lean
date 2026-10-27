@@ -15,11 +15,14 @@ The check (`exclOK`): on the cone, α·R + α₀ ≤ L₁ ≤ β·R + β₀ (dec
 α·16^p·r + α₀ ≤ 64^p·ℓ ≤ β·16^p·r + β₀, so for p ≥ P (4^P above |α|·176 + |α₀| and |β|·176 + |β₀|) only ℓ = 0 is
 left, which no left countdown is (L₁ ≡ 3 mod 7); for each p < P and each r the window of ℓ is finite, and each ℓ in
 it, with R = 16^p·r and L₁ = 64^p·ℓ, fixes the point of the class by Cramer's rule, which must not be an integer
-point of the cone (`solveOut`).  The bounds α, β, α₀, β₀ and P are computed from the forms (`exclCert`: the ratio
-L₁/R along the two edges of the cone, and the value at its corner), and only checked.
+point of the cone (`solveOut`; on a class of one coordinate, as in the clean-tape trees, R = 16^p·r fixes it directly,
+`solveOut1`).  The bounds α, β, α₀, β₀ and P are computed from the forms (`exclCert`: the ratio L₁/R along the edges
+of the cone, and the value at its corner), and only checked.
 
 A run can also start the loop with a half pass (R → R/2, 2·L₁′ = L₁ + 35W − 147R − 60, from W ≡ 2 mod 4) and then
-make full passes; `entryOK` checks that case as well, with those forms, unless W ≡ 0 (mod 4) on the class.
+make full passes; `entryOK` checks that case as well, with those forms, unless W ≡ 0 (mod 4) on the class, and then
+also asks for the middle wall at least 896 below the width, so that the half pass lands on a pass start with every
+gap at least 448 again (`landing_wide`).
 -/
 
 namespace BB6.Sym
@@ -67,6 +70,31 @@ theorem solveOut_sound {R L : YForm} {ts : List YForm} {Γ N S : Int} (h : solve
   · exact h rfl
   · exact h rfl
   · exact absurd (hy t ht) (by omega)
+
+/-- The same for a class of one coordinate (R, L and the cone free of y₁): R = N fixes y₀, and the check is that y₀
+is not an integer, or L ≠ S there, or the point is outside the cone. -/
+def solveOut1 (R L : YForm) (ts : List YForm) (Γ N S : Int) : Bool :=
+  let r0 := R.c.getD 0 0
+  let y0 := (N - R.k) / r0
+  R.c.getD 1 0 == 0 && L.c.getD 1 0 == 0 && ts.all (fun t => t.c.getD 1 0 == 0) && r0 != 0 &&
+    ((N - R.k) % r0 != 0 || L.k + L.c.getD 0 0 * y0 != S ||
+      ts.any (fun t => decide (t.k + t.c.getD 0 0 * y0 < Γ)))
+
+theorem solveOut1_sound {R L : YForm} {ts : List YForm} {Γ N S : Int} (h : solveOut1 R L ts Γ N S = true)
+    {y0 y1 : Int} (hy : inCone ts Γ [y0, y1]) (hR : R.eval [y0, y1] = N) (hL : L.eval [y0, y1] = S) : False := by
+  simp only [solveOut1, Bool.and_eq_true, Bool.or_eq_true, bne_iff_ne, ne_eq, beq_iff_eq, List.all_eq_true,
+    List.any_eq_true, decide_eq_true_eq] at h
+  obtain ⟨⟨⟨⟨hR1, hL1⟩, hts⟩, hr0⟩, h⟩ := h
+  rw [eval_two, hR1] at hR
+  rw [eval_two, hL1] at hL
+  have e : N - R.k = R.c.getD 0 0 * y0 := by omega
+  rw [e, Int.mul_emod_right, Int.mul_ediv_cancel_left _ hr0] at h
+  rcases h with (h | h) | ⟨t, ht, hlt⟩
+  · exact h rfl
+  · exact h (by omega)
+  · have := hy t ht
+    rw [eval_two, hts t ht] at this
+    omega
 
 /-! ## A window of left countdowns -/
 
@@ -135,7 +163,8 @@ def winOK (R L : YForm) (ts : List YForm) (Γ : Int) (q : ExclCert) (r : Nat) (M
   let lo := -((-(q.α * N + q.α₀)) / S)
   let hi := (q.β * N + q.β₀) / S
   let st := firstAbove lo M c
-  stepAll (fun ℓ => ℓ % 7 != 3 || solveOut R L ts Γ N (S * ℓ)) M hi ((hi - st) / M).toNat.succ.succ st
+  stepAll (fun ℓ => ℓ % 7 != 3 || solveOut R L ts Γ N (S * ℓ) || solveOut1 R L ts Γ N (S * ℓ)) M hi
+    ((hi - st) / M).toNat.succ.succ st
 
 /-- No close from any point of the class inside the cone, after any number of full passes (`exclOK_sound`). -/
 def exclOK (R L : YForm) (ts : List YForm) (Γ : Int) (q : ExclCert) : Bool :=
@@ -163,9 +192,10 @@ theorem winOK_sound {R L : YForm} {ts : List YForm} {Γ : Int} {q : ExclCert} {r
   obtain ⟨hst, hd⟩ := firstAbove_le hM hl hc
   have := stepAll_sound _ _ _ _ _ h ℓ hst hh hd hM
   simp only [Bool.or_eq_true, bne_iff_ne, ne_eq] at this
-  rcases this with h1 | h2
+  rcases this with (h1 | h2) | h3
   · exact h1 h7
   · exact solveOut_sound h2 hy hR hL
+  · exact solveOut1_sound h3 hy hR hL
 
 /-- Past P passes the window holds only ℓ = 0. -/
 theorem big_p {X Y B ℓ : Int} (hX : 0 < X) (hY : B < Y) (hB : 0 ≤ B) (h : X * Y * ℓ ≤ X * B) (hℓ : 1 ≤ ℓ) :
@@ -243,7 +273,8 @@ def log4Above (B : Int) : Nat → Nat → Nat
 
 /-- Bounds for `exclOK`, computed from the forms (only checked, never trusted): the ratio L/R along the two edges of
 the cone, rounded outwards, and the constants that make both bounds hold at the cone's corner (where both gap forms
-equal Γ). -/
+equal Γ); for a cone of one form (the classes of one coordinate), the ratio along its ray and the constants at its
+corner. -/
 def exclCert (R L : YForm) (ts : List YForm) (Γ : Int) : ExclCert :=
   match ts with
   | [t1, t2] =>
@@ -268,6 +299,20 @@ def exclCert (R L : YForm) (ts : List YForm) (Γ : Int) : ExclCert :=
     let α₀ := -(max 0 (negCeil (L.sub (R.smul α))) + 1)
     let B := max ((α.natAbs : Int) * 176 + α₀.natAbs) ((β.natAbs : Int) * 176 + β₀.natAbs)
     ⟨α, α₀, β, β₀, log4Above B 64 0⟩
+  | [t] =>
+    -- a cone of one form (the classes of one coordinate): the ray from the corner y₀ = (Γ − t.k)/u0
+    let u0 := t.c.getD 0 0
+    let e : Int := if 0 < u0 then 1 else -1
+    let rl := R.c.getD 0 0 * e
+    let ll := L.c.getD 0 0 * e
+    let α := ll / rl - 1
+    let β := ceilDiv ll rl + 1
+    let num (f : YForm) : Int := f.k * u0 + f.c.getD 0 0 * (Γ - t.k)
+    let negCeil (f : YForm) : Int := if 0 < u0 then ceilDiv (-(num f)) u0 else ceilDiv (num f) (-u0)
+    let β₀ := max 0 (negCeil ((R.smul β).sub L)) + 1
+    let α₀ := -(max 0 (negCeil (L.sub (R.smul α))) + 1)
+    let B := max ((α.natAbs : Int) * 176 + α₀.natAbs) ((β.natAbs : Int) * 176 + β₀.natAbs)
+    ⟨α, α₀, β, β₀, log4Above B 64 0⟩
   | _ => ⟨0, 0, 0, 0, 0⟩
 
 /-! ## The entry -/
@@ -275,8 +320,9 @@ def exclCert (R L : YForm) (ts : List YForm) (Γ : Int) : ExclCert :=
 /-- The left countdown's form after a half pass, times 2: L₁ + 35W − 147R − 60. -/
 def halfL (L sW R : YForm) : YForm := ((L.add (sW.smul 35)).sub (R.smul 147)).addc (-60)
 
-/-- The round start is a phase-0 pass start with every gap at least 448 and width at least 2²⁴ (decided on the class),
-and no point of the class closes through the loop from it, after full passes or after a half pass and full passes. -/
+/-- The round start is a phase-0 pass start with every gap at least 448, width at least 2²⁴ and, when W ≡ 2 mod 4,
+the middle wall at least 896 below the width (decided on the class), and no point of the class closes through the
+loop from it, after full passes or after a half pass and full passes. -/
 def entryOK (Γ : Int) (ts : List YForm) (ss : List SMark) (sW : YForm) : Bool :=
   match swwwOf ss with
   | none => false
@@ -287,6 +333,7 @@ def entryOK (Γ : Int) (ts : List YForm) (ss : List SMark) (sW : YForm) : Bool :
     ltDec (YForm.const 1) R ts Γ == some true && ltDec (YForm.const 447) a ts Γ == some true &&
     ltDec (a.addc 447) b ts Γ == some true && ltDec (b.addc 447) c ts Γ == some true &&
     ltDec (YForm.const (2 ^ 24 - 1)) sW ts Γ == some true &&
+    (sW.modDec 4 == some 0 || ltDec (b.addc 895) sW ts Γ == some true) &&
     exclOK R L ts Γ (exclCert R L ts Γ) &&
     (sW.modDec 4 == some 0 ||
       match R.half?, (halfL L sW R).half? with
@@ -294,11 +341,13 @@ def entryOK (Γ : Int) (ts : List YForm) (ss : List SMark) (sW : YForm) : Bool :
       | _, _ => false)
 
 /-- A pass start with every gap at least 448 and width at least 2²⁴ (where a close through the loop is full passes
-after at most one half pass, `LoopChain.close_wide`) from which the loop cannot close: not after full passes, and
-(when W ≡ 2 mod 4, where a half pass can start the loop) not after a half pass (2R′ = R, 2L₁′ = L₁ + 35W − 147R − 60)
-and full passes. -/
+after at most one half pass, `LoopChain.close_wide`), and with the middle wall at least 896 below the width when
+W ≡ 2 mod 4 (where a half pass can start the loop; then its landing keeps every gap at least 448, `loop_halt_leaves`),
+from which the loop cannot close: not after full passes, and (when W ≡ 2 mod 4) not after a half pass
+(2R′ = R, 2L₁′ = L₁ + 35W − 147R − 60) and full passes. -/
 def EntryNoClose (ms : List Mark) (W : Nat) : Prop :=
-  2 ^ 24 ≤ W ∧ ∃ R, PassStart448 ms W R ∧ NoCloseAt R (passL1 ms W) ∧
+  2 ^ 24 ≤ W ∧ ∃ R a b, ms = [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] ∧ PassStart448 ms W R ∧
+    (W % 4 = 2 → b + 896 ≤ W) ∧ NoCloseAt R (passL1 ms W) ∧
     (W % 4 = 2 → ∀ R' L' : Int, 2 * R' = (R : Int) → 2 * L' = passL1 ms W + 35 * (W : Int) - 147 * (R : Int) - 60 →
       NoCloseAt R' L')
 
@@ -317,7 +366,7 @@ theorem entryOK_sound {Γ : Int} {ts : List YForm} {ss : List SMark} {sW : YForm
     rw [hsw] at h
     obtain ⟨a, b, c, rfl, h1, h2, h3⟩ := hag.2 fa fb fc hsw
     simp only [Bool.and_eq_true, beq_iff_eq, Bool.or_eq_true] at h
-    obtain ⟨⟨⟨⟨⟨⟨⟨⟨⟨⟨pa, pb⟩, pW⟩, pR⟩, g1⟩, ga⟩, gb⟩, gc⟩, gw⟩, hx⟩, hh⟩ := h
+    obtain ⟨⟨⟨⟨⟨⟨⟨⟨⟨⟨⟨pa, pb⟩, pW⟩, pR⟩, g1⟩, ga⟩, gb⟩, gc⟩, gw⟩, g896⟩, hx⟩, hh⟩ := h
     have ma := modDec_nat h1 (m := 2) pa
     have mb := modDec_nat h2 (m := 2) pb
     have mW := modDec_nat hW (m := 2) pW
@@ -333,10 +382,15 @@ theorem entryOK_sound {Γ : Int} {ts : List YForm} {ss : List SMark} {sW : YForm
     have hx' := exclOK_sound hx hy
     simp only [eval_addc, eval_sub] at hx'
     have h24 : (2 : Nat) ^ 24 = 16777216 := rfl
-    refine ⟨by rw [h24]; omega, W - c - 1, ⟨a, b, ?_, by omega, by omega, by omega, by omega, by omega, by omega, by omega, by omega⟩,
-      ?_, ?_⟩
-    · have : W - (W - c - 1) - 1 = c := by omega
-      rw [this]
+    have hc' : W - (W - c - 1) - 1 = c := by omega
+    refine ⟨by rw [h24]; omega, W - c - 1, a, b, by rw [hc'],
+      ⟨a, b, by rw [hc'], by omega, by omega, by omega, by omega, by omega, by omega, by omega, by omega⟩, ?_, ?_, ?_⟩
+    · intro h4
+      rcases g896 with g | g
+      · have := modDec_nat hW (m := 4) g; omega
+      · have := (ltDec_sound _ _ ts Γ _ hy true g).mpr rfl
+        simp only [eval_addc] at this
+        omega
     · have e1 : ((W - c - 1 : Nat) : Int) = sW.eval [y0, y1] - fc.eval [y0, y1] - 1 := by omega
       have e2 : passL1 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩] W = (L1Form fb fc sW).eval [y0, y1] := by
         simp only [passL1, loopL1]; rw [hL]; omega

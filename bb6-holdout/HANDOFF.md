@@ -49,7 +49,12 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    clean-tape tree at every depth (at 36 digits: measure 2.4 × 10⁻⁵), then a stuck contact. With the members of the
    cut classes below 2⁴¹ run one by one (`blank_halt_clean_direct`), the clean tape is at least 2⁴¹ wide. What
    remains is those clean tapes themselves. The loop and exit items of `blank_halt_structure` name where their
-   stretches end, and the loop item carries the σ bound (item 1).
+   stretches end, and the loop item carries the σ bound (item 1). With the loop entries (`blank_halt_clean_entry`,
+   `lean/thm/CleanEntryHalt.lean`), the clean-tape tree also stops at the pass starts from which no member of the
+   class can close through the loop, which leaves 1,255,963 of the 1,660,024 cut classes at 36 digits, none of whose
+   runs meets three walls; a halt then needs such a clean tape, or such an entry from which the loop's chain ends
+   without a close where the run leaves three walls. Following the run from there to the next clean tape would close
+   the chain (`clean_entry_chain` takes that as a hypothesis).
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.

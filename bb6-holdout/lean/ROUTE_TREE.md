@@ -85,7 +85,9 @@ splitting on the digits of the right end R that each full pass divides by 16, un
 cut classes are such runs. `routeTreeE Γ d` is the same exploration, except that it stops a path at the first round
 start that passes the **entry check** (`entryOK`, `BB6/RouteEntry.lean`), decided on the whole class: a phase-0 pass
 start (three walls a, b, c, width W, a odd, b even, W even, R = W − c − 1 even and at least 2) with every gap at least
-448 and width at least 2²⁴, from which no member of the class closes through the loop (`EntryNoClose`). Where the
+448, width at least 2²⁴ and, when W ≡ 2 (mod 4), the middle wall at least 896 below the width (so that a half pass at
+the start lands again on a pass start with every gap at least 448), from which no member of the class closes through
+the loop (`EntryNoClose`). Where the
 check fails the path goes on as in `routeTree`, so the cut classes of `routeTreeE Γ d` are among those of
 `routeTree Γ d`.
 
@@ -97,15 +99,19 @@ and its value at the corner, `exclCert`, and only checked), so at a close ℓ li
 (β − α)·r/4^p. For p at least P (4^P above |α|·176 + |α₀| and |β|·176 + |β₀|) only ℓ = 0 is left, which is not
 ≡ 3 (mod 7). For each smaller p and each r of the closing set, every ℓ of the window in r's class and ≡ 3 (mod 7)
 fixes the point of the class by Cramer's rule (R = 16^p·r, L₁ = 64^p·ℓ), and the check verifies that it is not an
-integer point of the cone (`solveOut`). A run from a pass start of width W ≡ 2 (mod 4) can also start the loop with a
+integer point of the cone (`solveOut`; on a class of one coordinate, as in the clean-tape tree, R = 16^p·r fixes the
+point directly, `solveOut1`). A run from a pass start of width W ≡ 2 (mod 4) can also start the loop with a
 half pass (2R′ = R, 2L₁′ = L₁ + 35W − 147R − 60) and then make full passes; the check runs again on those forms,
 unless W ≡ 0 (mod 4) on the class. `exclOK_sound` and `entryOK_sound` prove all this.
 
-With the loop's chain (`loop_halt_wide`, `thm/LoopHalt.lean`: from a pass start of width at least 2²⁴, a close
-through the loop is p full passes, after at most one half pass at the start), `entry_halt` follows: from such an entry
-a halt needs the loop's chain to end without a close (`LoopEnd`) and a stuck configuration after that. `route_halt`
-puts the two together for a halting run from a two-marker state, and `blank_halt_route` states it for every
-two-marker state that a halting run from blank tape passes.
+With the loop's chain (`LoopChain.close_wide`, `thm/LoopTheorem.lean`: from a pass start of width at least 2²⁴, a
+close through the loop is p full passes, after at most one half pass at the start), the chain from such an entry
+reaches no closing class (`EntryNoClose.no_close`), and with `loop_halt_leaves` (`thm/LoopHalt.lean`: with the
+middle-wall condition every landing is again a pass start with every gap at least 448) `entry_halt` follows: from such
+an entry a halt needs the loop's chain to end without a close, where the run leaves phase 0 or the halving chain at a
+round start that is not three walls, and a stuck configuration after that. `route_halt` puts the two together for a
+halting run from a two-marker state, and `blank_halt_route` states it for every two-marker state that a halting run
+from blank tape passes. The clean-tape tree stops at the same entries (`cleanTreeGE`, `END_TO_END.md`).
 
 At 36 digits with Γ = 2²⁶ (every pass start in the cone then has width at least 2²⁷, so the width test never fails):
 the plain tree cuts the same 407,087 classes as with Γ = 8,000,000, and with the loop entries 101,855 are left
@@ -179,8 +185,8 @@ The Python checker takes hours on the same trees.
   ceiling 35.906 at 36 digits; the Python checker computes them in floating point). They are not needed for the
   entries the tree with loop entries settles: from those the loop cannot close at any width. What is left are the 94
   pass starts at 36 digits whose gaps are not all decided to be at least 448 (measure 401 / 2^36).
-* **What happens after the loop.** From an entry, a halt needs the loop's chain to end (`LoopEnd`) and a stuck
-  configuration after that; the run after the loop's end is not followed.
+* **What happens after the loop.** From an entry, a halt needs the loop's chain to end where the run leaves three
+  walls, and a stuck configuration after that; the run after the loop's end is not followed.
 * **The measure of deeper trees.** The theorem holds at every depth; only the measure of the cut classes needs
   evaluation, and that grows with the leaf count (about 1.43-fold per digit): the 46-, 62- and 64-digit trees (up to
   about 10⁹ leaves) are out of reach of one evaluation.
