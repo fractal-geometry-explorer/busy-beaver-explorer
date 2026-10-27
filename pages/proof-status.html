@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Holdout proof status</title>
+<meta name="description" content="What is proved about the BB(6) holdout 1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0LD1RE, what is open, and how to check it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --open: #B3261E; --open-bg: #FBE6E4;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --open: #FF8A80; --open-bg: #3A1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --open: #FF8A80; --open-bg: #3A1714;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 36px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+ul, ol { padding-left: 1.3em; display: grid; gap: 6px; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; overflow-x: auto; font-family: var(--font-display); font-size: 0.74rem; line-height: 1.6; }
+pre code { font-size: inherit; overflow-wrap: normal; }
+.top { display: grid; gap: 12px; max-width: 70ch; }
+.crumb { font-size: 0.9rem; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.asof { font-size: 0.88rem; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 70ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.verdict p { max-width: 68ch; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 0.88rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.flow { display: grid; gap: 0; }
+.stage { display: grid; grid-template-columns: 28px 1fr; gap: 12px; }
+.stage .rail { display: flex; flex-direction: column; align-items: center; }
+.stage .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--link); margin-top: 18px; flex: none; }
+.stage .dot.open { background: var(--open); }
+.stage .line { width: 2px; flex: 1; background: var(--rule); }
+.stage:last-child .line { display: none; }
+.stage .box { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; margin-bottom: 10px; display: grid; gap: 6px; }
+.stage .box.open { border-color: var(--open); }
+.stage .box p { font-size: 0.95rem; }
+.stage .box .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.card p { font-size: 0.94rem; }
+.card .where { font-size: 0.84rem; color: var(--muted); }
+.scrollx { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--r); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--rule); }
+tr:last-child td { border-bottom: none; }
+thead th { font-family: var(--font-display); font-size: 0.72rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+td code { overflow-wrap: normal; white-space: nowrap; }
+.openlist { display: grid; gap: 12px; }
+.openitem { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--open); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; }
+.openitem p { font-size: 0.95rem; }
+details { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 14px; }
+details[open] { display: grid; gap: 10px; }
+summary { cursor: pointer; font-family: var(--font-display); font-size: 0.8rem; }
+details pre { border: none; padding: 0; background: none; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="crumb"><a href="index.html">Busy Beaver Explorer</a> / the holdout</p>
+    <h1>What is proved about the holdout, and what is open</h1>
+    <p class="machine">1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0LD1RE</p>
+    <p>This six-state Turing machine is one of the BB(6) holdouts: nobody knows whether it halts when started on a blank tape. This page says where the formal proof stands, what is left, and how to check every part of it yourself.</p>
+    <p class="asof">Status as of 27 October 2026. The work is moving; this page is updated as results are merged into the repository.</p>
+  </header>
+
+  <section aria-labelledby="h-short">
+    <h2 id="h-short">In short</h2>
+    <div class="verdict">
+      <p><b>The question is not settled.</b> What is proved, in Lean 4, is that if the machine ever halts from blank tape, its run must first reach one of two kinds of rare configuration that the proof cannot yet rule out:</p>
+      <ol>
+        <li>a <b>clean tape</b> of width at least 2⁴¹ whose width falls, at every depth, in a residue class the clean-tape tree leaves open (at 36 binary digits, 1,255,963 classes of W/2, together a fraction 1.83 × 10⁻⁵ of the widths), or</li>
+        <li>a <b>pass start</b> of the machine's main loop, wider than 2⁴¹, that its pass-start tree leaves open at every depth, reached from a loop entry that cannot close.</li>
+      </ol>
+      <p>This is the theorem <code>blank_halt_pass</code>. A second version, <code>blank_halt_pass_kernel</code>, proves the same shape of statement (from width 2²⁰ and 2²⁴ instead of 2⁴¹) using Lean's kernel alone, with no compiled code in the trusted base. Separately, an exhaustive C computation shows that no clean tape below 2⁶¹ leads to a halt.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-run">
+    <h2 id="h-run">The run from blank tape, stage by stage</h2>
+    <div class="prose">
+      <p>The machine's tape can be read as stripes <code>1010…</code> with a few marks on them (gaps, markers, walls and blocks). Its run from blank tape passes through <i>clean tapes</i> (one marker at the end), sometimes enters an eight-round <i>loop</i> that divides the distance to the right end by 16 on each pass, and can only halt at a close at the right end or where two marks touch. The proof follows a halting run through every stage. Each stage below is labelled by what its proof trusts.</p>
+    </div>
+    <div class="legend" aria-label="Legend">
+      <span><span class="tag t-kernel">kernel</span> checked by Lean's kernel alone</span>
+      <span><span class="tag t-native">native_decide</span> evaluated by compiled code</span>
+      <span><span class="tag t-comp">C search</span> exhaustive computation outside Lean</span>
+      <span><span class="tag t-open">open</span> not proved</span>
+    </div>
+    <div class="flow">
+      <div class="stage"><div class="rail"><span class="dot"></span><span class="line"></span></div>
+        <div class="box">
+          <h3>1. The mark rules and the round theorem</h3>
+          <p>21 rules say how the machine moves the marks, for every stripe length and any surrounding tape, and one round of the machine is exactly one round of the mark model, or a halt exactly where the model says.</p>
+          <div class="tags"><span class="tag t-kernel">kernel</span></div>
+        </div></div>
+      <div class="stage"><div class="rail"><span class="dot"></span><span class="line"></span></div>
+        <div class="box">
+          <h3>2. From blank tape to the first wide clean tape</h3>
+          <p>The model is run from blank tape to the clean tape of width 2²⁰ (294,033 rounds), checked by the kernel; or to width 2³² (1.2 × 10⁹ rounds), after which every clean tape of width between 2³² and 2⁴¹ in an open class (26,508,327 of them) is run directly to a wider one.</p>
+          <div class="tags"><span class="tag t-kernel">kernel to 2²⁰</span><span class="tag t-native">native_decide to 2⁴¹</span></div>
+        </div></div>
+      <div class="stage"><div class="rail"><span class="dot"></span><span class="line"></span></div>
+        <div class="box">
+          <h3>3. From clean tape to clean tape: the clean-tape tree</h3>
+          <p>Split by residue classes of W/2, at <i>every</i> depth: from a clean tape outside the cut classes the machine reaches a wider clean tape without halting, or a loop entry from which no member of its class can close. The tree is built by an explorer that is proved to build only valid trees, so nothing is evaluated.</p>
+          <div class="tags"><span class="tag t-kernel">kernel</span></div>
+        </div></div>
+      <div class="stage"><div class="rail"><span class="dot"></span><span class="line"></span></div>
+        <div class="box">
+          <h3>4. Through the loop: exit, endgame, chain and σ bound</h3>
+          <p>Every loop state runs without halting to a clean tape, a break of the end-meeting chain, or another pass (358 classes). Every pass start either has its right-end distance R in the closing set {2, 4, 8, 16, 24, 32, 48, 64, 176} with its left countdown L₁ in R's class, or runs on without closing until it leaves the loop or lands on the next pass start by one of three exact maps. By induction along this chain, a run closes through the loop only from such a pass start, and that gives the σ bound log₂W ≤ σ + 6.38.</p>
+          <div class="tags"><span class="tag t-kernel">kernel</span></div>
+        </div></div>
+      <div class="stage"><div class="rail"><span class="dot"></span><span class="line"></span></div>
+        <div class="box">
+          <h3>5. Past the loop's end: pass-start trees</h3>
+          <p>From a pass start where the chain ends, the run is followed on, outside the trees' cut classes, to the next landing of the chain or to a wider one-marker clean tape, at every depth, and there the clean-tape tree takes over again.</p>
+          <div class="tags"><span class="tag t-kernel">kernel</span></div>
+        </div></div>
+      <div class="stage"><div class="rail"><span class="dot open"></span><span class="line"></span></div>
+        <div class="box open">
+          <h3>What remains: the cut classes of steps 3 and 5</h3>
+          <p>Configurations that a tree cuts at every depth are not followed further. A halt from blank tape must go through one of them.</p>
+          <div class="tags"><span class="tag t-open">open</span></div>
+        </div></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-proved">
+    <h2 id="h-proved">What is proved</h2>
+    <div class="cards">
+      <div class="card">
+        <h3><code>blank_halt_pass</code></h3>
+        <p>A halt from blank tape needs a clean tape of width ≥ 2⁴¹ in a cut class of the clean-tape tree with loop entries at every depth, or a pass start wider than 2⁴¹ in a cut class of its pass-start tree at every depth; the run reaches it, halts from it, and the mark model reaches a contact from it.</p>
+        <p class="where"><code>lean/thm/PassEntryHalt.lean</code> · <span class="tag t-native">native_decide</span> for the prefix and direct runs</p>
+      </div>
+      <div class="card">
+        <h3><code>blank_halt_pass_kernel</code></h3>
+        <p>The same from width 2²⁰: open clean tapes of width ≥ 2²⁰ (cut by the plain tree below 2²⁴ and the tree with entries above), or open pass starts of width ≥ 2²⁴. Nothing is evaluated by compiled code; <code>#print axioms</code> lists only <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>.</p>
+        <p class="where"><code>lean/thm/PassEntryHalt.lean</code> · <span class="tag t-kernel">kernel</span></p>
+      </div>
+      <div class="card">
+        <h3>The σ bound</h3>
+        <p>A pass divides R³ and L₁² by the same factor, and every closing class has R³/L₁² ≤ 176³/256². So a close through the loop needs log₂W ≤ σ + 6.38, where σ = 3 log₂(W/R) + 2 log₂(|L₁|/W) at the start of the last run of full passes. From width ≥ 2²⁴ a close is p full passes after at most one half pass. The bound is attained (R = 2,816, L₁ = −16,384).</p>
+        <p class="where"><code>LoopChain.sigma</code>, <code>loop_halt_sigma</code>, <code>blank_halt_sigma</code>, <code>LoopChain.close_wide</code> · <span class="tag t-kernel">kernel</span></p>
+      </div>
+      <div class="card">
+        <h3>The loop chain</h3>
+        <p>If the machine halts from a pass start with gaps ≥ 448, its run follows full passes (R → R/16), a half pass (only as the first step) and round-7 breaks through every landing whose gaps stay ≥ 448, at any width. Within the loop it closes only from a pass start in a closing class.</p>
+        <p class="where"><code>LoopChain</code>, <code>loop_chain_halt</code> in <code>lean/thm/LoopHalt.lean</code> · <span class="tag t-kernel">kernel</span></p>
+      </div>
+      <div class="card">
+        <h3>The exit and the endgame</h3>
+        <p><code>exit_stretch</code>: every loop state with gaps ≥ 390 ends in one of 358 classes (298 breaks, 58 clean tapes, 2 passes). <code>endgame_stretch</code>: for every even R, the exact closing table. Both trees are checked by the kernel subtree by subtree, and each leaf ends at a stated event.</p>
+        <p class="where"><code>lean/thm/ExitTheorem.lean</code>, <code>EndgameTheorem.lean</code> · <span class="tag t-kernel">kernel</span></p>
+      </div>
+      <div class="card">
+        <h3>The 60-digit exhaustive search</h3>
+        <p>Every clean tape below 2⁶¹ reaches the next clean tape without halting: 36.9 billion settled classes and 121 billion direct runs, about 1.8 × 10⁵² machine steps. Rerun with the corrected simulator (the "trailing wall" fix found by the formalization), it reproduces the original result line for line, the corrected case never occurring.</p>
+        <p class="where"><code>csearch/nrefdfs2.c</code>, <code>dfs/merged60_fixed.txt</code> · <span class="tag t-comp">C search</span></p>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Also proved, and used along the way: the route tree for two-marker states (<code>route_tree_clean</code>, at every depth), and certificates with independent Python checkers for the exit (358 classes), the endgame (40,991 classes; 83,699 in either phase) and the route tree to 36 and 40 digits. A differential test (<code>simtest/</code>) runs every simulator against the proved model.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-trust">
+    <h2 id="h-trust">What each result trusts</h2>
+    <div class="scrollx">
+      <table>
+        <thead><tr><th scope="col">Result</th><th scope="col">Open clean tapes start at</th><th scope="col">Trusted base</th></tr></thead>
+        <tbody>
+          <tr><td><code>blank_halt_pass_kernel</code></td><td class="num">2²⁰</td><td>Lean's kernel and the three standard axioms</td></tr>
+          <tr><td><code>blank_halt_pass</code></td><td class="num">2⁴¹</td><td>the above, plus Lean's compiler (and a C compiler) for <code>native_decide</code> on the prefix to 2³² and the 26.5 million direct runs</td></tr>
+          <tr><td>with the exhaustive search</td><td class="num">2⁶¹</td><td>the above, plus the C program <code>nrefdfs2</code>; this combination is not a Lean theorem</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-open">
+    <h2 id="h-open">What is open</h2>
+    <div class="openlist">
+      <div class="openitem">
+        <h3>Do the open pass starts get reached?</h3>
+        <p>Some pass starts that the pass-start trees leave open really do halt: one in eight of those with R = 6 leaves the loop at round 2 and closes in round 7 (for example walls 743, 1,802 and 3,319, width 3,326, halting after 11,362,209 steps). So no depth of these trees can close the case on its own. The question is whether the machine's own run ever reaches one. A lead: at all 28,660 loop entries of the 36-digit clean-tape tree, R is affine in the class coordinate with a nonzero coefficient, so a chain from them ends at R &lt; 178 only at isolated members of a class. The rest reach the tree for R ≥ 178, whose open fraction falls from 8.8% of a class at 16 splits to 4.1% at 20, with no halt found among them. (These figures come from an untrusted program; they are not yet proved.)</p>
+      </div>
+      <div class="openitem">
+        <h3>The clean tapes left open at every depth</h3>
+        <p>1,255,963 classes at 36 digits remain open over the widths ≥ 2⁴¹. Their number grows about 1.52-fold per digit, so their measure shrinks about 0.76-fold per digit. That it shrinks to zero is a measurement, not a theorem. Deeper trees or a new invariant could cut these further.</p>
+      </div>
+      <div class="openitem">
+        <h3>A lock for the extra-wall loops</h3>
+        <p>With extra walls, the loop has other passes. The pass P and the detour Q each have a never-zero countdown (Q's is quadratic), and every periodic word in P and Q up to length 12 has one, but mixtures of them have none. A working lock would bound the halts these loops can carry, and might settle both open cases at once.</p>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Heuristic odds of a halt beyond the exhaustive range are tiny (of order 10⁻³² or less), but they are estimates from measured rates, not proof. The <a href="closing-gap-rule-map.html#h-known">summary page</a> grades every statement as proved, checked, measured or heuristic.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-check">
+    <h2 id="h-check">How to check it</h2>
+    <div class="prose">
+      <p>The proofs use Lean 4.34.0 with the core library only (no Mathlib, no Lake). <code>scripts/setup-lean.sh</code> installs it to <code>/opt/lean-4.34.0</code> (it needs root, for <code>/opt</code> and <code>/etc/profile.d</code>). Times below are on 4 cores.</p>
+    </div>
+<pre><code>git clone https://github.com/fractal-geometry-explorer/busy-beaver-explorer
+cd busy-beaver-explorer
+sudo scripts/setup-lean.sh &amp;&amp; . /etc/profile.d/lean.sh
+cd bb6-holdout/lean
+
+./check.sh            # the BB6 modules: rules, rounds, trees, explorers (about a minute)
+./check_end.sh        # every theorem file, kernel and native pieces (about 22 minutes)
+./check_end.sh --deep # also the 40-digit measures (about 39 minutes)
+./check_route.sh --fast   # the route tree at every depth, and its 36-digit measure</code></pre>
+    <div class="prose">
+      <p>Each theorem file ends with <code>#print axioms</code>. For <code>blank_halt_pass_kernel</code> it should list only <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>; for <code>blank_halt_pass</code> it also lists what <code>native_decide</code> adds for the two evaluated checks, <code>prefix_ok</code> and <code>clean_direct_ok</code>. The certificates check in Python with exact arithmetic:</p>
+    </div>
+<pre><code>cd bb6-holdout/cert &amp;&amp; gunzip -k *.gz
+python3 check_endgame.py endgame_leaves.txt
+python3 check_exit.py exit_leaves.txt
+python3 check_tree.py tree36_leaves.txt     # hours</code></pre>
+    <div class="prose">
+      <p>The exhaustive search is about 80 CPU hours to 60 digits, split into 384 parts by <code>dfs/run_parts.sh</code> and merged with <code>dfs/merge.py</code>; compare the result with <code>dfs/merged60_fixed.txt</code>.</p>
+    </div>
+    <details>
+      <summary>The statement of blank_halt_pass in Lean</summary>
+<pre><code>theorem blank_halt_pass (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :
+    (∃ W k, directWidth ≤ W ∧ W % 2 = 0 ∧
+      (∀ d, (cleanTreeGE directWidth d).cutMem [(W : Int) / 2, 0] = true) ∧
+      steps k ⟨blank, blank, .A⟩ = some (roundStart [⟨.M, W - 2⟩] W) ∧
+      steps (T - k) (roundStart [⟨.M, W - 2⟩] W) = none ∧
+      ∃ t, Reach ⟨[], 1, [⟨.M, W - 2⟩], W⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
+    ∃ R a b W k, directWidth &lt; W ∧ PassStart448 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W R ∧
+      (∀ d, PassCut d R a b W) ∧
+      steps k ⟨blank, blank, .A⟩ = some (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W) ∧
+      steps (T - k) (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W) = none ∧
+      ∃ t, Reach ⟨[], 1, [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩], W⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)</code></pre>
+      <p>Here <code>directWidth</code> = 2⁴¹, <code>steps</code> is the machine itself (<code>none</code> means halted), and <code>roundStart</code> is the tape of a mark state.</p>
+    </details>
+  </section>
+
+  <footer>
+    <p>Details: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/bb6-holdout/lean/END_TO_END.md">END_TO_END.md</a> (the end-to-end theorems), <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/bb6-holdout/README.md">bb6-holdout/README.md</a> (everything established) and the <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/bb6-holdout/notes/LAB_NOTES.md">research log</a>.</p>
+    <p>This work was done by the repository owner with Claude, Anthropic's AI model.</p>
+  </footer>
+</main>
+</body>
+</html>

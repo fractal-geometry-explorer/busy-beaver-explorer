@@ -11,7 +11,8 @@ Explorations of six-state Busy Beaver machines.
   - [`bb6-holdout/README.md`](bb6-holdout/README.md): what is established and how to check it
   - [`bb6-holdout/HANDOFF.md`](bb6-holdout/HANDOFF.md): state of the work and proposed next steps
   - [`bb6-holdout/notes/LAB_NOTES.md`](bb6-holdout/notes/LAB_NOTES.md): the full research log
-- [`pages/`](pages/): the explanatory pages (open them in a browser): the holdout's summary page
+- [`pages/`](pages/): the explanatory pages (open them in a browser): the holdout's proof status
+  ([`proof-status.html`](pages/proof-status.html)), summary page
   ([`closing-gap-rule-map.html`](pages/closing-gap-rule-map.html)) and mark-rule stepper, and two pages on the BB(6)
   champion found by mxdys in 2025.
 
