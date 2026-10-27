@@ -19,17 +19,18 @@ mark rules interactively.
 - *The round theorem.* From the tape of any well-formed mark state, the machine reaches exactly the next round start
   that the mark model computes, or halts exactly where the model says it halts (`round_run`, `rounds_run`); from blank
   tape it follows the model for as many rounds as the model covers (`blank_rounds`).
-- *Two loop results as theorems about the machine* (`lean/thm/`). The split trees are checked by a proved function:
-  for `exit_no_halt` (and `loop_pass` below) by Lean's kernel alone (`decide +kernel`, the check cut into subtree
-  theorems), for `endgame_no_close` with `native_decide`, which also trusts Lean's compiler:
+- *Two loop results as theorems about the machine* (`lean/thm/`). The split trees are checked by a proved function,
+  evaluated by Lean's kernel alone (`decide +kernel`, the check cut into subtree theorems), for these two and for
+  `loop_pass` below:
   - `exit_no_halt`: every loop state (walls at a, b, c, width E; a odd, b even, c odd, E even; every gap ≥ 390) runs
     to another round start without halting;
-  - `endgame_no_close`: for every even R ≤ 4096 outside {2, 4, 8, 16, 24, 32, 48, 64, 176}, every phase-0 pass
-    start (walls at a, b, E − R − 1, width E; every gap ≥ 448) runs to a round start without halting and without an
-    end meeting at distance ≤ 2.
+  - `endgame_no_close`: for every even R ≥ 2 outside {2, 4, 8, 16, 24, 32, 48, 64, 176}, every phase-0 pass start
+    (walls at a, b, E − R − 1, width E; every gap ≥ 448) runs to a round start without halting and without an end
+    meeting at distance ≤ 2. One tree with R as a coordinate covers every R ≥ 178; each smaller R has its own tree.
 
-  - `loop_no_close` (`thm/LoopTheorem.lean`): the same as `endgame_no_close` for **every** even R ≥ 2 outside the
-    closing set, at any width. For R ≥ 4097 one tree with R as a free coordinate (`loop_pass`, `thm/LoopPass.lean`)
+  - `loop_no_close` (`thm/LoopTheorem.lean`): the stretch of `endgame_no_close` carried through every pass of the
+    loop, for every even R ≥ 2 outside the closing set, at any width. For R ≥ 4097 one tree with R as a free
+    coordinate (`loop_pass`, `thm/LoopPass.lean`)
     follows the run to where it leaves the loop or reaches another phase-0 pass start with gaps ≥ 448 and R′ = R/16,
     L₁′ = L₁/64 (the pass map), or R′ = R/2 on one short branch; strong induction on R through those pass starts
     ends in the endgame trees. So within the stretch the trees certify, a run through the loop closes only from a pass
@@ -39,7 +40,8 @@ mark rules interactively.
 
   The number of rounds in all three is existential (the round where the run breaks off, cleans the tape, completes a pass
   or leaves phase 0, chosen per class by an untrusted program), and nothing is claimed for R in the closing set.
-- *End to end from blank tape* (`lean/thm/EndToEnd.lean`, `lean/END_TO_END.md`; also `native_decide`):
+- *End to end from blank tape* (`lean/thm/EndToEnd.lean`, `lean/END_TO_END.md`; `native_decide` for the prefix and
+  the clean-tape tree):
   `blank_halt_structure` says that if the machine halts from blank tape, it first reaches a clean tape of even width
   W ≥ 2³² with W/2 in one of the cut classes of a 36-digit clean-tape tree (1,660,016 residue classes, measure
   2.4 × 10⁻⁵) and halts from there; the mark model run from that clean tape reaches a close at the right end or an
@@ -80,15 +82,15 @@ programs in `csearch/` are kept as they were run.
 ```sh
 cd lean
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check.sh        # all 24 files, about a minute; prints the axioms
-# the theorem files: the exit and loop trees evaluated by the kernel (their subtree modules in parallel, under a
-# minute with 4 cores), the endgame trees, the prefix and the clean-tape tree with native_decide as native code, the
-# halts after each stretch, and the end-to-end theorem (about 11 minutes):
+# the theorem files: the exit, loop and endgame trees evaluated by the kernel (their subtree modules in parallel,
+# about 2 minutes with 4 cores), the prefix and the clean-tape tree with native_decide as native code, the halts
+# after each stretch, and the end-to-end theorem (about 12 minutes):
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh
 ```
 
 `thm/gen_exit.py`, `thm/gen_loop.py` and `thm/gen_endgame.py` regenerate the theorem files from the trees
 (`python3 thm/gen_exit.py thm/exit_tree.txt thm`, `python3 thm/gen_loop.py thm/loop_tree.txt thm`,
-`python3 thm/gen_endgame.py thm/endgame_trees.txt thm/EndgameTheorem.lean`), which the untrusted builders
+`python3 thm/gen_endgame.py thm/endgame_sym.txt thm/endgame_small.txt thm`), which the untrusted builders
 `ExploreExit.lean`, `ExploreLoop.lean` and `ExploreNC.lean` produce.
 
 **Certificates** (Python 3, exact rational arithmetic):

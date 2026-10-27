@@ -7,10 +7,11 @@ import BB6.RouteTree
 
 `loop_no_close` states the steps and the end meetings of the run; `loop_no_close_rounds` is the same induction, also
 keeping the fact that the mark model covers those rounds (`roundsZ … = .newRound`), which is what `halt_after_rounds`
-needs.  With it, `loop_halt_needs_contact` extends `endgame_halt_needs_contact` (`thm/EndgameHalt.lean`) from
-R ≤ 4096 to every even R ≥ 2 outside the closing set: if the machine halts from such a phase-0 pass start, it first
-completes the whole close-free stretch through the loop's passes, and the mark model, run on from where that stretch
-ends, reaches a stuck configuration (a close at the right end or an interior contact).
+needs.  With it, `loop_halt_needs_contact` extends `endgame_halt_needs_contact` (`thm/EndgameHalt.lean`), whose
+stretch ends where the endgame tree ends, to the stretch through the loop's passes: if the machine halts from a
+phase-0 pass start with R even, R ≥ 2 and outside the closing set, it first completes the whole close-free stretch
+through the loop's passes, and the mark model, run on from where that stretch ends, reaches a stuck configuration (a
+close at the right end or an interior contact).
 -/
 
 namespace BB6
@@ -26,7 +27,7 @@ theorem loop_no_close_rounds : ∀ (R : Nat), R % 2 = 0 → 2 ≤ R → closingS
   | ind R ih =>
     intro hR hR2 hS a b E ha hb hE h1 h2 h3
     by_cases hR4 : R ≤ 4096
-    · obtain ⟨n, -, ms', W', -, hr, hm⟩ := endgame_no_close R hR hR2 hR4 hS a b E ha hb hE h1 h2 h3
+    · obtain ⟨n, -, ms', W', -, hr, hm⟩ := endgame_no_close R hR hR2 hS a b E ha hb hE h1 h2 h3
       exact ⟨n, ms', W', hr, hm⟩
     · obtain ⟨n₁, -, ms₁, W₁, -, hr₁, hm₁, hout⟩ :=
         loop_pass R a b E hR (by omega) ha hb hE h1 h2 h3

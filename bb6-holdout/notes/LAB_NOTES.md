@@ -2171,6 +2171,24 @@ certified stretch can come back to phase-0 pass starts and close later. The read
 only from a pass start whose R is in the closing set" holds only for the end chain inside each certified stretch.
 `thm/EndToEnd.lean` states the loop part accordingly: a halt comes only after the stretch.
 
+
+**The endgame checked by the kernel, with one tree for every R ≥ 178 (October 27; `../lean/thm/EndgamePieces*.lean`,
+`EndgameTheorem.lean`).** `endgame_no_close` no longer uses `native_decide`, and it no longer needs R ≤ 4096: it holds
+for every even R ≥ 2 outside the closing set. A tree with R as a coordinate (R = 2y₃, with the cone form R ≥ 178) had
+been stopped by a single class, R = 48 + 256z with z ≥ 1, whose round 13 stayed undecided. The open test was a landing
+packet's y < m + 3, where m + 3 − y = 2 − 2z is at most 0 on the cone but equal to 0 at z = 1; `sgn` decides only
+strict signs, so `ltDec` had no answer. The forms take integer values, so a < b fails exactly when b − a − 1 < 0, and
+`ltDec` now tries that second sign when the first is undecided (`ltDec_sound` covers both). The change only turns
+undecided comparisons into `some false` and never changes a decided one, so every existing check still passes (trees
+with `cut` leaves, like the clean-tape tree, may cut less when they are rebuilt). With it, the tree for all R ≥ 178
+(`thm/endgame_sym.txt`, built by `ExploreNC sym 178 448`) is complete with 200 leaves. Two other ideas tried on the
+way turned out not to be needed: tightening each cone bound to the next value its form takes at integer points (by
+the gcd of its coefficients), and a second inverse for cones with an upper bound on R. The 79 even R < 178 outside the closing set keep one tree each
+(`thm/endgame_small.txt`, 1,543 leaves). Together they need 4,948 rounds of checks instead of 117,947: 306 subtree
+theorems in four modules, 95 s on 4 cores (about 0.06 s per round, under 1 GB per module), where `native_decide` took
+14 s. `loop_no_close` still goes through `loop_pass` for R ≥ 4097, so its stretch runs through every pass of the
+loop. `blank_halt_structure` now rests on `native_decide` only for `prefix_ok` and `clean_tree_ok`.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:

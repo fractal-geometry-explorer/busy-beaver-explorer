@@ -30,10 +30,10 @@ none uses the Python or C simulators with the trailing-wall slip. Files are in t
 - Q: 128w1' = w2 + 514, 128w2' = 9w2 + 4w3 + 16w4 + 32E + 1710, 32w3' = 2w2 + w3 + 6w4 + 22E + 701, 16w4' as P, E' = E + 24.
 
 The eight shapes of each pass are checked too (`P_shapes`, `Q_shapes`). No splits were needed.
-- `PassMaps.lean` evaluates with `native_decide`, which trusts Lean's compiler; it checks in about 3 s.
-- `PassMapsKernel.lean` is the same file with `decide +kernel`; it depends only on `propext`, `Classical.choice` and
-  `Quot.sound`, and checks in about 4.5 minutes. See `lean_maps/kernel_check.out`.
-- Run `cd lean_maps && ./check.sh` (or `./check.sh kernel`), after building `../lean` with `./check.sh` there.
+- `PassMaps.lean` is evaluated by Lean's kernel (`decide +kernel`), so `P_pass` and `Q_pass` depend only on `propext`,
+  `Classical.choice` and `Quot.sound`; it checks in about 6 s (4 minutes before the sign test went through a checked
+  cone inverse, October 27; a `native_decide` copy is no longer needed). See `lean_maps/kernel_check.out`.
+- Run `cd lean_maps && ./check.sh`, after building `../lean` with `./check.sh` there.
 
 `verify_maps.py` (output `verify_maps.out`) also runs 10 coset points of each of 11 words (P, Q, PP, PQ, QP, QQ, PQQ,
 QPQ, PPQP, QQQQ, PQPQP) at width 2^200 through the proved model. It uses `Harness.lean`, a thin I/O wrapper around
@@ -141,7 +141,7 @@ after the single Q.
 |---|---|
 | `passmaps.py` | the P and Q maps as exact rationals |
 | `Harness.lean`, `verify_maps.py` | run starts through the proved `roundZ`; compare with composed maps (`verify_maps.out`) |
-| `lean_maps/` | `PassMaps.lean` (P_pass, Q_pass), `PassMapsKernel.lean` (no compiler trust), `DQ.lean` (D_Q identity and never-zero), `gen_passmaps.py`, `check.sh` |
+| `lean_maps/` | `PassMaps.lean` (P_pass, Q_pass; kernel-checked, no compiler trust), `DQ.lean` (D_Q identity and never-zero), `gen_passmaps.py`, `check.sh` |
 | `qlock_derive.py`, `DQ.txt` | derivation of D_Q and its zero set |
 | `periodic_locks.py`, `periodic_locks_12.txt` | locks and rates for all Lyndon words to length 12 |
 | `word_height.py`, `word_height.txt` | the norm form of any word, its height, never-zero check |

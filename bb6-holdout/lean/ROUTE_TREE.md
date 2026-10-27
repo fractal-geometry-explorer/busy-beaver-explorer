@@ -54,7 +54,7 @@ for all of them at 36 digits. Deeper trees need a larger Γ (the threshold grows
 
 ## What is trusted
 
-As for `exit_no_halt` and `endgame_no_close`: Lean's kernel, plus Lean's compiler through `native_decide`
+As for the prefix and the clean-tape tree: Lean's kernel, plus Lean's compiler through `native_decide`
 (`#print axioms route_tree_clean` lists `route_tree_ok._native.native_decide.ax_1_1` besides the three standard
 axioms). With `--fast`, `check_route.sh` also compiles the BB6 modules to C with `lean -c`, builds them with `leanc`
 (clang) into a shared library and loads it with `--load-dynlib`, so that `native_decide` calls native code for the

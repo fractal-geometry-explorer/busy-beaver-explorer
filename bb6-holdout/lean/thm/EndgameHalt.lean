@@ -5,7 +5,7 @@ import BB6.HaltStretch
 # A halt from a pass start needs a contact after the endgame
 
 `endgame_no_close` with `halt_after_rounds`: if the machine halts from a phase-0 pass start (the hypotheses of
-`endgame_no_close`: R ≤ 4096 even and outside the closing set, gaps ≥ 448), then the run first gets through the
+`endgame_no_close`: R ≥ 2 even and outside the closing set, gaps ≥ 448), then the run first gets through the
 certified stretch, on which no end meeting comes within distance 2, and the mark model, run on from the round start
 where the stretch ends, reaches a stuck configuration: a close at the right end or an interior contact
 (`stuck_cases`).
@@ -14,14 +14,14 @@ where the stretch ends, reaches a stuck configuration: a close at the right end 
 namespace BB6
 open BB6.Sym
 
-theorem endgame_halt_needs_contact (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R) (hR4 : R ≤ 4096)
+theorem endgame_halt_needs_contact (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R)
     (hS : closingSet.contains R = false) (a b E : Nat) (ha : a % 2 = 1) (hb : b % 2 = 0) (hE : E % 2 = 0)
     (h1 : 448 ≤ a) (h2 : a + 448 ≤ b) (h3 : b + 448 + R + 1 ≤ E) (T : Nat)
     (hT : steps T (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E) = none) :
     ∃ n ms' W', roundsZ 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E = .newRound ms' W' ∧
       (∀ d ∈ meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E, 3 ≤ d) ∧
       ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t) := by
-  obtain ⟨n, -, ms', W', -, hr, hm⟩ := endgame_no_close R hR hR2 hR4 hS a b E ha hb hE h1 h2 h3
+  obtain ⟨n, -, ms', W', -, hr, hm⟩ := endgame_no_close R hR hR2 hS a b E ha hb hE h1 h2 h3
   have hwf : roundWF [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E := by
     simp only [roundWF, rightOK, mval, mlen, iff_true]
     omega
