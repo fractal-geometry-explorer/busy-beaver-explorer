@@ -2013,6 +2013,32 @@ the slip needs three shifts in a row to reach the last few cells of the tape, wh
 produce even once in 239 million shifts that reach the last mark. The programs in `audit/` are the instrumented
 copies.
 
+**The trailing wall, fixed (October 27).** The simulators now write what `roundZ` writes: when a shift reaches a block
+that ends the tape (nothing after it, W = position + 3), the block becomes blank tape, with no wall and width W − 1; a
+block that would run past the width is refused. Changed: `../cert/check_endgame.py`, `check_exit.py`, `check_tree.py`
+(a distance to the tape end that is not constant must be ≥ 4 on the cone, or the leaf is undecided), the C engines
+`../csearch/nrefdfs2.c`, `lined.c`, `rtree3d.c`, `rtree3e.c`, `gx3.c` (each prints `trailing-wall canonical forms
+written: N` to stderr), and the stepper engine with its copy in the stepper page. The other programs in `../csearch/`
+are left as they were run.
+- *Differential test* (`../simtest/`, `check.sh`). Every one of these programs, and the bare transition table, runs
+  the same random well-formed round starts as the proved model (`Oracle.lean`, which runs `roundZ`); wherever both
+  make a claim (next round start or halt) they must agree. Fixed programs, 20,000 starts × 12 rounds: no disagreement
+  (161,390 rounds compared for the C engines and the machine, 149,478 for the endgame and exit checkers and the
+  stepper, 56,073 for the tree checker, which refuses more). The original programs, on 3,000 starts × 8 rounds and
+  after reducing their output to canonical form, give a different tape in 24 starts each (9 for the tree checker).
+  With the bare machine as the reference instead, the C engines also differ on configurations the proved model calls
+  uncovered (marks touching: a block or wall directly after the gap, …), where they apply a rule outside its
+  conditions; the Python checkers refuse those. This is the known contact question, not the slip, and the exhaustive
+  engine's separation probes are what exclude it there.
+- *Certificates.* With the fixed checkers the exit, endgame and any-phase certificates and the 36-digit route tree
+  (946,207 leaves, 27 minutes) are VALID, with output identical to the unfixed checkers'. (The committed `../cert/check_exit.out` is older than the checker: the current
+  checker, fixed or not, prints the per-gap margins and an overall cone threshold of 447 rather than 255.)
+- *Exhaustive check.* The fixed `nrefdfs2` to 54 digits (48 parts at split level 26, about 4.3 CPU hours,
+  `../dfs/merged54_fixed.txt`) reproduces `merged54.txt` line for line (the levels 1 to 54 of the 56-, 58- and 60-digit
+  runs also agree, up to the known tie at level 35), and the corrected case occurs 0 times in all 48 parts. So the
+  audit, which reached 46 digits, now reaches 54; the 60-digit result is unaffected wherever the fixed engine has been
+  run.
+
 **Formalization, third layer: the certificates through the proved model (October 26; `BB6/SymForm`, `BB6/SymRound`,
 `CheckEndgame.lean`, `CheckExit.lean`).** A certificate leaf is a coset x = x0 + B·y; substituted into the start
 state, every position becomes an integer affine form in y, so halving and digit tests are exact integer facts (halve

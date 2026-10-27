@@ -46,7 +46,12 @@ marked as such in the notes and on the summary page; they are not proofs.
 one end-of-tape sequence (the "trailing wall": a shift reaching a block in the last three cells, then a later shift
 reaching the wall it leaves). Instrumented reruns (`audit/`) of the certificate checkers, the exhaustive check to 46
 digits, the route trees and the plateau exits reproduce their results exactly and never reach that sequence; the
-deeper exhaustive runs were made with the uninstrumented program. See "The trailing wall" in the notes.
+deeper exhaustive runs were made with the uninstrumented program. See "The trailing wall" in the notes. **Fixed
+(October 27):** the checkers, the C engines current work uses (`nrefdfs2`, `lined`, `rtree3d`, `rtree3e`, `gx3`) and
+the stepper now write the canonical form, as the proved model does, and `simtest/` checks every one of them against
+the proved model on random tapes. With the fixed programs the certificates (exit, endgame, any-phase, 36-digit route tree) check with unchanged output, and the
+exhaustive check to 54 digits reproduces `dfs/merged54.txt` exactly, with the corrected case never occurring. The other
+programs in `csearch/` are kept as they were run.
 
 ## How to check
 
@@ -83,6 +88,7 @@ python3 check_tree.py tree36_leaves.txt          # hours
 | `cert/` | certificate files (compressed), the independent checkers, and their outputs |
 | `csearch/` | the C explorers (exhaustive check, route trees, plateau exits, and earlier experiments) |
 | `dfs/` | merged results of the exhaustive check to 54, 56, 58 and 60 digits, and the driver |
+| `simtest/` | the differential test of the simulators (Python, C, stepper) against the proved model and the bare machine |
 | `audit/` | instrumented copies of the checkers and explorers used for the trailing-wall audit, with their outputs |
 | `rec/` | the Python symbolic prover of the mark rules, and the Python research scripts (simulators, invariant searches, halt-odds estimates, end-of-loop studies) |
 | `conc/` | Python studies of the routes into the loop, the extra-wall loops and their exits |
