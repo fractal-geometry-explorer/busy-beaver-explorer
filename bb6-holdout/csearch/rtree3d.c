@@ -123,13 +123,23 @@ static int packet_back(Form x) {
     if (S.T[b] == 'G') { S.P[b] = fadd(S.P[b], 2); return b; }
     Form q = S.P[b]; S.T[b] = 'M'; S.P[b] = fadd(q, -1); return addm('G', fadd(q, 1));
 }
+static long long TW_CANON = 0;
+static void tw_report(void) { fprintf(stderr, "trailing-wall canonical forms written: %lld\n", TW_CANON); }
 static int shift_from(Form x) {
     int k = first_right(x);
     if (k < 0) { S.W = fadd(S.W, 2); addm('M', fadd(S.W, -2)); return packet_back(fadd(S.W, -2)); }
     char t = S.T[k];
     if (t == 'M') { S.T[k] = 'G'; return k; }
     if (t == 'W') { S.T[k] = 'B'; return packet_back(S.P[k]); }
-    if (t == 'B') { S.T[k] = 'W'; S.P[k] = fadd(S.P[k], 2); return packet_back(S.P[k]); }
+    if (t == 'B') {
+        /* a block that ends the tape (W = k + 3): the wall it leaves would take the cells W - 1 and W, which is blank
+           tape, so write the canonical form, no wall and width W - 1, as the proved model does (roundZ in
+           ../lean/BB6/Round.lean); keeping the wall was the "trailing-wall slip" */
+        if (k == last_mark()) { Form d = fplus(S.W, S.P[k], -1);
+            if (d.a == 0 && d.b == 0 ? d.c < ((ll)3 << d.e) : fcmp(fadd(S.P[k], 3), S.W) > 0) { S.bad = 10; return -1; }
+            if (d.a == 0 && d.b == 0 && d.c == ((ll)3 << d.e)) { TW_CANON++; S.A[k] = 0; S.W = fadd(S.W, -1); return packet_back(S.P[k]); } }
+        S.T[k] = 'W'; S.P[k] = fadd(S.P[k], 2); return packet_back(S.P[k]);
+    }
     S.bad = 2; return -1;
 }
 static int test_outcome(Form d) {
@@ -203,7 +213,7 @@ static void sortmarks(void) {
 typedef struct Node { St st; Coset c; unsigned char forced[64]; int nf; int rd; int hlen; struct Node *next; } Node;
 /* shape history kept as a string per node: store in a separate growing buffer referenced by offset */
 static char **HIST; static int *HLEN;
-int main(int argc, char **argv) {
+int main(int argc, char **argv) { atexit(tw_report);
     int cut = atoi(argv[1]); int part = argc > 2 ? atoi(argv[2]) : 0, nparts = argc > 3 ? atoi(argv[3]) : 1;
     int split = argc > 4 ? atoi(argv[4]) : 10;
     if (argc > 6) { RP = atoll(argv[5]); RS = atoll(argv[6]); }

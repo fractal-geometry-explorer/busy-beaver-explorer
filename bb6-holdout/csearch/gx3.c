@@ -141,12 +141,22 @@ static int packet_back(Form x) {
     if (S.T[b] == 'G') { S.P[b] = faddc(S.P[b], 2); return b; }
     Form q = S.P[b]; S.T[b] = 'M'; S.P[b] = faddc(q, -1); return add('G', faddc(q, 1));
 }
+static long long TW_CANON = 0;
+static void tw_report(void) { fprintf(stderr, "trailing-wall canonical forms written: %lld\n", TW_CANON); }
 static int shift_from(Form x) {
     int k = first_right(x);
     if (k < 0) { S.W = faddc(S.W, 2); add('M', faddc(S.W, -2)); return packet_back(faddc(S.W, -2)); }
     if (S.T[k] == 'M') { S.T[k] = 'G'; return k; }
     if (S.T[k] == 'W') { S.T[k] = 'B'; return packet_back(S.P[k]); }
-    if (S.T[k] == 'B') { S.T[k] = 'W'; S.P[k] = faddc(S.P[k], 2); return packet_back(S.P[k]); }
+    if (S.T[k] == 'B') {
+        /* a block that ends the tape (W = k + 3): the wall it leaves would take the cells W - 1 and W, which is blank
+           tape, so write the canonical form, no wall and width W - 1, as the proved model does (roundZ in
+           ../lean/BB6/Round.lean); keeping the wall was the "trailing-wall slip" */
+        if (k == last_mark()) { Form e = faddc(S.P[k], 3); int c = fcmp(e, S.W);
+            if (c > 0) { S.bad = 10; return -1; }
+            if (c == 0 && feq(e, S.W)) { TW_CANON++; S.A[k] = 0; S.W = faddc(S.W, -1); return packet_back(S.P[k]); } }
+        S.T[k] = 'W'; S.P[k] = faddc(S.P[k], 2); return packet_back(S.P[k]);
+    }
     S.bad = 2; return -1;
 }
 static int DBGROUND = 0;
@@ -540,7 +550,7 @@ static void report(const char *label) {
 static void reset_results(void) { p_pass = 0; n_exit = n_cut = n_halt = n_toloop = 0; max_exit_run = max_toloop_run = 0; memset(later, 0, sizeof later); memset(exit_hist, 0, sizeof exit_hist); geodep = ncmp = 0; }
 
 static Item ROOT;
-int main(int argc, char **argv) {
+int main(int argc, char **argv) { atexit(tw_report);
     if (argc < 3) { fprintf(stderr, "usage: see source\n"); return 1; }
     if (!strcmp(argv[1], "exit")) {
         MODE = 0; KX = atoi(argv[2]); CAP = atoi(argv[3]); NOSTOP = getenv("GXNOSTOP") != NULL;
