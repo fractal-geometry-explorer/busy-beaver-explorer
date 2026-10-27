@@ -18,9 +18,9 @@
 #      proved explorer, nothing evaluated), the clean tapes of width in [2^32, 2^41) run one by one
 #      (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and thm/EndToEndDirect.lean, the routes from
 #      two-marker states with their loop entries (thm/RouteTheorem.lean, thm/RouteEntryTheorem.lean,
-#      thm/RouteEntryHalt.lean, nothing evaluated), and the clean-tape tree with loop entries and its chain from blank
-#      tape (thm/CleanEntryTheorem.lean, thm/CleanEntryHalt.lean, nothing evaluated); prints the axioms of the final
-#      theorems;
+#      thm/RouteEntryHalt.lean, nothing evaluated), the clean-tape tree with loop entries and its chain from blank
+#      tape (thm/CleanEntryTheorem.lean, thm/CleanEntryHalt.lean, nothing evaluated), and that chain joined to the
+#      pass-start trees (thm/PassEntryHalt.lean); prints the axioms of the final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,
 #      about 5 minutes each), and with --deep also at 40 digits
@@ -87,5 +87,6 @@ stage LoopHalt
 stage EndToEnd RouteEntryHalt PassHalt
 stage EndToEndDirect
 stage CleanEntryHalt
+stage PassEntryHalt
 $LEAN thm/EndToEndAxioms.lean
 echo "END TO END CHECKED"

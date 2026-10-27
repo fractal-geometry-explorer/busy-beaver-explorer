@@ -83,6 +83,12 @@ mark rules interactively.
   with **no `native_decide`** (the standard axioms only): `blank_prefix_kernel` (`thm/PrefixKernel.lean`) checks the
   run from blank tape to the clean tape of width 2²⁰ (294,033 rounds) with Lean's kernel, and the clean-tape tree over
   the widths ≥ 2²⁰ takes over from there. Its cut classes are the same (1,660,024 at 36 digits).
+  With the loop entries and the pass-start trees (`lean/thm/CleanEntryHalt.lean`, `lean/thm/PassEntryHalt.lean`),
+  `blank_halt_pass` follows the whole run: a halt from blank tape needs a clean tape of width ≥ 2⁴¹ in a cut class of
+  the clean-tape tree with loop entries at every depth (1,255,963 classes at 36 digits, measure 1.83 × 10⁻⁵), or a
+  pass start wider than 2⁴¹ in a cut class of its pass-start tree at every depth, reached from a loop entry that cannot
+  close along the loop's chain. Some pass starts in those classes halt (1/8 of those with R = 6), so the question is
+  whether the run reaches one of them, or one of those clean tapes.
 - *The route tree* (`lean/thm/RouteTheorem.lean`, `lean/ROUTE_TREE.md`): `route_tree_clean`, the certificate's
   two-marker route tree as a theorem about the machine, at every depth and cone constant, with the standard axioms
   only (the same explorer); at 36 and 40 digits its cut classes are the Python certificate's (measure 5.9 × 10⁻⁶ and

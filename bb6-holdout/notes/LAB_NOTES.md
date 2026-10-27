@@ -2549,6 +2549,20 @@ path at the same loop entries as the route tree:
   start within the depth (`EntryStats.lean`): the loop's entries are settled, and what is left are runs that stay
   outside the loop for 36 digits.
 
+**From blank tape past the loop's end (October 27; `../lean/thm/PassEntryHalt.lean`).** `pass_halt_chain` is what a
+halt from a loop entry needs in `clean_entry_chain`. A loop entry that cannot close (`EntryNoClose`) is a pass start of
+width ≥ 2²⁴ with every gap ≥ 448 and, when W ≡ 2 (mod 4), the middle wall ≥ 896 below the width, which is what
+`pass_halt_chain` asks for. Of its three ends, the closing class is out there (`EntryNoClose.no_close`), which leaves a
+last pass start of the chain cut at every depth of its pass-start tree, or a wider clean tape that the run reaches and
+halts from (`entry_pass_halt`). So `blank_halt_pass` follows the whole run from blank tape: a halt needs a clean tape
+of width ≥ 2⁴¹ in a cut class of the clean-tape tree with loop entries at every depth, or a pass start wider than 2⁴¹
+in a cut class of its pass-start tree at every depth, reached along the loop's chain from such an entry, and it halts
+from there; `blank_halt_pass_kernel` is the same from 2²⁰ with the kernel alone. Unlike the clean-tape tree's cut
+classes, the pass-start trees' do not shrink to nothing (1/8 of the pass starts with R = 6 halt), so what is open is
+which pass starts the run reaches: the last pass starts of loop chains from the clean-tape tree's entries. At every
+one of those entries R is affine in the class's coordinate with a nonzero coefficient (28,660 entries at 36 digits,
+`EntryStats.lean`), so the chains end at R₁ < 178 only at isolated members, and otherwise in the tree for R ≥ 178.
+
 **Cleaving the cone's edge (October 27; `../lean/BB6/PassTree.lean`, `../lean/PassStats.lean`).** The pass-start
 trees' cuts at a round left undecided, with no undecided residue to split on, were the one kind of cut that more depth
 did not shrink (0.5% of a class at 16 splits, 0.7% at 20). Traced at 14 splits for R = 10, 22, 42, 74 and 158
@@ -2569,13 +2583,14 @@ its bound by bisection, gives up the cone forms whose loss still leaves the next
 makes at most 8 cleaves on a path (`passCleaves`). It is proved like the rest (`explore_ok`), so `pass_next` and
 `pass_halt_chain` hold as before, at every depth with nothing evaluated.
 
-Measures (`PassStats.lean`, fractions of a start class; the slices have measure 0, and their leaves are counted
-apart): at 20 splits the cut leaves hold 2.0% of a class R < 178 on average (1.8% where the depth ran out, 0.14% at
-R = 6's decided halt, 4 × 10⁻⁶ at rounds that no cleave decides), against 2.4% before, and 3.8% for R ≥ 178, all of it
-where the depth ran out, against 4.1%; at 16 splits 4.6% and 8.8%; at 24 splits 1.6% for R ≥ 178 (5 × 10⁻⁶ undecided): the depth cuts fall about 0.8-fold per split. The 175,107
-cleaves at 20 splits in the trees for R < 178 have 391,807 leaves in their slices, half of them cut (a slice goes on
-to the same depth as its class). A budget of 16 or 32 cleaves on a path leaves the undecided rounds where they are:
-those few classes are ones where no cleave applies, not ones that ran out of cleaves.
+Measures (`PassStats.lean`, fractions of a start class; the slices have measure 0, and their leaves are counted apart):
+at 20 splits the cut leaves hold 2.0% of a class R < 178 on average (1.8% where the depth ran out, 0.14% at R = 6's
+decided halt, 4 × 10⁻⁶ at rounds that no cleave decides), against 2.4% before, and 3.8% for R ≥ 178, all of it where the
+depth ran out, against 4.1%; at 16 splits 4.6% and 8.8%; at 24 splits 1.6% for R ≥ 178 (5 × 10⁻⁶ undecided): the depth
+cuts fall about 0.8-fold per split. The 175,107 cleaves at 20 splits in the trees for R < 178 have 391,807 leaves in
+their slices, half of them cut (a slice goes on to the same depth as its class). A budget of 16 or 32 cleaves on a path
+leaves the undecided rounds where they are: those few classes are ones where no cleave applies, not ones that ran out of
+cleaves.
 
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
