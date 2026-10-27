@@ -176,7 +176,7 @@ def main (args : List String) : IO Unit := do
     let R : Int := Rn
     let (ss, sW, ts) := startR R
     let (t, leaves) := build 3 ts Γ ss sW 40 24
-    let ok := t.ok Γ 1000 3 ss sW ts
+    let ok := t.ok Γ 1000 3 false ss sW ts
     if !ok then allOk := false; IO.println s!"R={R}: TREE CHECK FAILED"
     total := total + leaves.length
     if leaves.any (·.kind == .close) then closes := closes ++ [Rn]

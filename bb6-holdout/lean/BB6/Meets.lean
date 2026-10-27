@@ -43,6 +43,28 @@ def meetsRounds (fuel : Nat) : Nat → List Mark → Nat → List Nat
      | .newRound ms' W' => meetsRounds fuel n ms' W'
      | _ => [])
 
+/-- Runs compose: the end meetings of `n₁ + n₂` rounds are those of the first `n₁` and then those of the next `n₂`. -/
+theorem meetsRounds_append (fuel : Nat) : ∀ (n₁ n₂ : Nat) (ms : List Mark) (W : Nat) (ms' : List Mark) (W' : Nat),
+    roundsZ fuel n₁ ms W = .newRound ms' W' →
+    meetsRounds fuel (n₁ + n₂) ms W = meetsRounds fuel n₁ ms W ++ meetsRounds fuel n₂ ms' W' := by
+  intro n₁
+  induction n₁ with
+  | zero =>
+    intro n₂ ms W ms' W' h
+    simp only [roundsZ, PR'.newRound.injEq] at h
+    obtain ⟨rfl, rfl⟩ := h
+    simp [meetsRounds]
+  | succ n ih =>
+    intro n₂ ms W ms' W' h
+    rw [Nat.add_right_comm]
+    simp only [roundsZ] at h
+    simp only [meetsRounds, List.append_assoc]
+    congr 1
+    generalize roundZ fuel [] 1 ms W = r at h ⊢
+    cases r with
+    | newRound a b => exact ih n₂ a b ms' W' h
+    | _ => cases h
+
 end BB6
 
 namespace BB6.Sym
@@ -329,33 +351,58 @@ end
 
 variable (Γ : Int) (fuel : Nat)
 
-/-- As `Tree.ok`, and every end meeting in each leaf's rounds is at distance ≥ 3. -/
-def Tree.okNC (k : Nat) : Tree → List SMark → YForm → List YForm → Bool
-  | .leaf n, ss, sW, ts =>
-    symRightOK ts Γ (YForm.const 4) false sW ss &&
+/-- As `Tree.ok`, and every end meeting in each leaf's rounds (and in each `adv` node's rounds) is at distance ≥ 3. -/
+def Tree.okNC (k : Nat) : Tree → Bool → List SMark → YForm → List YForm → Bool
+  | .leaf n, wf, ss, sW, ts =>
+    (wf || symRightOK ts Γ (YForm.const 4) false sW ss) &&
     (match symRoundsZ ts Γ fuel n ss sW with
      | some (.newRound _ _) => true
      | _ => false) &&
     (match symMeetsRounds ts Γ fuel n ss sW with
      | some ds => allGe3 ts Γ ds
      | none => false)
-  | .node i t0 t1, ss, sW, ts =>
-    decide (i < k) && t0.okNC k (substL ss i 0) (sW.subst i 0) (substT ts i 0) &&
-      t1.okNC k (substL ss i 1) (sW.subst i 1) (substT ts i 1)
+  | .adv n t, wf, ss, sW, ts =>
+    (wf || symRightOK ts Γ (YForm.const 4) false sW ss) &&
+    (match symMeetsRounds ts Γ fuel n ss sW with
+     | some ds => allGe3 ts Γ ds
+     | none => false) &&
+    (match symRoundsZ ts Γ fuel n ss sW with
+     | some (.newRound ss' sW') => t.okNC k true ss' sW' ts
+     | _ => false)
+  | .node i t0 t1, wf, ss, sW, ts =>
+    decide (i < k) && t0.okNC k wf (substL ss i 0) (sW.subst i 0) (substT ts i 0) &&
+      t1.okNC k wf (substL ss i 1) (sW.subst i 1) (substT ts i 1)
+  | .skew i j s t, wf, ss, sW, ts =>
+    decide (i < k) && decide (j < k) && decide (i ≠ j) &&
+      t.okNC k wf (skewL ss i j s) (sW.skew i j s) (skewT ts i j s)
+
+variable {Γ fuel} in
+theorem Tree.okNC_node {k i : Nat} {wf : Bool} {t0 t1 : Tree} {st : SState} (hi : i < k)
+    (h0 : t0.okNC Γ fuel k wf (stSplit st i 0).1 (stSplit st i 0).2.1 (stSplit st i 0).2.2 = true)
+    (h1 : t1.okNC Γ fuel k wf (stSplit st i 1).1 (stSplit st i 1).2.1 (stSplit st i 1).2.2 = true) :
+    (Tree.node i t0 t1).okNC Γ fuel k wf st.1 st.2.1 st.2.2 = true := by
+  simp only [Tree.okNC, Bool.and_eq_true, decide_eq_true_eq]; exact ⟨⟨hi, h0⟩, h1⟩
+
+variable {Γ fuel} in
+theorem Tree.okNC_skew {k i j : Nat} {wf : Bool} {s : Int} {t : Tree} {st : SState} (hi : i < k) (hj : j < k)
+    (hij : i ≠ j) (h : t.okNC Γ fuel k wf (stSkew st i j s).1 (stSkew st i j s).2.1 (stSkew st i j s).2.2 = true) :
+    (Tree.skew i j s t).okNC Γ fuel k wf st.1 st.2.1 st.2.2 = true := by
+  simp only [Tree.okNC, Bool.and_eq_true, decide_eq_true_eq]; exact ⟨⟨⟨hi, hj⟩, hij⟩, h⟩
 
 /-- **A checked no-close tree, for the machine.**  At every point of the root class inside the cone, the machine runs
-from the root's round start for the leaf's number of rounds without halting, reaching a round start, and every end
-meeting on the way is at distance at least 3: the run does not close. -/
-theorem Tree.soundNC (k : Nat) (t : Tree) : ∀ (ss : List SMark) (sW : YForm) (ts : List YForm),
-    t.okNC Γ fuel k ss sW ts = true → ∀ (y : List Int), y.length = k → inCone ts Γ y →
-    ∀ (ms : List Mark) (Wn : Nat), agL y ss ms → agN y sW Wn →
+from the root's round start for the rounds recorded on the way to the leaf without halting, reaching a round start,
+and every end meeting on the way is at distance at least 3: the run does not close. -/
+theorem Tree.soundNC (k : Nat) (t : Tree) : ∀ (wf : Bool) (ss : List SMark) (sW : YForm) (ts : List YForm),
+    t.okNC Γ fuel k wf ss sW ts = true → ∀ (y : List Int), y.length = k → inCone ts Γ y →
+    ∀ (ms : List Mark) (Wn : Nat), agL y ss ms → agN y sW Wn → (wf = true → roundWF ms Wn) →
     ∃ n kk ms' Wn', steps kk (roundStart ms Wn) = some (roundStart ms' Wn') ∧
       roundsZ fuel n ms Wn = .newRound ms' Wn' ∧ ∀ d ∈ meetsRounds fuel n ms Wn, 3 ≤ d := by
   induction t with
   | leaf n =>
-    intro ss sW ts h y _ hy ms Wn hs hW
+    intro wf ss sW ts h y _ hy ms Wn hs hW hwf
     simp only [Tree.okNC, Bool.and_eq_true] at h
-    obtain ⟨⟨hwf, hrun⟩, hmt⟩ := h
+    obtain ⟨⟨hwf', hrun⟩, hmt⟩ := h
+    have hrwf := wf_of_check Γ hy hs hW hwf hwf'
     cases hr : symRoundsZ ts Γ fuel n ss sW with
     | none => rw [hr] at hrun; cases hrun
     | some r =>
@@ -369,7 +416,6 @@ theorem Tree.soundNC (k : Nat) (t : Tree) : ∀ (ss : List SMark) (sW : YForm) (
           have hds := symMeetsRounds_sound ts Γ hy fuel n ss ms sW Wn ds hs hW hmr
           have hge := allGe3_sound ts Γ hy hds hmt
           have hag := symRoundsZ_sound ts Γ hy fuel n ss ms sW Wn _ hs hW hr
-          have hrwf : roundWF ms Wn := symRightOK_sound ts Γ hy ss _ 4 false sW Wn ms (agN_const y 4) hW hs hwf
           generalize hcr : roundsZ fuel n ms Wn = cr at hag
           cases cr with
           | newRound ms' Wn' =>
@@ -378,14 +424,59 @@ theorem Tree.soundNC (k : Nat) (t : Tree) : ∀ (ss : List SMark) (sW : YForm) (
             exact ⟨n, kk, ms', Wn', hk, hcr, hge⟩
           | _ => exact absurd hag id
       | _ => simp at hrun
+  | adv n t ih =>
+    intro wf ss sW ts h y hlen hy ms Wn hs hW hwf
+    simp only [Tree.okNC, Bool.and_eq_true] at h
+    obtain ⟨⟨hwf', hmt⟩, hrun⟩ := h
+    have hrwf := wf_of_check Γ hy hs hW hwf hwf'
+    cases hr : symRoundsZ ts Γ fuel n ss sW with
+    | none => rw [hr] at hrun; cases hrun
+    | some r =>
+      rw [hr] at hrun
+      cases r with
+      | newRound ss' sW' =>
+        cases hmr : symMeetsRounds ts Γ fuel n ss sW with
+        | none => rw [hmr] at hmt; cases hmt
+        | some ds =>
+          rw [hmr] at hmt
+          have hds := symMeetsRounds_sound ts Γ hy fuel n ss ms sW Wn ds hs hW hmr
+          have hge := allGe3_sound ts Γ hy hds hmt
+          have hag := symRoundsZ_sound ts Γ hy fuel n ss ms sW Wn _ hs hW hr
+          generalize hcr : roundsZ fuel n ms Wn = cr at hag
+          cases cr with
+          | newRound ms' Wn' =>
+            obtain ⟨kk, hk, hw'⟩ := rounds_run fuel n ms Wn hrwf (by rw [hcr]; intro h; cases h)
+            rw [hcr] at hk hw'
+            obtain ⟨n₂, kk₂, ms'', Wn'', hk₂, hr₂, hge₂⟩ :=
+              ih true ss' sW' ts hrun y hlen hy ms' Wn' hag.1 hag.2 (fun _ => hw')
+            refine ⟨n + n₂, kk + kk₂, ms'', Wn'', steps_seq hk hk₂, ?_, ?_⟩
+            · rw [roundsZ_add fuel n n₂ ms Wn ms' Wn' hcr]; exact hr₂
+            · rw [meetsRounds_append fuel n n₂ ms Wn ms' Wn' hcr]
+              intro d hd
+              rcases List.mem_append.mp hd with hd | hd
+              · exact hge d hd
+              · exact hge₂ d hd
+          | _ => exact absurd hag id
+      | _ => simp at hrun
   | node i t0 t1 ih0 ih1 =>
-    intro ss sW ts h y hlen hy ms Wn hs hW
+    intro wf ss sW ts h y hlen hy ms Wn hs hW hwf
     simp only [Tree.okNC, Bool.and_eq_true, decide_eq_true_eq] at h
     obtain ⟨⟨hi, h0⟩, h1⟩ := h
     obtain ⟨ε, z, hε, hzl, rfl⟩ := cover_split y i (by omega)
     have hiz : i < z.length := by omega
     rcases hε with rfl | rfl
-    · exact ih0 _ _ _ h0 z (by rw [hzl]; exact hlen) (inCone_subst hiz hy) ms Wn (agL_subst hiz hs) (agN_subst hiz hW)
-    · exact ih1 _ _ _ h1 z (by rw [hzl]; exact hlen) (inCone_subst hiz hy) ms Wn (agL_subst hiz hs) (agN_subst hiz hW)
+    · exact ih0 _ _ _ _ h0 z (by rw [hzl]; exact hlen) (inCone_subst hiz hy) ms Wn (agL_subst hiz hs)
+        (agN_subst hiz hW) hwf
+    · exact ih1 _ _ _ _ h1 z (by rw [hzl]; exact hlen) (inCone_subst hiz hy) ms Wn (agL_subst hiz hs)
+        (agN_subst hiz hW) hwf
+  | skew i j s t ih =>
+    intro wf ss sW ts h y hlen hy ms Wn hs hW hwf
+    simp only [Tree.okNC, Bool.and_eq_true, decide_eq_true_eq] at h
+    obtain ⟨⟨⟨hi, hj⟩, hij⟩, ht⟩ := h
+    obtain ⟨z, hzl, rfl⟩ := cover_skew y i j s hij (by omega)
+    have hiz : i < z.length := by omega
+    have hjz : j < z.length := by omega
+    exact ih _ _ _ _ ht z (by rw [hzl]; exact hlen) (inCone_skew hiz hjz hy) ms Wn (agL_skew hiz hjz hs)
+      (agN_skew hiz hjz hW) hwf
 
 end BB6.Sym

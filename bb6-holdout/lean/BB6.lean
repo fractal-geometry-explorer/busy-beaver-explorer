@@ -53,7 +53,7 @@ import BB6.HaltStretch
 #print axioms BB6.rounds_run
 #print axioms BB6.first_round_start
 #print axioms BB6.blank_rounds
-#print axioms BB6.Sym.posCheck_sound
+#print axioms BB6.Sym.sgn_sound
 #print axioms BB6.Sym.symGapEvent_sound
 #print axioms BB6.Sym.symRoundZ_sound
 #print axioms BB6.Sym.symRoundsZ_sound
