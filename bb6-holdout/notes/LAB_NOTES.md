@@ -2592,6 +2592,21 @@ their slices, half of them cut (a slice goes on to the same depth as its class).
 leaves the undecided rounds where they are: those few classes are ones where no cleave applies, not ones that ran out of
 cleaves.
 
+**The open cases do not run through the extra-wall loop (October 27, evening; `../lock/ShapeStats.lean`,
+`../lock/PassShapes.lean`, `../lock/LOCK_NOTES.md` section 6).** The lock for the extra-wall loops was meant to settle
+what `blank_halt_pass` leaves open. Two untrusted drivers walk the clean-tape tree with loop entries and the pass-start
+trees (with their cleaves) step by step as the proved explorers build them, and record the round shapes on every cut
+path. Of the 1,255,963 cut classes of the clean-tape tree at 36 digits (Γ = 2⁴¹), 1,098 (0.09%) meet the extra-wall
+pass start `G W W W W` anywhere on their path, and 1,061,623 (85%) never hold more than two walls in a round start.
+Nearly all the paths have 32 to 63 rounds, about one per digit, and they stop at two- and three-mark rounds (`G M M`
+41%, `G B` 15%, `G W M M` 13%, then `G M W M`, `G W M M M`, `G M B`, ...). In the pass-start trees at 20 splits, four
+walls carry 0.95% of the cut measure for R ≥ 178 and 0.82% for R < 178 (apart from R = 6's decided halt, which never
+meets them). So no lock for those loops can settle either case, and with the hand-built mixed halts no lock covers
+the loop's mixtures anyway. What keeps the classes open is long runs of two- and three-mark rounds: the class tree's
+own growth (about 1.52-fold per digit, 101,837 cut classes at 30 digits and 1,255,963 at 36), which "Summary of the
+right-end theory" (item 4, "Why verification is expensive") puts down to returns to a GMM state, each costing about
+3.5 digits, not to closeness to the end.
+
 **The open clean tapes come first (October 27; `../lean/thm/PassEntryHalt.lean`, `../lean/ReachStats.lean`).**
 `blank_halt_clean_direct` and `blank_halt_pass` follow the same halting run with two clean-tape trees:
 `cleanTreeG 2⁴¹ d`, which follows the run through the loop round by round, and `cleanTreeGE 2⁴¹ d`, which stops at the
