@@ -2592,6 +2592,30 @@ their slices, half of them cut (a slice goes on to the same depth as its class).
 leaves the undecided rounds where they are: those few classes are ones where no cleave applies, not ones that ran out of
 cleaves.
 
+**Pass starts that halt, in Lean (October 27; `../lean/BB6/BlockHalt.lean`, `../lean/thm/PassHaltR6.lean`).** The
+halting eighth of R = 6 (*Some pass starts halt*, above) is a theorem now, `pass_r6_halt`: from every phase-0 pass start
+with R = 6, b ≡ 2 (mod 8), W ≡ 2 (mod 4) and gaps ≥ 448, the machine halts. That class is where the R = 6 pass-start
+tree stops at a decided round, from 5 splits on (at that leaf b = 8(y₁ + y₂) + 2 and E = 4y₂ + 2), and at 20 splits it
+is the only cut at a decided round in all the pass-start trees (each R from 2 to 176, and the tree for R ≥ 178). The
+proof has two parts. On the class the model runs six rounds, to round starts with the marks B W, M W (meeting the end at
+distances 4 and 6 on the way), W W, a block five cells before the width, W W (meeting the end at distance 2) and a block
+three cells before the width; `symRoundsZ` decides all six on the class, in the coordinates ((a − 1)/2, (b − 2)/8,
+(W − 2)/4) with the cone's gaps ≥ 448, and the kernel evaluates it (`r6Check`, `decide +kernel`, about a second). The
+seventh round is the one the model leaves uncovered, and `block_end_halt'` takes it on the machine: from
+`roundStart [⟨.B, W′ − 3⟩] W′` with W′ odd, the head crosses the stripe in W′ − 7 steps (`pass`), meets the block at
+distance 0, and the machine halts 71 steps later, one cell left of where the stripe ended (those 72 steps are checked by
+`rfl` for any tape on the left, `block_end_local`). Standard axioms only; the start with walls 743, 1,802 and 3,319 and
+width 3,326 is `pass_r6_halt_example`.
+
+*Where the uncovered rounds are* (untrusted, `roundZ` through `lean -c`). From 1,000 random pass starts of width about
+2³⁰ for each R (gaps ≥ 448), the model was run to a clean tape or to a round it leaves uncovered. Every uncovered round
+had its last mark three cells before the width, met at distance 0, in one of three shapes: a lone block (R = 6: 139, all
+of them in the class above and at round 7, as are all 525 of 4,000; R = 48: 2), a marker far off and the block
+(R = 4: 104, R = 8: 92, R = 16: 15, R = 64: 1), or a block far off and a wall at W − 3 (R = 4: 270, R = 16: 20,
+R = 32: 19, R = 64: 7); there were none for R = 10, 12, 22, 24, 100 or 176. The first shape is `block_end_halt'`. The
+other two pass a mark first, so their halts need the gap phase up to the end (`Reach` to an `EndClose` state,
+`../lean/BB6/HaltStretch.lean`) and are not in Lean yet.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:
