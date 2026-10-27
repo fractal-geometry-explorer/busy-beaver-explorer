@@ -61,7 +61,7 @@ deeper exhaustive runs were made with the uninstrumented program. See "The trail
 
 ```sh
 cd lean
-LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check.sh        # all 22 files, about a minute; prints the axioms
+LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check.sh        # all 23 files, about a minute; prints the axioms
 # the two theorems (13 and 40 minutes of native_decide evaluation):
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/ExitTheorem.lean -o out/ExitTheorem.olean
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/EndgameTheorem.lean -o out/EndgameTheorem.olean
