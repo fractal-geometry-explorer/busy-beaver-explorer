@@ -56,6 +56,12 @@ mark rules interactively.
     (`pass_halt_chain`). Some cut classes are real halts: 1/8 of the pass starts with R = 6 leave the loop at round 2
     and close at distance 0 in round 7, and the machine halts there (from walls 743, 1,802, 3,319, width 3,326, after
     11,362,209 steps; for the whole class in Lean, `pass_r6_halt`).
+  - **Every close at the right end is a halt** (`BB6/CloseHalt.lean`, `thm/PassHaltClasses.lean`): a close with the
+    end marker at distance 0 that the model reaches is a halt 54 steps later (`reach_close_halt`). Every close leaf of
+    the pass-start trees halts; with R = 6's eighth they are eight classes by residues of b and W (all of R = 2, 3/8 of
+    R = 4, 1/32 to 1/256 of R = 8, 16, 32 and 48), proved to halt (`pass_class_halt`), as is every pass start whose
+    loop chain reaches one (`chain_class_halt`). In 600,000 random pass starts the model's run ends at a clean tape
+    or at that close, and every close passes through one of the classes.
 
   The number of rounds in all three is existential (chosen per class by an untrusted program), but each stretch ends at
   its stated event. The first versions (`exit_no_halt`, `endgame_no_close`, `loop_no_close`, `loop_pass`) said only
@@ -90,8 +96,9 @@ mark rules interactively.
   along the loop's chain. Some pass starts in those classes halt (1/8 of those with R = 6, `pass_r6_halt`). But the
   plain clean-tape tree follows the run on through every entry, so the run reaches such a pass start only after a clean
   tape that the plain tree leaves open at every depth (`blank_halt_open`; at 36 digits one of the 404,061 of its
-  1,660,024 cut classes that meet a loop entry). And it reaches none with a right end below 178, where all the known
-  halts are: `blank_halt_small` (`lean/thm/SmallEndHalt.lean`) puts the pass start a halt needs in the tree for R ≥ 178,
+  1,660,024 cut classes that meet a loop entry). And its loop chain ends at none with a right end below 178, where
+  every known halt from a pass start closes: `blank_halt_small` (`lean/thm/SmallEndHalt.lean`) puts the pass start a
+  halt needs in the tree for R ≥ 178,
   since past a loop entry that passes a small-end check (every entry at 36 digits does) the loop's chain ends at R ≥ 178
   (full passes keep R³/L₁², and a round-7 break from a width ≥ 2³⁷ lands above 177³/9). So the question is whether the
   run reaches one of the open clean tapes, and from those, one of the open pass starts with R ≥ 178:
