@@ -44,7 +44,7 @@ mark rules interactively.
   - **The σ bound** (`LoopChain.sigma`, `loop_halt_sigma`, `blank_halt_sigma`): a pass divides R³ and L₁² by the same
     factor, and the closing classes have R³/L₁² ≤ 176³/256², so a close through the loop needs R³/L₁² ≤ 176³/256² at
     the start of the chain's last run of full passes: log₂W ≤ σ + 6.38, with σ = 3 log₂(W/R) + 2 log₂(|L₁|/W) there.
-    At a round-7 landing that needs E < 2²⁷, so from a pass start of width ≥ 2²⁷ a close through the loop is p full
+    At a round-7 landing that needs E < 2²⁴, so from a pass start of width ≥ 2²⁴ a close through the loop is p full
     passes after at most one half pass (`LoopChain.close_wide`, `blank_halt_wide`). The bound is attained
     (R = 2,816, L₁ = −16,384: one pass to R = 176, L₁ = −256, then a close).
 

@@ -2418,9 +2418,11 @@ steps with their exact maps, and the run is followed through every landing:
 - A half pass is only ever the first step (`LoopChain.half_first`): every landing has W′ ≡ 0 mod 4.
 - σ: a chain that ends in a closing class has R³/L₁² ≤ 176³/256² at the start of its last run of full passes
   (`LoopChain.sigma`). At a round-7 landing 32 R′ = 4E + 4R − b + 110 ≥ 3E + 5R + 559 and
-  96 L₁′ = 147b + 1008E + 2058R + 50142 ≤ 3066E (b ≤ E − R − 449), so the bound there needs
-  27 E³ · 65536 · 9216 ≤ 32768 · 5451776 · 3066² · E², that is E ≤ 1.03 × 10⁸ < 2²⁷ (`break7_sigma`). Widths only
-  grow along the chain, so from a pass start of width ≥ 2²⁷ a chain that ends in a closing class has no round-7
+  96 L₁′ = 147b + 1008E + 2058R + 50142 ≤ 1155E + 1911R − 15861 (b ≤ E − R − 449), so with S = 3E + 5R,
+  32 R′ ≥ S and 96 L₁′ ≤ 385 S, and the bound there needs 18432 S ≤ 176³ · 385², that is S ≤ 43,841,661 and
+  E ≤ 14,613,887 < 2²⁴ (`break7_sigma`; the worst case is R small and b near E − R, where R′ ≈ 3E/32 and
+  L₁′ ≈ 12E). Widths only grow along the chain, so from a pass start of width ≥ 2²⁴ a chain that ends in a closing
+  class has no round-7
   break: it is p full passes (R = 16^p R₁, L₁ = 64^p L₁′), or one half pass from W ≡ 2 mod 4 and then p full passes
   (R = 2 · 16^p R₁, 2 · 64^p L₁′ = L₁ + 35W − 147R − 60) (`LoopChain.close_wide`, `loop_halt_wide`,
   `blank_halt_wide`). From a pass start beyond the bound, a close through the loop needs a half pass or a round-7

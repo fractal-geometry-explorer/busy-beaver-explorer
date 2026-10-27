@@ -24,7 +24,7 @@ The pieces, all theorems about the machine `1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0
   gaps again all ≥ 448), and needs a stuck configuration after it: at the chain's last pass start, with R in the
   closing set and L₁ in R's class, or after the run leaves the chain (`LoopEnd`).  `loop_halt_sigma` is the σ bound:
   from a pass start with R³/L₁² > 176³/256² (log₂W > σ + 6.38), a close through the loop needs a half pass or a
-  round-7 break on the way.  `loop_halt_wide`: from a pass start of width at least 2²⁷, a close through the loop
+  round-7 break on the way.  `loop_halt_wide`: from a pass start of width at least 2²⁴, a close through the loop
   makes no round-7 break.
 * `exit_halt_needs_contact` (`thm/ExitHalt.lean`): a halt from a loop state comes only after its certified exit
   stretch, which ends at a clean tape, a break of the end-meeting chain or a loop state again (`ExitEvent`), and needs
@@ -37,7 +37,7 @@ stuck configuration, for any bounds A ≤ B below which every clean tape of widt
 (`StepsBelow A B`): `blank_halt_clean` uses it with the prefix to 2³² and A = B = 2³², `blank_halt_clean_kernel` with
 the kernel's prefix to 2²⁰ and A = B = 2²⁰, and `thm/EndToEndDirect.lean` with the prefix to 2³², A = 2³² and
 B = 2⁴¹.  `blank_halt_loop` adds the pass starts (`blank_halt_sigma` the σ bound, `blank_halt_wide` the pass starts
-of width at least 2²⁷), `blank_halt_exit` the loop states,
+of width at least 2²⁴), `blank_halt_exit` the loop states,
 and `blank_halt_structure` is the three together; `blank_halt_structure_kernel` is the same with
 `blank_halt_clean_kernel`, and its axioms are Lean's standard three alone: no evaluation by compiled code is trusted.
 
@@ -198,12 +198,12 @@ theorem blank_halt_sigma (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) 
   exact loop_halt_sigma R ms W hP hσ _ hT'
 
 /-- **Wide pass starts, from blank tape.**  If the machine, started on blank tape, halts after T steps, then from every
-phase-0 pass start it passes on its way with width W ≥ 2²⁷ and every gap at least 448, the loop's chain either ends
+phase-0 pass start it passes on its way with width W ≥ 2²⁴ and every gap at least 448, the loop's chain either ends
 (`LoopEnd`) and the halt needs a stuck configuration after that, or it reaches a closing class without a round-7
 break: through p full passes (R = 16^p R₁, L₁ = 64^p L₁′), or a half pass from W ≡ 2 (mod 4) and then p full passes
 (R = 2 · 16^p R₁, 2 · 64^p L₁′ = L₁ + 35 W − 147 R − 60), and the halt needs a stuck configuration after it. -/
 theorem blank_halt_wide (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :
-    ∀ (R : Nat) (ms : List Mark) (W k : Nat), PassStart448 ms W R → 2 ^ 27 ≤ W →
+    ∀ (R : Nat) (ms : List Mark) (W k : Nat), PassStart448 ms W R → 2 ^ 24 ≤ W →
       steps k ⟨blank, blank, .A⟩ = some (roundStart ms W) →
       ∃ ks ms₁ W₁ R₁, LoopChain ms W R ks ms₁ W₁ R₁ ∧
         ((InCloseClass ms₁ W₁ R₁ ∧

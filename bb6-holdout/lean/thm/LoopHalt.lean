@@ -16,7 +16,7 @@ stuck configuration from there.  A stuck configuration is a close at the right e
 (`stuck_cases`).
 
 `loop_halt_sigma` is the σ bound: from a pass start with R³/L₁² > 176³/256² (log₂W > σ + 6.38), a close through the
-loop needs a half pass or a round-7 break on the way.  `loop_halt_wide`: from a pass start of width at least 2²⁷, a
+loop needs a half pass or a round-7 break on the way.  `loop_halt_wide`: from a pass start of width at least 2²⁴, a
 close through the loop makes no round-7 break; the chain to it is p full passes, after at most one half pass at the
 start (`LoopChain.close_wide`).
 -/
@@ -163,13 +163,13 @@ theorem loop_halt_sigma (R : Nat) (ms : List Mark) (W : Nat) (hP : PassStart448 
   · exact ⟨ks, ms₁, W₁, R₁, hch, Or.inr he⟩
 
 /-- **From a wide pass start, a close through the loop makes no round-7 break.**  If the machine halts from a phase-0
-pass start of width W ≥ 2²⁷ with right end R and every gap at least 448, then the loop's chain from there
+pass start of width W ≥ 2²⁴ with right end R and every gap at least 448, then the loop's chain from there
 (`loop_chain_halt`) either ends (`LoopEnd`) and the halt needs a stuck configuration after that, or it reaches a
 closing class at `ms₁ W₁` (right end R₁) through p full passes, with R = 16^p R₁ and L₁ = 64^p L₁′, or through a half
 pass (from W ≡ 2 mod 4) and then p full passes, with R = 2 · 16^p R₁ and 2 · 64^p L₁′ = L₁ + 35 W − 147 R − 60 (L₁ and
 L₁′ the left countdowns at `ms W` and `ms₁ W₁`), and the mark model, run on from `ms₁ W₁`, reaches a stuck
 configuration. -/
-theorem loop_halt_wide (R : Nat) (ms : List Mark) (W : Nat) (hP : PassStart448 ms W R) (hW : 2 ^ 27 ≤ W) (T : Nat)
+theorem loop_halt_wide (R : Nat) (ms : List Mark) (W : Nat) (hP : PassStart448 ms W R) (hW : 2 ^ 24 ≤ W) (T : Nat)
     (hT : steps T (roundStart ms W) = none) :
     ∃ ks ms₁ W₁ R₁, LoopChain ms W R ks ms₁ W₁ R₁ ∧
       ((InCloseClass ms₁ W₁ R₁ ∧

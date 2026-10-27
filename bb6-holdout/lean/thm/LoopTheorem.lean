@@ -20,8 +20,8 @@ full passes, and at a close it is at most 176³/256² (`sigma_close`: |L₁| ≥
 smaller R of the closing set allow less).  So a chain that ends in a closing class has R³/L₁² ≤ 176³/256² (`SigmaOK`)
 at the start of its last run of full passes (`LoopChain.sigma`).  With s = log₂(W/R) and λ = log₂(|L₁|/W) there (W the
 width) and σ = 3s + 2λ, this is the notes' bound log₂W ≤ σ + 6.38 (3 log₂ 176 − 2 log₂ 256 = 6.378).  At a round-7
-landing R′ ≥ (3E + 5R + 559)/32 and 0 < L₁′ ≤ 3066E/96, so `SigmaOK` there needs E < 2²⁷ (`break7_sigma`).  From a
-pass start of width at least 2²⁷, a chain that ends in a closing class therefore makes no round-7 break: it is p full
+landing 32R′ ≥ 3E + 5R and 0 < 96L₁′ ≤ 385(3E + 5R), so `SigmaOK` there needs E < 2²⁴ (`break7_sigma`).  From a
+pass start of width at least 2²⁴, a chain that ends in a closing class therefore makes no round-7 break: it is p full
 passes, after at most one half pass at the start (`LoopChain.close_wide`). -/
 
 /-- At the pass start, R is in the closing set and the left countdown L₁ is in R's class (`closeClass`). -/
@@ -228,10 +228,12 @@ theorem sigma_passes (p R : Nat) (L : Int) (h : SigmaOK R L) : SigmaOK (16 ^ p *
       Int.mul_assoc]
 
 /-- **σ at a round-7 landing.**  A round-7 break from a pass start of width E with right end R and every gap at least
-448 lands with 32 R′ = 4E + 4R − b + 110 ≥ 3E + 5R + 559 and 96 L₁′ = 147 b + 1008 E + 2058 R + 50142 ≤ 3066 E (b the
-middle wall, at most E − R − 449).  So R′³/L₁′² ≤ 176³/256² there needs E < 2²⁷ (E ≤ 1.03 · 10⁸). -/
+448 lands with 32 R′ = 4E + 4R − b + 110 ≥ 3E + 5R + 559 and 96 L₁′ = 147 b + 1008 E + 2058 R + 50142 ≤
+1155 E + 1911 R − 15861 (b the middle wall, at most E − R − 449).  With S = 3E + 5R that is 32 R′ ≥ S and
+0 < 96 L₁′ ≤ 385 S, so R′³/L₁′² ≤ 176³/256² there needs 18432 S ≤ 176³ · 385², that is S ≤ 43,841,661: E < 2²⁴
+(E ≤ 14,613,887). -/
 theorem break7_sigma {ms : List Mark} {E R : Nat} (hP : PassStart448 ms E R) {n W R' : Nat} {L' : Int}
-    (hm : StepMap .break7 n E R (passL1 ms E) W R' L') (hσ : SigmaOK R' L') : E < 2 ^ 27 := by
+    (hm : StepMap .break7 n E R (passL1 ms E) W R' L') (hσ : SigmaOK R' L') : E < 2 ^ 24 := by
   obtain ⟨a, b, rfl, -, -, -, -, -, h1, h2, h3⟩ := hP
   obtain ⟨-, hR', hL', -⟩ := hm
   have hL : passL1 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E = 147 * (b : Int) - 112 * E + 392 * R - 186 := by
@@ -240,12 +242,13 @@ theorem break7_sigma {ms : List Mark} {E R : Nat} (hP : PassStart448 ms E R) {n 
     omega
   rw [hL] at hR' hL'
   obtain ⟨l, rfl⟩ : ∃ l : Nat, L' = l := ⟨L'.toNat, by omega⟩
-  have hx : 3 * E ≤ 32 * R' := by omega
-  have hy : 96 * l ≤ 3066 * E := by omega
-  have c1 : 27 * E ^ 3 ≤ 32768 * R' ^ 3 := by
+  obtain ⟨S, hS⟩ : ∃ S, S = 3 * E + 5 * R := ⟨_, rfl⟩
+  have hx : S ≤ 32 * R' := by omega
+  have hy : 96 * l ≤ 385 * S := by omega
+  have c1 : S ^ 3 ≤ 32768 * R' ^ 3 := by
     have := Nat.pow_le_pow_left hx 3
-    rwa [Nat.mul_pow, Nat.mul_pow] at this
-  have c2 : 9216 * l ^ 2 ≤ 9400356 * E ^ 2 := by
+    rwa [Nat.mul_pow] at this
+  have c2 : 9216 * l ^ 2 ≤ 148225 * S ^ 2 := by
     have := Nat.pow_le_pow_left hy 2
     rwa [Nat.mul_pow, Nat.mul_pow] at this
   have c3 : 65536 * R' ^ 3 ≤ 5451776 * l ^ 2 := by
@@ -256,14 +259,17 @@ theorem break7_sigma {ms : List Mark} {E R : Nat} (hP : PassStart448 ms E R) {n 
     exact Int.ofNat_le.mp e
   apply Nat.lt_of_not_le
   intro hE
-  have m : E ^ 2 * 134217728 ≤ E ^ 3 := by
-    rw [Nat.pow_succ E 2]
-    exact Nat.mul_le_mul_left _ hE
-  have hpos : 0 < E ^ 2 := Nat.pow_pos (by omega)
-  generalize E ^ 3 = A at c1 m
-  generalize E ^ 2 = B at c2 m hpos
+  have hE' : 16777216 ≤ E := hE
+  have hS' : 50331648 ≤ S := by omega
+  have m : S ^ 2 * 50331648 ≤ S ^ 3 := by
+    rw [Nat.pow_succ S 2]
+    exact Nat.mul_le_mul_left _ hS'
+  have hpos : 0 < S ^ 2 := Nat.pow_pos (Nat.lt_of_lt_of_le (by decide) hS')
+  generalize S ^ 3 = A at c1 m
+  generalize S ^ 2 = B at c2 m hpos
   generalize R' ^ 3 = X at c1 c3
   generalize l ^ 2 = Y at c2 c3
+  clear hσ hR' hL' hx hy hS hS' h1 h2 h3 hE hE'
   omega
 
 namespace LoopChain
@@ -294,12 +300,12 @@ theorem sigma_all_full (h : LoopChain ms W R ks ms' W' R') (hc : InCloseClass ms
   rw [e] at h
   exact sigma_fulls _ h (sigma_close hc)
 
-/-- **From a wide pass start, a close makes no round-7 break.**  A chain from a pass start of width W ≥ 2²⁷ that ends
+/-- **From a wide pass start, a close makes no round-7 break.**  A chain from a pass start of width W ≥ 2²⁴ that ends
 in a closing class at `ms' W'` with right end R′ is p full passes, with R = 16^p R′ and L₁ = 64^p L₁′; or a half pass
 (from W ≡ 2 mod 4) and then p full passes, with R = 2 · 16^p R′ and 2 · 64^p L₁′ = L₁ + 35 W − 147 R − 60 (L₁ and
 L₁′ the left countdowns at the two ends).  Every round-7 break starts from a width at least W, and `SigmaOK` at its
-landing would need a width below 2²⁷ (`break7_sigma`). -/
-theorem close_wide (h : LoopChain ms W R ks ms' W' R') (hc : InCloseClass ms' W' R') (hW : 2 ^ 27 ≤ W) :
+landing would need a width below 2²⁴ (`break7_sigma`). -/
+theorem close_wide (h : LoopChain ms W R ks ms' W' R') (hc : InCloseClass ms' W' R') (hW : 2 ^ 24 ≤ W) :
     ∃ p, (ks = List.replicate p .full ∧ R = 16 ^ p * R' ∧ passL1 ms W = 64 ^ p * passL1 ms' W') ∨
       (ks = .half :: List.replicate p .full ∧ W % 4 = 2 ∧ R = 2 * 16 ^ p * R' ∧
         2 * 64 ^ p * passL1 ms' W' = passL1 ms W + 35 * (W : Int) - 147 * (R : Int) - 60) := by

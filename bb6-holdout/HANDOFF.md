@@ -37,7 +37,7 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    L₁′ = L₁/64), a half pass (R′ = R/2, only as the first step) and a break of the chain at round 7.
    `loop_chain_halt` follows a halting run through every landing with gaps ≥ 448 (`LoopChain`), and the σ bound is a
    theorem: a close through the loop needs R³/L₁² ≤ 176³/256², i.e. log₂W ≤ σ + 6.38, at the start of the chain's
-   last run of full passes (`LoopChain.sigma`, `loop_halt_sigma`, `blank_halt_sigma`); from a width ≥ 2²⁷ the chain to
+   last run of full passes (`LoopChain.sigma`, `loop_halt_sigma`, `blank_halt_sigma`); from a width ≥ 2²⁴ the chain to
    a close has no round-7 break (`LoopChain.close_wide`, `blank_halt_wide`). The original note:
    **The loop's end for every width as one Lean theorem.** Prove the pass map (R → R/16, L → L/64) with R free
    using the symbolic runner (`BB6/SymRound`, `BB6/SymSplit`), then induct over passes, combined with
