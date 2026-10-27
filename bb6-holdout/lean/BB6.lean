@@ -20,6 +20,7 @@ import BB6.SymRound
 import BB6.SymSplit
 import BB6.Meets
 import BB6.HaltClose
+import BB6.HaltStretch
 
 /-! Axiom audit: every theorem of the development should depend on at most `propext`, `Quot.sound`,
 `Classical.choice` (the standard three) — in practice the rules depend on none of them. -/
@@ -63,3 +64,5 @@ import BB6.HaltClose
 #print axioms BB6.halt_needs_contact
 #print axioms BB6.blank_halt_needs_contact
 #print axioms BB6.halt_needs_close
+#print axioms BB6.halt_needs_end_close
+#print axioms BB6.halt_after_rounds
