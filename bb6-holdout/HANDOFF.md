@@ -105,7 +105,13 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    never-zero quadratic locks, mixtures have none (hand-built mixed tapes halt), and the open cases of
    `blank_halt_pass` almost never reach the extra-wall loop (0.09% of the clean-tape tree's cut classes at 36 digits,
    under 1% of the pass-start trees' undecided cut measure at 20 splits), so no such lock can settle them. What keeps
-   them open is long runs of two- and three-mark rounds, about one digit per round.
+   them open is long runs of two- and three-mark rounds, about one digit per round. **Those runs, taken apart (October
+   27, night, `lock/LOCK_NOTES.md` section 7):** they are words in about 14,000 exact return pieces (from one two-marker
+   state to the next). Each piece repeated is bounded (every reset has a never-zero countdown; the eight largest pieces
+   and their countdowns are theorems, `lock/lean_maps/GmmMaps.lean`), but no countdown is shared and chains of returns
+   multiply 1.66-fold per digit, so no lock or integrality argument settles a class. The two-marker states up to width
+   262,143 that halt are (4, 9), (4, 13) and (12, 17); the October 20 scan had missed the first and the last, and the
+   machine reaches none of them.
 
 ## Practical notes
 
