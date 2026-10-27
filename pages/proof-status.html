@@ -110,7 +110,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <li>the finer tree, which also stops at loop entries that cannot close, leaves it open too (1,255,963 of the classes, 1.83 × 10⁻⁵), and the run reaches two marks touching; or</li>
         <li>the run enters the machine's main loop and reaches a <b>pass start</b> that its pass-start tree leaves open at every depth (only possible from the other 404,061 classes, 5.9 × 10⁻⁶).</li>
       </ol>
-      <p>This is the theorem <code>blank_halt_open</code>. A second version, <code>blank_halt_open_kernel</code>, proves the same statement from width 2²⁰ (2²⁴ for the pass start) using Lean's kernel alone, with no compiled code in the trusted base. Separately, an exhaustive C computation shows that no clean tape below 2⁶¹ leads to a halt.</p>
+      <p>This is the theorem <code>blank_halt_open</code>. A second version, <code>blank_halt_open_kernel</code>, proves the same statement from width 2²⁰ (2²⁴ for the pass start) using Lean's kernel alone, with no compiled code in the trusted base. A companion theorem, <code>blank_halt_small</code>, puts the pass start's right-end distance at R ≥ 178: a halt needs an open clean tape, or an open pass start with R ≥ 178, while every known halting pass start has R &lt; 178. Separately, an exhaustive C computation shows that no clean tape below 2⁶¹ leads to a halt.</p>
     </div>
   </section>
 
@@ -159,7 +159,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <div class="stage"><div class="rail"><span class="dot open"></span><span class="line"></span></div>
         <div class="box open">
           <h3>What remains: open clean tapes, then open pass starts</h3>
-          <p>Configurations that a tree cuts at every depth are not followed further. A halt from blank tape must first reach a clean tape that the plain tree of step 3 cuts at every depth, and then either stay in the finer tree's cut classes or reach a pass start cut by the trees of step 5.</p>
+          <p>Configurations that a tree cuts at every depth are not followed further. A halt from blank tape must first reach a clean tape that the plain tree of step 3 cuts at every depth, and then either stay in the finer tree's cut classes or reach a pass start cut by the trees of step 5, and never one with R &lt; 178.</p>
           <div class="tags"><span class="tag t-open">open</span></div>
         </div></div>
     </div>
@@ -177,6 +177,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3><code>blank_halt_open_kernel</code></h3>
         <p>The same from width 2²⁰: the open clean tape is at least 2²⁰ wide; in the first case it is also cut by the tree with entries when it is at least 2²⁴ wide, and the open pass start is at least 2²⁴ wide. Nothing is evaluated by compiled code; <code>#print axioms</code> lists only <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>.</p>
         <p class="where"><code>lean/thm/PassEntryHalt.lean</code> · <span class="tag t-kernel">kernel</span></p>
+      </div>
+      <div class="card">
+        <h3><code>blank_halt_small</code></h3>
+        <p>No small right end past the loop. A halt needs a clean tape of width ≥ 2⁴¹ left open at every depth by the tree with loop entries (at 36 digits the same 1,255,963 classes), or a pass start wider than 2⁴¹ with R ≥ 178 left open at every depth by the tree for R ≥ 178. Full passes keep R³/L₁², and a round-7 break from width ≥ 2³⁷ lands with R³/L₁² &gt; 177³/9, so past every loop entry that passes a small-end check (all 28,660 at 36 digits do) the loop's chain ends at R ≥ 178. <code>blank_halt_small_kernel</code> is the same from 2²⁰, with the pass start at least 2³⁷ wide.</p>
+        <p class="where"><code>lean/thm/SmallEndHalt.lean</code> · <span class="tag t-native">native_decide</span> for the prefix and direct runs; <span class="tag t-kernel">kernel</span> for the kernel version</p>
       </div>
       <div class="card">
         <h3>The σ bound</h3>
@@ -210,8 +215,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <table>
         <thead><tr><th scope="col">Result</th><th scope="col">Open clean tapes start at</th><th scope="col">Trusted base</th></tr></thead>
         <tbody>
-          <tr><td><code>blank_halt_open_kernel</code></td><td class="num">2²⁰</td><td>Lean's kernel and the three standard axioms</td></tr>
-          <tr><td><code>blank_halt_open</code></td><td class="num">2⁴¹</td><td>the above, plus Lean's compiler (and a C compiler) for <code>native_decide</code> on the prefix to 2³² and the 26.5 million direct runs</td></tr>
+          <tr><td><code>blank_halt_open_kernel</code>, <code>blank_halt_small_kernel</code></td><td class="num">2²⁰</td><td>Lean's kernel and the three standard axioms</td></tr>
+          <tr><td><code>blank_halt_open</code>, <code>blank_halt_small</code></td><td class="num">2⁴¹</td><td>the above, plus Lean's compiler (and a C compiler) for <code>native_decide</code> on the prefix to 2³² and the 26.5 million direct runs</td></tr>
           <tr><td>with the exhaustive search</td><td class="num">2⁶¹</td><td>the above, plus the C program <code>nrefdfs2</code>; this combination is not a Lean theorem</td></tr>
         </tbody>
       </table>
@@ -227,7 +232,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="openitem">
         <h3>Do the open pass starts get reached?</h3>
-        <p>Some pass starts that the pass-start trees leave open really do halt: one in eight of those with R = 6 leaves the loop at round 2 and closes in round 7 (for example walls 743, 1,802 and 3,319, width 3,326, halting after 11,362,209 steps). So no depth of these trees can close the case on its own. At 20 splits the trees leave open 2.0% of a start class on average for R &lt; 178 (0.1% of it is that halting class, nearly all the rest is where the depth ran out) and 3.8% for R ≥ 178 (all of it where the depth ran out); the depth cuts fall about 0.8-fold per further split. The question is whether the machine's own run ever reaches one, and it can only do so after an open clean tape that meets a loop entry. From such an entry the pass starts it reaches form a family of one coordinate, the clean tape's own class, and every landing of the loop lies on one plane, 2(b − a) = W − 2R − 6 (proved, <code>landing_plane</code>). Followed in that coordinate, the part of the entries' measure still cut falls from 13.5% at 8 more splits to 4.6% at 12 and 1.5% at 16 (over the 1,845 entries at 28 digits; <code>ReachStats.lean</code>, an untrusted survey).</p>
+        <p>Some pass starts that the pass-start trees leave open really do halt: one in eight of those with R = 6 leaves the loop at round 2 and closes in round 7 (for example walls 743, 1,802 and 3,319, width 3,326, halting after 11,362,209 steps). But every known halting pass start has R &lt; 178, and the run from blank tape never needs one of those (<code>blank_halt_small</code>). What remains are the pass starts with R ≥ 178 that their tree leaves open at every depth, and the run reaches one only after an open clean tape that meets a loop entry. At the depths measured, that tree's open part is all where the depth ran out, none at a round decided as a halt, and it shrinks with depth: 8.8%, 3.8% and 1.6% of a class at 16, 20 and 24 splits. From a loop entry, the pass starts the run reaches form a family of one coordinate, the clean tape's own class, and every landing of the loop lies on one plane, 2(b − a) = W − 2R − 6 (proved, <code>landing_plane</code>). Followed in that coordinate, the part of the entries' measure still cut falls from 13.5% at 8 more splits to 4.6% at 12 and 1.5% at 16 (over the 1,845 entries at 28 digits; <code>ReachStats.lean</code>, an untrusted survey).</p>
       </div>
     </div>
     <div class="prose">
