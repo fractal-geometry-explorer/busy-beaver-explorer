@@ -18,9 +18,9 @@
 #      with R = 6 that halt (thm/PassHaltR6.lean, six rounds on the class evaluated by the kernel), the eight classes
 #      of pass starts that the mark model takes to a close at distance 0, each a halt (thm/PassHaltClasses.lean, the
 #      model run on each class by the kernel), eight families of pass starts with R >= 178 at every width that halt
-#      and that the pass-start tree for R >= 178 leaves open at every depth, one more at each scale of the third gap
-#      from 2^12 to 2^32, and a full pass of the loop's chain onto one (thm/PassOpenHalt.lean, the model run on the
-#      families by the kernel), the blank-tape prefix to width 2^32
+#      and that the pass-start tree for R >= 178 leaves open at every depth, two more at each scale of the third gap
+#      from 2^12 to 2^32 (R = 178 and R = 182), and full passes of the loop's chain onto two of them
+#      (thm/PassOpenHalt.lean, the model run on the families by the kernel), the blank-tape prefix to width 2^32
 #      (thm/Prefix.lean, about 4 minutes), the clean-tape tree at every depth
 #      (thm/CleanTheorem.lean, the proved explorer, nothing evaluated), the clean tapes of width in [2^32, 2^41) run
 #      one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and thm/EndToEndDirect.lean, the routes

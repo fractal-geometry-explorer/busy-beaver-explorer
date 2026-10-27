@@ -1,5 +1,6 @@
 import BB6.CloseHalt
 import BB6.RouteExplore
+import BB6.Ends
 open BB6 BB6.Sym
 
 /-! # The classes of pass starts with R ≥ 178 that halt, by scale (untrusted driver, for looking)
@@ -8,7 +9,7 @@ The halting pass starts with R ≥ 178 of `thm/PassOpenHalt.lean` halt the same 
 then off the loop's chain at some x, and from there the end meetings halve, x → (x − 2)/2, down to 0, through
 three-wall round starts with small right ends, to a close at distance 0, which is a halt (`reach_close_halt`).  On the
 route of the full-pass landing at width 13,400 (rounds WWW, BW, MWWM, WWWM, BWM) x = (W − b + 2R + 14)/4, so
-W − b = 2^(j+2) − 2R − 22 puts it at 2^j − 2.  Three modes:
+W − b = 2^(j+2) − 2R − 22 puts it at 2^j − 2.  Four modes:
 
 * `search mode p rlo rhi K S`: for each even R in [rlo, rhi] and the third gap given by the mode (`pow j`:
   W − b = 2^(j+2) − 2R − 22; `pow3 j`: 3 · 2^(j+2) − 2R − 22; `fix D`: D), follows the class a = 1 + 2y₀, b = 2y₁,
@@ -17,8 +18,9 @@ W − b = 2^(j+2) − 2R − 22 puts it at 2^j − 2.  Three modes:
   there the symbolic close run decides whether the class halts, and the classes that do are printed (b as b₀ + [0, 2^k]).
   For `pow j`, K = 1.5 j + 6 and S = 3.5 j + 12 find the class at every j tried (10 to 30).
 * `fam W₀ R₀ b₀ k ...`: for each family (as `Fam` in `thm/PassOpenHalt.lean`, first wall free, b ≡ b₀ mod 2^k,
-  W − b = W₀ − b₀), whether the close run closes it, and the first N at which `symOpenRun` succeeds (open at every
-  depth of `passTreeSym`), if one below 100 does.
+  W − b = W₀ − b₀), whether the close run closes it, and the first N at which `symOpenRun` succeeds and the first at
+  which `symOpenRun2` does (it also passes three-wall round starts that are decidedly not landings; either one makes
+  the family open at every depth of `passTreeSym`), if one below 100 does.
 * `trace n a b W R`: the model's first n rounds from the pass start with walls at a, b and W − R − 1 and width W: each
   round start's marks as distances from the end, and the round's end meetings.
 * `land ap a b W R ...`: for each (a, b, W, R), the pass start a full pass of the loop's chain onto it would come from
@@ -115,6 +117,45 @@ def openRun (ts : List YForm) (Γ : Int) (N : Nat) (ss : List SMark) (sW : YForm
   | some .uncovered => true
   | _ => false
 
+/-- As `stepMapNe` in `thm/PassOpenHalt.lean`. -/
+def stepMapNe (ts : List YForm) (Γ : Int) (f : SForms) (r : Nat) (sW R' L' : YForm) : Bool :=
+  if r = 8 then
+    neDec ts Γ (R'.smul 16) f.R || neDec ts Γ (L'.smul 64) f.L || neDec ts Γ sW (f.E.addc 24)
+  else if r = 2 then
+    neDec ts Γ (R'.smul 2) f.R ||
+      neDec ts Γ (L'.smul 2) (((f.L.add (f.E.smul 35)).sub (f.R.smul 147)).addc (-60)) ||
+      neDec ts Γ sW (f.E.addc 6)
+  else if r = 7 then
+    neDec ts Γ (R'.smul 4704) ((((f.E.smul 476).add (f.R.smul 980)).sub f.L).addc 15984) ||
+      neDec ts Γ (L'.smul 96) (((f.L.add (f.E.smul 1120)).add (f.R.smul 1666)).addc 50328) ||
+      neDec ts Γ sW (f.E.addc 24)
+  else true
+
+/-- As `notLandingCheck` in `thm/PassOpenHalt.lean`. -/
+def notLandingCheck (ts : List YForm) (Γ : Int) (f : SForms) (r : Nat) (ss : List SMark) (sW : YForm) : Bool :=
+  match swwwOf ss with
+  | none => true
+  | some (_, b, c) => stepMapNe ts Γ f r sW ((sW.sub c).addc (-1)) (L1Form b c sW)
+
+def loneMarker : List MarkT → Bool
+  | [.M] => true
+  | _ => false
+
+/-- As `symNoCheckpoint` in `thm/PassOpenHalt.lean`. -/
+def symNoCheckpoint (ts : List YForm) (Γ : Int) (f : SForms) (r : Nat) : SPR → Bool
+  | .newRound ss sW => !loneMarker (ss.map (·.t)) &&
+      (!typesMayCheckpoint r (ss.map (·.t)) || notLandingCheck ts Γ f r ss sW)
+  | _ => false
+
+/-- As `symOpenRun2` in `thm/PassOpenHalt.lean`. -/
+def openRun2 (ts : List YForm) (Γ : Int) (f : SForms) (N : Nat) (ss : List SMark) (sW : YForm) : Bool :=
+  (List.range N).all (fun r => match symRoundsZ ts Γ 1000 r ss sW with
+    | some sr => symNoCheckpoint ts Γ f r sr
+    | none => false) &&
+  match symRoundsZ ts Γ 1000 N ss sW with
+  | some .uncovered => true
+  | _ => false
+
 /-- As `Fam.start` in `thm/PassOpenHalt.lean`. -/
 def famOf (W0 R0 b0 k : Nat) : List SMark × YForm × List YForm :=
   let a : YForm := ⟨1, [2, 0]⟩
@@ -122,13 +163,20 @@ def famOf (W0 R0 b0 k : Nat) : List SMark × YForm × List YForm :=
   let W : YForm := ⟨W0, [0, 2 ^ k]⟩
   ([⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W.addc (-(R0 : Int) - 1)⟩], W, [a, b.sub a])
 
+/-- As `Fam.forms` in `thm/PassOpenHalt.lean`: the start's width, right end and left countdown. -/
+def famForms (W0 R0 b0 k : Nat) : SForms :=
+  let b : YForm := ⟨b0, [0, 2 ^ k]⟩
+  let W : YForm := ⟨W0, [0, 2 ^ k]⟩
+  ⟨W, YForm.const R0, L1Form b (W.addc (-(R0 : Int) - 1)) W⟩
+
 def fam (args : List Nat) : IO Unit := do
   let rec loop : List Nat → IO Unit
     | W0 :: R0 :: b0 :: k :: more => do
       let f := famOf W0 R0 b0 k
       let c := symCloseRun f.2.2 448 3000 [] (YForm.const 1) f.1 f.2.1
       let N := (List.range 100).find? (fun N => openRun f.2.2 448 N f.1 f.2.1)
-      IO.println s!"W0={W0} R0={R0} b0={b0} k={k}: closes {c}; open run: {N}"
+      let N2 := (List.range 100).find? (fun N => openRun2 f.2.2 448 (famForms W0 R0 b0 k) N f.1 f.2.1)
+      IO.println s!"W0={W0} R0={R0} b0={b0} k={k}: closes {c}; open run: {N}; open run past non-landings: {N2}"
       loop more
     | _ => pure ()
   loop args

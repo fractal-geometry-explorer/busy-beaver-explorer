@@ -25,6 +25,10 @@ closes.)
   chain is, or a lone marker, as a clean tape is), and round N is left uncovered.  `symOpenRun_sound` is the statement
   for each member, and with `no_checkpoint` and `pass_next` a member with R ≥ 178 lies in a cut leaf of `passTreeSym`
   at every depth (`sym_open_of_run`).
+* `symOpenRun2`: the same, except that a three-wall round start after 2, 7 or 8 rounds also passes when it is
+  decidedly not a landing (`notLandingCheck`: for the step of the loop's chain that takes that many rounds, the
+  identity of `StepMap` for the right end, the left countdown or the width is decidedly false on the class).
+  `symOpenRun2_sound` and `sym_open_of_run2` as before; the families below are checked with it (`Fam.ok`).
 * `family_open_halt`: every member of the family is a pass start with every gap at least 448 that `passTreeSym` leaves
   open at every depth (`symOpenRun` on the family, 19 rounds) and from which the machine halts (the close run on the
   family, `symCloseRun_halt`).  Both runs are evaluated by the kernel (`decide +kernel`, under a second).
@@ -46,8 +50,15 @@ closes.)
   (W − b + 2R + 14)/4, so W − b = 2^(j+2) − 2R − 22 puts it at 2^j − 2, and for each j from 10 to 30 a family with
   R = 178 there halts, open at every depth (`reentryFams_shape`; on a member, the meetings are 176, 2^j − 2,
   2^(j−1) − 2, ..., 2, 0).  (Untrusted: a symbolic search of the model's rounds finds, for each such j and each
-  R ≡ 2 (mod 4) tried, exactly one class of b that closes, modulo about 2^(1.5 j + 2); those with R ≡ 2 (mod 8) are
-  open at every depth, those with R ≡ 6 (mod 8) meet a landing in round 7.)
+  R ≡ 2 (mod 4) tried, exactly one class of b that closes, modulo about 2^(1.5 j + 2).)
+* `reentry6_open_halt`: the same with R = 182, for each j from 10 to 30 (`reentryFams6_shape`).  With R ≡ 6 (mod 8)
+  the run has three walls in round 5 (width ≡ 2 mod 4) and in round 7, its half pass, with right end
+  R′ = (W − b + 2R + 22)/16 = 2^(j−2).  That is no landing: a break of the loop's chain at round 7 would need
+  4,704 R′ = 476 W + 980 R − L₁ + 15,984, and on the class the difference is −294 (W − b) − 441 b − 9,702 < 0, so
+  `symOpenRun2` passes it.  From there full passes run to the close.
+* `full_pass_open_halt6`: as `full_pass_open_halt`, a full pass of the loop's chain from a pass start with R = 3,552
+  lands at width 29,404 on a pass start with R = 222 ≡ 6 (mod 8) (the class of the scale j = 11), open at every depth,
+  from which the machine halts.
 -/
 
 namespace BB6
@@ -123,6 +134,27 @@ theorem sym_open_of_run {R a b W N : Nat} (hR : 178 ≤ R) (hP : PassStart448 [�
   · simpa only [PassCut, show ¬ (R < 178) by omega, ↓reduceIte] using h
   · exact absurd (hcp.imp (fun h => h.2) id) (no_checkpoint hN hc hr)
 
+/-- **Open at every depth**, as `sym_open_of_run`, from a run on which no round start before the round left uncovered
+is a checkpoint of `pass_next`: neither a landing of the loop's chain nor a clean tape. -/
+theorem sym_open_of_run2 {R a b W N : Nat} (hR : 178 ≤ R) (hP : PassStart448 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W R)
+    (hN : roundsZ 1000 N [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W = .uncovered)
+    (hc : ∀ r < N, ∀ ms' W', roundsZ 1000 r [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W = .newRound ms' W' →
+      ¬ Landing r W R (passL1 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W) ms' W' ∧ ¬ CleanTape ms' W') (d : Nat) :
+    (passTreeSym d).cutMem [((a : Int) - 1) / 2, (b : Int) / 2, (W : Int) / 2, (R : Int) / 2] = true := by
+  rcases pass_next d R a b W hP with h | h | ⟨r, kk, ms', W', -, hr, hcp⟩
+  · obtain ⟨a, b, m, c, -, hcl, -⟩ := h
+    rw [closeClass_ge hR] at hcl
+    cases hcl
+  · simpa only [PassCut, show ¬ (R < 178) by omega, ↓reduceIte] using h
+  · by_cases hrN : r < N
+    · obtain ⟨hL, hC⟩ := hc r hrN ms' W' hr
+      rcases hcp with ⟨-, h⟩ | ⟨-, h, -⟩
+      · exact absurd h hL
+      · exact absurd h hC
+    · have := roundsZ_uncovered_add 1000 N (r - N) _ W hN
+      rw [show N + (r - N) = r by omega, hr] at this
+      cases this
+
 /-! ## The model's rounds on a class -/
 
 /-- `mayCheckpoint` on a symbolic outcome: anything but a new round start might be one. -/
@@ -183,6 +215,151 @@ theorem symOpenRun_sound {ts : List YForm} {Γ : Int} {N : Nat} {ss : List SMark
           simp only [mayCheckpoint, ← agL_types hag.1, hcr]
         | _ => exact absurd hag id
       | _ => simp [symMayCheckpoint] at hcr
+
+/-! ## Round starts that are not landings -/
+
+section
+variable (ts : List YForm) (Γ : Int)
+
+/-- A round start after `r` rounds, of width `sW` with right end `R'` and left countdown `L'`, is decidedly not the
+end of the step of the loop's chain that takes `r` rounds (`StepMap`) from the start with forms `f`: one of the
+step's identities for the right end, the left countdown and the width is decidedly false. -/
+def stepMapNe (f : SForms) (r : Nat) (sW R' L' : YForm) : Bool :=
+  if r = 8 then
+    neDec ts Γ (R'.smul 16) f.R || neDec ts Γ (L'.smul 64) f.L || neDec ts Γ sW (f.E.addc 24)
+  else if r = 2 then
+    neDec ts Γ (R'.smul 2) f.R ||
+      neDec ts Γ (L'.smul 2) (((f.L.add (f.E.smul 35)).sub (f.R.smul 147)).addc (-60)) ||
+      neDec ts Γ sW (f.E.addc 6)
+  else if r = 7 then
+    neDec ts Γ (R'.smul 4704) ((((f.E.smul 476).add (f.R.smul 980)).sub f.L).addc 15984) ||
+      neDec ts Γ (L'.smul 96) (((f.L.add (f.E.smul 1120)).add (f.R.smul 1666)).addc 50328) ||
+      neDec ts Γ sW (f.E.addc 24)
+  else true
+
+theorem stepMapNe_sound {y : List Int} (hy : inCone ts Γ y) {f : SForms} {E R : Nat} {L : Int} (hf : f.Ag y E R L)
+    {r : Nat} {sW R' L' : YForm} {W R'v : Nat} (hW : agN y sW W) (hR' : agN y R' R'v)
+    (h : stepMapNe ts Γ f r sW R' L' = true) (k : StepKind) : ¬ StepMap k r E R L W R'v (L'.eval y) := by
+  obtain ⟨hE, hR, hL⟩ := hf
+  unfold agN at hE hR hW hR'
+  cases k with
+  | full =>
+    rintro ⟨rfl, e1, e2, e3⟩
+    simp only [stepMapNe, ↓reduceIte, Bool.or_eq_true] at h
+    rcases h with (h | h) | h <;> have := neDec_sound ts Γ hy h <;> simp only [eval_smul, eval_addc] at this <;> omega
+  | half =>
+    rintro ⟨rfl, e1, e2, e3, -⟩
+    simp only [stepMapNe, show (2 : Nat) ≠ 8 by decide, ↓reduceIte, Bool.or_eq_true] at h
+    rcases h with (h | h) | h <;> have := neDec_sound ts Γ hy h <;>
+      simp only [eval_smul, eval_addc, eval_add, eval_sub] at this <;> omega
+  | break7 =>
+    rintro ⟨rfl, e1, e2, e3⟩
+    simp only [stepMapNe, show (7 : Nat) ≠ 8 by decide, show (7 : Nat) ≠ 2 by decide, ↓reduceIte,
+      Bool.or_eq_true] at h
+    rcases h with (h | h) | h <;> have := neDec_sound ts Γ hy h <;>
+      simp only [eval_smul, eval_addc, eval_add, eval_sub] at this <;> omega
+
+/-- The round start after `r` rounds is decidedly not a landing of the loop's chain (`Landing`) from the start with
+forms `f`: it is not three walls, or the map of the step that takes `r` rounds decidedly fails on it. -/
+def notLandingCheck (f : SForms) (r : Nat) (ss : List SMark) (sW : YForm) : Bool :=
+  match swwwOf ss with
+  | none => true
+  | some (_, b, c) => stepMapNe ts Γ f r sW ((sW.sub c).addc (-1)) (L1Form b c sW)
+
+theorem notLandingCheck_sound {y : List Int} (hy : inCone ts Γ y) {f : SForms} {E R : Nat} {L : Int}
+    (hf : f.Ag y E R L) {r : Nat} {ss : List SMark} {sW : YForm} {ms : List Mark} {W : Nat} (hs : agL y ss ms)
+    (hW : agN y sW W) (h : notLandingCheck ts Γ f r ss sW = true) : ¬ Landing r E R L ms W := by
+  rintro ⟨k, a, b, c, R', rfl, -, -, -, hc, -, -, hS, -⟩
+  have hag := wwwOf_agree hs
+  unfold notLandingCheck at h
+  cases hsw : swwwOf ss with
+  | none =>
+    have := hag.1 hsw
+    simp [wwwOf] at this
+  | some fs =>
+    obtain ⟨fa, fb, fc⟩ := fs
+    rw [hsw] at h
+    obtain ⟨a', b', c', he, -, h2, h3⟩ := hag.2 fa fb fc hsw
+    simp only [List.cons.injEq, Mark.mk.injEq, true_and, and_true] at he
+    obtain ⟨rfl, rfl, rfl⟩ := he
+    have hR'ag : agN y ((sW.sub fc).addc (-1)) R' := by
+      unfold agN at h3 hW ⊢; simp only [eval_addc, eval_sub]; omega
+    have hL' : loopL1 b c W = (L1Form fb fc sW).eval y := by
+      unfold agN at h2 h3 hW
+      rw [eval_L1Form, ← h2, ← h3, ← hW]; simp only [loopL1]
+    rw [hL'] at hS
+    exact stepMapNe_sound ts Γ hy hf hW hR'ag h k hS
+
+/-- Marks of these types are a lone marker. -/
+def loneMarker : List MarkT → Bool
+  | [.M] => true
+  | _ => false
+
+/-- The model's outcome after `r` rounds is a round start that is decidedly no checkpoint of `pass_next` from the
+start with forms `f`: not a lone marker, and either not three walls after 2, 7 or 8 rounds or decidedly not a landing
+(`notLandingCheck`). -/
+def symNoCheckpoint (f : SForms) (r : Nat) : SPR → Bool
+  | .newRound ss sW => !loneMarker (ss.map (·.t)) &&
+      (!typesMayCheckpoint r (ss.map (·.t)) || notLandingCheck ts Γ f r ss sW)
+  | _ => false
+
+/-- The model's rounds on a class, as `symOpenRun`, from a start with forms `f` (its width, right end and left
+countdown): no round start before round N is a checkpoint of `pass_next` (`symNoCheckpoint`), and round N is left
+uncovered. -/
+def symOpenRun2 (f : SForms) (N : Nat) (ss : List SMark) (sW : YForm) : Bool :=
+  (List.range N).all (fun r => match symRoundsZ ts Γ 1000 r ss sW with
+    | some sr => symNoCheckpoint ts Γ f r sr
+    | none => false) &&
+  match symRoundsZ ts Γ 1000 N ss sW with
+  | some .uncovered => true
+  | _ => false
+
+theorem symOpenRun2_sound {f : SForms} {N : Nat} {ss : List SMark} {sW : YForm}
+    (h : symOpenRun2 ts Γ f N ss sW = true) {y : List Int} (hy : inCone ts Γ y) {E R : Nat} {L : Int}
+    (hf : f.Ag y E R L) {ms : List Mark} {W : Nat} (hs : agL y ss ms) (hW : agN y sW W) :
+    roundsZ 1000 N ms W = .uncovered ∧ ∀ r < N, ∀ ms' W', roundsZ 1000 r ms W = .newRound ms' W' →
+      ¬ Landing r E R L ms' W' ∧ ¬ CleanTape ms' W' := by
+  simp only [symOpenRun2, Bool.and_eq_true, List.all_eq_true, List.mem_range] at h
+  obtain ⟨hc, hN⟩ := h
+  constructor
+  · cases e : symRoundsZ ts Γ 1000 N ss sW with
+    | none => rw [e] at hN; cases hN
+    | some sr =>
+      have hag := symRoundsZ_sound ts Γ hy 1000 N ss ms sW W sr hs hW e
+      rw [e] at hN
+      cases sr with
+      | uncovered =>
+        generalize roundsZ 1000 N ms W = cr at hag ⊢
+        cases cr with
+        | uncovered => rfl
+        | _ => exact absurd hag id
+      | _ => cases hN
+  · intro r hr ms' W' hrm
+    have hcr := hc r hr
+    cases e : symRoundsZ ts Γ 1000 r ss sW with
+    | none => rw [e] at hcr; cases hcr
+    | some sr =>
+      have hag := symRoundsZ_sound ts Γ hy 1000 r ss ms sW W sr hs hW e
+      rw [e] at hcr
+      rw [hrm] at hag
+      cases sr with
+      | newRound ss' sW' =>
+        obtain ⟨hs', hW'⟩ := hag
+        have ht := agL_types hs'
+        simp only [symNoCheckpoint, Bool.and_eq_true, Bool.or_eq_true, Bool.not_eq_true'] at hcr
+        obtain ⟨hM, hcr⟩ := hcr
+        refine ⟨fun hl => ?_, fun hcl => ?_⟩
+        · rcases hcr with hcr | hcr
+          · have := mayCheckpoint_of (R := R) (W := E) (Or.inl hl)
+            simp only [mayCheckpoint, ← ht, hcr] at this
+            cases this
+          · exact notLandingCheck_sound ts Γ hy hf hs' hW' hcr hl
+        · rw [hcl] at ht
+          rw [ht] at hM
+          simp [loneMarker] at hM
+      | _ => exact absurd hag id
+
+end
 
 /-! ## The family -/
 
@@ -250,12 +427,18 @@ def Fam.start (F : Fam) : List SMark × YForm × List YForm :=
   let W : YForm := ⟨(F.W0 : Int), [0, 2 ^ F.k]⟩
   ([⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W.addc (-(F.R0 : Int) - 1)⟩], W, [a, b.sub a])
 
+/-- The family's width, right end and left countdown as forms. -/
+def Fam.forms (F : Fam) : SForms :=
+  let b : YForm := ⟨(F.b0 : Int), [0, 2 ^ F.k]⟩
+  let W : YForm := ⟨(F.W0 : Int), [0, 2 ^ F.k]⟩
+  ⟨W, YForm.const F.R0, L1Form b (W.addc (-(F.R0 : Int) - 1)) W⟩
+
 /-- The checks on a family: the parities, R₀ ≥ 178, a third gap of at least 448, and the close run and the model's
-run (`symOpenRun`, N rounds) on the class. -/
+run (`symOpenRun2`, N rounds) on the class. -/
 def Fam.ok (F : Fam) : Bool :=
   F.b0 % 2 == 0 && F.W0 % 2 == 0 && F.R0 % 2 == 0 && 178 ≤ F.R0 && 1 ≤ F.k && F.b0 + 448 + F.R0 + 1 ≤ F.W0 &&
   symCloseRun F.start.2.2 448 closeFuel [] (YForm.const 1) F.start.1 F.start.2.1 &&
-  symOpenRun F.start.2.2 448 F.N F.start.1 F.start.2.1
+  symOpenRun2 F.start.2.2 448 F.forms F.N F.start.1 F.start.2.1
 
 /-- **A family that passes the checks halts, open at every depth**, as `family_open_halt`: every member is a pass
 start with every gap at least 448 that lies in a cut leaf of `passTreeSym` at every depth, and the machine halts from
@@ -290,9 +473,16 @@ theorem Fam.open_halt {F : Fam} (hF : F.ok = true) {a t : Nat} (ha : a % 2 = 1) 
   have hP : PassStart448 [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩]
       (F.W0 + 2 ^ F.k * t) F.R0 :=
     ⟨a, F.b0 + 2 ^ F.k * t, rfl, ha, by omega, by omega, hR0, by omega, h1, h2, by omega⟩
-  obtain ⟨hN, hc⟩ := symOpenRun_sound hop hy hs hWa
+  have hf : F.forms.Ag y (F.W0 + 2 ^ F.k * t) F.R0
+      (passL1 [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩] (F.W0 + 2 ^ F.k * t)) := by
+    refine ⟨?_, ?_, ?_⟩
+    · simp only [y, agN, Fam.forms, YForm.eval, dot]; rw [hXI]; omega
+    · simp only [agN, Fam.forms, eval_const]
+    · simp only [passL1, loopL1, Fam.forms, eval_L1Form, eval_addc]
+      simp only [y, YForm.eval, dot]; rw [hXI]; omega
+  obtain ⟨hN, hc⟩ := symOpenRun2_sound _ _ hop hy hf hs hWa
   obtain ⟨hwf, hG⟩ := hP.wf
-  exact ⟨hP, sym_open_of_run h178 hP hN hc, symCloseRun_halt _ _ closeFuel hcl hy hs hWa hwf hG⟩
+  exact ⟨hP, sym_open_of_run2 h178 hP hN hc, symCloseRun_halt _ _ closeFuel hcl hy hs hWa hwf hG⟩
 
 /-- The families, as (W₀, R₀, b₀, k, N): the seven of the eleven closing placements with R ≥ 178 and width from 2,048 to
 3,072 (an untrusted scan, three first walls for each placement of the other walls) that repeat this way, and one at
@@ -410,6 +600,70 @@ theorem reentry_open_halt {F : Fam} (hF : F ∈ reentryFams) {a t : Nat} (ha : a
       (F.W0 + 2 ^ F.k * t)) = none :=
   Fam.open_halt (List.all_eq_true.1 reentryFams_ok F hF) ha h1 h2
 
+/-! ## With R ≡ 6 (mod 8) -/
+
+/-- One family at each scale j from 10 to 30, all with R = 182 and W − b = 2^(j+2) − 2R − 22, as (W₀, R₀, b₀, k, N):
+the class of b modulo 2^k that the untrusted search finds for that j and R.  The run passes three-wall round starts
+in rounds 5 and 7 (the second the half pass of the first, with right end 2^(j−2)), which are no landings. -/
+def reentryFams6 : List Fam :=
+  [⟨102316, 182, 98606, 17, 23⟩, ⟨90028, 182, 82222, 18, 25⟩, ⟨589740, 182, 573742, 20, 26⟩,
+   ⟨3162028, 182, 3129646, 22, 28⟩, ⟨4112300, 182, 4047150, 23, 31⟩, ⟨6012844, 182, 5882158, 24, 33⟩,
+   ⟨43368364, 182, 43106606, 26, 34⟩, ⟨17416108, 182, 16892206, 28, 36⟩, ⟨99729324, 182, 98681134, 29, 39⟩,
+   ⟨801226668, 182, 799129902, 30, 41⟩, ⟨1130479532, 182, 1126285614, 32, 42⟩,
+   ⟨10378919852, 182, 10370531630, 34, 44⟩, ⟨11695931308, 182, 11679154478, 35, 47⟩,
+   ⟨14329954220, 182, 14296400174, 36, 49⟩, ⟨157036953516, 182, 156969845038, 38, 50⟩,
+   ⟨579889905580, 182, 579755688238, 40, 52⟩, ⟨1425595809708, 182, 1425327374638, 41, 55⟩,
+   ⟨917984362412, 182, 917447491886, 42, 57⟩, ⟨8698854490028, 182, 8697780748590, 44, 58⟩,
+   ⟨15464501723052, 182, 15462354239790, 46, 60⟩, ⟨134548912455596, 182, 134544617488686, 47, 63⟩]
+
+/-- The j-th has R = 182 and W − b = 2^(j+2) − 386. -/
+theorem reentryFams6_shape :
+    reentryFams6.map (fun F => (F.R0, F.W0 - F.b0)) = (List.range 21).map (fun i => (182, 2 ^ (i + 12) - 386)) := by
+  decide +kernel
+
+/-- All 21 pass the checks (the close run and the model's run on each, by the kernel). -/
+theorem reentryFams6_ok : reentryFams6.all Fam.ok = true := by decide +kernel
+
+/-- **At each scale j from 10 to 30, a family of pass starts with R = 182 and W − b = 2^(j+2) − 386 that halt, open
+at every depth, at every width.** -/
+theorem reentry6_open_halt {F : Fam} (hF : F ∈ reentryFams6) {a t : Nat} (ha : a % 2 = 1) (h1 : 448 ≤ a)
+    (h2 : a + 448 ≤ F.b0 + 2 ^ F.k * t) :
+    PassStart448 [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩] (F.W0 + 2 ^ F.k * t)
+      F.R0 ∧
+    (∀ d, (passTreeSym d).cutMem [((a : Int) - 1) / 2, ((F.b0 + 2 ^ F.k * t : Nat) : Int) / 2,
+      ((F.W0 + 2 ^ F.k * t : Nat) : Int) / 2, (F.R0 : Int) / 2] = true) ∧
+    ∃ T, steps T (roundStart [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩]
+      (F.W0 + 2 ^ F.k * t)) = none :=
+  Fam.open_halt (List.all_eq_true.1 reentryFams6_ok F hF) ha h1 h2
+
+/-- The full pass: eight rounds from walls at 449, 4,318 and 25,827, width 29,380 (R = 3,552), to walls at 7,201,
+21,678 and 29,181, width 29,404 (R = 222). -/
+theorem full_pass_land6 : isRoundAt (roundsZ 1000 8 [⟨.W, 449⟩, ⟨.W, 4318⟩, ⟨.W, 25827⟩] 29380)
+    [⟨.W, 7201⟩, ⟨.W, 21678⟩, ⟨.W, 29181⟩] 29404 = true := by decide +kernel
+
+/-- Its end meetings are all at distance at least 3. -/
+theorem full_pass_meets6 : ∀ d ∈ meetsRounds 1000 8 [⟨.W, 449⟩, ⟨.W, 4318⟩, ⟨.W, 25827⟩] 29380, 3 ≤ d := by
+  decide +kernel
+
+/-- **The loop's chain can end after a full pass at such a pass start with R ≡ 6 (mod 8).**  The pass start with walls
+at 449, 4,318 and 25,827 and width 29,380 (R = 3,552 = 16 · 222, left countdown −1,263,616 = 64 · (−19,744)) makes a
+full pass of the loop and lands at walls 7,201, 21,678 and 29,181, width 29,404 (R = 222, in the class of the scale
+j = 11: W − b = 7,726 = 2¹³ − 2R − 22), which `passTreeSym` leaves open at every depth and from which the machine
+halts. -/
+theorem full_pass_open_halt6 :
+    LoopChain [⟨.W, 449⟩, ⟨.W, 4318⟩, ⟨.W, 25827⟩] 29380 3552 [.full] [⟨.W, 7201⟩, ⟨.W, 21678⟩, ⟨.W, 29181⟩] 29404
+      222 ∧
+    (∀ d, (passTreeSym d).cutMem [3600, 10839, 14702, 111] = true) ∧
+    ∃ T, steps T (roundStart [⟨.W, 7201⟩, ⟨.W, 21678⟩, ⟨.W, 29181⟩] 29404) = none := by
+  have hF : Fam.ok ⟨29404, 222, 21678, 18, 25⟩ = true := by decide +kernel
+  obtain ⟨hP₁, hcut, hT⟩ := Fam.open_halt hF (a := 7201) (t := 0) (by decide) (by decide) (by decide)
+  have hP₀ : PassStart448 [⟨.W, 449⟩, ⟨.W, 4318⟩, ⟨.W, 25827⟩] 29380 3552 :=
+    ⟨449, 4318, rfl, by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide⟩
+  have hr := isRoundAt_eq full_pass_land6
+  obtain ⟨kk, hk, -⟩ := rounds_run 1000 8 _ _ hP₀.wf.1 (by rw [hr]; intro h; cases h)
+  rw [hr] at hk
+  exact ⟨.cons .full 8 kk hP₀ hk hr full_pass_meets6 (by decide) ⟨rfl, rfl, by decide, rfl⟩ (.nil hP₁), hcut, hT⟩
+
 /-! ## At every width -/
 
 /-- **Pass starts with R ≥ 178 that halt and that `passTreeSym` leaves open at every depth, at every width.** -/
@@ -433,6 +687,9 @@ theorem sym_open_halt_wide : ∃ R a b W, directWidth < W ∧ 178 ≤ R ∧
 #print axioms full_pass_open_halt
 #print axioms reentryFams_shape
 #print axioms reentry_open_halt
+#print axioms reentryFams6_shape
+#print axioms reentry6_open_halt
+#print axioms full_pass_open_halt6
 #print axioms sym_open_halt
 #print axioms sym_open_halt_wide
 
