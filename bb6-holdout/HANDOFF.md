@@ -70,7 +70,8 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    passes the small-end check (`lean/BB6/SmallEnd.lean`; all 28,660 at 36 digits do) the loop's chain ends at R ≥ 178,
    so the pass start a halt needs is in the tree for R ≥ 178 (`passTreeSym`), whose cuts at the depths measured are all
    depth cuts, none at a round decided as a halt. What remains is which of the open clean tapes the run reaches, and
-   from those, which of the open pass starts with R ≥ 178.
+   from those, which of the open pass starts with R ≥ 178; `blank_halt_open_small` (`lean/thm/OpenSmallHalt.lean`)
+   states the two together, and `never_halts_of_open` turns them into the two questions left.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.

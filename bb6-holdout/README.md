@@ -94,7 +94,9 @@ mark rules interactively.
   halts are: `blank_halt_small` (`lean/thm/SmallEndHalt.lean`) puts the pass start a halt needs in the tree for R ≥ 178,
   since past a loop entry that passes a small-end check (every entry at 36 digits does) the loop's chain ends at R ≥ 178
   (full passes keep R³/L₁², and a round-7 break from a width ≥ 2³⁷ lands above 177³/9). So the question is whether the
-  run reaches one of the open clean tapes, and from those, one of the open pass starts with R ≥ 178.
+  run reaches one of the open clean tapes, and from those, one of the open pass starts with R ≥ 178:
+  `blank_halt_open_small` (`lean/thm/OpenSmallHalt.lean`) states the two together, and `never_halts_of_open` says that a
+  negative answer to both would show the machine never halts.
 - *The route tree* (`lean/thm/RouteTheorem.lean`, `lean/ROUTE_TREE.md`): `route_tree_clean`, the certificate's
   two-marker route tree as a theorem about the machine, at every depth and cone constant, with the standard axioms
   only (the same explorer); at 36 and 40 digits its cut classes are the Python certificate's (measure 5.9 × 10⁻⁶ and
