@@ -31,11 +31,23 @@ mark rules interactively.
     closing set, at any width. For R ≥ 4097 one tree with R as a free coordinate (`loop_pass`, `thm/LoopPass.lean`)
     follows the run to where it leaves the loop or reaches another phase-0 pass start with gaps ≥ 448 and R′ = R/16,
     L₁′ = L₁/64 (the pass map), or R′ = R/2 on one short branch; strong induction on R through those pass starts
-    ends in the endgame trees. So a run through the loop can close only from a pass start whose R is in the closing
-    set. (The bound log₂W ≤ σ + 6.38 also needs the L₁ classes of the closing R, which are not in Lean.)
+    ends in the endgame trees. So within the stretch the trees certify, a run through the loop closes only from a pass
+    start whose R is in the closing set; after the stretch ends, a run can come back to phase-0 pass starts and close
+    later (an example from R = 22, and the loop tree's R/2 "half pass", are in the notes, October 27). (The bound
+    log₂W ≤ σ + 6.38 also needs the L₁ classes of the closing R, which are not in Lean, and a way across half passes.)
 
   The number of rounds in all three is existential (the round where the run breaks off, cleans the tape, completes a pass
   or leaves phase 0, chosen per class by an untrusted program), and nothing is claimed for R in the closing set.
+- *End to end from blank tape* (`lean/thm/EndToEnd.lean`, `lean/END_TO_END.md`; also `native_decide`):
+  `blank_halt_structure` says that if the machine halts from blank tape, it first reaches a clean tape of even width
+  W ≥ 2³² with W/2 in one of the cut classes of a 36-digit clean-tape tree (1,660,016 residue classes, measure
+  2.4 × 10⁻⁵) and halts from there; the mark model run from that clean tape reaches a close at the right end or an
+  interior contact; and every pass start (R outside the closing set) the run passes is followed by the loop's
+  close-free stretch, the halt coming only after it. `never_halts_of_cut_classes` is the same read backwards: the
+  question is reduced to the clean tapes of width ≥ 2³² in the cut classes. The pieces: the model's run from blank
+  tape to the clean tape of width 2³² (`thm/Prefix.lean`, 1.2 × 10⁹ rounds), and the clean-tape tree
+  (`BB6/CleanTree.lean`, `thm/CleanTheorem.lean`): from every clean tape of width ≥ 2³² outside the cut classes, the
+  machine reaches a wider clean tape without halting.
 
 **Proved by certificates with independent checkers** (`cert/`): the exact end of the loop (40,991 classes; 83,699
 for starts in either phase), the short exit from the loop (358 classes), and the route tree to 36 and 40 digits.
@@ -57,7 +69,7 @@ deeper exhaustive runs were made with the uninstrumented program. See "The trail
 (October 27):** the checkers, the C engines current work uses (`nrefdfs2`, `lined`, `rtree3d`, `rtree3e`, `gx3`) and
 the stepper now write the canonical form, as the proved model does, and `simtest/` checks every one of them against
 the proved model on random tapes. With the fixed programs the certificates (exit, endgame, any-phase, 36-digit route tree) check with unchanged output, and the
-exhaustive check to 54 digits reproduces `dfs/merged54.txt` exactly, with the corrected case never occurring. The other
+exhaustive check to 56 digits reproduces `dfs/merged56.txt` exactly, with the corrected case never occurring. The other
 programs in `csearch/` are kept as they were run.
 
 ## How to check
@@ -76,6 +88,8 @@ LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/EndgameHalt.lean                          
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopPass.lean -o out/LoopPass.olean
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopTheorem.lean -o out/LoopTheorem.olean
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopAxioms.lean
+# end to end (all the theorem files above, the prefix and the clean-tape tree, as native code; about 15 minutes):
+LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh
 ```
 
 `thm/gen_exit.py` and `thm/gen_endgame.py` regenerate the theorem files from the trees (`thm/exit_tree.txt`,

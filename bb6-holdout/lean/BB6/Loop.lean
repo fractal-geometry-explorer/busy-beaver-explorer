@@ -101,12 +101,6 @@ theorem wwwOf_agree {y : List Int} {ss : List SMark} {ms : List Mark} (h : agL y
 section
 variable (ts : List YForm) (Γ : Int)
 
-def sameForm (f g : YForm) : Bool := f.k == g.k && coeffEq f.c g.c
-
-theorem sameForm_sound {f g : YForm} (h : sameForm f g = true) (y : List Int) : f.eval y = g.eval y := by
-  simp only [sameForm, Bool.and_eq_true, beq_iff_eq] at h
-  simp only [YForm.eval, h.1, dot_coeffEq _ _ y h.2]
-
 def L1Form (b c E : YForm) : YForm := (((b.smul 147).add (E.smul 280)).sub (c.smul 392)).addc (-578)
 
 theorem eval_L1Form (b c E : YForm) (y : List Int) :

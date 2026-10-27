@@ -327,4 +327,15 @@ theorem Tree.sound (k : Nat) (t : Tree) : ∀ (wf : Bool) (ss : List SMark) (sW 
     exact ih _ _ _ _ ht z (by rw [hzl]; exact hlen) (inCone_skew hiz hjz hy) ms Wn (agL_skew hiz hjz hs)
       (agN_skew hiz hjz hW) hwf
 
+/-- Two forms with the same constant and coefficients (shared by `Loop` and `RouteTree`, which can be imported
+together). -/
+def sameForm (f g : YForm) : Bool := f.k == g.k && coeffEq f.c g.c
+
+theorem sameForm_eval {f g : YForm} (h : sameForm f g = true) (y : List Int) : f.eval y = g.eval y := by
+  simp only [sameForm, Bool.and_eq_true, beq_iff_eq] at h
+  simp only [YForm.eval, h.1, dot_coeffEq _ _ y h.2]
+
+theorem sameForm_sound {f g : YForm} (h : sameForm f g = true) (y : List Int) : f.eval y = g.eval y :=
+  sameForm_eval h y
+
 end BB6.Sym
