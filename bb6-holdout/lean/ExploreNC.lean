@@ -9,9 +9,9 @@ E even) with the marks G 1, W a, W b, W c = E − R − 1 and width E; the cone 
 rounds; when a round is undecided it splits a coordinate (the first one whose split decides the round in both
 children), and it stops a leaf at the first end event of `BB6/Ends.lean`, with the end meetings of the proved
 `symMeetsRounds`: the run left phase 0 (round 1 not G B W, round 2 not G M B), two consecutive end meetings are
-decidedly off the chain (`brkDec`), or the round start is a phase-0 pass start with a smaller right end whose next two
-rounds are G B W, G M B; or at a close (an end meeting at a constant distance ≤ 2), which only a right end in the
-closing set may reach.
+decidedly off the chain (`brkDec`), or the round start is a phase-0 pass start after a full pass (right end R/16, left
+countdown L₁/64) whose next two rounds are G B W, G M B; or at a close (an end meeting at a constant distance ≤ 2),
+which only a right end in the closing set may reach.
 
 The exit's start class is every loop state: a = 1 + 2 y₀, b = 2 y₁, c = 1 + 2 y₂, E = 2 y₃ with the marks W a, W b,
 W c (either phase; R = E − c − 1 is free), the cone gaps a, b − a, c − b, E − c.  Its leaves stop at an exit event: a
@@ -64,8 +64,9 @@ def p0R (ss : List SMark) (sW : YForm) : Option (Option YForm) :=
     | some _, some _, some _ => some none
     | _, _, _ => none
 
-/-- Classify the run of a class (`sp`: the end events; `sR`: the right end's form, for the endgame). -/
-def classify (sp : EndSpec) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW sR : YForm) (maxR : Nat) :
+/-- Classify the run of a class (`sp`: the end events; `sR`, `sL`: the forms of the right end and the left countdown,
+for the endgame). -/
+def classify (sp : EndSpec) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW sR sL : YForm) (maxR : Nat) :
     Sum Undec Leaf := Id.run do
   let mut cur := ss
   let mut cw := sW
@@ -105,6 +106,11 @@ def classify (sp : EndSpec) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW s
       match p0R ss' sW' with
       | none => return .inl ⟨rd, rd, none⟩
       | some (some R') =>
+        -- a smaller pass start: look at its next two rounds; the leaf stops here after a full pass (R′ = R/16,
+        -- L₁′ = L₁/64), the only kind of pass start the end event accepts
+        let fullPass := match swwwOf ss' with
+          | some (_, b, c) => sameForm (R'.smul 16) sR && sameForm ((L1Form b c sW').smul 64) sL
+          | none => false
         if ltDec (YForm.const 1) R' ts Γ == some true && ltDec R' sR ts Γ == some true && R'.modDec 2 == some 0 then
           match symRoundZ ts Γ 1000 [] (YForm.const 1) ss' sW' with
           | none => return .inl ⟨rd, rd, none⟩
@@ -112,7 +118,7 @@ def classify (sp : EndSpec) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW s
             if shapeOf s1 == "GBW" then
               match symRoundZ ts Γ 1000 [] (YForm.const 1) s1 w1 with
               | none => return .inl ⟨rd, rd + 1, none⟩
-              | some (.newRound s2 _) => if shapeOf s2 == "GMB" then return .inr ⟨.pass, rd⟩
+              | some (.newRound s2 _) => if shapeOf s2 == "GMB" && fullPass then return .inr ⟨.pass, rd⟩
               | some _ => pure ()
           | some _ => pure ()
       | some none => pure ()
@@ -189,24 +195,27 @@ def splitChoice (k : Nat) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW : Y
     | none => none
 
 /-- Build the tree: classify; when undecided, split (after the rounds the class decides). -/
-partial def build (sp : EndSpec) (k : Nat) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW sR : YForm)
+partial def build (sp : EndSpec) (k : Nat) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW sR sL : YForm)
     (depth maxR : Nat) : Tree × List Leaf :=
-  match classify sp ts Γ ss sW sR maxR with
+  match classify sp ts Γ ss sW sR sL maxR with
   | .inr lf => (.leaf (if lf.kind == .close then 0 else lf.rounds), [lf])
   | .inl u =>
     if depth = 0 then (.leaf u.adv, [⟨.cap, u.adv⟩]) else
     match splitChoice k ts Γ ss sW u with
     | some (i :: js) =>
-      let rec go (js : List Nat) (ss : List SMark) (sW : YForm) (ts : List YForm) (sR : YForm) : Tree × List Leaf :=
+      let rec go (js : List Nat) (ss : List SMark) (sW : YForm) (ts : List YForm) (sR sL : YForm) :
+          Tree × List Leaf :=
         match js with
         | [] =>
-          let (t0, l0) := build sp k (substT ts i 0) Γ (substL ss i 0) (sW.subst i 0) (sR.subst i 0) (depth - 1) maxR
-          let (t1, l1) := build sp k (substT ts i 1) Γ (substL ss i 1) (sW.subst i 1) (sR.subst i 1) (depth - 1) maxR
+          let (t0, l0) := build sp k (substT ts i 0) Γ (substL ss i 0) (sW.subst i 0) (sR.subst i 0) (sL.subst i 0)
+            (depth - 1) maxR
+          let (t1, l1) := build sp k (substT ts i 1) Γ (substL ss i 1) (sW.subst i 1) (sR.subst i 1) (sL.subst i 1)
+            (depth - 1) maxR
           (.node i t0 t1, l0 ++ l1)
         | j :: js =>
-          let (t, l) := go js (skewL ss i j 1) (sW.skew i j 1) (skewT ts i j 1) (sR.skew i j 1)
+          let (t, l) := go js (skewL ss i j 1) (sW.skew i j 1) (skewT ts i j 1) (sR.skew i j 1) (sL.skew i j 1)
           (.skew i j 1 t, l)
-      let (t, l) := go js ss sW ts sR
+      let (t, l) := go js ss sW ts sR sL
       (.adv u.adv t, l)
     | _ => (.leaf u.adv, [⟨.cap, u.adv⟩])
 
@@ -267,9 +276,11 @@ def mainSym (args : List String) : IO Unit := do
   let Γ : Int := (args.getD 2 "448").toInt!
   let (ss, sW, ts) := startSym Γ Rlo
   let sR : YForm := ⟨0, [0, 0, 0, 2]⟩
-  let (t, leaves) := build .endgame 4 ts Γ ss sW sR 60 30
+  let E : YForm := ⟨0, [0, 0, 2, 0]⟩
+  let sL := L1Form ⟨0, [0, 2, 0, 0]⟩ ((E.sub sR).addc (-1)) E
+  let (t, leaves) := build .endgame 4 ts Γ ss sW sR sL 60 30
   let t := relAdv 0 t
-  let ok := t.okEnd Γ 1000 4 none .endgame false ss sW ts sR (YForm.const 0) 0 none
+  let ok := t.okEnd Γ 1000 4 none .endgame false ss sW ts sR sL 0 none
   IO.println s!"R ≥ {Rlo} free: leaves {leaves.length}; tree checked (okEnd): {ok}; Γ = {Γ}"
   IO.println s!"leaf kinds: {countKinds leaves}; most rounds {leaves.foldl (fun m l => max m l.rounds) 0}"
   IO.FS.writeFile (args.getD 3 "endgame_sym.txt") (String.intercalate " " (ser t))
@@ -286,7 +297,7 @@ def startExit : List SMark × YForm × List YForm :=
 def mainExit (args : List String) : IO Unit := do
   let Γ : Int := (args.getD 1 "390").toInt!
   let (ss, sW, ts) := startExit
-  let (t, leaves) := build .exit 4 ts Γ ss sW (YForm.const 0) 40 16
+  let (t, leaves) := build .exit 4 ts Γ ss sW (YForm.const 0) (YForm.const 0) 40 16
   let t := relAdv 0 t
   let ok := t.okEnd Γ 1000 4 none .exit false ss sW ts (YForm.const 0) (YForm.const 0) 0 none
   IO.println s!"exit start class: leaves {leaves.length}; tree checked (okEnd): {ok}; Γ = {Γ}"
@@ -309,7 +320,7 @@ def main (args : List String) : IO Unit := do
   for Rn in Rs do
     let R : Int := Rn
     let (ss, sW, ts) := startR R
-    let (t, leaves) := build .endgame 3 ts Γ ss sW (YForm.const R) 40 30
+    let (t, leaves) := build .endgame 3 ts Γ ss sW (YForm.const R) (startL R) 40 30
     let t := relAdv 0 t
     let ok := t.okEnd Γ 1000 3 (closeClass Rn) .endgame false ss sW ts (YForm.const R) (startL R) 0 none
     if !ok then fails := fails ++ [Rn]

@@ -82,7 +82,10 @@ def symStart : SState :=
   let c := (E.sub R).addc (-1)
   ([⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩], E, [a, b.sub a, c.sub b, R.addc (448 - 178)])
 
-def symStartE : EState := (symStart, ⟨0, [0, 0, 0, 2]⟩, YForm.const 0)
+def symStartE : EState :=
+  let E : YForm := ⟨0, [0, 0, 2, 0]⟩
+  let R : YForm := ⟨0, [0, 0, 0, 2]⟩
+  (symStart, R, L1Form ⟨0, [0, 2, 0, 0]⟩ ((E.sub R).addc (-1)) E)
 '''
 open(os.path.join(outdir, 'EndgameStart.lean'), 'w').write(start)
 
@@ -142,8 +145,9 @@ c = E − R − 1, width E, with a odd, b even, E even and every gap at least 44
 the left countdown L₁ = 147 b + 280 E − 392 c − 578 is in R's class (`closeClass`), or the machine runs n rounds
 without halting, reaching the round start that `roundsZ` computes, every end meeting on the way is at distance at
 least 3 (no close), and the run ends at an end event (`EndEvent`): it left phase 0 (round 1 not G B W or round 2 not
-G M B), its end meetings left the halving chain, or it is at a phase-0 pass start with a smaller even right end whose
-next two rounds are G B W and G M B.  None of these holds after zero rounds (`not_endEvent_zero`). -/
+G M B), its end meetings left the halving chain, or it is at a phase-0 pass start after a full pass, with right end
+R/16 and left countdown L₁/64, whose next two rounds are G B W and G M B.  None of these holds after zero rounds
+(`not_endEvent_zero`). -/
 theorem endgame_stretch (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R)
     (a b E : Nat) (ha : a % 2 = 1) (hb : b % 2 = 0) (hE : E % 2 = 0)
     (h1 : 448 ≤ a) (h2 : a + 448 ≤ b) (h3 : b + 448 + R + 1 ≤ E) :
@@ -151,7 +155,8 @@ theorem endgame_stretch (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R)
     ∃ n kk ms' W', steps kk (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E) = some (roundStart ms' W') ∧
       roundsZ 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E = .newRound ms' W' ∧
       (∀ d ∈ meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E, 3 ≤ d) ∧
-      EndEvent 1000 R n (meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E) ms' W' := by
+      EndEvent 1000 R (loopL1 b (E - R - 1) E) n (meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E)
+        ms' W' := by
   by_cases hR178 : 178 ≤ R
   · -- the tree for every R ≥ 178, at the point (a, b, E, R)
     let y : List Int := [((a : Int) - 1) / 2, (b : Int) / 2, (E : Int) / 2, (R : Int) / 2]
@@ -166,8 +171,12 @@ theorem endgame_stretch (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R)
         omega
     have hW : agN y symStart.2.1 E := by simp only [agN, y, symStart, YForm.eval, dot]; omega
     have hRa : agN y symStartE.2.1 R := by simp only [agN, y, symStartE, YForm.eval, dot]; omega
-    rcases Tree.soundEnd 448 1000 4 none .endgame symTree false _ _ _ _ _ 0 none sym_tree_ok y rfl hy _ _ R 0 []
-        hs hW hRa (by simp [symStartE, YForm.const, YForm.eval]) (fun h => by cases h) (fun _ h => by cases h) with
+    have hL : loopL1 b (E - R - 1) E = symStartE.2.2.eval y := by
+      simp only [symStartE, eval_L1Form, loopL1]
+      simp only [y, YForm.eval, YForm.sub, YForm.add, YForm.neg, YForm.addc, addL, smulL, List.map, dot]
+      omega
+    rcases Tree.soundEnd 448 1000 4 none .endgame symTree false _ _ _ _ _ 0 none sym_tree_ok y rfl hy _ _ R
+        (loopL1 b (E - R - 1) E) [] hs hW hRa hL (fun h => by cases h) (fun _ h => by cases h) with
       ⟨_, _, h, -⟩ | h
     · cases h
     · simp only [List.nil_append, Nat.zero_add] at h
@@ -212,7 +221,8 @@ theorem endgame_no_close (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R) (hS : closin
     ∃ n kk ms' W', steps kk (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E) = some (roundStart ms' W') ∧
       roundsZ 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E = .newRound ms' W' ∧
       (∀ d ∈ meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E, 3 ≤ d) ∧
-      EndEvent 1000 R n (meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E) ms' W' := by
+      EndEvent 1000 R (loopL1 b (E - R - 1) E) n (meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E)
+        ms' W' := by
   rcases endgame_stretch R hR hR2 a b E ha hb hE h1 h2 h3 with ⟨_, _, hc, -⟩ | h
   · rw [closeClass_closing hc] at hS; cases hS
   · exact h

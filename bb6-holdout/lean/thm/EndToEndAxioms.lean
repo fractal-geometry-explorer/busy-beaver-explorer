@@ -7,6 +7,8 @@ import CleanKernelMass
 #print axioms BB6.blank_halt_clean
 #check @BB6.blank_halt_structure
 #print axioms BB6.blank_halt_structure
+#check @BB6.blank_halt_sigma
+#print axioms BB6.blank_halt_sigma
 #check @BB6.never_halts_of_cut_classes
 #print axioms BB6.never_halts_of_cut_classes
 #check @BB6.blank_halt_clean_kernel

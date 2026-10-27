@@ -49,4 +49,7 @@ def symStart : SState :=
   let c := (E.sub R).addc (-1)
   ([⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩], E, [a, b.sub a, c.sub b, R.addc (448 - 178)])
 
-def symStartE : EState := (symStart, ⟨0, [0, 0, 0, 2]⟩, YForm.const 0)
+def symStartE : EState :=
+  let E : YForm := ⟨0, [0, 0, 2, 0]⟩
+  let R : YForm := ⟨0, [0, 0, 0, 2]⟩
+  (symStart, R, L1Form ⟨0, [0, 2, 0, 0]⟩ ((E.sub R).addc (-1)) E)

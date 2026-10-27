@@ -29,15 +29,20 @@ mark rules interactively.
     ≥ 448) either has R in the closing set {2, 4, 8, 16, 24, 32, 48, 64, 176} and its left countdown L₁ in R's class
     (for these R in turn: L₁ ≡ 0 mod 2, 0 mod 2, 0 mod 8, 0 mod 32, 32 mod 64, 0 mod 64, 0 mod 128, 0 mod 128,
     0 mod 128; and L₁ ≡ 3 mod 7 always), or runs without halting and without a close until it leaves phase 0, its end
-    meetings leave the chain, or it reaches the next pass start. One tree with R as a coordinate covers every R ≥ 178;
-    each smaller R has its own tree;
-  - `loop_stretch` (`thm/LoopTheorem.lean`): the stretch of `endgame_stretch` carried through every pass start whose
-    gaps are again ≥ 448, by strong induction on R, at any width. So within the loop a run closes only from a pass
-    start whose R is in the closing set and whose L₁ is in R's class; otherwise it runs close-free until it leaves
-    the loop (leaves phase 0, breaks the chain, or reaches a pass start with a gap below 448), through the R/2 "half
-    passes" too. After that a run can come back to phase-0 pass starts and close later (see the notes, October 27).
-    (The bound log₂W ≤ σ + 6.38 also needs the pass map R′ = R/16, L₁′ = L₁/64, which is not in Lean, and a way
-    across half passes.)
+    meetings leave the chain, or it makes a full pass to the next pass start, with R′ = R/16 and L₁′ = L₁/64 exactly
+    (the pass map, checked at every leaf that reaches a pass start). One tree with R as a coordinate covers every
+    R ≥ 178; each smaller R has its own tree;
+  - `loop_stretch` (`thm/LoopTheorem.lean`): the stretch of `endgame_stretch` carried through every full pass to a
+    pass start whose gaps are again ≥ 448, by strong induction on R, at any width: after p passes R = 16^p·R₁ and
+    L₁ = 64^p·L₁′. So within the loop a run closes only from a pass start whose R is in the closing set and whose L₁
+    is in R's class; otherwise it runs close-free until it leaves the loop (leaves phase 0, for one by a half pass
+    R → R/2, breaks the chain, or reaches a pass start with a gap below 448). After that a run can come back to
+    phase-0 pass starts and close later (see the notes, October 27).
+  - **The σ bound** (`sigma_through_passes`, `loop_halt_sigma`, `blank_halt_sigma`): a pass divides R³ and L₁² by the
+    same factor, and the closing classes have R³/L₁² ≤ 176³/256², so a close through the loop needs
+    R³/L₁² ≤ 176³/256² at the first pass start: log₂W ≤ σ + 6.38, with σ = 3 log₂(W/R) + 2 log₂(|L₁|/W) there. Beyond
+    it, a halt from blank tape needs a contact after the loop's end. The bound is attained (R = 2,816,
+    L₁ = −16,384: one pass to R = 176, L₁ = −256, then a close).
 
   The number of rounds in all three is existential (chosen per class by an untrusted program), but each stretch ends at
   its stated event. The first versions (`exit_no_halt`, `endgame_no_close`, `loop_no_close`, `loop_pass`) said only
