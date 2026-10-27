@@ -62,6 +62,11 @@ mark rules interactively.
     R = 4, 1/32 to 1/256 of R = 8, 16, 32 and 48), proved to halt (`pass_class_halt`), as is every pass start whose
     loop chain reaches one (`chain_class_halt`). In 600,000 random pass starts the model's run ends at a clean tape
     or at that close, and every close passes through one of the classes.
+  - **Pass starts with R ≥ 178 that halt** (`thm/PassOpenHalt.lean`): past the loop chain's end the run can enter the
+    loop again, through an end meeting off the chain whose halving chain runs to 0, and close. A family with R = 178
+    does so at every width (walls a, b and b + 467, width b + 646, b ≡ 2,010 mod 2¹⁴, such as walls 1,523, 2,010 and
+    2,477 and width 2,656, which closes in round 19), and the pass-start tree for R ≥ 178 leaves all of it open at
+    every depth (`family_open_halt`, `sym_open_halt`).
 
   The number of rounds in all three is existential (chosen per class by an untrusted program), but each stretch ends at
   its stated event. The first versions (`exit_no_halt`, `endgame_no_close`, `loop_no_close`, `loop_pass`) said only
@@ -103,7 +108,8 @@ mark rules interactively.
   (full passes keep R³/L₁², and a round-7 break from a width ≥ 2³⁷ lands above 177³/9). So the question is whether the
   run reaches one of the open clean tapes, and from those, one of the open pass starts with R ≥ 178:
   `blank_halt_open_small` (`lean/thm/OpenSmallHalt.lean`) states the two together, and `never_halts_of_open` says that a
-  negative answer to both would show the machine never halts.
+  negative answer to both would show the machine never halts. The second is about reaching: open pass starts with
+  R ≥ 178 that halt exist at every width (`sym_open_halt`, `lean/thm/PassOpenHalt.lean`).
 - *The route tree* (`lean/thm/RouteTheorem.lean`, `lean/ROUTE_TREE.md`): `route_tree_clean`, the certificate's
   two-marker route tree as a theorem about the machine, at every depth and cone constant, with the standard axioms
   only (the same explorer); at 36 and 40 digits its cut classes are the Python certificate's (measure 5.9 × 10⁻⁶ and

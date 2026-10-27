@@ -50,7 +50,8 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    pass-start trees halts, and with R = 6's eighth they make eight halting classes by residues of b and W (all of
    R = 2, 3/8 of R = 4, 1/32 to 1/256 of R = 8, 16, 32 and 48; `pass_class_halt`, `chain_class_halt`,
    `lean/thm/PassHaltClasses.lean`). In 600,000 random pass starts the model's run ends at a clean tape or that
-   close, and every close passes through a class. The original note:
+   close, and every close passes through a class. Past the loop chain's end the run can enter the loop again and
+   close, also from R ≥ 178 (`lean/thm/PassOpenHalt.lean`, item 2). The original note:
    **The loop's end for every width as one Lean theorem.** Prove the pass map (R → R/16, L → L/64) with R free
    using the symbolic runner (`BB6/SymRound`, `BB6/SymSplit`), then induct over passes, combined with
    `endgame_no_close` for R ≤ 4096: "a run through the loop closes only from R ∈ {2, 4, 8, 16, 24, 32, 48, 64, 176}
@@ -77,7 +78,10 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    so the pass start a halt needs is in the tree for R ≥ 178 (`passTreeSym`), whose cuts at the depths measured are all
    depth cuts, none at a round decided as a halt. What remains is which of the open clean tapes the run reaches, and
    from those, which of the open pass starts with R ≥ 178; `blank_halt_open_small` (`lean/thm/OpenSmallHalt.lean`)
-   states the two together, and `never_halts_of_open` turns them into the two questions left.
+   states the two together, and `never_halts_of_open` turns them into the two questions left. Some of those open pass
+   starts with R ≥ 178 halt, at every width (`sym_open_halt`, `lean/thm/PassOpenHalt.lean`: a family with R = 178
+   whose run leaves the loop, enters it again through an end meeting at 254 and closes), so the second question is
+   whether the run reaches one.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
