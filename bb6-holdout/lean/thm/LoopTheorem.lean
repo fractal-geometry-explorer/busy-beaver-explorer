@@ -31,7 +31,8 @@ theorem loop_no_close : ∀ (R : Nat), R % 2 = 0 → 2 ≤ R → closingSet.cont
   | ind R ih =>
     intro hR hR2 hS a b E ha hb hE h1 h2 h3
     by_cases hR4 : R ≤ 4096
-    · exact endgame_no_close R hR hR2 hR4 hS a b E ha hb hE h1 h2 h3
+    · obtain ⟨n, kk, ms', W', hk, -, hm⟩ := endgame_no_close R hR hR2 hR4 hS a b E ha hb hE h1 h2 h3
+      exact ⟨n, kk, ms', W', hk, hm⟩
     · obtain ⟨n₁, k₁, ms₁, W₁, hk₁, hr₁, hm₁, hout⟩ :=
         loop_pass R a b E hR (by omega) ha hb hE h1 h2 h3
       rcases hout with hn | ⟨a', b', R', rfl, ha', hb', hW', hR', g1, g2, g3, g176, hlt, -⟩

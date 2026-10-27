@@ -36,7 +36,12 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    using the symbolic runner (`BB6/SymRound`, `BB6/SymSplit`), then induct over passes, combined with
    `endgame_no_close` for R ≤ 4096: "a run through the loop closes only from R ∈ {2, 4, 8, 16, 24, 32, 48, 64, 176}
    at its last pass start, hence log₂W ≤ σ + 6.38".
-2. **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
+2. **Done in part (October 27):** `halt_needs_contact` and `halt_after_rounds` (`lean/BB6/HaltClose.lean`,
+   `HaltStretch.lean`), and the end-to-end statement `blank_halt_structure` (`lean/thm/EndToEnd.lean`,
+   `lean/END_TO_END.md`): a halt from blank tape needs a clean tape of width ≥ 2³² in a cut class of the 36-digit
+   clean-tape tree, then a stuck contact. What remains is the cut classes themselves (and, for the loop, the σ bound).
+   The original note:
+   **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
 3. **Remove the compiler trust** from the two theorems (kernel evaluation, or compact per-tree certificates).
 4. **The route-tree certificate in Lean** (the "ways into the loop have ceilings" results).

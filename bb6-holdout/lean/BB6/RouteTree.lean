@@ -114,12 +114,6 @@ theorem mod_two_cases (x : Int) : x % 2 = 0 ∨ x % 2 = 1 := by omega
 def cleanTape (ms : List Mark) (W : Nat) : Prop :=
   2 ≤ W ∧ ((∃ p, ms = [⟨.M, p⟩, ⟨.M, W - 2⟩]) ∨ ms = [⟨.M, W - 2⟩])
 
-def sameForm (f g : YForm) : Bool := f.k == g.k && coeffEq f.c g.c
-
-theorem sameForm_eval {f g : YForm} (h : sameForm f g = true) (y : List Int) : f.eval y = g.eval y := by
-  simp only [sameForm, Bool.and_eq_true, beq_iff_eq] at h
-  simp only [YForm.eval, h.1, dot_coeffEq _ _ y h.2]
-
 /-- The symbolic test: the last mark is a marker at W − 2, and the one before it, if any, is a marker. -/
 def symClean (ss : List SMark) (sW : YForm) : Bool :=
   match ss with
