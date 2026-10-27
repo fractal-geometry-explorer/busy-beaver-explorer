@@ -1454,6 +1454,9 @@ d' = d/16 + 15E/16 + 369/16, E' = E + 24.
 Its (b, c) block is (1/128)·[[9, 4], [8, 4]], with irrational eigenvalues (13 ± √153)/256, so Q has no dyadic left
 countdown at all. Every word in P and Q tried (up to length 5) is 2-adically consistent; forced repetition fixes 16.2 to 18.5 bits per
 pass (PP 16.5, QQ 18.5, PQ 17.5, PQPQ 16.2, PQQPQ 16.2), against 10 for the plain loop.
+(October 27, `../lock/LOCK_NOTES.md`: Q does have a dyadic countdown, a quadratic one. The norm form D_Q of its two
+eigenforms is an integer quadratic, never 0, divided by 4096 by every Q pass, so a Q stretch covers at most two thirds
+of the halvings, like P. Every periodic P/Q word has such a lock, at most 4/5; aperiodic mixtures have none.)
 
 **The general form of the lock.** For any periodic pattern whose pass map x ↦ Mx + t contracts (as real numbers) in
 some directions, the fixed point x* = (I − M)⁻¹t is rational with a fixed denominator D. If x* is not an integer point,
