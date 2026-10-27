@@ -13,6 +13,10 @@ in the lab notes).
 - No lock covers all mixtures, and none can: the hand-built P^a Q P^b tapes halt at every width tried. What locks
   still give is a block bound. A halt carried by P/Q passes alone has to change words at least once, and each change
   renews the lock.
+- **The open cases do not use the extra-wall loop** (section 6, added in the evening). Of the clean-tape classes that
+  `blank_halt_pass` leaves open (1,255,963 at 36 digits), 0.09% meet an extra-wall pass start anywhere on their path;
+  of the pass-start trees' open measure at 20 splits, under 1%. So no lock for these loops, of any form, can settle
+  either case.
 
 All computations here use the proved model (`roundZ`), the Lean theorems below, or exact algebra on the pass maps;
 none uses the Python or C simulators with the trailing-wall slip. Files are in this folder (`lock/`).
@@ -120,6 +124,45 @@ a wide tape that uses only P and Q passes therefore **changes words at least onc
 the 2^200 tape the notes record L₂ falling to 2^61.8 at the end of the first P block and jumping back to 2^203.2
 after the single Q.
 
+### 6. The open cases do not run through the extra-wall loop (October 27, evening)
+
+The point of a lock was to settle the two cases that `blank_halt_pass` leaves open (`../lean/END_TO_END.md`): a clean
+tape of width ≥ 2⁴¹ in a cut class of the clean-tape tree with loop entries at every depth, or a pass start in a cut
+class of its pass-start tree at every depth. Two drivers walk those trees step by step as the proved explorers build
+them and record, for every cut leaf, the round shapes on its path (statistics only; no proof reads them):
+`ShapeStats.lean` walks the clean-tape tree as `../lean/EntryStats.lean` does, and `PassShapes.lean` walks the
+pass-start trees, with their cleaves, as `../lean/PassStats.lean` does (its cut measures agree with the ones recorded
+there). A path meets the extra-wall loop if a round start on it is the extra-wall pass start `G W W W W`. In the
+clean-tape tree that is the only round start with four walls that occurs; in the pass-start trees a few paths hold
+four walls in other shapes, and the counts below include them. The drivers also count the paths that meet any round
+shape of the loop or of its way in (`G W W W W`, `G B W W`, `G M M W W`, `G M W W W`, `G M B W`). That bounds the
+loop's share from above, since `G M M W W` also occurs outside it.
+
+- **Clean-tape tree** (Γ = 2⁴¹; `shapes_30.out`, `shapes_36.out`). At 36 digits, 1,098 of the 1,255,963 cut classes
+  (0.09%) meet `G W W W W`, and 44,352 (3.5%) meet any of the five shapes, all but one of them first at `G M M W W`.
+  1,061,623 (85%) never hold more than two walls in a round start, 192,933 hold three at most, 309 one at most. The
+  paths are long, 32 to 47 rounds for 1,164,163 of them and 48 to 63 for 91,795, about one round per digit, and they
+  stop at rounds with two or three marks: `G M M` 512,565 (41%), `G B` 191,369, `G W M M` 160,110, `G M W M` 80,133,
+  `G W M M M` 73,480, `G M B` 52,830, `G M M M` 46,144, `G M M W` 43,711, `G M M M M` 37,945. At 30 digits, 22 of
+  the 101,837 cut classes meet `G W W W W` and 3,133 any of the five.
+- **Pass-start trees** (20 splits, `passCleaves` = 8; `passshapes_20*.out`, summed by `passshapes_sum.py` into
+  `passshapes_20_sum.out`). For R ≥ 178 the cut leaves hold 3.82% of the class; 0.0365% of the class (0.95% of the cut
+  measure) meets four walls, and 0.22% (5.7%) any of the five shapes. For R < 178, averaged over the 88 trees as
+  `PassStats.lean` averages them, the cut leaves hold 1.96% of a class, of which 0.14% is R = 6's decided halt (a
+  `G B` round that never meets four walls); of the other 1.81%, 0.82% meets four walls and 5.6% any of the five
+  shapes. The largest share in one tree is 5.7% (R = 68). The cut paths stop at the same kinds of rounds as in the
+  clean-tape tree (`G M M`, `G B`, `G W M M`, ...). The slices of the cleaves (measure 0) have 200,193 cut leaves for
+  R < 178, 818 of them with four walls.
+
+So **no lock for the extra-wall loops can settle either open case**: almost none of the open measure ever reaches the
+loop, so a bound on what the loop can do leaves the rest untouched. What keeps these classes open is long runs of
+rounds with two or three marks, mostly two-marker rounds (gap, marker, end marker), about one digit per round: the
+growth of the class tree itself (lab notes, "Why the open classes grow 1.53-fold per digit"; and, under "How many free
+numbers a halt needs", the second segment's classes still open at depth 46, which had come no nearer the end than 2
+to 6 halvings). Together with 4, this answers the question of this note for the open cases, in the negative. The
+locks of 2 and 3 remain statements about the extra-wall family: they bound halts carried by it, and would matter to
+an argument that bounds right-end runs by the loops they use, not to the trees as they stand.
+
 ## Conjectured or open
 
 - **Periodic words of any length.** The rate is at most 4/5 whenever the word's norm form never vanishes. Beyond
@@ -148,3 +191,5 @@ after the single Q.
 | `zsolve.py` | integer solvability of linear systems (for never-zero checks) |
 | `common_inv.py`, `common_inv*.out` | common eigen-polynomials of P and Q |
 | `mixed_halt_lean.py`, `mixed_halt_lean.out`, `k16_17.txt`, `tm.c`, `tm_k16_17.out` | the hand-built mixed halts, on the proved model and on the bare machine |
+| `ShapeStats.lean`, `shapes_30.out`, `shapes_36.out` | the round shapes on the cut paths of the clean-tape tree with loop entries (section 6) |
+| `PassShapes.lean`, `passshapes_20*.out`, `passshapes_sum.py` | the same for the pass-start trees, and their sum over R (section 6) |

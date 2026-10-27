@@ -167,7 +167,7 @@ python3 check_tree.py tree36_leaves.txt          # hours
 | `runs/` | the 64-digit route-tree summary, the exact plateau exits, and the pattern maps |
 | `stepper/` | the mark-rule engine of the stepper page (`engine.js`) and the Node scripts run on it |
 | `m2/` | the first JavaScript explorations of the machine (event and round extraction) |
-| `lock/` | locks for the extra-wall loops (October 27): P and Q pass maps as Lean theorems, the quadratic never-zero countdown of Q, locks for every periodic word, and why mixtures have none (`lock/LOCK_NOTES.md`) |
+| `lock/` | locks for the extra-wall loops (October 27): P and Q pass maps as Lean theorems, the quadratic never-zero countdown of Q, locks for every periodic word, why mixtures have none, and why no such lock can settle the open cases, whose runs almost never reach the loop (`lock/LOCK_NOTES.md`) |
 | `sib/` | a simulator for any six-state machine from blank tape |
 
 The notes are a working log kept as the research went. Paths in them such as `../csearch/gx3.c` are relative to
