@@ -51,6 +51,9 @@ self-contained except for the large intermediate outputs mentioned in `README.md
   -lm -lstdc++`. The tree builders are 10–100 times faster native than under `lean --run`.
 - `dfs/run_parts.sh K nparts splitlvl outdir` runs the exhaustive check in parts, two at a time; set `BIN` to the
   compiled `csearch/nrefdfs2.c`. `dfs/merge.py` merges the parts.
-- The simulator in the Python checkers and C explorers has the trailing-wall slip described in the notes; the
-  proved model (`BB6/Round.lean`, `roundZ`) does not. New computations should either use the proved model or carry
-  the audit counter from `audit/`.
+- The trailing-wall slip described in the notes is fixed (October 27) in the Python checkers, the C engines
+  `nrefdfs2`, `lined`, `rtree3d`, `rtree3e`, `gx3` and the stepper: they write the canonical form as `roundZ` does, and
+  the C engines print how often they do (`trailing-wall canonical forms written: N` on stderr). The other programs in
+  `csearch/` still have the slip; port the fix (a few lines in `shift_from`) before using one. After changing a
+  simulator, run `simtest/check.sh`, which compares all of them with the proved model and the bare machine.
+  `Model.lean` (the list model in Lean, the port of the old simulator) still has it.

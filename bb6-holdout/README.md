@@ -53,7 +53,12 @@ marked as such in the notes and on the summary page; they are not proofs.
 one end-of-tape sequence (the "trailing wall": a shift reaching a block in the last three cells, then a later shift
 reaching the wall it leaves). Instrumented reruns (`audit/`) of the certificate checkers, the exhaustive check to 46
 digits, the route trees and the plateau exits reproduce their results exactly and never reach that sequence; the
-deeper exhaustive runs were made with the uninstrumented program. See "The trailing wall" in the notes.
+deeper exhaustive runs were made with the uninstrumented program. See "The trailing wall" in the notes. **Fixed
+(October 27):** the checkers, the C engines current work uses (`nrefdfs2`, `lined`, `rtree3d`, `rtree3e`, `gx3`) and
+the stepper now write the canonical form, as the proved model does, and `simtest/` checks every one of them against
+the proved model on random tapes. With the fixed programs the certificates (exit, endgame, any-phase, 36-digit route tree) check with unchanged output, and the
+exhaustive check to 54 digits reproduces `dfs/merged54.txt` exactly, with the corrected case never occurring. The other
+programs in `csearch/` are kept as they were run.
 
 ## How to check
 
@@ -61,10 +66,12 @@ deeper exhaustive runs were made with the uninstrumented program. See "The trail
 
 ```sh
 cd lean
-LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check.sh        # all 23 files, about a minute; prints the axioms
+LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check.sh        # all 24 files, about a minute; prints the axioms
 # the two theorems (13 and 40 minutes of native_decide evaluation):
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/ExitTheorem.lean -o out/ExitTheorem.olean
+LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/ExitHalt.lean                                  # after ExitTheorem: a halt needs a contact after the exit
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/EndgameTheorem.lean -o out/EndgameTheorem.olean
+LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/EndgameHalt.lean                               # after EndgameTheorem
 # the loop's end for every width (under a minute, then the induction; needs EndgameTheorem.olean):
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopPass.lean -o out/LoopPass.olean
 LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopTheorem.lean -o out/LoopTheorem.olean
@@ -94,6 +101,7 @@ python3 check_tree.py tree36_leaves.txt          # hours
 | `cert/` | certificate files (compressed), the independent checkers, and their outputs |
 | `csearch/` | the C explorers (exhaustive check, route trees, plateau exits, and earlier experiments) |
 | `dfs/` | merged results of the exhaustive check to 54, 56, 58 and 60 digits, and the driver |
+| `simtest/` | the differential test of the simulators (Python, C, stepper) against the proved model and the bare machine |
 | `audit/` | instrumented copies of the checkers and explorers used for the trailing-wall audit, with their outputs |
 | `rec/` | the Python symbolic prover of the mark rules, and the Python research scripts (simulators, invariant searches, halt-odds estimates, end-of-loop studies) |
 | `conc/` | Python studies of the routes into the loop, the extra-wall loops and their exits |
@@ -102,6 +110,7 @@ python3 check_tree.py tree36_leaves.txt          # hours
 | `runs/` | the 64-digit route-tree summary, the exact plateau exits, and the pattern maps |
 | `stepper/` | the mark-rule engine of the stepper page (`engine.js`) and the Node scripts run on it |
 | `m2/` | the first JavaScript explorations of the machine (event and round extraction) |
+| `lock/` | locks for the extra-wall loops (October 27): P and Q pass maps as Lean theorems, the quadratic never-zero countdown of Q, locks for every periodic word, and why mixtures have none (`lock/LOCK_NOTES.md`) |
 | `sib/` | a simulator for any six-state machine from blank tape |
 
 The notes are a working log kept as the research went. Paths in them such as `../csearch/gx3.c` are relative to
