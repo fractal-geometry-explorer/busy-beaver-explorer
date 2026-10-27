@@ -8,7 +8,8 @@
   it at all 50 shared levels. The longest chain below 2^59 is 19 (n = 114,928,805,503,523,374, predicted by the line
   search before the exhaustive run reached it), the largest jump 327.
 - *Two-marker reduction:* every halt starts at a GMM state (gap, marker m, end marker) whose own segment halts. Every
-  such state up to width 262,143 was run: only (4, 13) halts, and the machine never reaches it.
+  such state up to width 262,143 was run: only (4, 13) halts, and the machine never reaches it. (Corrected October 27:
+  so do (4, 9) and (12, 17), at the edge m = E − 5 that the scan left out; the machine reaches none of the three.)
 - *Route exclusion, all widths:* the 759,918 ways from a GMM state into the plain loop decided within 46 binary
   digits (the same at every ratio m/E) leave 866,445 candidate states below their lock caps, and none halts; nor do
   the 1,989 chains through the extra-wall loop. They include the way into every sampled deep run that uses the loop;
@@ -518,6 +519,12 @@ independent of which states the machine visits.
   halving), the expected number of halting GMM states of width about 2^k is 2^(0.24 − 0.46k): about one below 2^16,
   which is what was found, and about 0.014 beyond 2^18. The universal statement "H = {(4, 13)}" would imply that the
   machine never halts from any clean tape; it is checked to width 2^18 and heuristically holds with odds of about 99%.
+- (Corrected October 27, `../lock/LOCK_NOTES.md` section 7: both scans above stopped at m = E − 7, and the edge
+  m = E − 5 holds two more halting states, (4, 9) and (12, 17), 197 and 817 steps on the bare machine. On the proved
+  model every GMM state up to width 16,001 except these two and (4, 13) reaches the clean tape, and the narrowest gaps at
+  every width up to 262,143 add no other, so H ∩ {E ≤ 262,143} = {(4, 9), (4, 13), (12, 17)}, and the universal
+  statement to aim for is H = {(4, 9), (4, 13), (12, 17)}. The machine reaches none of them: its narrowest GMM state is
+  (4, 15), whose segment leads to (14, 27), and widths never shrink.)
 - A halt of the machine itself also needs its own sequence to land on a state of H. It visits about one GMM state per
   cycle while the width grows about 18 per cycle, so if a state of width about 2^k were hit like a random point, with
   odds of about 2^-(k+2), the expected number of halts beyond 2^50 would be about Σ 2^(0.24 − 0.46k)·2^-(k+2) ≈ 10^-23
@@ -1062,6 +1069,8 @@ whenever t ≡ 4 or 6 (mod 8), 21 when t ≡ 13 (mod 16), and anything from 21 t
 6. **The two-marker reduction.** Every halt from a clean tape starts from a GMM state whose own segment halts. All 8.6
    billion GMM states up to width 262,143 were run through their segments: only (4, 13), 13 cells wide and never
    reached by the machine, halts. The plane's odds predict about one halting state below 2^16 and 0.014 beyond 2^18.
+   (Corrected October 27: (4, 9) and (12, 17) halt too, at the edge m = E − 5 the scan left out, and the machine
+   reaches neither.)
 7. **The machine's sequence of clean tapes is typical.** Its residues mod 2^k follow the stationary law of a Markov
    chain built from random n (total variation at the noise level mod 16, 256, 1024); deep classes get at most about 3
    times their 2-adic share. For 29 of 32 residues the next clean tape is explicit (n + 3, 6, 9 or 12).
@@ -2695,6 +2704,29 @@ R = 32: 19, R = 64: 7); there were none for R = 10, 12, 22, 24, 100 or 176. The 
 other two pass a mark first, so their halts need the gap phase up to the end (`Reach` to an `EndClose` state,
 `../lean/BB6/HaltStretch.lean`) and are not in Lean yet.
 
+**What keeps two-marker runs open (October 27, night; `../lock/LOCK_NOTES.md` section 7).** The open classes are long
+runs of two-marker rounds ("The open cases do not run through the extra-wall loop" above), so the runs from one GMM
+state to the next were taken apart. `../lock/Pieces.lean` walks the route tree with loop entries (Γ = 2²⁶) as the
+proved explorer builds it and dumps every leaf, and `../lock/pieces.py` solves each leaf for an exact map of (m, E). At
+30 digits 65.1% of the GMM states reach the clean tape with no GMM state on the way, 34.0% return to a GMM state, 0.84%
+stop at a loop entry and 1.5 × 10⁻⁵ is cut. The returns fall into 14,167 classes, each an exact affine map
+m' = a·m + b·E + c, E' = E + e (e a positive multiple of 6, a = u/2^r ≤ 1/4). The 104 pure halvings (b = c = 0,
+measure 0.161) move the marker toward the gap; the 14,063 resets (b > 0, measure 0.180) put it back at a fraction of
+the width, and each has a never-zero countdown, the scaled distance to its fixed line m = λE + μ, which has no integer
+point for any of them. The fixed lines differ (λ = 6/7, 2/5, 1/7, 2/15, 30/31, 13/15 for the largest), so no countdown
+survives a change of piece. Chains of returns, at 4.85 digits per return, multiply 1.657-fold per digit in classes
+while their measure falls 0.8285-fold: the two-number version of the 1.53-fold growth in "Why the open classes grow
+1.53-fold per digit". So no lock or integrality argument settles a class; a countdown removes only the branch where its
+own piece repeats. The eight largest pieces (39/128 of the GMM states) are theorems about the machine for both gaps at
+least 32, with their countdowns and never-zero proofs (`../lock/lean_maps/GmmMaps.lean`, checked by the kernel).
+
+On the proved model every GMM state up to width 16,001 (31,980,003 of them, `../lock/GmmHalts.lean`) reaches the clean
+tape within 83 rounds and 16 returns, except (4, 9), (4, 13) and (12, 17), which halt on the bare machine after 197,
+567 and 817 steps. The October 20 scan ("The two-marker reduction") stopped at m = E − 7 and so missed the two at
+m = E − 5; the narrowest gaps at every width up to 262,143 add no other (`../lock/GmmNarrow.lean`), so
+H ∩ {E ≤ 262,143} = {(4, 9), (4, 13), (12, 17)}. The machine reaches none of them: its narrowest GMM state is (4, 15),
+whose segment leads to (14, 27), and widths never shrink.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:
@@ -2721,7 +2753,8 @@ allowance: 24.1 halvings at 84 digits, where the bound is about 80.
 The cleanest form of what remains (October 20): every halt starts from a GMM state whose own segment halts, so it
 would suffice to show that the set H of such states contains no state the machine reaches. The stronger universal
 statement H = {(4, 13)} is a property of a fixed two-number family; it is checked for every GMM state up to width
-262,143 and has heuristic odds of about 99%.
+262,143 and has heuristic odds of about 99%. (Corrected October 27: up to that width H = {(4, 9), (4, 13), (12, 17)};
+see "The two-marker reduction".)
 
 **What this changes.** Long runs are not a random walk over many patterns; they are one loop, and its cost is exact.
 A halt needs about log2(n) meetings, which through this loop needs a b-digit n to meet 2.5 conditions per meeting. A

@@ -17,9 +17,16 @@ in the lab notes).
   `blank_halt_pass` leaves open (1,255,963 at 36 digits), 0.09% meet an extra-wall pass start anywhere on their path;
   of the pass-start trees' open measure at 20 splits, under 1%. So no lock for these loops, of any form, can settle
   either case.
+- **What keeps two-marker runs open** (section 7, added at night): they are words in about 14,000 exact return pieces
+  (from one two-marker state to the next), which either halve the marker's gap or reset the marker into the tape. Each
+  piece repeated is bounded (every reset has a never-zero countdown; the eight largest pieces and their countdowns are
+  now Lean theorems), but the countdowns differ, so no lock or integrality argument settles a class: the classes of
+  chains of returns multiply 1.66-fold per digit. The two-marker states up to width 262,143 that halt are (4, 9),
+  (4, 13) and (12, 17), none reachable by the machine; the October 20 scan had missed the first and the last.
 
-All computations here use the proved model (`roundZ`), the Lean theorems below, or exact algebra on the pass maps;
-none uses the Python or C simulators with the trailing-wall slip. Files are in this folder (`lock/`).
+All computations here use the proved model (`roundZ`), the Lean theorems below, exact algebra on the pass maps, or
+the bare machine; none uses the Python or C simulators with the trailing-wall slip (section 7 cites one older scan
+that did). Files are in this folder (`lock/`).
 
 ## Established
 
@@ -163,6 +170,90 @@ to 6 halvings). Together with 4, this answers the question of this note for the 
 locks of 2 and 3 remain statements about the extra-wall family: they bound halts carried by it, and would matter to
 an argument that bounds right-end runs by the loops they use, not to the trees as they stand.
 
+### 7. What keeps two-marker runs open: the return pieces (October 27, night)
+
+Section 6 left the open classes as long runs of two- and three-mark rounds, mostly two-marker rounds. This section takes
+those runs apart. A **two-marker state** is the round start G 1, M m, M E − 2 (m even, E odd: gap, marker, end marker;
+the GMM state of the lab notes), and a **return** is the run from one two-marker state to the next. `Pieces.lean` walks
+the route tree with loop entries (`routeTreeE`, Γ = 2²⁶, rooted at a two-marker state with m and E free) step by step as
+the proved explorer builds it, and prints every leaf with its class and its round start as forms in the leaf's
+coordinates; `pieces.py` solves these for exact maps of (m, E). Both are statistics only; the main pieces are then
+proved in Lean (below).
+
+- **Where a two-marker state goes** (`pieces_30.out`, 44,770 leaves at 30 digits; `pieces_24.out` at 24). 65.1% of the
+  class reaches the bare one-marker tape (a clean tape) with no two-marker state on the way, 34.0% returns to two
+  markers, 0.84% stops at a loop entry that cannot close, and 1.5 × 10⁻⁵ is cut (1.45 × 10⁻⁴ at 24 digits). Nearly all
+  of it is decided within 12 digits.
+- **The return pieces** (`pieces_30_locks.out`). The returns fall into 14,167 classes (14,105 words of round shapes).
+  On each class the return is an exact affine map, m' = a·m + b·E + c and E' = E + e, with e a positive multiple of 6
+  and a = u/2^r for an odd u, at most 1/4. There are two kinds:
+  - **Pure halvings** (b = c = 0, so m' = m/2^r): 104 classes, measure 0.161. The largest is G M M → G M W → G M M,
+    m' = m/4 on m ≡ 0 (mod 8), E ≡ 3 (mod 4), an eighth of all two-marker states. They move the marker toward the gap
+    at 1, and m itself is their countdown: each divides it by at least 4, so at most log₄E of them follow one another.
+    Their fixed point m = 0 is an integer point but not a state.
+  - **Resets** (b > 0): 14,063 classes, measure 0.180. They put the marker back at a fraction of the width (b from
+    under 1/8 to over 7/8; 40% of their measure has b in [3/4, 7/8)), and repeated they draw it toward a fixed line
+    m = λE + μ inside the tape, λ = b/(1 − a). The scaled distance L = K·(m − λE − μ) to that line is an integer that
+    each pass multiplies by a (divides by 2^r when u = 1, which holds for 0.319 of the 0.340 that returns), and **for
+    all 14,063 the line has no integer point**, so L is never 0: every reset has a never-zero countdown like the plain
+    loop's L₁, and repeats at most about log₂(E)/r times in a row.
+- **No lock is shared** (`pieces_30_pairs.out`). The fixed lines differ from piece to piece (λ = 6/7, 2/5, 1/7, 2/15,
+  30/31, 13/15 for the six largest resets), so no countdown survives a change of piece, as for P and Q in section 4.
+  Two-piece words behave like single pieces: of the 90,000 ordered pairs of the 300 largest pieces, the only ones whose
+  fixed line has integer points are the 121 pairs of their 11 pure halvings, at m = 0, and every pair with a reset has
+  its own lock. Runs of pure halvings are also limited by E's residues: following E mod 2¹⁶ through all 104
+  classes, at most 140 follow one another (`pieces_30_halving.out`).
+- **Chains of returns branch** (`pieces_branching.out`). A return uses 4.85 digits on average. Counted as a branching
+  process (a piece of k digits has measure 2^-k), the classes of chains of returns multiply by 1.657 per digit while
+  their measure falls by 0.8285 per digit. This is the growth of the open classes; on the machine's own clean tapes,
+  with one free number, the lab notes measure 1.53 per digit ("Why the open classes grow 1.53-fold per digit").
+
+**The main pieces as theorems** (`lean_maps/GmmMaps.lean`, generated by `lean_maps/gen_gmmmaps.py` from
+`gmm_pieces.json`, which `pieces.py DUMP emit` writes; checked in about 5 seconds, `lean_maps/gmm_check.out`). The
+eight largest pieces, 39/128 ≈ 0.305 of the two-marker states (of the 0.340 that return), are proved as P and Q are in
+section 1: the class is built with positions as forms in its coordinates (s, t), the proved symbolic model is run for
+the piece's rounds, Lean's kernel checks the result (`decide +kernel`), and `pass_sound` turns it into a statement about
+the machine (`gmm_*_return`): every two-marker state on the class with both gaps at least 32 runs, without halting, to
+the two-marker state (m', E'), and this is also what `roundsZ` computes. For each reset, `*_countdown` proves
+2^r·L(m', E') = L(m, E) and `*_ne_zero` that L has no integer zero; `countdown_chain` gives |L| ≥ 2^(r·k) at the start
+of k repeats. Standard axioms only (the never-zero theorems use propext and Quot.sound alone).
+
+| round starts after G M M | class | measure | map | countdown L |
+|---|---|---|---|---|
+| G M W | m ≡ 0 (mod 8), E ≡ 3 (mod 4) | 1/8 | 4m' = m, E' = E + 6 | none (pure halving) |
+| G M M M, G W M M | m ≡ 2E + 6 (mod 16), E ≡ 3 (mod 4) | 1/16 | 8m' = m + 6E + 18, E' = E + 12 | 49m − 42E + 450 ≡ 2 (mod 7) |
+| G M M M, G M W M | m ≡ 0 (mod 16), E ≡ 5 (mod 8) | 1/32 | 8m' = m, E' = E + 12 | none (pure halving) |
+| G M W, G W W, G B, G W W, G B | m ≡ 2E + 26 (mod 32), E ≡ 1 (mod 4) | 1/32 | 16m' = m + 6E + 94, E' = E + 18 | 75m − 30E + 106 ≡ 1 (mod 15) |
+| G M M M, G M W M, G W W M, G B M | m ≡ 8 (mod 16), E ≡ 13 (mod 16) | 1/64 | 8m' = m + E + 27, E' = E + 18 | 49m − 7E − 45 ≡ 4 (mod 7) |
+| G M W, G W W, G B, G M W M | m ≡ 2E + 2 (mod 32), E ≡ 1 (mod 8) | 1/64 | 16m' = m + 2E + 26, E' = E + 18 | 75m − 10E + 62 ≡ 2 (mod 5) |
+| G M W, G W W, G B, G W W, G B, G W M M | m ≡ 2E + 42 (mod 64), E ≡ 1 (mod 4) | 1/64 | 32m' = m + 30E + 438, E' = E + 24 | 961m − 930E + 9462 ≡ 7 (mod 31) |
+| G M M M, G M W M, G W W M, G B M, G W M M | m ≡ E + 19 (mod 32), E ≡ 5 (mod 16) | 1/128 | 16m' = m + 13E + 199, E' = E + 24 | 75m − 65E + 669 ≡ 4 (mod 5) |
+
+**Which two-marker states halt** (`GmmHalts.lean`, `gmm_halts.out`; `GmmNarrow.lean`, `gmm_narrow.out`;
+`GmmEdge.lean`, `gmm_edge.out`; `gmm_tm.out`). By the lab notes' two-marker reduction (October 20), a halt from a clean
+tape needs a two-marker state whose own segment halts (the set H), and their scan found H ∩ {E ≤ 262,143} = {(4, 13)}.
+That scan stopped at m = E − 7, and the edge m = E − 5 holds two more:
+- On the proved model (`roundZ`), run until the bare one-marker tape, every one of the 31,980,003 two-marker states
+  with E ≤ 16,001 gets there, within 83 rounds and 16 returns, except (4, 9), (4, 13) and (12, 17). These three leave
+  the model (marks touch) and halt on the bare machine after 197, 567 and 817 steps.
+- At the narrowest gaps (m = 4, 6, 8, 10 and E − m = 5, 7, 9, 11) at every width up to 262,143 there is no other, so
+  with the October 20 scan **H ∩ {E ≤ 262,143} = {(4, 9), (4, 13), (12, 17)}**. Above E = 16,001 the wider gaps rest
+  on that scan alone, which ran the C mark model `../csearch/gmmseg.c` before the trailing-wall fix.
+- None of the three is on the machine's path. Its two-marker states are (n + 2, 2n + 11) for its even clean tapes n and
+  the states their segments lead to, the model's width never shrinks, and the only one of them with E ≤ 17 is (4, 15)
+  (n = 2), whose segment leads to (14, 27).
+- One small gap at a large width does not halt either: gaps 4 to 64 at 200 widths in [10⁶, 2·10⁶), and 4 to 200 at 100
+  widths in [2⁴⁰, 2⁴¹), on both sides, all reach the bare one-marker tape, within 48 and 59 rounds.
+
+**What this says.** A two-marker run is a word in the return pieces, ended by a run to the bare one-marker tape. Each
+piece repeated is bounded, by m for the pure halvings and by a never-zero countdown for the resets, and the eight
+largest are theorems with their countdowns. But the countdowns differ and a change of piece renews them, so **no lock
+settles a class, and no integrality argument does either**: a countdown removes only the branch where its own piece
+repeats, one 2-adic branch among mixtures whose classes multiply 1.66-fold per digit. The two kinds pull opposite ways,
+the pure halvings toward the gap and the resets back into the tape. A halt needs marks to touch, and the only
+two-marker states found whose runs make them touch are the three tiny ones above, which the machine never visits. What
+is left is the branching itself: the open chains lose measure about 0.83-fold per digit while their classes multiply.
+
 ## Conjectured or open
 
 - **Periodic words of any length.** The rate is at most 4/5 whenever the word's norm form never vanishes. Beyond
@@ -177,6 +268,12 @@ an argument that bounds right-end runs by the loops they use, not to the trees a
   each family has a cap on extra-wall passes (lab notes, "The extra-wall loop needs three free numbers"). That
   remains measured, not proved. Turning it into a statement that each change of word costs a fixed number of
   digits on two-number families is the natural next step.
+- **H = {(4, 9), (4, 13), (12, 17)}** (section 7). Checked to width 262,143, every state to 16,001 on the proved
+  model. The universal statement would imply that the machine never halts from any clean tape, as "H = {(4, 13)}"
+  would have in the lab notes. Section 7 shows why locks alone cannot prove it.
+- **The rest of the return alphabet.** Only the eight largest return pieces (0.305 of the 0.340 that returns) are
+  theorems. `gen_gmmmaps.py` proves any piece that `pieces.py DUMP emit` writes out, and every reset has a never-zero
+  countdown, but the other 14,159 classes are exact algebra on the route tree's leaves, not checked in Lean.
 
 ## Files
 
@@ -184,7 +281,7 @@ an argument that bounds right-end runs by the loops they use, not to the trees a
 |---|---|
 | `passmaps.py` | the P and Q maps as exact rationals |
 | `Harness.lean`, `verify_maps.py` | run starts through the proved `roundZ`; compare with composed maps (`verify_maps.out`) |
-| `lean_maps/` | `PassMaps.lean` (P_pass, Q_pass; kernel-checked, no compiler trust), `DQ.lean` (D_Q identity and never-zero), `gen_passmaps.py`, `check.sh` |
+| `lean_maps/` | `PassMaps.lean` (P_pass, Q_pass; kernel-checked, no compiler trust), `DQ.lean` (D_Q identity and never-zero), `gen_passmaps.py`, `check.sh` (checks these and `GmmMaps.lean`) |
 | `qlock_derive.py`, `DQ.txt` | derivation of D_Q and its zero set |
 | `periodic_locks.py`, `periodic_locks_12.txt` | locks and rates for all Lyndon words to length 12 |
 | `word_height.py`, `word_height.txt` | the norm form of any word, its height, never-zero check |
@@ -193,3 +290,9 @@ an argument that bounds right-end runs by the loops they use, not to the trees a
 | `mixed_halt_lean.py`, `mixed_halt_lean.out`, `k16_17.txt`, `tm.c`, `tm_k16_17.out` | the hand-built mixed halts, on the proved model and on the bare machine |
 | `ShapeStats.lean`, `shapes_30.out`, `shapes_36.out` | the round shapes on the cut paths of the clean-tape tree with loop entries (section 6) |
 | `PassShapes.lean`, `passshapes_20*.out`, `passshapes_sum.py` | the same for the pass-start trees, and their sum over R (section 6) |
+| `PathSamples.lean` | sample cut paths of the route tree or the clean-tape tree, every round start with exact positions (section 7) |
+| `Pieces.lean`, `pieces.py`, `pieces_24.out`, `pieces_30*.out`, `pieces_branching.out` | the route tree's leaves; the return pieces' exact maps, branching rate, locks, pairs and runs of pure halvings (section 7) |
+| `gmm_pieces.json` | the eight largest return pieces, for `lean_maps/gen_gmmmaps.py` |
+| `lean_maps/GmmMaps.lean`, `lean_maps/gen_gmmmaps.py`, `lean_maps/gmm_check.out` | the eight pieces as theorems about the machine, their countdowns and never-zero proofs (section 7; `check.sh` runs it) |
+| `GmmHalts.lean`, `gmm_halts.out` | every two-marker state to width 16,001 on the proved model: which reach the bare one-marker tape (section 7) |
+| `GmmNarrow.lean`, `gmm_narrow.out`, `GmmEdge.lean`, `gmm_edge.out`, `gmm_tm.out` | the narrowest gaps at every width to 262,143, one small gap at large widths, and the three halting states on the bare machine (section 7) |
