@@ -130,10 +130,10 @@ LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./cbuild_ct.sh && ./cbuild/ExploreC
 
 | step | time |
 |---|---|
-| `thm/ExitPieces*.lean`, `thm/EndgamePieces*.lean` (kernel, 4 modules at a time) | 2 min 29 s |
+| `thm/ExitPieces*.lean`, `thm/EndgamePieces*.lean` (kernel, 4 modules at a time) | 2 min 23 s |
 | `thm/EndgameTheorem.lean`, `ExitTheorem.lean`, `ExitHalt.lean`, `LoopTheorem.lean`, `LoopHalt.lean` | seconds |
-| `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 22 s |
-| `thm/CleanTheorem.lean` (36 digits, 3.2 million leaves; 2.3 GB of memory) | 4 min 1 s |
+| `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 26 s |
+| `thm/CleanTheorem.lean` (36 digits, 3.2 million leaves; 2.3 GB of memory) | 3 min 53 s |
 | `thm/EndToEnd.lean` | seconds |
 
-The whole of `check_end.sh` took 11 min 31 s.
+The whole of `check_end.sh` took 10 min 54 s.
