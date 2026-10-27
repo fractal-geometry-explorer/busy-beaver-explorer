@@ -124,6 +124,12 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    `native_decide`), but below almost every class cut at b digits a deeper tree still cuts, so the number of open
    classes at b digits stays put: each holds a 2-adic value of W/2 that no depth settles, and only an argument that
    uses that W is an integer could close it.
+   **Nor does integrality, short of a question of the Collatz kind (October 27, `integ/INTEGRALITY.md`):** a class holds
+   not one such value but a Cantor set of them (below every class cut at 24 digits but 2, the tree of depth 36 still
+   cuts 42 to 304 classes, `integ/SpineCount.lean`, `native_decide`), single two-marker segments branch too, and the
+   only odd-modulus invariant is the known count of 1s mod 3, so no never-zero countdown can close a class: it would
+   vanish at infinitely many 2-adic points. The tree follows a width for about as many digits as it has; whether every
+   width then settles is the open question.
 
 ## Practical notes
 
