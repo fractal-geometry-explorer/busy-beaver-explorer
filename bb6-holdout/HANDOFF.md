@@ -38,13 +38,24 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    at its last pass start, hence log₂W ≤ σ + 6.38".
 2. **Done in part (October 27):** `halt_needs_contact` and `halt_after_rounds` (`lean/BB6/HaltClose.lean`,
    `HaltStretch.lean`), and the end-to-end statement `blank_halt_structure` (`lean/thm/EndToEnd.lean`,
-   `lean/END_TO_END.md`): a halt from blank tape needs a clean tape of width ≥ 2³² in a cut class of the 36-digit
-   clean-tape tree, then a stuck contact. What remains is the cut classes themselves (and, for the loop, the σ bound).
+   `lean/END_TO_END.md`): a halt from blank tape needs a clean tape of width ≥ 2³² that is in a cut class of the
+   clean-tape tree at every depth (at 36 digits: measure 2.4 × 10⁻⁵), then a stuck contact. With the members of the
+   cut classes below 2⁴¹ run one by one (`blank_halt_clean_direct`), the clean tape is at least 2⁴¹ wide. What
+   remains is those clean tapes themselves (and, for the loop, the σ bound). The loop and exit items of
+   `blank_halt_structure`, as stated, also hold with zero rounds; their statements are being changed to name the end
+   of the stretch.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
 3. **Remove the compiler trust** from the two theorems (kernel evaluation, or compact per-tree certificates).
-4. **The route-tree certificate in Lean** (the "ways into the loop have ceilings" results).
+   Done for the route tree and the clean-tape tree (October 27): they are built by an explorer proved to build only
+   trees that pass the check (`lean/BB6/RouteExplore.lean`), so their theorems hold at every depth with the standard
+   axioms only; only the measures of their cut classes are evaluated. The exit, loop and endgame trees are checked by
+   Lean's kernel (`decide +kernel`, October 27). What still uses `native_decide` is the blank-tape prefix (10⁹
+   rounds, out of the kernel's reach) and the direct runs below 2⁴¹.
+4. **The route-tree certificate in Lean** (the "ways into the loop have ceilings" results). Done (October 27) for the
+   tree itself: `route_tree_clean` at every depth and cone constant (`lean/ROUTE_TREE.md`), with the certificate's
+   cut classes at 36 and 40 digits. The ceilings are not in Lean.
 5. **Research**: of the three open questions (routes deeper than the tree, halts carried by the extra-wall loop
    alone, marks touching), the most promising is a lock for the extra-wall loops analogous to the plain loop's
    never-zero countdown.
