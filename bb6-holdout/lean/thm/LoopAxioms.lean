@@ -11,3 +11,9 @@ import LoopHalt
 #print axioms BB6.loop_halt_sigma
 #check @BB6.loop_halt_wide
 #print axioms BB6.loop_halt_wide
+#check @landing_wide
+#print axioms landing_wide
+#check @loopEnd_wide
+#print axioms loopEnd_wide
+#check @BB6.loop_halt_leaves
+#print axioms BB6.loop_halt_leaves

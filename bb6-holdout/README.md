@@ -39,8 +39,9 @@ mark rules interactively.
     again ≥ 448, at any width (by induction on the halting time, since a round-7 break can raise R; a half pass comes
     only as the first step, since every landing has W′ ≡ 0 mod 4). So within the loop a run closes only from a pass
     start whose R is in the closing set and whose L₁ is in R's class; otherwise it runs close-free until it leaves the
-    chain (a round start that is not three walls, or a landing with a gap below 448). After that a run can come back
-    to phase-0 pass starts and close later (see the notes, October 27).
+    chain (a round start that is not three walls, or a landing with a gap below 448, which from a width ≥ 2¹³ happens
+    only after a half pass from a middle wall within 896 of the end: `landing_wide`, `loop_halt_leaves`). After that a
+    run can come back to phase-0 pass starts and close later (see the notes, October 27).
   - **The σ bound** (`LoopChain.sigma`, `loop_halt_sigma`, `blank_halt_sigma`): a pass divides R³ and L₁² by the same
     factor, and the closing classes have R³/L₁² ≤ 176³/256², so a close through the loop needs R³/L₁² ≤ 176³/256² at
     the start of the chain's last run of full passes: log₂W ≤ σ + 6.38, with σ = 3 log₂(W/R) + 2 log₂(|L₁|/W) there.

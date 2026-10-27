@@ -67,13 +67,71 @@ theorem BB6.PassStart448.www {ms : List Mark} {W R : Nat} (h : PassStart448 ms W
 the pass start's right end and left countdown. -/
 theorem landing_passStart {n E R : Nat} {L : Int} {ms : List Mark} {W R' : Nat} (hl : Landing n E R L ms W)
     (hP : PassStart448 ms W R') : W % 4 = 0 ∧ ∃ k, StepMap k n E R L W R' (passL1 ms W) := by
-  obtain ⟨k, a, b, c, R₁, rfl, -, -, hW, hc, -, -, hm⟩ := hl
+  obtain ⟨k, a, b, c, R₁, rfl, -, -, hW, hc, -, -, hm, -⟩ := hl
   obtain ⟨a₂, b₂, hms, -, -, -, -, -, -, -, h3⟩ := hP
   simp only [List.cons.injEq, Mark.mk.injEq, true_and, and_true] at hms
   obtain ⟨-, -, hc₂⟩ := hms
   have e : R₁ = R' := by omega
   subst e
   exact ⟨hW, k, hm⟩
+
+/-- **Wide landings keep their gaps.**  From a pass start of width E ≥ 2¹³ with every gap at least 448, a landing of
+the loop's chain is again a pass start with every gap at least 448, unless it is a half pass from a start whose middle
+wall b is within 896 of the end: a half pass lands with last gap (E − b)/2.  With c = E − R − 1, the landing's first two
+walls are 64a′ = b + 4c + 12E + 678 and 64b′ = b + 8c + 40E + 1258 after a full pass, 2a′ = b + 10 and 2b′ = b + c + 11
+after a half pass, 16a′ = b + c + E + 135 and 32b′ = 3b + 6c + 10E + 452 after a round-7 break (a′ from `StepWall`, b′
+from `StepMap` through the left countdown); a full pass needs E ≥ 2,334 for a′ ≥ 448, a round-7 break E ≥ 6,138. -/
+theorem landing_wide {a b E R : Nat} (hP : PassStart448 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E R)
+    (hE : 2 ^ 13 ≤ E) (hh : E % 4 = 2 → b + 896 ≤ E) {n : Nat} {ms' : List Mark} {W' : Nat}
+    (hl : Landing n E R (passL1 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E) ms' W') : ∃ R', PassStart448 ms' W' R' := by
+  obtain ⟨a₀, b₀, hms, -, -, -, -, -, h1, h2, h3⟩ := hP
+  simp only [List.cons.injEq, Mark.mk.injEq, true_and, and_true] at hms
+  obtain ⟨rfl, rfl⟩ := hms
+  obtain ⟨k, a', b', c', R', rfl, ha', hb', hW4, hc', hR2, hR', hm, hw⟩ := hl
+  have hL : passL1 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E = 147 * (b : Int) - 112 * E + 392 * R - 186 := by
+    show loopL1 b (E - R - 1) E = _
+    unfold loopL1
+    omega
+  rw [hL] at hm hw
+  have hE' : 8192 ≤ E := hE
+  have key : 448 ≤ a' ∧ a' + 448 ≤ b' ∧ b' + 448 + R' + 1 ≤ W' := by
+    clear ha' hb' hW4 hR2 hE hL
+    cases k with
+    | full =>
+      obtain ⟨-, e1, e2, e3⟩ := hm
+      simp only [StepWall] at hw
+      unfold loopL1 at e2
+      clear hh
+      omega
+    | half =>
+      obtain ⟨-, e1, e2, e3, e4⟩ := hm
+      simp only [StepWall] at hw
+      unfold loopL1 at e2
+      have h4 := hh e4
+      clear hh e4
+      have hw' : 2 * (a' : Int) = b + 10 := by omega
+      have e2' : 2 * (b' : Int) = b + E - R + 10 := by omega
+      clear hw e2
+      omega
+    | break7 =>
+      obtain ⟨-, e1, e2, e3⟩ := hm
+      simp only [StepWall] at hw
+      unfold loopL1 at e2
+      clear hh
+      omega
+  refine ⟨R', a', b', ?_, ha', hb', by omega, hR2, hR', key.1, key.2.1, key.2.2⟩
+  rw [show W' - R' - 1 = c' by omega]
+
+/-- **From a wide pass start the chain's end leaves three walls.**  At a pass start of width E ≥ 2¹³ with every gap at
+least 448 (and, if E ≡ 2 mod 4, the middle wall at least 896 from the end), an end of the loop's chain (`LoopEnd`) is
+not a landing: the run left phase 0 or the halving chain, at a round start that is not three walls. -/
+theorem loopEnd_wide {a b E R : Nat} (hP : PassStart448 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E R)
+    (hE : 2 ^ 13 ≤ E) (hh : E % 4 = 2 → b + 896 ≤ E) {n : Nat} {ds : List Nat} {ms' : List Mark} {W' : Nat}
+    (he : LoopEnd E R (passL1 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E) n ds ms' W') :
+    (LeftPhase0 n ms' ∨ ChainBreak ds) ∧ NotWWW ms' := by
+  obtain ⟨he | hl, hn⟩ := he
+  · exact he
+  · exact absurd (landing_wide hP hE hh hl) hn
 
 /-- Every list of steps is a list that does not end with a full pass, followed by a run of full passes. -/
 theorem split_fulls : ∀ ks : List StepKind, ∃ ks₁ p, ks = ks₁ ++ List.replicate p .full ∧
@@ -90,6 +148,21 @@ theorem split_fulls : ∀ ks : List StepKind, ∃ ks₁ p, ks = ks₁ ++ List.re
 namespace LoopChain
 
 variable {ms : List Mark} {W R : Nat} {ks : List StepKind} {ms' : List Mark} {W' R' : Nat}
+
+/-- The chain's last pass start. -/
+theorem stop (h : LoopChain ms W R ks ms' W' R') : PassStart448 ms' W' R' := by
+  induction h with
+  | nil hP => exact hP
+  | cons _ _ _ _ _ _ _ _ _ _ ih => exact ih
+
+/-- The chain's last pass start is its first, or a landing: of width ≡ 0 (mod 4). -/
+theorem stop_mod (h : LoopChain ms W R ks ms' W' R') : (ms' = ms ∧ W' = W ∧ R' = R) ∨ W' % 4 = 0 := by
+  induction h with
+  | nil _ => exact Or.inl ⟨rfl, rfl, rfl⟩
+  | cons _ _ _ _ _ _ _ hW4 _ _ ih =>
+    rcases ih with ⟨rfl, rfl, rfl⟩ | h
+    · exact Or.inr hW4
+    · exact Or.inr h
 
 /-- The chain's first pass start. -/
 theorem start (h : LoopChain ms W R ks ms' W' R') : PassStart448 ms W R := by
