@@ -10,9 +10,11 @@ of decision the model needs are:
 
 * a residue (`d % 2`, `d % 4`): decided when every coefficient is divisible by the modulus (`modDec`);
 * an equality with a constant: decided when every coefficient is zero (`constVal`);
-* an order: decided on the cone of large gaps by a certificate `D · p = Σ μⱼ tⱼ + c` with `D > 0`, `μⱼ ≥ 0`, checked
-  coefficient by coefficient (`posCheck`): then `p > 0` whenever every gap `tⱼ ≥ Γ` and `c + Γ Σ μⱼ > 0`.  How `μ`
-  is found (`posCert`, fraction-free back substitution) is not part of the trusted base; only the check is.
+* an order: decided on the cone of large gaps by an identity `D · p = Σ μⱼ tⱼ + c` with `D > 0`: then `p > 0`
+  whenever every gap `tⱼ ≥ Γ`, every `μⱼ ≥ 0` and `c + Γ Σ μⱼ > 0` (and `p < 0` when every `μⱼ ≤ 0` and
+  `c + Γ Σ μⱼ < 0`).  The identity comes from an inverse of the gap forms' coefficient matrix, `D yᵢ + κᵢ = Σⱼ uᵢⱼ tⱼ`,
+  which is checked once per cone (`invCheck`); then `μ = Σᵢ pᵢ uᵢ` and `c = D p₀ − Σᵢ pᵢ κᵢ` for every `p` (`sgnInv`).
+  How the inverse is found (`coneInv`, Cramer's rule) is not part of the trusted base; only the check is.
 
 Coefficient lists are padded with zeros, so no length conditions appear in the lemmas.
 -/
@@ -156,13 +158,6 @@ theorem eval_constVal (f : YForm) (v : Int) (h : f.constVal = some v) (y : List 
 /-- The cone: every gap form is at least `Γ`. -/
 def inCone (ts : List YForm) (Γ : Int) (y : List Int) : Prop := ∀ t ∈ ts, Γ ≤ t.eval y
 
-/-- A positivity certificate: `D · p = Σ μⱼ tⱼ + c` as forms (checked coefficientwise and on the constant), `D > 0`,
-`μⱼ ≥ 0`, and `c + Γ Σ μⱼ > 0`. -/
-structure PosCert where
-  D : Int
-  μ : List Int
-  deriving Repr
-
 def combo : List Int → List YForm → YForm
   | m :: ms, t :: ts => (t.smul m).add (combo ms ts)
   | _, _ => YForm.const 0
@@ -199,10 +194,6 @@ def sumL : List Int → Int
   | a :: as => a + sumL as
 
 /-- The check of a positivity certificate for `p` (with the constant `c` it implies). -/
-def posCheck (p : YForm) (ts : List YForm) (Γ : Int) (cert : PosCert) : Bool :=
-  let r := (p.smul cert.D).sub (combo cert.μ ts)
-  0 < cert.D && cert.μ.all (0 ≤ ·) && cert.μ.length ≤ ts.length && coeffEq r.c [] && 0 < r.k + Γ * sumL cert.μ
-
 theorem dot_ge (ms : List Int) (vs : List Int) (Γ : Int) (hm : ms.all (0 ≤ ·) = true) (hl : ms.length ≤ vs.length)
     (hv : ∀ v ∈ vs, Γ ≤ v) : Γ * sumL ms ≤ dot ms vs := by
   induction ms generalizing vs with
@@ -218,107 +209,257 @@ theorem dot_ge (ms : List Int) (vs : List Int) (Γ : Int) (hm : ms.all (0 ≤ ·
       have h2 := ih vs hm.2 (by simp at hl; omega) (fun w hw => hv w (by simp [hw]))
       omega
 
-theorem posCheck_sound (p : YForm) (ts : List YForm) (Γ : Int) (cert : PosCert) (h : posCheck p ts Γ cert = true)
-    (y : List Int) (hy : inCone ts Γ y) : 0 < p.eval y := by
-  simp only [posCheck, Bool.and_eq_true, decide_eq_true_eq] at h
-  obtain ⟨⟨⟨⟨hD, hμ⟩, hl⟩, hc⟩, hk⟩ := h
-  have hr : ((p.smul cert.D).sub (combo cert.μ ts)).eval y = ((p.smul cert.D).sub (combo cert.μ ts)).k := by
-    simp only [YForm.eval]; rw [dot_coeffEq _ [] y hc]; simp
-  simp only [eval_sub, eval_smul, eval_combo] at hr
-  have hvs : ∀ v ∈ ts.map (·.eval y), Γ ≤ v := by
-    intro v hv
-    simp only [List.mem_map] at hv
-    obtain ⟨t, ht, rfl⟩ := hv
-    exact hy t ht
-  have hge := dot_ge cert.μ (ts.map (·.eval y)) Γ hμ (by simpa using hl) hvs
-  have hpos : 0 < cert.D * p.eval y := by omega
-  rcases Int.lt_or_le 0 (p.eval y) with h1 | h1
+theorem dot_le (ms : List Int) (vs : List Int) (Γ : Int) (hm : ms.all (· ≤ 0) = true) (hl : ms.length ≤ vs.length)
+    (hv : ∀ v ∈ vs, Γ ≤ v) : dot ms vs ≤ Γ * sumL ms := by
+  induction ms generalizing vs with
+  | nil => simp [sumL]
+  | cons m ms ih =>
+    cases vs with
+    | nil => simp at hl
+    | cons v vs =>
+      simp only [List.all_cons, Bool.and_eq_true, decide_eq_true_eq] at hm
+      simp only [sumL, dot, Int.mul_add]
+      have h1 : m * v ≤ Γ * m := by
+        rw [Int.mul_comm Γ m]; exact Int.mul_le_mul_of_nonpos_left hm.1 (hv v (by simp))
+      have h2 := ih vs hm.2 (by simp at hl; omega) (fun w hw => hv w (by simp [hw]))
+      omega
+
+/-- The list `[0, …, 0, v]` with `v` at index `j`. -/
+def unitL : Nat → Int → List Int
+  | 0, v => [v]
+  | j + 1, v => 0 :: unitL j v
+
+theorem dot_unitL : ∀ (j : Nat) (v : Int) (y : List Int), dot (unitL j v) y = v * y.getD j 0
+  | 0, v, [] => by simp [unitL]
+  | 0, v, w :: _ => by simp [unitL, dot]
+  | j + 1, v, [] => by simp [unitL]
+  | j + 1, v, w :: ws => by
+    simp only [unitL, dot, List.getD_cons_succ]
+    rw [dot_unitL j v ws]; omega
+
+/-- `Σᵢ aᵢ uᵢ`, coefficientwise (zero coefficients skipped). -/
+def lincomb : List Int → List (List Int) → List Int
+  | a :: as, u :: us => if a == 0 then lincomb as us else addL (smulL a u) (lincomb as us)
+  | _, _ => []
+
+theorem dot_lincomb (as : List Int) (us : List (List Int)) (v : List Int) :
+    dot (lincomb as us) v = dot as (us.map (dot · v)) := by
+  induction as generalizing us with
+  | nil => simp [lincomb]
+  | cons a as ih =>
+    cases us with
+    | nil => simp [lincomb]
+    | cons u us =>
+      simp only [lincomb, List.map, dot]
+      split
+      · rename_i h
+        simp only [beq_iff_eq] at h
+        subst h
+        rw [ih]; simp
+      · rw [dot_addL, dot_smulL, ih]
+
+theorem dot_cons_drop (a : Int) (as : List Int) : ∀ (y : List Int) (i : Nat),
+    dot (a :: as) (y.drop i) = a * y.getD i 0 + dot as (y.drop (i + 1))
+  | [], i => by simp
+  | w :: ws, 0 => by simp [dot]
+  | w :: ws, i + 1 => by
+    simp only [List.drop_succ_cons, List.getD_cons_succ]
+    exact dot_cons_drop a as ws i
+
+/-- Every entry of `as` past the length of `us` is zero. -/
+def zeroBeyond : List Int → List (List Int) → Bool
+  | [], _ => true
+  | a :: as, [] => a == 0 && zeroBeyond as []
+  | _ :: as, _ :: us => zeroBeyond as us
+
+theorem zeroBeyond_nil : ∀ (as : List Int), zeroBeyond as [] = as.all (· == 0)
+  | [] => rfl
+  | a :: as => by simp only [zeroBeyond, List.all_cons, zeroBeyond_nil as]
+
+/-- A claimed inverse of the gap forms' coefficient matrix, scaled by `D`: the combination `Σⱼ uᵢⱼ tⱼ` of the gap
+forms, with `uᵢ` the i-th entry of `us`, is the form `D yᵢ + κᵢ`.  `invCheck` decides the claim, so where the
+inverse comes from (`coneInv`) is not part of the trusted base. -/
+structure ConeInv where
+  D : Int
+  us : List (List Int)
+  κ : List Int
+
+/-- `combo uᵢ ts = D yᵢ + κᵢ` for `i = i₀, i₀ + 1, …`, as forms. -/
+def invRows (ts : List YForm) (D : Int) : Nat → List (List Int) → List Int → Bool
+  | _, [], [] => true
+  | i, u :: us, κ :: κs =>
+    (combo u ts).k == κ && coeffEq (combo u ts).c (unitL i D) && invRows ts D (i + 1) us κs
+  | _, _, _ => false
+
+def invCheck (ts : List YForm) (ci : ConeInv) : Bool := 0 < ci.D && invRows ts ci.D 0 ci.us ci.κ
+
+theorem invRows_sound (ts : List YForm) (D : Int) (y : List Int) :
+    ∀ (i : Nat) (us : List (List Int)) (κs : List Int), invRows ts D i us κs = true →
+    ∀ as : List Int, zeroBeyond as us = true →
+    dot (lincomb as us) (ts.map (·.eval y)) = dot as κs + D * dot as (y.drop i) := by
+  intro i us
+  induction us generalizing i with
+  | nil =>
+    intro κs h as has
+    cases κs with
+    | nil =>
+      rw [zeroBeyond_nil] at has
+      have hl : lincomb as [] = [] := by cases as <;> rfl
+      rw [dot_zero as (y.drop i) has, hl]
+      simp
+    | cons _ _ => simp [invRows] at h
+  | cons u us ih =>
+    intro κs h as has
+    cases κs with
+    | nil => simp [invRows] at h
+    | cons κ κs =>
+      simp only [invRows, Bool.and_eq_true, beq_iff_eq] at h
+      obtain ⟨⟨hk, hc⟩, hr⟩ := h
+      cases as with
+      | nil => simp [lincomb]
+      | cons a as =>
+        have hu : dot u (ts.map (·.eval y)) = κ + D * y.getD i 0 := by
+          rw [← eval_combo, YForm.eval, dot_coeffEq _ _ y hc, dot_unitL, hk]
+        have hih := ih (i + 1) κs hr as (by simpa [zeroBeyond] using has)
+        rw [dot_lincomb] at hih ⊢
+        simp only [List.map, dot, dot_cons_drop, hu, hih]
+        rw [Int.mul_add, Int.mul_add, Int.mul_left_comm a D]; omega
+
+theorem pos_of_mul_pos {D x : Int} (hD : 0 < D) (h : 0 < D * x) : 0 < x := by
+  rcases Int.lt_or_le 0 x with h1 | h1
   · exact h1
-  · have h2 : cert.D * p.eval y ≤ cert.D * 0 := Int.mul_le_mul_of_nonneg_left h1 (Int.le_of_lt hD)
-    rw [Int.mul_zero] at h2
-    exact absurd hpos (Int.not_lt.mpr h2)
+  · have h2 : D * x ≤ D * 0 := Int.mul_le_mul_of_nonneg_left h1 (Int.le_of_lt hD)
+    rw [Int.mul_zero] at h2; omega
+
+theorem neg_of_mul_neg {D x : Int} (hD : 0 < D) (h : D * x < 0) : x < 0 := by
+  rcases Int.lt_or_le x 0 with h1 | h1
+  · exact h1
+  · have h2 : D * 0 ≤ D * x := Int.mul_le_mul_of_nonneg_left h1 (Int.le_of_lt hD)
+    rw [Int.mul_zero] at h2; omega
 
 end BB6.Sym
 
 namespace BB6.Sym
 
-/-! ## Finding positivity certificates (untrusted search; only `posCheck` is trusted) -/
+/-! ## Finding the cone inverse (untrusted; only `invCheck` is trusted)
 
-/-- A fraction `n / d` with `d > 0`, normalised. -/
-structure Frac where
-  n : Int
-  d : Int
-  deriving Repr, Inhabited
+The inverse of the gap forms' coefficient matrix `M` (first `k = ts.length` coordinates), scaled by `D = |det M|`, is
+`±` the adjugate: `uᵢⱼ = ±Cⱼᵢ` with `Cⱼᵢ` the cofactor of `M` at row j, column i.  The functions are written for the
+kernel (`decide +kernel`): plain structural recursion, no `List.range`, `getD` or `set`, whose library definitions are
+slow to unfold. -/
 
-def Frac.norm (f : Frac) : Frac :=
-  let g : Int := Int.ofNat (Nat.gcd f.n.natAbs f.d.natAbs)
-  if g == 0 then ⟨0, 1⟩ else
-  let s : Int := if f.d < 0 then -1 else 1
-  ⟨s * (f.n / g), s * (f.d / g)⟩
-def Frac.ofInt (n : Int) : Frac := ⟨n, 1⟩
-def Frac.add (a b : Frac) : Frac := Frac.norm ⟨a.n * b.d + b.n * a.d, a.d * b.d⟩
-def Frac.sub (a b : Frac) : Frac := Frac.norm ⟨a.n * b.d - b.n * a.d, a.d * b.d⟩
-def Frac.mul (a b : Frac) : Frac := Frac.norm ⟨a.n * b.n, a.d * b.d⟩
-def Frac.div (a b : Frac) : Frac := Frac.norm ⟨a.n * b.d, a.d * b.n⟩
-def Frac.isZero (a : Frac) : Bool := a.n == 0
+/-- The first `k` coefficients of a coefficient list, padded with zeros. -/
+def cutK : Nat → List Int → List Int
+  | 0, _ => []
+  | k + 1, [] => 0 :: cutK k []
+  | k + 1, a :: as => a :: cutK k as
 
-/-- Solve `Σⱼ λⱼ Mⱼᵢ = pᵢ` (i, j < k; `rows` are the coefficient lists of the gap forms) by Gauss–Jordan elimination on
-the transposed system; `none` if singular. -/
-def solveT (rows : List (List Int)) (p : List Int) (k : Nat) : Option (List Frac) := Id.run do
-  -- augmented matrix A (k × (k+1)): A[i][j] = M[j][i], A[i][k] = p[i]
-  let get (l : List Int) (i : Nat) : Int := l.getD i 0
-  let mut A : Array (Array Frac) := #[]
-  for i in [0:k] do
-    let mut row : Array Frac := #[]
-    for j in [0:k] do row := row.push (Frac.ofInt (get (rows.getD j []) i))
-    row := row.push (Frac.ofInt (get p i))
-    A := A.push row
-  for col in [0:k] do
-    -- pivot
-    let mut piv := none
-    for r in [col:k] do
-      if piv.isNone && !(A[r]![col]!).isZero then piv := some r
-    match piv with
-    | none => return none
-    | some r =>
-      let tmp := A[r]!; A := A.set! r A[col]!; A := A.set! col tmp
-      let pv := A[col]![col]!
-      A := A.set! col (A[col]!.map (fun x => x.div pv))
-      for r2 in [0:k] do
-        if r2 != col then
-          let f := A[r2]![col]!
-          if !f.isZero then
-            A := A.set! r2 ((A[r2]!.zip A[col]!).map (fun (x, y) => x.sub (f.mul y)))
-  return some ((List.range k).map (fun i => A[i]![k]!))
+/-- The list without its entry at index `j`. -/
+def dropAt {α : Type} : Nat → List α → List α
+  | _, [] => []
+  | 0, _ :: as => as
+  | j + 1, a :: as => a :: dropAt j as
 
-def lcmL : List Int → Int
-  | [] => 1
-  | a :: as => let l := lcmL as; Int.ofNat (Nat.lcm a.natAbs l.natAbs)
+/-- Laplace expansion along the row `r` (column index `j`, sign `s`), given the determinant of the minors. -/
+def rowDet (det : List (List Int) → Int) (rs : List (List Int)) : Nat → Int → List Int → Int
+  | _, _, [] => 0
+  | j, s, a :: as =>
+    (if a == 0 then 0 else s * a * det (rs.map (dropAt j))) + rowDet det rs (j + 1) (-s) as
 
-/-- A candidate certificate for `p > 0`: `D = lcm` of the denominators of `λ`, `μ = D λ`. -/
-def posCert (p : YForm) (ts : List YForm) : Option PosCert :=
-  match solveT (ts.map (·.c)) p.c ts.length with
-  | none => none
-  | some lam =>
-    let D := lcmL (lam.map (·.d))
-    some ⟨D, lam.map (fun f => f.n * (D / f.d))⟩
+/-- The determinant of an `n × n` matrix given by its rows. -/
+def detN : Nat → List (List Int) → Int
+  | 0, _ => 1
+  | _ + 1, [] => 0
+  | n + 1, r :: rs => rowDet (detN n) rs 0 1 r
+
+/-- Column i of the signed cofactors: `s Cⱼᵢ` for `j = j₀, j₀ + 1, …` (the sign `s` alternating with j, `r` a counter
+for the rows), from the matrix `mi` without column i. -/
+def cofCol (n : Nat) (mi : List (List Int)) : Nat → Int → List (List Int) → List Int
+  | _, _, [] => []
+  | j, s, _ :: r => s * detN n (dropAt j mi) :: cofCol n mi (j + 1) (-s) r
+
+/-- The columns `i = i₀, i₀ + 1, …` of the signed cofactors (`r` a counter for the columns). -/
+def cofCols (n : Nat) (m : List (List Int)) : Nat → Int → List (List Int) → List (List Int)
+  | _, _, [] => []
+  | i, s, _ :: r => cofCol n (m.map (dropAt i)) 0 s m :: cofCols n m (i + 1) (-s) r
+
+/-- The inverse of the gap forms' matrix by Cramer's rule: `D = |det M|`, `uᵢ = sign(det M) · (C₀ᵢ, C₁ᵢ, …)` and
+`κᵢ = Σⱼ uᵢⱼ tⱼ(0)`.  It depends only on `ts`, so the kernel evaluates it, and `invCheck` on it, once per cone (its
+cache keys on the term) and every sign on that cone reuses them. -/
+def coneInv (ts : List YForm) : ConeInv :=
+  let k := ts.length
+  let m := ts.map (cutK k ·.c)
+  let d := detN k m
+  let s : Int := if d < 0 then -1 else 1
+  let us := cofCols (k - 1) m 0 s m
+  ⟨s * d, us, us.map (dot · (ts.map (·.k)))⟩
 
 /-! ## Signs on the cone -/
 
 inductive Sgn | pos | neg | zero
   deriving Repr, DecidableEq
 
-/-- The sign of `p` at every point of the cone (gaps ≥ Γ), when the certificates decide it. -/
+/-- The verdict from `D · p = Σⱼ μⱼ tⱼ + c` on the cone of `n` gap forms, with `e = c + Γ Σⱼ μⱼ`. -/
+def sgnMu (μ : List Int) (e : Int) (n : Nat) : Option Sgn :=
+  if μ.length ≤ n then
+    if μ.all (0 ≤ ·) && decide (0 < e) then some .pos
+    else if μ.all (· ≤ 0) && decide (e < 0) then some .neg
+    else none
+  else none
+
+/-- The sign of `p` on the cone from a checked inverse: `μ = Σᵢ pᵢ uᵢ` and `c = D p₀ − Σᵢ pᵢ κᵢ` give
+`D · p = Σⱼ μⱼ tⱼ + c`. -/
+def sgnInv (p : YForm) (ts : List YForm) (Γ : Int) (ci : ConeInv) : Option Sgn :=
+  if invCheck ts ci && zeroBeyond p.c ci.us then
+    sgnMu (lincomb p.c ci.us) (ci.D * p.k - dot p.c ci.κ + Γ * sumL (lincomb p.c ci.us)) ts.length
+  else none
+
+theorem sgnInv_sound (p : YForm) (ts : List YForm) (Γ : Int) (ci : ConeInv) (y : List Int) (hy : inCone ts Γ y) :
+    (sgnInv p ts Γ ci = some .pos → 0 < p.eval y) ∧ (sgnInv p ts Γ ci = some .neg → p.eval y < 0) ∧
+    (sgnInv p ts Γ ci = some .zero → p.eval y = 0) := by
+  unfold sgnInv
+  split
+  · rename_i hc
+    simp only [invCheck, Bool.and_eq_true, decide_eq_true_eq] at hc
+    obtain ⟨⟨hD, hinv⟩, hlen⟩ := hc
+    have key := invRows_sound ts ci.D y 0 ci.us ci.κ hinv p.c hlen
+    rw [List.drop_zero] at key
+    have hvs : ∀ v ∈ ts.map (·.eval y), Γ ≤ v := by
+      intro v hv
+      simp only [List.mem_map] at hv
+      obtain ⟨t, ht, rfl⟩ := hv
+      exact hy t ht
+    have hx : ci.D * p.eval y = ci.D * p.k - dot p.c ci.κ + dot (lincomb p.c ci.us) (ts.map (·.eval y)) := by
+      rw [key]; unfold YForm.eval; rw [Int.mul_add]; omega
+    unfold sgnMu
+    split
+    · rename_i hl
+      refine ⟨fun h => ?_, fun h => ?_, fun h => ?_⟩
+      · split at h
+        · rename_i hp
+          simp only [Bool.and_eq_true, decide_eq_true_eq] at hp
+          have := dot_ge _ _ Γ hp.1 (by simpa using hl) hvs
+          exact pos_of_mul_pos hD (by omega)
+        · split at h <;> cases h
+      · split at h
+        · cases h
+        · split at h
+          · rename_i hp
+            simp only [Bool.and_eq_true, decide_eq_true_eq] at hp
+            have := dot_le _ _ Γ hp.1 (by simpa using hl) hvs
+            exact neg_of_mul_neg hD (by omega)
+          · cases h
+      · split at h
+        · cases h
+        · split at h <;> cases h
+    · simp
+  · simp
+
+/-- The sign of `p` at every point of the cone (gaps ≥ Γ), when decided. -/
 def sgn (p : YForm) (ts : List YForm) (Γ : Int) : Option Sgn :=
   match p.constVal with
   | some v => if 0 < v then some .pos else if v < 0 then some .neg else some .zero
-  | none =>
-    match posCert p ts with
-    | some c => if posCheck p ts Γ c then some .pos else
-        match posCert p.neg ts with
-        | some c' => if posCheck p.neg ts Γ c' then some .neg else none
-        | none => none
-    | none => none
+  | none => sgnInv p ts Γ (coneInv ts)
 
 theorem sgn_sound (p : YForm) (ts : List YForm) (Γ : Int) (y : List Int) (hy : inCone ts Γ y) :
     (sgn p ts Γ = some .pos → 0 < p.eval y) ∧ (sgn p ts Γ = some .neg → p.eval y < 0) ∧
@@ -342,26 +483,7 @@ theorem sgn_sound (p : YForm) (ts : List YForm) (Γ : Int) (y : List Int) (hy : 
       · split at h
         · cases h
         · omega
-  | none =>
-    simp only
-    cases hc : posCert p ts with
-    | none => simp
-    | some c =>
-      simp only
-      by_cases hpc : posCheck p ts Γ c = true
-      · simp only [hpc, if_true]
-        exact ⟨fun _ => posCheck_sound p ts Γ c hpc y hy, ⟨fun h => by simp at h, fun h => by simp at h⟩⟩
-      · simp only [hpc, Bool.false_eq_true, if_false]
-        cases hc' : posCert p.neg ts with
-        | none => simp
-        | some c' =>
-          simp only
-          by_cases hpc' : posCheck p.neg ts Γ c' = true
-          · simp only [hpc', if_true]
-            have := posCheck_sound p.neg ts Γ c' hpc' y hy
-            rw [eval_neg] at this
-            exact ⟨fun h => by simp at h, ⟨fun _ => by omega, fun h => by simp at h⟩⟩
-          · simp [hpc']
+  | none => exact sgnInv_sound p ts Γ (coneInv ts) y hy
 
 /-- `a < b` on the cone, when decided. -/
 def ltDec (a b : YForm) (ts : List YForm) (Γ : Int) : Option Bool :=

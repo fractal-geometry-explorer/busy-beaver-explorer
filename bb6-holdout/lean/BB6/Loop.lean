@@ -36,28 +36,6 @@ def LoopOut (R : Nat) (L : Int) (ms : List Mark) (W : Nat) : Prop :=
     448 ≤ a ∧ a + 448 ≤ b ∧ b + 448 + R' + 1 ≤ W ∧ 176 < R' ∧ R' < R ∧
     ((16 * R' = R ∧ 64 * loopL1 b (W - R' - 1) W = L) ∨ 2 * R' = R)
 
-/-- Runs compose: the end meetings of `n₁ + n₂` rounds are those of the first `n₁` and then those of the next `n₂`. -/
-theorem meetsRounds_append (fuel : Nat) : ∀ (n₁ n₂ : Nat) (ms : List Mark) (W : Nat) (ms' : List Mark) (W' : Nat),
-    roundsZ fuel n₁ ms W = .newRound ms' W' →
-    meetsRounds fuel (n₁ + n₂) ms W = meetsRounds fuel n₁ ms W ++ meetsRounds fuel n₂ ms' W' := by
-  intro n₁
-  induction n₁ with
-  | zero =>
-    intro n₂ ms W ms' W' h
-    simp only [roundsZ, PR'.newRound.injEq] at h
-    obtain ⟨rfl, rfl⟩ := h
-    simp [meetsRounds]
-  | succ n ih =>
-    intro n₂ ms W ms' W' h
-    rw [Nat.add_right_comm]
-    simp only [roundsZ] at h
-    simp only [meetsRounds, List.append_assoc]
-    congr 1
-    generalize roundZ fuel [] 1 ms W = r at h ⊢
-    cases r with
-    | newRound a b => exact ih n₂ a b ms' W' h
-    | _ => cases h
-
 end BB6
 
 namespace BB6.Sym
@@ -263,32 +241,69 @@ variable (Γ : Int) (fuel : Nat)
 
 /-- As `Tree.okNC`, and each leaf's end passes `endCheck` (`sR`, `sL`: the root's right end and left countdown,
 substituted along with the start). -/
-def Tree.okLoop (k : Nat) : Tree → List SMark → YForm → List YForm → YForm → YForm → Bool
-  | .leaf n, ss, sW, ts, sR, sL =>
-    symRightOK ts Γ (YForm.const 4) false sW ss &&
+def Tree.okLoop (k : Nat) : Tree → Bool → List SMark → YForm → List YForm → YForm → YForm → Bool
+  | .leaf n, wf, ss, sW, ts, sR, sL =>
+    (wf || symRightOK ts Γ (YForm.const 4) false sW ss) &&
     (match symRoundsZ ts Γ fuel n ss sW with
      | some (.newRound ss' sW') => endCheck ts Γ sR sL ss' sW'
      | _ => false) &&
     (match symMeetsRounds ts Γ fuel n ss sW with
      | some ds => allGe3 ts Γ ds
      | none => false)
-  | .node i t0 t1, ss, sW, ts, sR, sL =>
-    decide (i < k) && t0.okLoop k (substL ss i 0) (sW.subst i 0) (substT ts i 0) (sR.subst i 0) (sL.subst i 0) &&
-      t1.okLoop k (substL ss i 1) (sW.subst i 1) (substT ts i 1) (sR.subst i 1) (sL.subst i 1)
+  | .adv n t, wf, ss, sW, ts, sR, sL =>
+    (wf || symRightOK ts Γ (YForm.const 4) false sW ss) &&
+    (match symMeetsRounds ts Γ fuel n ss sW with
+     | some ds => allGe3 ts Γ ds
+     | none => false) &&
+    (match symRoundsZ ts Γ fuel n ss sW with
+     | some (.newRound ss' sW') => t.okLoop k true ss' sW' ts sR sL
+     | _ => false)
+  | .node i t0 t1, wf, ss, sW, ts, sR, sL =>
+    decide (i < k) &&
+      t0.okLoop k wf (substL ss i 0) (sW.subst i 0) (substT ts i 0) (sR.subst i 0) (sL.subst i 0) &&
+      t1.okLoop k wf (substL ss i 1) (sW.subst i 1) (substT ts i 1) (sR.subst i 1) (sL.subst i 1)
+  | .skew i j s t, wf, ss, sW, ts, sR, sL =>
+    decide (i < k) && decide (j < k) && decide (i ≠ j) &&
+      t.okLoop k wf (skewL ss i j s) (sW.skew i j s) (skewT ts i j s) (sR.skew i j s) (sL.skew i j s)
+
+/-- The loop check's state: start state, right end and left countdown (substituted along with the start). -/
+abbrev LState := SState × YForm × YForm
+
+def lsSplit (ls : LState) (i : Nat) (ε : Int) : LState := (stSplit ls.1 i ε, ls.2.1.subst i ε, ls.2.2.subst i ε)
+def lsSkew (ls : LState) (i j : Nat) (s : Int) : LState := (stSkew ls.1 i j s, ls.2.1.skew i j s, ls.2.2.skew i j s)
+
+variable {Γ fuel} in
+theorem Tree.okLoop_node {k i : Nat} {wf : Bool} {t0 t1 : Tree} {ls : LState} (hi : i < k)
+    (h0 : t0.okLoop Γ fuel k wf (lsSplit ls i 0).1.1 (lsSplit ls i 0).1.2.1 (lsSplit ls i 0).1.2.2 (lsSplit ls i 0).2.1
+      (lsSplit ls i 0).2.2 = true)
+    (h1 : t1.okLoop Γ fuel k wf (lsSplit ls i 1).1.1 (lsSplit ls i 1).1.2.1 (lsSplit ls i 1).1.2.2 (lsSplit ls i 1).2.1
+      (lsSplit ls i 1).2.2 = true) :
+    (Tree.node i t0 t1).okLoop Γ fuel k wf ls.1.1 ls.1.2.1 ls.1.2.2 ls.2.1 ls.2.2 = true := by
+  simp only [Tree.okLoop, Bool.and_eq_true, decide_eq_true_eq]; exact ⟨⟨hi, h0⟩, h1⟩
+
+variable {Γ fuel} in
+theorem Tree.okLoop_skew {k i j : Nat} {wf : Bool} {s : Int} {t : Tree} {ls : LState} (hi : i < k) (hj : j < k)
+    (hij : i ≠ j) (h : t.okLoop Γ fuel k wf (lsSkew ls i j s).1.1 (lsSkew ls i j s).1.2.1 (lsSkew ls i j s).1.2.2 (lsSkew ls i j s).2.1
+      (lsSkew ls i j s).2.2 = true) :
+    (Tree.skew i j s t).okLoop Γ fuel k wf ls.1.1 ls.1.2.1 ls.1.2.2 ls.2.1 ls.2.2 = true := by
+  simp only [Tree.okLoop, Bool.and_eq_true, decide_eq_true_eq]; exact ⟨⟨⟨hi, hj⟩, hij⟩, h⟩
 
 /-- **A checked loop tree, for the machine.**  At every point of the root class inside the cone, the machine runs
-from the root's round start for the leaf's number of rounds without halting and without a close, and the round start
-it reaches is not a phase-0 pass start, or is one with gaps ≥ 448 and a smaller right end (`LoopOut`). -/
-theorem Tree.soundLoop (k : Nat) (t : Tree) : ∀ (ss : List SMark) (sW : YForm) (ts : List YForm) (sR sL : YForm),
-    t.okLoop Γ fuel k ss sW ts sR sL = true → ∀ (y : List Int), y.length = k → inCone ts Γ y →
+from the root's round start for the rounds recorded on the way to the leaf without halting and without a close, and
+the round start it reaches is not a phase-0 pass start, or is one with gaps ≥ 448 and a smaller right end
+(`LoopOut`). -/
+theorem Tree.soundLoop (k : Nat) (t : Tree) : ∀ (wf : Bool) (ss : List SMark) (sW : YForm) (ts : List YForm)
+    (sR sL : YForm), t.okLoop Γ fuel k wf ss sW ts sR sL = true → ∀ (y : List Int), y.length = k → inCone ts Γ y →
     ∀ (ms : List Mark) (Wn R : Nat) (L : Int), agL y ss ms → agN y sW Wn → agN y sR R → L = sL.eval y →
+    (wf = true → roundWF ms Wn) →
     ∃ n kk ms' Wn', steps kk (roundStart ms Wn) = some (roundStart ms' Wn') ∧
       roundsZ fuel n ms Wn = .newRound ms' Wn' ∧ (∀ d ∈ meetsRounds fuel n ms Wn, 3 ≤ d) ∧ LoopOut R L ms' Wn' := by
   induction t with
   | leaf n =>
-    intro ss sW ts sR sL h y _ hy ms Wn R L hs hW hR hL
+    intro wf ss sW ts sR sL h y _ hy ms Wn R L hs hW hR hL hwf
     simp only [Tree.okLoop, Bool.and_eq_true] at h
-    obtain ⟨⟨hwf, hrun⟩, hmt⟩ := h
+    obtain ⟨⟨hwf', hrun⟩, hmt⟩ := h
+    have hrwf := wf_of_check Γ hy hs hW hwf hwf'
     cases hr : symRoundsZ ts Γ fuel n ss sW with
     | none => rw [hr] at hrun; cases hrun
     | some r =>
@@ -302,7 +317,6 @@ theorem Tree.soundLoop (k : Nat) (t : Tree) : ∀ (ss : List SMark) (sW : YForm)
           have hds := symMeetsRounds_sound ts Γ hy fuel n ss ms sW Wn ds hs hW hmr
           have hge := allGe3_sound ts Γ hy hds hmt
           have hag := symRoundsZ_sound ts Γ hy fuel n ss ms sW Wn _ hs hW hr
-          have hrwf : roundWF ms Wn := symRightOK_sound ts Γ hy ss _ 4 false sW Wn ms (agN_const y 4) hW hs hwf
           generalize hcr : roundsZ fuel n ms Wn = cr at hag
           cases cr with
           | newRound ms' Wn' =>
@@ -311,16 +325,59 @@ theorem Tree.soundLoop (k : Nat) (t : Tree) : ∀ (ss : List SMark) (sW : YForm)
             exact ⟨n, kk, ms', Wn', hk, hcr, hge, endCheck_sound ts Γ hy hR hL hag.1 hag.2 hrun⟩
           | _ => exact absurd hag id
       | _ => simp at hrun
+  | adv n t ih =>
+    intro wf ss sW ts sR sL h y hlen hy ms Wn R L hs hW hR hL hwf
+    simp only [Tree.okLoop, Bool.and_eq_true] at h
+    obtain ⟨⟨hwf', hmt⟩, hrun⟩ := h
+    have hrwf := wf_of_check Γ hy hs hW hwf hwf'
+    cases hr : symRoundsZ ts Γ fuel n ss sW with
+    | none => rw [hr] at hrun; cases hrun
+    | some r =>
+      rw [hr] at hrun
+      cases r with
+      | newRound ss' sW' =>
+        cases hmr : symMeetsRounds ts Γ fuel n ss sW with
+        | none => rw [hmr] at hmt; cases hmt
+        | some ds =>
+          rw [hmr] at hmt
+          have hds := symMeetsRounds_sound ts Γ hy fuel n ss ms sW Wn ds hs hW hmr
+          have hge := allGe3_sound ts Γ hy hds hmt
+          have hag := symRoundsZ_sound ts Γ hy fuel n ss ms sW Wn _ hs hW hr
+          generalize hcr : roundsZ fuel n ms Wn = cr at hag
+          cases cr with
+          | newRound ms' Wn' =>
+            obtain ⟨kk, hk, hw'⟩ := rounds_run fuel n ms Wn hrwf (by rw [hcr]; intro h; cases h)
+            rw [hcr] at hk hw'
+            obtain ⟨n₂, kk₂, ms'', Wn'', hk₂, hr₂, hge₂, hout⟩ :=
+              ih true ss' sW' ts sR sL hrun y hlen hy ms' Wn' R L hag.1 hag.2 hR hL (fun _ => hw')
+            refine ⟨n + n₂, kk + kk₂, ms'', Wn'', steps_seq hk hk₂, ?_, ?_, hout⟩
+            · rw [roundsZ_add fuel n n₂ ms Wn ms' Wn' hcr]; exact hr₂
+            · rw [meetsRounds_append fuel n n₂ ms Wn ms' Wn' hcr]
+              intro d hd
+              rcases List.mem_append.mp hd with hd | hd
+              · exact hge d hd
+              · exact hge₂ d hd
+          | _ => exact absurd hag id
+      | _ => simp at hrun
   | node i t0 t1 ih0 ih1 =>
-    intro ss sW ts sR sL h y hlen hy ms Wn R L hs hW hR hL
+    intro wf ss sW ts sR sL h y hlen hy ms Wn R L hs hW hR hL hwf
     simp only [Tree.okLoop, Bool.and_eq_true, decide_eq_true_eq] at h
     obtain ⟨⟨hi, h0⟩, h1⟩ := h
     obtain ⟨ε, z, hε, hzl, rfl⟩ := cover_split y i (by omega)
     have hiz : i < z.length := by omega
     rcases hε with rfl | rfl
-    · exact ih0 _ _ _ _ _ h0 z (by rw [hzl]; exact hlen) (inCone_subst hiz hy) ms Wn R L (agL_subst hiz hs)
-        (agN_subst hiz hW) (agN_subst hiz hR) (by rw [hL, eval_subst sL i 0 z hiz])
-    · exact ih1 _ _ _ _ _ h1 z (by rw [hzl]; exact hlen) (inCone_subst hiz hy) ms Wn R L (agL_subst hiz hs)
-        (agN_subst hiz hW) (agN_subst hiz hR) (by rw [hL, eval_subst sL i 1 z hiz])
+    · exact ih0 _ _ _ _ _ _ h0 z (by rw [hzl]; exact hlen) (inCone_subst hiz hy) ms Wn R L (agL_subst hiz hs)
+        (agN_subst hiz hW) (agN_subst hiz hR) (by rw [hL, eval_subst sL i 0 z hiz]) hwf
+    · exact ih1 _ _ _ _ _ _ h1 z (by rw [hzl]; exact hlen) (inCone_subst hiz hy) ms Wn R L (agL_subst hiz hs)
+        (agN_subst hiz hW) (agN_subst hiz hR) (by rw [hL, eval_subst sL i 1 z hiz]) hwf
+  | skew i j s t ih =>
+    intro wf ss sW ts sR sL h y hlen hy ms Wn R L hs hW hR hL hwf
+    simp only [Tree.okLoop, Bool.and_eq_true, decide_eq_true_eq] at h
+    obtain ⟨⟨⟨hi, hj⟩, hij⟩, ht⟩ := h
+    obtain ⟨z, hzl, rfl⟩ := cover_skew y i j s hij (by omega)
+    have hiz : i < z.length := by omega
+    have hjz : j < z.length := by omega
+    exact ih _ _ _ _ _ _ ht z (by rw [hzl]; exact hlen) (inCone_skew hiz hjz hy) ms Wn R L (agL_skew hiz hjz hs)
+      (agN_skew hiz hjz hW) (agN_skew hiz hjz hR) (by rw [hL, eval_skew sL i j s z hiz hjz]) hwf
 
 end BB6.Sym

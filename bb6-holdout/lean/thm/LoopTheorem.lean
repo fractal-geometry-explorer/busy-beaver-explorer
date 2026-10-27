@@ -6,8 +6,8 @@ open BB6 BB6.Sym
 
 `loop_pass` (R ≥ 4097, R free) and `endgame_no_close` (R ≤ 4096, one tree per R) combined by strong induction on
 the right end R: a pass divides R by 16 (or a short branch by 2), so after finitely many passes the run is in the
-range of the endgame trees.  Both inputs are evaluated with `native_decide`, so this theorem trusts Lean's compiler as
-well as its kernel. -/
+range of the endgame trees.  `loop_pass` is checked by Lean's kernel; `endgame_no_close` is evaluated with
+`native_decide`, so this theorem trusts Lean's compiler as well as its kernel. -/
 
 theorem not_closing {R : Nat} (h : 176 < R) : closingSet.contains R = false := by
   rw [Bool.eq_false_iff]

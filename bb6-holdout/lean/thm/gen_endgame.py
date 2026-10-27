@@ -11,10 +11,11 @@ open BB6 BB6.Sym
 
 /-! # The endgame as a theorem
 
-For every even R ≤ 4096 outside the closing set, a tree of coordinate splits of the phase-0 pass starts (built by the
-untrusted program `ExploreNC.lean`, so it covers the start class by construction) is checked here by the proved
-function `Tree.okNC`, evaluated with `native_decide` (this trusts Lean's compiler as well as its kernel).
-`endgame_no_close` is the statement for the machine. -/
+For every even R ≤ 4096 outside the closing set, a tree of coordinate splits and skews of the phase-0 pass starts
+(built by the untrusted program `ExploreNC.lean`, so it covers the start class by construction; `adv` nodes run the
+rounds before a split once for the whole subtree) is checked here by the proved function `Tree.okNC`, evaluated with
+`native_decide` (this trusts Lean's compiler as well as its kernel).  `endgame_no_close` is the statement for the
+machine. -/
 
 def startR (R : Nat) : List SMark × YForm × List YForm :=
   let a : YForm := ⟨1, [2, 0, 0]⟩
@@ -23,16 +24,30 @@ def startR (R : Nat) : List SMark × YForm × List YForm :=
   let c := E.addc (-(R : Int) - 1)
   ([⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩], E, [a, b.sub a, c.sub b])
 
-def decodeTree : Nat → List String → Option (Tree × List String)
+/-- Preorder tokens: `L<n>` a leaf of n rounds, `N<i>` a split on coordinate i, `S<i>,<j>,<s>` a skew, `A<n>` n rounds
+run on the whole class. -/
+def decodeEndgame : Nat → List String → Option (Tree × List String)
   | 0, _ => none
   | _, [] => none
   | fuel + 1, tok :: rest =>
-    if tok.startsWith "L" then some (.leaf (tok.drop 1).toString.toNat!, rest)
+    let arg := (tok.drop 1).toString
+    if tok.startsWith "L" then some (.leaf arg.toNat!, rest)
+    else if tok.startsWith "A" then
+      match decodeEndgame fuel rest with
+      | some (t, r) => some (.adv arg.toNat! t, r)
+      | none => none
+    else if tok.startsWith "S" then
+      match arg.splitOn "," with
+      | [i, j, s] =>
+        match decodeEndgame fuel rest with
+        | some (t, r) => some (.skew i.toNat! j.toNat! s.toInt! t, r)
+        | none => none
+      | _ => none
     else if tok.startsWith "N" then
-      match decodeTree fuel rest with
+      match decodeEndgame fuel rest with
       | some (t0, r1) =>
-        match decodeTree fuel r1 with
-        | some (t1, r2) => some (.node (tok.drop 1).toString.toNat! t0 t1, r2)
+        match decodeEndgame fuel r1 with
+        | some (t1, r2) => some (.node arg.toNat! t0 t1, r2)
         | none => none
       | none => none
     else none
@@ -44,13 +59,14 @@ def endgameData : String := "DATA"
 def endgameTrees : List (Nat × Tree) :=
   (endgameData.splitOn ";").filterMap fun entry =>
     match (entry.splitOn " ").filter (· ≠ "") with
-    | r :: toks => match decodeTree 400 toks with
+    | r :: toks => match decodeEndgame 400 toks with
       | some (t, []) => some (r.toNat!, t)
       | _ => none
     | [] => none
 
 theorem endgame_trees_ok :
-    (endgameTrees.all fun (p : Nat × Tree) => p.2.okNC 448 1000 3 (startR p.1).1 (startR p.1).2.1 (startR p.1).2.2) = true := by
+    (endgameTrees.all fun (p : Nat × Tree) =>
+      p.2.okNC 448 1000 3 false (startR p.1).1 (startR p.1).2.1 (startR p.1).2.2) = true := by
   native_decide
 
 theorem endgame_trees_cover :
@@ -92,9 +108,10 @@ theorem endgame_no_close (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R) (hR4 : R ≤
       simp only [y, YForm.eval, YForm.sub, YForm.add, YForm.neg, YForm.addc, addL, smulL, List.map, dot] <;> omega
   have hs : agL y (startR R').1 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R' - 1⟩] := by
     refine ⟨⟨rfl, ?_⟩, ⟨rfl, ?_⟩, ⟨rfl, ?_⟩, trivial⟩ <;>
-      simp only [agN, y, startR, YForm.eval, YForm.addc, dot] <;> omega
+      simp only [agN, y, YForm.eval, YForm.addc, dot] <;> omega
   have hW : agN y (startR R').2.1 E := by simp only [agN, y, startR, YForm.eval, dot]; omega
-  obtain ⟨n, kk, ms', W', hk, hr, hmeets⟩ := Tree.soundNC 448 1000 3 t _ _ _ ht y rfl hy _ _ hs hW
+  obtain ⟨n, kk, ms', W', hk, hr, hmeets⟩ :=
+    Tree.soundNC 448 1000 3 t false _ _ _ ht y rfl hy _ _ hs hW (fun h => by cases h)
   exact ⟨n, kk, ms', W', hk, hr, hmeets⟩
 '''
 lean = lean.replace('DATA', data).replace('CLOSING', '[' + ', '.join(map(str, S)) + ']')

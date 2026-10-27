@@ -2133,6 +2133,27 @@ could not be chained this way: the machine's own run reaches two-marker states w
 `BB6.Sym.sameForm` moved to `SymSplit` so that `Loop` and `RouteTree` can be imported together.
 
 
+**The exit and loop trees checked by the kernel (October 27; `../lean/thm/ExitPieces*.lean`, `LoopPieces*.lean`).**
+`exit_no_halt` and `loop_pass` no longer use `native_decide`: their trees are evaluated by Lean's kernel
+(`decide +kernel`), so both rest on the kernel alone (`#print axioms`: `propext`, `Classical.choice`, `Quot.sound`).
+Three changes made that affordable. *Skews:* a residue test on a form with several odd coefficients used to be decided
+by splitting every coordinate with an odd coefficient; a skew yᵢ = zᵢ + yⱼ (a unimodular change of coordinates,
+`cover_skew`) first makes the other odd coefficients even, so one split decides the test. The exit tree goes from
+22,230 leaves to 358, the loop tree from 1,327 to 143, the endgame trees from 99,630 to 40,843. *Advances:* `adv n`
+runs the n rounds before a split once for the whole class instead of once per leaf (a flag records that the state is
+known to be well formed). *Signs from a checked inverse:* `sgn` used to compute and check a Cramer certificate for
+every comparison; now an inverse of the gap forms' matrix is checked once per cone (`invCheck`), and a sign needs only
+μ = Σ pᵢ uᵢ. One kernel evaluation of a whole tree's check keeps every intermediate term (the exit tree ran out of
+16 GB), so the check is cut into subtrees of at most 40 rounds with a theorem each (57 for the exit tree, 25 for the
+loop tree), assembled by `Tree.ok_node` and `Tree.ok_skew`; the subtree theorems sit in four modules per tree, which
+compile in parallel: 45 s for both trees on 4 cores, about 1 GB each. The endgame trees, still `native_decide`, now
+take 14 s instead of 4 minutes. In the kernel they would take about 1.8 hours on one core (117,947 rounds of checks
+at 0.054 s each). The trees for the 2,048 values of R are only 57 different trees, repeating with R mod 32 to 256, so a
+tree with R as a coordinate (in a residue class and a range) would share that work; it needs order decisions on cones
+with more forms than coordinates (the range has two ends). With no decoder left in `ExitTheorem`, it and
+`EndgameTheorem` can now be imported together.
+
+
 **What `loop_no_close` does and does not say: a half pass, and a close after the stretch (October 27).** One of the
 1,327 leaves of the loop tree (`thm/loop_tree.txt`) is not a full pass: from a phase-0 pass start with b ≡ 0, E ≡ 2
 and R ≡ 0 (mod 4), two rounds (G B W, then G W W W) reach another phase-0 pass start with walls b/2 + 5, (b + E − R)/2

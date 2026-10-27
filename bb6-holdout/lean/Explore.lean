@@ -45,8 +45,6 @@ def isConstLe2 (d : YForm) : Bool := match d.constVal with | some v => v ≤ 2 |
 def predD (d : YForm) (merge : Bool) : Option YForm :=
   if merge then (d.addc (-2)).half? else (d.half?).map (·.addc 4)
 
-def sameForm (f g : YForm) : Bool := f.k == g.k && coeffEq f.c g.c
-
 inductive Kind | close | brk | pass | notphase0 | cap
   deriving Repr, BEq
 
@@ -176,7 +174,7 @@ def main (args : List String) : IO Unit := do
     let R : Int := Rn
     let (ss, sW, ts) := startR R
     let (t, leaves) := build 3 ts Γ ss sW 40 24
-    let ok := t.ok Γ 1000 3 ss sW ts
+    let ok := t.ok Γ 1000 3 false ss sW ts
     if !ok then allOk := false; IO.println s!"R={R}: TREE CHECK FAILED"
     total := total + leaves.length
     if leaves.any (·.kind == .close) then closes := closes ++ [Rn]

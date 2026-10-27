@@ -153,8 +153,10 @@ def stateAt (ts : List YForm) (Γ : Int) (ss : List SMark) (sW : YForm) (r : Nat
     | _ => return none
   return some (cur, cw)
 
-def splitCoord (f : YForm) (m : Int) : Option Nat :=
-  (List.range f.c.length).find? (fun i => f.c.getD i 0 % m != 0)
+/-- The coordinates whose coefficient in `f` is not divisible by `m`: the first is split, the others are first skewed
+onto it (yᵢ = zᵢ + zⱼ makes cⱼ + cᵢ divisible by m), so one split decides the residue. -/
+def oddCoords (k : Nat) (f : YForm) (m : Int) : List Nat :=
+  (List.range k).filter (fun i => f.c.getD i 0 % m != 0)
 
 structure LeafX where
   leaf : Leaf
@@ -168,22 +170,30 @@ partial def build (minR : Nat) (mid : Bool) (ts : List YForm) (Γ : Int) (ss : L
   | .inl (r, sp) =>
     let cap := (Tree.leaf r, [⟨⟨.cap, r, ss, sW⟩, (ss, sW), ts⟩])
     if depth = 0 then cap else
-    let choice : Option Nat :=
+    let choice : Option (List Nat) :=
       match sp with
-      | some (f, m) => splitCoord f m
+      | some (f, m) => some (oddCoords 4 f m)
       | none =>
         match stateAt ts Γ ss sW r with
         | some (cur, cw) =>
           match undecidedResidue ts Γ [] (YForm.const 1) cur cw 2000 with
-          | some (f, m) => splitCoord f m
+          | some (f, m) => some (oddCoords 4 f m)
           | none => none
         | none => none
     match choice with
-    | none => cap
-    | some i =>
-    let (t0, l0) := build minR mid (substT ts i 0) Γ (substL ss i 0) (sW.subst i 0) (depth - 1) maxR
-    let (t1, l1) := build minR mid (substT ts i 1) Γ (substL ss i 1) (sW.subst i 1) (depth - 1) maxR
-    (.node i t0 t1, l0 ++ l1)
+    | some (i :: js) =>
+      let rec go (js : List Nat) (ss : List SMark) (sW : YForm) (ts : List YForm) : Tree × List LeafX :=
+        match js with
+        | [] =>
+          let (t0, l0) := build minR mid (substT ts i 0) Γ (substL ss i 0) (sW.subst i 0) (depth - 1) maxR
+          let (t1, l1) := build minR mid (substT ts i 1) Γ (substL ss i 1) (sW.subst i 1) (depth - 1) maxR
+          (.node i t0 t1, l0 ++ l1)
+        | j :: js =>
+          let (t, l) := go js (skewL ss i j 1) (sW.skew i j 1) (skewT ts i j 1)
+          (.skew i j 1 t, l)
+      let (t, l) := go js ss sW ts
+      (.adv r t, l)
+    | _ => cap
 
 def startFree (Γ : Int) : List SMark × YForm × List YForm :=
   let a : YForm := ⟨1, [2, 0, 0, 0]⟩
@@ -196,6 +206,16 @@ def startFree (Γ : Int) : List SMark × YForm × List YForm :=
 def ser : Tree → List String
   | .leaf n => ["L" ++ toString n]
   | .node i a b => ("N" ++ toString i) :: (ser a ++ ser b)
+  | .skew i j s t => ("S" ++ toString i ++ "," ++ toString j ++ "," ++ toString s) :: ser t
+  | .adv n t => ("A" ++ toString n) :: ser t
+
+/-- `build` records at each split the absolute round it happens at (`adv r`, rounds from the root) and at each leaf
+its absolute number of rounds; the checked tree runs each stretch once: rounds relative to the last advance. -/
+def relAdv (rp : Nat) : Tree → Tree
+  | .leaf n => .leaf (n - rp)
+  | .adv r t => if rp < r then .adv (r - rp) (relAdv r t) else relAdv rp t
+  | .node i a b => .node i (relAdv rp a) (relAdv rp b)
+  | .skew i j s t => .skew i j s (relAdv rp t)
 
 def rOf (ss : List SMark) (sW : YForm) : YForm :=
   match ss.getLast? with
@@ -219,6 +239,7 @@ def main (args : List String) : IO Unit := do
   let mid := args.getD 3 "1" == "1"
   let minR := (args.getD 4 "0").toNat!
   let (t, leaves) := build minR mid ts Γ ss sW depth 24
+  let t := relAdv 0 t
   IO.println s!"leaves {leaves.length}"
   let mut counts : List (String × Nat) := []
   for lf in leaves do
@@ -251,6 +272,6 @@ def main (args : List String) : IO Unit := do
         IO.println s!"leaf fails endCheck: {reprStr lf.leaf.kind} rounds {lf.leaf.rounds} shape {shapeOf e1} R0={showF R0} R1={showF (rOf e1 e2)}"
     | none => IO.println "stateAt failed"
   IO.println s!"pass leaves {np}: 16R'=R in {n16}, 64L1'=L1 in {n64}"
-  let ok := t.okLoop Γ 1000 4 ss sW ts sR sL
+  let ok := t.okLoop Γ 1000 4 false ss sW ts sR sL
   IO.println s!"okLoop: {ok}"
   IO.FS.writeFile (args.getD 2 "loop_tree.txt") (String.intercalate " " (ser t))

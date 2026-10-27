@@ -45,8 +45,6 @@ def isConstLe2 (d : YForm) : Bool := match d.constVal with | some v => v ≤ 2 |
 def predD (d : YForm) (merge : Bool) : Option YForm :=
   if merge then (d.addc (-2)).half? else (d.half?).map (·.addc 4)
 
-def sameForm (f g : YForm) : Bool := f.k == g.k && coeffEq f.c g.c
-
 inductive Kind | close | brk | pass | notphase0 | cap
   deriving Repr, BEq
 
@@ -130,9 +128,10 @@ def stateAt (ts : List YForm) (Γ : Int) (ss : List SMark) (sW : YForm) (r : Nat
     | _ => return none
   return some (cur, cw)
 
-/-- A coordinate whose coefficient in `f` is not divisible by `m`. -/
-def splitCoord (f : YForm) (m : Int) : Option Nat :=
-  (List.range f.c.length).find? (fun i => f.c.getD i 0 % m != 0)
+/-- The coordinates whose coefficient in `f` is not divisible by `m`: the first is split, the others are first skewed
+onto it (yᵢ = zᵢ + zⱼ makes cⱼ + cᵢ divisible by m), so one split decides the residue. -/
+def oddCoords (k : Nat) (f : YForm) (m : Int) : List Nat :=
+  (List.range k).filter (fun i => f.c.getD i 0 % m != 0)
 
 /-- Build the tree: classify; when undecided, split the first coordinate that lets both children get further. -/
 partial def build (k : Nat) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW : YForm) (depth : Nat) (maxR : Nat) :
@@ -141,19 +140,27 @@ partial def build (k : Nat) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW :
   | .inr lf => (.leaf lf.rounds, [lf])
   | .inl r =>
     if depth = 0 then (.leaf r, [⟨.cap, r⟩]) else
-    let choice : Option Nat :=
+    let choice : Option (List Nat) :=
       match stateAt ts Γ ss sW r with
       | some (cur, cw) =>
         match undecidedResidue ts Γ [] (YForm.const 1) cur cw 2000 with
-        | some (f, m) => splitCoord f m
+        | some (f, m) => some (oddCoords k f m)
         | none => none
       | none => none
     match choice with
-    | none => (.leaf r, [⟨.cap, r⟩])
-    | some i =>
-    let (t0, l0) := build k (substT ts i 0) Γ (substL ss i 0) (sW.subst i 0) (depth - 1) maxR
-    let (t1, l1) := build k (substT ts i 1) Γ (substL ss i 1) (sW.subst i 1) (depth - 1) maxR
-    (.node i t0 t1, l0 ++ l1)
+    | some (i :: js) =>
+      let rec go (js : List Nat) (ss : List SMark) (sW : YForm) (ts : List YForm) : Tree × List Leaf :=
+        match js with
+        | [] =>
+          let (t0, l0) := build k (substT ts i 0) Γ (substL ss i 0) (sW.subst i 0) (depth - 1) maxR
+          let (t1, l1) := build k (substT ts i 1) Γ (substL ss i 1) (sW.subst i 1) (depth - 1) maxR
+          (.node i t0 t1, l0 ++ l1)
+        | j :: js =>
+          let (t, l) := go js (skewL ss i j 1) (sW.skew i j 1) (skewT ts i j 1)
+          (.skew i j 1 t, l)
+      let (t, l) := go js ss sW ts
+      (.adv r t, l)
+    | _ => (.leaf r, [⟨.cap, r⟩])
 
 def startR (R : Int) : List SMark × YForm × List YForm :=
   let a : YForm := ⟨1, [2, 0, 0]⟩
@@ -165,8 +172,68 @@ def startR (R : Int) : List SMark × YForm × List YForm :=
 def ser : Tree → List String
   | .leaf n => ["L" ++ toString n]
   | .node i a b => ("N" ++ toString i) :: (ser a ++ ser b)
+  | .skew i j s t => ("S" ++ toString i ++ "," ++ toString j ++ "," ++ toString s) :: ser t
+  | .adv n t => ("A" ++ toString n) :: ser t
+
+/-- `build` records at each split the absolute round it happens at (`adv r`, rounds from the root) and at each leaf
+its absolute number of rounds; the checked tree runs each stretch once: rounds relative to the last advance. -/
+def relAdv (rp : Nat) : Tree → Tree
+  | .leaf n => .leaf (n - rp)
+  | .adv r t => if rp < r then .adv (r - rp) (relAdv r t) else relAdv rp t
+  | .node i a b => .node i (relAdv rp a) (relAdv rp b)
+  | .skew i j s t => .skew i j s (relAdv rp t)
+
+/-- The start class with R free (R = 2 y₃, as in `ExploreLoop`): cone gaps a, b − a, c − b and R ≥ Rlo. -/
+def startSym (Γ Rlo : Int) : List SMark × YForm × List YForm :=
+  let a : YForm := ⟨1, [2, 0, 0, 0]⟩
+  let b : YForm := ⟨0, [0, 2, 0, 0]⟩
+  let E : YForm := ⟨0, [0, 0, 2, 0]⟩
+  let R : YForm := ⟨0, [0, 0, 0, 2]⟩
+  let c := (E.sub R).addc (-1)
+  ([⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩], E, [a, b.sub a, c.sub b, R.addc (Γ - Rlo)])
+
+def countKinds (leaves : List Leaf) : List (String × Nat) := Id.run do
+  let mut counts : List (String × Nat) := []
+  for lf in leaves do
+    let key := reprStr lf.kind
+    counts := match counts.find? (·.1 == key) with
+      | some _ => counts.map (fun p => if p.1 == key then (p.1, p.2 + 1) else p)
+      | none => counts ++ [(key, 1)]
+  return counts
+
+/-- The leaves of a tree whose own check fails, with the form of R there (untrusted diagnostics). -/
+partial def failingLeaves (Γ : Int) (k : Nat) : Tree → Bool → List SMark → YForm → List YForm → YForm →
+    List (Nat × String)
+  | .leaf n, wf, ss, sW, ts, sR =>
+    if (Tree.leaf n).okNC Γ 1000 k wf ss sW ts then [] else [(n, s!"R = {sR.k} + {sR.c}")]
+  | .adv n t, wf, ss, sW, ts, sR =>
+    if !(Tree.adv n (.leaf 0)).okNC Γ 1000 k wf ss sW ts then [(n, s!"adv fails; R = {sR.k} + {sR.c}")] else
+    match symRoundsZ ts Γ 1000 n ss sW with
+    | some (.newRound ss' sW') => failingLeaves Γ k t true ss' sW' ts sR
+    | _ => [(n, "adv rounds fail")]
+  | .node i t0 t1, wf, ss, sW, ts, sR =>
+    failingLeaves Γ k t0 wf (substL ss i 0) (sW.subst i 0) (substT ts i 0) (sR.subst i 0) ++
+      failingLeaves Γ k t1 wf (substL ss i 1) (sW.subst i 1) (substT ts i 1) (sR.subst i 1)
+  | .skew i j s t, wf, ss, sW, ts, sR =>
+    failingLeaves Γ k t wf (skewL ss i j s) (sW.skew i j s) (skewT ts i j s) (sR.skew i j s)
+
+/-- `sym Rlo Γ out`: one tree for every even R ≥ Rlo, R a fourth coordinate. -/
+def mainSym (args : List String) : IO Unit := do
+  let Rlo : Int := (args.getD 1 "178").toInt!
+  let Γ : Int := (args.getD 2 "448").toInt!
+  let (ss, sW, ts) := startSym Γ Rlo
+  let (t, leaves) := build 4 ts Γ ss sW 60 24
+  let t := relAdv 0 t
+  let ok := t.ok Γ 1000 4 false ss sW ts
+  let nc := t.okNC Γ 1000 4 false ss sW ts
+  IO.println s!"R ≥ {Rlo} free: leaves {leaves.length}; tree checked: {ok}; no close: {nc}; Γ = {Γ}"
+  IO.println s!"leaf kinds: {countKinds leaves}"
+  for (n, d) in failingLeaves Γ 4 t false ss sW ts ⟨0, [0, 0, 0, 2]⟩ do
+    IO.println s!"  failing leaf ({n} rounds): {d}"
+  IO.FS.writeFile (args.getD 3 "endgame_sym.txt") (String.intercalate " " (ser t))
 
 def main (args : List String) : IO Unit := do
+  if args.getD 0 "" == "sym" then mainSym args else
   let Rmax := (args.getD 0 "64").toNat!
   let Γ : Int := (args.getD 1 "448").toInt!
   let mut total := 0
@@ -182,9 +249,10 @@ def main (args : List String) : IO Unit := do
     let R : Int := Rn
     let (ss, sW, ts) := startR R
     let (t, leaves) := build 3 ts Γ ss sW 40 24
-    let ok := t.ok Γ 1000 3 ss sW ts
+    let t := relAdv 0 t
+    let ok := t.ok Γ 1000 3 false ss sW ts
     if !ok then allOk := false; IO.println s!"R={R}: TREE CHECK FAILED"
-    let nc := t.okNC Γ 1000 3 ss sW ts
+    let nc := t.okNC Γ 1000 3 false ss sW ts
     if !nc then ncFail := ncFail ++ [Rn]
     serial := serial ++ [toString Rn ++ " " ++ String.intercalate " " (ser t)]
 

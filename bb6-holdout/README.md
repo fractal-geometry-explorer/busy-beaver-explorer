@@ -19,8 +19,9 @@ mark rules interactively.
 - *The round theorem.* From the tape of any well-formed mark state, the machine reaches exactly the next round start
   that the mark model computes, or halts exactly where the model says it halts (`round_run`, `rounds_run`); from blank
   tape it follows the model for as many rounds as the model covers (`blank_rounds`).
-- *Two loop results as theorems about the machine* (`lean/thm/`). The split trees are data checked by a proved
-  function evaluated with `native_decide`, so these two also trust Lean's compiler, not only its kernel:
+- *Two loop results as theorems about the machine* (`lean/thm/`). The split trees are checked by a proved function:
+  for `exit_no_halt` (and `loop_pass` below) by Lean's kernel alone (`decide +kernel`, the check cut into subtree
+  theorems), for `endgame_no_close` with `native_decide`, which also trusts Lean's compiler:
   - `exit_no_halt`: every loop state (walls at a, b, c, width E; a odd, b even, c odd, E even; every gap ≥ 390) runs
     to another round start without halting;
   - `endgame_no_close`: for every even R ≤ 4096 outside {2, 4, 8, 16, 24, 32, 48, 64, 176}, every phase-0 pass
@@ -79,21 +80,16 @@ programs in `csearch/` are kept as they were run.
 ```sh
 cd lean
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check.sh        # all 24 files, about a minute; prints the axioms
-# the two theorems (13 and 40 minutes of native_decide evaluation):
-LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/ExitTheorem.lean -o out/ExitTheorem.olean
-LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/ExitHalt.lean                                  # after ExitTheorem: a halt needs a contact after the exit
-LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/EndgameTheorem.lean -o out/EndgameTheorem.olean
-LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/EndgameHalt.lean                               # after EndgameTheorem
-# the loop's end for every width (under a minute, then the induction; needs EndgameTheorem.olean):
-LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopPass.lean -o out/LoopPass.olean
-LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopTheorem.lean -o out/LoopTheorem.olean
-LEAN_PATH=$LEANLIB:$PWD/out $LEAN thm/LoopAxioms.lean
-# end to end (all the theorem files above, the prefix and the clean-tape tree, as native code; about 15 minutes):
+# the theorem files: the exit and loop trees evaluated by the kernel (their subtree modules in parallel, under a
+# minute with 4 cores), the endgame trees, the prefix and the clean-tape tree with native_decide as native code, the
+# halts after each stretch, and the end-to-end theorem (about 11 minutes):
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh
 ```
 
-`thm/gen_exit.py` and `thm/gen_endgame.py` regenerate the theorem files from the trees (`thm/exit_tree.txt`,
-`thm/endgame_trees.txt`), which the untrusted builders `ExploreExit.lean` and `ExploreNC.lean` produce.
+`thm/gen_exit.py`, `thm/gen_loop.py` and `thm/gen_endgame.py` regenerate the theorem files from the trees
+(`python3 thm/gen_exit.py thm/exit_tree.txt thm`, `python3 thm/gen_loop.py thm/loop_tree.txt thm`,
+`python3 thm/gen_endgame.py thm/endgame_trees.txt thm/EndgameTheorem.lean`), which the untrusted builders
+`ExploreExit.lean`, `ExploreLoop.lean` and `ExploreNC.lean` produce.
 
 **Certificates** (Python 3, exact rational arithmetic):
 

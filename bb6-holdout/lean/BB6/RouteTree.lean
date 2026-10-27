@@ -159,21 +159,6 @@ theorem symClean_sound {y : List Int} {ss : List SMark} {ms : List Mark} {sW : Y
   | [_, _], [_], hs => exact absurd hs.2 id
   | [_, _], _ :: _ :: _ :: _, hs => exact absurd hs.2.2 id
 
-/-! ## Several rounds compose -/
-
-theorem roundsZ_add (fuel : Nat) : ∀ (n₁ n₂ : Nat) (ms : List Mark) (W : Nat) (ms' : List Mark) (W' : Nat),
-    roundsZ fuel n₁ ms W = .newRound ms' W' → roundsZ fuel (n₁ + n₂) ms W = roundsZ fuel n₂ ms' W'
-  | 0, n₂, ms, W, ms', W', h => by simp only [roundsZ] at h; cases h; simp
-  | n₁ + 1, n₂, ms, W, ms', W', h => by
-    rw [show n₁ + 1 + n₂ = (n₁ + n₂) + 1 by omega]
-    simp only [roundsZ] at h ⊢
-    generalize roundZ fuel [] 1 ms W = r at h ⊢
-    cases r with
-    | newRound a b => exact roundsZ_add fuel n₁ n₂ a b ms' W' h
-    | gap _ _ _ _ => cases h
-    | halt => cases h
-    | uncovered => cases h
-
 /-! ## Route trees -/
 
 inductive RTree where
