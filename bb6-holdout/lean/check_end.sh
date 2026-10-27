@@ -12,12 +12,13 @@
 #      alone takes about an hour in Lean's interpreter);
 #   4. the theorem files, in stages whose files are independent and compile JOBS at a time: the kernel-checked run to
 #      width 2^20 (thm/PrefixKernel.lean), the loop through its passes (thm/LoopTheorem.lean), the halts after the
-#      exit and the loop, the blank-tape prefix to width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape
-#      tree at every depth (thm/CleanTheorem.lean, the proved explorer, nothing evaluated), the clean tapes of width in
-#      [2^32, 2^41) run one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and
-#      thm/EndToEndDirect.lean, and the routes from two-marker states with their loop entries (thm/RouteTheorem.lean,
-#      thm/RouteEntryTheorem.lean, thm/RouteEntryHalt.lean, nothing evaluated); prints the axioms of the final
-#      theorems;
+#      exit and the loop, the pass-start trees from a pass start to the next landing or clean tape at every depth
+#      (thm/PassHalt.lean, the proved explorer of BB6/PassTree.lean, nothing evaluated), the blank-tape prefix to
+#      width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape tree at every depth (thm/CleanTheorem.lean, the
+#      proved explorer, nothing evaluated), the clean tapes of width in [2^32, 2^41) run one by one
+#      (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and thm/EndToEndDirect.lean, and the routes from
+#      two-marker states with their loop entries (thm/RouteTheorem.lean, thm/RouteEntryTheorem.lean,
+#      thm/RouteEntryHalt.lean, nothing evaluated); prints the axioms of the final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, about 5 minutes each), and with --deep also at 40 digits
 #      (thm/CleanMass40.lean, thm/CleanDirectMass40.lean, about half an hour each).  No theorem about the machine uses
@@ -78,7 +79,7 @@ DEEPMASS=""
 [ -n "$DEEP" ] && DEEPMASS="CleanMass40 CleanDirectMass40"
 stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass ExitHalt LoopTheorem RouteEntryTheorem
 stage LoopHalt
-stage EndToEnd RouteEntryHalt
+stage EndToEnd RouteEntryHalt PassHalt
 stage EndToEndDirect
 $LEAN thm/EndToEndAxioms.lean
 echo "END TO END CHECKED"

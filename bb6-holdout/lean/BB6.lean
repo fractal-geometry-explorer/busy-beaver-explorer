@@ -21,6 +21,7 @@ import BB6.SymSplit
 import BB6.Meets
 import BB6.Loop
 import BB6.Ends
+import BB6.PassTree
 import BB6.HaltClose
 import BB6.HaltStretch
 
@@ -73,3 +74,6 @@ import BB6.HaltStretch
 #print axioms BB6.halt_needs_close
 #print axioms BB6.halt_needs_end_close
 #print axioms BB6.halt_after_rounds
+#print axioms BB6.Sym.PTree.sound
+#print axioms BB6.Sym.PTree.explore_ok
+#print axioms BB6.Sym.passMass_cut
