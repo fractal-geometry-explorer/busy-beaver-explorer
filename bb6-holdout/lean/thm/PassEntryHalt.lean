@@ -17,7 +17,9 @@ class of the clean-tape tree at every depth, or a pass start in a cut class of i
 pass-start trees' cut classes do halt (1/8 of those with R = 6), so what is left open is whether the run from blank tape
 reaches one of them, or a clean tape in a cut class.  The clean-tape tree without loop entries follows the run on
 through every entry, so such a pass start comes only after a clean tape that this tree leaves open at every depth:
-`blank_halt_open` (and `blank_halt_open_kernel`) puts `blank_halt_clean_direct` and `blank_halt_pass` together. -/
+`blank_halt_open` (and `blank_halt_open_kernel`) puts `blank_halt_clean_direct` and `blank_halt_pass` together.
+`blank_halt_open_of` does this for any test of the loop entries; `thm/OpenSmallHalt.lean` uses it with the small-end
+check of `thm/SmallEndHalt.lean`. -/
 
 /-- The loop's chain is a run of the machine: its last pass start follows its first. -/
 theorem LoopChain.reach {ms : List Mark} {W R : Nat} {ks : List StepKind} {ms' : List Mark} {W' R' : Nat}
@@ -181,20 +183,21 @@ depth.  `clean_entry_chain_open` is `clean_entry_chain` with the step taken only
 every depth, recording a property `P` of the clean tape from which it reaches a loop entry; with `P` "cut at every
 depth by the clean-tape tree", `blank_halt_open` puts the two statements together. -/
 
-/-- **The chain, recording the clean tape before the entry.**  As `clean_entry_chain`, with a step (`hStep`) that is
-taken only from a clean tape not cut at every depth, and that records a property `P` of the clean tape when it ends at
-a loop entry.  If the machine halts T steps after a clean tape of even width W ≥ A, then it reaches a clean tape of
-even width W′ ≥ W, W′ ≥ B, cut at every depth, and halts from there; or it reaches a clean tape of even width W₀ ≥ W,
-W₀ ≥ B, with `P W₀`, and from there a loop entry wider than W₀ that cannot close, of which `Q` holds with the time
-left. -/
+/-- **The chain, recording the clean tape before the entry.**  As `clean_entry_chain`, for any property `Ent` of the
+loop entries (`clean_entry_chain_of`, `thm/SmallEndHalt.lean`, does the same without the record), with a step
+(`hStep`) that is taken only from a clean tape not cut at every depth, and that records a property `P` of the clean
+tape when it ends at a loop entry.  If the machine halts T steps after a clean tape of even width W ≥ A, then it
+reaches a clean tape of even width W′ ≥ W, W′ ≥ B, cut at every depth, and halts from there; or it reaches a clean
+tape of even width W₀ ≥ W, W₀ ≥ B, with `P W₀`, and from there a loop entry wider than W₀ with `Ent`, of which `Q`
+holds with the time left. -/
 theorem clean_entry_chain_open (A B : Nat) (h6 : 6 ≤ A) (hB : StepsBelow A B)
-    (Cut : Nat → Nat → Prop) (P : Nat → Prop)
+    (Cut : Nat → Nat → Prop) (P : Nat → Prop) (Ent : List Mark → Nat → Prop)
     (hStep : ∀ W, W % 2 = 0 → B ≤ W → ¬ (∀ d, Cut d W) →
       ∃ n k ms' W', roundsZ 1000 n [⟨.M, W - 2⟩] W = .newRound ms' W' ∧
         steps k (roundStart [⟨.M, W - 2⟩] W) = some (roundStart ms' W') ∧
-        ((0 < n ∧ ms' = [⟨.M, W' - 2⟩] ∧ W < W') ∨ (P W ∧ EntryNoClose ms' W' ∧ W < W')))
+        ((0 < n ∧ ms' = [⟨.M, W' - 2⟩] ∧ W < W') ∨ (P W ∧ Ent ms' W' ∧ W < W')))
     (Q : List Mark → Nat → Nat → Prop)
-    (hQ : ∀ ms W T, EntryNoClose ms W → steps T (roundStart ms W) = none →
+    (hQ : ∀ ms W T, Ent ms W → steps T (roundStart ms W) = none →
       Q ms W T ∨ ∃ k W', 0 < k ∧ W < W' ∧ W' % 2 = 0 ∧
         steps k (roundStart ms W) = some (roundStart [⟨.M, W' - 2⟩] W') ∧
         steps (T - k) (roundStart [⟨.M, W' - 2⟩] W') = none)
@@ -204,7 +207,7 @@ theorem clean_entry_chain_open (A B : Nat) (h6 : 6 ≤ A) (hB : StepsBelow A B)
         steps (T - k) (roundStart [⟨.M, W' - 2⟩] W') = none) ∨
       ∃ W₀ k₀ ms' W' k, W ≤ W₀ ∧ B ≤ W₀ ∧ W₀ % 2 = 0 ∧ P W₀ ∧
         steps k₀ (roundStart [⟨.M, W - 2⟩] W) = some (roundStart [⟨.M, W₀ - 2⟩] W₀) ∧
-        W₀ < W' ∧ EntryNoClose ms' W' ∧
+        W₀ < W' ∧ Ent ms' W' ∧
         steps k (roundStart [⟨.M, W₀ - 2⟩] W₀) = some (roundStart ms' W') ∧ Q ms' W' (T - k₀ - k) := by
   induction T using Nat.strongRecOn with
   | ind T ih =>
@@ -213,7 +216,7 @@ theorem clean_entry_chain_open (A B : Nat) (h6 : 6 ≤ A) (hB : StepsBelow A B)
     by_cases hstop : B ≤ W ∧ ∀ d, Cut d W
     · exact Or.inl ⟨W, 0, Nat.le_refl _, hstop.1, hW, hstop.2, rfl, by simpa using hT⟩
     -- otherwise the run reaches a loop entry where `Q` holds, or a wider clean tape, and the chain goes on from there
-    suffices hnext : (∃ ms' W' k, B ≤ W ∧ P W ∧ W < W' ∧ EntryNoClose ms' W' ∧
+    suffices hnext : (∃ ms' W' k, B ≤ W ∧ P W ∧ W < W' ∧ Ent ms' W' ∧
         steps k (roundStart [⟨.M, W - 2⟩] W) = some (roundStart ms' W') ∧ Q ms' W' (T - k)) ∨
         ∃ k W', 0 < k ∧ W < W' ∧ W' % 2 = 0 ∧
           steps k (roundStart [⟨.M, W - 2⟩] W) = some (roundStart [⟨.M, W' - 2⟩] W') by
@@ -241,6 +244,86 @@ theorem clean_entry_chain_open (A B : Nat) (h6 : 6 ≤ A) (hB : StepsBelow A B)
       · exact Or.inl ⟨ms', W', k, by omega, hP, hlt, he, hk, hq⟩
       · exact Or.inr ⟨k + k', W'', by omega, by omega, hW'', steps_seq hk hk''⟩
 
+/-- **A halt from blank tape, after a prefix: an open clean tape, then a loop entry.**  Two notions of cut class,
+`CutG` with a step that ends at a wider clean tape (`hStepG`, the clean-tape tree) and `CutE` with a step that may also
+end at a loop entry with a property `Ent` (`hStepE`, a tree with loop entries), and what a halt from such an entry
+needs (`Q`, or a wider clean tape that the run reaches from it).  If the machine halts after T steps, then it reaches a
+clean tape of even width W ≥ B that is cut at every depth by the first, and halts from there; and either W is cut at
+every depth by the second too, and the mark model reaches a stuck configuration from W, or the run from W reaches a
+wider loop entry with `Ent`, of which `Q` holds with the time left. -/
+theorem blank_halt_open_of (A B W₀ k₀ : Nat) (h6 : 6 ≤ A) (hB : StepsBelow A B)
+    (CutG CutE : Nat → Nat → Prop) (Ent : List Mark → Nat → Prop)
+    (hStepG : ∀ d W, W % 2 = 0 → B ≤ W →
+      ∃ n k ms' W', roundsZ 1000 n [⟨.M, W - 2⟩] W = .newRound ms' W' ∧
+        steps k (roundStart [⟨.M, W - 2⟩] W) = some (roundStart ms' W') ∧
+        (CutG d W ∨ (0 < n ∧ ms' = [⟨.M, W' - 2⟩] ∧ W < W')))
+    (hStepE : ∀ d W, W % 2 = 0 → B ≤ W →
+      ∃ n k ms' W', roundsZ 1000 n [⟨.M, W - 2⟩] W = .newRound ms' W' ∧
+        steps k (roundStart [⟨.M, W - 2⟩] W) = some (roundStart ms' W') ∧
+        (CutE d W ∨ (0 < n ∧ ms' = [⟨.M, W' - 2⟩] ∧ W < W') ∨ (Ent ms' W' ∧ W < W')))
+    (Q : List Mark → Nat → Nat → Prop)
+    (hQ : ∀ ms W T, Ent ms W → steps T (roundStart ms W) = none →
+      Q ms W T ∨ ∃ k W', 0 < k ∧ W < W' ∧ W' % 2 = 0 ∧
+        steps k (roundStart ms W) = some (roundStart [⟨.M, W' - 2⟩] W') ∧
+        steps (T - k) (roundStart [⟨.M, W' - 2⟩] W') = none)
+    (hW₀ : W₀ % 2 = 0) (hAW₀ : A ≤ W₀) (hk₀ : steps k₀ ⟨blank, blank, .A⟩ = some (roundStart [⟨.M, W₀ - 2⟩] W₀))
+    (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :
+    ∃ W k, B ≤ W ∧ W % 2 = 0 ∧ (∀ d, CutG d W) ∧
+      steps k ⟨blank, blank, .A⟩ = some (roundStart [⟨.M, W - 2⟩] W) ∧
+      steps (T - k) (roundStart [⟨.M, W - 2⟩] W) = none ∧
+      (((∀ d, CutE d W) ∧
+          ∃ u, Reach ⟨[], 1, [⟨.M, W - 2⟩], W⟩ u ∧ u.wf ∧ (EndClose u ∨ InteriorContact u)) ∨
+        ∃ ms W' t, W < W' ∧ Ent ms W' ∧ steps t (roundStart [⟨.M, W - 2⟩] W) = some (roundStart ms W') ∧
+          Q ms W' (T - k - t)) := by
+  obtain ⟨-, hT₀⟩ := steps_none_split hT hk₀
+  -- the step: by the clean-tape tree where it does not cut at every depth, else by the tree with loop entries
+  have hStep : ∀ W, W % 2 = 0 → B ≤ W → ¬ (∀ d, CutG d W ∧ CutE d W) →
+      ∃ n k ms' W', roundsZ 1000 n [⟨.M, W - 2⟩] W = .newRound ms' W' ∧
+        steps k (roundStart [⟨.M, W - 2⟩] W) = some (roundStart ms' W') ∧
+        ((0 < n ∧ ms' = [⟨.M, W' - 2⟩] ∧ W < W') ∨ ((∀ d, CutG d W) ∧ Ent ms' W' ∧ W < W')) := by
+    intro W hW hBW hn
+    by_cases hG : ∀ d, CutG d W
+    · obtain ⟨d, hd⟩ := Classical.not_forall.mp (fun hE : ∀ d, CutE d W => hn fun d => ⟨hG d, hE d⟩)
+      obtain ⟨n, k, ms', W', hr, hk, hc⟩ := hStepE d W hW hBW
+      rcases hc with hc | hc | ⟨he, hlt⟩
+      · exact absurd hc hd
+      · exact ⟨n, k, ms', W', hr, hk, Or.inl hc⟩
+      · exact ⟨n, k, ms', W', hr, hk, Or.inr ⟨hG, he, hlt⟩⟩
+    · obtain ⟨d, hd⟩ := Classical.not_forall.mp hG
+      obtain ⟨n, k, ms', W', hr, hk, hc⟩ := hStepG d W hW hBW
+      rcases hc with hc | hc
+      · exact absurd hc hd
+      · exact ⟨n, k, ms', W', hr, hk, Or.inl hc⟩
+  rcases clean_entry_chain_open A B h6 hB (fun d W => CutG d W ∧ CutE d W) (fun W => ∀ d, CutG d W) Ent hStep Q hQ
+      (T - k₀) W₀ hW₀ hAW₀ hT₀ with
+      ⟨W, k, hle, hBW, hW, hcut, hk, hTW⟩ | ⟨W, k, ms, W', k', -, hBW, hW, hG, hk, hlt, he, hk', hq⟩
+  · have hG6 : 6 ≤ W := by omega
+    obtain ⟨u, hu, huw, hus⟩ := round_halt_needs_contact [⟨.M, W - 2⟩] W _ (roundWF_one.mpr ⟨hG6, hW⟩)
+      (noG_one _) hTW
+    refine ⟨W, k₀ + k, hBW, hW, fun d => (hcut d).1, steps_seq hk₀ hk, ?_,
+      Or.inl ⟨fun d => (hcut d).2, u, hu, huw, stuck_cases hus⟩⟩
+    rw [show T - (k₀ + k) = T - k₀ - k by omega]
+    exact hTW
+  · obtain ⟨-, hTW⟩ := steps_none_split hT₀ hk
+    refine ⟨W, k₀ + k, hBW, hW, hG, steps_seq hk₀ hk, ?_, Or.inr ⟨ms, W', k', hlt, he, hk', ?_⟩⟩
+    · rw [show T - (k₀ + k) = T - k₀ - k by omega]
+      exact hTW
+    · rw [show T - (k₀ + k) - k' = T - k₀ - k - k' by omega]
+      exact hq
+
+/-- The loop's chain from a loop entry ends at a pass start at least as wide as the entry, with every gap at least
+448, and when the machine halts from there, the mark model run from there reaches a stuck configuration. -/
+theorem LoopChain.last_halt {ms : List Mark} {W R : Nat} {ks : List StepKind} {a b W₁ R₁ T : Nat}
+    (hch : LoopChain ms W R ks [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W₁ - R₁ - 1⟩] W₁ R₁)
+    (hT : steps T (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W₁ - R₁ - 1⟩] W₁) = none) :
+    W ≤ W₁ ∧ PassStart448 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W₁ - R₁ - 1⟩] W₁ R₁ ∧
+      ∃ u, Reach ⟨[], 1, [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W₁ - R₁ - 1⟩], W₁⟩ u ∧ u.wf ∧ (EndClose u ∨ InteriorContact u) := by
+  have hW₁ := hch.width
+  have hP₁ := hch.last
+  obtain ⟨hwf, hG⟩ := hP₁.wf
+  obtain ⟨u, hu, huw, hus⟩ := round_halt_needs_contact _ W₁ _ hwf hG hT
+  exact ⟨by omega, hP₁, u, hu, huw, stuck_cases hus⟩
+
 /-- **A halt from blank tape, after a prefix: an open clean tape, and past the loop's end from it.**  Two notions of
 cut class, `CutG` with a step that ends at a wider clean tape (`hStepG`, the clean-tape tree) and `CutE` with a step
 that may also end at a loop entry that cannot close (`hStepE`, the tree with loop entries).  If the machine halts after
@@ -248,7 +331,7 @@ T steps, then it reaches a clean tape of even width W ≥ B that is cut at every
 and either W is cut at every depth by the second too, and the mark model reaches a stuck configuration from W; or the
 run from W reaches a pass start of width W₁ > W, W₁ ≥ 2²⁴, with every gap at least 448, that lies in a cut leaf of its
 pass-start tree at every depth (through a loop entry that cannot close and the loop's chain from it), halts from there,
-and the mark model reaches a stuck configuration from there. -/
+and the mark model reaches a stuck configuration from there: `blank_halt_open_of` with `entry_pass_halt`. -/
 theorem blank_halt_open_from (A B W₀ k₀ : Nat) (h6 : 6 ≤ A) (hB : StepsBelow A B)
     (CutG CutE : Nat → Nat → Prop)
     (hStepG : ∀ d W, W % 2 = 0 → B ≤ W →
@@ -272,53 +355,20 @@ theorem blank_halt_open_from (A B W₀ k₀ : Nat) (h6 : 6 ≤ A) (hB : StepsBel
           steps (T - k - t) (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W₁ - R - 1⟩] W₁) = none ∧
           ∃ u, Reach ⟨[], 1, [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W₁ - R - 1⟩], W₁⟩ u ∧ u.wf ∧
             (EndClose u ∨ InteriorContact u)) := by
-  obtain ⟨-, hT₀⟩ := steps_none_split hT hk₀
-  -- the step: by the clean-tape tree where it does not cut at every depth, else by the tree with loop entries
-  have hStep : ∀ W, W % 2 = 0 → B ≤ W → ¬ (∀ d, CutG d W ∧ CutE d W) →
-      ∃ n k ms' W', roundsZ 1000 n [⟨.M, W - 2⟩] W = .newRound ms' W' ∧
-        steps k (roundStart [⟨.M, W - 2⟩] W) = some (roundStart ms' W') ∧
-        ((0 < n ∧ ms' = [⟨.M, W' - 2⟩] ∧ W < W') ∨ ((∀ d, CutG d W) ∧ EntryNoClose ms' W' ∧ W < W')) := by
-    intro W hW hBW hn
-    by_cases hG : ∀ d, CutG d W
-    · obtain ⟨d, hd⟩ := Classical.not_forall.mp (fun hE : ∀ d, CutE d W => hn fun d => ⟨hG d, hE d⟩)
-      obtain ⟨n, k, ms', W', hr, hk, hc⟩ := hStepE d W hW hBW
-      rcases hc with hc | hc | ⟨he, hlt⟩
-      · exact absurd hc hd
-      · exact ⟨n, k, ms', W', hr, hk, Or.inl hc⟩
-      · exact ⟨n, k, ms', W', hr, hk, Or.inr ⟨hG, he, hlt⟩⟩
-    · obtain ⟨d, hd⟩ := Classical.not_forall.mp hG
-      obtain ⟨n, k, ms', W', hr, hk, hc⟩ := hStepG d W hW hBW
-      rcases hc with hc | hc
-      · exact absurd hc hd
-      · exact ⟨n, k, ms', W', hr, hk, Or.inl hc⟩
-  rcases clean_entry_chain_open A B h6 hB (fun d W => CutG d W ∧ CutE d W) (fun W => ∀ d, CutG d W) hStep
+  obtain ⟨W, k, hBW, hW, hG, hk, hTW, h | ⟨ms, W', t, hlt, he, ht, R, ks, a₁, b₁, W₁, R₁, t', hch, hcut, ht', hT₁⟩⟩ :=
+    blank_halt_open_of A B W₀ k₀ h6 hB CutG CutE EntryNoClose hStepG hStepE
       (fun ms W T' => ∃ R ks a₁ b₁ W₁ R₁ t, LoopChain ms W R ks [⟨.W, a₁⟩, ⟨.W, b₁⟩, ⟨.W, W₁ - R₁ - 1⟩] W₁ R₁ ∧
         (∀ d, PassCut d R₁ a₁ b₁ W₁) ∧
         steps t (roundStart ms W) = some (roundStart [⟨.W, a₁⟩, ⟨.W, b₁⟩, ⟨.W, W₁ - R₁ - 1⟩] W₁) ∧
         steps (T' - t) (roundStart [⟨.W, a₁⟩, ⟨.W, b₁⟩, ⟨.W, W₁ - R₁ - 1⟩] W₁) = none)
-      (fun _ _ T' he hT' => entry_pass_halt he T' hT') (T - k₀) W₀ hW₀ hAW₀ hT₀ with
-      ⟨W, k, hle, hBW, hW, hcut, hk, hTW⟩ |
-      ⟨W, k, ms, W', k', -, hBW, hW, hG, hk, hlt, he, hk', R, ks, a₁, b₁, W₁, R₁, t, hch, hcut, ht, hT₁⟩
-  · have hG6 : 6 ≤ W := by omega
-    obtain ⟨u, hu, huw, hus⟩ := round_halt_needs_contact [⟨.M, W - 2⟩] W _ (roundWF_one.mpr ⟨hG6, hW⟩)
-      (noG_one _) hTW
-    refine ⟨W, k₀ + k, hBW, hW, fun d => (hcut d).1, steps_seq hk₀ hk, ?_,
-      Or.inl ⟨fun d => (hcut d).2, u, hu, huw, stuck_cases hus⟩⟩
-    rw [show T - (k₀ + k) = T - k₀ - k by omega]
-    exact hTW
+      (fun _ _ T' he hT' => entry_pass_halt he T' hT') hW₀ hAW₀ hk₀ T hT
+  · exact ⟨W, k, hBW, hW, hG, hk, hTW, Or.inl h⟩
   · -- the chain only widens, from the entry's width W' ≥ 2²⁴
-    have hW₁ := hch.width
-    have h24 : 2 ^ 24 ≤ W₁ := Nat.le_trans he.1 (by omega)
-    have hP₁ := hch.last
-    obtain ⟨hwf, hGP⟩ := hP₁.wf
-    obtain ⟨u, hu, huw, hus⟩ := round_halt_needs_contact _ W₁ _ hwf hGP hT₁
-    obtain ⟨-, hTW⟩ := steps_none_split hT₀ hk
-    refine ⟨W, k₀ + k, hBW, hW, hG, steps_seq hk₀ hk, ?_,
-      Or.inr ⟨R₁, a₁, b₁, W₁, k' + t, by omega, h24, hP₁, hcut, steps_seq hk' ht, ?_, u, hu, huw, stuck_cases hus⟩⟩
-    · rw [show T - (k₀ + k) = T - k₀ - k by omega]
-      exact hTW
-    · rw [show T - (k₀ + k) - (k' + t) = T - k₀ - k - k' - t by omega]
-      exact hT₁
+    obtain ⟨hle, hP₁, u, hu, huw, hus⟩ := hch.last_halt hT₁
+    refine ⟨W, k, hBW, hW, hG, hk, hTW, Or.inr ⟨R₁, a₁, b₁, W₁, t + t', by omega, Nat.le_trans he.1 hle, hP₁, hcut,
+      steps_seq ht ht', ?_, u, hu, huw, hus⟩⟩
+    rw [show T - k - (t + t') = T - k - t - t' by omega]
+    exact hT₁
 
 /-- **What a halt from blank tape needs: an open clean tape, and past the loop's end from it.**
 `blank_halt_open_from` with the prefix to 2³² (`blank_prefix`), the clean tapes of width in [2³², 2⁴¹) run one by one
