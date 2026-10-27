@@ -1,0 +1,10 @@
+from explore import *
+def until_ctx_or_gapstep(c): return after_gapstep(c) or at_left_ctx(c)
+show("PB-marker", "L 1 1 0", "A", "1 1 R", until_ctx_or_gapstep)
+show("PB-gap", "L 0 0 0", "A", "1 1 R", until_ctx_or_gapstep)
+show("PB-wall", "L 1 0 0", "A", "1 1 R", until_ctx_or_gapstep)
+c = Config([Blank()], "A", tokens("1 1 R")); run(c, after_gapstep); print("PB-leftend:", canon(c.left), c.state, canon(c.right), c.steps, " ".join(c.hist))
+c = Config([Blank(), 1, 1, 0], "A", tokens("1 1 R")); run(c, after_gapstep); print("PB-leftend-marker:", canon(c.left), c.state, canon(c.right), c.steps, " ".join(c.hist))
+c = Config(tokens("L 1 1 1 0"), "A", tokens("1 1 R"))
+try: run(c, until_ctx_or_gapstep)
+except Halted as e: print("PB-block: HALT on", e, "after", c.steps, "steps:", " ".join(c.hist))

@@ -1,0 +1,751 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>BB(6) Champion Explorer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+/* Layout: a lab bench. The live machine sits on one surface at the top; reference (rules, log) rides alongside; the written explanation follows below. */
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --sunk: #E4E9F0; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2;
+  --head: #DB4E17; --count: #2B59CF; --phase: #A97300; --mid: #0A8174; --pile: #AD3479; --frame: #8A95A5;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --sunk: #1F2935; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644;
+    --head: #FF7B44; --count: #7C9DFF; --phase: #EDB43A; --mid: #2FC4B2; --pile: #EA78BD; --frame: #6B7789;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --sunk: #1F2935; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644;
+  --head: #FF7B44; --count: #7C9DFF; --phase: #EDB43A; --mid: #2FC4B2; --pile: #EA78BD; --frame: #6B7789;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+.mono { font-family: var(--font-display); }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); font-weight: 700; line-height: 1.2; }
+h2 { font-size: 1.05rem; font-weight: 700; }
+h3 { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+p { margin: 0; }
+a { color: var(--count); }
+.top { display: grid; gap: 10px; max-width: 72ch; }
+.eyebrow { font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.lede { color: var(--ink); max-width: 66ch; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 6px 10px; justify-self: start; max-width: 100%; overflow-x: auto; white-space: nowrap; }
+
+.scen { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.scen button { text-align: left; font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; cursor: pointer; display: grid; gap: 4px; }
+.scen button:hover { border-color: var(--muted); }
+.scen button[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.scen b { font-family: var(--font-display); font-size: 0.86rem; }
+.scen span { font-size: 0.88rem; color: var(--muted); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--head); outline-offset: 2px; }
+
+.bench { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+@media (max-width: 960px) { .bench { grid-template-columns: minmax(0, 1fr); } }
+.stage { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 16px; display: grid; gap: 16px; min-width: 0; }
+.side { display: grid; gap: 18px; min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { font-family: var(--font-display); font-size: 0.78rem; font-weight: 500; color: var(--ink); background: var(--sunk); border: 1px solid var(--rule); border-radius: 5px; padding: 8px 12px; cursor: pointer; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--ink); color: var(--surface); border-color: var(--ink); min-width: 92px; }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.speed { display: flex; align-items: center; gap: 8px; margin-left: auto; font-size: 0.82rem; color: var(--muted); }
+.speed input { width: 130px; accent-color: var(--head); }
+.speed output { font-family: var(--font-display); font-size: 0.75rem; color: var(--ink); min-width: 9.5ch; font-variant-numeric: tabular-nums; }
+.note { font-size: 0.88rem; color: var(--muted); }
+
+.status { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 16px; align-items: baseline; }
+.stepno { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stepno small { font-size: 0.7rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-right: 6px; }
+.now { display: flex; gap: 10px; align-items: baseline; min-width: 0; }
+.tag { font-family: var(--font-display); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 99px; border: 1px solid currentColor; white-space: nowrap; }
+.tag.Tick { color: var(--mid); } .tag.Convert { color: var(--count); } .tag.Reset { color: var(--phase); }
+.tag.Halted, .tag.Halting { color: var(--head); } .tag.Warm-up, .tag.Phase { color: var(--muted); }
+#nowText { font-size: 0.95rem; min-width: 0; }
+@media (max-width: 560px) { .status { grid-template-columns: minmax(0, 1fr); } }
+
+.readout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 520px) { .readout { grid-template-columns: minmax(0, 1fr); } }
+.panel { border: 1px solid var(--rule); border-radius: var(--r); padding: 12px; display: grid; gap: 8px; align-content: start; min-width: 0; background: var(--surface); }
+.plabel { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.sw { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.sw.count { background: var(--count); } .sw.phase { background: var(--phase); } .sw.mid { background: var(--mid); } .sw.pile { background: var(--pile); } .sw.frame { background: var(--frame); } .sw.head { background: var(--head); border-radius: 50%; }
+.big { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; line-height: 1.25; }
+.big.long { font-size: 0.86rem; }
+.psub { font-size: 0.84rem; color: var(--muted); }
+.digits { display: flex; flex-wrap: wrap; gap: 3px; }
+.digits i { font-style: normal; font-family: var(--font-display); font-size: 0.78rem; width: 1.6em; height: 1.75em; display: grid; place-items: center; border-radius: 3px; border: 1px solid var(--rule); color: var(--muted); }
+.digits i.one { color: var(--surface); border-color: transparent; }
+.panel.count .digits i.one { background: var(--count); } .panel.mid .digits i.one { background: var(--mid); }
+.bits { font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.06em; overflow-wrap: anywhere; color: var(--muted); max-height: 7.5em; overflow-y: auto; }
+.bits b { color: var(--mid); font-weight: 700; }
+.pills { display: flex; gap: 6px; }
+.pills i { font-style: normal; font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; width: 2.2em; height: 2.2em; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--rule); color: var(--muted); }
+.pills i.on { background: var(--phase); border-color: var(--phase); color: var(--surface); }
+.units { display: flex; flex-wrap: wrap; gap: 2px; max-height: 6.4em; overflow: hidden; }
+.units i { width: 7px; height: 7px; border-radius: 1px; background: var(--pile); }
+
+.tapebox { display: grid; gap: 8px; min-width: 0; }
+.tapebox canvas, .stbox canvas { display: block; width: 100%; }
+#rule { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); min-height: 1.4em; }
+#rule b { color: var(--ink); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.8rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cap { font-size: 0.82rem; color: var(--muted); }
+.stbox { display: grid; gap: 6px; }
+.stbox canvas { border: 1px solid var(--rule); border-radius: 4px; }
+
+table.tr { border-collapse: collapse; width: 100%; font-family: var(--font-display); font-size: 0.78rem; }
+.tr th, .tr td { border: 1px solid var(--rule); padding: 6px 8px; text-align: left; }
+.tr th { color: var(--muted); font-weight: 500; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.tr td.st { font-weight: 700; text-align: center; width: 2.4em; }
+.tr td.on { background: var(--head); color: var(--surface); }
+.tr td .halt { color: var(--head); font-weight: 700; }
+.tr td.on .halt { color: var(--surface); }
+.tr .w { font-weight: 700; }
+.small { font-size: 0.84rem; color: var(--muted); }
+.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-height: 430px; overflow-y: auto; }
+.log li { display: grid; gap: 3px; font-size: 0.88rem; border-top: 1px solid var(--rule); padding-top: 8px; overflow-wrap: anywhere; }
+.log li:first-child { border-top: 0; padding-top: 0; }
+.log .meta { display: flex; gap: 8px; align-items: center; }
+.log .meta .mono { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.log .tag { font-size: 0.62rem; }
+.tag.start, .tag.other, .tag.note { color: var(--muted); } .tag.empty { color: var(--pile); } .tag.convert { color: var(--count); } .tag.reset { color: var(--phase); } .tag.halt { color: var(--head); }
+
+.explain { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.explain .card { gap: 12px; }
+.explain p, .explain li { max-width: 66ch; }
+.layoutrow { display: flex; flex-wrap: wrap; gap: 4px; font-family: var(--font-display); font-size: 0.72rem; }
+.layoutrow span { padding: 6px 7px 4px; border-radius: 4px; display: grid; gap: 2px; color: var(--ink); background: var(--sunk); border-bottom: 3px solid var(--frame); }
+.layoutrow span em { font-style: normal; font-family: var(--font-body); font-size: 0.72rem; color: var(--muted); }
+.layoutrow .count { border-color: var(--count); } .layoutrow .phase { border-color: var(--phase); } .layoutrow .mid { border-color: var(--mid); } .layoutrow .pile { border-color: var(--pile); } .layoutrow .hd { border-color: var(--head); color: var(--head); font-weight: 700; }
+.moves { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.moves li { display: grid; gap: 4px; }
+.moves .when { font-size: 0.84rem; color: var(--muted); }
+.moves b.k { font-family: var(--font-display); font-size: 0.82rem; }
+.moves b.k.tick { color: var(--mid); } .moves b.k.conv { color: var(--count); } .moves b.k.rst { color: var(--phase); }
+footer { font-size: 0.84rem; color: var(--muted); max-width: 80ch; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Busy Beaver · 6 states, 2 symbols · found by mxdys, June 2025</p>
+    <h1>Watch the BB(6) champion count</h1>
+    <p class="lede">This page runs the real six-rule Turing machine one step at a time and decodes its tape into four numbers: a countdown, a phase, a middle counter and a pile. Press Play and watch a binary counter tick down while the pile grows, then see how emptying it makes the next pile exponentially bigger.</p>
+    <code class="machine">1RB1RA_1RC1RZ_1LD0RF_1RA0LE_0LD1RC_1RA0RE</code>
+  </header>
+
+  <section class="scen" aria-label="Starting tape">
+    <button id="sc-real" data-k="real" aria-pressed="true"><b>From a blank tape</b><span>The real run. Watch 6 become 63, then the next counter get set up at step 28,297.</span></button>
+    <button id="sc-halt" data-k="halt" aria-pressed="false"><b>Small tape that halts</b><span>Hand-built. The pile goes 2 → 3 → 7, then phase 0 stops it at step 1,233.</span></button>
+    <button id="sc-reset" data-k="reset" aria-pressed="false"><b>Small tape that resets</b><span>Hand-built. The pile goes 2 → 3, a reset at step 435, then 7 → 127.</span></button>
+  </section>
+
+  <div class="bench">
+    <section class="stage" aria-label="Machine">
+      <div class="controls">
+        <button class="btn primary" id="play">Play</button>
+        <button class="btn" id="step1">Step</button>
+        <button class="btn" id="nextTick">Next tick</button>
+        <button class="btn" id="nextMile">Next milestone</button>
+        <button class="btn" id="restart">Restart</button>
+        <label class="speed" for="speed">Speed <input type="range" id="speed" min="0" max="11" step="1" value="6"><output id="speedOut">1,000/s</output></label>
+      </div>
+      <p class="note" id="note" hidden></p>
+
+      <div class="status">
+        <div class="stepno"><small>Step</small><span id="stepNo">0</span></div>
+        <div class="now"><span class="tag" id="nowTag">Warm-up</span><p id="nowText"></p></div>
+      </div>
+
+      <div class="readout">
+        <div class="panel count">
+          <div class="plabel"><span class="sw count"></span>Countdown</div>
+          <div class="digits" id="cDigits"></div>
+          <div class="big" id="cVal">–</div>
+          <p class="psub">Drops by 1 at every convert.</p>
+        </div>
+        <div class="panel phase">
+          <div class="plabel"><span class="sw phase"></span>Phase</div>
+          <div class="pills" id="pPills"><i data-m="2">2</i><i data-m="1">1</i><i data-m="0">0</i></div>
+          <p class="psub">Cycles 2 → 1 → 0 at each convert. When the countdown is 0, phase 1 resets and phase 0 halts.</p>
+        </div>
+        <div class="panel mid">
+          <div class="plabel"><span class="sw mid"></span>Middle counter</div>
+          <div class="bits" id="mBits"></div>
+          <div class="big" id="mVal">–</div>
+          <p class="psub" id="mSub">Each tick subtracts 1.</p>
+        </div>
+        <div class="panel pile">
+          <div class="plabel"><span class="sw pile"></span>Pile</div>
+          <div class="big" id="yVal">–</div>
+          <div class="units" id="yUnits"></div>
+          <p class="psub" id="ySub">Each tick adds one unit.</p>
+        </div>
+      </div>
+
+      <div class="tapebox">
+        <h3>Tape around the head</h3>
+        <canvas id="mag" height="74" aria-label="Magnified tape cells around the head"></canvas>
+        <p id="rule"></p>
+        <h3>Whole tape</h3>
+        <canvas id="strip" height="46" aria-label="The whole tape, colored by region"></canvas>
+        <div class="legend">
+          <span><span class="sw count"></span>Countdown</span><span><span class="sw phase"></span>Phase</span><span><span class="sw mid"></span>Middle counter</span><span><span class="sw pile"></span>Pile</span><span><span class="sw frame"></span>Markers</span><span><span class="sw head"></span>Head</span>
+        </div>
+        <p class="cap">Colors come from the last time the tape matched mxdys's layout, so cells the head is rewriting between ticks keep their old color briefly.</p>
+      </div>
+
+      <div class="stbox">
+        <h3>Space-time diagram</h3>
+        <canvas id="st" height="200" aria-label="Recent history of the tape, newest row at the bottom"></canvas>
+        <p class="cap">Each row is the tape at one moment, newest at the bottom. The bright orange mark is the head, and the pale orange band shows where it travelled since the previous row. Every tick is one trip left to the middle counter and back out to the end of the pile, and the trips get longer as the pile grows.</p>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="card" aria-label="Rules">
+        <h2>The six rules</h2>
+        <table class="tr" id="trTable"><thead><tr><th>State</th><th>Reads 0</th><th>Reads 1</th></tr></thead><tbody></tbody></table>
+        <p class="small">Each entry says what to write, which way to move, and the next state. The highlighted entry is the one the machine uses next.</p>
+      </section>
+      <section class="card" aria-label="Milestones">
+        <h2>Milestones</h2>
+        <ul class="log" id="log"></ul>
+      </section>
+    </aside>
+  </div>
+
+  <section class="explain">
+    <div class="card">
+      <h2>How to read the tape</h2>
+      <div class="layoutrow" aria-label="Tape layout, left to right">
+        <span>111011<em>header</em></span>
+        <span class="count">100 111 …<em>countdown</em></span>
+        <span>100 10<em>marker</em></span>
+        <span class="phase">1 1<em>phase</em></span>
+        <span class="mid">111 100 …<em>middle counter</em></span>
+        <span class="hd">▲<em>head</em></span>
+        <span>0 11100<em>marker</em></span>
+        <span class="pile">111 111 …<em>pile</em></span>
+      </div>
+      <p>Both counters are binary numbers written in 3-cell digits: <span class="mono">100</span> is a 1 and <span class="mono">111</span> is a 0. The lowest digit sits on the right. The phase is 0, 1 or 2 single cells. The pile is a row of <span class="mono">111</span> units. This is mxdys's description of the tape, and the decoder on this page checks it against the real cells every time the head comes back to its home spot.</p>
+    </div>
+    <div class="card">
+      <h2>The three moves</h2>
+      <ul class="moves">
+        <li><b class="k tick">Tick</b><span class="when">When the middle counter is above 0.</span><p>The middle counter drops by 1 and the pile grows by 1. The head walks left to the counter's lowest 1-digit, flips the digits that a binary subtraction changes, then walks right past the end of the pile and writes three more cells.</p></li>
+        <li><b class="k conv">Convert</b><span class="when">When the middle counter is 0 and the countdown is not.</span><p>The countdown drops by 1 and the phase moves on. The pile of y units is rewritten as y one-digits at the bottom of the middle counter, which now holds 2<sup>y</sup> − 1. The pile starts over from empty.</p></li>
+        <li><b class="k rst">Reset or halt</b><span class="when">When the middle counter and the countdown are both 0.</span><p>In phase 1, the countdown takes over the middle block's digits and refills to nearly all 1s, about 2 to the power of its new length. The pile becomes the next middle counter. In phase 0, the machine halts.</p></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Why the numbers explode</h2>
+      <p>One tick adds one unit, so a full run of ticks turns a pile of y into 2<sup>y</sup> − 1. The countdown sets how many converts happen before the next reset, so one round stacks that many exponentials into a tower. A reset then makes the next countdown about as large as the tower it just built. Towers of towers are pentation.</p>
+      <p>In the real run, step 27,965 has countdown 7 and pile 63, so the first round builds a tower of eight exponentials. Two resets later, the third round ends in phase 0 and the machine halts after about 2↑↑2↑↑2↑↑10 steps.</p>
+    </div>
+    <div class="card">
+      <h2>About the starting tapes</h2>
+      <p><b>From a blank tape</b> is the real run. The first 820 steps lay out the starting pattern. You can then watch a full round of ticks (63 of them, turning 6 into 63) and the convert at step 28,297. After that the middle counter holds 2<sup>63</sup> − 1, and emptying it is far beyond any computer.</p>
+      <p>The two small tapes are built by hand in the same layout with small numbers and run on the same six rules. The real run never passes through them. They exist so you can watch a halt and a reset finish in seconds.</p>
+    </div>
+  </section>
+
+  <footer>Machine found by mxdys in June 2025. Tape layout and rules from mxdys's analysis on the <a href="https://wiki.bbchallenge.org/wiki/1RB1RA_1RC1RZ_1LD0RF_1RA0LE_0LD1RC_1RA0RE" target="_blank" rel="noopener">BusyBeaverWiki page for this machine</a>. You can also open it in the <a href="https://bbchallenge.org/1RB1RA_1RC1RZ_1LD0RF_1RA0LE_0LD1RC_1RA0RE&amp;status=halt" target="_blank" rel="noopener">bbchallenge simulator</a>.</footer>
+</div>
+
+<script>
+// ---- Engine: the real BB(6) champion plus a decoder for mxdys's tape layout ----
+const MACHINE = "1RB1RA_1RC1RZ_1LD0RF_1RA0LE_0LD1RC_1RA0RE";
+const SNAME = "ABCDEF";
+const TR = [];
+MACHINE.split("_").forEach((g, s) => {
+  for (let y = 0; y < 2; y++) {
+    const x = g.slice(3 * y, 3 * y + 3);
+    TR[s * 2 + y] = { w: +x[0], d: x[1] === "R" ? 1 : -1, n: x[2] === "Z" ? -1 : x.charCodeAt(2) - 65, txt: x };
+  }
+});
+const LH = [1, 1, 1, 0, 1, 1];
+
+function lcCells(n, x) { // n binary digits of x, most significant first; 1 -> 100, 0 -> 111
+  const out = [];
+  for (let i = n - 1; i >= 0; i--) out.push(...(((x >> i) & 1) ? [1, 0, 0] : [1, 1, 1]));
+  return out;
+}
+
+const SCENARIOS = {
+  real: { blank: true },
+  halt: { len0: 2, a0: 2, m: 2, a: 0, midv: 0, b: 2 },
+  reset: { len0: 1, a0: 1, m: 2, a: 0, midv: 0, b: 2 },
+};
+
+function fmt(v) { return v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+function nextPhase(m) { return m === 2 ? 1 : m === 1 ? 0 : 2; }
+
+class Sim {
+  constructor(key) {
+    this.key = key;
+    this.cap = 1 << 13; this.t = new Uint8Array(this.cap); this.off = this.cap >> 1;
+    this.pos = 0; this.st = 0; this.steps = 0; this.halted = false;
+    this.lo = 0; this.hi = 0;
+    this.cp = null; this.cpCount = 0; this.segs = []; this.log = []; this.runStart = 0n;
+    const sc = SCENARIOS[key];
+    if (!sc.blank) {
+      const left = [...LH, ...lcCells(sc.len0, sc.a0), 1, 0, 0, 1, 0, ...Array(sc.m).fill(1), ...lcCells(sc.a, sc.midv)];
+      const right = [0, 1, 1, 1, 0, 0];
+      for (let i = 0; i < 1 + sc.b; i++) right.push(1, 1, 1);
+      const cells = left.concat(right);
+      cells.forEach((c, i) => { this.t[this.off + i] = c; });
+      this.lo = 0; this.hi = cells.length - 1;
+      this.pos = left.length - 1; this.st = 4;
+      const cp = this.check();
+      this.accept(cp);
+    }
+  }
+  grow() {
+    const ncap = this.cap * 2, nt = new Uint8Array(ncap), noff = this.off + (this.cap >> 1);
+    nt.set(this.t, this.cap >> 1);
+    this.t = nt; this.cap = ncap; this.off = noff;
+  }
+  rule() { return this.halted ? null : TR[this.st * 2 + this.t[this.pos + this.off]]; }
+  step() {
+    if (this.halted) return false;
+    const idx = this.pos + this.off, r = TR[this.st * 2 + this.t[idx]];
+    this.t[idx] = r.w;
+    this.pos += r.d; this.steps++;
+    if (this.pos < this.lo) this.lo = this.pos;
+    if (this.pos > this.hi) this.hi = this.pos;
+    const pi = this.pos + this.off;
+    if (pi < 64 || pi > this.cap - 64) this.grow();
+    if (r.n < 0) {
+      this.halted = true;
+      this.log.push({ step: this.steps, kind: "halt", text: this.haltText() });
+      return false;
+    }
+    this.st = r.n;
+    if (this.st === 4) { const cp = this.check(); if (cp) this.accept(cp); }
+    return true;
+  }
+  // Is the tape in mxdys's S1 layout with the head here? Returns the decoded numbers.
+  check() {
+    const t = this.t, p = this.pos + this.off;
+    if (t[p + 1] !== 0 || t[p + 2] !== 1 || t[p + 3] !== 1 || t[p + 4] !== 1 || t[p + 5] !== 0 || t[p + 6] !== 0) return null;
+    let q = p + 7; while (t[q] === 1) q++;
+    const k = q - (p + 7);
+    if (k === 0 || k % 3) return null;
+    const hiI = this.hi + this.off;
+    for (let j = q; j <= hiI + 1; j++) if (t[j]) return null;
+    let L = this.lo + this.off; while (L < p && t[L] === 0) L++;
+    if (p - L + 1 < 11) return null;
+    for (let i = 0; i < 6; i++) if (t[L + i] !== LH[i]) return null;
+    let r = p; const mid = [];
+    while (r - 2 >= L + 6) {
+      const a = t[r - 2], b = t[r - 1], c = t[r];
+      if (a === 1 && b === 0 && c === 0) mid.push(1);
+      else if (a === 1 && b === 1 && c === 1) mid.push(0);
+      else break;
+      r -= 3;
+    }
+    for (let m = 0; m < 3; m++) {
+      const tail = [1, 0, 0, 1, 0, ...Array(m).fill(1)], tl = tail.length;
+      let ok = r - tl + 1 >= L + 6;
+      for (let i = 0; ok && i < tl; i++) if (t[r - tl + 1 + i] !== tail[i]) ok = false;
+      if (!ok) continue;
+      const end = r - tl; // last index of countdown digits
+      const cnt = end - (L + 6) + 1;
+      if (cnt < 0 || cnt % 3) continue;
+      let a0 = 0n, good = true;
+      for (let i = L + 6; i <= end; i += 3) {
+        const a = t[i], b = t[i + 1], c = t[i + 2];
+        if (a === 1 && b === 0 && c === 0) a0 = a0 * 2n + 1n;
+        else if (a === 1 && b === 1 && c === 1) a0 = a0 * 2n;
+        else { good = false; break; }
+      }
+      if (!good) continue;
+      let midv = 0n;
+      for (let i = mid.length - 1; i >= 0; i--) midv = midv * 2n + BigInt(mid[i]);
+      const o = this.off, len0 = cnt / 3;
+      const c0 = L + 6, dv = c0 + 3 * len0, ph = dv + 5, md = ph + m, gp = p + 1, pl = p + 7;
+      return {
+        step: this.steps, len0, a0, m, a: mid.length, bits: mid.slice().reverse(), midv, b: k / 3 - 1,
+        segs: [
+          [L - o, c0 - 1 - o, "frame"], [c0 - o, dv - 1 - o, "count"], [dv - o, ph - 1 - o, "frame"],
+          [ph - o, md - 1 - o, "phase"], [md - o, p - o, "mid"], [gp - o, pl - 1 - o, "frame"],
+          [pl - o, q - 1 - o, "pile"],
+        ].filter(s => s[1] >= s[0]),
+      };
+    }
+    return null;
+  }
+  accept(cp) {
+    if (cp.len0 === 0) return; // a stray match during the warm-up
+    const pr = this.cp;
+    this.cpCount++;
+    const say = (kind, text) => this.log.push({ step: cp.step, kind, text });
+    if (!pr) {
+      this.runStart = cp.midv;
+      if (this.key === "real") say("start", `Starting layout is in place. Countdown ${cp.a0} (binary ${cp.a0.toString(2)}), phase ${cp.m}, middle counter ${fmt(cp.midv)} (${cp.a} one-digits), pile 0.`);
+      else say("start", `Hand-built start. Countdown ${cp.a0}, phase ${cp.m}, middle counter ${fmt(cp.midv)}, pile ${cp.b}.`);
+    } else if (pr.midv > 0n && cp.midv === pr.midv - 1n) {
+      if (cp.midv === 0n) say("empty", `Middle counter reached 0 after ${fmt(this.runStart)} ticks. Pile = ${fmt(cp.b)}.`);
+    } else if (pr.midv === 0n && pr.a0 > 0n && cp.a0 === pr.a0 - 1n) {
+      this.runStart = cp.midv;
+      say("convert", `Convert. Countdown ${pr.a0} → ${cp.a0}, phase ${pr.m} → ${cp.m}. The ${fmt(pr.b)}-unit pile became ${fmt(pr.b)} one-digits, so the middle counter is 2^${pr.b} − 1 = ${fmt(cp.midv)}.`);
+    } else if (pr.midv === 0n && pr.a0 === 0n) {
+      this.runStart = cp.midv;
+      say("reset", `Reset. The countdown was 0 in phase 1, so it absorbed the middle block and refilled: ${cp.len0} digits, value ${fmt(cp.a0)}. The ${fmt(pr.b)}-unit pile became the middle counter, 2^${pr.b} − 1 = ${fmt(cp.midv)}. Phase → ${cp.m}.`);
+    } else {
+      this.runStart = cp.midv;
+      say("other", `New layout: countdown ${cp.a0}, phase ${cp.m}, middle counter ${fmt(cp.midv)}, pile ${fmt(cp.b)}.`);
+    }
+    this.cp = cp; this.segs = cp.segs;
+  }
+  haltText() {
+    const c = this.cp;
+    if (c && c.a0 === 0n && c.m === 0) return `Halted. The countdown was 0 and the phase was 0 when the middle counter emptied. Final pile ${fmt(c.b)}.`;
+    return "Halted.";
+  }
+  now() {
+    const c = this.cp;
+    if (this.halted) return { tag: "Halted", text: "The machine reached its halt rule (state B reading 1). Nothing more happens." };
+    if (!c) return { tag: "Warm-up", text: "The machine is writing its starting layout. The decoded numbers appear at step 821." };
+    if (c.midv > 0n) {
+      const done = this.runStart - c.midv;
+      return { tag: "Tick", text: `Tick ${fmt(done + 1n)} of ${fmt(this.runStart)}. The head walks left to the middle counter's lowest 1-digit, subtracts 1, then walks right and adds one unit to the end of the pile. When the counter empties the pile will hold ${fmt(BigInt(c.b) + c.midv)}.` };
+    }
+    if (c.a0 > 0n) return { tag: "Convert", text: `The middle counter is empty, so the machine converts: countdown ${c.a0} → ${c.a0 - 1n}, phase ${c.m} → ${nextPhase(c.m)}, and the ${fmt(c.b)}-unit pile becomes ${fmt(c.b)} one-digits in the middle counter.` };
+    if (c.m === 1) return { tag: "Reset", text: "Countdown 0, phase 1: the machine resets. The countdown swallows the middle block and refills to nearly all 1-digits." };
+    if (c.m === 0) return { tag: "Halting", text: "Countdown 0, phase 0: the machine is walking to its halt rule." };
+    return { tag: "Phase 2", text: "Countdown 0 in phase 2." };
+  }
+}
+
+
+
+(() => {
+  const $ = s => document.querySelector(s);
+  const SPEEDS = [1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 50000, 300000, 2000000];
+  const DEFAULT_SPEED = { real: 6, halt: 4, reset: 7 };
+  const REG = { frame: 1, count: 2, phase: 3, mid: 4, pile: 5 };
+  const REGNAME = ["", "frame", "count", "phase", "mid", "pile"];
+  let sim, key = "real", playing = false, acc = 0, lastT = 0, busy = null;
+  let speedIdx = 6, vlo = 0, vhi = 40, regionCp = -1, regionArr = null, regionLo = 0;
+  let C = {}, RGB = {}, lastCpShown = -1, lastLogShown = -1, lastHalted = null, hMin = Infinity, hMax = -Infinity;
+
+  // ---------- colors from the theme tokens ----------
+  function hexRgb(h) { h = h.replace("#", ""); if (h.length === 3) h = h.split("").map(c => c + c).join(""); const n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  function readColors() {
+    const cs = getComputedStyle(document.documentElement);
+    for (const k of ["paper", "surface", "sunk", "ink", "muted", "rule", "head", "count", "phase", "mid", "pile", "frame"]) {
+      C[k] = cs.getPropertyValue("--" + k).trim() || "#888"; RGB[k] = hexRgb(C[k]);
+    }
+  }
+  function mix(a, b, t) { return [0, 1, 2].map(i => Math.round(a[i] * (1 - t) + b[i] * t)); }
+
+  // ---------- canvases ----------
+  const mag = $("#mag"), strip = $("#strip"), st = $("#st");
+  const mctx = mag.getContext("2d"), sctx = strip.getContext("2d"), tctx = st.getContext("2d");
+  let dpr = 1;
+  function sizeCanvases() {
+    dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+    for (const cv of [mag, strip, st]) {
+      if (!cv.dataset.h) cv.dataset.h = cv.getAttribute("height");   // the CSS height; the height attribute becomes the bitmap size
+      const w = cv.clientWidth || cv.parentElement.clientWidth, h = +cv.dataset.h;
+      cv.style.height = h + "px"; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    }
+    drawnW = 0;
+  }
+  function clearST() { hist = []; histH = 0; drawnLo = null; tctx.fillStyle = C.surface; tctx.fillRect(0, 0, st.width, st.height); }
+
+  function updateView() {
+    const span = vhi - vlo;
+    if (sim.lo < vlo + 2) vlo = sim.lo - Math.max(6, Math.floor(span * 0.1));
+    if (sim.hi > vhi - 2) vhi = sim.hi + Math.max(8, Math.floor(span * 0.15));
+  }
+  function regionAt(i) {
+    if (regionCp !== sim.cpCount || !regionArr) buildRegions();
+    const j = i - regionLo; return j >= 0 && j < regionArr.length ? regionArr[j] : 0;
+  }
+  function buildRegions() {
+    regionCp = sim.cpCount;
+    const segs = sim.segs; if (!segs.length) { regionArr = new Uint8Array(0); regionLo = 0; return; }
+    regionLo = segs[0][0]; const end = segs[segs.length - 1][1];
+    regionArr = new Uint8Array(end - regionLo + 1);
+    for (const [a, b, n] of segs) regionArr.fill(REG[n], a - regionLo, b - regionLo + 1);
+  }
+  const cell = i => sim.t[i + sim.off] || 0;
+
+  function drawMag() {
+    const W = mag.width, H = mag.height, cs = 26 * dpr;
+    let n = Math.floor(W / cs); if (n % 2 === 0) n--; n = Math.max(7, n);
+    const cw = W / n, h = (n - 1) / 2, top = 24 * dpr, ch = 34 * dpr;
+    mctx.clearRect(0, 0, W, H);
+    mctx.font = `700 ${13 * dpr}px ${getComputedStyle(document.body).getPropertyValue("--font-display") || "monospace"}`;
+    mctx.textAlign = "center"; mctx.textBaseline = "middle";
+    for (let k = 0; k < n; k++) {
+      const i = sim.pos - h + k, x = k * cw, v = cell(i), rg = regionAt(i);
+      const base = rg ? mix(RGB.surface, RGB[REGNAME[rg]], 0.16) : RGB.sunk;
+      mctx.fillStyle = `rgb(${base})`; mctx.fillRect(x + dpr, top, cw - 2 * dpr, ch);
+      if (rg) { mctx.fillStyle = C[REGNAME[rg]]; mctx.fillRect(x + dpr, top + ch + 3 * dpr, cw - 2 * dpr, 4 * dpr); }
+      mctx.fillStyle = v ? C.ink : C.muted; mctx.globalAlpha = v ? 1 : 0.55;
+      mctx.fillText(v ? "1" : "0", x + cw / 2, top + ch / 2 + dpr); mctx.globalAlpha = 1;
+    }
+    const hx = h * cw;
+    mctx.strokeStyle = C.head; mctx.lineWidth = 2.5 * dpr; mctx.strokeRect(hx + 2 * dpr, top + dpr, cw - 4 * dpr, ch - 2 * dpr);
+    mctx.fillStyle = C.head; const lw = 22 * dpr;
+    mctx.beginPath(); mctx.roundRect ? mctx.roundRect(hx + cw / 2 - lw / 2, 1 * dpr, lw, 18 * dpr, 4 * dpr) : mctx.rect(hx + cw / 2 - lw / 2, 1 * dpr, lw, 18 * dpr); mctx.fill();
+    mctx.fillStyle = C.surface; mctx.font = `700 ${11 * dpr}px monospace`;
+    mctx.fillText(sim.halted ? "H" : SNAME[sim.st], hx + cw / 2, 10 * dpr + dpr);
+  }
+
+  // A pixel row of the tape as codes: 0 blank, 1 a 1 outside any region, 2-6 the regions (frame, count, phase, mid,
+  // pile), 7 the band the head travelled, 8 the head. Codes, not colours, so old rows can be re-scaled and re-themed.
+  const PRI = [0, 2, 2, 2, 2, 2, 2, 1, 3];
+  function palette() { return [RGB.surface, RGB.ink, RGB.frame, RGB.count, RGB.phase, RGB.mid, RGB.pile, mix(RGB.surface, RGB.head, 0.5), RGB.head]; }
+  function rowCodes(W, withHead) {
+    const N = vhi - vlo + 1, out = new Uint8Array(W);
+    for (let x = 0; x < W; x++) {
+      const a = vlo + Math.floor(x * N / W), b = Math.max(a, vlo + Math.floor((x + 1) * N / W) - 1);
+      let c = 0;
+      for (let i = a; i <= b; i++) if (cell(i)) { const rg = regionAt(i); c = rg ? rg + 1 : 1; break; }
+      out[x] = c;
+    }
+    if (withHead) {
+      const hp = Math.floor((sim.pos - vlo) * W / N), hw = Math.max(2, Math.ceil(W / N));
+      const paint = (x0, x1, c) => { for (let x = Math.max(0, x0); x < Math.min(W, x1); x++) out[x] = c; };
+      if (hMax > hMin) paint(Math.floor((hMin - vlo) * W / N), Math.ceil((hMax + 1 - vlo) * W / N), 7);
+      paint(hp, hp + hw, 8);
+    }
+    return out;
+  }
+  function rowColors(W, withHead) {
+    const codes = rowCodes(W, withHead), pal = palette(), out = new Uint8ClampedArray(W * 4);
+    for (let x = 0; x < W; x++) { const c = pal[codes[x]]; out[x * 4] = c[0]; out[x * 4 + 1] = c[1]; out[x * 4 + 2] = c[2]; out[x * 4 + 3] = 255; }
+    return out;
+  }
+  // A stored row, drawn for the view [lo, hi] at width W. The view only ever widens, and cells outside a row's own view
+  // were still blank when it was taken, so each new pixel takes the strongest code among the old pixels it covers.
+  function resample(r, lo, hi, W) {
+    if (r.lo === lo && r.hi === hi && r.W === W) return r.codes;
+    const out = new Uint8Array(W), N = hi - lo + 1, n0 = r.hi - r.lo + 1, W0 = r.W;
+    for (let x = 0; x < W; x++) {
+      const ta = lo + x * N / W, tb = lo + (x + 1) * N / W;
+      let xa = Math.floor((ta - r.lo) * W0 / n0), xb = Math.ceil((tb - r.lo) * W0 / n0) - 1;
+      if (xb < 0 || xa >= W0) continue;
+      xa = Math.max(0, xa); xb = Math.min(W0 - 1, Math.max(xa, xb));
+      let best = 0; for (let k = xa; k <= xb; k++) { const c = r.codes[k]; if (PRI[c] > PRI[best]) best = c; }
+      out[x] = best;
+    }
+    return out;
+  }
+
+  function drawStrip() {
+    const W = strip.width, H = strip.height, N = vhi - vlo + 1;
+    sctx.clearRect(0, 0, W, H);
+    const top = 2 * dpr, ch = 24 * dpr, by = top + ch + 3 * dpr, bh = 5 * dpr;
+    if (N * 3 * dpr <= W) {
+      const cw = W / N;
+      for (let i = vlo; i <= vhi; i++) {
+        const x = (i - vlo) * cw, v = cell(i), rg = regionAt(i);
+        const col = v ? (rg ? RGB[REGNAME[rg]] : RGB.ink) : (rg ? mix(RGB.surface, RGB[REGNAME[rg]], 0.14) : RGB.sunk);
+        sctx.fillStyle = `rgb(${col})`; sctx.fillRect(x + (cw > 4 * dpr ? dpr * 0.5 : 0), top, cw - (cw > 4 * dpr ? dpr : 0), ch);
+      }
+    } else {
+      const row = rowColors(W, false), img = sctx.createImageData(W, ch);
+      for (let y = 0; y < ch; y++) img.data.set(row, y * W * 4);
+      sctx.putImageData(img, 0, top);
+    }
+    for (const [a, b, n] of sim.segs) {
+      const x0 = (a - vlo) * W / N, x1 = (b + 1 - vlo) * W / N;
+      sctx.fillStyle = C[n]; sctx.fillRect(x0, by, Math.max(1, x1 - x0), bh);
+    }
+    const hx = (sim.pos + 0.5 - vlo) * W / N;
+    sctx.fillStyle = C.head; sctx.beginPath(); sctx.moveTo(hx, by + bh + dpr); sctx.lineTo(hx - 6 * dpr, H); sctx.lineTo(hx + 6 * dpr, H); sctx.closePath(); sctx.fill();
+  }
+
+  let hist = [], histH = 0, drawnLo = null, drawnHi = null, drawnW = 0;
+  function paintRows(img, W, y0, codes, rh, pal) {
+    const d = img.data;
+    for (let x = 0; x < W; x++) { const c = pal[codes[x]]; for (let y = y0; y < y0 + rh; y++) { const o = (y * W + x) * 4; d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255; } }
+  }
+  // Redraw every kept row at the current scale, newest at the bottom.
+  function redrawST() {
+    const W = st.width, H = st.height; if (!W || !H) return;
+    const img = tctx.createImageData(W, H), pal = palette(), bg = pal[0], d = img.data;
+    for (let i = 0; i < W * H; i++) { d[i * 4] = bg[0]; d[i * 4 + 1] = bg[1]; d[i * 4 + 2] = bg[2]; d[i * 4 + 3] = 255; }
+    let y = H;
+    for (let k = hist.length - 1; k >= 0 && y > 0; k--) {
+      const r = hist[k], y0 = Math.max(0, y - r.rh);
+      paintRows(img, W, y0, resample(r, vlo, vhi, W), y - y0, pal); y -= r.rh;
+    }
+    tctx.putImageData(img, 0, 0);
+    drawnLo = vlo; drawnHi = vhi; drawnW = W;
+  }
+  function pushST(rowH) {
+    updateView();
+    const W = st.width, H = st.height, rh = Math.max(1, Math.round(rowH * dpr));
+    hist.push({ lo: vlo, hi: vhi, W, codes: rowCodes(W, true), rh }); histH += rh;
+    while (hist.length > 1 && histH - hist[0].rh >= H) { histH -= hist[0].rh; hist.shift(); }
+    hMin = Infinity; hMax = -Infinity;
+    if (drawnLo !== vlo || drawnHi !== vhi || drawnW !== W) { redrawST(); return; }   // the scale changed: redraw every row
+    tctx.globalCompositeOperation = "copy";
+    tctx.drawImage(st, 0, rh, W, H - rh, 0, 0, W, H - rh);
+    tctx.globalCompositeOperation = "source-over";
+    const img = tctx.createImageData(W, rh);
+    paintRows(img, W, 0, hist[hist.length - 1].codes, rh, palette());
+    tctx.putImageData(img, 0, H - rh);
+  }
+
+  // ---------- DOM readout ----------
+  const trBody = $("#trTable tbody"), trCells = [];
+  for (let s = 0; s < 6; s++) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="st">${SNAME[s]}</td>`;
+    for (let y = 0; y < 2; y++) {
+      const r = TR[s * 2 + y], td = document.createElement("td");
+      td.innerHTML = r.n < 0 ? `write <span class="w">${r.w}</span>, ${r.d > 0 ? "→" : "←"} <span class="halt">halt</span>`
+        : `write <span class="w">${r.w}</span>, ${r.d > 0 ? "→" : "←"} <span class="w">${SNAME[r.n]}</span>`;
+      tr.appendChild(td); trCells.push(td);
+    }
+    trBody.appendChild(tr);
+  }
+  let lastTr = -1;
+  function drawRule() {
+    const idx = sim.halted ? -1 : sim.st * 2 + cell(sim.pos);
+    if (idx !== lastTr) { if (lastTr >= 0) trCells[lastTr].classList.remove("on"); if (idx >= 0) trCells[idx].classList.add("on"); lastTr = idx; }
+    if (sim.halted) { $("#rule").innerHTML = "<b>Halted.</b> State B read a 1 and took its halt rule."; return; }
+    const r = TR[idx];
+    $("#rule").innerHTML = `Next: state <b>${SNAME[sim.st]}</b> reads <b>${cell(sim.pos)}</b> → writes <b>${r.w}</b>, moves <b>${r.d > 0 ? "right" : "left"}</b>, ${r.n < 0 ? "<b>halts</b>" : "switches to <b>" + SNAME[r.n] + "</b>"}`;
+  }
+
+  function digitsHTML(bits) { return bits.map(b => `<i class="${b ? "one" : ""}">${b}</i>`).join(""); }
+  function drawReadout() {
+    $("#stepNo").textContent = fmt(sim.steps);
+    const nw = sim.now();
+    const tag = $("#nowTag"); tag.textContent = nw.tag; tag.className = "tag " + nw.tag.split(" ")[0];
+    $("#nowText").textContent = nw.text;
+    if (sim.cpCount === lastCpShown && sim.halted === lastHalted) return;
+    lastCpShown = sim.cpCount; lastHalted = sim.halted;
+    const c = sim.cp;
+    if (!c) {
+      $("#cDigits").innerHTML = ""; $("#cVal").textContent = "–"; $("#mBits").innerHTML = ""; $("#mVal").textContent = "–";
+      $("#yVal").textContent = "–"; $("#yUnits").innerHTML = "";
+      document.querySelectorAll("#pPills i").forEach(i => i.classList.remove("on"));
+      return;
+    }
+    const cb = c.a0.toString(2).padStart(c.len0, "0").split("").map(Number);
+    $("#cDigits").innerHTML = digitsHTML(cb);
+    $("#cVal").textContent = "= " + fmt(c.a0);
+    document.querySelectorAll("#pPills i").forEach(i => i.classList.toggle("on", +i.dataset.m === c.m));
+    const bits = c.bits;
+    if (bits.length <= 16) { $("#mBits").innerHTML = `<div class="digits">${digitsHTML(bits)}</div>`; }
+    else { $("#mBits").innerHTML = bits.map(b => b ? "<b>1</b>" : "0").join("") + `<div class="psub">${bits.length} digits</div>`; }
+    const mv = fmt(c.midv); $("#mVal").textContent = "= " + mv; $("#mVal").classList.toggle("long", mv.length > 14);
+    $("#mSub").textContent = c.midv > 0n ? `${mv} ticks to go. Each tick subtracts 1.` : "Empty. Next comes a convert, a reset or the halt.";
+    const yv = fmt(c.b); $("#yVal").textContent = yv + (c.b === 1 ? " unit" : " units");
+    const show = Math.min(c.b, 240);
+    $("#yUnits").innerHTML = "<i></i>".repeat(show) + (c.b > show ? `<span class="psub">&nbsp;+${fmt(c.b - show)}</span>` : "");
+    $("#ySub").textContent = c.midv > 0n ? `Will reach ${fmt(BigInt(c.b) + c.midv)} when the middle counter empties.` : "Each tick adds one unit.";
+  }
+  function drawLog() {
+    if (sim.log.length === lastLogShown) return;
+    lastLogShown = sim.log.length;
+    const ul = $("#log");
+    ul.innerHTML = sim.log.map(e => `<li><div class="meta"><span class="tag ${e.kind}">${{ start: "start", empty: "emptied", convert: "convert", reset: "reset", halt: "halt", other: "layout", note: "note" }[e.kind]}</span><span class="mono">step ${fmt(e.step)}</span></div><span>${e.text}</span></li>`).join("");
+    ul.scrollTop = ul.scrollHeight;
+  }
+  function render() { updateView(); drawMag(); drawStrip(); drawRule(); drawReadout(); drawLog(); updateButtons(); }
+  function updateButtons() {
+    const done = sim.halted;
+    $("#play").textContent = playing ? "Pause" : "Play";
+    for (const id of ["#play", "#step1", "#nextTick", "#nextMile"]) $(id).disabled = done || !!busy;
+  }
+  function setNote(t) { const n = $("#note"); n.textContent = t || ""; n.hidden = !t; }
+
+  // ---------- running ----------
+  function frame(t) {
+    if (!playing) return;
+    const dt = Math.min(0.1, (t - lastT) / 1000 || 0); lastT = t;
+    acc += SPEEDS[speedIdx] * dt;
+    let n = Math.floor(acc); acc -= n;
+    if (n > 0) {
+      if (n <= 8) { for (let i = 0; i < n && sim.step(); i++) pushST(n <= 2 ? 3 : 2); }
+      else { for (let i = 0; i < n && sim.step(); i++) { const p = sim.pos; if (p < hMin) hMin = p; if (p > hMax) hMax = p; } pushST(1); }
+      render();
+    }
+    if (sim.halted) { playing = false; render(); return; }
+    requestAnimationFrame(frame);
+  }
+  function play() { if (sim.halted || busy) return; playing = true; lastT = performance.now(); acc = 0; setNote(""); updateButtons(); requestAnimationFrame(frame); }
+  function pause() { playing = false; if (sim) updateButtons(); }
+  function runUntil(pred, budget, failMsg) {
+    pause(); setNote("Running…");
+    busy = { left: budget }; updateButtons();
+    const loop = () => {
+      let n = 0, hit = false;
+      while (n < 3000000 && busy.left > 0) { if (pred()) { hit = true; break; } if (!sim.step()) { hit = true; break; } n++; busy.left--; }
+      if (!hit && pred()) hit = true;
+      pushST(1); render();
+      if (hit || busy.left <= 0) { busy = null; setNote(hit ? "" : failMsg()); updateButtons(); return; }
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+  function tooFar() {
+    const c = sim.cp;
+    if (c && c.midv > 0n) return `Nothing new within the step budget. The middle counter still needs ${fmt(c.midv)} ticks, and each tick takes more steps than the last.`;
+    return "Nothing new within the step budget.";
+  }
+
+  function load(k, opts = {}) {
+    pause(); busy = null; key = k; sim = new Sim(k);
+    document.querySelectorAll(".scen button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === k));
+    if (opts.skipWarmup && k === "real") {
+      while (!sim.cp && sim.step());
+      sim.log.unshift({ step: 0, kind: "note", text: "Steps 0–820 are warm-up and were skipped. Press Restart to watch them." });
+    }
+    vlo = sim.lo - 6; vhi = sim.hi + 10;
+    speedIdx = DEFAULT_SPEED[k]; $("#speed").value = speedIdx; showSpeed();
+    lastCpShown = -1; lastLogShown = -1; lastHalted = null; regionCp = -1; lastTr = -1;
+    trCells.forEach(td => td.classList.remove("on"));
+    setNote(""); clearST(); pushST(3); render();
+  }
+  function showSpeed() { $("#speedOut").textContent = fmt(SPEEDS[speedIdx]) + "/s"; }
+
+  $("#play").addEventListener("click", () => playing ? pause() : play());
+  $("#step1").addEventListener("click", () => { pause(); sim.step(); pushST(3); render(); });
+  $("#nextTick").addEventListener("click", () => { const c0 = sim.cpCount; runUntil(() => sim.cpCount > c0 || sim.halted, 40e6, tooFar); });
+  $("#nextMile").addEventListener("click", () => { const l0 = sim.log.length; runUntil(() => sim.log.length > l0 || sim.halted, 120e6, tooFar); });
+  $("#restart").addEventListener("click", () => load(key));
+  $("#speed").addEventListener("input", e => { speedIdx = +e.target.value; showSpeed(); });
+  document.querySelectorAll(".scen button").forEach(b => b.addEventListener("click", () => load(b.dataset.k)));
+  document.addEventListener("keydown", e => {
+    const tg = e.target.tagName;
+    if (tg === "INPUT" || tg === "BUTTON" || tg === "A") return;
+    if (e.key === " ") { e.preventDefault(); playing ? pause() : play(); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); $("#step1").click(); }
+  });
+
+  const retheme = () => { readColors(); redrawST(); lastCpShown = -1; render(); };
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", retheme); } catch (e) {}
+  new MutationObserver(retheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { sizeCanvases(); redrawST(); render(); }, 120); });
+
+  readColors(); sizeCanvases();
+  load("real", { skipWarmup: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => render());
+})();
+</script>
+
+</body></html>

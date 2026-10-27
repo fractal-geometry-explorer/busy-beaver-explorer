@@ -13,17 +13,19 @@ self-contained except for the large intermediate outputs mentioned in `README.md
   the final one: no clean tape below 2^61 reaches a halt (36,929,911,789 settled classes, 120,940,310,955 direct runs,
   no problems; largest jump 345, longest chain 17).
 - **Repositories**: this folder was first pushed to `busy-beaver-explorer/busy-beaver-explorer` (branch
-  `bb6-holdout`, PR #1). That copy stops at the 58-digit result and has no `HANDOFF.md`; this archive is the current
-  version.
-- **Summary page**: `notes/rule-map.html` is the built page; the live copy was a claude.ai artifact in the previous
-  session.
+  `bb6-holdout`, PR #1, which stops at the 58-digit result). The current copy is in
+  `fractal-geometry-explorer/busy-beaver-explorer`.
+- **Pages** (`../pages/`): the summary page (`closing-gap-rule-map.html`), the mark-rule stepper, and the two pages on
+  the BB(6) champion. The live copies were claude.ai artifacts in the previous session. The summary page is generated:
+  edit `pages/src/closing-gap-rule-map/` (the table "What is established" is `established.py`) and rebuild, rather
+  than editing the HTML.
+- **Research scripts**: the Python, JavaScript and C programs behind the notes are in this folder as they were run
+  (see the layout table in `README.md`); their large outputs are not.
 
-## Setting up in the new repository
+## Working here
 
-1. Start a session with the new repository as its source and attach `bb6-holdout.tar.gz`.
-2. Extract it at the repository root (`tar xzf bb6-holdout.tar.gz`), which creates `bb6-holdout/`.
-3. Commit on a branch and open a pull request.
-4. To re-check the Lean files, install Lean 4.34.0 and run `cd bb6-holdout/lean && ./check.sh`.
+- Lean: install Lean 4.34.0 and run `cd bb6-holdout/lean && ./check.sh`.
+- Summary page: `cd pages/src/closing-gap-rule-map && python3 build_m2.py` rewrites `pages/closing-gap-rule-map.html`.
 
 ## Next steps (as proposed at handoff)
 
