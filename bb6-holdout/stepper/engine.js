@@ -83,6 +83,12 @@ function doRound(st, opts) {
     if (!k) { const w0 = W; W += 2n; const e = { t: 'M', p: W - 2n }; marks.push(e); ev.push('shift reaches blank tape: new end marker, width + 2'); fr('shift', x, w0, [e], 'shift reaches blank tape: new end marker, width + 2'); return packetBack(W - 2n); }
     if (k.t === 'M') { k.t = 'G'; ev.push('shift turns the marker at ' + short(k.p) + ' into the gap'); fr('shift', x, k.p, [k], 'shift turns the marker at ' + short(k.p) + ' into the gap'); return k; }
     if (k.t === 'W') { k.t = 'B'; ev.push('shift turns the wall at ' + short(k.p) + ' into a block'); fr('shift', x, k.p, [k], 'shift turns the wall at ' + short(k.p) + ' into a block'); return packetBack(k.p); }
+    if (k.t === 'B' && k === lastMark() && W - k.p === 3n) {
+      // a block that ends the tape: the wall it leaves would take the cells W - 1 and W, which is blank tape, so the
+      // tape is written in its canonical form, no wall and width W - 1, as the proved model does (roundZ in BB6/Round.lean)
+      remove(k); W -= 1n; const t0 = 'shift turns the block at ' + short(k.p) + ', which ends the tape, into blank tape: width − 1';
+      ev.push(t0); fr('shift', x, k.p, [], t0); return packetBack(k.p);
+    }
     if (k.t === 'B') { k.t = 'W'; k.p += 2n; ev.push('shift turns the block at ' + short(k.p - 2n) + ' into a wall 2 cells on'); fr('shift', x, k.p - 2n, [k], 'shift turns the block at ' + short(k.p - 2n) + ' into a wall 2 cells on'); return packetBack(k.p); }
     flag('broken', 'A shift ran into a sleeping gap at ' + short(k.p) + '. No proven rule covers this, and the mark rules cannot guess.'); return null;
   }

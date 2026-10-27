@@ -106,21 +106,32 @@ static void fix(int i) {
 }
 static int addm_after(char t, Q p, int after) { int i = newslot(t, p); if (i < 0) return -1; link_after(i, after); fix(i); return i; }
 /* ---- the rules (same as nrefdisk/nrefdfs) ---- */
-static int packet_back_from(int k) {          /* k: the mark whose position x the packet starts from (strictly left of it) */
+static int packet_back_before(int b) {        /* b: the first mark left of the packet's start (or -1) */
     probe(2);
-    int b = S.pv[k]; while (b >= 0 && S.T[b] == 'M') b = S.pv[b];
+    while (b >= 0 && S.T[b] == 'M') b = S.pv[b];
     if (b < 0) return -1;
     if (S.T[b] == 'B') { S.halted = 1; return -1; }
     if (S.T[b] == 'G') { S.P[b].b += 2; fix(b); return b; }
     Q q = S.P[b]; S.T[b] = 'M'; S.P[b] = qadd(q, -1); fix(b);
     return addm_after('G', qadd(q, 1), b);
 }
+static int packet_back_from(int k) { return packet_back_before(S.pv[k]); }   /* k: the mark the packet starts left of */
+static long long TW_CANON = 0;
+static void tw_report(void) { fprintf(stderr, "trailing-wall canonical forms written: %lld\n", TW_CANON); }
 static int shift_from_succ(int k) {          /* k: the first mark to the right of the shift's start (or -1) */
     probe(1);
     if (k < 0) { S.W.b += 2; int e = addm_after('M', qadd(S.W, -2), S.tail); if (e < 0) return -1; return packet_back_from(e); }
     if (S.T[k] == 'M') { S.T[k] = 'G'; dirty(k); return k; }
     if (S.T[k] == 'W') { S.T[k] = 'B'; dirty(k); return packet_back_from(k); }
-    if (S.T[k] == 'B') { S.T[k] = 'W'; S.P[k].b += 2; fix(k); return packet_back_from(k); }
+    if (S.T[k] == 'B') {
+        /* a block that ends the tape (W = k + 3): the wall it leaves would take the cells W - 1 and W, which is blank
+           tape, so write the canonical form, no wall and width W - 1, as the proved model does (roundZ in
+           ../lean/BB6/Round.lean); keeping the wall was the "trailing-wall slip" */
+        if (k == S.tail) { int c = qcmp(qadd(S.P[k], 3), S.W);
+            if (c > 0) { S.bad = 10; return -1; }
+            if (c == 0) { int p = S.pv[k]; TW_CANON++; S.W.b -= 1; killm(k); return packet_back_before(p); } }
+        S.T[k] = 'W'; S.P[k].b += 2; fix(k); return packet_back_from(k);
+    }
     S.bad = 2; return -1;
 }
 static void end_meeting(Q d, int r4) {
@@ -278,7 +289,7 @@ static void point_cycle(i128 n) {
     if (getenv("SEGOUT")) printf("SEG %s %s\n", i128s(BESTM), i128s(BESTE));
     printf("n done: rounds %d, segments %d, closest end meeting %.4f halvings below the width, longest chain %d, next clean tape n' - n = %lld\n", rounds, segs, best, S.maxchain, (ll)((S.W.b - 2 * n - 6) / 2));
 }
-int main(int argc, char **argv) {
+int main(int argc, char **argv) { atexit(tw_report);
     if (argv[1][0] == 'n') { char buf[64]; while (scanf("%63s", buf) == 1) { i128 n = 0; for (char *p = buf; *p; p++) n = n * 10 + (*p - '0'); point_cycle(n); } return 0; }
     int cut = atoi(argv[1]); CAP = 1 << 10; STK = malloc(sizeof(Node) * CAP);
     int bits; ll am, m0, aE, E0, rd; char tag[8];

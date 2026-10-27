@@ -117,7 +117,17 @@ def run_round(marks, W, cos, R, chain):
             W = addc(W, 2); e = ['M', addc(W, -2)]; marks.append(e); return packet_back(addc(W, -2))
         if k[0] == 'M': k[0] = 'G'; return k
         if k[0] == 'W': k[0] = 'B'; return packet_back(k[1])
-        if k[0] == 'B': k[0] = 'W'; k[1] = addc(k[1], 2); return packet_back(k[1])
+        if k[0] == 'B':
+            # a block that ends the tape (nothing after it, W = k + 3): the wall it leaves would take the cells W - 1
+            # and W, which is blank tape, so write that tape's canonical form, no wall and width W - 1, as the proved
+            # model does (roundZ in ../lean/BB6/Round.lean).  Keeping the wall was the "trailing-wall slip".
+            if first_right(k[1]) is None:
+                dd = sub(W, k[1])
+                if isconst(dd):
+                    if dd[-1] < 3: raise Uncovered('block past the tape end')
+                    if dd[-1] == 3: marks.remove(k); W = addc(W, -1); return packet_back(k[1])
+                elif sign(addc(dd, -4), R) != 1: raise Undecided('block at the tape end')
+            k[0] = 'W'; k[1] = addc(k[1], 2); return packet_back(k[1])
         raise Uncovered('shift meets a sleeping gap')
     sort_marks()
     gap = marks[0]; guard = 0
