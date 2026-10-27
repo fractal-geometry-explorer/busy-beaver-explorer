@@ -2634,6 +2634,30 @@ lies on the plane 2(b − a) = W − 2R − 6 (`landing_plane`, from the step's 
 starts after a landing form a family of three coordinates; the explorer as it stands cannot root a tree on that plane,
 since its cone needs as many forms as coordinates.
 
+**No small right end past the loop (October 27; `../lean/BB6/SmallEnd.lean`, `../lean/thm/SmallEndHalt.lean`).** The
+pass starts that `blank_halt_pass` leaves open include real halts, all with small right ends (1/8 of R = 6; in a sample,
+uncovered rounds only for R in {4, 6, 8, 16, 32, 48, 64}). The run from blank tape reaches no pass start with R < 178
+past a loop entry. A run of full passes ends at r < 178 only if R = 16^p·r and L₁ = 64^p·ℓ with ℓ ≡ 3 (mod 7), so
+|ℓ| ≥ 3; full passes keep R³/L₁² (16³ = 64²), which there is r³/ℓ² ≤ 177³/9 ≈ 2¹⁹·²⁰. So R³/L₁² above that keeps the
+small ends out for good, and a round-7 break supplies it: from a width E ≥ 2³⁷ it lands with 32R′ ≥ S = 3E + 5R and
+0 < 96L₁′ ≤ 385S, so R′³/L₁′² ≥ S/527,023 > 177³/9 (with E ≥ 2³⁶ the margin is gone). A half pass is only the first
+step. So the chain from a pass start of width ≥ 2³⁷ from which no run of full passes ends small, nor one after a half
+pass, ends at R ≥ 178 (`LoopChain.small_end`).
+
+At the clean-tape tree's loop entries R and L₁ are affine in the class's coordinate z, so R³/L₁² grows like z. At 36
+digits over the widths ≥ 2⁴¹ (untrusted, from a dump of the entries' forms): R³/L₁² > 177³/9 at every member of 28,516
+of the 28,660 entries; the other 144 (0.11% of the entries' measure) fall short only below widths of 2⁴³·⁵, at 933,158
+members in all. Checked exactly instead (for each p and each r < 178, R = 16^p·r fixes z; is it an integer point of the
+cone with 64^p dividing L₁ there?), no member of any entry ends small, with or without a half pass. The check is
+`smallOK` in Lean, with the linear bounds of `exclCert` for the passes beyond P, and it goes into the clean-tape tree's
+entry test (`cleanSmallOK`, `cleanTreeGS`), so `clean_tree_small_step` holds at every depth with nothing evaluated; at
+36 digits the tree has the same counts as `cleanTreeGE` (1,255,963 cut classes, 28,660 entries;
+`../lean/thm/CleanSmallMass.lean`). `blank_halt_small`: a halt from blank tape needs a clean tape of width ≥ 2⁴¹ cut at
+every depth, or a pass start wider than 2⁴¹ with R ≥ 178 cut at every depth of `passTreeSym`, whose cuts at the depths
+measured are all depth cuts, none at a round decided as a halt, falling with depth (8.8%, 3.8% and 1.6% at 16, 20 and 24
+splits); `blank_halt_small_kernel` is the same from 2²⁰ with the kernel alone (the plain tree below 2³⁷). What stays
+open past the loop is that tree's depth cuts, on the lines of pass starts that the clean tapes' classes lead to.
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:

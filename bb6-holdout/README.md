@@ -90,8 +90,11 @@ mark rules interactively.
   close along the loop's chain. Some pass starts in those classes halt (1/8 of those with R = 6). But the plain
   clean-tape tree follows the run on through every entry, so the run reaches such a pass start only after a clean tape
   that the plain tree leaves open at every depth (`blank_halt_open`; at 36 digits one of the 404,061 of its 1,660,024
-  cut classes that meet a loop entry). So the question is whether the run reaches one of the open clean tapes, and
-  from those, one of the open pass starts.
+  cut classes that meet a loop entry). And it reaches none with a right end below 178, where all the known halts are:
+  `blank_halt_small` (`lean/thm/SmallEndHalt.lean`) puts the pass start a halt needs in the tree for R ≥ 178, since past
+  a loop entry that passes a small-end check (every entry at 36 digits does) the loop's chain ends at R ≥ 178 (full
+  passes keep R³/L₁², and a round-7 break from a width ≥ 2³⁷ lands above 177³/9). So the question is whether the run
+  reaches one of the open clean tapes, and from those, one of the open pass starts with R ≥ 178.
 - *The route tree* (`lean/thm/RouteTheorem.lean`, `lean/ROUTE_TREE.md`): `route_tree_clean`, the certificate's
   two-marker route tree as a theorem about the machine, at every depth and cone constant, with the standard axioms
   only (the same explorer); at 36 and 40 digits its cut classes are the Python certificate's (measure 5.9 × 10⁻⁶ and
