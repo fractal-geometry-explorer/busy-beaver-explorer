@@ -18,11 +18,14 @@ The pieces, all theorems about the machine `1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0
   `BB6/RouteExplore.lean`, so nothing is evaluated); `cleanTree d` is the tree over the widths ≥ 2³².
 * `round_halt_needs_contact`, `stuck_cases` (`BB6/HaltClose`, `BB6/HaltStretch`): a halt from a round start needs
   the mark model, run from there, to reach a stuck configuration: a close at the right end or an interior contact.
-* `loop_halt_needs_contact` (`thm/LoopHalt.lean`): a halt from a phase-0 pass start with every gap at least 448 comes
-  only after the close-free stretch `loop_stretch` certifies from it, through its full passes (R → R/16, L₁ → L₁/64),
-  and needs a stuck configuration after it: after a pass start whose R is in the closing set with L₁ in R's class
-  (and then R³/L₁² ≤ 176³/256² at the first pass start: log₂W ≤ σ + 6.38), or after the run leaves the loop
-  (`LoopEnd`).  `loop_halt_sigma` is the σ bound: beyond it, a halt comes only after the run has left the loop.
+* `loop_chain_halt` (`thm/LoopHalt.lean`): a halt from a phase-0 pass start with every gap at least 448 comes only
+  after the loop's chain from it (`LoopChain`: full passes, round-7 breaks and a half pass, only as the first step,
+  each close-free with its exact map on the width, the right end and the left countdown L₁, each to a pass start with
+  gaps again all ≥ 448), and needs a stuck configuration after it: at the chain's last pass start, with R in the
+  closing set and L₁ in R's class, or after the run leaves the chain (`LoopEnd`).  `loop_halt_sigma` is the σ bound:
+  from a pass start with R³/L₁² > 176³/256² (log₂W > σ + 6.38), a close through the loop needs a half pass or a
+  round-7 break on the way.  `loop_halt_wide`: from a pass start of width at least 2²⁴, a close through the loop
+  makes no round-7 break.
 * `exit_halt_needs_contact` (`thm/ExitHalt.lean`): a halt from a loop state comes only after its certified exit
   stretch, which ends at a clean tape, a break of the end-meeting chain or a loop state again (`ExitEvent`), and needs
   a stuck configuration after it.
@@ -33,7 +36,8 @@ or some depth decides it and the run goes on to a wider clean tape.  `blank_halt
 stuck configuration, for any bounds A ≤ B below which every clean tape of width ≥ A reaches a wider one
 (`StepsBelow A B`): `blank_halt_clean` uses it with the prefix to 2³² and A = B = 2³², `blank_halt_clean_kernel` with
 the kernel's prefix to 2²⁰ and A = B = 2²⁰, and `thm/EndToEndDirect.lean` with the prefix to 2³², A = 2³² and
-B = 2⁴¹.  `blank_halt_loop` adds the pass starts (`blank_halt_sigma` the σ bound), `blank_halt_exit` the loop states,
+B = 2⁴¹.  `blank_halt_loop` adds the pass starts (`blank_halt_sigma` the σ bound, `blank_halt_wide` the pass starts
+of width at least 2²⁴), `blank_halt_exit` the loop states,
 and `blank_halt_structure` is the three together; `blank_halt_structure_kernel` is the same with
 `blank_halt_clean_kernel`, and its axioms are Lean's standard three alone: no evaluation by compiled code is trusted.
 
@@ -155,42 +159,64 @@ theorem blank_halt_clean_kernel (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ =
   exact ⟨W, k, hle, h⟩
 
 /-- **What a halt from blank tape needs after a pass start.**  If the machine, started on blank tape, halts after T
-steps, then every phase-0 pass start it passes on its way with every gap at least 448 (`PassStart448`, right end R,
-left countdown L₁ = `passL1 ms W`) is followed by a close-free stretch the mark model covers, through p full passes,
-each to a pass start with gaps again all ≥ 448, to the last of them (right end R₁ = R/16^p, left countdown L₁/64^p),
-and the halt needs a stuck configuration after it: either right there, with R₁ in the closing set and the left
-countdown in R₁'s class (`InCloseClass`), and then R³/L₁² ≤ 176³/256² (`SigmaOK`: log₂W ≤ σ + 6.38), or after a
-further close-free stretch to where the run leaves the loop (`LoopEnd`). -/
+steps, then from every phase-0 pass start it passes on its way with every gap at least 448 (`PassStart448`, right end
+R, left countdown L₁ = `passL1 ms W`), its run follows the loop's chain (`LoopChain`): full passes (R → R/16,
+L₁ → L₁/64), round-7 breaks and a half pass (only as the first step), each close-free with its exact map on the width,
+the right end and the left countdown (`StepMap`), each to a pass start with gaps again all ≥ 448, to the last of them
+(right end R₁); and the halt needs a stuck configuration after it: either right there, with R₁ in the closing set and
+the left countdown in R₁'s class (`InCloseClass`; then R³/L₁² ≤ 176³/256² at the start of the chain's last run of
+full passes, `LoopChain.sigma`), or after a further close-free stretch to where the run leaves the chain
+(`LoopEnd`). -/
 theorem blank_halt_loop (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :
     ∀ (R : Nat) (ms : List Mark) (W k : Nat), PassStart448 ms W R →
       steps k ⟨blank, blank, .A⟩ = some (roundStart ms W) →
-      ∃ n₁ ms₁ W₁ R₁ p, roundsZ 1000 n₁ ms W = .newRound ms₁ W₁ ∧ (∀ d ∈ meetsRounds 1000 n₁ ms W, 3 ≤ d) ∧
-        PassStart448 ms₁ W₁ R₁ ∧ R = 16 ^ p * R₁ ∧ passL1 ms W = 64 ^ p * passL1 ms₁ W₁ ∧
-        ((InCloseClass ms₁ W₁ R₁ ∧ SigmaOK R (passL1 ms W) ∧
-            ∃ t, Reach ⟨[], 1, ms₁, W₁⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
-          ∃ n₂ ms' W', roundsZ 1000 n₂ ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n₂ ms₁ W₁, 3 ≤ d) ∧
-            LoopEnd 1000 R₁ (passL1 ms₁ W₁) n₂ (meetsRounds 1000 n₂ ms₁ W₁) ms' W' ∧
+      ∃ ks ms₁ W₁ R₁, LoopChain ms W R ks ms₁ W₁ R₁ ∧
+        ((InCloseClass ms₁ W₁ R₁ ∧ ∃ t, Reach ⟨[], 1, ms₁, W₁⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
+          ∃ n ms' W', roundsZ 1000 n ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n ms₁ W₁, 3 ≤ d) ∧
+            LoopEnd W₁ R₁ (passL1 ms₁ W₁) n (meetsRounds 1000 n ms₁ W₁) ms' W' ∧
             ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) := by
   intro R ms W k hP hk
   obtain ⟨-, hT'⟩ := steps_none_split hT hk
-  exact loop_halt_needs_contact R ms W hP _ hT'
+  exact loop_chain_halt _ R ms W hP hT'
 
 /-- **The σ bound, from blank tape.**  If the machine, started on blank tape, halts after T steps, then at no phase-0
 pass start it passes on its way with every gap at least 448 and R³/L₁² > 176³/256² (with s = log₂(W/R),
-λ = log₂(|L₁|/W) and σ = 3s + 2λ there: log₂W > σ + 6.38) does it close through the loop: the mark model covers the
-close-free stretch through the full passes from there and on to where the run leaves the loop (`LoopEnd`), and the
-halt needs a stuck configuration after that. -/
+λ = log₂(|L₁|/W) and σ = 3s + 2λ there: log₂W > σ + 6.38) does it close through full passes alone: the loop's chain
+from there either makes a half pass or a round-7 break before it reaches a closing class, or it ends (`LoopEnd`), and
+the halt needs a stuck configuration after that. -/
 theorem blank_halt_sigma (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :
     ∀ (R : Nat) (ms : List Mark) (W k : Nat), PassStart448 ms W R → ¬ SigmaOK R (passL1 ms W) →
       steps k ⟨blank, blank, .A⟩ = some (roundStart ms W) →
-      ∃ n₁ ms₁ W₁ R₁ p, roundsZ 1000 n₁ ms W = .newRound ms₁ W₁ ∧ (∀ d ∈ meetsRounds 1000 n₁ ms W, 3 ≤ d) ∧
-        PassStart448 ms₁ W₁ R₁ ∧ R = 16 ^ p * R₁ ∧ passL1 ms W = 64 ^ p * passL1 ms₁ W₁ ∧
-        ∃ n₂ ms' W', roundsZ 1000 n₂ ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n₂ ms₁ W₁, 3 ≤ d) ∧
-          LoopEnd 1000 R₁ (passL1 ms₁ W₁) n₂ (meetsRounds 1000 n₂ ms₁ W₁) ms' W' ∧
-          ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t) := by
+      ∃ ks ms₁ W₁ R₁, LoopChain ms W R ks ms₁ W₁ R₁ ∧
+        ((InCloseClass ms₁ W₁ R₁ ∧ (StepKind.half ∈ ks ∨ StepKind.break7 ∈ ks) ∧
+            ∃ t, Reach ⟨[], 1, ms₁, W₁⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
+          ∃ n ms' W', roundsZ 1000 n ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n ms₁ W₁, 3 ≤ d) ∧
+            LoopEnd W₁ R₁ (passL1 ms₁ W₁) n (meetsRounds 1000 n ms₁ W₁) ms' W' ∧
+            ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) := by
   intro R ms W k hP hσ hk
   obtain ⟨-, hT'⟩ := steps_none_split hT hk
   exact loop_halt_sigma R ms W hP hσ _ hT'
+
+/-- **Wide pass starts, from blank tape.**  If the machine, started on blank tape, halts after T steps, then from every
+phase-0 pass start it passes on its way with width W ≥ 2²⁴ and every gap at least 448, the loop's chain either ends
+(`LoopEnd`) and the halt needs a stuck configuration after that, or it reaches a closing class without a round-7
+break: through p full passes (R = 16^p R₁, L₁ = 64^p L₁′), or a half pass from W ≡ 2 (mod 4) and then p full passes
+(R = 2 · 16^p R₁, 2 · 64^p L₁′ = L₁ + 35 W − 147 R − 60), and the halt needs a stuck configuration after it. -/
+theorem blank_halt_wide (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :
+    ∀ (R : Nat) (ms : List Mark) (W k : Nat), PassStart448 ms W R → 2 ^ 24 ≤ W →
+      steps k ⟨blank, blank, .A⟩ = some (roundStart ms W) →
+      ∃ ks ms₁ W₁ R₁, LoopChain ms W R ks ms₁ W₁ R₁ ∧
+        ((InCloseClass ms₁ W₁ R₁ ∧
+            (∃ p, (ks = List.replicate p .full ∧ R = 16 ^ p * R₁ ∧ passL1 ms W = 64 ^ p * passL1 ms₁ W₁) ∨
+              (ks = .half :: List.replicate p .full ∧ W % 4 = 2 ∧ R = 2 * 16 ^ p * R₁ ∧
+                2 * 64 ^ p * passL1 ms₁ W₁ = passL1 ms W + 35 * (W : Int) - 147 * (R : Int) - 60)) ∧
+            ∃ t, Reach ⟨[], 1, ms₁, W₁⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
+          ∃ n ms' W', roundsZ 1000 n ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n ms₁ W₁, 3 ≤ d) ∧
+            LoopEnd W₁ R₁ (passL1 ms₁ W₁) n (meetsRounds 1000 n ms₁ W₁) ms' W' ∧
+            ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) := by
+  intro R ms W k hP hW hk
+  obtain ⟨-, hT'⟩ := steps_none_split hT hk
+  exact loop_halt_wide R ms W hP hW _ hT'
 
 /-- **What a halt from blank tape needs after a loop state.**  If the machine, started on blank tape, halts after T
 steps, then every loop state it passes on its way (walls at a, b, c, width E; a odd, b even, c odd, E even; every gap
@@ -216,14 +242,14 @@ together: if the machine, started on blank tape, halts after T steps, then
    the clean-tape tree at every depth, and halts from that clean tape;
 2. the mark model, run from that clean tape, reaches a stuck configuration: a close at the right end
    (`EndClose`: the gap meets the end marker at distance 0, or touches a block at the end) or an interior contact;
-3. every phase-0 pass start the machine passes on its way (walls at a, b, E − R − 1, width E, the parities, every gap
-   ≥ 448: `PassStart448`; left countdown L₁ = 147 b + 280 E − 392 (E − R − 1) − 578) is followed by a close-free
-   stretch the mark model covers, through p full passes, each to a pass start with gaps again all ≥ 448, to the last
-   of them (right end R₁ = R/16^p, left countdown L₁/64^p), and the halt needs a stuck configuration after it:
-   either right there, with R₁ in the closing set {2, 4, 8, 16, 24, 32, 48, 64, 176} and the left countdown in R₁'s
-   class (`InCloseClass`), and then R³/L₁² ≤ 176³/256² (log₂W ≤ σ + 6.38), or after a further close-free stretch to
-   where the run leaves the loop (`LoopEnd`: it leaves phase 0, its end meetings leave the halving chain, or it makes
-   a full pass, and it is not at a pass start with every gap ≥ 448 after a full pass there);
+3. from every phase-0 pass start the machine passes on its way (walls at a, b, E − R − 1, width E, the parities,
+   every gap ≥ 448: `PassStart448`; left countdown L₁ = 147 b + 280 E − 392 (E − R − 1) − 578), the run follows the
+   loop's chain (`LoopChain`): full passes, round-7 breaks and a half pass (only as the first step), each close-free
+   with its exact map on the width, the right end and the left countdown, each to a pass start with gaps again all
+   ≥ 448, to the last of them (right end R₁), and the halt needs a stuck configuration after it: either right there,
+   with R₁ in the closing set {2, 4, 8, 16, 24, 32, 48, 64, 176} and the left countdown in R₁'s class
+   (`InCloseClass`), or after a further close-free stretch to where the run leaves the chain (`LoopEnd`: a round start
+   that is not three walls after the run left phase 0 or the halving chain, or a landing with a gap below 448);
 4. every loop state the machine passes on its way (walls at a, b, c, width E, the parities, every gap ≥ 390) is
    followed by the certified exit stretch, to a clean tape, a break of the end-meeting chain or a loop state again
    (`ExitEvent`), and the halt needs a stuck configuration after it. -/
@@ -234,12 +260,10 @@ theorem blank_halt_structure (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = no
       ∃ t, Reach ⟨[], 1, [⟨.M, W - 2⟩], W⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∧
     (∀ (R : Nat) (ms : List Mark) (W k : Nat), PassStart448 ms W R →
       steps k ⟨blank, blank, .A⟩ = some (roundStart ms W) →
-      ∃ n₁ ms₁ W₁ R₁ p, roundsZ 1000 n₁ ms W = .newRound ms₁ W₁ ∧ (∀ d ∈ meetsRounds 1000 n₁ ms W, 3 ≤ d) ∧
-        PassStart448 ms₁ W₁ R₁ ∧ R = 16 ^ p * R₁ ∧ passL1 ms W = 64 ^ p * passL1 ms₁ W₁ ∧
-        ((InCloseClass ms₁ W₁ R₁ ∧ SigmaOK R (passL1 ms W) ∧
-            ∃ t, Reach ⟨[], 1, ms₁, W₁⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
-          ∃ n₂ ms' W', roundsZ 1000 n₂ ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n₂ ms₁ W₁, 3 ≤ d) ∧
-            LoopEnd 1000 R₁ (passL1 ms₁ W₁) n₂ (meetsRounds 1000 n₂ ms₁ W₁) ms' W' ∧
+      ∃ ks ms₁ W₁ R₁, LoopChain ms W R ks ms₁ W₁ R₁ ∧
+        ((InCloseClass ms₁ W₁ R₁ ∧ ∃ t, Reach ⟨[], 1, ms₁, W₁⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
+          ∃ n ms' W', roundsZ 1000 n ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n ms₁ W₁, 3 ≤ d) ∧
+            LoopEnd W₁ R₁ (passL1 ms₁ W₁) n (meetsRounds 1000 n ms₁ W₁) ms' W' ∧
             ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t))) ∧
     (∀ (a b c E k : Nat), a % 2 = 1 → b % 2 = 0 → c % 2 = 1 → E % 2 = 0 →
       390 ≤ a → a + 390 ≤ b → b + 390 ≤ c → c + 390 ≤ E →
@@ -262,12 +286,10 @@ theorem blank_halt_structure_kernel (T : Nat) (hT : steps T ⟨blank, blank, .A�
       ∃ t, Reach ⟨[], 1, [⟨.M, W - 2⟩], W⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∧
     (∀ (R : Nat) (ms : List Mark) (W k : Nat), PassStart448 ms W R →
       steps k ⟨blank, blank, .A⟩ = some (roundStart ms W) →
-      ∃ n₁ ms₁ W₁ R₁ p, roundsZ 1000 n₁ ms W = .newRound ms₁ W₁ ∧ (∀ d ∈ meetsRounds 1000 n₁ ms W, 3 ≤ d) ∧
-        PassStart448 ms₁ W₁ R₁ ∧ R = 16 ^ p * R₁ ∧ passL1 ms W = 64 ^ p * passL1 ms₁ W₁ ∧
-        ((InCloseClass ms₁ W₁ R₁ ∧ SigmaOK R (passL1 ms W) ∧
-            ∃ t, Reach ⟨[], 1, ms₁, W₁⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
-          ∃ n₂ ms' W', roundsZ 1000 n₂ ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n₂ ms₁ W₁, 3 ≤ d) ∧
-            LoopEnd 1000 R₁ (passL1 ms₁ W₁) n₂ (meetsRounds 1000 n₂ ms₁ W₁) ms' W' ∧
+      ∃ ks ms₁ W₁ R₁, LoopChain ms W R ks ms₁ W₁ R₁ ∧
+        ((InCloseClass ms₁ W₁ R₁ ∧ ∃ t, Reach ⟨[], 1, ms₁, W₁⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t)) ∨
+          ∃ n ms' W', roundsZ 1000 n ms₁ W₁ = .newRound ms' W' ∧ (∀ d ∈ meetsRounds 1000 n ms₁ W₁, 3 ≤ d) ∧
+            LoopEnd W₁ R₁ (passL1 ms₁ W₁) n (meetsRounds 1000 n ms₁ W₁) ms' W' ∧
             ∃ t, Reach ⟨[], 1, ms', W'⟩ t ∧ t.wf ∧ (EndClose t ∨ InteriorContact t))) ∧
     (∀ (a b c E k : Nat), a % 2 = 1 → b % 2 = 0 → c % 2 = 1 → E % 2 = 0 →
       390 ≤ a → a + 390 ≤ b → b + 390 ≤ c → c + 390 ≤ E →
@@ -302,6 +324,7 @@ theorem never_halts_of_cut_classes_kernel
 
 #print axioms blank_halt_clean
 #print axioms blank_halt_sigma
+#print axioms blank_halt_wide
 #print axioms blank_halt_exit
 #print axioms blank_halt_structure
 #print axioms never_halts_of_cut_classes

@@ -38,8 +38,8 @@ open BB6 BB6.Sym
 
 The phase-0 pass starts: walls at a = 1 + 2 y₀, b = 2 y₁ and c = E − R − 1, width E = 2 y₂, with the cone gaps a,
 b − a and c − b.  `startR R` fixes R; in `symStart` the right end R = 2 y₃ is a fourth coordinate, with R ≥ 178 a
-fourth cone form.  The tree checks carry the right end and the left countdown L₁ = 147 b + 280 E − 392 c − 578
-(`startE`, `symStartE`). -/
+fourth cone form.  The tree checks carry the width, the right end and the left countdown
+L₁ = 147 b + 280 E − 392 c − 578 (`startE`, `symStartE`). -/
 
 /-- The right ends from whose pass starts the run can close. -/
 def closingSet : List Nat := [2, 4, 8, 16, 24, 32, 48, 64, 176]
@@ -72,7 +72,8 @@ def startR (R : Nat) : SState :=
   ([⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, c⟩], E, [a, b.sub a, c.sub b])
 
 def startE (R : Nat) : EState :=
-  (startR R, YForm.const R, L1Form ⟨0, [0, 2, 0]⟩ ((⟨0, [0, 0, 2]⟩ : YForm).addc (-(R : Int) - 1)) ⟨0, [0, 0, 2]⟩)
+  let E : YForm := ⟨0, [0, 0, 2]⟩
+  (startR R, ⟨E, YForm.const R, L1Form ⟨0, [0, 2, 0]⟩ (E.addc (-(R : Int) - 1)) E⟩)
 
 def symStart : SState :=
   let a : YForm := ⟨1, [2, 0, 0, 0]⟩
@@ -85,7 +86,7 @@ def symStart : SState :=
 def symStartE : EState :=
   let E : YForm := ⟨0, [0, 0, 2, 0]⟩
   let R : YForm := ⟨0, [0, 0, 0, 2]⟩
-  (symStart, R, L1Form ⟨0, [0, 2, 0, 0]⟩ ((E.sub R).addc (-1)) E)
+  (symStart, ⟨E, R, L1Form ⟨0, [0, 2, 0, 0]⟩ ((E.sub R).addc (-1)) E⟩)
 '''
 open(os.path.join(outdir, 'EndgameStart.lean'), 'w').write(start)
 
@@ -99,7 +100,7 @@ mods, load = write_modules(outdir, 'EndgamePieces', header, None, pieces, nmod)
 small_defs = '\n'.join(
     f'def egTree{R} : Tree := {skel}\n\n'
     f'theorem egTree{R}_ok : egTree{R}.okEnd 448 1000 3 (closeClass {R}) EndSpec.endgame false (startE {R}).1.1\n'
-    f'    (startE {R}).1.2.1 (startE {R}).1.2.2 (startE {R}).2.1 (startE {R}).2.2 0 none = true :=\n'
+    f'    (startE {R}).1.2.1 (startE {R}).1.2.2 (startE {R}).2 0 none = true :=\n'
     f'  {proof}\n'
     for R, skel, proof in small_out)
 small_list = ', '.join(f'({R}, egTree{R})' for R, _, _ in small_out)
@@ -124,7 +125,7 @@ closing set, the leaf shows L₁ in R's class.  The checks are cut into subtrees
 def symTree : Tree := SYMSKEL
 
 theorem sym_tree_ok : symTree.okEnd 448 1000 4 none EndSpec.endgame false symStartE.1.1 symStartE.1.2.1
-    symStartE.1.2.2 symStartE.2.1 symStartE.2.2 0 none = true :=
+    symStartE.1.2.2 symStartE.2 0 none = true :=
   SYMPROOF
 
 SMALLDEFS
@@ -133,7 +134,7 @@ def smallTrees : List (Nat × Tree) := [SMALLLIST]
 
 theorem small_trees_ok :
     ∀ p ∈ smallTrees, p.2.okEnd 448 1000 3 (closeClass p.1) EndSpec.endgame false (startE p.1).1.1
-      (startE p.1).1.2.1 (startE p.1).1.2.2 (startE p.1).2.1 (startE p.1).2.2 0 none = true :=
+      (startE p.1).1.2.1 (startE p.1).1.2.2 (startE p.1).2 0 none = true :=
   SMALLOK
 
 theorem small_trees_cover :
@@ -145,8 +146,10 @@ c = E − R − 1, width E, with a odd, b even, E even and every gap at least 44
 the left countdown L₁ = 147 b + 280 E − 392 c − 578 is in R's class (`closeClass`), or the machine runs n rounds
 without halting, reaching the round start that `roundsZ` computes, every end meeting on the way is at distance at
 least 3 (no close), and the run ends at an end event (`EndEvent`): it left phase 0 (round 1 not G B W or round 2 not
-G M B), its end meetings left the halving chain, or it is at a phase-0 pass start after a full pass, with right end
-R/16 and left countdown L₁/64, whose next two rounds are G B W and G M B.  None of these holds after zero rounds
+G M B) or its end meetings left the halving chain, at a round start that is not three walls; or it is at a landing of
+the loop's chain (`Landing`): three walls with a odd, b even and width W′ ≡ 0 mod 4, right end R′ even and at least 2,
+after a full pass (R′ = R/16, L₁′ = L₁/64, W′ = E + 24), a half pass (from E ≡ 2 mod 4; R′ = R/2, W′ = E + 6) or a
+break of the chain at round 7 (W′ = E + 24), with the exact maps of `StepMap`.  None of these holds after zero rounds
 (`not_endEvent_zero`). -/
 theorem endgame_stretch (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R)
     (a b E : Nat) (ha : a % 2 = 1) (hb : b % 2 = 0) (hE : E % 2 = 0)
@@ -155,7 +158,7 @@ theorem endgame_stretch (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R)
     ∃ n kk ms' W', steps kk (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E) = some (roundStart ms' W') ∧
       roundsZ 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E = .newRound ms' W' ∧
       (∀ d ∈ meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E, 3 ≤ d) ∧
-      EndEvent 1000 R (loopL1 b (E - R - 1) E) n (meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E)
+      EndEvent E R (loopL1 b (E - R - 1) E) n (meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E)
         ms' W' := by
   by_cases hR178 : 178 ≤ R
   · -- the tree for every R ≥ 178, at the point (a, b, E, R)
@@ -170,13 +173,15 @@ theorem endgame_stretch (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R)
         simp only [agN, y, YForm.eval, YForm.sub, YForm.add, YForm.neg, YForm.addc, addL, smulL, List.map, dot] <;>
         omega
     have hW : agN y symStart.2.1 E := by simp only [agN, y, symStart, YForm.eval, dot]; omega
-    have hRa : agN y symStartE.2.1 R := by simp only [agN, y, symStartE, YForm.eval, dot]; omega
-    have hL : loopL1 b (E - R - 1) E = symStartE.2.2.eval y := by
-      simp only [symStartE, eval_L1Form, loopL1]
-      simp only [y, YForm.eval, YForm.sub, YForm.add, YForm.neg, YForm.addc, addL, smulL, List.map, dot]
-      omega
-    rcases Tree.soundEnd 448 1000 4 none .endgame symTree false _ _ _ _ _ 0 none sym_tree_ok y rfl hy _ _ R
-        (loopL1 b (E - R - 1) E) [] hs hW hRa hL (fun h => by cases h) (fun _ h => by cases h) with
+    have hf : symStartE.2.Ag y E R (loopL1 b (E - R - 1) E) := by
+      refine ⟨?_, ?_, ?_⟩
+      · simp only [agN, y, symStartE, YForm.eval, dot]; omega
+      · simp only [agN, y, symStartE, YForm.eval, dot]; omega
+      · simp only [symStartE, eval_L1Form, loopL1]
+        simp only [y, YForm.eval, YForm.sub, YForm.add, YForm.neg, YForm.addc, addL, smulL, List.map, dot]
+        omega
+    rcases Tree.soundEnd 448 1000 4 none .endgame symTree false _ _ _ _ 0 none sym_tree_ok y rfl hy _ _ E R
+        (loopL1 b (E - R - 1) E) [] hs hW hf (fun h => by cases h) (fun _ h => by cases h) with
       ⟨_, _, h, -⟩ | h
     · cases h
     · simp only [List.nil_append, Nat.zero_add] at h
@@ -202,13 +207,15 @@ theorem endgame_stretch (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R)
       refine ⟨⟨rfl, ?_⟩, ⟨rfl, ?_⟩, ⟨rfl, ?_⟩, trivial⟩ <;>
         simp only [agN, y, YForm.eval, YForm.addc, dot] <;> omega
     have hW : agN y (startR R').2.1 E := by simp only [agN, y, startR, YForm.eval, dot]; omega
-    have hRa : agN y (startE R').2.1 R' := by simp [agN, startE, YForm.const, YForm.eval]
-    have hL : loopL1 b (E - R' - 1) E = (startE R').2.2.eval y := by
-      simp only [startE, eval_L1Form, loopL1]
-      simp only [y, YForm.eval, YForm.addc, dot]
-      omega
-    rcases Tree.soundEnd 448 1000 3 (closeClass R') .endgame t false _ _ _ _ _ 0 none ht y rfl hy _ _ R'
-        (loopL1 b (E - R' - 1) E) [] hs hW hRa hL (fun h => by cases h) (fun _ h => by cases h) with h | h
+    have hf : (startE R').2.Ag y E R' (loopL1 b (E - R' - 1) E) := by
+      refine ⟨?_, ?_, ?_⟩
+      · simp only [agN, y, startE, YForm.eval, dot]; omega
+      · simp [agN, startE, YForm.const, YForm.eval]
+      · simp only [startE, eval_L1Form, loopL1]
+        simp only [y, YForm.eval, YForm.addc, dot]
+        omega
+    rcases Tree.soundEnd 448 1000 3 (closeClass R') .endgame t false _ _ _ _ 0 none ht y rfl hy _ _ E R'
+        (loopL1 b (E - R' - 1) E) [] hs hW hf (fun h => by cases h) (fun _ h => by cases h) with h | h
     · exact Or.inl h
     · simp only [List.nil_append, Nat.zero_add] at h
       exact Or.inr h
@@ -221,7 +228,7 @@ theorem endgame_no_close (R : Nat) (hR : R % 2 = 0) (hR2 : 2 ≤ R) (hS : closin
     ∃ n kk ms' W', steps kk (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E) = some (roundStart ms' W') ∧
       roundsZ 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E = .newRound ms' W' ∧
       (∀ d ∈ meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E, 3 ≤ d) ∧
-      EndEvent 1000 R (loopL1 b (E - R - 1) E) n (meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E)
+      EndEvent E R (loopL1 b (E - R - 1) E) n (meetsRounds 1000 n [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, E - R - 1⟩] E)
         ms' W' := by
   rcases endgame_stretch R hR hR2 a b E ha hb hE h1 h2 h3 with ⟨_, _, hc, -⟩ | h
   · rw [closeClass_closing hc] at hS; cases hS

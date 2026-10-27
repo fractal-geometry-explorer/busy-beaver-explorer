@@ -28,21 +28,25 @@ mark rules interactively.
   - `endgame_stretch`: for every even R ≥ 2, every phase-0 pass start (walls at a, b, E − R − 1, width E; every gap
     ≥ 448) either has R in the closing set {2, 4, 8, 16, 24, 32, 48, 64, 176} and its left countdown L₁ in R's class
     (for these R in turn: L₁ ≡ 0 mod 2, 0 mod 2, 0 mod 8, 0 mod 32, 32 mod 64, 0 mod 64, 0 mod 128, 0 mod 128,
-    0 mod 128; and L₁ ≡ 3 mod 7 always), or runs without halting and without a close until it leaves phase 0, its end
-    meetings leave the chain, or it makes a full pass to the next pass start, with R′ = R/16 and L₁′ = L₁/64 exactly
-    (the pass map, checked at every leaf that reaches a pass start). One tree with R as a coordinate covers every
-    R ≥ 178; each smaller R has its own tree;
-  - `loop_stretch` (`thm/LoopTheorem.lean`): the stretch of `endgame_stretch` carried through every full pass to a
-    pass start whose gaps are again ≥ 448, by strong induction on R, at any width: after p passes R = 16^p·R₁ and
-    L₁ = 64^p·L₁′. So within the loop a run closes only from a pass start whose R is in the closing set and whose L₁
-    is in R's class; otherwise it runs close-free until it leaves the loop (leaves phase 0, for one by a half pass
-    R → R/2, breaks the chain, or reaches a pass start with a gap below 448). After that a run can come back to
-    phase-0 pass starts and close later (see the notes, October 27).
-  - **The σ bound** (`sigma_through_passes`, `loop_halt_sigma`, `blank_halt_sigma`): a pass divides R³ and L₁² by the
-    same factor, and the closing classes have R³/L₁² ≤ 176³/256², so a close through the loop needs
-    R³/L₁² ≤ 176³/256² at the first pass start: log₂W ≤ σ + 6.38, with σ = 3 log₂(W/R) + 2 log₂(|L₁|/W) there. Beyond
-    it, a halt from blank tape needs a contact after the loop's end. The bound is attained (R = 2,816,
-    L₁ = −16,384: one pass to R = 176, L₁ = −256, then a close).
+    0 mod 128; and L₁ ≡ 3 mod 7 always), or runs without halting and without a close until it leaves phase 0 or its
+    end meetings leave the chain, at a round start that is not three walls, or it lands on three walls again by one
+    of the loop's three steps, each with its exact map, checked at every such leaf: a full pass (R′ = R/16,
+    L₁′ = L₁/64, W′ = E + 24), a half pass from E ≡ 2 mod 4 (R′ = R/2, W′ = E + 6) or a break of the chain at round 7
+    (R′ = (4E + 4R − b + 110)/32, W′ = E + 24). One tree with R as a coordinate covers every R ≥ 178; each smaller R
+    has its own tree;
+  - the loop's chain (`LoopChain`, `loop_chain_halt` in `thm/LoopTheorem.lean` and `thm/LoopHalt.lean`): if the
+    machine halts from a pass start with gaps ≥ 448, its run follows these steps through every landing whose gaps are
+    again ≥ 448, at any width (by induction on the halting time, since a round-7 break can raise R; a half pass comes
+    only as the first step, since every landing has W′ ≡ 0 mod 4). So within the loop a run closes only from a pass
+    start whose R is in the closing set and whose L₁ is in R's class; otherwise it runs close-free until it leaves the
+    chain (a round start that is not three walls, or a landing with a gap below 448). After that a run can come back
+    to phase-0 pass starts and close later (see the notes, October 27).
+  - **The σ bound** (`LoopChain.sigma`, `loop_halt_sigma`, `blank_halt_sigma`): a pass divides R³ and L₁² by the same
+    factor, and the closing classes have R³/L₁² ≤ 176³/256², so a close through the loop needs R³/L₁² ≤ 176³/256² at
+    the start of the chain's last run of full passes: log₂W ≤ σ + 6.38, with σ = 3 log₂(W/R) + 2 log₂(|L₁|/W) there.
+    At a round-7 landing that needs E < 2²⁴, so from a pass start of width ≥ 2²⁴ a close through the loop is p full
+    passes after at most one half pass (`LoopChain.close_wide`, `blank_halt_wide`). The bound is attained
+    (R = 2,816, L₁ = −16,384: one pass to R = 176, L₁ = −256, then a close).
 
   The number of rounds in all three is existential (chosen per class by an untrusted program), but each stretch ends at
   its stated event. The first versions (`exit_no_halt`, `endgame_no_close`, `loop_no_close`, `loop_pass`) said only

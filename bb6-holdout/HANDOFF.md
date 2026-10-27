@@ -29,15 +29,16 @@ self-contained except for the large intermediate outputs mentioned in `README.md
 
 ## Next steps (as proposed at handoff)
 
-1. **Done (October 27):** `endgame_stretch` (with the L₁ classes of the closing R) and `loop_stretch` in
-   `lean/thm/EndgameTheorem.lean` and `LoopTheorem.lean`; see the lean README. The stretches end at stated events
-   (`lean/BB6/Ends.lean`): the first versions (`endgame_no_close`, `loop_no_close`, `loop_pass`, `exit_no_halt`)
-   held with zero rounds. The pass map (R′ = R/16, L₁′ = L₁/64) is part of the end event `PassStart`, checked at every
-   leaf of the endgame trees that reaches a pass start; `loop_stretch` follows full passes (R = 16^p·R₁,
-   L₁ = 64^p·L₁′), and the σ bound is a theorem: a close through the loop needs R³/L₁² ≤ 176³/256², i.e.
-   log₂W ≤ σ + 6.38, at the first pass start (`sigma_through_passes`, `loop_halt_sigma`, `blank_halt_sigma`). A half
-   pass (R → R/2) or a chain break at round 7 ends the loop's run; a pass start it lands on is covered as a start of
-   its own. The original note:
+1. **Done (October 27):** `endgame_stretch` (with the L₁ classes of the closing R) and the loop's chain in
+   `lean/thm/EndgameTheorem.lean`, `LoopTheorem.lean` and `LoopHalt.lean`; see the lean README. The stretches end at
+   stated events (`lean/BB6/Ends.lean`): the first versions (`endgame_no_close`, `loop_no_close`, `loop_pass`,
+   `exit_no_halt`) held with zero rounds. The end event carries the loop's three steps with their exact maps on
+   (E, R, L₁), checked at every leaf of the endgame trees that comes back to three walls: a full pass (R′ = R/16,
+   L₁′ = L₁/64), a half pass (R′ = R/2, only as the first step) and a break of the chain at round 7.
+   `loop_chain_halt` follows a halting run through every landing with gaps ≥ 448 (`LoopChain`), and the σ bound is a
+   theorem: a close through the loop needs R³/L₁² ≤ 176³/256², i.e. log₂W ≤ σ + 6.38, at the start of the chain's
+   last run of full passes (`LoopChain.sigma`, `loop_halt_sigma`, `blank_halt_sigma`); from a width ≥ 2²⁴ the chain to
+   a close has no round-7 break (`LoopChain.close_wide`, `blank_halt_wide`). The original note:
    **The loop's end for every width as one Lean theorem.** Prove the pass map (R → R/16, L → L/64) with R free
    using the symbolic runner (`BB6/SymRound`, `BB6/SymSplit`), then induct over passes, combined with
    `endgame_no_close` for R ≤ 4096: "a run through the loop closes only from R ∈ {2, 4, 8, 16, 24, 32, 48, 64, 176}
