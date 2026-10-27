@@ -66,7 +66,7 @@ proved check instead of Lean's interpreter; this adds the C compiler to the trus
 |---|---|
 | `BB6/RouteTree.lean` | a few seconds |
 | building the 36-digit tree (`ExploreRT`, native, `cbuild_rt.sh`) | 8 minutes |
-| `thm/RouteTheorem.lean`, interpreted `native_decide` | RT36_INTERP |
+| `thm/RouteTheorem.lean`, interpreted `native_decide` | 20 min 51 s |
 | `thm/RouteTheorem.lean`, `--fast` (native code via `--load-dynlib`) | 2 min 53 s |
 | the same at 32 digits (226,532 leaves): interpreted / `--fast` | 4 min 48 s / 38 s |
 | the same at 24 digits (12,752 leaves): interpreted / `--fast` | 15 s / 2.3 s |
