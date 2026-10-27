@@ -54,22 +54,22 @@ mark rules interactively.
   end or an interior contact; `blank_halt_loop` adds that every pass start with gaps ≥ 448 the run passes is
   followed by the loop's close-free stretch, the halt coming only after it (after a pass start in a close class, or
   after the run leaves the loop). `never_halts_of_cut_classes` is the first read backwards: the question is reduced
-  to the clean tapes of width ≥ 2³² left open at every depth (at 36 digits they lie in 1,660,017 residue classes of
-  W/2 of measure 2.4 × 10⁻⁵, at 40 digits in 9,188,787 of measure 8.4 × 10⁻⁶). The pieces: the model's run from
+  to the clean tapes of width ≥ 2³² left open at every depth (at 36 digits they lie in 1,660,024 residue classes of
+  W/2 of measure 2.4 × 10⁻⁵, at 40 digits in 9,188,898 of measure 8.4 × 10⁻⁶: exactly the open classes of the
+  exhaustive check, the smallest members of classes at the cone's edge being run directly). The pieces: the model's run from
   blank tape to the clean tape of width 2³² (`thm/Prefix.lean`, 1.2 × 10⁹ rounds by `native_decide`, the only
   evaluation `blank_halt_clean` rests on), and the clean-tape tree (`BB6/CleanTree.lean`, `BB6/RouteExplore.lean`,
   `thm/CleanTheorem.lean`): at every depth, from every clean tape of width ≥ 2³² outside the cut classes, the machine
   reaches a wider clean tape without halting. The tree is built by an explorer proved to build only trees that pass
   the check, so this part uses the standard axioms only.
   `blank_halt_clean_direct` (`lean/thm/EndToEndDirect.lean`) raises the bound to 2⁴¹: the clean tapes of width in
-  [2³², 2⁴¹) in the cut classes (26,509,316 of them) are run one by one in Lean, each to a wider clean tape
-  (`thm/CleanDirect.lean`, `native_decide`), and above 2⁴¹ the tree with the cone W ≥ 2⁴¹ leaves open exactly the
-  exhaustive check's open classes (1,660,024 at 36 digits). `blank_halt_exit` adds the exit stretch, to its exit event,
+  [2³², 2⁴¹) in the cut classes (26,508,327 of them) are run one by one in Lean, each to a wider clean tape
+  (`thm/CleanDirect.lean`, `native_decide`), and above 2⁴¹ the tree with the cone W ≥ 2⁴¹ leaves open the same
+  classes. `blank_halt_exit` adds the exit stretch, to its exit event,
   after every loop state the run passes. `blank_halt_structure_kernel` is all of this from width 2²⁰ instead of 2³²,
   with **no `native_decide`** (the standard axioms only): `blank_prefix_kernel` (`thm/PrefixKernel.lean`) checks the
   run from blank tape to the clean tape of width 2²⁰ (294,033 rounds) with Lean's kernel, and the clean-tape tree over
-  the widths ≥ 2²⁰ takes over from there. Its cut classes are a little larger (measure 2.9 × 10⁻⁵ at 36 digits),
-  because the cone's edge is lower.
+  the widths ≥ 2²⁰ takes over from there. Its cut classes are the same (1,660,024 at 36 digits).
 - *The route tree* (`lean/thm/RouteTheorem.lean`, `lean/ROUTE_TREE.md`): `route_tree_clean`, the certificate's
   two-marker route tree as a theorem about the machine, at every depth and cone constant, with the standard axioms
   only (the same explorer); at 36 and 40 digits its cut classes are the Python certificate's (measure 5.9 × 10⁻⁶ and

@@ -60,8 +60,8 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    rounds, out of the kernel's reach) and the direct runs below 2⁴¹. **Done for the end-to-end statement from 2²⁰
    (October 27):** the run to 2²⁰ is kernel-checked (`blank_prefix_kernel`, 294,033 rounds, 2 minutes on 4 cores),
    and with the clean-tape tree over the widths ≥ 2²⁰ it gives `blank_halt_structure_kernel` (`lean/thm/EndToEnd.lean`)
-   with the standard axioms only; its cut classes have measure 2.9 × 10⁻⁵ at 36 digits against 2.4 × 10⁻⁵ from 2³², the
-   difference coming from the cone's edge.
+   with the standard axioms only; with the cone's edge handled by drops (the smallest member of a class run directly),
+   its cut classes are the same as from 2³² and 2⁴¹: the exhaustive check's open classes, 1,660,024 at 36 digits.
 4. **The route-tree certificate in Lean** (the "ways into the loop have ceilings" results). Done (October 27) for the
    tree itself: `route_tree_clean` at every depth and cone constant (`lean/ROUTE_TREE.md`), with the certificate's
    cut classes at 36 and 40 digits. The ceilings are not in Lean.

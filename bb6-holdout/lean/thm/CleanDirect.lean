@@ -5,7 +5,7 @@ open BB6 BB6.Sym
 /-! # Clean tapes from 2³² to 2⁴¹, run one by one
 
 `clean_tree_step` makes no claim for the clean tapes in the cut classes of the clean-tape tree.  Below 2⁴¹ they are
-few: the 1,660,017 cut classes of `cleanTree 36` (measure 2.4 × 10⁻⁵) have 26,509,316 members of width in
+few: the 1,660,024 cut classes of `cleanTree 36` (measure 2.4 × 10⁻⁵) have 26,508,327 members of width in
 [2³², 2⁴¹).  `clean_direct_ok` runs each of them with the mark model to a wider one-marker clean tape (`rangeOK`,
 `BB6/CleanRange.lean`), evaluated with `native_decide`, so it trusts Lean's compiler as well as its kernel.
 `clean_step_direct`: every clean tape of width in [2³², 2⁴¹) reaches a wider one, with no exception. -/

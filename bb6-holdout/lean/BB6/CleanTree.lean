@@ -10,7 +10,8 @@ the class of W, checked by `RTree.okW`: the same check as `RTree.ok`, except tha
 with **one** marker (not a two-marker state), reached after at least one round, whose width is decided to be larger
 than the start's (`w0`, the start's width carried down the tree).  So the run, read from clean tape to clean tape,
 never comes back to a narrower one, and `RTree.soundW` gives, at every point of the root class inside the cone, a
-halt-free run to a wider clean tape unless the point lies in a `cut` leaf.
+halt-free run to a wider clean tape unless the point lies in a `cut` leaf.  The clean-tape trees also have `drop`
+nodes, which run the smallest member of a class directly (below).
 
 `roundStart_one_lt`: two clean tapes of different widths are different configurations, so a run from one clean tape to
 a wider one takes at least one step (what the induction in `thm/EndToEnd.lean` needs).
@@ -68,6 +69,152 @@ theorem widerB_sound {y : List Int} {ts : List YForm} {Γ : Int} (hy : inCone ts
     | neg => cases h
     | zero => cases h
 
+/-! ## Direct runs -/
+
+/-- A one-marker clean tape wider than `W0`. -/
+def wider1 (ms : List Mark) (W W0 : Nat) : Bool :=
+  match ms with
+  | [⟨.M, p⟩] => p + 2 == W && decide (W0 < W)
+  | _ => false
+
+theorem wider1_eq {ms : List Mark} {W W0 : Nat} (h : wider1 ms W W0 = true) : ms = [⟨.M, W - 2⟩] ∧ W0 < W := by
+  unfold wider1 at h
+  split at h
+  · rename_i p
+    simp only [Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at h
+    exact ⟨by rw [show p = W - 2 by omega], h.2⟩
+  · cases h
+
+/-- Run at most `g` rounds from a round start, until a one-marker clean tape wider than `W0`. -/
+def toWider (fuel W0 : Nat) : Nat → List Mark → Nat → Bool
+  | 0, _, _ => false
+  | g + 1, ms, W =>
+    match roundZ fuel [] 1 ms W with
+    | .newRound ms' W' => wider1 ms' W' W0 || toWider fuel W0 g ms' W'
+    | _ => false
+
+theorem toWider_sound (fuel W0 : Nat) : ∀ (g : Nat) (ms : List Mark) (W : Nat), toWider fuel W0 g ms W = true →
+    ∃ n W', 0 < n ∧ roundsZ fuel n ms W = .newRound [⟨.M, W' - 2⟩] W' ∧ W0 < W' := by
+  intro g
+  induction g with
+  | zero => intro ms W h; cases h
+  | succ g ih =>
+    intro ms W h
+    simp only [toWider] at h
+    split at h
+    · next ms' W' hr =>
+      simp only [Bool.or_eq_true] at h
+      rcases h with h | h
+      · obtain ⟨rfl, hlt⟩ := wider1_eq h
+        exact ⟨1, W', Nat.one_pos, by simp [roundsZ, hr], hlt⟩
+      · obtain ⟨n, W'', -, hr', hlt⟩ := ih ms' W' h
+        refine ⟨n + 1, W'', by omega, ?_, hlt⟩
+        simp only [roundsZ, hr]
+        exact hr'
+    · cases h
+
+/-! ## Dropping the smallest member of a class
+
+The cone W ≥ Γ is a condition over the rationals: a class y₀ ≡ r (mod 2^k) of the clean tapes of width at least Γ has
+a smallest member, but the cone's corner, where the class's forms are compared, can lie below it, between two
+members.  A comparison can then be undecided on the class although it comes out differently only below the smallest
+member, or only at it.  A `drop z` node runs the member y₀ = z directly (`toWider`: the model's rounds, to a wider one-marker clean
+tape) and continues with the rest of the class under the cone y₀ ≥ z + 1, whose corner is a member.  Its check
+(`dropOK`) needs every form free of y₁, so that the member is one clean tape, and a cone form that excludes y₀ < z. -/
+
+/-- The form does not depend on y₁. -/
+def free1 (f : YForm) : Bool := f.c.getD 1 0 == 0
+
+theorem eval_free1 {f : YForm} (h : free1 f = true) (a b : Int) : f.eval [a, b] = f.eval [a, 0] := by
+  unfold free1 at h
+  simp only [beq_iff_eq] at h
+  rw [eval_two, eval_two, h]
+  simp
+
+theorem agN_free1 {f : YForm} (h : free1 f = true) {a b : Int} {n : Nat} (hn : agN [a, b] f n) : agN [a, 0] f n := by
+  unfold agN at *; rw [← eval_free1 h]; exact hn
+
+theorem agL_free1 {a b : Int} : ∀ {ss : List SMark} {ms : List Mark}, (ss.all fun s => free1 s.p) = true →
+    agL [a, b] ss ms → agL [a, 0] ss ms
+  | [], [], _, _ => trivial
+  | _ :: ss, _ :: ms, hf, h => by
+    simp only [List.all_cons, Bool.and_eq_true] at hf
+    exact ⟨⟨h.1.1, agN_free1 hf.1 h.1.2⟩, agL_free1 (ss := ss) (ms := ms) hf.2 h.2⟩
+  | [], _ :: _, _, h => absurd h id
+  | _ :: _, [], _, h => absurd h id
+
+/-- The marks at `y`. -/
+def concL (y : List Int) (ss : List SMark) : List Mark := ss.map fun s => ⟨s.t, (s.p.eval y).toNat⟩
+
+theorem agN_toNat {y : List Int} {f : YForm} {n : Nat} (h : agN y f n) : n = (f.eval y).toNat := by
+  unfold agN at h; omega
+
+theorem agL_concL {y : List Int} : ∀ {ss : List SMark} {ms : List Mark}, agL y ss ms → ms = concL y ss
+  | [], [], _ => rfl
+  | s :: ss, ⟨t, p⟩ :: ms, h => by
+    obtain ⟨⟨ht, hp⟩, h'⟩ := h
+    simp only at ht hp
+    have hrest : ms = concL y ss := agL_concL h'
+    simp only [concL, List.map_cons] at hrest ⊢
+    rw [← hrest, ← ht, ← agN_toNat hp]
+  | [], _ :: _, h => absurd h id
+  | _ :: _, [], h => absurd h id
+
+/-- The cone excludes every point with y₀ < z: some cone form, free of y₁ and nondecreasing in y₀, is below Γ at
+y₀ = z − 1. -/
+def coneFrom (ts : List YForm) (Γ z : Int) : Bool :=
+  ts.any fun t => free1 t && decide (0 ≤ t.c.getD 0 0) && decide (t.eval [z - 1, 0] < Γ)
+
+theorem coneFrom_sound {ts : List YForm} {Γ z : Int} (h : coneFrom ts Γ z = true) {a b : Int}
+    (hy : inCone ts Γ [a, b]) : z ≤ a := by
+  unfold coneFrom at h
+  obtain ⟨t, ht, h⟩ := List.any_eq_true.mp h
+  simp only [Bool.and_eq_true, decide_eq_true_eq] at h
+  obtain ⟨⟨hf, h0⟩, hlt⟩ := h
+  have hc := hy t ht
+  rw [eval_free1 hf, eval_two] at hc
+  rw [eval_two] at hlt
+  have hm : t.c.getD 0 0 * (z - 1) < t.c.getD 0 0 * a := by
+    simp only [Int.mul_zero, Int.add_zero] at hc hlt; omega
+  have := Int.lt_of_mul_lt_mul_left hm h0
+  omega
+
+/-- The cone of the rest of the class after the member y₀ = z is dropped: y₀ ≥ z + 1. -/
+def dropCone (Γ z : Int) : YForm := ⟨Γ - (z + 1), [1, 0]⟩
+
+theorem inCone_dropCone {Γ z a b : Int} (h : z + 1 ≤ a) : inCone [dropCone Γ z] Γ [a, b] := by
+  intro t ht
+  simp only [List.mem_cons, List.mem_nil_iff, or_false] at ht
+  subst ht
+  simp only [dropCone, eval_two, List.getD_cons_zero, List.getD_cons_succ]
+  omega
+
+/-- The check of a `drop z` node, before its subtree: the cone excludes y₀ < z, the forms are free of y₁, and the
+member y₀ = z runs to a one-marker clean tape wider than `w0` within 10,000 rounds. -/
+def dropOK (Γ : Int) (fuel : Nat) (z : Int) (ss : List SMark) (sW w0 : YForm) (ts : List YForm) : Bool :=
+  coneFrom ts Γ z && (ss.all fun s => free1 s.p) && free1 sW && free1 w0 &&
+    toWider fuel (w0.eval [z, 0]).toNat 10000 (concL [z, 0] ss) (sW.eval [z, 0]).toNat
+
+theorem dropOK_cone {Γ : Int} {fuel : Nat} {z : Int} {ss : List SMark} {sW w0 : YForm} {ts : List YForm}
+    (h : dropOK Γ fuel z ss sW w0 ts = true) : coneFrom ts Γ z = true := by
+  unfold dropOK at h
+  simp only [Bool.and_eq_true] at h
+  exact h.1.1.1.1
+
+theorem dropOK_sound {Γ : Int} {fuel : Nat} {z : Int} {ss : List SMark} {sW w0 : YForm} {ts : List YForm}
+    (h : dropOK Γ fuel z ss sW w0 ts = true) {b : Int} {ms : List Mark} {Wn W0 : Nat}
+    (hs : agL [z, b] ss ms) (hW : agN [z, b] sW Wn) (h0 : agN [z, b] w0 W0) :
+    ∃ n W', 0 < n ∧ roundsZ fuel n ms Wn = .newRound [⟨.M, W' - 2⟩] W' ∧ W0 < W' := by
+  unfold dropOK at h
+  simp only [Bool.and_eq_true] at h
+  obtain ⟨⟨⟨⟨-, hfs⟩, hfW⟩, hf0⟩, hrun⟩ := h
+  rw [← agL_concL (agL_free1 hfs hs), ← agN_toNat (agN_free1 hfW hW), ← agN_toNat (agN_free1 hf0 h0)] at hrun
+  exact toWider_sound fuel W0 10000 ms Wn hrun
+
+theorem two_cases (y : List Int) (h : y.length = 2) : ∃ a b, y = [a, b] := by
+  match y, h with
+  | [a, b], _ => exact ⟨a, b, rfl⟩
+
 variable (Γ : Int) (fuel : Nat)
 
 /-- The check for clean-tape trees: as `RTree.ok`, with `w0` the start's width (substituted along with everything
@@ -83,6 +230,7 @@ def RTree.okW : RTree → Bool → List SMark → YForm → YForm → List YForm
     decide (i < 2) && t0.okW moved (substL ss i 0) (sW.subst i 0) (w0.subst i 0) (substT ts i 0) &&
       t1.okW moved (substL ss i 1) (sW.subst i 1) (w0.subst i 1) (substT ts i 1)
   | .shear i s t, moved, ss, sW, w0, ts => t.okW moved (shearL ss i s) (sW.shear i s) (w0.shear i s) (shearT ts i s)
+  | .drop z t, moved, ss, sW, w0, ts => dropOK Γ fuel z ss sW w0 ts && t.okW moved ss sW w0 [dropCone Γ z]
 
 /-- **A checked clean-tape tree, for the machine.**  At every point `y` of the root class inside the cone, from a
 well-formed round start that agrees with the root (width `Wn`; `W0` the value of `w0`), the machine runs `n` rounds of
@@ -163,6 +311,22 @@ theorem RTree.soundW (t : RTree) : ∀ (moved : Bool) (ss : List SMark) (sW w0 :
       rw [hzz] at hl
       rw [← hl] at hy hs hW h0
       exact ih _ _ _ _ _ h [a, b] rfl (inCone_shear hy) ms Wn W0 (agL_shear hs) (agN_shear hW) (agN_shear h0) hwf
+  | drop z t ih =>
+    intro moved ss sW w0 ts h y hlen hy ms Wn W0 hs hW h0 hwf
+    simp only [RTree.okW, Bool.and_eq_true] at h
+    obtain ⟨hd, ht⟩ := h
+    obtain ⟨a, b, rfl⟩ := two_cases y hlen
+    have hza : z ≤ a := coneFrom_sound (dropOK_cone hd) hy
+    simp only [RTree.cutMem, List.getD_cons_zero]
+    by_cases hz : a = z
+    · subst hz
+      obtain ⟨n, W', hn, hr, hlt⟩ := dropOK_sound hd hs hW h0
+      obtain ⟨k, hk, -⟩ := rounds_run fuel n ms Wn hwf (by rw [hr]; intro h; cases h)
+      rw [hr] at hk
+      exact ⟨n, k, _, W', hr, hk, Or.inr ⟨Or.inr hn, rfl, hlt⟩⟩
+    · obtain ⟨n, k, ms', Wn', h1, h2, h3⟩ :=
+        ih _ _ _ _ _ ht [a, b] rfl (inCone_dropCone (by omega)) ms Wn W0 hs hW h0 hwf
+      exact ⟨n, k, ms', Wn', h1, h2, by rw [if_neg hz]; exact h3⟩
 
 end BB6.Sym
 

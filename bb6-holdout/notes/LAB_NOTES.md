@@ -2373,6 +2373,30 @@ walls 2,895, 8,798, 11,987, width 12,164 (R = 176, L₁ = −256), and closes 13
 loop can start, not σ itself. How late a run can enter the loop is what the σ ceilings of the route tree measure, and
 they are evaluated, not proved; a run that leaves the loop can also come back to a pass start later (above).
 
+**The edge of the cone: the smallest member run directly (October 27; `../lean/BB6/CleanTree.lean`,
+`../lean/BB6/RouteExplore.lean`).** The edge classes of the clean-tape entries above come from the cone being a
+condition over the rationals: a class of W/2 modulo 2^k is compared at the cone's corner, which can lie between two of
+its members, so a comparison that comes out differently only for the smallest member, or only below it, is undecided
+on the class, and no residue split separates that member from the rest. The clean-tape trees now do there what the
+exhaustive check does: run the member. A new node, `drop z`, runs the member y₀ = z with the mark model to a wider
+one-marker clean tape (`toWider`, at most 10,000 rounds; moved from `CleanRange`) and goes on with the rest of the
+class under the cone y₀ ≥ z + 1, whose corner is a member. `RTree.okW` checks it (`dropOK`: a cone form excludes the
+members below z, the forms do not depend on the unused coordinate, and the direct run gets there), `RTree.soundW`
+covers it, and `cutMem` counts the dropped member as not cut, so every theorem keeps its statement; `RTree.ok`, for
+the two-marker route tree, rejects the node. `RTree.exploreW` drops where a round is undecided and no residue split
+decides it, at most 4 members in a class, the children of a split starting afresh: a budget of 4 per path left one
+class cut at depth 35, because the clean tapes W = 2ʲ + 2 need a drop at every level. With the drops the trees with
+the cones W ≥ 2²⁰, 2³² and 2⁴¹ are the same at every depth evaluated (1,930, 10,722, 57,934, 303,560, 1,660,024 and
+9,188,898 cut classes at 20, 24, 28, 32, 36 and 40 digits), every cut leaf is at full depth with a residue split still
+to make, and the cut classes are the exhaustive check's open classes, compared class by class at 36 and 40 digits
+(with the cone 2²⁰ at 36). The members dropped: 20 at 36 digits from 2³² (W = 2ʲ + 2 for j = 32 to 37, W = 3·2ʲ + 2
+for j = 31 to 36, the classes that held 2ʲ⁺¹ + 2 dropping both, and 8 others from W = 15,858,340,778 up), 72 at 40
+digits; 2 at 40 digits from 2⁴¹ (W = 2⁴¹ + 2, after which its class stays open at depth 40 as in the exhaustive check,
+and 3·2⁴⁰ + 2, after which its class closes); 1,599 at 36 digits from 2²⁰, in 1,597 classes, from W = 2²⁰ + 2 up. No
+class needs more than two. So the kernel-only theorems lose nothing to their lower cone, and "open at every depth" no
+longer contains classes that are open for a reason of method. The direct runs below 2⁴¹ (`clean_step_direct`) now take
+the 26,508,327 members of the 1,660,024 classes, at most 127 rounds each (more than half take 45 to 51).
+
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
 which they treat as claims. The one thing a reader has to accept beyond the rules is the 2-adic bookkeeping itself:
