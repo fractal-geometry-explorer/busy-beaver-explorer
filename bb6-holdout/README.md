@@ -35,25 +35,40 @@ mark rules interactively.
     gaps are again ≥ 448, by strong induction on R, at any width. So within the loop a run closes only from a pass
     start whose R is in the closing set and whose L₁ is in R's class; otherwise it runs close-free until it leaves
     the loop (leaves phase 0, breaks the chain, or reaches a pass start with a gap below 448), through the R/2 "half
-    passes" too. After that a run can come back to phase-0 pass starts and close later (see the notes, October 27). (The bound log₂W ≤ σ + 6.38 also needs the pass map R′ = R/16, L₁′ = L₁/64, which is not
-    in Lean, and a way across half passes.)
+    passes" too. After that a run can come back to phase-0 pass starts and close later (see the notes, October 27).
+    (The bound log₂W ≤ σ + 6.38 also needs the pass map R′ = R/16, L₁′ = L₁/64, which is not in Lean, and a way
+    across half passes.)
 
   The number of rounds in all three is existential (chosen per class by an untrusted program), but each stretch ends at
   its stated event. The first versions (`exit_no_halt`, `endgame_no_close`, `loop_no_close`, `loop_pass`) said only
   that the run reaches some round start without halting or closing, which zero rounds satisfy; see the notes,
   October 27, "The stretches must say where they end".
-- *End to end from blank tape* (`lean/thm/EndToEnd.lean`, `lean/END_TO_END.md`; `native_decide` for the prefix and
-  the clean-tape tree):
-  `blank_halt_structure` says that if the machine halts from blank tape, it first reaches a clean tape of even width
-  W ≥ 2³² with W/2 in one of the cut classes of a 36-digit clean-tape tree (1,660,016 residue classes, measure
-  2.4 × 10⁻⁵) and halts from there; the mark model run from that clean tape reaches a close at the right end or an
-  interior contact; and every pass start with gaps ≥ 448 the run passes is followed by the loop's close-free
-  stretch, the halt coming only after it (after a pass start in a close class, or after the run leaves the loop).
-  `never_halts_of_cut_classes` is the same read backwards: the question is reduced to the clean tapes of width ≥ 2³²
-  in the cut classes. The pieces: the model's run from blank
-  tape to the clean tape of width 2³² (`thm/Prefix.lean`, 1.2 × 10⁹ rounds), and the clean-tape tree
-  (`BB6/CleanTree.lean`, `thm/CleanTheorem.lean`): from every clean tape of width ≥ 2³² outside the cut classes, the
-  machine reaches a wider clean tape without halting.
+- *End to end from blank tape* (`lean/thm/EndToEnd.lean`, `lean/END_TO_END.md`): `blank_halt_clean` says that if the
+  machine halts from blank tape, it first reaches a clean tape of even width W ≥ 2³² that the clean-tape tree leaves
+  open at **every** depth, and halts from there, the mark model run from that clean tape reaching a close at the right
+  end or an interior contact; `blank_halt_loop` adds that every pass start with gaps ≥ 448 the run passes is
+  followed by the loop's close-free stretch, the halt coming only after it (after a pass start in a close class, or
+  after the run leaves the loop). `never_halts_of_cut_classes` is the first read backwards: the question is reduced
+  to the clean tapes of width ≥ 2³² left open at every depth (at 36 digits they lie in 1,660,017 residue classes of
+  W/2 of measure 2.4 × 10⁻⁵, at 40 digits in 9,188,787 of measure 8.4 × 10⁻⁶). The pieces: the model's run from
+  blank tape to the clean tape of width 2³² (`thm/Prefix.lean`, 1.2 × 10⁹ rounds by `native_decide`, the only
+  evaluation `blank_halt_clean` rests on), and the clean-tape tree (`BB6/CleanTree.lean`, `BB6/RouteExplore.lean`,
+  `thm/CleanTheorem.lean`): at every depth, from every clean tape of width ≥ 2³² outside the cut classes, the machine
+  reaches a wider clean tape without halting. The tree is built by an explorer proved to build only trees that pass
+  the check, so this part uses the standard axioms only.
+  `blank_halt_clean_direct` (`lean/thm/EndToEndDirect.lean`) raises the bound to 2⁴¹: the clean tapes of width in
+  [2³², 2⁴¹) in the cut classes (26,509,316 of them) are run one by one in Lean, each to a wider clean tape
+  (`thm/CleanDirect.lean`, `native_decide`), and above 2⁴¹ the tree with the cone W ≥ 2⁴¹ leaves open exactly the
+  exhaustive check's open classes (1,660,024 at 36 digits). `blank_halt_exit` adds the exit stretch, to its exit event,
+  after every loop state the run passes. `blank_halt_structure_kernel` is all of this from width 2²⁰ instead of 2³²,
+  with **no `native_decide`** (the standard axioms only): `blank_prefix_kernel` (`thm/PrefixKernel.lean`) checks the
+  run from blank tape to the clean tape of width 2²⁰ (294,033 rounds) with Lean's kernel, and the clean-tape tree over
+  the widths ≥ 2²⁰ takes over from there. Its cut classes are a little larger (measure 2.9 × 10⁻⁵ at 36 digits),
+  because the cone's edge is lower.
+- *The route tree* (`lean/thm/RouteTheorem.lean`, `lean/ROUTE_TREE.md`): `route_tree_clean`, the certificate's
+  two-marker route tree as a theorem about the machine, at every depth and cone constant, with the standard axioms
+  only (the same explorer); at 36 and 40 digits its cut classes are the Python certificate's (measure 5.9 × 10⁻⁶ and
+  1.5 × 10⁻⁶, evaluated by `native_decide`).
 
 **Proved by certificates with independent checkers** (`cert/`): the exact end of the loop (40,991 classes; 83,699
 for starts in either phase), the short exit from the loop (358 classes), and the route tree to 36 and 40 digits.
@@ -85,10 +100,13 @@ programs in `csearch/` are kept as they were run.
 ```sh
 cd lean
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check.sh        # all 25 files, about a minute; prints the axioms
-# the theorem files: the exit and endgame trees evaluated by the kernel (their subtree modules in parallel,
-# about 2.5 minutes with 4 cores), the prefix and the clean-tape tree with native_decide as native code, the loop
-# through its passes, the halts after each stretch, and the end-to-end theorem (about 12 minutes):
+# the theorem files: the exit and endgame trees and the run to width 2^20 evaluated by the kernel (their modules in
+# parallel, about 4.5 minutes with 4 cores), the prefix, the direct runs below 2^41 and the clean-tape trees' measures
+# with native_decide as native code, the halts after each stretch, and the end-to-end theorems (about 22 minutes with
+# 4 cores):
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh
+# the route tree at every depth (seconds) and its measure at 36 digits (4 minutes; DEPTH=40 adds 40 digits, 16 more):
+LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_route.sh --fast
 ```
 
 `thm/gen_exit.py` and `thm/gen_endgame.py` regenerate the theorem files from the trees

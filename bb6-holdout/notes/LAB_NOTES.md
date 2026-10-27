@@ -2171,7 +2171,6 @@ certified stretch can come back to phase-0 pass starts and close later. The read
 only from a pass start whose R is in the closing set" holds only for the end chain inside each certified stretch.
 `thm/EndToEnd.lean` states the loop part accordingly: a halt comes only after the stretch.
 
-
 **The endgame checked by the kernel, with one tree for every R ≥ 178 (October 27; `../lean/thm/EndgamePieces*.lean`,
 `EndgameTheorem.lean`).** `endgame_no_close` no longer uses `native_decide`, and it no longer needs R ≤ 4096: it holds
 for every even R ≥ 2 outside the closing set. A tree with R as a coordinate (R = 2y₃, with the cone form R ≥ 178) had
@@ -2184,10 +2183,56 @@ with `cut` leaves, like the clean-tape tree, may cut less when they are rebuilt)
 (`thm/endgame_sym.txt`, built by `ExploreNC sym 178 448`) is complete with 200 leaves. Two other ideas tried on the
 way turned out not to be needed: tightening each cone bound to the next value its form takes at integer points (by
 the gcd of its coefficients), and a second inverse for cones with an upper bound on R. The 79 even R < 178 outside
-the closing set keep one tree each (`thm/endgame_small.txt`, 1,543 leaves). Together they need 4,948 rounds of checks instead of 117,947: 306 subtree
-theorems in four modules, 95 s on 4 cores (about 0.06 s per round, under 1 GB per module), where `native_decide` took
-14 s. `loop_no_close` still goes through `loop_pass` for R ≥ 4097, so its stretch runs through every pass of the
+the closing set keep one tree each (`thm/endgame_small.txt`, 1,543 leaves). Together they need 4,948 rounds of
+checks instead of 117,947: 306 subtree theorems in four modules, 95 s on 4 cores (about 0.06 s per round, under 1 GB
+per module), where `native_decide` took 14 s. `loop_no_close` still goes through `loop_pass` for R ≥ 4097, so its stretch runs through every pass of the
 loop. `blank_halt_structure` now rests on `native_decide` only for `prefix_ok` and `clean_tree_ok`.
+
+**Trees built by a proved explorer; the end-to-end statement at every depth (October 27;
+`../lean/BB6/RouteExplore.lean`).** The route-tree and clean-tape theorems no longer check a tree that an untrusted
+program wrote out. `RTree.explore` and `RTree.exploreW` build the trees inside Lean the way `ExploreRT` and `ExploreCT`
+did (rounds one at a time, a split on the first undecided digit with a shear when both coordinates enter it, a stop
+at a clean tape, a cut after d splits), and `explore_ok` / `exploreW_okW` prove by induction on the exploration that
+every tree they build passes `RTree.ok` / `RTree.okW`. So `route_tree_clean` (for every depth and every cone constant)
+and `clean_tree_step` (for every depth) hold with the standard axioms only; no tree is evaluated in a proof, and the
+generators, the tree files and the decoders are gone. What the depth changes is only how many classes are cut, and
+that is evaluated on its own (`exploreMass`, the same exploration without building the tree, by `native_decide`). It
+reproduces the earlier trees: the 36-digit route tree has 407,087 cut and 539,120 clean leaves and the 40-digit one
+1,682,946 and 2,266,244, the Python certificate's numbers; the 36-digit clean-tape tree has 1,660,017 cut and
+1,507,364 closed leaves (with the integer-aware `ltDec`; 1,660,016 before), and the 40-digit one 9,188,787 and 8,107,467
+(measure 9,190,118 / 2⁴⁰ ≈ 8.4 × 10⁻⁶). The end-to-end theorem now reads at every depth: a halt from blank tape needs a clean tape of
+width ≥ 2³² that is in a cut class of the clean-tape tree at every depth d (`clean_chain` asks at each clean tape
+whether some depth decides it), and with the kernel-checked endgame, `blank_halt_structure` rests on `native_decide`
+only for the prefix. The exit stretch is now part of it (`blank_halt_exit`), since `decodeTree` no longer clashes.
+(Its loop and exit items, as stated, also hold with zero rounds, since they do not say where the stretch ends; those
+statements are being changed to name the end of the stretch. The clean-tape items do not use them.) The
+cut classes are the exhaustive check's open classes to within a few (1,930 at 20 digits, 10,722 at 24, 57,934 at 28,
+303,560 at 32, 1,660,017 against 1,660,024 at 36). One difference matters for "every depth": a class with a
+comparison that comes out differently for its smallest member is cut whatever the depth (7 classes at depth 31 to 35
+for the 36-digit tree, measure 76 / 2³⁶ ≈ 1.1 × 10⁻⁹), where the exhaustive check decides the class above a threshold
+and runs the members below it directly. At depth 31, for example, the class W = 2 + 2³²z (z ≥ 1) has after 30 rounds
+its first marker at 4z, and the round asks whether it is exactly 3 cells from the gap: 4z = 4, true only for
+W = 2³² + 2.
+
+**Clean tapes below 2⁴¹ run one by one in Lean; the end-to-end bound raised to 2⁴¹ (October 27;
+`../lean/BB6/CleanRange.lean`, `../lean/thm/CleanDirect.lean`, `../lean/thm/EndToEndDirect.lean`).** The same remedy
+as the exhaustive check's, proved. `directOK W` runs the mark model from the clean tape of width W (at most 10,000
+rounds) until a one-marker clean tape wider than W, `RTree.cuts1` lists the cut classes of a clean-tape tree as
+residues of W/2, and `rangeOK_sound`: every clean tape in a range of widths that the tree leaves open passes
+`directOK`. Evaluated on the 36-digit tree for [2³², 2⁴¹) (`native_decide`, 26,509,316 clean tapes, about 7 minutes of
+native code after the 4.5 minutes of the tree; the longest needs 127 rounds), it gives `clean_step_direct`: every
+clean tape of width in [2³², 2⁴¹) reaches a wider one, with no exception. Above 2⁴¹ the chain uses the tree with the
+cone W ≥ 2⁴¹, where the comparisons above are decided: `cleanTreeG 2⁴¹ d` has no cut above full depth through 36
+digits, and its cut classes are the exhaustive check's open classes (1,930, 10,722, 57,934, 303,560 and
+1,660,024 at 20, 24, 28, 32 and 36 digits; at 36 compared class by class). At 40 digits it has 9,188,899 against
+9,188,898: the edge moves with the cone. Two leaves at depth 40 have an undecided comparison: in the class
+W = 2 + 2⁴¹z the first marker is at 4z after 39 rounds and the test 4z = 4 holds only for W = 2⁴¹ + 2 (the depth-31
+example one level below the cone's exponent), and in the class W = 2⁴⁰ + 2 + 2⁴¹z it is at 2 + 4z, where 2 + 4z = 4
+is false for every member but true at z = 1/2, inside the cone over the rationals. The exhaustive check, with exact
+integer thresholds and direct runs below them, leaves the first open too and settles the second. So `blank_halt_clean_direct`: a halt from blank tape needs
+a clean tape of width ≥ 2⁴¹ in the cut classes of that tree at every depth, then a stuck configuration; it adds the
+direct runs to what `blank_halt_clean` trusts. "Cut at every depth" is still just the conjunction of its finite-depth
+instances, and what carries information is the measure at each evaluated depth.
 
 **The stretches must say where they end (October 27; `../lean/BB6/Ends.lean`, `../lean/thm/EndgameTheorem.lean`,
 `LoopTheorem.lean`, `ExitTheorem.lean`).** `exit_no_halt`, `endgame_no_close`, `loop_no_close` and item 3 of
@@ -2243,10 +2288,12 @@ breaks with the same meetings. Results, all evaluated by the kernel with the sta
   pass start, so it never said that a pass happens. Putting the pass map back as a check on the `PassStart` end is
   what the σ bound needs next, with a way across half passes.
 
-Item 3 of `blank_halt_structure` now reads: from every pass start with gaps ≥ 448 that the run from blank tape
-reaches, the model covers the close-free stretch through the pass starts with gaps ≥ 448 to the last of them, and a
-halt needs a stuck configuration either there, with R₁ in the closing set and L₁ in its class, or after the run leaves
-the loop. `exit_halt_needs_contact` gives the same after a loop state's exit event.
+Items 3 and 4 of `blank_halt_structure` (`blank_halt_loop`, `blank_halt_exit`) now read: from every pass start with
+gaps ≥ 448 that the run from blank tape reaches, the model covers the close-free stretch through the pass starts with
+gaps ≥ 448 to the last of them, and a halt needs a stuck configuration either there, with R₁ in the closing set and
+L₁ in its class, or after the run leaves the loop; and from every loop state with gaps ≥ 390 it reaches, the model
+covers the exit stretch to an exit event, and a halt needs a stuck configuration after it. (This replaces the
+weaker statements of the entry above, which held with zero rounds.)
 
 **The prefix in the kernel, to 2²⁰ (October 27; `../lean/thm/PrefixKernel.lean`, `../lean/thm/gen_prefix.py`).**
 The last `native_decide` that is not a tree is `prefix_ok`, 1,204,297,272 rounds from the first round start to the
@@ -2257,14 +2304,33 @@ place of decidable propositions was only 1.35 times faster), so the full prefix 
 ms' W' = true` by `decide +kernel`, 8 modules, 2 minutes on 4 cores) chained by `roundsZ_chain`, with the standard
 axioms only. Every power of two from 2¹⁶ to 2³² is itself a clean tape of the run (2¹⁶ after 18,368 rounds, 2²²
 after 1,176,058, 2²⁴ after 4,704,284; the rounds grow as 0.28 W), so the prefix can stop at any of them. What a
-lower prefix costs elsewhere is the clean-tape tree's cone: `ExploreCT` at depth 36 leaves cut mass 1,660,086 /
-2³⁶ = 2.42 × 10⁻⁵ at cone 2³², 2.45 × 10⁻⁵ at 2²⁴ (174 cuts before depth 36), 2.54 × 10⁻⁵ at 2²² (465) and 2.94 ×
-10⁻⁵ at 2²⁰ (1,074). At depth 20 the trees for cones 2²⁴ and 2³² are identical; a cone 2^k starts failing near depth
-k − 1. The early cuts are edge effects: in the class W = 2 + 2²⁰z (z ≥ 1) a comparison reads 4z = 4, true only at
-the class's smallest member, and in W = 2¹⁹ + 2 + 2²⁰z it reads 2 + 4z = 4, true only at the rational point z = 1/2.
-Two of these, at depth 19, carry most of the extra mass at cone 2²⁰. Dropping a class's smallest member by a direct
-run (and adding W ≥ W* + 2 to the cone) would remove both kinds. With the tree's soundness proved for every cone (the
-route-tree thread), an end-to-end theorem without `native_decide` then needs only this prefix.
+lower prefix costs elsewhere is the clean-tape tree's cone: at depth 36 the tree leaves cut mass 1,660,086 / 2³⁶ =
+2.42 × 10⁻⁵ at cone 2³², 2.45 × 10⁻⁵ at 2²⁴ (174 cuts before depth 36), 2.54 × 10⁻⁵ at 2²² (465) and 2.94 × 10⁻⁵ at
+2²⁰ (1,074; measured with `ExploreCT`, and at 2²⁰ again with the proved explorer, below). At depth 20 the trees for
+cones 2²⁴ and 2³² are identical; a cone 2^k starts failing near depth k − 1. The early cuts are edge effects: in the
+class W = 2 + 2²⁰z (z ≥ 1) a comparison reads 4z = 4, true only at the class's smallest member, and in W = 2¹⁹ + 2 +
+2²⁰z it reads 2 + 4z = 4, true only at the rational point z = 1/2. Two of these, at depth 19, carry most of the extra
+mass at cone 2²⁰. Dropping a class's smallest member by a direct run (and adding W ≥ W* + 2 to the cone) would remove
+both kinds. With the tree's soundness proved for every cone, this prefix is all that an end-to-end theorem without
+`native_decide` still needed (next entry).
+
+**End to end in the kernel alone (October 27; `../lean/thm/EndToEnd.lean`, `../lean/thm/CleanKernelMass.lean`).**
+`blank_halt_clean_from` now takes the prefix as hypotheses (a clean tape of even width W₀ that the run from blank tape
+reaches) and a lower end A for the clean tapes covered in between (`StepsBelow A B`: every clean tape of width in
+[A, B) reaches a wider one). With the kernel's prefix to 2²⁰ and A = B = 2²⁰, so that nothing is run in between, the
+chain uses the clean-tape tree over the widths ≥ 2²⁰ from the first clean tape on: `blank_halt_clean_kernel`,
+`blank_halt_structure_kernel` and `never_halts_of_cut_classes_kernel` hold with `propext`, `Classical.choice` and
+`Quot.sound` alone. Every tree in them is either checked by `decide +kernel` (exit, endgame) or built by the proved
+explorer (clean tapes), and the prefix is checked by `decide +kernel` in stretches; no compiled code is trusted. They
+say what `blank_halt_structure` says, except that the clean tape a halt needs is only known to be at least 2²⁰ wide,
+in the cut classes of the tree over the widths ≥ 2²⁰ at every depth. At 36 digits those are 1,653,905 classes of
+measure 2,018,149 / 2³⁶ ≈ 2.9 × 10⁻⁵, against 1,660,017 of measure 1,660,086 / 2³⁶ ≈ 2.4 × 10⁻⁵ from 2³²: fewer
+classes, but 1,074 of them cut above full depth (7 from 2³²), 2 at depth 19 (measure 262,144 / 2³⁶) and the others
+from depth 22 to 35 (103,174 / 2³⁶; 1, 4, 3, 3, 13, 14, 14, 23, 30, 53, 106, 179, 290 and 339 at depths 22 to
+35). So the edge of the cone W ≥ 2²⁰ is not one pair of classes, as it is at depth 31 for 2³² and at depth 40 for
+2⁴¹, but a band of classes near the cone's bound. The direct run of a class's smallest member would remove it, and
+should bring the kernel-only theorems' measure down to about that from 2³² (with `ExploreCT`, 1,660,100 / 2³⁶ at cone
+2²⁰ and 1,660,557 / 2³⁶ at 2¹⁶ when every early cut drops its smallest member and goes on).
 
 *What the checkers trust.* The mark rules (each proved from the transition table in `proofs.py`, with the contact
 conditions under which they hold); exact rational arithmetic; and nothing from the explorers except the leaf lists,
