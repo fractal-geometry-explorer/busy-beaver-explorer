@@ -40,6 +40,14 @@ closes.)
   too, not only at a loop entry.  (Untrusted: of the 18.4 million points with R ≥ 178 and width up to 16,384 where a
   full pass from a pass start with every gap at least 448 can land, two close, at widths 13,400 and 16,292, both real
   landings.)
+* `reentry_open_halt`: the eighth family's route at larger scales.  Its run meets the end at 184 = R − 2, then off the
+  chain at 1,022 = 2¹⁰ − 2, and from there the end meetings halve, 510, 254, ..., 2, 0, through three-wall round
+  starts with small right ends (R = 128, 64, 8 and 4), to the close.  On this route the meeting off the chain is at
+  (W − b + 2R + 14)/4, so W − b = 2^(j+2) − 2R − 22 puts it at 2^j − 2, and for each j from 10 to 30 a family with
+  R = 178 there halts, open at every depth (`reentryFams_shape`; on a member, the meetings are 176, 2^j − 2,
+  2^(j−1) − 2, ..., 2, 0).  (Untrusted: a symbolic search of the model's rounds finds, for each such j and each
+  R ≡ 2 (mod 4) tried, exactly one class of b that closes, modulo about 2^(1.5 j + 2); those with R ≡ 2 (mod 8) are
+  open at every depth, those with R ≡ 6 (mod 8) meet a landing in round 7.)
 -/
 
 namespace BB6
@@ -365,6 +373,45 @@ theorem full_pass_open_halt :
   rw [hr] at hk
   exact ⟨.cons .full 8 kk hP₀ hk hr full_pass_meets (by decide) ⟨rfl, rfl, by decide, rfl⟩ (.nil hP₁), hcut, hT⟩
 
+/-! ## The same route at larger scales -/
+
+/-- One family at each scale j from 10 to 30, all with R = 178 and W − b = 2^(j+2) − 2R − 22, as (W₀, R₀, b₀, k, N).
+On this route the end is met at R − 2, then off the chain at (W − b + 2R + 14)/4 = 2^j − 2, and that meeting's
+halving chain runs to the close.  The class of b modulo 2^k (k about 1.5 j + 2) is the one an untrusted symbolic search
+of the model's rounds finds for that j and R. -/
+def reentryFams : List Fam :=
+  [⟨12896, 178, 9178, 17, 22⟩, ⟨201312, 178, 193498, 19, 24⟩, ⟨840288, 178, 824282, 20, 27⟩,
+   ⟨1069664, 178, 1037274, 21, 29⟩, ⟨5722720, 178, 5657562, 23, 30⟩, ⟨6640224, 178, 6509530, 25, 32⟩,
+   ⟨42029664, 178, 41767898, 26, 35⟩, ⟨45699680, 178, 45175770, 27, 37⟩, ⟨321475168, 178, 320426970, 29, 38⟩,
+   ⟨336155232, 178, 334058458, 31, 40⟩, ⟨2512999008, 178, 2508805082, 32, 43⟩, ⟨2571719264, 178, 2563331034, 33, 45⟩,
+   ⟨19869028960, 178, 19852252122, 35, 46⟩, ⟨20103909984, 178, 20070355930, 37, 48⟩,
+   ⟨158012625504, 178, 157945517018, 38, 51⟩, ⟨158952149600, 178, 158817932250, 39, 53⟩,
+   ⟨1260342825568, 178, 1260074390490, 41, 54⟩, ⟨1264100921952, 178, 1263564051418, 43, 56⟩,
+   ⟨10067710136928, 178, 10066636395482, 44, 59⟩, ⟨10082742522464, 178, 10080595039194, 45, 61⟩,
+   ⟨80481551471200, 178, 80477256504282, 47, 62⟩]
+
+/-- The j-th has R = 178 and W − b = 2^(j+2) − 378. -/
+theorem reentryFams_shape :
+    reentryFams.map (fun F => (F.R0, F.W0 - F.b0)) = (List.range 21).map (fun i => (178, 2 ^ (i + 12) - 378)) := by
+  decide +kernel
+
+/-- All 21 pass the checks (the close run and the model's run on each, by the kernel). -/
+theorem reentryFams_ok : reentryFams.all Fam.ok = true := by decide +kernel
+
+/-- **At each scale j from 10 to 30, a family of pass starts with R = 178 and W − b = 2^(j+2) − 378 that halt, open
+at every depth, at every width.** -/
+theorem reentry_open_halt {F : Fam} (hF : F ∈ reentryFams) {a t : Nat} (ha : a % 2 = 1) (h1 : 448 ≤ a)
+    (h2 : a + 448 ≤ F.b0 + 2 ^ F.k * t) :
+    PassStart448 [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩] (F.W0 + 2 ^ F.k * t)
+      F.R0 ∧
+    (∀ d, (passTreeSym d).cutMem [((a : Int) - 1) / 2, ((F.b0 + 2 ^ F.k * t : Nat) : Int) / 2,
+      ((F.W0 + 2 ^ F.k * t : Nat) : Int) / 2, (F.R0 : Int) / 2] = true) ∧
+    ∃ T, steps T (roundStart [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩]
+      (F.W0 + 2 ^ F.k * t)) = none :=
+  Fam.open_halt (List.all_eq_true.1 reentryFams_ok F hF) ha h1 h2
+
+/-! ## At every width -/
+
 /-- **Pass starts with R ≥ 178 that halt and that `passTreeSym` leaves open at every depth, at every width.** -/
 theorem sym_open_halt (N : Nat) : ∃ R a b W, N < W ∧ 178 ≤ R ∧ PassStart448 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W R ∧
     (∀ d, (passTreeSym d).cutMem [((a : Int) - 1) / 2, (b : Int) / 2, (W : Int) / 2, (R : Int) / 2] = true) ∧
@@ -384,6 +431,8 @@ theorem sym_open_halt_wide : ∃ R a b W, directWidth < W ∧ 178 ≤ R ∧
 #print axioms family_open_halt
 #print axioms open_halt_families
 #print axioms full_pass_open_halt
+#print axioms reentryFams_shape
+#print axioms reentry_open_halt
 #print axioms sym_open_halt
 #print axioms sym_open_halt_wide
 

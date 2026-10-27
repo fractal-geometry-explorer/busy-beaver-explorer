@@ -18,8 +18,9 @@
 #      with R = 6 that halt (thm/PassHaltR6.lean, six rounds on the class evaluated by the kernel), the eight classes
 #      of pass starts that the mark model takes to a close at distance 0, each a halt (thm/PassHaltClasses.lean, the
 #      model run on each class by the kernel), eight families of pass starts with R >= 178 at every width that halt
-#      and that the pass-start tree for R >= 178 leaves open at every depth, and a full pass of the loop's chain onto
-#      one (thm/PassOpenHalt.lean, the model run on the families by the kernel), the blank-tape prefix to width 2^32
+#      and that the pass-start tree for R >= 178 leaves open at every depth, one more at each scale of the third gap
+#      from 2^12 to 2^32, and a full pass of the loop's chain onto one (thm/PassOpenHalt.lean, the model run on the
+#      families by the kernel), the blank-tape prefix to width 2^32
 #      (thm/Prefix.lean, about 4 minutes), the clean-tape tree at every depth
 #      (thm/CleanTheorem.lean, the proved explorer, nothing evaluated), the clean tapes of width in [2^32, 2^41) run
 #      one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and thm/EndToEndDirect.lean, the routes
@@ -30,7 +31,7 @@
 #      (thm/PassEntryHalt.lean), the same with loop entries from which the loop's chain ends at no small right end
 #      (thm/CleanSmallTheorem.lean, thm/SmallEndHalt.lean, nothing evaluated), and the two together
 #      (thm/OpenSmallHalt.lean), and with loop entries whose right end is at least a 32nd of the width, from which the
-#      chain ends at a pass start of the wide shape that none of the eight families meets above width 58,502
+#      chain ends at a pass start of the wide shape that none of the 29 families above meets above width 2^35
 #      (thm/CleanWideTheorem.lean, thm/WideHalt.lean, nothing evaluated); prints the axioms of the final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,

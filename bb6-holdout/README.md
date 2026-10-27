@@ -69,7 +69,8 @@ mark rules interactively.
     every depth (`family_open_halt`, `sym_open_halt`). Seven more such families are proved (`open_halt_families`;
     an exhaustive scan of the widths 2,048 to 3,072 finds eleven closing placements, seven of which repeat at every
     width), and a full pass of the loop's chain can land on one (`full_pass_open_halt`: from R = 2,976 to R = 186 at
-    width 13,400).
+    width 13,400). The route repeats at every scale: for each j from 10 to 30 a family with R = 178 and
+    W − b = 2^(j+2) − 378 meets the end off the chain at 2^j − 2, halves to 0 and closes (`reentry_open_halt`).
 
   The number of rounds in all three is existential (chosen per class by an untrusted program), but each stretch ends at
   its stated event. The first versions (`exit_no_halt`, `endgame_no_close`, `loop_no_close`, `loop_pass`) said only
@@ -112,14 +113,18 @@ mark rules interactively.
   run reaches one of the open clean tapes, and from those, one of the open pass starts with R ≥ 178:
   `blank_halt_open_small` (`lean/thm/OpenSmallHalt.lean`) states the two together, and `never_halts_of_open` says that a
   negative answer to both would show the machine never halts. The second is about reaching: open pass starts with
-  R ≥ 178 that halt exist at every width (`sym_open_halt`, `open_halt_families`, `lean/thm/PassOpenHalt.lean`), also
-  where a full pass of the loop's chain lands (`full_pass_open_halt`). The run reaches none of those eight families:
-  the chain from a loop entry ends at a pass start with W ≤ 64R + 6 or 15W ≤ 64(W − b), which the families are only
-  below width 58,502 (`blank_halt_not_family`, `lean/thm/WideHalt.lean`).
+  R ≥ 178 that halt exist at every width (`sym_open_halt`, `open_halt_families`, `lean/thm/PassOpenHalt.lean`) and at
+  every scale of the third gap tried (`reentry_open_halt`), also where a full pass of the loop's chain lands
+  (`full_pass_open_halt`). The run reaches none of those 29 families: the chain from a loop entry ends at a pass start
+  with W ≤ 64R + 6 or 15W ≤ 64(W − b), which the families are only below width 2³⁵ (`blank_halt_not_family`,
+  `lean/thm/WideHalt.lean`).
   Deeper trees shrink the open clean tapes' measure (6,582,732 classes of measure 6.0 × 10⁻⁶ at 40 digits, 33,928,389
   of 1.93 × 10⁻⁶ at 44, by `native_decide` on all cores, `lean/BB6/MassPar.lean`), but not the number of open classes
   at a fixed number of digits: nearly every one holds a 2-adic value of W/2 that no depth settles, so closing them
   needs an argument that uses that W is an integer (`lean/END_TO_END.md`, "Deeper trees").
+  Each such class holds a Cantor set of these values, not one (below every class cut at 24 digits but 2 the tree still
+  cuts 42 to 304 classes at 36 digits), so no never-zero countdown can close a class, and an argument from integrality
+  would have to settle a question of the Collatz kind (`integ/INTEGRALITY.md`).
 - *The route tree* (`lean/thm/RouteTheorem.lean`, `lean/ROUTE_TREE.md`): `route_tree_clean`, the certificate's
   two-marker route tree as a theorem about the machine, at every depth and cone constant, with the standard axioms
   only (the same explorer); at 36 and 40 digits its cut classes are the Python certificate's (measure 5.9 × 10⁻⁶ and
@@ -199,6 +204,7 @@ python3 check_tree.py tree36_leaves.txt          # hours
 | `stepper/` | the mark-rule engine of the stepper page (`engine.js`) and the Node scripts run on it |
 | `m2/` | the first JavaScript explorations of the machine (event and round extraction) |
 | `lock/` | locks for the extra-wall loops (October 27): P and Q pass maps as Lean theorems, the quadratic never-zero countdown of Q, locks for every periodic word, why mixtures have none, and why no such lock can settle the open cases, whose runs almost never reach the loop; the return pieces that make up two-marker runs, with the eight largest and their countdowns as Lean theorems, and the two-marker states that halt (`lock/LOCK_NOTES.md`) |
+| `integ/` | whether the fact that widths are whole numbers can close the open clean-tape classes (October 27): the branching below every open class as Lean-evaluated counts, the branching of single two-marker segments, why no lock can exist for a class, and the search for invariants modulo odd primes (`integ/INTEGRALITY.md`) |
 | `sib/` | a simulator for any six-state machine from blank tape |
 
 The notes are a working log kept as the research went. Paths in them such as `../csearch/gx3.c` are relative to

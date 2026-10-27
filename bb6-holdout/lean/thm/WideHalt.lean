@@ -8,8 +8,8 @@ open BB6 BB6.Sym
 `blank_halt_open_small` (`thm/OpenSmallHalt.lean`) leaves a halt from blank tape at a clean tape that both clean-tape
 trees leave open at every depth, or at a pass start with R ≥ 178 that `passTreeSym` leaves open at every depth, the
 last pass start of the loop's chain from a loop entry.  Pass starts of that kind halt (`open_halt_families`,
-`thm/PassOpenHalt.lean`), in families with R and W − b fixed.  This file shows that the chain from a loop entry
-reaches none of them above width 2⁴¹, from the steps' maps alone:
+`reentry_open_halt`, `thm/PassOpenHalt.lean`), in families with R and W − b fixed.  This file shows that the chain
+from a loop entry reaches none of them above width 2⁴¹, from the steps' maps alone:
 
 * A full pass lands with 64(W′ − b′) = 16E − b + 128R′ + 286 ≥ 15E + 144R′ + 735, so the landing's middle wall leaves
   at least 15/64 of the width to the end; a round-7 break lands with 32R′ = 4E + 4R − b + 110 ≥ 3E + 5R + 559, so its
@@ -25,8 +25,9 @@ reaches none of them above width 2⁴¹, from the steps' maps alone:
 
 `blank_halt_open_wide` is `blank_halt_open_small` with that shape at the pass start, and `never_halts_of_wide` the
 open question with it.  A family with R and W − b fixed meets the shape only at widths up to 32(W − b + 2R) + 6: none
-of the eight families of `open_halt_families` above 58,502 (`openHaltFams_wide`), so the run from blank tape halts
-through none of them (`blank_halt_not_family`).  The bound holds whatever the route from the pass start to the halt.
+of the eight families of `open_halt_families` above 58,502 (`openHaltFams_wide`) and none of the 21 of
+`reentry_open_halt` above 2³⁵ (`reentryFams_wide`), so the run from blank tape halts through none of them
+(`blank_halt_not_family`).  The bound holds whatever the route from the pass start to the halt.
 On the main route the run meets the end off the chain at (W − b + 2R + 14)/4 = 2^(m−2) − 2 and halves to 0, so
 W − b + 2R + 22 = 2^m, and a pass start a halt needs is on that lane only if W ≤ 2^(m+5) + 6 (`wideShape_pow2`); other
 routes meet the end more times before the halving starts.  Nothing here is evaluated: the tree is built by the proved
@@ -108,6 +109,24 @@ theorem openHaltFams_wide {F : Fam} (hF : F ∈ openHaltFams) (t : Nat)
   have hc : F.R0 ≤ 914 ∧ F.b0 ≤ F.W0 ∧ F.W0 - F.b0 ≤ 3702 := by
     simp only [openHaltFams, List.mem_cons, List.mem_nil_iff, or_false] at hF
     rcases hF with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> decide
+  generalize 2 ^ F.k * t = X at h ⊢
+  omega
+
+/-- **The 21 families at larger scales meet the shape only below width 2³⁵**: their right ends are 178 and their
+W − b, 2^(j+2) − 378 for j up to 30, below 2³². -/
+theorem reentryFams_wide {F : Fam} (hF : F ∈ reentryFams) (t : Nat)
+    (h : F.W0 + 2 ^ F.k * t ≤ 64 * F.R0 + 6 ∨
+      15 * (F.W0 + 2 ^ F.k * t) ≤ 64 * (F.W0 + 2 ^ F.k * t - (F.b0 + 2 ^ F.k * t))) :
+    F.W0 + 2 ^ F.k * t < 2 ^ 35 := by
+  have hall : reentryFams.all (fun F => F.R0 == 178 && decide (F.b0 ≤ F.W0) && decide (F.W0 - F.b0 < 2 ^ 32)) =
+      true := by decide +kernel
+  have hc := List.all_eq_true.1 hall F hF
+  simp only [Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at hc
+  obtain ⟨⟨h1, h2⟩, h3⟩ := hc
+  have e32 : (2 : Nat) ^ 32 = 4294967296 := rfl
+  have e35 : (2 : Nat) ^ 35 = 34359738368 := rfl
+  rw [e32] at h3
+  rw [e35]
   generalize 2 ^ F.k * t = X at h ⊢
   omega
 
@@ -263,10 +282,10 @@ theorem never_halts_of_wide
   · exact hC W hBW hW hG hS _ hTW
   · exact hP W R a b W₁ t hBW hW hG hlt hR hsh hP₁ hcut ht _ hT₁
 
-/-- **The run from blank tape halts through none of the eight families.**  If the machine halts from blank tape, it
+/-- **The run from blank tape halts through none of the 29 families.**  If the machine halts from blank tape, it
 reaches a clean tape that both trees leave open at every depth and halts from there, or the pass start that
-`blank_halt_open_wide` names is a member of none of the families of `open_halt_families`: it is wider than 2⁴¹, and
-they meet the shape only below 58,502. -/
+`blank_halt_open_wide` names is a member of none of the families of `open_halt_families` and `reentry_open_halt`: it is
+wider than 2⁴¹, and they meet the shape only below 58,502 and 2³⁵. -/
 theorem blank_halt_not_family (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :
     ∃ W k, directWidth ≤ W ∧ W % 2 = 0 ∧ (∀ d, (cleanTreeG directWidth d).cutMem [(W : Int) / 2, 0] = true) ∧
       steps k ⟨blank, blank, .A⟩ = some (roundStart [⟨.M, W - 2⟩] W) ∧
@@ -276,16 +295,22 @@ theorem blank_halt_not_family (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = n
           (∀ d, (passTreeSym d).cutMem [((a : Int) - 1) / 2, (b : Int) / 2, (W₁ : Int) / 2, (R : Int) / 2] = true) ∧
           steps t (roundStart [⟨.M, W - 2⟩] W) = some (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W₁ - R - 1⟩] W₁) ∧
           steps (T - k - t) (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W₁ - R - 1⟩] W₁) = none ∧
-          ∀ F ∈ openHaltFams, ∀ s, ¬ (R = F.R0 ∧ b = F.b0 + 2 ^ F.k * s ∧ W₁ = F.W0 + 2 ^ F.k * s)) := by
+          ∀ F ∈ openHaltFams ++ reentryFams, ∀ s, ¬ (R = F.R0 ∧ b = F.b0 + 2 ^ F.k * s ∧ W₁ = F.W0 + 2 ^ F.k * s)) := by
   obtain ⟨W, k, hBW, hW, hG, hk, hTW, ⟨hS, -⟩ | ⟨R, a, b, W₁, t, hlt, hR, hsh, hP₁, hcut, ht, hT₁, -⟩⟩ :=
     blank_halt_open_wide T hT
   · exact ⟨W, k, hBW, hW, hG, hk, hTW, Or.inl hS⟩
   · refine ⟨W, k, hBW, hW, hG, hk, hTW, Or.inr ⟨R, a, b, W₁, t, hlt, hR, hP₁, hcut, ht, hT₁, ?_⟩⟩
     rintro F hF s ⟨rfl, rfl, rfl⟩
-    have h58 := openHaltFams_wide hF s hsh
     have h41 : directWidth = 2199023255552 := rfl
-    generalize 2 ^ F.k * s = X at h58 hlt
-    omega
+    rcases List.mem_append.1 hF with hF | hF
+    · have h58 := openHaltFams_wide hF s hsh
+      generalize 2 ^ F.k * s = X at h58 hlt
+      omega
+    · have h35 := reentryFams_wide hF s hsh
+      have e35 : (2 : Nat) ^ 35 = 34359738368 := rfl
+      rw [e35] at h35
+      generalize 2 ^ F.k * s = X at h35 hlt
+      omega
 
 #print axioms LoopChain.wide_end
 #print axioms entry_wide_halt

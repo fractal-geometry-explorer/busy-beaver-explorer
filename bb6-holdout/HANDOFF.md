@@ -82,11 +82,14 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    starts with R ≥ 178 halt, at every width (`sym_open_halt`, `lean/thm/PassOpenHalt.lean`: a family with R = 178
    whose run leaves the loop, enters it again through an end meeting at 254 and closes; `open_halt_families`: eight
    such families, from an exhaustive scan of the widths 2,048 to 3,072 and a scan of where full passes land), and the
-   loop's chain can land on one after a full pass (`full_pass_open_halt`), so the second question is whether the run
-   reaches one. It reaches none of the eight (`blank_halt_not_family`, `lean/thm/WideHalt.lean`): with W ≤ 32R checked
-   at the loop entries (`lean/BB6/WideEntry.lean`; all 28,660 at 36 digits pass), the chain's last pass start has
-   W ≤ 64R + 6 or 15W ≤ 64(W − b), and a family, with R and W − b fixed, has that shape only below width 58,502. What
-   is left of the second question is the pass starts of that shape (`never_halts_of_wide`).
+   loop's chain can land on one after a full pass (`full_pass_open_halt`); the same route gives one family at each
+   scale of the third gap tried (`reentry_open_halt`: W − b = 2^(j+2) − 378, j = 10 to 30, R = 178), so the second
+   question is whether the run reaches one. It reaches none of these 29 families (`blank_halt_not_family`,
+   `lean/thm/WideHalt.lean`): with W ≤ 32R checked at the loop entries (`lean/BB6/WideEntry.lean`; all 28,660 at 36
+   digits pass), the chain's last pass start has W ≤ 64R + 6 or 15W ≤ 64(W − b), and a family, with R and W − b fixed,
+   has that shape only below width 32(W − b + 2R) + 6: the eight below 58,502, the 21 below 2³⁵, while the run's pass
+   starts are wider than 2⁴¹. What is left of the second question is the pass starts of that shape
+   (`never_halts_of_wide`).
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
@@ -126,6 +129,12 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    `native_decide`), but below almost every class cut at b digits a deeper tree still cuts, so the number of open
    classes at b digits stays put: each holds a 2-adic value of W/2 that no depth settles, and only an argument that
    uses that W is an integer could close it.
+   **Nor does integrality, short of a question of the Collatz kind (October 27, `integ/INTEGRALITY.md`):** a class holds
+   not one such value but a Cantor set of them (below every class cut at 24 digits but 2, the tree of depth 36 still
+   cuts 42 to 304 classes, `integ/SpineCount.lean`, `native_decide`), single two-marker segments branch too, and the
+   only odd-modulus invariant is the known count of 1s mod 3, so no never-zero countdown can close a class: it would
+   vanish at infinitely many 2-adic points. The tree follows a width for about as many digits as it has; whether every
+   width then settles is the open question.
 
 ## Practical notes
 
