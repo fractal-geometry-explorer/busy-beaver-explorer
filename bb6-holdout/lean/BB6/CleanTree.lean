@@ -231,6 +231,7 @@ def RTree.okW : RTree → Bool → List SMark → YForm → YForm → List YForm
       t1.okW moved (substL ss i 1) (sW.subst i 1) (w0.subst i 1) (substT ts i 1)
   | .shear i s t, moved, ss, sW, w0, ts => t.okW moved (shearL ss i s) (sW.shear i s) (w0.shear i s) (shearT ts i s)
   | .drop z t, moved, ss, sW, w0, ts => dropOK Γ fuel z ss sW w0 ts && t.okW moved ss sW w0 [dropCone Γ z]
+  | .entry, _, _, _, _, _ => false
 
 /-- **A checked clean-tape tree, for the machine.**  At every point `y` of the root class inside the cone, from a
 well-formed round start that agrees with the root (width `Wn`; `W0` the value of `w0`), the machine runs `n` rounds of
@@ -327,6 +328,9 @@ theorem RTree.soundW (t : RTree) : ∀ (moved : Bool) (ss : List SMark) (sW w0 :
     · obtain ⟨n, k, ms', Wn', h1, h2, h3⟩ :=
         ih _ _ _ _ _ ht [a, b] rfl (inCone_dropCone (by omega)) ms Wn W0 hs hW h0 hwf
       exact ⟨n, k, ms', Wn', h1, h2, by rw [if_neg hz]; exact h3⟩
+  | entry =>
+    intro moved ss sW w0 ts h
+    simp [RTree.okW] at h
 
 end BB6.Sym
 

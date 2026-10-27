@@ -43,6 +43,7 @@ def RTree.cuts1 : RTree → Nat → Nat → Option (List (Nat × Nat))
     else none
   | .shear _ _ _, _, _ => none
   | .drop _ t, r, k => t.cuts1 r k
+  | .entry, _, _ => some []
 
 theorem RTree.cuts1_sound (t : RTree) : ∀ (r k : Nat) (L : List (Nat × Nat)), t.cuts1 r k = some L → r < 2 ^ k →
     ∀ (a : Nat), t.cutMem [(a : Int), 0] = true → ∃ p ∈ L, (r + 2 ^ k * a) % 2 ^ p.2 = p.1 := by
@@ -105,6 +106,9 @@ theorem RTree.cuts1_sound (t : RTree) : ∀ (r k : Nat) (L : List (Nat × Nat)),
     split at hc
     · cases hc
     · exact ih r k L h hr a hc
+  | entry =>
+    intro r k L _ _ a hc
+    simp [RTree.cutMem] at hc
 
 /-! ## Running every member of every cut class in a range -/
 

@@ -65,7 +65,12 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    its cut classes are the same as from 2³² and 2⁴¹: the exhaustive check's open classes, 1,660,024 at 36 digits.
 4. **The route-tree certificate in Lean** (the "ways into the loop have ceilings" results). Done (October 27) for the
    tree itself: `route_tree_clean` at every depth and cone constant (`lean/ROUTE_TREE.md`), with the certificate's
-   cut classes at 36 and 40 digits. The ceilings are not in Lean.
+   cut classes at 36 and 40 digits. The ceilings themselves are not in Lean, and not needed for the entries the tree
+   reaches: a second tree (`routeTreeE`, `lean/BB6/RouteEntry.lean`) stops a path at the first pass start from which
+   no point of its class closes through the loop at any width, decided on the class, which leaves a quarter of the cut
+   classes at 36 digits and a fifth at 40; from such an entry a halt needs the loop's chain to end without a close
+   (`blank_halt_route`, `lean/thm/RouteEntryHalt.lean`). Left: the run after the loop's end, and the cut classes,
+   nearly all of them routes that meet no three-wall round start within the tree's depth.
 5. **Research**: of the three open questions (routes deeper than the tree, halts carried by the extra-wall loop
    alone, marks touching), the most promising is a lock for the extra-wall loops analogous to the plain loop's
    never-zero countdown.
