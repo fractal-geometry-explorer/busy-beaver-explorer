@@ -289,15 +289,16 @@ python3 thm/gen_prefix.py checkpoints.txt thm 8
 
 | step | time |
 |---|---|
-| `thm/PrefixPieces*.lean`, `thm/ExitPieces*.lean`, `thm/EndgamePieces*.lean` (kernel, 4 modules at a time; the prefix pieces take about 2 min of it) | 4 min 33 s |
+| `thm/PrefixPieces*.lean`, `thm/ExitPieces*.lean`, `thm/EndgamePieces*.lean` (kernel, 4 modules at a time; the prefix pieces take about 2 min of it) | 3 min 49 s |
 | `thm/PrefixKernel.lean`, `EndgameTheorem.lean`, `ExitTheorem.lean`, `ExitHalt.lean`, `LoopTheorem.lean`, `LoopHalt.lean` | seconds |
-| `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 42 s |
+| `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 20 s |
 | `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean` | seconds |
-| `thm/CleanMass.lean` (36 digits, 3.2 million leaves) | 4 min 57 s |
-| `thm/CleanKernelMass.lean` (36 digits, cone 2²⁰) | 4 min 55 s |
-| `thm/CleanDirect.lean` (the 36-digit tree, then 26,509,316 direct runs) | 11 min 36 s |
-| `thm/CleanDirectMass.lean` (36 digits, cone 2⁴¹) | 4 min 53 s |
-| `thm/CleanMass40.lean`, `thm/CleanDirectMass40.lean` (40 digits, `--deep`) | 27 min each |
+| `thm/CleanMass.lean` (36 digits, 3.2 million leaves) | 4 min 46 s |
+| `thm/CleanKernelMass.lean` (36 digits, cone 2²⁰) | 5 min 27 s |
+| `thm/CleanDirect.lean` (the 36-digit tree, then 26,508,327 direct runs) | 13 min 22 s |
+| `thm/CleanDirectMass.lean` (36 digits, cone 2⁴¹) | 5 min 29 s |
+| `thm/CleanMass40.lean`, `thm/CleanDirectMass40.lean` (40 digits, `--deep`) | 30 min each |
 
-The whole of `check_end.sh` took 21 min 37 s (4 cores; the files of a stage run in parallel); with `--deep` it took
-34 min 56 s before the kernel's prefix and its tree were added.
+The whole of `check_end.sh --deep` took 38 min 51 s (4 cores; the files of a stage run in parallel, and the two
+40-digit measures, side by side, set the time); without `--deep` it took 21 min 37 s when last measured, before the
+drop nodes.
