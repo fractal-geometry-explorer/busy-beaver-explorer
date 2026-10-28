@@ -608,6 +608,7 @@ tree leave open at every depth, among those the older theorems leave.
 | `thm/FarHalt.lean` | `step_far`, `LoopChain.far_end`: a full pass and a round-7 break land with 15W′ ≤ 64(W′ − b′), a half pass when 15E + 26 ≤ 32(E − b + R), so from a pass start with 15W ≤ 64(W − b) and that every pass start of the chain has 15W ≤ 64(W − b) (`FarShape`; on a lane W − b + 2R + 22 = 2^m, 15W + 128R + 1,408 ≤ 2^(m+6), `farShape_pow2`); `entry_far_halt`; `blank_halt_open_far`, `blank_halt_open_far_kernel`, `never_halts_of_far`: `blank_halt_open_wide` and the open question with that shape | as for `thm/WideHalt.lean` |
 | `thm/BigEndHalt.lean` | `noEnd_full`, `noEnd_end`, `break7_noEnd769`, `LoopChain.big_end`: a full pass keeps `NoEndBelow N`, a round-7 break from a width of at least 2⁴¹ lands with it for N = 769, so from a start of width at least 2⁴¹ with `NoEndBelow 769` (and after its half pass) the chain ends at R ≥ 769; `entry_big_halt`; `blank_halt_open_big`, `never_halts_of_big`: `blank_halt_open_far` and the open question with R ≥ 769 too | as for `thm/WideHalt.lean` |
 | `thm/OpenHaltClose.lean` | `entry_small_halt_close`, `entry_wide_halt_close`, `entry_far_halt_close`, `entry_big_halt_close`: `entry_small_halt`, `entry_wide_halt`, `entry_far_halt` and `entry_big_halt` from a loop entry of `EntryNoCloseC`, with the same conclusions; `blank_halt_open_small_close`, `blank_halt_open_small_kernel_close`, `never_halts_of_open_close`, `blank_halt_open_wide_close`, `blank_halt_open_wide_kernel_close`, `never_halts_of_wide_close`, `blank_halt_not_family_close`, `blank_halt_open_far_close`, `blank_halt_open_far_kernel_close`, `never_halts_of_far_close`, `blank_halt_open_big_close`, `never_halts_of_big_close`: the theorems of `thm/OpenSmallHalt.lean`, `thm/WideHalt.lean`, `thm/FarHalt.lean` and `thm/BigEndHalt.lean` with the clean-tape trees of `thm/CleanTreesC.lean` | `entry_pass_halt_close` and `passCutC_iff` (from R = 178 on the pass-start tree is `passTreeSym`), the chain lemmas of the older files, `blank_halt_open_of`; nothing evaluated |
+| `thm/LoopFarHalt.lean` | `loopFar_open_halt`: six families of pass starts with R ≥ 769 (first wall free, the other walls and the width moved by multiples of 2^k), each lying in a cut leaf of `passTreeSym` at every depth and halting, on the lanes with two to five 4-wall passes, each on its n-pass family's route: one at Q + 163,836 = 2⁴¹ (k = 15, R ≡ 37,606 mod 2¹⁷), two at Q + 2,621,436 = 2⁴¹ and one at 2⁶⁶ (k = 19, R ≡ 365,286 mod 2²¹), one at Q + 41,943,036 = 2⁶⁶ (k = 23, R ≡ 11,899,622 mod 2²⁵) and one at Q + 671,088,636 = 2⁶⁶ (k = 27, R ≡ 464,884,454 mod 2²⁹) (`loopFar2`, `loopFar3`, `loopFar66`, `loopFar4`, `loopFar5`, `loopFar_shape`); `loopFar_wide`: each has width above 2⁴¹ (the last three above 2⁶⁶) and 15W ≤ 64(W − b); `loop2_far_wide`, `loop3_far_wide`, `loop3_far_66`, `loop4_far_66`, `loop5_far_66`: a member on each lane and scale with every condition `blank_halt_open_big` puts on the pass start, its width included (widths 4,929,578,547,392, 5,413,114,788,032, 192,745,493,072,062,232,768, 147,950,097,082,544,601,280 and 119,580,288,664,381,470,912) | `Fam.open_halt`; the close run and the model's rounds on each family by `decide +kernel` |
 | `thm/CleanEntryMass.lean`, `thm/CleanEntryKernelMass.lean` | `clean_tree_entry_cut_mass`, `clean_entry_kernel_cut_mass`: the leaf counts and measures of `cleanTreeGE 2⁴¹ 36` and `cleanTreeGE 2²⁴ 36` | `exploreMassWE`, `native_decide`; used by no theorem about the machine |
 | `BB6/MassPar.lean` | `massPrefix_eq`: the tally of `exploreMassWE` is that of the leaves above a split level plus the tallies of the nodes on it; `massPar_eq`: the same with the nodes' tallies computed as parallel tasks | proved, standard axioms |
 | `thm/CleanEntryMass40.lean`, `thm/CleanEntryMass44.lean` | `clean_tree_entry_cut_mass40`, `clean_tree_entry_cut_mass44`: the leaf counts and measures of `cleanTreeGE 2⁴¹ 40` and `cleanTreeGE 2⁴¹ 44` | `massPar` (`massPar_eq`), `native_decide`; used by no theorem about the machine |
@@ -1208,10 +1209,24 @@ and 2^101.7 at k = 19, 23 and 27 (the families of n = 2 to 5 on Q = 4 + 123 · 2
 2^78.1 at k = 15, and 2^88.1, 2^100.1 and 2^112.1 at k = 19, 23 and 27. So at the 2⁶⁶ floor the paths at k = 14 and 15
 are left against any end below 178, by the end's own L₁ too (below), and out against a close but for two at k = 15, the
 paths from R = 47,334 and 288,038, which re-enter in round 31, not 35; those two, and from k = 19 on every path, are
-left against a close as well, by the close's own L₁ too. No floor leaves every lane out: the family has to be kept off
-by an argument over the 4-wall loop, its invariant r³/Λ² in place of R′³/L₁′², or by the far shape, which the families
-on Q = 4 + 123 · 2^(4n+7) lack for n ≥ 1 (b close to W) but γ's lane, at n = 1, has (`lane769_far_wide`); for two or
-more passes that is open. The count above takes every lane of the family at once, but only to its width and only for its
+left against a close as well, by the close's own L₁ too. No floor leaves every lane out, and neither does the far
+shape. The families on Q = 4 + 123 · 2^(4n+7) lack it for n ≥ 1 (b close to W), but γ's lane, at n = 1, has members
+with it (`lane769_far_wide`), and so do the lanes with two to five passes, from three passes on above the 2⁶⁶ floor:
+on the n = 2 family's route (R ≡ 37,606 mod 2¹⁷ on Q + 163,836) pass starts with the far shape, R ≥ 769 and width
+above 2⁴¹ lie at every lane value from 2⁴⁰ to 2⁵⁵ (18 at 2⁴¹, 3,861 at 2⁵⁵) and at none from 2⁵⁹ on; on the n = 3
+family's (R ≡ 365,286 mod 2²¹ on Q + 2,621,436) 2 or 3 at 2⁴¹ to 2⁴³ and 3,630 at 2⁶⁶, all of width about 2^67.4; on
+the n = 4 and 5 families' (R ≡ 11,899,622 mod 2²⁵ on Q + 41,943,036, R ≡ 464,884,454 mod 2²⁹ on Q + 671,088,636) 319
+and 19 at 2⁶⁶, all wider than 2⁶⁶ (untrusted: the step of b's class in R from three R, as on γ's lane, then a lattice
+search over the route, `routes/loop4/far_shape.md` in the project files, where a short vector of that lattice accounts
+for the counts stopping). `loop2_far_wide`, `loop3_far_wide`, `loop3_far_66`, `loop4_far_66` and `loop5_far_66`
+(`thm/LoopFarHalt.lean`) prove members at two to five passes: pass starts that meet every condition
+`blank_halt_open_big` puts on them and halt, the last three wider than 2⁶⁶ (192,745,493,072,062,232,768,
+147,950,097,082,544,601,280 and 119,580,288,664,381,470,912), above the 2⁶⁶ of the exhaustive check and within the
+widths that the filter with `closeClassC` leaves at k = 19, 23 and 27 (to 2^75.1, 2^87.1 and 2^99.1); on PR #90's
+branch, not on main, `Fam.loopOK` says they make exactly two, three, four and five 4-wall passes. So at every
+floor the conditions on the pass start leave halting pass starts on the family, and an argument over the 4-wall loop,
+its invariant r³/Λ² in place of R′³/L₁′², can keep the family off only together with what the chain from the run's own
+loop entries reaches. The count above takes every lane of the family at once, but only to its width and only for its
 entries. A pass start is on the family when the odd part m of Q − 4 has m + 5 = 2^i or 3 · 2^i, k being the power of two
 in Q − 4, and on a class whose Q has a small odd step that holds at many k: the chains from the 40-digit entries, whose
 tree has the same 193,243 classes from 2⁷² to 2²⁵⁶, meet the family at 32 members to width 2¹²⁸, at k from 3 to 108, and
@@ -1420,7 +1435,11 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   as well, only the latter with `closeClassC`). Pass starts with R ≥ 769 that halt, open at every depth, exist on every
   lane the census finds there (`lane769_open_halt`), and one meets every condition of `blank_halt_open_big` on the pass
   start but its width (`lane769_far`: width 16,192). On γ's lane one meets them all, its width included
-  (`lane769_far_wide`: width 5,213,842,519,808, at Q + 5,116 = 3 · 2³⁹), below the 2⁶⁶ of the exhaustive check.
+  (`lane769_far_wide`: width 5,213,842,519,808, at Q + 5,116 = 3 · 2³⁹), below the 2⁶⁶ of the exhaustive check. On the
+  4-wall loop's lanes with two to five passes some do too (`loop2_far_wide`, `loop3_far_wide`), and on those with
+  three, four and five passes some wider than 2⁶⁶ (`loop3_far_66`, `loop4_far_66`, `loop5_far_66`: widths about 2^67.4,
+  2^67.0 and 2^66.7, at Q + 2,621,436, Q + 41,943,036 and Q + 671,088,636 = 2⁶⁶), so with the exhaustive check as well
+  the conditions on the pass start leave a halt.
 * The **two-marker route trees** (`ROUTE_TREE.md`) are not used by the theorems above: the machine's run reaches
   two-marker states with a small first gap again and again ("Why a one-variable tree", above). `blank_halt_route`
   (`thm/RouteEntryHalt.lean`) states what they give for a halting run from blank tape, at each two-marker state with
@@ -1501,6 +1520,7 @@ python3 thm/gen_prefix.py checkpoints.txt thm 8
 | `thm/PrefixPieces*.lean`, `thm/ExitPieces*.lean`, `thm/EndgamePieces*.lean` (kernel, 4 modules at a time; the prefix pieces take about 2 min of it) | 3 min 49 s |
 | `thm/PrefixKernel.lean`, `EndgameTheorem.lean`, `ExitTheorem.lean`, `ExitHalt.lean`, `LoopTheorem.lean`, `LoopHalt.lean`, `PassHalt.lean`, `PassHaltR6.lean`, `PassHaltClasses.lean`, `LoopClose.lean`, `PassHaltClose.lean` | seconds |
 | `thm/PassOpenHalt.lean` (the families' model runs by the kernel) | 2 min 19 s beside the other theorem files |
+| `thm/LoopFarHalt.lean` (six families, by the kernel) | about 30 s |
 | `thm/LaneHalt.lean` (62 families, by the kernel) | about 1 to 2 min |
 | `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 20 s |
 | `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean`, `thm/EndToEndClose.lean`, `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean`, `thm/CleanEntryTheorem.lean`, `thm/CleanEntryHalt.lean`, `thm/PassEntryHalt.lean`, `thm/PassEntryHaltClose.lean`, `thm/CleanSmallTheorem.lean`, `thm/SmallEndHalt.lean`, `thm/OpenSmallHalt.lean`, `thm/CleanWideTheorem.lean`, `thm/WideHalt.lean`, `thm/CleanFarTheorem.lean`, `thm/FarHalt.lean`, `thm/CleanBigTheorem.lean`, `thm/BigEndHalt.lean`, `thm/RouteEntryHaltC.lean`, `thm/CleanTreesC.lean`, `thm/OpenHaltClose.lean` | seconds |
