@@ -24,7 +24,8 @@ Q + 5 * 2^k - 4 = 2^j or 3 * 2^j for k = 3 to 11 (c = 36 to 10,236, gamma's Q + 
 before a half pass, Q + R + 24 + 2c; a lane with |c| > CMAX is checked at its own offset.
 
 usage: python3 chain_lanes.py entries36.txt 63 2000   (entries36.txt from `../lean/EntryForms.lean 2199023255552 36`;
-       likewise entries40.txt at 40 digits)
+       likewise entries40.txt at 40 digits; 70 in place of 63 counts to width 2^70, past the widths at which
+       R'^3/L1'^2 leaves gamma's paths against their ends)
 """
 import sys
 from collections import Counter
@@ -85,15 +86,19 @@ def step(kind, st, z0, M):
 
 def main():
     fn, WMAX, CMAX = sys.argv[1], 2 ** int(sys.argv[2]), int(sys.argv[3])
+    JMAX = int(sys.argv[2]) + 4  # a form scanned with its offset is below 9W + 2^15 < 2^JMAX (R < W)
     depth, hits = Counter(), {}
-    far = [key for key in CENSUS + SWEEP if abs(key[2]) > CMAX]  # lanes outside the window, checked one by one
+    far = {}  # the lanes outside the window, checked one by one: (F, T) -> offsets
+    for name, tn, c in CENSUS + SWEEP:
+        if abs(c) > CMAX:
+            far.setdefault((name, tn), []).append(c)
 
     def visit(st, umin, cid, shape):
         b, E, R = st
         for name, (cW, cb, cR, c0) in FORMS.items():
             F0, F1 = cW * E[0] + cb * b[0] + cR * R[0] + c0, cW * E[1] + cb * b[1] + cR * R[1]
             assert F1 > 0
-            for j in range(30, 65):
+            for j in range(30, JMAX):
                 for tn, T in (('2^j', 2 ** j), ('3*2^j', 3 * 2 ** j)):
                     # the u with |T - F(u)| <= CMAX
                     for u in range(max(umin, -((F0 + CMAX - T) // F1)), (T - F0 + CMAX) // F1 + 1):
@@ -101,7 +106,7 @@ def main():
                             break
                         hits.setdefault((name, tn, T - F0 - F1 * u), []).append(
                             (j, cid, shape, E[0] + E[1] * u, R[0] + R[1] * u))
-                    for c in (key[2] for key in far if key[:2] == (name, tn)):
+                    for c in far.get((name, tn), ()):
                         u, r = divmod(T - c - F0, F1)
                         if r == 0 and u >= umin and E[0] + E[1] * u <= WMAX:
                             hits.setdefault((name, tn, c), []).append(
