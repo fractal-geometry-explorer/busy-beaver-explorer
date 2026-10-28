@@ -3736,3 +3736,20 @@ own L₁ too (`end_l1.py`, at lane values from 3 · 2⁶³ to 2⁷⁴), and the 
 well, by its own L₁ at most of the lane values. `end_l1.py` now counts the admissible ℓ by their residues modulo 224
 instead of listing them (on the family's wide intervals it would run through about 2⁴⁰ values at the 2⁴¹ floor and 2²⁸
 at 2⁶⁶), and the three scripts try lane values to 2¹⁵⁹ (`lane_sigma.ES`; n = 5's widths had been cut off at 2¹⁰⁹).
+
+**The k = 14 census completed, and the lines its paths' ends need (October 28; `routes/lanes_k14_all_forms.txt` and
+`routes/small_ends.txt` in the project files, untrusted).** The census with b free on Q + 81,916 = 2¹⁹ has run all 1,151
+of its R (≡ 38 or 230 mod 256, to 147,238): 31 closing classes at 24 R, each followed to round 80 as before, one path
+per R (the two classes at each of 7 R take the same one), with different forms at every R, R and R + 2¹⁶ included;
+`lanes_k14_all_forms.txt` now holds all 24 paths. The same census on the lanes of k = 12 and 13 (Q + 20,476 and
+Q + 40,956 = 2¹⁸, 628 and 575 runs at the same R) finds no closing class, as k ≡ 2 or 3 (mod 4) predicts. The 15 new
+paths change nothing above: at the 2⁴¹ floor the widths left are still 2^65.7 against a close and 2^76.1 against any end
+below 178 (the least R′³/L₁′² of the 24 is 7.1 × 10⁻⁸, on R = 35,046's path, one of the nine), and at the 2⁶⁶ floor none
+of the 24 is left against a close and all are left against any end below 178, by the end's own L₁ too. Those ends need
+68 lines (r, ℓ), for the 24 and the two paths of `lanes_k14_k15_forms.txt` (k = 15 adds (32, −102)), with r from 6 to
+128 and ℓ from −466 to 94, 45 of them new to the census of lines (`tools/routes/small/need_l1.py`). On every one
+`PassLine2.lean` at depth 24 (the proved explorer's steps) finds no halt, uncovered round, gap or close: (12, −4) goes
+wholly to clean tapes, (96, −256) and (128, −256) wholly make a full pass, to (6, −4) and to (8, −4) (clean by
+`pass_clean8`), and the other 65 have only clean leaves and depth cuts, cut mass 0.05% to 0.23% (with 2 to 5 leaves on
+the ℓ = −32 lines where the cleaves run out, as before). As for the lines before, a cut leaf is open, so this is
+evidence, not proof, that the paths at k = 14 and 15 halt at no end below 178.
