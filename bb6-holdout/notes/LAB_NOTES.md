@@ -3840,3 +3840,33 @@ pass-start trees with `closeClassC` for `entry_pass_halt` and the theorems past 
 lane filters' default stays on `closeClasses`. At 36 digits over the widths ≥ 2⁴¹ `cleanTreeGEC` cuts the same classes
 as `cleanTreeGE`, since none of their runs meets a three-wall round start within the depth: the narrower check matters
 at the entries past the depth, where the censuses' routes go.
+
+**An exact test on the lanes, and why it does not settle the routes (October 28; `tools/routes/exact/` in the shared
+folder, untrusted).** For a route or path whose forms do not depend on R, a lane value fixes D = W − b, so the left
+countdown at the end, L₁′ = (A b + B)/d, is affine in b alone, and an end at r = R′/16^p with countdown ℓ needs an
+integer b in the lane's range with L₁′(b) = 64^p ℓ exactly, where `end_l1.py` and `close_l1.py` only ask for ℓ in L₁′'s
+interval over that range. At the census R this is decisive: of the 105 routes and paths over the twelve forms files, 79
+have forms without R, and where the interval method leaves all 79 against a close and against an end at the 2⁴¹ floor (3
+and 47 at 2⁶⁶), the exact test leaves none against a close at either floor and one against an end at 2⁴¹ (a k = 14
+path). It does not carry over to the routes, which are families in R: along R = 742 + 16,384u the numerator of L₁′ is
+7(4,075,225,088u − 123,463b) + c₀, constant along a line of the (u, b) lattice, so the residues the test misses at the
+census R come back at other u, and the count over the family is the interval method's with the true R shift (about 2²⁸
+members for each admissible ℓ at lane 2⁶⁴). The interval verdicts stand.
+
+**The pass-start trees with the narrower classes, and the end-to-end statement (October 28;
+`../lean/thm/PassHaltClose.lean`, `../lean/thm/EndToEndClose.lean`, `../lean/PassStats.lean`).** `passTreeRC` is the
+pass-start tree for R < 178 built by the same explorer with R's class of `closeClassC` at its close leaves. The class
+enters the explorer only there (a round decided as something other than a new round start ends the path at a close leaf
+when the start's L₁ is decidedly in the class, else at a cut), so the tree has the shape of `passTreeR`, and outside R =
+8, 16, 24, 32, 64 and 176 it is the same tree. `pass_halt_chain_close` is `pass_halt_chain` with these trees: a halt
+from a pass start of width ≥ 2¹³ follows the loop's chain to a last pass start with R in {2, 4, 8, 16, 32, 48} and L₁ in
+R's class of `closeClassC`, or one in a cut leaf of its tree at every depth (`PassCutC`, which from R = 178 on is
+`PassCut`), or to a wider clean tape. Nothing is lost: at 12, 16 and 20 splits the trees for R = 8, 16, 24, 32, 64 and
+176 have the same leaves by kind and measure with either class (`PassStats.lean` with `8c` and so on), so every close
+leaf's L₁ is decidedly in the narrower class (the close leaves are the classes of `HaltClass`). From blank tape,
+`blank_halt_structure_close` and `blank_halt_structure_close_kernel` are `blank_halt_structure` and its kernel version
+with the loop's chain ending in `InCloseClassC` (standard axioms only for the kernel version), and with the loop
+entries of `EntryNoCloseC` (`../lean/thm/RouteEntryHaltC.lean`) past the loop's end, `blank_halt_pass_close` and
+`blank_halt_open_close` are `blank_halt_pass` and `blank_halt_open` with these classes on both sides of the loop's end
+(`../lean/thm/PassEntryHaltClose.lean`): a halt from blank tape needs a clean tape cut at every depth, or a pass start
+cut at every depth of its tree (`PassCutC`) after a loop entry that cannot close in a class of `closeClassC`.

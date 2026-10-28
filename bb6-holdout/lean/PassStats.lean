@@ -1,19 +1,21 @@
 import PassHaltClasses
+import EndgameCloseStart
 import BB6.PassTree
 open BB6 BB6.Sym
 
 /-! # The pass-start trees' leaves by kind (untrusted, for looking)
 
 usage: `lean --load-dynlib=cbuild/so/libBB6all.so --run PassStats.lean d R ...` (after `./check_end.sh`; each `R` a
-right end below 178, `sym` for the tree of every R ≥ 178, or `all` for every even R from 2 to 176).  For the pass-start
-tree `d` splits deep (`PTree.explore` with `passCleaves` = 8 cleaves on a path, as in `thm/PassHalt.lean`), prints the
-measure of its leaves by kind, as fractions of the start class: landings, clean tapes, close leaves, and the cut
-leaves by why they are cut: the depth ran out (`depth`), the round is decided as something other than a new round
-start, a halt or a close the model does not cover, with the left countdown outside the closing class (`decided`), or
-the round is undecided and neither a residue nor a cleave decides it (`other`).  The slices of the cleaves have
-measure 0; their leaves are counted (`slice leaves`, of which `cut`).  Last, the measure of the close and cut leaves
-whose class the close run closes (`halting`; `symCloseRun` from the round start reached, which `HTree.ofPTree` runs
-from the start, so these are the halting leaves of `pass_halt_leaf`, `thm/PassHaltClasses.lean`). -/
+right end below 178, `Rc` for its tree with the classes of `closeClassC` at the close leaves, as in
+`thm/PassHaltClose.lean`, `sym` for the tree of every R ≥ 178, or `all` for every even R from 2 to 176).  For the
+pass-start tree `d` splits deep (`PTree.explore` with `passCleaves` = 8 cleaves on a path, as in `thm/PassHalt.lean`),
+prints the measure of its leaves by kind, as fractions of the start class: landings, clean tapes, close leaves, and the
+cut leaves by why they are cut: the depth ran out (`depth`), the round is decided as something other than a new round
+start, a halt or a close the model does not cover, with the left countdown outside the closing class (`decided`), or the
+round is undecided and neither a residue nor a cleave decides it (`other`).  The slices of the cleaves have measure 0;
+their leaves are counted (`slice leaves`, of which `cut`).  Last, the measure of the close and cut leaves whose class
+the close run closes (`halting`; `symCloseRun` from the round start reached, which `HTree.ofPTree` runs from the start,
+so these are the halting leaves of `pass_halt_leaf`, `thm/PassHaltClasses.lean`). -/
 
 structure PStats where
   dep : Nat := 0
@@ -86,8 +88,11 @@ def runOne (d : Nat) (which : String) : IO Unit := do
       passStats 4 none false (10000 + d) d d passCleaves false true 0 symStart.1 symStart.2.1 symStart.2.2
         symStartE.2
     else
-      let R := which.toNat!
-      passStats 3 (closeClass R) false (10000 + d) d d passCleaves false true 0 (startR R).1 (startR R).2.1
+      let (R, cls) := if which.endsWith "c" then
+          let R := (which.dropEnd 1).toString.toNat!
+          (R, closeClassC R)
+        else (which.toNat!, closeClass which.toNat!)
+      passStats 3 cls false (10000 + d) d d passCleaves false true 0 (startR R).1 (startR R).2.1
         (startR R).2.2 (startE R).2
   let t1 ← IO.monoMsNow
   let fl (x : Nat) : Float := x.toFloat / (2 : Float) ^ d.toFloat
