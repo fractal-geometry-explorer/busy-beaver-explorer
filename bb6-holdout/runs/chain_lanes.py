@@ -16,8 +16,9 @@ j <= 64 the lane F + c = T (F = Q, 3Q, 2Q - R, Q + R or 2Q + R with Q = W - b + 
 at most at one u, and the offsets c with |c| <= CMAX that some member meets are listed, with the census lanes'
 offsets (`halting-classes/routes` in the project files, `lanes_r770_1004.txt` for R = 770 to 1,004: Q = 2^j and
 3 * 2^j on routes A, C and beta, Q + 36 on C3, C4 and alpha, Q + 636 on delta and epsilon, 3Q + 76 = 2^j on A3 and
-C2, 2Q - R + 6 on A2, and above R = 769 also 2Q - R + 26 = 2^j, Q + 316 = 2^j and Q + 636 = 3 * 2^j; and the lanes
-of the routes that begin with a half pass, Q + R + 24, Q + R + 96, Q + R + 1296 and 2Q + R + 60).
+C2, 2Q - R + 6 on A2, and above R = 769 also 2Q - R + 26 = 2^j, Q + 316 = 2^j and Q + 636 = 3 * 2^j, and
+Q + 316 = 3 * 2^j at R = 5,350 and 5,862 (`lanes_r5002_5862.txt`); and the lanes of the routes that begin with a half
+pass, Q + R + 24, Q + R + 96, Q + R + 1296 and 2Q + R + 60).
 
 usage: python3 chain_lanes.py entries36.txt 63 2000   (entries36.txt from `../lean/EntryForms.lean 2199023255552 36`;
        likewise entries40.txt at 40 digits)
@@ -32,9 +33,9 @@ FORMS = {'Q': (1, -1, 2, 22), '3Q': (3, -3, 6, 66), '2Q - R': (2, -2, 3, 44), 'Q
          '2Q + R': (2, -2, 5, 44)}
 # the census lanes (F, T, c): F + c = T; the last six begin with a half pass, so only an entry can start them
 CENSUS = [('Q', '2^j', 0), ('Q', '3*2^j', 0), ('Q', '2^j', 36), ('Q', '3*2^j', 36), ('Q', '2^j', 316),
-          ('Q', '2^j', 636), ('Q', '3*2^j', 636), ('3Q', '2^j', 76), ('2Q - R', '2^j', 6), ('2Q - R', '3*2^j', 6),
-          ('2Q - R', '2^j', 26), ('Q + R', '2^j', 24), ('Q + R', '3*2^j', 24), ('Q + R', '2^j', 96),
-          ('Q + R', '2^j', 1296), ('2Q + R', '2^j', 60), ('2Q + R', '3*2^j', 60)]
+          ('Q', '3*2^j', 316), ('Q', '2^j', 636), ('Q', '3*2^j', 636), ('3Q', '2^j', 76), ('2Q - R', '2^j', 6),
+          ('2Q - R', '3*2^j', 6), ('2Q - R', '2^j', 26), ('Q + R', '2^j', 24), ('Q + R', '3*2^j', 24),
+          ('Q + R', '2^j', 96), ('Q + R', '2^j', 1296), ('2Q + R', '2^j', 60), ('2Q + R', '3*2^j', 60)]
 
 
 def restrict(forms, f, d, z0, M):

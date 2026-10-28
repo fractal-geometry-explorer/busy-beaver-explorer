@@ -2,24 +2,27 @@
 `../lean/END_TO_END.md`, "The chain ends at a right end of at least 769".)
 
 `reentry.py sigma` with the forms of the halting-classes census read from its files (`halting-classes/routes` in the
-project files): `lanes_r770_1004_forms.txt` (every path of the census at R = 770 to 1,004, its three-wall starts with
-W', R' = N/2^m and L1' affine in the start's (b, W, R)) and `lanes_r294_486.json` (the lanes delta and epsilon).  At
-the last start of a path the run goes on by full passes, which keep R'^3/L1'^2, to a halting class with right end r;
-there R'^3/L1'^2 = r^3/l^2 with l = 3 (mod 7), so at most r^3/9 for the ends r that R' = 16^p r allows among the right
-ends of the halting classes (2, 4, 6, 8, 16, 32, 48; and at least 176^3/256^2, `sigma_close`), and at most 177^3/9
-for any end below 178 (`noSmall_sigma`).  On a lane value N = c 2^e (c = 1 or 3) R' is fixed, and the pass starts with
-R >= 769, every gap at least 448, width at least 2^41 and 15W <= 64(W - b), the shape `blank_halt_open_big` gives
-the chain's last pass start, form a polygon in (R, W) on which |L1'| is convex, so its least R'^3/L1'^2 is at a corner.
-A path that begins with the loop's own half pass (round 2, R' = R/2) is taken at its landing, the chain's last pass
-start there: its forms are rewritten in the landing's coordinates (b = 2b' - W' + 2R' - 4, W = W' - 6, R = 2R').
+project files): `lanes_r770_1004_forms.txt` and `lanes_r5002_5862_forms.txt` (every path of the census at R = 770 to
+1,004 and at eight R from 5,002 to 5,862, its three-wall starts with W', R' = N/2^m and L1' affine in the start's
+(b, W, R)) and `lanes_r294_486.json` (the lanes delta and epsilon).  At the last start of a path the run goes on by
+full passes, which keep R'^3/L1'^2, to a halting class with right end r; there R'^3/L1'^2 = r^3/l^2 with l = 3
+(mod 7), so at most r^3/9 for the ends r that R' = 16^p r allows among the right ends of the halting classes (2, 4, 6,
+8, 16, 32, 48; and at least 176^3/256^2, `sigma_close`), and at most 177^3/9 for any end below 178 (`noSmall_sigma`).
+On a lane value N = c 2^e (c = 1 or 3) R' is fixed, and the pass starts with R >= 769, every gap at least 448, width
+at least 2^41 and 15W <= 64(W - b), the shape `blank_halt_open_big` gives the chain's last pass start, form a polygon
+in (R, W) on which |L1'| is convex, so its least R'^3/L1'^2 is at a corner.  A path that begins with the loop's own
+half pass (round 2, R' = R/2) is taken at its landing, the chain's last pass start there: its forms are rewritten in
+the landing's coordinates (b = 2b' - W' + 2R' - 4, W = W' - 6, R = 2R'), and its rounds are counted from there.  Paths
+with the same forms there, in lowest terms, take the same route, which is printed once, with the census R and lanes it
+was found at.
 
-usage: python3 lane_sigma.py lanes_r770_1004_forms.txt lanes_r294_486.json
+usage: python3 lane_sigma.py lanes_r770_1004_forms.txt lanes_r5002_5862_forms.txt lanes_r294_486.json
 """
 import re
 import sys
 import json
 from fractions import Fraction as Fr
-from math import log2
+from math import gcd, log2
 
 G = 2 ** 41
 RLO = 769  # `blank_halt_open_big`: the chain's last pass start has R >= 769
@@ -43,33 +46,75 @@ def at_landing(f):
     return {'b': 2 * f['b'], 'W': f['W'] - f['b'], 'R': 2 * (f['b'] + f['R']), '1': f['1'] - 4 * f['b'] - 6 * f['W']}
 
 
-def routes(forms_fn, json_fn):
-    """(name, round, R' form, L1' form) at the last three-wall start of each path"""
+def norm(f):
+    """a form (coefficients, denominator) in lowest terms"""
+    co, den = f
+    g = gcd(den, *co.values())
+    return {v: c // g for v, c in co.items()}, den // g
+
+
+def routes(fn):
+    """(where, round, R' form, L1' form) at the last three-wall start of each path of a forms file, or of delta and
+    epsilon in the lanes' JSON; where = (the lane's name, the census R of the path, taken at the half-pass landing)"""
+    if fn.endswith('.json'):
+        return [((x['lane'], (), False), s['round'], lin(s['R1']), lin(s['L1'])) for x in json.load(open(fn))
+                if x['lane'] in ('delta', 'epsilon')
+                for s in [x['three-wall starts (forms in b, W, R of the start; Q = W - b + 2R + 22)'][-1]]]
     paths = []
-    for line in open(forms_fn):
+    for line in open(fn):
         if line.startswith('class'):
-            rs = sorted(set(int(r) for r in re.findall(r'\((\d+), \d+, \d+, -?\d+\)', line.split('census')[1])))
-            paths.append(('R = ' + ', '.join(map(str, rs)), []))
+            census = re.findall(r'\((\d+), \d+, (\d+), -?\d+\)', line.split('census')[1])
+            paths.append((sorted(set(int(r) for r, _ in census)), sorted(set(int(q) for _, q in census)), []))
         elif 'R′' in line:
             m = re.search(r'r(\d+): W′ = W \+ \d+\s+R′ = (\(.*?\)/\d+)\s+L₁′ = (\(.*?\)/\d+)', line)
-            paths[-1][1].append((int(m.group(1)), lin(m.group(2)), lin(m.group(3))))
+            paths[-1][2].append((int(m.group(1)), lin(m.group(2)), lin(m.group(3))))
     out = []
-    for name, starts in paths:
+    for rs, qs, starts in paths:
+        name = 'R = %s (Q = %s)' % (', '.join(map(str, rs)), ', '.join(map(str, qs)))
         if not starts:
             print('%s: no three-wall start after round 0' % name)
             continue
         rnd, Rf, Lf = starts[-1]
-        if starts[0][0] == 2:
+        landing = starts[0][0] == 2
+        if landing:
             if len(starts) == 1:
                 print('%s: the half pass is its only three-wall start' % name)
                 continue
-            Rf, Lf, name = (at_landing(Rf[0]), Rf[1]), (at_landing(Lf[0]), Lf[1]), name + ', at the half-pass landing'
-        out.append((name, rnd, Rf, Lf))
-    for x in json.load(open(json_fn)):
-        if x['lane'] in ('delta', 'epsilon'):
-            s = x['three-wall starts (forms in b, W, R of the start; Q = W - b + 2R + 22)'][-1]
-            out.append((x['lane'], s['round'], lin(s['R1']), lin(s['L1'])))
+            rnd, Rf, Lf = rnd - 2, (at_landing(Rf[0]), Rf[1]), (at_landing(Lf[0]), Lf[1])
+        out.append(((None, tuple(rs), landing), rnd, Rf, Lf))
     return out
+
+
+def where(srcs):
+    """the lanes and the census R that a route was found at"""
+    def span(rs):  # runs of R less than 1,000 apart, as 'first to last (count)'
+        runs = []
+        for r in rs:
+            if runs and r - runs[-1][-1] < 1000:
+                runs[-1].append(r)
+            else:
+                runs.append([r])
+        return ', '.join(', '.join(map(str, g)) if len(g) <= 3 else '%d to %d (%d values)' % (g[0], g[-1], len(g))
+                         for g in runs)
+    parts = sorted(set(nm for nm, _, _ in srcs if nm))
+    for landing in (False, True):
+        rs = sorted(set(r for nm, rr, ld in srcs if ld == landing for r in rr))
+        if rs:
+            parts.append('R = %s%s' % (span(rs), ' at the half-pass landing' if landing else ''))
+    n = sum(1 for nm, _, _ in srcs if not nm)
+    return '; '.join(parts) + (' (%d path%s)' % (n, 's' * (n > 1)) if n else '')
+
+
+def ranges(js):
+    """[39, 40, 41, 42, 47] -> '39 to 42, 47'"""
+    runs = []
+    for j in js:
+        if runs and j == runs[-1][-1] + 1:
+            runs[-1].append(j)
+        else:
+            runs.append([j])
+    return ', '.join(str(g[0]) if len(g) == 1 else '%d, %d' % tuple(g) if len(g) == 2 else '%d to %d' % (g[0], g[-1])
+                     for g in runs) or 'none'
 
 
 def sigma_min(Rf, Lf, N):
@@ -123,12 +168,13 @@ def lane(Rf):
 
 
 def main():
-    seen = set()
-    for name, rnd, Rf, Lf in routes(*sys.argv[1:3]):
-        key = (tuple(Rf[0].values()), Rf[1], tuple(Lf[0].values()), Lf[1])
-        if key in seen:
-            continue
-        seen.add(key)
+    found = {}  # route -> (where it was found, round, R' form, L1' form)
+    for fn in sys.argv[1:]:
+        for src, rnd, Rf, Lf in routes(fn):
+            Rf, Lf = norm(Rf), norm(Lf)
+            key = (tuple(Rf[0].values()), Rf[1], tuple(Lf[0].values()), Lf[1])
+            found.setdefault(key, ([], rnd, Rf, Lf))[0].append(src)
+    for srcs, rnd, Rf, Lf in found.values():
         form, s = lane(Rf)
         vals, below177, belowEnd = [], {1: [], 3: []}, {1: [], 3: []}
         for c in (1, 3):
@@ -143,12 +189,12 @@ def main():
                     below177[c].append((e, wmax))
                 if Rp.denominator == 1 and sg <= end_bound(Rp):
                     belowEnd[c].append((e, wmax))
-        print('%s, round %d: %s = 2^j or 3 * 2^j (%d values), least R\'^3/L1\'^2 %.4g' %
-              (name, rnd, form, len(vals), float(min(vals))))
+        print('%s = 2^j or 3 * 2^j at round %d, from %s: least R\'^3/L1\'^2 %.4g' %
+              (form, rnd, where(srcs), float(min(vals))))
         for what, low in (('177^3/9', below177), ('the end\'s r^3/9', belowEnd)):
             top = max([w for c in low for _, w in low[c]], default=None)
-            print('   at most %s at 2^j for j in %s, 3 * 2^j for j in %s%s' % (
-                what, [e for e, _ in low[1]] or 'none', [e for e, _ in low[3]] or 'none',
+            print('   at most %s at 2^j for j = %s, 3 * 2^j for j = %s%s' % (
+                what, ranges([e for e, _ in low[1]]), ranges([e for e, _ in low[3]]),
                 '' if top is None else ' (widths up to 2^%.1f)' % top))
 
 
