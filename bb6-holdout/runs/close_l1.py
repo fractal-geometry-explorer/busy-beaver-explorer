@@ -11,9 +11,9 @@ L1' is affine on the lane value's polygon of pass starts, so it lies between its
 (`end_l1.l1_range`).  The forms, the polygon and the routes are `lane_sigma.py`'s, read with its functions; the forms
 of a path seen at one R are taken at every R, as there.  Prints, per route, the lane values that r^3/l^2 at a close
 leaves and those the close's own L1 leaves, with r, the interval of l and its values in r's class, and the widest pass
-start of each.
+start of each.  With --closeC the classes are those of `closeClassC` (`lane_sigma.py`).
 
-usage: python3 close_l1.py [--floor=66] FORMS...   (the files of `lane_sigma.py`, in `halting-classes/routes`)
+usage: python3 close_l1.py [--floor=66] [--closeC] FORMS...   (`lane_sigma.py`'s files, in `halting-classes/routes`)
 """
 import sys
 from fractions import Fraction as Fr
@@ -42,6 +42,9 @@ def main():
     for a in [a for a in args if a.startswith('--floor=')]:
         ls.G = 2 ** int(a[len('--floor='):])
         args.remove(a)
+    if '--closeC' in args:
+        ls.CLOSE = ls.CLOSE_C
+        args.remove('--closeC')
     found = {}
     for fn in args:
         for src, rnd, Rf, Lf in ls.routes(fn):
