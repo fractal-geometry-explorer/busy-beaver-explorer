@@ -113,6 +113,17 @@ round start that is not three walls, and a stuck configuration after that. `rout
 halting run from a two-marker state, and `blank_halt_route` states it for every two-marker state that a halting run
 from blank tape passes. The clean-tape tree stops at the same entries (`cleanTreeGE`, `END_TO_END.md`).
 
+With the narrower closing classes of `closeClassC` (`thm/LoopClose.lean`: once the endgame trees pass the end meetings
+at distance 2, a close from a width of at least 2²⁰ needs R = 2, 4, 8, 16, 32 or 48, with L₁ in a class inside R's class
+of `closeClasses`), the same check has fewer classes to exclude (`entryOKC`, `EntryNoCloseC`, `BB6/RouteEntryC.lean`:
+the check with the table of closing classes as a parameter), so it passes wherever `entryOK` does, and also at pass
+starts from which the loop could close only in a class of `closeClasses` that is not one of `closeClassC`. The tree
+built with it (`routeTreeEC`, `thm/RouteEntryHaltC.lean`) stops there; from such an entry the loop's chain reaches no
+class of `closeClassC` (`EntryNoCloseC.no_close`, by `LoopChain.close_wideC`), and with `loop_halt_leaves_close` a halt
+needs the chain to end without a close, with the end meetings of its last stretch at distance at least 2
+(`entry_halt_close`, `route_halt_close`, `blank_halt_route_close`). Its cut classes are among those of `routeTreeE`;
+their measure is not evaluated.
+
 At 36 digits with Γ = 2²⁶ (every pass start in the cone then has width at least 2²⁷, so the width test never fails):
 the plain tree cuts the same 407,087 classes as with Γ = 8,000,000, and with the loop entries 101,855 are left
 (measure 1.48 × 10⁻⁶, a quarter); 5,981 entry leaves settle 0.84 % of the start class. At 40 digits: 357,237 cut
@@ -160,7 +171,8 @@ only cuts more classes, where an order test is not decided on the cone.
 
 ## What is trusted
 
-`route_tree_clean`, `route_tree_entry`, `entry_halt`, `route_halt` and `blank_halt_route`: Lean's kernel (`propext`,
+`route_tree_clean`, `route_tree_entry`, `entry_halt`, `route_halt` and `blank_halt_route`, and with `closeClassC`
+`route_tree_entryC`, `entry_halt_close`, `route_halt_close` and `blank_halt_route_close`: Lean's kernel (`propext`,
 `Classical.choice`, `Quot.sound`). The measures (`route_mass_36`, `route_mass_40`, `route_entry_mass_36`,
 `route_entry_mass_40`): Lean's compiler as well, through `native_decide`; with `--fast`, `check_route.sh` compiles the BB6
 modules to C with `lean -c`, builds them with `leanc` (clang) into a shared library and loads it with
@@ -201,7 +213,7 @@ The Python checker takes hours on the same trees.
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check.sh                    # the existing development
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_route.sh --fast       # the theorems and the 36-digit measures
 LEAN=/path/to/lean LEANLIB=/path/to/lib/lean DEPTH=40 ./check_route.sh --fast   # also the 40-digit measures
-LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh                # also route_halt, blank_halt_route
+LEAN=/path/to/lean LEANLIB=/path/to/lib/lean ./check_end.sh                # also route_halt, blank_halt_route(_close)
 # statistics and the tree itself (optional; after check_route.sh --fast):
 LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6.so --run RouteStats.lean route 8000000 36 tree.txt
 LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6.so --run RouteStats.lean entry 67108864 36

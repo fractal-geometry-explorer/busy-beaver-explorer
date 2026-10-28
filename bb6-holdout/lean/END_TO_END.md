@@ -551,6 +551,7 @@ there is no kernel-only version.
 | `thm/LaneHalt.lean` | `lane769_open_halt`: 36 families of pass starts with R ≥ 769 (first wall free, the other walls and the width moved by multiples of 2^k), each lying in a cut leaf of `passTreeSym` at every depth and halting: one on each lane of the census at R = 770 to 1,004 and δ at R = 998 at each scale W − b = 2^j − 2,654, j = 13 to 30 (`lanes769`, `delta998`); `lanes769_shape`: each family's R and Q = W − b + 2R + 22; `lane769_far`: a member with 15W ≤ 64(W − b), width 16,192; `route769_open_halt`: 26 more on the routes that census does not find, ζ at R = 998 at eleven scales from 2^14 to 2^22, ε′, the four Q + 316 routes at R ≡ 230 and ε from the census at R = 5,002 to 5,862, and the Q + 316 route at R ≡ 1,702 (mod 2,048) from a census with b free at every R ≡ 38 (mod 64) (`zeta998`, `routes5000`, `routesSweep`, `routes_shape`); `gamma769_open_halt`: 26 on γ's lane Q + 5,116, the 24 classes with R ≥ 769 at Q + 5,116 = 2^16 and two members at 3 · 2^39 wider than 2^41 with 15W ≤ 64(W − b) (`routesGamma`, `gammaWide`, `gamma_shape`); `lane769_far_wide`: a member with every condition `blank_halt_open_big` puts on the pass start, its width included (width 5,213,842,519,808) | `Fam.open_halt`; the close run and the model's rounds on each family by `decide +kernel` |
 | `thm/EndToEnd.lean` | `clean_chain`, `blank_halt_clean_from`, `blank_halt_clean`, `blank_halt_clean_kernel`, `blank_halt_loop`, `blank_halt_sigma`, `blank_halt_wide`, `blank_halt_exit`, `blank_halt_structure`, `blank_halt_structure_kernel`, `never_halts_of_cut_classes`, `never_halts_of_cut_classes_kernel` | strong induction on the halting time: at each clean tape, either it is cut at every depth, or some depth decides it and the run goes on to a wider clean tape, which takes at least one machine step |
 | `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean` (`ROUTE_TREE.md`) | `route_tree_clean`, `route_tree_entry`: from every two-marker state with both gaps ≥ Γ, a halt-free run to a clean tape, or (`routeTreeE`) to a loop entry from which no point of its class closes through the loop, unless the start is in a cut class; `entry_halt`, `route_halt`, `blank_halt_route`: a halt from such an entry needs the loop's chain to end without a close where the run leaves three walls, and a stuck configuration after it, and so does a halt from blank tape at each such two-marker state it passes, unless the state is cut at every depth | `RTree.sound`, `RTree.soundE` with the proved explorers (`explore_ok`, `exploreE_okE`); `entryOK_sound`, `EntryNoClose.no_close` (`LoopChain.close_wide`) and `loop_halt_leaves`; nothing evaluated |
+| `BB6/RouteEntryC.lean`, `thm/RouteEntryHaltC.lean` | `entryOKC`, `EntryNoCloseC`: the routes' entry check with the narrower classes of `closeClassC` (`closeTableC`), which passes wherever `entryOK` does; `route_tree_entryC`, `clean_tree_entry_stepC`: `route_tree_entry` and `clean_tree_entry_step` with it (`routeTreeEC`, `cleanTreeGEC`); `EntryNoCloseC.no_close`: from such an entry the loop's chain reaches no class of `closeClassC`; `entry_halt_close`, `route_halt_close`, `blank_halt_route_close`: `entry_halt`, `route_halt` and `blank_halt_route` with it, the end meetings of the chain's last stretch at distance ≥ 2 | `entryOKT_sound` (`entryOK_sound` with the table as a parameter), `RTree.soundE`, `RTree.soundWE` with the proved explorers; `LoopChain.close_wideC` and `loop_halt_leaves_close`; nothing evaluated |
 | `thm/CleanMass.lean`, `thm/CleanMass40.lean` | `clean_tree_cut_mass`, `clean_tree_cut_mass40`: the leaf counts and cut measure of `cleanTree 36` and `cleanTree 40` | `exploreMassW` evaluated by `native_decide`; used by no theorem about the machine |
 | `thm/CleanKernelMass.lean` | `clean_kernel_cut_mass`: the leaf counts and cut measure of `cleanTreeG 2²⁰ 36` | `exploreMassW`, `native_decide`; used by no theorem about the machine |
 | `BB6/CleanRange.lean` | `directOK_sound`: a run of the mark model from a clean tape to a wider one, as a statement about the machine; `RTree.cuts1_sound`: the cut classes of a one-variable tree as residues of W/2; `rangeOK_sound`: every clean tape of width in [lo, hi) that the tree leaves open runs directly to a wider one | proved, standard axioms |
@@ -670,6 +671,18 @@ p full passes after at most one half pass, `LoopChain.close_wide`, and the check
 middle-wall condition every landing of the chain is again a pass start with every gap at least 448 (`landing_wide`).
 So a halt from the entry needs the chain to end where the run, close-free, leaves phase 0 or the halving chain at a
 round start that is not three walls, and a stuck configuration after that (`entry_halt`, from `loop_halt_leaves`).
+
+With the narrower classes of `closeClassC` (above) the same check has fewer classes to exclude (`entryOKC`,
+`EntryNoCloseC`, `BB6/RouteEntryC.lean`: the check with the table of closing classes as a parameter). It passes wherever
+`entryOK` does, and also where the loop could close only in a class of `closeClasses` that is not one of `closeClassC`.
+`cleanTreeGEC` is the clean-tape tree with it (`clean_tree_entry_stepC`, `thm/RouteEntryHaltC.lean`); from its entries
+the loop's chain reaches no class of `closeClassC` (`EntryNoCloseC.no_close`, by `LoopChain.close_wideC`), so a halt
+from one needs the chain to end without a close, with the end meetings of its last stretch at distance at least 2
+(`entry_halt_close`, from `loop_halt_leaves_close`). Its cut classes are among those of `cleanTreeGE`, and at 36 digits
+over the widths ≥ 2⁴¹ they are the same, since none of those runs meets a three-wall round start within the depth
+(below). The gain is at the loop entries past the tree's depth that the censuses' routes reach (below, "The chain ends
+at a right end of at least 769"). `entry_pass_halt` and the theorems after it still take `EntryNoClose`, since the
+closes of `pass_halt_chain` are those of `closeClasses`.
 
 `clean_entry_chain` chains the clean tapes as `clean_chain` does, by strong induction on the halting time, with what a
 halt from a loop entry needs as a hypothesis: for each entry and each halting time, either a property `Q` of the entry
@@ -1187,9 +1200,10 @@ where a close allows at most 4 at 2^j and 1.69 at 3 · 2^j (r = 48), r³/ℓ² l
 only ε and ε′, below width 2^41.1, and the close's own ℓ none of them; it leaves 90 of the 106 routes and paths of all
 the files there, and their own ℓ 88 (94 and 90 with `closeClasses`), most widths 2.6 bits lower; and at the 2⁶⁶ floor
 only the paths at k = 19, 23 and 27 are left, up to 2^75.1, 2^87.1 and 2^99.1, the two at k = 15 being out with the
-rest. But `EntryNoClose`, which the route theorems ask of a loop entry, still excludes the closes of `closeClasses` (the
-pass-start trees' close leaves are in them), so these are what restating it with `closeClassC` would give, not yet what
-the theorems take.
+rest. But the theorems past the loop's end (`entry_pass_halt` and those after it) still take `EntryNoClose`, which
+excludes the closes of `closeClasses`, since `pass_halt_chain` closes in those (the pass-start trees' close leaves are
+in them). The entry check with `closeClassC` is proved (`EntryNoCloseC`, with the clean-tape tree `cleanTreeGEC`,
+above), so these are what the pass-start trees with `closeClassC` would give, not yet what the theorems take.
 
 Above 769 the halting census finds the same lanes and three more (untrusted; `routes/lanes_r770_1004.txt` in the
 project files). At every even R from 770 to 1,004 with W − b up to 4,096 it finds 236 closing classes, which fall on 91
@@ -1340,7 +1354,7 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   them nor any other census lane, but deeper trees find more entries; R′³/L₁′² at the route's last pass start rules out
   every census route from any entry but six of the first 18 against a close, on Q + 636 and Q + 316, and those six below
   width 2^43.7 (2^54.1 against any end below 178; the close's own L₁ leaves only ε and ε′, `../runs/close_l1.py`, and
-  with the classes of `closeClassC`, which `EntryNoClose` does not take yet, none), `../runs/lane_sigma.py`, where the
+  with the classes of `closeClassC`, not yet taken by `entry_pass_halt`, none), `../runs/lane_sigma.py`, where the
   halting-classes side finds no pass start with the far shape on them, the step of each route's class in R taken from
   three R; γ's lane Q + 5,116 adds 21 paths that it leaves up to 2^53.7, and Q + 10,236 20 more, up to 2^55.7, and with
   the exhaustive check to 64 digits in place of `stepsBelow_direct`, untrusted, the pass start is wider than 2⁶⁶ and
@@ -1357,7 +1371,8 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   (`thm/RouteEntryHalt.lean`) states what they give for a halting run from blank tape, at each two-marker state with
   both gaps at least Γ that it passes: unless the state is in a cut class of `routeTreeE Γ d` at every depth d, the
   run reaches the next clean tape or a loop entry from which the loop's chain ends without a close, and the halt comes
-  after that.
+  after that. `blank_halt_route_close` (`thm/RouteEntryHaltC.lean`) is the same with `routeTreeEC`, whose loop entries
+  cannot close in a class of `closeClassC`, and with the end meetings of the chain's last stretch at distance ≥ 2.
 
 ## How to check
 
