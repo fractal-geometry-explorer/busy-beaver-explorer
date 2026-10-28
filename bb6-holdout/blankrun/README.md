@@ -38,29 +38,31 @@ with v2(Q) ≥ v is 2^-(v−1) to within sampling error up to v = 32); the large
 round-10 entry of n = 1,130,966,187,986 (width 2.26 × 10¹²), and the largest v2(Q)/log2 Q is 0.768, there. The
 smallest odd part of Q is u = 463 (Q = 463 · 2²¹, width 6.3 × 10⁸).
 
-*The chain a halt would need.* A halt from blank tape needs the last pass start of the loop's chain from the first
-loop entry after an open clean tape (`blank_halt_open_small`, `../lean/thm/OpenSmallHalt.lean`), and
-`../lean/thm/WideHalt.lean` and `FarHalt.lean` give that pass start W ≤ 64R + 6 or 15W ≤ 64(W − b), and
-15W ≤ 64(W − b), from the entry checks `EntryWide` (W ≤ 32R) and `EntryFar` (15W ≤ 64(W − b) and
-15W + 26 ≤ 32(W − b + R)) that the clean-tape trees pass at their entries. An entry later in the same cycle, after that
-chain has ended, is part of the run from that pass start, which the theorems leave to the pass-start tree. The run
-marks every pass start with the entry of its cycle whose chain it belongs to:
+*The chain a halt would need.* A halt from blank tape needs the last pass start of the loop's chain from the loop
+entry where the clean-tape tree stops after an open clean tape (`blank_halt_open_small`,
+`../lean/thm/OpenSmallHalt.lean`), and `../lean/thm/WideHalt.lean` and `FarHalt.lean` give that pass start
+W ≤ 64R + 6 or 15W ≤ 64(W − b), and 15W ≤ 64(W − b), from the entry checks `EntryWide` (W ≤ 32R) and `EntryFar`
+(15W ≤ 64(W − b) and 15W + 26 ≤ 32(W − b + R)) that their trees make there. A tree stops at the first round start whose
+class passes its check and otherwise follows the run on (`RTree.exploreWE`): at a cycle's first entry when its class
+passes, never at an entry that fails the check's inequalities itself (the follower tests those at each entry, not the
+check on the class). An entry later in the cycle, after the chain from the entry where the tree stopped has ended, is
+part of the run from that chain's last pass start, which the theorems leave to the pass-start tree. The run marks
+every pass start with the entry of its cycle whose chain it belongs to:
 
 - *First entries* (1,770,345,647, one in every cycle with a pass start). Every one has W ≤ 32R, and every one but one
   passes `EntryFar`; the last pass start of every first-entry chain has the wide shape (least slack
-  max(64R + 6 − W, 64(W − b) − 15W)/W = 0.434), and every one but that one 15W ≤ 64(W − b). The chains land 0, 1, 2 or
-  3 times (1,766,522,570, 3,821,163, 1,889 and 25 chains), and no last pass start has Q = 2^v or 3·2^v (largest
+  max(64R + 6 − W, 64(W − b) − 15W)/W = 0.434), and every one but that one 15W ≤ 64(W − b). The chains land 0, 1, 2 or 3
+  times (1,766,522,570, 3,821,163, 1,889 and 25 chains), and no last pass start has Q = 2^v or 3·2^v (largest
   v2(Q)/log2 Q 0.768). The exception is n = 1,480,645,918,802 (width 2.96 × 10¹²), whose only pass start is its first
   entry, at round 46: a = 6,437,135,253, b = 2,568,965,956,546, W = 2,961,291,837,770, R = 139,690,975,514, so
-  (W − b)/W = 0.1325 and W/R = 21.2. It fails `EntryFar` and ends its chain with 15W > 64(W − b) (but W ≤ 64R + 6).
-  A tree with the far check does not stop at such an entry but follows the run on past it (`RTree.exploreWE` stops
-  only at a round start that passes the check), so `FarHalt.lean` claims no shape for this chain; its clean tape needs
-  47 digits to settle, so the 36- and 40-digit trees leave it open. Of the bounds `../lean/EntryForms.lean` finds on
-  the 36-digit entry classes, R > W/29.02 holds at every first entry (W/R at most 28.4), and W − b > 0.4558W at every
-  one below width 2³⁴ and in the 1/1,024 sample above; the first entries that set a record of their stretch below
-  (W − b)/W = 0.4558 all come late in the cycles of clean tapes open at 36 and at 40 digits (rounds 46 to 62, settle
-  depths 41 to 61): 0.1325 above, then 0.3788 at n = 4,352,455,290,926 (W/R = 7.6), 0.4031, 0.4547, 0.4548 and
-  eight from 0.4553 to 0.4558.
+  (W − b)/W = 0.1325 and W/R = 21.2. It fails `EntryFar` and ends its chain with 15W > 64(W − b) (but W ≤ 64R + 6). A
+  tree with the far check goes past it (above), here to the next clean tape, so `FarHalt.lean` claims no shape for this
+  chain; its clean tape needs 47 digits to settle, so the 36- and 40-digit trees leave it open. Of the bounds
+  `../lean/EntryForms.lean` finds on the 36-digit entry classes, R > W/29.02 holds at every first entry (W/R at most
+  28.4), and W − b > 0.4558W at every one below width 2³⁴ and in the 1/1,024 sample above; the first entries that set a
+  record of their stretch below (W − b)/W = 0.4558 all come late in the cycles of clean tapes open at 36 and at 40
+  digits (rounds 46 to 62, settle depths 41 to 61): 0.1325 above, then 0.3788 at n = 4,352,455,290,926 (W/R = 7.6),
+  0.4031, 0.4547, 0.4548 and eight from 0.4553 to 0.4558.
 - *Later entries* (28,043,749, 1.56% of the entries). Their chains hold the other 1,378 of the 1,379 pass starts with
   15W > 64(W − b) (all from width 2³² on: 902 later entries and 476 half-pass landings from them) and all 20 that fail
   both conditions (1 entry and 19 half-pass landings; one in [2³⁹, 2⁴⁰), one in [2⁴⁰, 2⁴¹), seven in [2⁴¹, 2⁴²) and
