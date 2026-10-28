@@ -15,8 +15,8 @@ wider than 2^WMAX, so every pass start of a chain with W <= 2^WMAX is a member o
 j <= 64 the lane F + c = T (F = Q, 3Q, 2Q - R, Q + R or 2Q + R with Q = W - b + 2R + 22, T = 2^j or 3 * 2^j) holds
 at most at one u, and the offsets c with |c| <= CMAX that some member meets are listed, with the census lanes'
 offsets (`halting-classes/routes` in the project files, `lanes_r770_1004.txt` for R = 770 to 1,004: Q = 2^j and
-3 * 2^j on routes A, C and beta, Q + 36 on C3, C4 and alpha, Q + 636 on delta and epsilon, 3Q + 76 = 2^j on A3 and
-C2, 2Q - R + 6 on A2, and above R = 769 also 2Q - R + 26 = 2^j, Q + 316 = 2^j and Q + 636 = 3 * 2^j, and
+3 * 2^j on routes A, C and beta, Q + 36 on C3, C4 and alpha, Q + 636 on delta, epsilon and zeta, 3Q + 76 = 2^j on
+A3 and C2, 2Q - R + 6 on A2, and above R = 769 also 2Q - R + 26 = 2^j, Q + 316 = 2^j and Q + 636 = 3 * 2^j, and
 Q + 316 = 3 * 2^j at R = 5,350 and 5,862 (`lanes_r5002_5862.txt`); and the lanes of the routes that begin with a half
 pass, Q + R + 24, Q + R + 96, Q + R + 1296 and 2Q + R + 60).
 
