@@ -4,7 +4,9 @@
 `reentry.py sigma` with the forms of the halting-classes census read from its files (`halting-classes/routes` in the
 project files): `lanes_r770_1004_forms.txt` and `lanes_r5002_5862_forms.txt` (every path of the census at R = 770 to
 1,004 and at eight R from 5,002 to 5,862, its three-wall starts with W', R' = N/2^m and L1' affine in the start's
-(b, W, R)), `lanes_zeta_forms.txt` (the lane zeta, likewise) and `lanes_r294_486.json` (the lanes delta and epsilon).
+(b, W, R)), `lanes_zeta_forms.txt` (the lane zeta, likewise), `lanes_q316_1702_forms.txt` (a route on Q + 316 at
+R = 1,702 mod 2,048 that the census finds when run with b free at every R of a class) and `lanes_r294_486.json` (the
+lanes delta and epsilon).
 At the last start of a path the run goes on by full passes, which keep R'^3/L1'^2, to a halting class with right end
 r; there R'^3/L1'^2 = r^3/l^2 with l = 3 (mod 7), so at most r^3/9 for the ends r that R' = 16^p r allows among the
 right ends of the halting classes (2, 4, 6, 8, 16, 32, 48; and at least 176^3/256^2, `sigma_close`), and at most
@@ -17,7 +19,7 @@ landing, the chain's last pass start there: its forms are rewritten in the landi
 there, in lowest terms, take the same route, which is printed once, with the census R and lanes it was found at.
 
 usage: python3 lane_sigma.py lanes_r770_1004_forms.txt lanes_r5002_5862_forms.txt lanes_r294_486.json \
-           lanes_zeta_forms.txt
+           lanes_zeta_forms.txt lanes_q316_1702_forms.txt
 """
 import re
 import sys

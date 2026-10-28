@@ -18,7 +18,10 @@ offsets (`halting-classes/routes` in the project files, `lanes_r770_1004.txt` fo
 3 * 2^j on routes A, C and beta, Q + 36 on C3, C4 and alpha, Q + 636 on delta, epsilon and zeta, 3Q + 76 = 2^j on
 A3 and C2, 2Q - R + 6 on A2, and above R = 769 also 2Q - R + 26 = 2^j, Q + 316 = 2^j and Q + 636 = 3 * 2^j, and
 Q + 316 = 3 * 2^j at R = 5,350 and 5,862 (`lanes_r5002_5862.txt`); and the lanes of the routes that begin with a half
-pass, Q + R + 24, Q + R + 96, Q + R + 1296 and 2Q + R + 60).
+pass, Q + R + 24, Q + R + 96, Q + R + 1296 and 2Q + R + 60).  Then the same for the lanes the halting-classes sweep
+searches with b free at every R of a class (`routes/README.md`, "A census with b free at every R of a class"),
+Q + 5 * 2^k - 4 = 2^j or 3 * 2^j for k = 3 to 11 (c = 36 to 10,236, gamma's Q + 5,116 among them), with their forms
+before a half pass, Q + R + 24 + 2c; a lane with |c| > CMAX is checked at its own offset.
 
 usage: python3 chain_lanes.py entries36.txt 63 2000   (entries36.txt from `../lean/EntryForms.lean 2199023255552 36`;
        likewise entries40.txt at 40 digits)
@@ -36,6 +39,9 @@ CENSUS = [('Q', '2^j', 0), ('Q', '3*2^j', 0), ('Q', '2^j', 36), ('Q', '3*2^j', 3
           ('Q', '3*2^j', 316), ('Q', '2^j', 636), ('Q', '3*2^j', 636), ('3Q', '2^j', 76), ('2Q - R', '2^j', 6),
           ('2Q - R', '3*2^j', 6), ('2Q - R', '2^j', 26), ('Q + R', '2^j', 24), ('Q + R', '3*2^j', 24),
           ('Q + R', '2^j', 96), ('Q + R', '2^j', 1296), ('2Q + R', '2^j', 60), ('2Q + R', '3*2^j', 60)]
+# the sweep's lanes Q + c with c = 5 * 2^k - 4, and Q + R + 24 + 2c before a half pass
+SWEEP = [(f, t, c) for k in range(3, 12) for f, c in (('Q', 5 * 2 ** k - 4), ('Q + R', 10 * 2 ** k + 16))
+         for t in ('2^j', '3*2^j')]
 
 
 def restrict(forms, f, d, z0, M):
@@ -80,6 +86,7 @@ def step(kind, st, z0, M):
 def main():
     fn, WMAX, CMAX = sys.argv[1], 2 ** int(sys.argv[2]), int(sys.argv[3])
     depth, hits = Counter(), {}
+    far = [key for key in CENSUS + SWEEP if abs(key[2]) > CMAX]  # lanes outside the window, checked one by one
 
     def visit(st, umin, cid, shape):
         b, E, R = st
@@ -94,6 +101,11 @@ def main():
                             break
                         hits.setdefault((name, tn, T - F0 - F1 * u), []).append(
                             (j, cid, shape, E[0] + E[1] * u, R[0] + R[1] * u))
+                    for c in (key[2] for key in far if key[:2] == (name, tn)):
+                        u, r = divmod(T - c - F0, F1)
+                        if r == 0 and u >= umin and E[0] + E[1] * u <= WMAX:
+                            hits.setdefault((name, tn, c), []).append(
+                                (j, cid, shape, E[0] + E[1] * u, R[0] + R[1] * u))
 
     def dfs(st, z0, M, lo, cid, shape):
         b, E, R = st
@@ -124,10 +136,13 @@ def main():
     print('entry classes', cid, 'chain classes with a member of width <= 2^%s:' % sys.argv[2],
           sum(depth.values()), 'by number of steps', sorted(depth.items()))
     for key in sorted(set(k[:2] for k in hits)):
-        cs = sorted((k[2] for k in hits if k[:2] == key), key=abs)
+        cs = sorted((k[2] for k in hits if k[:2] == key and abs(k[2]) <= CMAX), key=abs)
         print('lane %s + c = %s: %d offsets with |c| <= %d met, the least' % (key[0], key[1], len(cs), CMAX), cs[:10])
     for key in CENSUS:
         print('census lane %s + %d = %s:' % (key[0], key[2], key[1]), 'met at', hits.get(key, 'none'))
+    for key in SWEEP:
+        if key not in CENSUS:
+            print('sweep lane %s + %d = %s:' % (key[0], key[2], key[1]), 'met at', hits.get(key, 'none'))
 
 
 if __name__ == '__main__':

@@ -105,11 +105,16 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    eight R near 5,000, δ and ε included. Deeper trees find more entries (in the blank-tape run's sample, 3 in 26,961
    first entries lie in no 40-digit class, `runs/entry_member.py`), and the cut classes keep their number at every
    depth. For most census routes the entry does not matter: R′³/L₁′² at the route's re-entry is too large at every pass
-   start of the lane with R ≥ 769, the far shape and width ≥ 2⁴¹ (`runs/lane_sigma.py`, untrusted). The ten routes it
+   start of the lane with R ≥ 769, the far shape and width ≥ 2⁴¹ (`runs/lane_sigma.py`, untrusted). The eleven routes it
    leaves, on three lanes (Q + 636: δ, ε, and ε′ and ζ from the census near R = 5,000; Q + 316: five routes at R = 934
-   and 5,350 to 5,862; Q + 36: a route after the half pass from R = 812), escape it only below width 2^52.7 (2^61.1
-   against 177³/9). So what is needed is an argument for those three lanes at the entries of every depth and, on the
-   halting side, the halting classes at every R.
+   and 5,350 to 5,862, and one at R ≡ 1,702 (mod 2,048) that the census finds when run with b free at every R of a
+   class; Q + 36: a route after the half pass from R = 812), escape it only below width 2^52.7 (2^61.1 against 177³/9),
+   and at those lane values the halting side finds no pass start with the far shape on any of them (`routes/README.md`
+   and `routes/far_shape.txt` in its project files, untrusted: each class's step in R is taken from three R and checked
+   at three far R). So, untrusted, no census route reaches a halt from the chain's last pass start, from any entry. What
+   is needed is a proof of that (the routes' forms and the steps in Lean) and, on the halting side, every halting class
+   at every R: the censuses had missed ζ and the route at R ≡ 1,702 until run at every R of a class, and that run on γ's
+   lane Q + 5,116 finds paths none of the known routes takes.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
