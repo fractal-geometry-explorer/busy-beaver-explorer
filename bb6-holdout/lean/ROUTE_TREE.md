@@ -193,7 +193,7 @@ The Python checker takes hours on the same trees.
   evaluation, and that grows with the leaf count (about 1.43-fold per digit): the 46-, 62- and 64-digit trees (up to
   about 10⁹ leaves) are out of reach of one evaluation.
 * **Small gaps.** The theorem needs both gaps at least Γ. Two-marker states with a smaller gap are covered only with a
-  smaller Γ, where more classes are cut (the exhaustive check covers every clean tape below 2^61).
+  smaller Γ, where more classes are cut (the exhaustive check covers every clean tape below 2^65).
 
 ## How to check
 

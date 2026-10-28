@@ -150,9 +150,9 @@ for starts in either phase), the short exit from the loop (358 classes), and the
 Every endgame, any-phase and exit leaf also checks through the Lean-verified symbolic model (`lean/CheckEndgame.lean`,
 `lean/CheckExit.lean`).
 
-**Exhaustive computation** (`csearch/nrefdfs2.c`, `dfs/`): every clean tape below 2^61 reaches the next clean tape
-without a halt: 36.9 billion settled classes and 121 billion direct runs, about 1.8 × 10^52 machine steps
-(`dfs/merged60.txt`).
+**Exhaustive computation** (`csearch/nrefdfs2.c`, its 128-bit copy `csearch/nrefdfs2w.c`, `dfs/`): every clean tape
+below 2^65 reaches the next clean tape without a halt: 205 billion settled classes and 662 billion direct runs, about
+6.7 × 10^55 machine steps (`dfs/merged64.txt`; to 60 digits, `dfs/merged60.txt`).
 
 **Measured and heuristic** statements (how runs enter the loop, the odds of a halt beyond the exhaustive range) are
 marked as such in the notes and on the summary page; they are not proofs.
@@ -165,7 +165,7 @@ deeper exhaustive runs were made with the uninstrumented program. See "The trail
 (October 27):** the checkers, the C engines current work uses (`nrefdfs2`, `lined`, `rtree3d`, `rtree3e`, `gx3`) and
 the stepper now write the canonical form, as the proved model does, and `simtest/` checks every one of them against
 the proved model on random tapes. With the fixed programs the certificates (exit, endgame, any-phase, 36-digit route tree) check with unchanged output, and the
-exhaustive check to 60 digits reproduces `dfs/merged60.txt` exactly (`dfs/merged60_fixed.txt`), with the corrected case never occurring. The other
+exhaustive check to 60 digits reproduces `dfs/merged60.txt` exactly (`dfs/merged60_fixed.txt`), with the corrected case never occurring; the 64-digit run (`dfs/merged64.txt`) was made with the fixed engine. The other
 programs in `csearch/` are kept as they were run.
 
 ## How to check
@@ -208,7 +208,7 @@ python3 check_tree.py tree36_leaves.txt          # hours
 | `lean/` | the Lean development (`BB6/`), the certificate runners, the tree builders, and `thm/` with the theorem files |
 | `cert/` | certificate files (compressed), the independent checkers, and their outputs |
 | `csearch/` | the C explorers (exhaustive check, route trees, plateau exits, and earlier experiments) |
-| `dfs/` | merged results of the exhaustive check to 54, 56, 58 and 60 digits, and the driver |
+| `dfs/` | merged results of the exhaustive check to 54, 56, 58, 60 and 64 digits, and the driver |
 | `simtest/` | the differential test of the simulators (Python, C, stepper) against the proved model and the bare machine |
 | `blankrun/` | the machine's own run from blank tape followed in the mark model to width 2⁴², with every pass start it passes analysed (how the run reaches it, its distance to the halting families, lanes and wide condition, the settle depth of its cycle), and the run's tables and data (`blankrun/README.md`) |
 | `audit/` | instrumented copies of the checkers and explorers used for the trailing-wall audit, with their outputs |

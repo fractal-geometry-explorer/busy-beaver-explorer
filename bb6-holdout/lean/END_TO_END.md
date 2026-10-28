@@ -618,8 +618,8 @@ class closes); and 1,599 at 36 digits with the cone W ≥ 2²⁰, from W = 2²�
 
 ## Clean tapes below 2⁴¹, one by one
 
-The exhaustive check (`../csearch/nrefdfs2.c`) covers the small members of its open classes by running them, up to
-2⁶¹. `BB6/CleanRange.lean` does the same in Lean: `directOK W` runs the mark model from the clean tape of width W for
+The exhaustive check (`../csearch/nrefdfs2.c`, past 60 digits `nrefdfs2w.c`) covers the small members of its open
+classes by running them, up to 2⁶⁵. `BB6/CleanRange.lean` does the same in Lean: `directOK W` runs the mark model from the clean tape of width W for
 at most 10,000 rounds, until a one-marker clean tape wider than W (`toWider`, the run a drop makes), and
 `directOK_sound` turns a run that gets there into a statement about the machine. `RTree.cuts1` lists the cut classes of a clean-tape tree as residues of W/2
 modulo powers of two, `rangeOK lo hi t` runs every member of every cut class with lo ≤ W < hi, and `rangeOK_sound`:
@@ -1147,8 +1147,8 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   not a theorem (with the drops no class is cut at every depth because of the cone's edge, as the edge classes above
   were). Their number at a fixed number of digits does not fall with depth: nearly every cut class holds a 2-adic
   value of W/2 that no depth settles ("Deeper trees", above). In Lean such a clean tape is at least 2⁴¹ wide
-  (`blank_halt_clean_direct`); combined with the exhaustive check (every clean tape below 2⁶¹ reaches the next one
-  without halting; a C computation, not in Lean), at least 2⁶¹.
+  (`blank_halt_clean_direct`); combined with the exhaustive check (every clean tape below 2⁶⁵ reaches the next one
+  without halting; a C computation, not in Lean), at least 2⁶⁵.
 * **Item 3** is a statement about the stretches after a pass start, not a claim that a halt goes through the loop.
   The σ bound says that from a pass start beyond it a close through the loop needs a half pass or a round-7 break on
   the way (and from a width ≥ 2²⁴ a round-7 break is out); it does not bound σ itself. For the routes from

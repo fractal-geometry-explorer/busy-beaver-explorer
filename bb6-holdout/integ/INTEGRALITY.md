@@ -61,7 +61,7 @@ This corrects the reading of "Deeper trees" in `../lean/END_TO_END.md` and `../H
 2-adic value that no depth settles but a Cantor set of them, with about 1.5^r open subclasses r digits down.
 
 What this means for an integer: if x is an unsettled 2-adic value in a class C, then for every k the widths
-W ≡ x (mod 2^(k+1)) in C (there are such W above 2⁶¹ for every k) follow x's run for k digits and then go on into
+W ≡ x (mod 2^(k+1)) in C (there are such W above 2⁶⁵ for every k) follow x's run for k digits and then go on into
 whatever part of the Cantor set lies next to x. An integer differs from the other 2-adic numbers only in that its
 digits are eventually 0, and the tree reads digits, not sizes, except at the edge of its cone, where a drop runs the
 class's smallest member directly.
@@ -147,7 +147,7 @@ the run out of the open classes.
 The tree follows a width W through the digits it has. By the spare-digit bound (lab notes, "Residue classes of n":
 j_min ≤ 1 in every class checked), a member of a class at depth d with at least one more binary digit above the
 class's makes the class's choices, so W is followed faithfully to about log₂W digits; beyond that W is the smallest
-member of its class, at the edge of the cone, and the tree can only run it directly (a drop). Below 2⁶¹ every width
+member of its class, at the edge of the cone, and the tree can only run it directly (a drop). Below 2⁶⁵ every width
 settles (the exhaustive check). Above, the widths that the tree leaves undecided at their own length are about
 2^K · 0.76^K = 1.52^K of the 2^K widths with K digits: still infinitely many, each a computation of its own. The
 integrality question is whether every one of them settles.

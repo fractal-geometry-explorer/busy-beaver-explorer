@@ -9,9 +9,10 @@ self-contained except for the large intermediate outputs mentioned in `README.md
   theorems are in `lean/thm/` (evaluated with `native_decide`: 13 and 40 minutes). The previous session built Lean
   from source because release downloads were blocked; if the new environment can download releases, install 4.34.0.
 - **Certificates** (`cert/`): all three Python checkers report CERTIFICATE VALID; the outputs are saved next to them.
-- **Exhaustive check** (`dfs/`): merged results to 54, 56, 58 and 60 digits. The 60-digit run (`merged60.txt`) is
-  the final one: no clean tape below 2^61 reaches a halt (36,929,911,789 settled classes, 120,940,310,955 direct runs,
-  no problems; largest jump 345, longest chain 17).
+- **Exhaustive check** (`dfs/`): merged results to 54, 56, 58, 60 and 64 digits. The 64-digit run (`merged64.txt`,
+  with the 128-bit engine `csearch/nrefdfs2w.c`) is the final one: no clean tape below 2^65 reaches a halt
+  (204,860,486,855 settled classes, 661,842,319,825 direct runs, no problems; largest jump 375, longest chain 19), and
+  its levels 1 to 60 equal the 60-digit run's (`merged60.txt`, `merged60_fixed.txt`) line for line.
 - **Repositories**: this folder was first pushed to `busy-beaver-explorer/busy-beaver-explorer` (branch
   `bb6-holdout`, PR #1, which stops at the 58-digit result). The current copy is in
   `fractal-geometry-explorer/busy-beaver-explorer`.
@@ -167,7 +168,8 @@ self-contained except for the large intermediate outputs mentioned in `README.md
   `gcc -O2 -fwrapv -I$LEAN_PREFIX/include`, link with `$LEANLIB/libInit.a $LEANLIB/libleanrt.a -luv -lpthread -ldl
   -lm -lstdc++`. The tree builders are 10–100 times faster native than under `lean --run`.
 - `dfs/run_parts.sh K nparts splitlvl outdir` runs the exhaustive check in parts, two at a time; set `BIN` to the
-  compiled `csearch/nrefdfs2.c`. `dfs/merge.py` merges the parts.
+  compiled `csearch/nrefdfs2.c`, or past 60 digits `csearch/nrefdfs2w.c` (the 64-bit engine overflows there; the
+  64-digit run was 1536 parts at split level 33, about 420 CPU hours). `dfs/merge.py` merges the parts.
 - The trailing-wall slip described in the notes is fixed (October 27) in the Python checkers, the C engines
   `nrefdfs2`, `lined`, `rtree3d`, `rtree3e`, `gx3` and the stepper: they write the canonical form as `roundZ` does, and
   the C engines print how often they do (`trailing-wall canonical forms written: N` on stderr). The other programs in

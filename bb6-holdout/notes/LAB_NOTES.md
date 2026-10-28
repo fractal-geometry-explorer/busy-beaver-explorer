@@ -290,6 +290,24 @@ covered, so by the sharp lock a halt beyond needs σ ≥ 55.6 at the plain loop'
 trailing-wall slip covered this engine to 46 digits; the whole run was later repeated with the fixed engine, with the
 same output: see "The trailing wall, fixed".)
 
+**Result to 64 digits** (October 28; `../csearch/nrefdfs2w.c` in 1536 parts at split level 33, merged
+`../dfs/merged64.txt`). Past 60 digits the 64-bit engine overflows: a direct run at n ≥ 2^62 starts from a tape of
+width 2n + 6 ≥ 2^63. `nrefdfs2w` is the fixed `nrefdfs2` with every position, threshold and integer n held in 128 bits,
+and nothing else changed (same traversal, same split into parts, same output). It reproduces `nrefdfs2`'s output byte
+for byte on the whole tree to 40 digits and on four parts (5, 101, 175 and 300) of the 384-part 60-digit run, at about
+1.3 times the running time. The 1536 parts took about 420 CPU hours, in two-hour rounds on up to eleven machines at a
+time. Levels 1 to 60 of the merge equal `merged60_fixed.txt` line for line (`merge.py --cmp`: no mismatch, and not
+even a different first n for a longest direct chain), and the closest-approach minima are identical again: no new
+line. Levels 61 to 64 add 19,721,730,790, 30,340,107,417, 46,589,264,011 and 71,279,472,848 settled classes and
+64,288,668,378, 98,237,229,339, 149,885,194,667 and 228,490,916,486 direct runs (the open classes grow 1.530, 1.528,
+1.526 and 1.524-fold per digit); in all 204,860,486,855 settled classes and 661,842,319,825 direct runs, none halting,
+no problem class, every class with j_min ≤ 1, and the trailing-wall correction written 0 times in every part. The
+longest chain in a settled class grows to 19 (from level 61 on), as long as the longest direct runs, which stay at 19
+meetings (first at n = 2,522,779,240,328,288,814 at level 61). The largest jump is 375 (n = 30,525,004,161,967,140,654).
+So within the mark model **every clean tape n < 2^65 ≈ 3.7 × 10^19 reaches the next clean tape without halting**, and
+the machine needs at least 0.5·(2^65)³/375 ≈ **6.7 × 10^55 steps** to reach a clean tape ≥ 2^65. Widths below 2^66
+are covered, so by the sharp lock a halt beyond needs σ ≥ 59.6 at the plain loop's first pass start.
+
 **The mark model against the real machine, at these sizes** (October 20, night). The certified macro simulation
 (`cycles.py`: the proven rules applied to the real tape, with every rule's preconditions checked) runs a whole cycle
 in about 2 ms even at 90 binary digits. For 21,300 random clean tapes, 300 for each binary length from 20 to 90, and
