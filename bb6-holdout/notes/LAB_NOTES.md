@@ -3240,3 +3240,39 @@ loop's chain stretches as `EndEvent` defines them:
 - *Open classes:* 4.4 to 5.3 in 100,000 of the run's clean tapes are open at 36 digits, twice the cut classes'
   measure, since every open class has n ≡ 2 (mod 4) and the run lands there 51% of the time; the cycles of entries and
   half-pass landings are open there 0.45% of the time, of full-pass landings 74%, of round-7 breaks 27%.
+
+**Halting lanes above R = 483, and halts with no pass start on the way (October 28;
+`../lean/thm/PassOpenHalt.lean`).** A census at R = 294, 358 and 486 (W − b up to 4,096, the same search as before)
+finds 5, 4 and 6 closing classes. Each reaches a three-wall round start with width ≡ 2 (mod 4) and goes by a half pass
+and full passes into a halting class. Following one member of each class with W − b and R left free (the model run on
+the class, splitting only where that member goes) puts the eleven classes at R = 294 and 486 on five lanes, with
+Q = W − b + 2R + 22:
+
+| lane | where | first three-wall round start after the first | then |
+|---|---|---|---|
+| route C4 | Q + 36 ≡ 0 (mod 2,048) | round 9, W ≡ 2 (mod 4), R′ = (Q + 36)/64 | its half pass (route C4 in round 11) |
+| route C | Q ≡ 0 (mod 1,024) | round 5, W ≡ 2, R′ = Q/8 | its half pass (route C in round 7), full passes |
+| γ | R = 294 only | round 21, R′ = (Q + 5,116)/4,096 = 2 | the close; no class at the next two scales |
+| δ | R ≡ 486 (mod 512) | round 17, W ≡ 2, R′ = (Q + 636)/1,024 | its half pass in round 19, full passes |
+| ε | R ≡ 486 (mod 1,024) | round 13, W ≡ 2, R′ = (Q + 636)/256 | its half pass in round 15, full passes |
+
+On δ and ε the run meets the end at R − 2, then off the loop's chain at Q/4 − 3 = 2^(10+s) − 162 (Q + 636 = 2^(12+s)),
+and its meetings follow the chain from there: 2^(9+s) − 82, ..., 2^(6+s) − 12, then 2^(5+s) − 2, ..., 2, 0. A search started inside each lane's class finds exactly one closing class of b on each lane at every R
+tried (δ: R = 486, 998, ..., 4,582; ε: R = 486, 1,510, 2,534, 3,558, 4,582) and at every scale from the first with
+W − b ≥ R + 449 up to Q + 636 = 2³⁰: 246 classes, the modulus of b growing by about 1.5 bits per scale. Their forms
+(W′, a′, b′, R′, L₁′ at each three-wall start, affine in the start's b, W and R on the lane) match concrete runs on three
+members at each of Q + 636 = 2¹², 2¹³ and 2¹⁴. (Untrusted; the tables and tools are in the shared folder,
+`halting-classes/routes`.) The kernel checks the 38 classes at R = 486 for s = 0 to 18, W − b = 2^(12+s) − 1,630: each
+halts and lies in a cut leaf of `passTreeSym` at every depth (`lane486_open_halt`, `lane486_shape`; open runs of 20 to
+57 rounds; the file now takes 172 s). So pass starts that halt and that the pass-start tree leaves open exist above
+R = 483 too, at every scale tried. Whether the loop's chain from a loop entry can end on one of these lanes is the reaching question; the right
+end at its first three-wall start, (Q + 636)/1,024 or /256, grows with the scale, and the lanes come back at every
+R ≡ 486 (mod 512).
+
+The R = 230 classes with no three-wall round start after the first (W − b = 1,570 three times, 3,618 once) are
+proved too: `no_pass_open_halt` gives, for each member, the halt, a cut leaf of `passTreeSym` at every depth, and that
+no round start of the model's run after round 0 is three walls (`symNoWWWRun`, round by round on the class by the
+kernel, `notWWW_of_none`), so no pass start lies between such a start and its halt. The run meets the end at 228, then
+at 510 or 1,022 off the chain, and halves to the close through round starts with four walls or with a marker or a
+block. A census at R = 230 for W − b from 4,098 to 8,192 finds ten more classes, every one with a three-wall start, so
+these four look sporadic.
