@@ -3826,3 +3826,17 @@ closes are in those classes but outside `closeClassC`, as k = 15's two round-31 
 but not `EntryNoClose`. Restating it with `closeClassC` needs the pass-start trees built with `closeClassC` too (their
 close leaves would become cuts wherever L₁ lies outside it; at 12 to 20 splits the close leaves are exactly `HaltClass`,
 which lies inside it, the halting-classes side's count), and `entry_halt` with end meetings at distance ≥ 2.
+
+**The entry check with the narrower classes (October 28; `../lean/BB6/RouteEntryC.lean`,
+`../lean/thm/RouteEntryHaltC.lean`).** `entryOK` with the table of closing classes as a parameter (`entryOKT`, sound for
+any table; with `closeTable` it is `entryOK`, by `rfl`), and with the table of `closeClassC` (`entryOKC`,
+`EntryNoCloseC`), which has fewer classes to exclude, so it passes wherever `entryOK` does. With it the route tree and
+the clean-tape tree (`routeTreeEC`, `cleanTreeGEC`; `route_tree_entryC`, `clean_tree_entry_stepC`, at every depth) stop
+at the loop entries from which the loop cannot close in a class of `closeClassC`, and from those, by
+`LoopChain.close_wideC` and `loop_halt_leaves_close`, a halt needs the chain to end without a close, with the end
+meetings of its last stretch at distance ≥ 2 (`entry_halt_close`, `route_halt_close`, `blank_halt_route_close`; standard
+axioms only, nothing evaluated). That is the entry half of the restatement in the note above. The other half, the
+pass-start trees with `closeClassC` for `entry_pass_halt` and the theorems past the loop's end, is not done here, so the
+lane filters' default stays on `closeClasses`. At 36 digits over the widths ≥ 2⁴¹ `cleanTreeGEC` cuts the same classes
+as `cleanTreeGE`, since none of their runs meets a three-wall round start within the depth: the narrower check matters
+at the entries past the depth, where the censuses' routes go.
