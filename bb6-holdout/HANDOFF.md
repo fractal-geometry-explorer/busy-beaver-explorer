@@ -126,9 +126,13 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    paths against 177³/9 (twelve of γ's, at lane values 2⁶⁴ to 3 · 2⁶⁸, and the 20 on Q + 10,236, at 2⁶⁴ to 3 · 2⁷⁰); the
    chains from the 36- and 40-digit entries meet none of those (`runs/chain_lanes.py`, to width 2⁷⁴), and the only two
    of their pass starts that meet a census or sweep lane Q + c = 2^j or 3 · 2^j run on to a clean tape (the halting
-   side's census at each exact start). What is needed is a proof (the routes' forms in Lean, and the exhaustive check or
-   the far-shape search) and, on the halting side, every halting class at every R: the censuses had missed ζ, the route
-   at R ≡ 1,702 and γ's paths until run at every R of a class.
+   side's census at each exact start). Of the 32, 24 are out against their ends' own right ends and L₁ (October 28): a
+   lane value allows only the ends 2^i and 3·2^i, L₁ is even at a phase-0 start, and a pass start with R ≡ 0 (mod 8)
+   and L₁ ≡ 4 (mod 8) reaches a clean tape after five rounds (`pass_clean8`, `lean/thm/PassClean.lean`, kernel-checked),
+   so at those ends |L₁| ≥ 10. The other 8 need L₁ = −18, 10 or 24 at r = 128, lines on which the halting side's
+   explorer finds only clean leaves and depth cuts (`routes/small_ends.txt`, untrusted). What is needed is a proof (the
+   routes' forms in Lean, and the exhaustive check or the far-shape search) and, on the halting side, every halting
+   class at every R: the censuses had missed ζ, the route at R ≡ 1,702 and γ's paths until run at every R of a class.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.

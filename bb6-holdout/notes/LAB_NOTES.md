@@ -3624,3 +3624,25 @@ a clean tape. One is Q + 156 = 2⁷² at the round-10 entry of class 165,127 (cl
 n = 1,537,095,765,562,147,710,930 ≈ 2^70.4, W ≈ 2^71.4, R ≡ 36 mod 64), a clean tape six rounds on. The other is
 Q + 316 = 2⁶⁶ at the entry of class 18,468 (W ≈ 2^65.8), which has W ≡ 2 (mod 4), so it is two rounds before the loop's
 half pass and not on the lane, and whose clean tape, n ≈ 2^64.8, is below 2⁶⁵ anyway: a clean tape at round 11.
+
+**The small ends (October 28; `../lean/thm/PassClean.lean`, `routes/small_ends.txt` and `tools/routes/small/` in the
+halting-classes project files).** The 32 paths left against 177³/9 at the 2⁶⁶ floor need far less than every end below
+178. On a lane value R′ is fixed, so the right ends below 178 that full passes can reach are r = R′/16^p, which is 2^i
+or 3·2^i; and at a phase-0 pass start L₁ = 147b − 112W + 392R − 186 is even as well as 3 mod 7, so ℓ ≡ 10 (mod 14) and
+|ℓ| ≥ 4. An end at r needs r³/ℓ² at least the path's least R′³/L₁′² there, so each open lane value needs only the lines
+(r, ℓ) with ℓ² ≤ r³/σ: five at most at the 2⁶⁶ floor, (96, −4), (128, −4), (128, −18), (128, 10) and (128, 24), and 50
+at the 2⁴¹ floor (r = 24 to 128). A line is every pass start with R = r and L₁ = ℓ, b = b₀ + 64s, W = W₀ + 84s, the
+first wall free; the proved explorer's steps on it (`PassLine2.lean`, untrusted) find no land, close or round decided
+as a halt on any of the 50 lines at depth 24, and 15 lines go wholly to clean tapes without a split. No cut leaf
+splits the first wall: the cuts are classes of s alone, runs of 15 to 25 rounds after the pass breaks in round 2 (the
+right end falls to 1 and the walls halve each round, Collatz-like, to a clean tape), and their mass falls about
+threefold every 4 splits. With R symbolic the clean lines are uniform: every pass start with R ≡ 0 (mod 8) and
+b ≡ 2 (mod 8), so L₁ ≡ 4 (mod 8), reaches a wider one-marker clean tape in five rounds, whatever a, b and W are
+otherwise (`pass_clean8`, the five rounds on the class run by the kernel in about a second), and those with
+b ≡ 14 (mod 32), L₁ ≡ 16 (mod 32), in seven, when R ≡ 0 (mod 16) or R ≡ 24 (mod 32) (`pass_clean16`,
+`pass_clean24`). Scanning ℓ from −300 to 300 with R = 8 + 8q symbolic, the wholly clean lines are exactly ℓ ≡ 4
+(mod 8); with R ≡ 0 (mod 16) also ℓ = −144 and 80, and at R ≡ 0 (mod 64) ℓ = −256. So at the ends 2^i and 3·2^i from
+8 up |ℓ| ≥ 10 (`pass_clean_small`), r³/ℓ² ≤ r³/100 ≤ 20,972, and 24 of the 32 paths are out: 6 by ℓ's parity alone, 18
+more by `pass_clean8`. The 8 left need ℓ = −18, 10 or 24 at r = 128, where the cuts have mass 0.035%, 0.034% and
+0.025% at depth 28. Whether those lines hold a halt is the same question as for the pass-start tree at R ≥ 178: the
+cuts are open, and a halt there would come by re-entry (as `pass_halt_example_reentry` does from R = 130).

@@ -17,7 +17,9 @@
 #      (thm/PassHalt.lean, the proved explorer of BB6/PassTree.lean, nothing evaluated), the eighth of the pass starts
 #      with R = 6 that halt (thm/PassHaltR6.lean, six rounds on the class evaluated by the kernel), the eight classes
 #      of pass starts that the mark model takes to a close at distance 0, each a halt (thm/PassHaltClasses.lean, the
-#      model run on each class by the kernel), eight families of pass starts with R >= 178 at every width that halt
+#      model run on each class by the kernel), the classes of pass starts that reach a clean tape at once
+#      (thm/PassClean.lean, five or seven rounds on each class by the kernel), eight families of pass starts with
+#      R >= 178 at every width that halt
 #      and that the pass-start tree for R >= 178 leaves open at every depth, two more at each scale of the third gap
 #      from 2^12 to 2^32 (R = 178 and R = 182), full passes of the loop's chain onto two of them, four with R = 230
 #      that halt with no other pass start on the way, and two with R = 486 at each scale from 2^12 to 2^30
@@ -116,7 +118,7 @@ stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass CleanEntry
   CleanSmallMass CleanWideMass CleanFarMass CleanBigMass ExitHalt LoopTheorem RouteEntryTheorem
 stage LoopHalt
 stage EndToEnd RouteEntryHalt PassHalt PassHaltR6
-stage EndToEndDirect PassHaltClasses
+stage EndToEndDirect PassHaltClasses PassClean
 stage CleanEntryHalt PassOpenHalt
 stage PassEntryHalt LaneHalt
 stage SmallEndHalt
