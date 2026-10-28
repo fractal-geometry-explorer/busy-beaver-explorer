@@ -9,10 +9,10 @@ R = 1,702 mod 2,048 that the census finds when run with b free at every R of a c
 `lanes_q5116_new17_forms.txt` (the paths on gamma's lane Q + 5,116, likewise; most of them are seen at one R only,
 with the R term folded into the constant, so they are taken with their forms there at every R and printed on a lane
 Q - 2R + c), `lanes_q10236_forms.txt` (the paths on the next lane of the family, Q + 10,236, likewise),
-`lanes_k14_all_forms.txt`, `lanes_k14_k15_forms.txt` and `lanes_n3_n5_forms.txt` (paths on the family's later lanes
-Q + 5 2^k - 4 at k = 14, 15, 19, 23 and 27, which make two to five passes of the 4-wall loop before the re-entry; the
-first two files share the path at R = 1,318, to different rounds) and `lanes_r294_486.json` (the lanes delta and
-epsilon).
+`lanes_k14_all_forms.txt`, `lanes_k14_k15_forms.txt`, `lanes_n3_n5_forms.txt` and `lanes_k15_all_forms.txt` (paths on
+the family's later lanes Q + 5 2^k - 4 at k = 14, 15, 19, 23 and 27, which make two to five passes of the 4-wall loop
+before the re-entry; the first two files share the path at R = 1,318, to different rounds) and `lanes_r294_486.json`
+(the lanes delta and epsilon).
 A pass start has W' = 0 (mod 4), the phase-0 parity: a three-wall start with W' = 2 (mod 4) is two rounds before a half
 pass (inside a full pass it is the start of the pass's last two rounds, which act as one and land at its next phase-0
 start), so a path whose last start is one is taken at that landing, R'/2 and (L1' + 35W' - 147R' - 60)/2 (the step table
@@ -27,7 +27,7 @@ halting classes, `HaltClass`, all but R = 6's lie in closing classes, and R = 6'
 has.)  `close_l1.py` asks for the close's own l instead.  For any end below 178, a close or not, with only
 l = 3 (mod 7), r^3/l^2 is at most 177^3/9 (`noSmall_sigma`); but b is even at a phase-0 start, so l is even as well,
 |l| >= 4, and an end r = R'/16^p, even, allows at most r^3/16 (the halting-classes side's observation), and at most
-r^3/100 where 8 divides r, as a start there with |l| < 10 reaches a clean tape at once (`pass_clean_small`).  On a lane
+r^3/100 where 4 | r and r >= 8, as a start there with |l| < 10 reaches a clean tape (`pass_clean_small4`).  On a lane
 value N = c 2^e (c = 1 or 3) R' is fixed, and the pass starts with R >= 769, every gap at least 448, width at least 2^41
 and 15W <= 64(W - b), the shape `blank_halt_open_big` gives the chain's last pass start, form a polygon in (R, W) on
 which |L1'| is convex, so its least R'^3/L1'^2 is at a corner.  With --floor=e the pass start is wider than 2^e instead:
@@ -38,9 +38,17 @@ chain's last pass start there: its forms are rewritten in the landing's coordina
 R = 2R'), and its rounds are counted from there.  Paths with the same forms there, in lowest terms, take the same route,
 which is printed once, with the census R and lanes it was found at.
 
-usage: python3 lane_sigma.py [--floor=66] lanes_r770_1004_forms.txt lanes_r5002_5862_forms.txt lanes_r294_486.json \
-           lanes_zeta_forms.txt lanes_q316_1702_forms.txt lanes_q5116_forms.txt lanes_q5116_new17_forms.txt \
-           lanes_q10236_forms.txt lanes_k14_all_forms.txt lanes_k14_k15_forms.txt lanes_n3_n5_forms.txt
+With --closeC a close is one of `closeClassC` instead (`../lean/thm/EndgameCloseStart.lean`): an end meeting at
+distance 2 is not a close, and once the endgame trees pass these, a halting chain from a width of at least 2^20 closes
+only at r = 2, 4, 8, 16, 32 or 48, with l in r's narrower class (`loop_halt_wide_close` in
+`../lean/thm/LoopClose.lean`), so a close allows at most 4 at 2^j and 1.69 at 3 2^j (r = 48).  But `EntryNoClose`,
+which the route theorems ask of a loop entry, still excludes the closes of `closeClasses`; the default is what they
+take, and --closeC what they would with `closeClassC`.
+
+usage: python3 lane_sigma.py [--floor=66] [--closeC] lanes_r770_1004_forms.txt lanes_r5002_5862_forms.txt \
+           lanes_r294_486.json lanes_zeta_forms.txt lanes_q316_1702_forms.txt lanes_q5116_forms.txt \
+           lanes_q5116_new17_forms.txt lanes_q10236_forms.txt lanes_k14_all_forms.txt lanes_k14_k15_forms.txt \
+           lanes_n3_n5_forms.txt lanes_k15_all_forms.txt
 """
 import re
 import sys
@@ -55,6 +63,8 @@ ES = range(20, 160)  # the lane values c 2^e tried (with the power of two of the
 # (m, c) for L1 = c (mod m)
 CLOSE = {2: (2, 0), 4: (2, 0), 8: (8, 0), 16: (32, 0), 24: (64, 32), 32: (64, 0), 48: (128, 0), 64: (128, 0),
          176: (128, 0)}
+# `closeClassC` (`--closeC`): the closes once end meetings at distance 2 are passed, each class inside CLOSE's
+CLOSE_C = {2: (2, 0), 4: (2, 0), 8: (32, 0), 16: (64, 0), 32: (128, 0), 48: (128, 0)}
 SIG = Fr(177 ** 3, 9)  # `noSmall_sigma`: full passes end below 178 only if R^3/L^2 <= 177^3/9
 
 
@@ -199,13 +209,14 @@ def sigma_min(Rf, Lf, N):
 
 def small_bound(Rp):
     """the largest r^3/l^2 over the even ends r = R'/16^p below 178: at a phase-0 start b is even, so L1 is even as well
-    as 3 mod 7 and |l| >= 4, and |l| >= 10 where r is a multiple of 8 (`pass_clean_small`)"""
+    as 3 mod 7 and |l| >= 4, and |l| >= 10 where r is a multiple of 4 from 8 up (`pass_clean_small4`)"""
     rs = [r for r in (Rp / 16 ** p for p in range(64)) if r.denominator == 1 and r % 2 == 0 and 2 <= r < 178]
-    return max([Fr(r ** 3, 100 if r % 8 == 0 else 16) for r in rs], default=Fr(0))
+    return max([Fr(r ** 3, 100 if r % 4 == 0 and r >= 8 else 16) for r in rs], default=Fr(0))
 
 
 def close_l1(r):
-    """the least |L1| in r's closing class with L1 = 3 (mod 7) (`loopL1_mod7`): 4, 4, 24, 32, 32, 192, 256, 256, 256"""
+    """the least |L1| in r's closing class with L1 = 3 (mod 7) (`loopL1_mod7`): 4, 4, 24, 32, 32, 192, 256, 256, 256
+    (with `closeClassC` 4, 4, 32, 192, 256, 256)"""
     m, c = CLOSE[r]
     return min(abs(x) for x in range(-7 * m, 7 * m) if x % m == c and x % 7 == 3)
 
@@ -234,12 +245,15 @@ def lane(Rf):
 
 
 def main():
-    global G
+    global G, CLOSE
     found = {}  # route -> (where it was found, round, R' form, L1' form)
     args = sys.argv[1:]
     for a in [a for a in args if a.startswith('--floor=')]:
         G = 2 ** int(a[len('--floor='):])
         args.remove(a)
+    if '--closeC' in args:
+        CLOSE = CLOSE_C
+        args.remove('--closeC')
     for fn in args:
         for src, rnd, Rf, Lf in routes(fn):
             Rf, Lf = norm(Rf), norm(Lf)

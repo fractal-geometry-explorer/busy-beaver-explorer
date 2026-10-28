@@ -2,24 +2,27 @@
 # Check the end-to-end theorem (run ./check.sh first):
 #   1. the proved modules BB6/RouteTree.lean, BB6/CleanTree.lean, BB6/RouteExplore.lean, BB6/CleanRange.lean,
 #      BB6/RouteEntry.lean, BB6/EntryTree.lean, BB6/CleanEntryTree.lean, BB6/SmallEnd.lean, BB6/WideEntry.lean,
-#      BB6/BigEnd.lean and BB6/MassPar.lean (seconds);
-#   2. the exit and endgame trees and the run from blank tape to width 2^20, evaluated by Lean's kernel
-#      (`decide +kernel`; no compiler is trusted): the generated modules thm/ExitPieces*.lean and
-#      thm/EndgamePieces*.lean hold one theorem per subtree, thm/PrefixPieces*.lean one per stretch of 5,000 rounds;
-#      they compile in parallel (JOBS at a time, default 4; about 1 GB of memory each), and thm/ExitTheorem.lean,
-#      thm/EndgameTheorem.lean and thm/PrefixKernel.lean assemble them;
+#      BB6/BigEnd.lean, BB6/MassPar.lean, BB6/RouteEntryC.lean and BB6/EntryTestsC.lean (seconds);
+#   2. the exit and endgame trees, the endgame trees that pass end meetings at distance 2, and the run from blank
+#      tape to width 2^20, evaluated by Lean's kernel (`decide +kernel`; no compiler is trusted): the generated
+#      modules thm/ExitPieces*.lean, thm/EndgamePieces*.lean and thm/EndgameClosePieces*.lean hold one theorem per
+#      subtree, thm/PrefixPieces*.lean one per stretch of 5,000 rounds; they compile in parallel (JOBS at a time,
+#      default 4; about 1 GB of memory each), and thm/ExitTheorem.lean, thm/EndgameTheorem.lean,
+#      thm/EndgameCloseTheorem.lean and thm/PrefixKernel.lean assemble them;
 #   3. the BB6 modules compiled to a shared library (lean -c, leanc), loaded with --load-dynlib so that native_decide
 #      runs the evaluated checks as native code (this adds the C compiler to the trusted base; without it the prefix
 #      alone takes about an hour in Lean's interpreter);
 #   4. the theorem files, in stages whose files are independent and compile JOBS at a time: the kernel-checked run to
 #      width 2^20 (thm/PrefixKernel.lean), the loop through its passes (thm/LoopTheorem.lean), the halts after the
-#      exit and the loop, the pass-start trees from a pass start to the next landing or clean tape at every depth
-#      (thm/PassHalt.lean, the proved explorer of BB6/PassTree.lean, nothing evaluated), the eighth of the pass starts
-#      with R = 6 that halt (thm/PassHaltR6.lean, six rounds on the class evaluated by the kernel), the eight classes
-#      of pass starts that the mark model takes to a close at distance 0, each a halt (thm/PassHaltClasses.lean, the
-#      model run on each class by the kernel), the classes of pass starts that reach a clean tape at once
-#      (thm/PassClean.lean, five or seven rounds on each class by the kernel), eight families of pass starts with
-#      R >= 178 at every width that halt
+#      exit and the loop, the loop's chain with end meetings at distance 2 passed, which closes only from R = 2, 4, 8,
+#      16, 32 and 48 (thm/LoopClose.lean, nothing evaluated), the pass-start trees from a pass start to the next
+#      landing or clean tape at every depth (thm/PassHalt.lean, the proved explorer of BB6/PassTree.lean, nothing
+#      evaluated), and with the classes of thm/LoopClose.lean at their close leaves (thm/PassHaltClose.lean), the eighth
+#      of the pass starts with R = 6 that halt (thm/PassHaltR6.lean, six rounds on the class evaluated by the kernel),
+#      the eight classes of pass starts that the mark model takes to a close at distance 0, each a halt
+#      (thm/PassHaltClasses.lean, the model run on each class by the kernel), the classes of pass starts that reach a
+#      clean tape at once (thm/PassClean.lean, five or seven rounds on each class by the kernel), eight families of pass
+#      starts with R >= 178 at every width that halt
 #      and that the pass-start tree for R >= 178 leaves open at every depth, two more at each scale of the third gap
 #      from 2^12 to 2^32 (R = 178 and R = 182), full passes of the loop's chain onto two of them, four with R = 230
 #      that halt with no other pass start on the way, and two with R = 486 at each scale from 2^12 to 2^30
@@ -32,11 +35,11 @@
 #      families with 0 to 9 passes of it before the re-entry, so routes of every length (thm/RouteLoop.lean, the
 #      same), the blank-tape prefix to width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape tree at every depth
 #      (thm/CleanTheorem.lean, the proved explorer, nothing evaluated), the clean tapes of width in [2^32, 2^41) run
-#      one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and thm/EndToEndDirect.lean, the routes
-#      from two-marker states with their loop entries (thm/RouteTheorem.lean, thm/RouteEntryTheorem.lean,
-#      thm/RouteEntryHalt.lean, nothing evaluated), the clean-tape tree with loop entries and its chain from blank
-#      tape (thm/CleanEntryTheorem.lean, thm/CleanEntryHalt.lean, nothing evaluated), that chain joined to the
-#      pass-start trees, with the plain clean-tape tree taken first where it resolves a clean tape
+#      one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean, thm/EndToEndDirect.lean and
+#      thm/EndToEndClose.lean, the routes from two-marker states with their loop entries (thm/RouteTheorem.lean,
+#      thm/RouteEntryTheorem.lean, thm/RouteEntryHalt.lean, nothing evaluated), the clean-tape tree with loop entries
+#      and its chain from blank tape (thm/CleanEntryTheorem.lean, thm/CleanEntryHalt.lean, nothing evaluated), that
+#      chain joined to the pass-start trees, with the plain clean-tape tree taken first where it resolves a clean tape
 #      (thm/PassEntryHalt.lean), the same with loop entries from which the loop's chain ends at no small right end
 #      (thm/CleanSmallTheorem.lean, thm/SmallEndHalt.lean, nothing evaluated), and the two together
 #      (thm/OpenSmallHalt.lean), and with loop entries whose right end is at least a 32nd of the width, from which the
@@ -45,7 +48,14 @@
 #      far from the end, from which the chain ends at a pass start with 15W <= 64(W - b) (thm/CleanFarTheorem.lean,
 #      thm/FarHalt.lean, nothing evaluated), and with far loop entries from which no run of full passes ends at a
 #      right end below 769, from which the chain ends at R >= 769 (thm/CleanBigTheorem.lean, thm/BigEndHalt.lean,
-#      nothing evaluated); prints the axioms of the final theorems;
+#      nothing evaluated), and the routes and the clean-tape tree with the loop entries that cannot close in the
+#      narrower classes of closeClassC (thm/RouteEntryHaltC.lean, nothing evaluated), joined to the pass-start trees
+#      with those classes (thm/PassEntryHaltClose.lean), and the clean-tape trees with those loop entries and the
+#      small-end, wide, far or big-end checks (thm/CleanTreesC.lean, nothing evaluated), joined to the pass-start
+#      trees in the theorems with those checks (thm/OpenHaltClose.lean, nothing evaluated), and six families of pass
+#      starts with the far shape, R >= 769 and width above 2^41 that halt on the 4-wall loop's lanes with two to five
+#      passes, three of them wider than 2^66 (thm/LoopFarHalt.lean, the model run on them by the kernel); prints the
+#      axioms of the final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,
 #      thm/CleanSmallMass.lean, thm/CleanWideMass.lean, thm/CleanFarMass.lean, thm/CleanBigMass.lean, about 5 minutes
@@ -67,12 +77,14 @@ for a in "$@"; do
   esac
 done
 for f in RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree SmallEnd WideEntry BigEnd \
-  MassPar; do
+  MassPar RouteEntryC EntryTestsC; do
   echo "== BB6/$f.lean"; $LEAN BB6/$f.lean -o out/BB6/$f.olean
 done
-for f in ExitStart EndgameStart PrefixBase; do echo "== thm/$f.lean"; $LEAN thm/$f.lean -o out/$f.olean; done
-PIECES=$(cd thm && ls PrefixPieces*.lean ExitPieces*.lean EndgamePieces*.lean | sed 's/\.lean$//')
-echo "== thm/PrefixPieces*.lean, thm/ExitPieces*.lean, thm/EndgamePieces*.lean (kernel, $JOBS at a time)"
+for f in ExitStart EndgameStart EndgameCloseStart PrefixBase; do
+  echo "== thm/$f.lean"; $LEAN thm/$f.lean -o out/$f.olean
+done
+PIECES=$(cd thm && ls PrefixPieces*.lean ExitPieces*.lean Endgame*Pieces*.lean | sed 's/\.lean$//')
+echo "== thm/PrefixPieces*.lean, thm/ExitPieces*.lean, thm/Endgame*Pieces*.lean (kernel, $JOBS at a time)"
 start=$(date +%s)
 printf '%s\n' $PIECES | xargs -P "$JOBS" -I{} "$LEAN" thm/{}.lean -o out/{}.olean
 echo "   $(( $(date +%s) - start )) s"
@@ -116,16 +128,17 @@ DEEPMASS=""
 [ -n "$DEEP" ] && DEEPMASS="CleanMass40 CleanDirectMass40 CleanEntryMass40"
 [ -n "$DEEPER" ] && DEEPMASS="$DEEPMASS CleanEntryMass44"
 stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass CleanEntryMass CleanEntryKernelMass \
-  CleanSmallMass CleanWideMass CleanFarMass CleanBigMass ExitHalt LoopTheorem RouteEntryTheorem
+  CleanSmallMass CleanWideMass CleanFarMass CleanBigMass ExitHalt LoopTheorem RouteEntryTheorem EndgameCloseTheorem
 stage LoopHalt
-stage EndToEnd RouteEntryHalt PassHalt PassHaltR6
-stage EndToEndDirect PassHaltClasses PassClean
-stage CleanEntryHalt PassOpenHalt
-stage PassEntryHalt LaneHalt RouteLoop
-stage SmallEndHalt
+stage EndToEnd RouteEntryHalt PassHalt PassHaltR6 LoopClose
+stage EndToEndDirect PassHaltClasses PassClean EndToEndClose PassHaltClose
+stage CleanEntryHalt PassOpenHalt RouteEntryHaltC
+stage PassEntryHalt LaneHalt CleanTreesC RouteLoop
+stage SmallEndHalt PassEntryHaltClose LoopFarHalt
 stage OpenSmallHalt
 stage WideHalt
 stage FarHalt
 stage BigEndHalt
+stage OpenHaltClose
 $LEAN thm/EndToEndAxioms.lean
 echo "END TO END CHECKED"

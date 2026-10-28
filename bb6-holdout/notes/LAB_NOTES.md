@@ -3736,3 +3736,195 @@ own L₁ too (`end_l1.py`, at lane values from 3 · 2⁶³ to 2⁷⁴), and the 
 well, by its own L₁ at most of the lane values. `end_l1.py` now counts the admissible ℓ by their residues modulo 224
 instead of listing them (on the family's wide intervals it would run through about 2⁴⁰ values at the 2⁴¹ floor and 2²⁸
 at 2⁶⁶), and the three scripts try lane values to 2¹⁵⁹ (`lane_sigma.ES`; n = 5's widths had been cut off at 2¹⁰⁹).
+
+**The k = 14 census completed, and the lines its paths' ends need (October 28; `routes/lanes_k14_all_forms.txt` and
+`routes/small_ends.txt` in the project files, untrusted).** The census with b free on Q + 81,916 = 2¹⁹ has run all 1,151
+of its R (≡ 38 or 230 mod 256, to 147,238): 31 closing classes at 24 R, each followed to round 80 as before, one path
+per R (the two classes at each of 7 R take the same one), with different forms at every R, R and R + 2¹⁶ included;
+`lanes_k14_all_forms.txt` now holds all 24 paths. The same census on the lanes of k = 12 and 13 (Q + 20,476 and
+Q + 40,956 = 2¹⁸, 628 and 575 runs at the same R) finds no closing class, as k ≡ 2 or 3 (mod 4) predicts. The 15 new
+paths change nothing above: at the 2⁴¹ floor the widths left are still 2^65.7 against a close and 2^76.1 against any end
+below 178 (the least R′³/L₁′² of the 24 is 7.1 × 10⁻⁸, on R = 35,046's path, one of the nine), and at the 2⁶⁶ floor none
+of the 24 is left against a close and all are left against any end below 178, by the end's own L₁ too. Those ends need
+68 lines (r, ℓ), for the 24 and the two paths of `lanes_k14_k15_forms.txt` (k = 15 adds (32, −102)), with r from 6 to
+128 and ℓ from −466 to 94, 45 of them new to the census of lines (`tools/routes/small/need_l1.py`). On every one
+`PassLine2.lean` at depth 24 (the proved explorer's steps) finds no halt, uncovered round, gap or close: (12, −4) goes
+wholly to clean tapes, (96, −256) and (128, −256) wholly make a full pass, to (6, −4) and to (8, −4) (clean by
+`pass_clean8`), and the other 65 have only clean leaves and depth cuts, cut mass 0.05% to 0.23% (with 2 to 5 leaves on
+the ℓ = −32 lines where the cleaves run out, as before). As for the lines before, a cut leaf is open, so this is
+evidence, not proof, that the paths at k = 14 and 15 halt at no end below 178.
+
+**The clean classes widened (October 28; `../lean/thm/PassClean.lean`).** The straight branch of `pass_clean8` does not
+need R ≡ 0 (mod 8): every phase-0 pass start with R ≡ 0 (mod 4), R ≥ 8 and b ≡ 2 (mod 8) (L₁ ≡ 4 mod 8) reaches a wider
+one-marker clean tape in the same five rounds (`pass_clean_l4`, the kernel running them with R = 8 + 4z free), and every
+one with R ≡ 0 (mod 8), R ≥ 16 and b ≡ 14 (mod 32) (L₁ ≡ 16 mod 32) in seven (`pass_clean_l16`, R = 16 + 8z).
+`pass_clean8`, `pass_clean16` and `pass_clean24` now follow from these, and `pass_clean_small4` gives |L₁| ≥ 10 at the
+last pass start before a halt at every right end that is a multiple of 4 from 8 up. Neither floor can be lowered for a
+straight branch: from R = 4 the first class, and from R = 8 the second, reach no clean leaf without a split within 13
+rounds. Of the ends 2^i and 3 · 2^i below 178 the only one this adds is 12 (the census of lines had already found
+(12, −4) going wholly to clean tapes). With it `end_l1.py` drops ℓ = −4 at r = 12 from six paths at the 2⁶⁶ floor
+(R = 35,046 and 119,526 at k = 14, R = 955,110 at k = 15 and the n = 3, 4 and 5 paths at k = 19, 23 and 27), and a
+quarter of the ℓ it admits at r = 12 elsewhere, but takes out no route: against any end below 178, 29 routes and paths
+are still left at the 2⁶⁶ floor and 81 at the 2⁴¹, as before (all the files of `lane_sigma.py`). The six keep ℓ = −4 at
+r = 6. Since PR #99 `lane_sigma.py` takes r³/100 at r = 12 too, dropping some lane values 3 · 2^j but no width or route.
+
+**The k = 15 census (October 28; `routes/lanes_k15_all_forms.txt`, `routes/README.md`, "The k = 15 census", and
+`routes/small_ends.txt`, "k = 15", in the project files, untrusted).** The census with b free on Q + 163,836 = 2²⁰, the
+family's next lane after k = 14's, at all 2,303 of its R (≡ 38 or 230 mod 256, to 294,694), finds 25 closing classes at
+17 R, with no undecided leaf. Each was followed to round 80 as at k = 14: the two classes at each of 7 R take the same
+path and the two at R = 217,318 take two, so 18 paths. 16 re-enter in round 35, as R = 955,110's path in
+`lanes_k14_k15_forms.txt` does (R′ = lane value / 2¹⁹), and fare as it does: against a close they are left up to 2^65.7
+at the 2⁴¹ floor (least R′³/L₁′² 6.8 × 10⁻⁸ to 8.9 × 10⁻⁸) and are out at the 2⁶⁶ floor. The two from R = 47,334 and
+288,038 re-enter in round 31 (R′ = lane value / 2¹⁷), four rounds ahead of the others, as k = 14's round-27 paths are
+ahead of its round-31 ones, and are left against a close up to 2^67.7 (least R′³/L₁′² 6.1 × 10⁻⁸ and 2.6 × 10⁻⁸). At the
+2⁶⁶ floor they are left at 3 · 2⁶⁴ (r = 24, both) and at 2⁶⁵ (r = 16, R = 288,038's), and by the close's own L₁ too
+(`close_l1.py`), with ℓ = −32 each time, which is in the closing classes of 16 and 24 though in no `HaltClass`. So the
+2⁶⁶ floor does not put k = 15 out against a close, contrary to what R = 955,110's path alone suggested (above). On the
+two lines these closes need, (16, −32) and (24, −32), `PassLine2.lean` at depth 24 finds no close or halt, only clean
+leaves and depth cuts, but for 2 leaves on each where the cleaves run out, as on the other ℓ = −32 lines. Against any
+end below 178 all 18 are left, to 2^76.1 and the two to 2^78.1, by the end's own L₁ too; their ends need 82 lines
+(`need_l1.py`), 21 of them not run before, with r from 12 to 128 and ℓ from −1,544 to −18, and on those the line
+explorer at depth 24 finds no halt, uncovered round, gap or close (cut mass 0.06% to 0.20%). That makes 89 lines for the
+ends of all the paths followed at k = 14 and 15, none with a halt; a cut leaf is open, so this too is evidence, not
+proof.
+
+**An end meeting at distance 2 is not a close (October 28; `../lean/BB6/EndgameClose.lean`,
+`../lean/thm/LoopClose.lean`, and for the lanes a copy of `../runs/close_l1.py` with the new classes, untrusted).** The
+endgame trees stop at every end meeting at a constant distance ≤ 2 and show L₁ in a class there, so the closing classes
+(`closeClass`) are the classes of those meetings, and in every one with R ≥ 4 the meeting is at distance 2. That is not
+a close: the halving chain puts the next meeting at distance 0, the close, and anywhere else the run has left the chain.
+So ℓ = −32 at r = 16 and 24, which kept k = 15's two round-31 paths at the 2⁶⁶ floor (above), was in a closing class
+only through a meeting at distance 2. `Tree.okEndC` checks trees that run on past these meetings, to where the run
+leaves phase 0 or the chain at a round start that is not three walls (no step of the chain follows such a stretch), and
+`ExploreNC close` builds them for R = 8, 16, 24, 32, 64 and 176 (121 leaves, checked by the kernel). Their close leaves
+are end meetings at distance 0, with L₁ ≡ 0 mod 32 for R = 8, mod 64 for 16 and mod 128 for 32, the classes of
+`HaltClass` at W ≡ 0 (mod 4), and R = 24, 64 and 176 have none. So a close needs R in {2, 4, 8, 16, 32, 48} and L₁ in
+R's class of `closeClassC` (`endgame_stretch_close`). R = 2, 4 and 48 keep their classes; R = 4 keeps L₁ even because
+after one of its distance-2 meetings the run is back at three walls two rounds later, as at a half pass, which
+`Tree.okEndC` does not accept. `loop_chain_halt_close` restates the chain with these classes, at the price of end
+meetings at distance ≥ 2 (not 3) in its last stretch. With ℓ ≡ 3 (mod 7) the least |ℓ| is now 4, 4, 32, 192, 256 and 256
+at r = 2, 4, 8, 16, 32 and 48, so a close has r³/ℓ² ≤ 4, at r = 4 (it was 176³/256² ≈ 83; `sigma_closeC`): log₂W ≤ σ + 2
+at the start of the chain's last run of full passes, not σ + 6.38, and a round-7 landing within that bound needs a width
+below 2²⁰ (`break7_sigmaC`), so `loop_halt_wide_close` and `loop_halt_leaves_close` hold from 2²⁰ instead of 2²⁴. On the
+lanes a close now allows r³/ℓ² ≤ 4 at 2^j (r = 4) and 1.69 at 3 · 2^j (r = 48; it was 13.5, at r = 24). Over all twelve
+forms files (106 routes and paths), at the 2⁴¹ floor `close_l1.py` with these classes leaves 88 against a close by its
+own L₁ and 90 by r³/ℓ² (90 and 94 before): of the first 18 routes ε and ε′ are out by the close's own L₁ (all they had
+was ℓ = −32 at r = 16 and 24) and δ, ζ and the two at R = 5,350 by r³/ℓ² alone, and most widths left drop by 2.6 bits:
+the paths at k = 14 and 15 up to 2^63.1, k = 15's two round-31 paths up to 2^65.1 and the n = 3, 4 and 5 paths up to
+2^75.1, 2^87.1 and 2^99.1 (they were 2^65.7, 2^67.7, 2^77.7, 2^89.7 and 2^101.7). At the 2⁶⁶ floor the two round-31
+paths are out, so k = 15 is out against a close after all, and 3 are left instead of 5: the n = 3, 4 and 5 paths of
+`lanes_n3_n5_forms.txt` (from R = 6,656,742, 246,780,646 and 4,222,980,838), by the close's own L₁ too. The filter
+against any end below 178 does not use the closing classes and is unchanged.
+
+**The narrower classes in the lane filters (October 28; `../runs/lane_sigma.py` and `../runs/close_l1.py`,
+`--closeC`).** Both scripts take `closeClassC` with `--closeC` and reproduce the counts above on the twelve files: at
+the 2⁴¹ floor 90 routes and paths left by r³/ℓ² and 88 by the close's own L₁ (94 and 90 with `closeClasses`), the widths
+2.6 bits lower on 90 of them, and at the 2⁶⁶ floor only the n = 3, 4 and 5 paths, to 2^75.1, 2^87.1 and 2^99.1. The
+default stays on `closeClasses`, as `EntryNoClose` (`../lean/BB6/RouteEntry.lean`), the condition that `entry_halt` and
+the route theorems after it ask of a loop entry, still excludes the closes of `closeClasses`: a lane value whose only
+closes are in those classes but outside `closeClassC`, as k = 15's two round-31 paths at 2⁶⁶, passes the narrower filter
+but not `EntryNoClose`. Restating it with `closeClassC` needs the pass-start trees built with `closeClassC` too (their
+close leaves would become cuts wherever L₁ lies outside it; at 12 to 20 splits the close leaves are exactly `HaltClass`,
+which lies inside it, the halting-classes side's count), and `entry_halt` with end meetings at distance ≥ 2.
+
+**The entry check with the narrower classes (October 28; `../lean/BB6/RouteEntryC.lean`,
+`../lean/thm/RouteEntryHaltC.lean`).** `entryOK` with the table of closing classes as a parameter (`entryOKT`, sound for
+any table; with `closeTable` it is `entryOK`, by `rfl`), and with the table of `closeClassC` (`entryOKC`,
+`EntryNoCloseC`), which has fewer classes to exclude, so it passes wherever `entryOK` does. With it the route tree and
+the clean-tape tree (`routeTreeEC`, `cleanTreeGEC`; `route_tree_entryC`, `clean_tree_entry_stepC`, at every depth) stop
+at the loop entries from which the loop cannot close in a class of `closeClassC`, and from those, by
+`LoopChain.close_wideC` and `loop_halt_leaves_close`, a halt needs the chain to end without a close, with the end
+meetings of its last stretch at distance ≥ 2 (`entry_halt_close`, `route_halt_close`, `blank_halt_route_close`; standard
+axioms only, nothing evaluated). That is the entry half of the restatement in the note above. The other half, the
+pass-start trees with `closeClassC` for `entry_pass_halt` and the theorems past the loop's end, is not done here, so the
+lane filters' default stays on `closeClasses`. At 36 digits over the widths ≥ 2⁴¹ `cleanTreeGEC` cuts the same classes
+as `cleanTreeGE`, since none of their runs meets a three-wall round start within the depth: the narrower check matters
+at the entries past the depth, where the censuses' routes go.
+
+**The other clean-tape trees with the narrower classes (October 28; `../lean/BB6/EntryTestsC.lean`,
+`../lean/thm/CleanTreesC.lean`).** The entry tests of the trees with the small-end, wide, far and big-end checks, with
+`cleanEntryOKC` in place of `cleanEntryOK` (`cleanSmallOKC`, `cleanWideOKC`, `cleanFarOKC`, `cleanBigOKC`), and the
+trees with them and their steps at every depth (`cleanTreeGSC`, `cleanTreeGWC`, `cleanTreeGFC`, `cleanTreeGBC`;
+`clean_tree_small_stepC`, `clean_tree_wide_stepC`, `clean_tree_far_stepC`, `clean_tree_big_stepC`; standard axioms only,
+nothing evaluated). They are for the small, wide, far and big halting theorems with `closeClassC`, once the pass-start
+side's join (`entry_pass_halt_close`) is in. Evaluated natively here (untrusted: a one-off `#eval`, not part of
+`check_end.sh`), `cleanTreeGEC` and the four trees here all have at 36 digits over the widths ≥ 2⁴¹ the measure of
+`clean_entry_mass_36` exactly, loop entries included: 1,255,963 cut classes, 1,163,068 clean tapes and 28,660 loop
+entries. So at that depth the narrower classes leave the same clean tapes open; as with `cleanTreeGEC`, they matter at
+the loop entries past the depth.
+
+**An exact test on the lanes, and why it does not settle the routes (October 28; `tools/routes/exact/` in the shared
+folder, untrusted).** For a route or path whose forms do not depend on R, a lane value fixes D = W − b, so the left
+countdown at the end, L₁′ = (A b + B)/d, is affine in b alone, and an end at r = R′/16^p with countdown ℓ needs an
+integer b in the lane's range with L₁′(b) = 64^p ℓ exactly, where `end_l1.py` and `close_l1.py` only ask for ℓ in L₁′'s
+interval over that range. At the census R this is decisive: of the 105 routes and paths over the twelve forms files, 79
+have forms without R, and where the interval method leaves all 79 against a close and against an end at the 2⁴¹ floor (3
+and 47 at 2⁶⁶), the exact test leaves none against a close at either floor and one against an end at 2⁴¹ (a k = 14
+path). It does not carry over to the routes, which are families in R: along R = 742 + 16,384u the numerator of L₁′ is
+7(4,075,225,088u − 123,463b) + c₀, constant along a line of the (u, b) lattice, so the residues the test misses at the
+census R come back at other u, and the count over the family is the interval method's with the true R shift (about 2²⁸
+members for each admissible ℓ at lane 2⁶⁴). The interval verdicts stand.
+
+**The pass-start trees with the narrower classes, and the end-to-end statement (October 28;
+`../lean/thm/PassHaltClose.lean`, `../lean/thm/EndToEndClose.lean`, `../lean/PassStats.lean`).** `passTreeRC` is the
+pass-start tree for R < 178 built by the same explorer with R's class of `closeClassC` at its close leaves. The class
+enters the explorer only there (a round decided as something other than a new round start ends the path at a close leaf
+when the start's L₁ is decidedly in the class, else at a cut), so the tree has the shape of `passTreeR`, and outside R =
+8, 16, 24, 32, 64 and 176 it is the same tree. `pass_halt_chain_close` is `pass_halt_chain` with these trees: a halt
+from a pass start of width ≥ 2¹³ follows the loop's chain to a last pass start with R in {2, 4, 8, 16, 32, 48} and L₁ in
+R's class of `closeClassC`, or one in a cut leaf of its tree at every depth (`PassCutC`, which from R = 178 on is
+`PassCut`), or to a wider clean tape. Nothing is lost: at 12, 16 and 20 splits the trees for R = 8, 16, 24, 32, 64 and
+176 have the same leaves by kind and measure with either class (`PassStats.lean` with `8c` and so on), so every close
+leaf's L₁ is decidedly in the narrower class (the close leaves are the classes of `HaltClass`). From blank tape,
+`blank_halt_structure_close` and `blank_halt_structure_close_kernel` are `blank_halt_structure` and its kernel version
+with the loop's chain ending in `InCloseClassC` (standard axioms only for the kernel version), and with the loop
+entries of `EntryNoCloseC` (`../lean/thm/RouteEntryHaltC.lean`) past the loop's end, `blank_halt_pass_close` and
+`blank_halt_open_close` are `blank_halt_pass` and `blank_halt_open` with these classes on both sides of the loop's end
+(`../lean/thm/PassEntryHaltClose.lean`): a halt from blank tape needs a clean tape cut at every depth, or a pass start
+cut at every depth of its tree (`PassCutC`) after a loop entry that cannot close in a class of `closeClassC`.
+
+**The small-end, wide, far and big-end theorems with the narrower classes (October 28;
+`../lean/thm/OpenHaltClose.lean`).** With the pass-start side's join in (`entry_pass_halt_close`,
+`../lean/thm/PassEntryHaltClose.lean`), the theorems of `OpenSmallHalt`, `WideHalt`, `FarHalt` and `BigEndHalt` with the
+narrower classes of `closeClassC`: `entry_small_halt_close` and its wide, far and big versions;
+`blank_halt_open_small_close`, `blank_halt_open_wide_close`, `blank_halt_open_far_close` and
+`blank_halt_open_big_close`, with kernel versions of the first three on the standard axioms only;
+`blank_halt_not_family_close`; and `never_halts_of_open_close`, `never_halts_of_wide_close`, `never_halts_of_far_close`
+and `never_halts_of_big_close`. Nothing new had to be proved past the entry: the chain's last pass start has R ≥ 178
+(`LoopChain.small_end` does not depend on the closing classes), and from R = 178 on `PassCutC` is `PassCut`
+(`passCutC_iff`), so `SmallQ`, `WideQ`, `FarQ` and `BigQ` and their `pass` lemmas serve unchanged. The pass starts left
+to rule out are those of `never_halts_of_big`; the clean tapes are those that `cleanTreeG 2⁴¹ d` and
+`cleanTreeGBC 2⁴¹ d` leave open at every depth, among those that `cleanTreeGB` leaves (at 36 digits the same, above). So
+the lane filters' `--closeC` numbers are now the ones that bear on the theorems (untrusted): with the close's own L₁
+they leave none of the first 18 census routes at the 2⁴¹ floor, and at the 2⁶⁶ floor only the paths at k = 19,
+23 and 27.
+
+**The far shape on the 4-wall loop's lanes: halting pass starts at two to five passes, above 2⁶⁶ from three on
+(October 28; `../lean/thm/LoopFarHalt.lean`; the search in `routes/loop4/far_shape.md` and `tools/routes/far/loop/` in
+the halting-classes project files, untrusted).** The docs left open whether the lanes Q + 5 · 2^k − 4 with two or more
+4-wall passes have halting pass starts with 15W ≤ 64(W − b), since the families on Q = 4 + 123 · 2^(4n+7) have b
+close to W. The halting side's far-shape search (census at three R of a route, the step of b's class in R checked at
+the third, a lattice search over every R of the route), with the census compiled to native code (3 s at 2⁴¹ with b
+fixed mod 2³², 100 s at 2⁵⁹, 3 to 8 minutes at 2⁶⁶), on the families' routes: R ≡ 37,606 (mod 2¹⁷) on Q + 163,836
+(n = 2) and the k = 15 census's other route, R ≡ 13,030 (mod 2¹⁸); R ≡ 365,286 (mod 2²¹) on Q + 2,621,436 (n = 3),
+R ≡ 11,899,622 (mod 2²⁵) on Q + 41,943,036 (n = 4) and R ≡ 464,884,454 (mod 2²⁹) on Q + 671,088,636 (n = 5), the
+periods from the families' lattices. Far members with R ≥ 769 and width above 2⁴¹: on the n = 2 route 11, 18, 23, 46,
+92, 186, 733 and 3,861 at 2⁴⁰, 2⁴¹, 2⁴², 2⁴³, 2⁴⁵, 2⁴⁷, 2⁵¹ and 2⁵⁵ and none at 2⁵⁹ and 2⁶³ (the other k = 15 route
+alike, 957 at 2⁵⁵); on the n = 3 route 2, 2 and 3 at 2⁴¹ to 2⁴³ and 3,630 at 2⁶⁶, and no class at 2⁶⁷; on the n = 4
+and 5 routes none at 2⁴¹ to 2⁴³ (least b/(W − b) 52, 18 and 4.9 at n = 4) and 319 and 19 at 2⁶⁶; at 2⁶⁶ all are
+wider than 2⁶⁶. Why a route's counts stop: the step is one 2-adic number at every scale, and the lattice
+{(i, b): b ≡ b₀ + i · step mod 2^m} has a short vector (q, r), q periods of R moving b by r: (29,361,887,
+7,697,741,643,776) on the n = 2 route from 2⁵¹ on, (1,879,055,327, 7,881,374,283,333,632) on the n = 3 route at 2⁶⁶.
+The members lie on the lines qb − ri = const, and the class's modulus grows 1.5 bits a scale against 1 for the region,
+so the lines through it thin out (on the n = 2 route about 2^(28 − j/2): 6 at 2⁵¹, 2 at 2⁵⁵, none in the far region
+from 2⁵⁹ on); the 3,630 at 2⁶⁶ lie on one line, of width 2^67.385 throughout (b grows by 2 for each 1 of R along it).
+At n = 4 and 5 the short vector is still long at 2⁶⁶ and the counts are about a random class's (the 319 lie on 19
+lines). A census at each member's own R finds the predicted class (six of six checked), and `loopFar_open_halt` proves
+six of them, with `Fam.ok` by the kernel (about 30 s): one at 2⁴¹ at two passes, two at 2⁴¹ and one at 2⁶⁶ at three,
+and one at 2⁶⁶ at four and at five; `loop2_far_wide`, `loop3_far_wide`, `loop3_far_66`, `loop4_far_66` and
+`loop5_far_66` state each as a pass start that meets every condition `blank_halt_open_big` puts on it and halts, the
+last three of widths about 2^67.4, 2^67.0 and 2^66.7, above the 2⁶⁶ of the 64-digit check and within the widths that
+the filter with `closeClassC` leaves at k = 19, 23 and 27 (to 2^75.1, 2^87.1 and 2^99.1). On PR #90's branch
+`Fam.loopOK` holds for them with exactly two, three, four and five passes (and fails with one more or fewer). So no
+condition on the pass start found so far keeps the family off, at any floor: that needs what the chain from the run's
+own loop entries reaches.

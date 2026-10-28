@@ -1,8 +1,8 @@
-import BB6.Ends
+import BB6.EndgameClose
 open BB6 BB6.Sym
 
 /-! # Building split trees for the endgame and the exit (untrusted driver; every verdict is re-checked by
-`Tree.okEnd`)
+`Tree.okEnd` or `Tree.okEndC`)
 
 For each even R, the endgame's start class of phase-0 pass starts is a = 1 + 2 y₀, b = 2 y₁, E = 2 y₂ (a odd, b even,
 E even) with the marks G 1, W a, W b, W c = E − R − 1 and width E; the cone gaps are a, b − a, c − b.  The driver runs
@@ -23,14 +23,20 @@ Usage: `ExploreNC Rmax Γ [R,R,…] out` writes one tree per R (lines `R tokens�
 `ExploreNC sym Rlo Γ out` writes one tree for every R ≥ Rlo, with R = 2 y₃ a fourth coordinate; `ExploreNC exit Γ out`
 writes the exit tree.  `thm/EndgameTheorem.lean` is generated from `ExploreNC sym 178 448 thm/endgame_sym.txt` and
 `ExploreNC 176 448 "" thm/endgame_small.txt` (every even R < 178, the closing set included), `thm/ExitTheorem.lean`
-from `ExploreNC exit 390 thm/exit_tree.txt`. -/
+from `ExploreNC exit 390 thm/exit_tree.txt`.
+
+`ExploreNC close Γ [R,R,…] out` writes one tree per R that passes end meetings at distance 2 (a close is then an end
+meeting at a constant distance ≤ 1), checked by `Tree.okEndC` (`BB6/EndgameClose.lean`): a leaf with an end meeting
+at distance 2 must end where the run has left phase 0 or the halving chain, at a round start that is not three walls.
+It prints the class of L₁ mod a power of 2 that each close leaf decides.  `thm/EndgameCloseTheorem.lean` is generated
+from `ExploreNC close 448 8,16,24,32,64,176 thm/endgame_close.txt`. -/
 
 instance : Inhabited Tree := ⟨.leaf 0⟩
 
 def shapeOf (ss : List SMark) : String := "G" ++ String.join (ss.map (fun m => match m.t with
   | .G => "G" | .M => "M" | .W => "W" | .B => "B"))
 
-def isConstLe2 (d : YForm) : Bool := match d.constVal with | some v => v ≤ 2 | none => false
+def isConstLe (v₀ : Int) (d : YForm) : Bool := match d.constVal with | some v => v ≤ v₀ | none => false
 
 /-- The chain's next distance after `d` as a form: `some (some p)`, `some none` (d odd: no successor), or `none` when
 d's residue mod 4 is not decided. -/
@@ -67,9 +73,10 @@ def p0R (ss : List SMark) (sW : YForm) : Option (Option YForm) :=
     | _, _, _ => none
 
 /-- Classify the run of a class (`sp`: the end events; `sR`, `sL`: the forms of the right end and the left countdown,
-for the endgame). -/
-def classify (sp : EndSpec) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW sR sL : YForm) (maxR : Nat) :
-    Sum Undec Leaf := Id.run do
+for the endgame).  With `lowOK`, an end meeting at the constant distance 2 is passed: only one at a constant distance
+≤ 1 is a close, and the chain then puts the next meeting at 0, so a run that goes on has left the halving chain. -/
+def classify (sp : EndSpec) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW sR sL : YForm) (maxR : Nat)
+    (lowOK : Bool := false) : Sum Undec Leaf := Id.run do
   let mut cur := ss
   let mut cw := sW
   let mut last : Option YForm := none
@@ -78,8 +85,9 @@ def classify (sp : EndSpec) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW s
     | none => return .inl ⟨rd - 1, rd - 1, none⟩
     | some ds =>
       for d in ds do
-        if isConstLe2 d then return .inr ⟨.close, rd⟩
-        if ltDec d (YForm.const 3) ts Γ != some false then return .inr ⟨.cap, rd⟩
+        if isConstLe (if lowOK then 1 else 2) d then return .inr ⟨.close, rd⟩
+        if !(lowOK && d.constVal == some 2) && ltDec d (YForm.const 3) ts Γ != some false then
+          return .inr ⟨.cap, rd⟩
         match last with
         | some ld =>
           if brkDec ts Γ ld d then return .inr ⟨.brk, rd⟩
@@ -197,10 +205,11 @@ def splitChoice (k : Nat) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW : Y
         | none => none
     | none => none
 
-/-- Build the tree: classify; when undecided, split (after the rounds the class decides). -/
+/-- Build the tree: classify; when undecided, split (after the rounds the class decides).  With `lowOK`, end meetings
+at distance 2 are passed (`classify`). -/
 partial def build (sp : EndSpec) (k : Nat) (ts : List YForm) (Γ : Int) (ss : List SMark) (sW sR sL : YForm)
-    (depth maxR : Nat) : Tree × List Leaf :=
-  match classify sp ts Γ ss sW sR sL maxR with
+    (depth maxR : Nat) (lowOK : Bool := false) : Tree × List Leaf :=
+  match classify sp ts Γ ss sW sR sL maxR lowOK with
   | .inr lf => (.leaf (if lf.kind == .close then 0 else lf.rounds), [lf])
   | .inl u =>
     if depth = 0 then (.leaf u.adv, [⟨.cap, u.adv⟩]) else
@@ -211,9 +220,9 @@ partial def build (sp : EndSpec) (k : Nat) (ts : List YForm) (Γ : Int) (ss : Li
         match js with
         | [] =>
           let (t0, l0) := build sp k (substT ts i 0) Γ (substL ss i 0) (sW.subst i 0) (sR.subst i 0) (sL.subst i 0)
-            (depth - 1) maxR
+            (depth - 1) maxR lowOK
           let (t1, l1) := build sp k (substT ts i 1) Γ (substL ss i 1) (sW.subst i 1) (sR.subst i 1) (sL.subst i 1)
-            (depth - 1) maxR
+            (depth - 1) maxR lowOK
           (.node i t0 t1, l0 ++ l1)
         | j :: js =>
           let (t, l) := go js (skewL ss i j 1) (sW.skew i j 1) (skewT ts i j 1) (sR.skew i j 1) (sL.skew i j 1)
@@ -273,6 +282,48 @@ def closeClass : Nat → Option (Int × Int)
   | 2 => some (2, 0) | 4 => some (2, 0) | 8 => some (8, 0) | 16 => some (32, 0) | 24 => some (64, 32)
   | 32 => some (64, 0) | 48 => some (128, 0) | 64 => some (128, 0) | 176 => some (128, 0) | _ => none
 
+/-- The L₁ class a close from R needs when end meetings at distance 2 are passed, as in `thm/EndgameCloseStart.lean`
+(R = 24, 64 and 176: none). -/
+def closeClassC (R : Nat) : Option (Int × Int) :=
+  if [8, 16, 24, 32, 64, 176].contains R then
+    match R with | 8 => some (32, 0) | 16 => some (64, 0) | 32 => some (128, 0) | _ => none
+  else closeClass R
+
+/-- The left countdown's forms at the close leaves of a tree as `build` returns it (before `relAdv`, a close leaf is
+the only leaf after 0 rounds). -/
+def closeL1s (sL : YForm) : Tree → List YForm
+  | .leaf n => if n == 0 then [sL] else []
+  | .adv _ t => closeL1s sL t
+  | .node i a b => closeL1s (sL.subst i 0) a ++ closeL1s (sL.subst i 1) b
+  | .skew i j s t => closeL1s (sL.skew i j s) t
+
+/-- The finest class mod a power of 2 (up to 2¹²) that a form decides: (modulus, residue). -/
+def cls2 (f : YForm) : Int × Int := Id.run do
+  let mut best : Int × Int := (1, 0)
+  for e in [1:13] do
+    match f.modDec (2 ^ e) with
+    | some c => best := (2 ^ e, c)
+    | none => break
+  return best
+
+/-- `close Γ [R,R,…] out`: one tree per R that passes end meetings at distance 2, checked by `Tree.okEndC`. -/
+def mainClose (args : List String) : IO Unit := do
+  let Γ : Int := (args.getD 1 "448").toInt!
+  let Rs : List Nat := ((match args.getD 2 "" with | "" => "8,16,24,32,64,176" | l => l).splitOn ",").map
+    String.toNat!
+  let mut serial : List String := []
+  for Rn in Rs do
+    let R : Int := Rn
+    let (ss, sW, ts) := startR R
+    let (t, leaves) := build .endgame 3 ts Γ ss sW (YForm.const R) (startL R) 40 30 true
+    let cls := (closeL1s (startL R) t).map cls2
+    let t := relAdv 0 t
+    let ok := t.okEndC Γ 1000 3 (closeClassC Rn) false ss sW ts ⟨sW, YForm.const R, startL R⟩ 0 none false
+    IO.println s!"R = {Rn}: leaves {leaves.length} {countKinds leaves}; close leaves' L₁ classes {cls}; \
+      tree checked (okEndC, class {closeClassC Rn}): {ok}"
+    serial := serial ++ [toString Rn ++ " " ++ String.intercalate " " (ser t)]
+  IO.FS.writeFile (args.getD 3 "endgame_close.txt") (String.intercalate "\n" serial)
+
 /-- `sym Rlo Γ out`: one tree for every even R ≥ Rlo, R a fourth coordinate. -/
 def mainSym (args : List String) : IO Unit := do
   let Rlo : Int := (args.getD 1 "178").toInt!
@@ -310,6 +361,7 @@ def mainExit (args : List String) : IO Unit := do
 def main (args : List String) : IO Unit := do
   if args.getD 0 "" == "sym" then mainSym args else
   if args.getD 0 "" == "exit" then mainExit args else
+  if args.getD 0 "" == "close" then mainClose args else
   let Rmax := (args.getD 0 "64").toNat!
   let Γ : Int := (args.getD 1 "448").toInt!
   let mut total := 0

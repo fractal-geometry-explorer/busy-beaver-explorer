@@ -52,7 +52,14 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    R = 2, 3/8 of R = 4, 1/32 to 1/256 of R = 8, 16, 32 and 48; `pass_class_halt`, `chain_class_halt`,
    `lean/thm/PassHaltClasses.lean`). In 600,000 random pass starts the model's run ends at a clean tape or that
    close, and every close passes through a class. Past the loop chain's end the run can enter the loop again and
-   close, also from R ≥ 178 (`lean/thm/PassOpenHalt.lean`, item 2). The original note:
+   close, also from R ≥ 178 (`lean/thm/PassOpenHalt.lean`, item 2). On October 28 the closing classes were narrowed: an
+   end meeting at distance 2 is not a close, so a close needs R in {2, 4, 8, 16, 32, 48} and L₁ in R's class of
+   `closeClassC`, which gives R³/L₁² ≤ 4 (log₂W ≤ σ + 2), and from a width ≥ 2²⁰ a chain to a close with no
+   round-7 break (`loop_halt_sigma_close`, `loop_halt_wide_close`, `lean/thm/LoopClose.lean`); with these classes
+   the pass-start trees give `pass_halt_chain_close` (`lean/thm/PassHaltClose.lean`), the end-to-end statement
+   `blank_halt_structure_close` (`lean/thm/EndToEndClose.lean`), and with the loop entries of `EntryNoCloseC`
+   `blank_halt_open_close` (`lean/thm/PassEntryHaltClose.lean`), with the small-end, wide, far and big-end checks
+   too (`never_halts_of_big_close` and the others, `lean/thm/OpenHaltClose.lean`). The original note:
    **The loop's end for every width as one Lean theorem.** Prove the pass map (R → R/16, L → L/64) with R free
    using the symbolic runner (`BB6/SymRound`, `BB6/SymSplit`), then induct over passes, combined with
    `endgame_no_close` for R ≤ 4096: "a run through the loop closes only from R ∈ {2, 4, 8, 16, 24, 32, 48, 64, 176}
@@ -126,10 +133,10 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    is wider than 2⁶⁶, and then the filter alone rules out every route and path found against a close, and all but 26
    paths against any end below 178 (six of γ's, at 2⁶⁶ and 3 · 2⁶⁴, and the 20 on Q + 10,236, at 2⁶⁴ to 2⁶⁸; b is even
    at a phase-0 start, so an end r allows only r³/16, not 177³/9), and all but 8 of those: 18 need only the lines of
-   pass starts (r, L₁) = (96, −4) and (128, −4), and every pass start with R ≡ 0 (mod 8) and L₁ ≡ 4 (mod 8) reaches a
-   clean tape after five rounds (`pass_clean8`, `lean/thm/PassClean.lean`, kernel-checked), so at the ends that are
-   multiples of 8 |L₁| ≥ 10; the 8 left, the round-39 paths on Q + 10,236 at 2⁶⁴, need (128, −18), (128, 10) or
-   (128, 24), lines on which the halting side's explorer finds only clean leaves and depth cuts
+   pass starts (r, L₁) = (96, −4) and (128, −4), and every pass start with R ≡ 0 (mod 4), R ≥ 8 and L₁ ≡ 4 (mod 8)
+   reaches a clean tape after five rounds (`pass_clean_l4`, `lean/thm/PassClean.lean`, kernel-checked), so at the ends
+   that are multiples of 4 from 8 up |L₁| ≥ 10; the 8 left, the round-39 paths on Q + 10,236 at 2⁶⁴, need (128, −18),
+   (128, 10) or (128, 24), lines on which the halting side's explorer finds only clean leaves and depth cuts
    (`routes/small_ends.txt`, untrusted), and none of which the 8 can reach: full passes divide L₁ by exactly 64, so the
    end's L₁ is L₁′/2⁵⁴, and on their pass starts at 2⁶⁴ that lies in intervals such as [−14.2, −13.3] with no
    value ≡ 10 (mod 14) (`runs/end_l1.py`, untrusted, the forms taken at every R as in `lane_sigma.py`); the chains from
@@ -139,9 +146,16 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    side's census at each exact start). But the family goes on for every k ≡ 2 or 3 (mod 4), with (k − 6)/4 or (k − 7)/4
    passes of a loop on four marks before the re-entry (the route-completeness side, `routes/loop4/README.md`), each pass
    leaving R′³/L₁′² 12 bits weaker (on the paths followed at k = 14, 15, 19, 23 and 27), so at 2⁶⁶ the filter leaves
-   those at k = 14 and 15 against any end below 178, by the end's own L₁ too, and from k = 19 on against a close as
-   well, by its own L₁ too, and no floor closes the family: that needs an argument over the 4-wall loop (its invariant
-   r³/Λ²) or the far shape. What is needed is a proof (the routes' forms in Lean, and the exhaustive check or the
+   those at k = 14 and 15 against any end below 178, by the end's own L₁ too (all 24 paths of the census at k = 14 and
+   its 18 at k = 15; on the 89 lines (r, ℓ) those ends need the halting side's line explorer finds only clean leaves and
+   depth cuts, `routes/small_ends.txt`, untrusted), and two at k = 15 and all from k = 19 on against a close as well, by
+   its own L₁ too, and no floor closes the family, nor does the far shape: on the lanes with two to five passes there
+   are pass starts with R ≥ 769, the far shape and width above 2⁴¹ that halt, open at every depth, and from three passes
+   on some wider than 2⁶⁶ (`loop2_far_wide`, `loop3_far_wide`, `loop3_far_66`, `loop4_far_66` and `loop5_far_66` in
+   `lean/thm/LoopFarHalt.lean`; the search, untrusted, finds them at two passes at every lane value from 2⁴⁰ to 2⁵⁵ and
+   at three to five passes at 2⁶⁶, `routes/loop4/far_shape.md`), so keeping the family off needs an argument over the
+   4-wall loop (its invariant r³/Λ²) together with what the chain from the run's loop entries reaches. What is needed is
+   a proof (the routes' forms in Lean, and the exhaustive check or the
    far-shape search) and, on the halting side, every halting class at every R: the censuses had missed ζ, the route at
    R ≡ 1,702 and γ's paths until run at every R of a class.
    **The routes are not finite** (October 28, `lean/thm/FourWallPass.lean`, `lean/thm/RouteLoop.lean`). Every lane
