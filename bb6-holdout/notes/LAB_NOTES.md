@@ -3102,12 +3102,19 @@ no chain longer than two steps), every one has 15W ≤ 64(W − b), none is a me
 power of two or three times one.
 
 Past 2³² that no longer holds for every pass start (the same run to 2⁴², October 28): 680 of its pass starts have
-15W > 64(W − b), 9 of them W > 64R + 6 as well. By the step maps each is a later entry of its cycle, after the first
-entry's chain has ended without a clean tape between, or a half-pass landing after one; the four identified are
-half-pass landings two rounds after such a re-entry. None is on the chain of a cycle's first entry, the chain the Lean
-theorems are about: those entries are far ((W − b)/W ≥ 0.4558 at every entry class), full passes and round-7 breaks
-always land far, and their half passes do too by `EntryFar`. A later entry is part of the run from the chain's last pass
-start, which the theorems leave to the pass-start tree.
+15W > 64(W − b), 9 of them W > 64R + 6 as well. All but one are later entries of their cycle, after the first entry's
+chain has ended without a clean tape between, or half-pass landings after one; the four identified are half-pass
+landings two rounds after such a re-entry. Those are off the chain of a cycle's first entry, the chain the Lean theorems
+are about: the entries of the 36-digit tree's classes are far ((W − b)/W ≥ 0.4558 on every class), full passes and
+round-7 breaks always land far, and their half passes do too by `EntryFar`; a later entry is part of the run from the
+chain's last pass start, which the theorems leave to the pass-start tree. The one exception, found when the whole run
+was marked (to width 2⁴³: 1,379 such pass starts and 20 failing both, all the others on later chains; an earlier version
+of this note said there was none), is a first entry: round 46 of n = 1,480,645,918,802, in a cycle that needs 47 digits,
+with a = 6,437,135,253, b = 2,568,965,956,546, W = 2,961,291,837,770 and R = 139,690,975,514, so (W − b)/W = 0.1325 and
+W/R = 21.2. It is its chain's only pass start, has W ≤ 64R + 6 and fails `EntryFar`, so no depth of `cleanTreeGF` or
+`cleanTreeGB` settles its clean tape's class. That makes it the open clean-tape case of `blank_halt_open_far` and
+`blank_halt_open_big`, not a counterexample; but the far shape belongs to the chains from the classes a tree settles,
+not to every first entry's.
 
 **The chain's last pass start has its middle wall far from the end, and the halting routes found so far need it
 nearer (October 27, night; `../lean/thm/FarHalt.lean`, `../runs/reentry.py`).** The wide shape of the last entry,
