@@ -261,10 +261,13 @@ Started October 25. Self-contained (no Mathlib): Lean 4 core only, so it can be 
   `../runs/chain_end.py`), the chain's last pass start has R ≥ 769 as well as the far shape (`blank_halt_open_big`).
   Every halting class found with R below 769 (the census at R = 178 to 262, 294 and 486, and the families of
   `reentry6_open_halt`, `no_pass_open_halt` and `lane486_open_halt`) is out of its reach, whatever its
-  route. Past any bound on R, two lanes of halting classes recur at every R ≡ 486 (mod 512 or 1,024) and every
-  scale; an untrusted count of the chain's pass starts from the loop entries up to width 2⁶³ (`../runs/chain_lanes.py`)
-  meets neither of them, nor any other lane of the census. Halting pass starts with R ≥ 769, open at every depth,
-  exist on every lane found there (`lane769_open_halt`).
+  route. Past any bound on R, two lanes of halting classes recur at every R ≡ 486 (mod 512 or 1,024) and every scale; an
+  untrusted count of the pass starts up to width 2⁶³ of the chains from the loop entries of the 36- and 40-digit trees
+  (`../runs/chain_lanes.py`) meets neither of them, nor any other lane of the census, but deeper trees find more entries
+  (`../runs/entry_member.py`: 3 of the blank-tape run's 26,961 sampled first entries above 2⁴¹ lie in no 40-digit
+  class). R′³/L₁′² at the route's re-entry rules out every census lane but four from any entry, and those four below
+  width 2^60.1 (`../runs/lane_sigma.py`, untrusted). Halting pass starts with R ≥ 769, open at every depth, exist on
+  every lane found there (`lane769_open_halt`).
 * **Deeper trees** (`BB6/MassPar.lean`, `thm/CleanEntryMass40.lean`, `thm/CleanEntryMass44.lean`, `ProjPar.lean`,
   `END_TO_END.md`, October 27): the clean-tape tree with loop entries cuts 6,582,732 classes at 40 digits (measure
   5.99 × 10⁻⁶) and 33,928,389 at 44 (1.93 × 10⁻⁶), evaluated on all cores; but below almost every class cut at b digits
