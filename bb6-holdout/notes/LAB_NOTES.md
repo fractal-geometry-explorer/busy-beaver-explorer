@@ -2962,11 +2962,13 @@ with a = 449 the meetings are 176, 2^j − 2, 2^(j−1) − 2, …, 2, 0.
 Within a scale the class moves affinely with R in steps of 8: for R = 178 + 8s, b ≡ β_j + 520s (mod 2^k), the
 middle wall moving by 65 per unit of R; for R = 182 + 8s, b ≡ β′_j + δ_j s with 13(δ_j + 112) small modulo 2^k,
 thirteen lanes. (Fitted from three consecutive R and checked on the third; at j = 10 on all of R = 178 to 1,206 and at
-j = 12 on R = 178 to 242; an extrapolation elsewhere.) Only the classes with R ≡ 2 (mod 8) are open at every depth of
+j = 12 on R = 178 to 242; an extrapolation elsewhere.) The classes with R ≡ 2 (mod 8) are open at every depth of
 `passTreeSym` (`symOpenRun` succeeds: at j = 10, 11, 12, 14, 16, 20 and 24 for R = 178, 186 and 194, and for R = 178
-at every j from 10 to 30). With R ≡ 6 (mod 8) the run has three walls at round 5 and lands at round 7, a round-7
-break of the loop's chain, and that chain ends at a small right end in a closing class: such a pass start is not the
-last of its chain, and a halt from blank tape needs the last one at R ≥ 178 (`blank_halt_small`).
+at every j from 10 to 30). So are those with R ≡ 6 (mod 8) (`symOpenRun2`, see the next entry): their run has three
+walls at round 5 (width ≡ 2 mod 4) and at round 7, its half pass, with right end (W − b + 2R + 22)/16, and that is
+no landing of the loop's chain. (This note first called it a round-7 break of the chain and concluded that such a
+pass start is not the last of its chain. That was wrong: a round-7 break needs 4,704 R′ = 476 W + 980 R − L₁ + 15,984,
+and here the difference is −294 (W − b) − 441 b − 9,702 < 0. On both lanes the pass start is the last of its chain.)
 
 Where a full pass lands on them. With D = W − b, a full pass from a pass start with every gap at least 448 lands at
 a = W/2 − D + R + 3, W ≡ 0 (mod 4), with 4D − 8R + 63 ≤ W ≤ (64D − 144R − 375)/15, from the pass start with width
@@ -2981,11 +2983,11 @@ from a first wall of 449, every end meeting at least 3, then the close):
 | scale j | width W | a | b | R | R mod 8 |
 |---|---|---|---|---|---|
 | 10 | 13,400 | 3,187 | 9,698 | 186 | 2: open at every depth (`full_pass_open_halt`) |
-| 11 | 29,404 | 7,201 | 21,678 | 222 | 6: lands at round 7 |
-| 14 | 235,724 − 336t | 57,457 + 144t | 173,614 − 128t | 1,702 + 104t | 6, for t = 0 to 8 |
+| 11 | 29,404 | 7,201 | 21,678 | 222 | 6: open at every depth (`full_pass_open_halt6`) |
+| 14 | 235,724 − 336t | 57,457 + 144t | 173,614 − 128t | 1,702 + 104t | 6, for t = 0 to 8 (each one's class modulo 2²³ passes the checks of `Fam.ok`, untrusted run) |
 
 None for j = 12, 13 or 15 to 32. With the landing at 16,292 (R = 366, other route) these are all the halting
-full-pass landings known; only the first is open at every depth. The other routes are not searched yet: of the
+full-pass landings known; all but that one are open at every depth (proved for the first two). The other routes are not searched yet: of the
 eleven closing placements at widths 2,048 to 3,072, three are on this route (R = 178, 466 and 474), and in the other
 eight the end is met one to four more times before the halving chain starts (for R = 402: 400, 204, then 510, 254,
 …, 0); one of them halves from 766 = 3 · 2⁸ − 2 (766, 382, …, 10, 4, then 6, 2, 0). Four of the eight families of
@@ -3168,3 +3170,43 @@ nothing about them. Two more (D = 738) land at round 13 in the R = 6 class. A ce
 far shape holds on it only up to width 64D/15, so no class by itself holds a pass start that a halt from blank tape
 needs (W > 2⁴¹); what counts is whether a route's classes recur at every scale, with the halving's 2^j − 2 growing
 with D.
+
+**Eight routes back into the loop, and the R ≡ 6 (mod 8) lanes open too (October 27, late night;
+`../lean/thm/PassOpenHalt.lean`, `../lean/HaltClasses.lean`).** For every even R from 178 to 198 and every third gap
+D = W − b up to 8,192, the symbolic search with D fixed (at most 26 splits) finds 72 classes of b that the close run
+closes, the first wall free; none for R = 184 or 192. Each takes one of eight routes: it reaches a three-wall round
+start P′ with the phase-0 parities (a odd, b even, W ≡ 0 mod 4) in round 2, 7 or 11, and from P′ goes on by full
+passes of the loop's chain to the close. A symbolic run with b, D and R all free gives P′ as affine forms of the
+start on each route's class (Q = D + 2R + 22, L₁′ = 147b′ − 112W′ + 392R′ − 186):
+
+| route | R mod 8 | P′ in round | R′ | W′ | L₁′ |
+|---|---|---|---|---|---|
+| A (main) | 2 | 11 | Q/64 | W + 36 | (91W − 98b + 637R + 5,738)/256 |
+| A2 | 2 | 11 | (2Q − R + 6)/128 | W + 36 | (91W − 245b + 441R + 4,562)/256 |
+| A3 | 2 | 11 | (3Q + 76)/256 | W + 36 | (−308W − 441b + 1,176R + 13,534)/512 |
+| B | 4 | 2 | R/2 | W + 6 | (147b − 77W + 245R − 246)/2 |
+| C | 6 | 7 | Q/16 | W + 24 | (140W − 49b + 392R + 4,366)/32 |
+| C2 | 6 | 7 | (3Q + 76)/64 | W + 24 | (385W + 441b + 10,834)/32 |
+| C3 | 6 (R = 182) | 7 | (Q + 36)/32 | W + 24 | (−840W + 343b + 343R + 740)/32 |
+| C4 | 6 (R = 198) | 11 | (Q + 36)/128 | W + 36 | (−504W − 245b + 784R + 8,438)/512 |
+
+Route B is the loop's own half pass (`StepMap .half`); on the other routes P′ is no landing. On route C, for
+instance, a break of the chain at round 7 would need 32R′ = 4W − b + 4R + 110, which at R = 182, D = 1,662 and
+b = 41,262 is 4,102.25 against R′ = 128. Run to the close from one member of each class with b near 2²²: on the seven
+routes other than B every step from P′ is an exact full pass (8 rounds, 16R′ = R, 64L₁′ = L₁, W + 24) to a pass start
+in a class of `HaltClass` (R = 4, 8, 16, 32 or 48; P′ itself when R′ ≤ 48), with no other stop. On route B the half
+pass lands at R/2 = 90, 94 or 98, in no class; there the run leaves the chain and enters the loop again (route A or C
+from R/2) before it reaches a class. (Untrusted; the tools and tables are in the project's shared folder,
+`halting-classes/routes`.)
+
+`symOpenRun` gave up at every three-wall round start after 2, 7 or 8 rounds, the rounds a step of the loop's chain
+takes, so it could not show route C open. `symOpenRun2` passes such a start when it is decidedly not a landing: for
+the one step that takes that many rounds, an identity of `StepMap` (right end, left countdown or width) is decidedly
+false on the class (`notLandingCheck`, by `neDec`: a nonzero constant difference, a decided order or an odd
+difference). `Fam.ok` uses it now, and every earlier family still passes. On route C the round-7 difference
+4,704R′ − (476W + 980R − L₁ + 15,984) is −294D − 441b − 9,702 < 0. With it the kernel proves the class with R = 182
+at each j from 10 to 30 open at every depth and halting (`reentry6_open_halt`, `reentryFams6_shape`:
+W − b = 2^(j+2) − 386, open runs of 23 to 63 rounds), and the full pass onto the landing at width 29,404
+(`full_pass_open_halt6`: from walls 449, 4,318 and 25,827, width 29,380, R = 3,552). The file takes 86 s. So on both
+lanes of the main route, R ≡ 2 and R ≡ 6 (mod 8), the halting pass starts checked are the last pass starts of their
+chains and lie in a cut leaf of `passTreeSym` at every depth.

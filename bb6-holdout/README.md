@@ -70,7 +70,9 @@ mark rules interactively.
     an exhaustive scan of the widths 2,048 to 3,072 finds eleven closing placements, seven of which repeat at every
     width), and a full pass of the loop's chain can land on one (`full_pass_open_halt`: from R = 2,976 to R = 186 at
     width 13,400). The route repeats at every scale: for each j from 10 to 30 a family with R = 178 and
-    W − b = 2^(j+2) − 378 meets the end off the chain at 2^j − 2, halves to 0 and closes (`reentry_open_halt`).
+    W − b = 2^(j+2) − 378 meets the end off the chain at 2^j − 2, halves to 0 and closes (`reentry_open_halt`), and
+    so does one with R = 182 (`reentry6_open_halt`), whose three-wall round start in round 7 is no landing of the
+    loop's chain; a full pass lands on one at width 29,404 (`full_pass_open_halt6`: from R = 3,552 to R = 222).
 
   The number of rounds in all three is existential (chosen per class by an untrusted program), but each stretch ends at
   its stated event. The first versions (`exit_no_halt`, `endgame_no_close`, `loop_no_close`, `loop_pass`) said only
@@ -114,12 +116,14 @@ mark rules interactively.
   `blank_halt_open_small` (`lean/thm/OpenSmallHalt.lean`) states the two together, and `never_halts_of_open` says that a
   negative answer to both would show the machine never halts. The second is about reaching: open pass starts with
   R ≥ 178 that halt exist at every width (`sym_open_halt`, `open_halt_families`, `lean/thm/PassOpenHalt.lean`) and at
-  every scale of the third gap tried (`reentry_open_halt`), also where a full pass of the loop's chain lands
-  (`full_pass_open_halt`). The run reaches none of those 29 families: the chain from a loop entry ends at a pass start
+  every scale of the third gap tried (`reentry_open_halt`, `reentry6_open_halt`), also where a full pass of the loop's
+  chain lands (`full_pass_open_halt`, `full_pass_open_halt6`). The run reaches none of the 29 families of
+  `open_halt_families` and `reentry_open_halt`: the chain from a loop entry ends at a pass start
   with W ≤ 64R + 6 or 15W ≤ 64(W − b), which the families are only below width 2³⁵ (`blank_halt_not_family`,
   `lean/thm/WideHalt.lean`), and in fact with 15W ≤ 64(W − b) (`blank_halt_open_far`, `lean/thm/FarHalt.lean`), which
   keeps it off the eight routes by which the halting classes with R = 178 to 198 close (untrusted, `runs/reentry.py`;
-  larger R has other routes).
+  larger R has other routes). The 21 families of `reentry6_open_halt` have W − b < 2³² too, so the same bound keeps
+  the run off them above 2³⁵ (not yet a theorem).
   Deeper trees shrink the open clean tapes' measure (6,582,732 classes of measure 6.0 × 10⁻⁶ at 40 digits, 33,928,389
   of 1.93 × 10⁻⁶ at 44, by `native_decide` on all cores, `lean/BB6/MassPar.lean`), but not the number of open classes
   at a fixed number of digits: nearly every one holds a 2-adic value of W/2 that no depth settles, so closing them
