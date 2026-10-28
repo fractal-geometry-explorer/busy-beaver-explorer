@@ -106,23 +106,25 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    eight R near 5,000, δ and ε included. Deeper trees find more entries (in the blank-tape run's sample, 3 in 26,961
    first entries lie in no 40-digit class, `runs/entry_member.py`), and the cut classes keep their number at every
    depth. For most census routes the entry does not matter: R′³/L₁′² at the route's re-entry is too large at every pass
-   start of the lane with R ≥ 769, the far shape and width ≥ 2⁴¹ (`runs/lane_sigma.py`, untrusted). The eleven routes it
-   leaves, on three lanes (Q + 636: δ, ε, and ε′ and ζ from the census near R = 5,000; Q + 316: five routes at R = 934
-   and 5,350 to 5,862, and one at R ≡ 1,702 (mod 2,048) that the census finds when run with b free at every R of a
-   class; Q + 36: a route after the half pass from R = 812), escape it only below width 2^52.7 (2^61.1 against 177³/9),
-   and at those lane values the halting side finds no pass start with the far shape on any of them (`routes/README.md`
-   and `routes/far_shape.txt` in its project files, untrusted: each class's step in R is taken from three R and checked
-   at three far R). So, untrusted, none of those routes reaches a halt from the chain's last pass start, from any entry.
-   γ's lane Q + 5,116 carries 16 more paths (`routes/lanes_q5116_forms.txt`), which the filter leaves up to width
-   2^69.7. On two of them there are pass starts with R ≥ 769, the far shape and width above 2⁴¹ that halt, at
+   start of the lane with R ≥ 769, the far shape and width ≥ 2⁴¹ (`runs/lane_sigma.py`, untrusted). The ten routes it
+   leaves, on two lanes (Q + 636: δ, ε, and ε′ and ζ from the census near R = 5,000; Q + 316: five routes at R = 934 and
+   5,350 to 5,862, and one at R ≡ 1,702 (mod 2,048) that the census finds when run with b free at every R of a class),
+   escape it only below width 2^52.7 (2^61.1 against 177³/9), and at those lane values the halting side finds no pass
+   start with the far shape on any of them (`routes/README.md` and `routes/far_shape.txt` in its project files,
+   untrusted: each class's step in R is taken from three R and checked at three far R). So, untrusted, none of those
+   routes reaches a halt from the chain's last pass start, from any entry. (A route after the half pass from R = 812 was
+   among them until the halting side found that its last listed start, in round 15, is inside a full pass; the filter
+   now takes such a path at the pass's next phase-0 start, where that route is out.) γ's lane Q + 5,116 carries 20 more
+   paths (`routes/lanes_q5116_forms.txt`, `routes/lanes_q5116_new17_forms.txt`), which the filter leaves up to width
+   2^62.7. On two of them there are pass starts with R ≥ 769, the far shape and width above 2⁴¹ that halt, at
    Q + 5,116 = 3 · 2³⁹ (`lane769_far_wide` in `lean/thm/LaneHalt.lean`, kernel-checked), so at the proved bound the
    shape alone does not rule the halt out there. With the exhaustive check to 64 digits (every clean tape below width
    2⁶⁶ reaches a wider one; untrusted) in `blank_halt_open_of` in place of `stepsBelow_direct` (the clean tapes up to
-   2⁴¹), the pass start is wider than 2⁶⁶, and then the filter alone rules out all of the first 19 routes and leaves
-   only five of γ's paths against their ends, each at Q + 5,116 = 2⁶⁷ and 3 · 2⁶⁶ only; the chains from the 36- and
-   40-digit entries meet neither (`runs/chain_lanes.py`, to width 2⁷⁰). What is needed is a proof (the routes' forms in
-   Lean, and the exhaustive check or the far-shape search) and, on the halting side, every halting class at every R: the
-   censuses had missed ζ, the route at R ≡ 1,702 and γ's paths until run at every R of a class.
+   2⁴¹), the pass start is wider than 2⁶⁶, and then the filter alone rules out every route and path found against its
+   end, and all but eleven of γ's paths against 177³/9 (at lane values 2⁶⁴ to 3 · 2⁶⁸); the chains from the 36- and
+   40-digit entries meet none of those (`runs/chain_lanes.py`, to width 2⁷²). What is needed is a proof (the routes'
+   forms in Lean, and the exhaustive check or the far-shape search) and, on the halting side, every halting class at
+   every R: the censuses had missed ζ, the route at R ≡ 1,702 and γ's paths until run at every R of a class.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
