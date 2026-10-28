@@ -3393,3 +3393,21 @@ each of which b grows by 7,571,456 per step of 7,247 · 512 in R while W − b f
 scale from 19 to 37 has W > 2⁴¹ and 15W ≤ 64(W − b), and the least b/(W − b) at the progressions' starts doubles every
 two scales from s = 23 on (4.2, 1.6, 9.3, 4.2, 19.7, ..., 330, 164 and 660 at s = 37). At s = 19 to 22 and 24 it is
 1.9 or less (0.28 at s = 19 and 22), within the shape, but there W is below 2³⁸.
+
+**The census near R = 5,000 through the same filter (October 28; `../runs/lane_sigma.py`, untrusted).** The
+halting-classes census at eight R from 5,002 to 5,862 (W − b up to 26,000; `routes/lanes_r5002_5862_forms.txt`) has 13
+paths, on Q, 3Q + 76, Q + 36, Q + 316 and Q + 636 = 2^j or 3 · 2^j. The script now reads any number of forms files and
+counts a route once for each pair of forms R′, L₁′ in lowest terms, with a path that begins with the half pass counted
+from its landing; so counted, the 16 routes of the R′³/L₁′² entry above are 12 (the paths that begin with the half pass
+fall, at their landings, on the routes on Q and 2Q − R + 6 in round 11, Q + 36 in round 11 and Q in round 15, and ε), 8
+out and the same 4 left. With the new census there are 17: still 8 out, and 9 left, on three lanes. The R = 5,606 path
+is ε. On Q + 636 a third route appears at R = 5,094 (R ≡ 998 mod 2,048), with ε's R′ = (Q + 636)/512 and a larger
+L₁′ = (2,695b − 48,468W − 2,156R − 1,042,666)/2,048, so its least R′³/L₁′² is 0.44 against ε's 1.03; against the ends it
+is left up to width 2^52.7 (2^j for j = 39 to 46, 49, 50, 3 · 2^j for 38 to 45, 49), and against 177³/9 up to 2^61.1,
+now the largest of all. On Q + 316, two routes at R = 5,350 and 5,862 (R ≡ 230 mod 512) are left only at 2⁴² and
+3 · 2⁴¹, as the one at R = 934 is, and two at R = 5,350 (R ≡ 230 mod 1,024) re-enter in round 11 with R′ = (Q + 316)/128
+and |L₁′| about 85W (2^j for j = 39 to 44, 48, 3 · 2^j for 38 to 43, 47; to 2^50.7, and 2^59.1 against 177³/9). Two
+classes on Q + 636 = 2¹⁵, at R = 5,094 and 5,606, have no three-wall start in the forms: the census marks them as δ's,
+followed only to round 15, before δ's start in round 17. Q + 316 = 3 · 2^j is a lane the count had not scanned; with it
+(`../runs/chain_lanes.py`, 18 lanes) no chain from the 36- or 40-digit entries meets any census lane to 2⁶³. So the
+entries that only deeper trees find matter for Q + 636, Q + 316 and Q + 36 only, and only below 2^61.1.

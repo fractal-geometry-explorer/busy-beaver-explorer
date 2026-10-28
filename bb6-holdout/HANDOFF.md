@@ -101,14 +101,15 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    (`lanes_delta_eps.txt` in the halting-classes project files); their re-entry into the loop is deep enough that
    R′³/L₁′² does not exclude them below about 2⁴⁷. But an untrusted count of every pass start up to width 2⁶³ of the
    chains from the loop entries of the 36- and 40-digit trees (`runs/chain_lanes.py`: 193,242 classes of one coordinate
-   from 169,631 entries, at most five steps from the entry) meets none of the census lanes through R = 1,004, δ and ε
-   included. Deeper trees find more entries (in the blank-tape run's sample, 3 in 26,961 first entries lie in no
-   40-digit class, `runs/entry_member.py`), and the cut classes keep their number at every depth. For all but four of
-   the census lanes the entry does not matter: R′³/L₁′² at the route's re-entry is too large at every pass start of the
-   lane with R ≥ 769, the far shape and width ≥ 2⁴¹ (`runs/lane_sigma.py`, untrusted), and the four (δ, ε, Q + 316 at
-   R = 934, and a Q + 36 route after the half pass from R = 812) escape it only below width 2^52.7 (2^60.1 against
-   177³/9). So what is needed is an argument for those four lanes at the entries of every depth and, on the halting
-   side, the halting classes at every R.
+   from 169,631 entries, at most five steps from the entry) meets none of the census lanes through R = 1,004 and at
+   eight R near 5,000, δ and ε included. Deeper trees find more entries (in the blank-tape run's sample, 3 in 26,961
+   first entries lie in no 40-digit class, `runs/entry_member.py`), and the cut classes keep their number at every
+   depth. For most census routes the entry does not matter: R′³/L₁′² at the route's re-entry is too large at every pass
+   start of the lane with R ≥ 769, the far shape and width ≥ 2⁴¹ (`runs/lane_sigma.py`, untrusted). The nine routes it
+   leaves, on three lanes (Q + 636: δ, ε and a route at R = 5,094; Q + 316: five routes at R = 934 and 5,350 to 5,862;
+   Q + 36: a route after the half pass from R = 812), escape it only below width 2^52.7 (2^61.1 against 177³/9). So what
+   is needed is an argument for those three lanes at the entries of every depth and, on the halting side, the halting
+   classes at every R.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
