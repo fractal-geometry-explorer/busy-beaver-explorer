@@ -3596,3 +3596,31 @@ entries still meet no Q + 5,116 = 2^j or 3 · 2^j; besides Q + 316 = 2⁶⁶ the
 of width 2^71.4, a lane the sweep has not run. The halting side's census at the two lane values the old reading left
 agrees: at 3 · 2⁶⁶ none of the five closes, and at 2⁶⁷ the path from R = 230 has no class and the other four one class
 each at three R, whose least b is 6,000 to 27,000 times W − b, so none has a pass start of the far shape there.
+
+**The ends' own residues, and the lane Q + 10,236 (October 28; `../runs/lane_sigma.py`, `../runs/chain_lanes.py`,
+untrusted).** The halting side pointed out that the classes of `HaltClass` fix L₁ at the class's start far more tightly
+than L₁ ≡ 3 (mod 7): on their residues of b and W (both even), |L₁| = |147b − 112W + 392r − 186| is at least 4 at r = 2
+(L₁ ≡ 10 mod 14), 24 and 10 in r = 4's two classes, 4 at r = 6, 32 at r = 8, 192 at r = 16, 256 at r = 32 and 256 at
+r = 48 (L₁ ≡ 0 mod 128 there), as a count over b, W < 4,096 agrees. So r³/ℓ² is at most 13.5 (at r = 6), and a chain
+that ends in a known halting class or at a close has R′³/L₁′² ≤ 176³/256² ≈ 83 at every lane value, where r³/9 allowed
+up to 455, 3,641 and 12,288 at r = 16, 32 and 48. `lane_sigma.py` now takes that bound. At the 2⁴¹ floor 11 of the first
+18 routes are out (the three on Q + 316 at R = 934 and at R = 5,350 and 5,862, which r³/9 left at 2⁴² and 3 · 2⁴¹, join
+the eight), and the seven left are left up to width 2^48.1 (ε′; δ 2^46.7, ε and ζ 2^47.1, the two at R = 5,350 that
+re-enter in round 11 2^46.1, the one at R ≡ 1,702 2^43.1) instead of 2^52.7. γ's lane now carries 21 paths: the census
+at 2¹⁸ adds R = 15,654 (again at 48,422), which re-enters in round 21 and has its last pass start in round 23
+(`routes/lanes_q5116_new17_forms.txt`, five paths). Its round-23 paths are left up to 2^53.1 and its round-27 ones up to
+2^59.1 (2^56.7 and 2^62.7 with r³/9). The next lane of the family, Q + 10,236, carries 20 paths
+(`routes/lanes_q10236_forms.txt`: the census at 2¹⁷ at every R ≡ 38 mod 64 up to 40,102 finds 29 closing classes at
+19 R), whose last pass starts are in rounds 35 and 39; they are left up to 2^60.7 (2^64.7 with r³/9), and against 177³/9
+up to 2^73.7. At the 2⁶⁶ floor every route and path found is out against the ends, now by a wide margin (least R′³/L₁′²
+3,142, on Q + 10,236 at R = 15,654, where the ends allow 83 and r³/9 allowed up to 12,288). Against 177³/9, 32 paths are
+left there: twelve of γ's (the nine of round 27 at 2⁶⁴ to 3 · 2⁶⁸, and the three of round 23, at R = 230, 12,518 and
+15,654, at 2⁶⁴) and all 20 on Q + 10,236 (at 2⁶⁴ to 2⁷¹ and 3 · 2⁶³ to 3 · 2⁷⁰, widths up to 2^73.7). Counted to width
+2⁷⁴ (193,243 classes, as at 2⁷²; 114 s), the chains from the 40-digit entries meet no Q + 5,116 or Q + 10,236 = 2^j or
+3 · 2^j. Besides Q + R + 336 = 3 · 2⁵⁸ (a half-pass-first form, at a member with W ≡ 0 mod 4, noted before) they meet a
+lane Q + c = 2^j or 3 · 2^j of the censuses or the sweep at two members only, and the halting side's census at each
+exact pass start (R, W − b and b fixed, the first wall free) and the round trace from its walls find the run going on to
+a clean tape. One is Q + 156 = 2⁷² at the round-10 entry of class 165,127 (clean tapes n = 978 + 1,024z; here
+n = 1,537,095,765,562,147,710,930 ≈ 2^70.4, W ≈ 2^71.4, R ≡ 36 mod 64), a clean tape six rounds on. The other is
+Q + 316 = 2⁶⁶ at the entry of class 18,468 (W ≈ 2^65.8), which has W ≡ 2 (mod 4), so it is two rounds before the loop's
+half pass and not on the lane, and whose clean tape, n ≈ 2^64.8, is below 2⁶⁵ anyway: a clean tape at round 11.

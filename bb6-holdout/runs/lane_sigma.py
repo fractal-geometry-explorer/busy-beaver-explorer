@@ -8,15 +8,18 @@ project files): `lanes_r770_1004_forms.txt` and `lanes_r5002_5862_forms.txt` (ev
 R = 1,702 mod 2,048 that the census finds when run with b free at every R of a class), `lanes_q5116_forms.txt` and
 `lanes_q5116_new17_forms.txt` (the paths on gamma's lane Q + 5,116, likewise; most of them are seen at one R only,
 with the R term folded into the constant, so they are taken with their forms there at every R and printed on a lane
-Q - 2R + c) and `lanes_r294_486.json` (the lanes delta and epsilon).
+Q - 2R + c), `lanes_q10236_forms.txt` (the paths on the next lane of the family, Q + 10,236, likewise) and
+`lanes_r294_486.json` (the lanes delta and epsilon).
 A pass start has W' = 0 (mod 4), the phase-0 parity: a three-wall start with W' = 2 (mod 4) is two rounds before a half
 pass (inside a full pass it is the start of the pass's last two rounds, which act as one and land at its next phase-0
 start), so a path whose last start is one is taken at that landing, R'/2 and (L1' + 35W' - 147R' - 60)/2 (the step table
 in `../lean/END_TO_END.md`).  At the last pass start the run goes on by full passes, which keep R'^3/L1'^2, to a halting
-class with right end r; there R'^3/L1'^2 = r^3/l^2 with l = 3 (mod 7), so at most r^3/9 for the ends r that R' = 16^p r
-allows among the right ends of the halting classes (2, 4, 6, 8, 16, 32, 48; and at least 176^3/256^2, `sigma_close`),
-and at most 177^3/9 for any end below 178 (`noSmall_sigma`).  On a lane value N = c 2^e (c = 1 or 3) R' is fixed, and
-the pass starts with R >= 769, every gap at least 448, width at least 2^41 and 15W <= 64(W - b), the shape
+class with right end r; there R'^3/L1'^2 = r^3/l^2 with l = L1 at the class's start.  For the ends r that R' = 16^p r
+allows among the right ends of the halting classes (2, 4, 6, 8, 16, 32, 48), |l| is at least the least |L1| on the
+residues of b and W (both even) in r's classes of `HaltClass` (4, 10, 4, 32, 192, 256 and 256), so r^3/l^2 is at most
+13.5 (at r = 6), below the 176^3/256^2 of a close (`sigma_close`): at most 176^3/256^2 at every R'.  For any end below
+178, with only l = 3 (mod 7), it is at most 177^3/9 (`noSmall_sigma`).  On a lane value N = c 2^e (c = 1 or 3) R' is
+fixed, and the pass starts with R >= 769, every gap at least 448, width at least 2^41 and 15W <= 64(W - b), the shape
 `blank_halt_open_big` gives the chain's last pass start, form a polygon in (R, W) on which |L1'| is convex, so its least
 R'^3/L1'^2 is at a corner.  With --floor=e the pass start is wider than 2^e instead: e = 66 if every clean tape below
 2^66 reaches a wider one without halting, as the exhaustive check to 64 digits finds (`../dfs/merged64.txt`, untrusted),
@@ -27,7 +30,8 @@ from there.  Paths with the same forms there, in lowest terms, take the same rou
 census R and lanes it was found at.
 
 usage: python3 lane_sigma.py [--floor=66] lanes_r770_1004_forms.txt lanes_r5002_5862_forms.txt lanes_r294_486.json \
-           lanes_zeta_forms.txt lanes_q316_1702_forms.txt lanes_q5116_forms.txt lanes_q5116_new17_forms.txt
+           lanes_zeta_forms.txt lanes_q316_1702_forms.txt lanes_q5116_forms.txt lanes_q5116_new17_forms.txt \
+           lanes_q10236_forms.txt
 """
 import re
 import sys
@@ -38,6 +42,8 @@ from math import gcd, log2
 G = 2 ** 41
 RLO = 769  # `blank_halt_open_big`: the chain's last pass start has R >= 769
 HALT_R = (2, 4, 6, 8, 16, 32, 48)  # the right ends of the halting classes (`../lean/thm/PassHaltClasses.lean`)
+# the least |L1| = |147b - 112W + 392r - 186| on the residues of b and W (both even) in r's classes of `HaltClass`
+HALT_L1 = {2: 4, 4: 10, 6: 4, 8: 32, 16: 192, 32: 256, 48: 256}
 CLOSE = Fr(176 ** 3, 256 ** 2)  # `sigma_close`: a close right at the chain's end
 SIG = Fr(177 ** 3, 9)  # `noSmall_sigma`: full passes end below 178 only if R^3/L^2 <= 177^3/9
 
@@ -182,9 +188,10 @@ def sigma_min(Rf, Lf, N):
 
 
 def end_bound(Rp):
-    """the largest r^3/9 over the right ends r of the halting classes with R' = 16^p r, and at least sigma_close"""
+    """the largest r^3/l^2 over the right ends r of the halting classes with R' = 16^p r, l the least |L1| of r's
+    classes, and at least sigma_close"""
     rs = [r for r in HALT_R if any(Rp == r * 16 ** p for p in range(64))]
-    return max([Fr(r ** 3, 9) for r in rs] + [CLOSE])
+    return max([Fr(r ** 3, HALT_L1[r] ** 2) for r in rs] + [CLOSE])
 
 
 def lane(Rf):
@@ -232,7 +239,7 @@ def main():
                     belowEnd[c].append((e, wmax))
         print('%s = 2^j or 3 * 2^j at round %d, from %s: least R\'^3/L1\'^2 %.4g' %
               (form, rnd, where(srcs), float(min(vals))))
-        for what, low in (('177^3/9', below177), ('the end\'s r^3/9', belowEnd)):
+        for what, low in (('177^3/9', below177), ('the end\'s r^3/l^2', belowEnd)):
             top = max([w for c in low for _, w in low[c]], default=None)
             print('   at most %s at 2^j for j = %s, 3 * 2^j for j = %s%s' % (
                 what, ranges([e for e, _ in low[1]]), ranges([e for e, _ in low[3]]),
