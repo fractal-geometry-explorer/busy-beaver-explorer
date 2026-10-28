@@ -18,16 +18,17 @@ class with right end r; there R'^3/L1'^2 = r^3/l^2 with l = L1 at the class's st
 allows among the right ends of the halting classes (2, 4, 6, 8, 16, 32, 48), |l| is at least the least |L1| on the
 residues of b and W (both even) in r's classes of `HaltClass` (4, 10, 4, 32, 192, 256 and 256), so r^3/l^2 is at most
 13.5 (at r = 6), below the 176^3/256^2 of a close (`sigma_close`): at most 176^3/256^2 at every R'.  For any end below
-178, with only l = 3 (mod 7), it is at most 177^3/9 (`noSmall_sigma`).  On a lane value N = c 2^e (c = 1 or 3) R' is
-fixed, and the pass starts with R >= 769, every gap at least 448, width at least 2^41 and 15W <= 64(W - b), the shape
-`blank_halt_open_big` gives the chain's last pass start, form a polygon in (R, W) on which |L1'| is convex, so its least
-R'^3/L1'^2 is at a corner.  With --floor=e the pass start is wider than 2^e instead: e = 66 if every clean tape below
-2^66 reaches a wider one without halting, as the exhaustive check to 64 digits finds (`../dfs/merged64.txt`, untrusted),
-which `blank_halt_open_of` then takes in place of `stepsBelow_direct` (the clean tapes up to 2^41).  A path that begins
-with the loop's own half pass (round 2, R' = R/2) is taken at its landing, the chain's last pass start there: its forms
-are rewritten in the landing's coordinates (b = 2b' - W' + 2R' - 4, W = W' - 6, R = 2R'), and its rounds are counted
-from there.  Paths with the same forms there, in lowest terms, take the same route, which is printed once, with the
-census R and lanes it was found at.
+178, with only l = 3 (mod 7), it is at most 177^3/9 (`noSmall_sigma`); but b is even at a phase-0 start, so l is even as
+well, |l| >= 4, and an end r = R'/16^p, even, allows at most r^3/16 (the halting-classes side's observation).  On a lane
+value N = c 2^e (c = 1 or 3) R' is fixed, and the pass starts with R >= 769, every gap at least 448, width at least 2^41
+and 15W <= 64(W - b), the shape `blank_halt_open_big` gives the chain's last pass start, form a polygon in (R, W) on
+which |L1'| is convex, so its least R'^3/L1'^2 is at a corner.  With --floor=e the pass start is wider than 2^e instead:
+e = 66 if every clean tape below 2^66 reaches a wider one without halting, as the exhaustive check to 64 digits finds
+(`../dfs/merged64.txt`, untrusted), which `blank_halt_open_of` then takes in place of `stepsBelow_direct` (the clean
+tapes up to 2^41).  A path that begins with the loop's own half pass (round 2, R' = R/2) is taken at its landing, the
+chain's last pass start there: its forms are rewritten in the landing's coordinates (b = 2b' - W' + 2R' - 4, W = W' - 6,
+R = 2R'), and its rounds are counted from there.  Paths with the same forms there, in lowest terms, take the same route,
+which is printed once, with the census R and lanes it was found at.
 
 usage: python3 lane_sigma.py [--floor=66] lanes_r770_1004_forms.txt lanes_r5002_5862_forms.txt lanes_r294_486.json \
            lanes_zeta_forms.txt lanes_q316_1702_forms.txt lanes_q5116_forms.txt lanes_q5116_new17_forms.txt \
@@ -187,6 +188,13 @@ def sigma_min(Rf, Lf, N):
     return None if mx is None else (Fr(N) / dn) ** 3 / mx ** 2
 
 
+def small_bound(Rp):
+    """the largest r^3/16 over the even ends r = R'/16^p below 178, and at least sigma_close: at a phase-0 start b is
+    even, so L1 is even as well as 3 mod 7 and |l| >= 4"""
+    rs = [Rp / 16 ** p for p in range(64)]
+    return max([Fr(r ** 3, 16) for r in rs if r.denominator == 1 and r % 2 == 0 and 2 <= r < 178] + [CLOSE])
+
+
 def end_bound(Rp):
     """the largest r^3/l^2 over the right ends r of the halting classes with R' = 16^p r, l the least |L1| of r's
     classes, and at least sigma_close"""
@@ -224,7 +232,7 @@ def main():
             found.setdefault(key, ([], rnd, Rf, Lf))[0].append(src)
     for srcs, rnd, Rf, Lf in found.values():
         form, s = lane(Rf)
-        vals, below177, belowEnd = [], {1: [], 3: []}, {1: [], 3: []}
+        vals, below177, belowSmall, belowEnd = [], {1: [], 3: []}, {1: [], 3: []}, {1: [], 3: []}
         for c in (1, 3):
             for e in range(20, 110):
                 sg = sigma_min(Rf, Lf, c * 2 ** e * s)
@@ -235,11 +243,14 @@ def main():
                 wmax = log2(64 * Fr(c * 2 ** e * s - Rf[0]['R'] * RLO - Rf[0]['1'], Rf[0]['W']) / 15)
                 if sg <= SIG:
                     below177[c].append((e, wmax))
+                if Rp.denominator == 1 and sg <= small_bound(Rp):
+                    belowSmall[c].append((e, wmax))
                 if Rp.denominator == 1 and sg <= end_bound(Rp):
                     belowEnd[c].append((e, wmax))
         print('%s = 2^j or 3 * 2^j at round %d, from %s: least R\'^3/L1\'^2 %.4g' %
               (form, rnd, where(srcs), float(min(vals))))
-        for what, low in (('177^3/9', below177), ('the end\'s r^3/l^2', belowEnd)):
+        for what, low in (('177^3/9', below177), ('r^3/16 at an even end r below 178', belowSmall),
+                          ('the end\'s r^3/l^2', belowEnd)):
             top = max([w for c in low for _, w in low[c]], default=None)
             print('   at most %s at 2^j for j = %s, 3 * 2^j for j = %s%s' % (
                 what, ranges([e for e, _ in low[1]]), ranges([e for e, _ in low[3]]),

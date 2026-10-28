@@ -205,7 +205,8 @@ Started October 25. Self-contained (no Mathlib): Lean 4 core only, so it can be 
   and width (`pass_clean8`; the kernel runs the five rounds on the class with every coordinate free), and so do
   those with L₁ ≡ 16 (mod 32) and R ≡ 0 (mod 16) or 24 (mod 32), after seven. Since L₁ ≡ 10 (mod 14) at a
   phase-0 start, the last pass start before a halt at a right end that is a multiple of 8 has |L₁| ≥ 10 (`pass_clean_small`):
-  at the right ends 2^i and 3·2^i that a lane value allows, R³/L₁² ≤ r³/100 there instead of r³/9.
+  at the right ends 2^i and 3·2^i that a lane value allows, R³/L₁² ≤ r³/100 there instead of r³/16. That leaves 8 of
+  the 26 paths below that the filter keeps against any end below 178, the round-39 ones on Q + 10,236 at 2⁶⁴.
 * **Both together** (`thm/OpenSmallHalt.lean`, October 27): `blank_halt_open_small` is `blank_halt_open` with the
   small-end check at the loop entries, so a halt from blank tape needs a clean tape that the plain clean-tape tree
   leaves open at every depth, then either the tree with checked entries leaves it open too, or a pass start with
@@ -271,21 +272,24 @@ Started October 25. Self-contained (no Mathlib): Lean 4 core only, so it can be 
   raised to 769 (all 28,660 entries at 36 digits pass, and an untrusted run finds no end from 178 to 5,000,
   `../runs/chain_end.py`), the chain's last pass start has R ≥ 769 as well as the far shape (`blank_halt_open_big`).
   Every halting class found with R below 769 (the census at R = 178 to 262, 294 and 486, and the families of
-  `reentry6_open_halt`, `no_pass_open_halt` and `lane486_open_halt`) is out of its reach, whatever its
-  route. Past any bound on R, two lanes of halting classes recur at every R ≡ 486 (mod 512 or 1,024) and every scale; an
-  untrusted count of the pass starts up to width 2⁶³ of the chains from the loop entries of the 36- and 40-digit trees
+  `reentry6_open_halt`, `no_pass_open_halt` and `lane486_open_halt`) is out of its reach, whatever its route. Past any
+  bound on R, two lanes of halting classes recur at every R ≡ 486 (mod 512 or 1,024) and every scale; an untrusted count
+  of the pass starts up to width 2⁶³ of the chains from the loop entries of the 36- and 40-digit trees
   (`../runs/chain_lanes.py`) meets neither of them, nor any other lane of the census, but deeper trees find more entries
   (`../runs/entry_member.py`: 3 of the blank-tape run's 26,961 sampled first entries above 2⁴¹ lie in no 40-digit
   class). R′³/L₁′² at the route's last pass start rules out every census route from any entry but seven, on Q + 636 and
-  Q + 316, and those seven below width 2^48.1 (2^61.1 against 177³/9; `../runs/lane_sigma.py`, untrusted, with a chain's
-  end bounded by the halting classes' own residues, at most 176³/256² at every lane value), where the halting-classes
-  side finds no pass start with the far shape on them (untrusted, the step of each route's class in R taken from three
-  R). γ's lane Q + 5,116 adds 21 paths that the filter leaves up to width 2^59.1, and the next lane of its family,
-  Q + 10,236, 20 more, up to 2^60.7; with the exhaustive check to 64 digits (every clean tape below width 2⁶⁶ reaches a
-  wider one, untrusted) in place of `stepsBelow_direct`, the pass start is wider than 2⁶⁶, and then the filter alone
-  leaves none of them against its end (32 of these paths against 177³/9, on lane values that the chains from the 36- and
-  40-digit entries, counted to width 2⁷⁴, do not meet). Halting pass starts with R ≥ 769, open at every depth, exist on
-  every lane found there (`lane769_open_halt`).
+  Q + 316, and those seven below width 2^48.1 (2^58.1 against any end below 178; `../runs/lane_sigma.py`, untrusted,
+  with a chain's end bounded by the halting classes' own residues, at most 176³/256² at every lane value), where the
+  halting-classes side finds no pass start with the far shape on them (untrusted, the step of each route's class in R
+  taken from three R). γ's lane Q + 5,116 adds 21 paths that the filter leaves up to width 2^59.1, and the next lane of
+  its family, Q + 10,236, 20 more, up to 2^60.7; with the exhaustive check to 64 digits (every clean tape below width
+  2⁶⁶ reaches a wider one, untrusted) in place of `stepsBelow_direct`, the pass start is wider than 2⁶⁶, and then the
+  filter alone leaves none of them against its end (26 of these paths against any end below 178, on lane values that the
+  chains from the 36- and 40-digit entries, counted to width 2⁷⁴, do not meet). But the family goes on for every
+  k ≡ 2 or 3 (mod 4), its walls making (k − 6)/4 or (k − 7)/4 passes of a loop on four marks before the re-entry, and
+  from k = 14 on the filter leaves its lanes past 2⁶⁶, so no floor closes it; the chains from the 40-digit entries meet
+  its lanes, at any k, to width 2²⁵⁶ only at pass starts from whose entry the run goes on to a clean tape. Halting pass
+  starts with R ≥ 769, open at every depth, exist on every lane found there (`lane769_open_halt`).
 * **Deeper trees** (`BB6/MassPar.lean`, `thm/CleanEntryMass40.lean`, `thm/CleanEntryMass44.lean`, `ProjPar.lean`,
   `END_TO_END.md`, October 27): the clean-tape tree with loop entries cuts 6,582,732 classes at 40 digits (measure
   5.99 × 10⁻⁶) and 33,928,389 at 44 (1.93 × 10⁻⁶), evaluated on all cores; but below almost every class cut at b digits

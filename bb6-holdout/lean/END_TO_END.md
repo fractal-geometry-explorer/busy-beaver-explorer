@@ -967,11 +967,14 @@ one the census at eight R from 5,002 to 5,862 adds, Q + 316 = 3 · 2^j (`routes/
 lanes Q + 5 · 2^k − 4 = 2^j or 3 · 2^j for k = 3 to 11 (c = 36 to 10,236) that the halting-classes sweep searches at
 every R of a class (`routes/README.md`), among them γ's Q + 5,116 and the next, Q + 10,236, which carry 21 and 20 paths
 (below); of these lanes' half-pass-first forms Q + R + 24 + 2c only Q + R + 336 = 3 · 2⁵⁸ is met, at one member of an
-entry class, of width 2^58.7, which has W ≡ 0 (mod 4) and so makes no half pass. Other small offsets are met (the least
-are Q − 42 = 2^j and Q + 146 = 3 · 2^j), so this is a count, not a congruence. R′³/L₁′² rules out δ and ε, and ε′ and ζ
-on the same lane, above a width of 2^48.1, or 2^61.1 against 177³/9, and below that the halting-classes side finds no
-pass start with the far shape on them (both below), so for these routes the count is a second check, for these entries
-only.
+entry class, of width 2^58.7, which has W ≡ 0 (mod 4) and so makes no half pass. Of the family's lanes at any k (it goes
+on for every k ≡ 2 or 3 mod 4, below) only Q + 5 · 2⁴² − 4 = 2⁵⁷ is met, at an entry of the same class, of width 2^56.4,
+from which the run goes on to the next clean tape in round 8 (`../rec/clean_recurrence.py`), and the half-pass-first
+Q + R + 10 · 2⁶¹ + 16 = 2⁶⁵, at an entry with W ≡ 0 (mod 4) again. Other small offsets are met (the least are
+Q − 42 = 2^j and Q + 146 = 3 · 2^j), so this is a count, not a congruence. R′³/L₁′² rules out δ and ε, and ε′ and ζ on
+the same lane, above a width of 2^48.1, or 2^58.1 against any end below 178, and below that the halting-classes side
+finds no pass start with the far shape on them (both below), so for these routes the count is a second check, for these
+entries only.
 
 That is not yet the run from blank tape. The loop entry of `blank_halt_open_big` is the first one in the cycle of a
 clean tape, and it lies in one of these 28,660 classes only if `cleanTreeGB` settles that clean tape's class within 36
@@ -980,15 +983,20 @@ has 169,631 entry classes (`EntryForms.lean` at 40 digits, 24 minutes), and the 
 2⁶³, meet no census lane either; of all the offsets |c| ≤ 2,000 of the five forms scanned, the 140,971 new entries meet
 one that the 36-digit ones do not (2Q + R − 1,538 = 3 · 2^j), a class found deeper having a larger step. Counted on to
 width 2⁷⁴, past the widths at which R′³/L₁′² leaves the paths on γ's lane and on Q + 10,236, against their ends and
-against 177³/9 (below), these chains (193,243 classes, as at 2⁷²) meet no Q + 5,116 or Q + 10,236 = 2^j or 3 · 2^j
-either. The only census lane they meet is Q + 316 = 2⁶⁶, at an entry of width 2^65.8 with W ≡ 2 (mod 4), which makes the
-loop's half pass first and so is not on the lane (its clean tape is below 2⁶⁵, too), and of the sweep's lanes they meet
-Q + 156 = 2⁷², at an entry of width 2^71.4, the first loop entry, in round 10, of the clean tape n = 978 + 1,024z at
-z = 1,501,070,083,556,784,873 (in the blank-tape run's sample below, 87,371 cycles have their first entry in its class).
-From each of the two, the halting-classes census at its R, W − b and b, the first wall free, and the round trace from
-its walls both find the run going on to a clean tape, in rounds 11 and 6 (untrusted). In the blank-tape run's sample of
-1 in 16,384 cycles, of the 26,961 first entries after clean tapes wider than 2⁴¹, 11 lie in none of the 36-digit classes
-and 3 in none of the 40-digit ones, all late in their cycle (rounds 43 to 52) and in cycles that need 39 to 52 digits
+against any end below 178 (below), these chains (193,243 classes, as at 2⁷²) meet no Q + 5,116 or Q + 10,236 = 2^j or
+3 · 2^j either. The only census lane they meet is Q + 316 = 2⁶⁶, at an entry of width 2^65.8 with W ≡ 2 (mod 4), which
+makes the loop's half pass first and so is not on the lane (its clean tape is below 2⁶⁵, too), and of the sweep's lanes
+they meet Q + 156 = 2⁷², at an entry of width 2^71.4, the first loop entry, in round 10, of the clean tape
+n = 978 + 1,024z at z = 1,501,070,083,556,784,873 (in the blank-tape run's sample below, 87,371 cycles have their first
+entry in its class). From each of the two, the halting-classes census at its R, W − b and b, the first wall free, and
+the round trace from its walls both find the run going on to a tape with no walls left, in rounds 11 and 6, and the mark
+model of `../rec/clean_recurrence.py` (checked there against the machine) runs each entry on to the next clean tape, in
+rounds 13 and 20 (untrusted). They meet the family's later lanes too: Q + 5 · 2⁴² − 4 = 2⁵⁷ (above), and
+Q + 5 · 2⁶² − 4 = 2⁶⁶ at the landing of a half pass that the tree takes from an entry of width 2^66.9 but the run does
+not make; from these entries the run reaches the next clean tape in rounds 8 and 5 (`chain_lanes.py` now follows the run
+from the entry of every member it finds on a census lane or the family). In the blank-tape run's sample of 1 in 16,384
+cycles, of the 26,961 first entries after clean tapes wider than 2⁴¹, 11 lie in none of the 36-digit classes and 3 in
+none of the 40-digit ones, all late in their cycle (rounds 43 to 52) and in cycles that need 39 to 52 digits
 (`../runs/entry_member.py`, untrusted); the 430 later entries of a cycle lie in none, as they come after the first
 entry's chain has ended and belong to the run from its last pass start. The cut classes keep their number at every depth
 (next section), so no finite count covers every entry. Nor does every first entry pass the entry check: the first entry
@@ -1039,12 +1047,14 @@ phase-0 start in round 19, and their last pass start is the next one, in round 2
 inside the full pass), where they are left up to 2^59.1. On the next lane of the family, Q + 10,236 = 2^j or 3 · 2^j,
 the census at 2¹⁷ at every R ≡ 38 (mod 64) up to 40,102 finds 29 closing classes at 19 R, on 20 paths, each followed
 from its class at 2⁴¹ (`routes/lanes_q10236_forms.txt`); their last pass starts are in rounds 35 and 39, and they are
-left up to 2^60.7. Against 177³/9, which bounds every end below 178 (`noSmall_sigma`), every route of the first 18 is
-out above 2^61.1 (ε′; ε above 2^60.1), γ's paths above 2^71.7, and those on Q + 10,236 above 2^73.7. Four paths have no
-three-wall start to take it at. Three stop at round 15 in the census forms, before the round-17 start of δ or ζ: the
-class at R = 998 on Q + 636 = 3 · 2¹¹ (δ's route, which closes in the R = 6 class), and two on Q + 636 = 2¹⁵, δ's at
-R = 5,094 and 5,606 and ζ's at R = 5,094. At R = 972 the class on Q + R + 1,296 = 2¹³ makes only the half pass, onto
-Q + 636 = 2¹² at R = 486.
+left up to 2^60.7. Against any end below 178, every route of the first 18 is out above 2^58.1 (ε′; ε above 2^54.1), γ's
+paths above 2^68.1, and those on Q + 10,236 above 2^70.1. `noSmall_sigma` bounds such an end by 177³/9, with
+ℓ ≡ 3 (mod 7) alone; but b is even at a pass start (the parities of `PassStart448` and `Landing`), so ℓ is even as well,
+ℓ ≡ 10 (mod 14) and |ℓ| ≥ 4, and the end r = R′/16^p, even, allows at most r³/16 at each lane value (the halting-classes
+side's observation; with 177³/9 the widths were 2^61.1, 2^71.7 and 2^73.7). Four paths have no three-wall start to take
+it at. Three stop at round 15 in the census forms, before the round-17 start of δ or ζ: the class at R = 998 on
+Q + 636 = 3 · 2¹¹ (δ's route, which closes in the R = 6 class), and two on Q + 636 = 2¹⁵, δ's at R = 5,094 and 5,606 and
+ζ's at R = 5,094. At R = 972 the class on Q + R + 1,296 = 2¹³ makes only the half pass, onto Q + 636 = 2¹² at R = 486.
 
 At the lane values the filter left with r³/9 at the ends, the halting-classes side has searched each of the ten routes
 it left, the seven above among them, and the route of the landings from R = 812 and 876 as well, for a pass start with
@@ -1072,16 +1082,39 @@ C computation in the mark model, not in Lean). That is `StepsBelow cleanGamma 2�
 `blank_halt_open_big` as stated, whose W is the first clean tape cut at every depth, not the last before the halt. Above
 that floor (`lane_sigma.py --floor=66`) every route and path the censuses have found is out at every lane value against
 the ends of the halting classes (its least R′³/L₁′² there is 3,142, on Q + 10,236, where the ends allow 176³/256² ≈ 83),
-and every one of the first 18 routes against 177³/9 as well, without the far-shape search. (Taken at round 25, five of
-γ's paths were left against the ends at Q + 5,116 = 2⁶⁷ and 3 · 2⁶⁶; taken at round 27 their least R′³/L₁′² is 9,902 to
-285,000, and the halting-classes census at those two lane values finds no pass start of the far shape on any of the
-five.) Against 177³/9, 32 paths are left: twelve of γ's, the nine whose last pass start is in round 27, at lane values
-2^j for j = 64 to 69 and 3 · 2^j for j = 63 to 68 at most (widths up to 2^71.7), and three whose last is in round 23, at
-R = 230, 12,518 and 15,654, at 2⁶⁴ (widths up to 2^66.1); and the 20 on Q + 10,236, at 2^j for j = 64 to 71 and 3 · 2^j
-for j = 63 to 70 at most (widths up to 2^73.7). The chains from the 36- and 40-digit entries meet none of these lane
-values (the count to 2⁷⁴, above). So, on the exhaustive check, what the censuses leave of the run from blank tape is a
-chain from an entry that the 40-digit tree does not settle, onto one of those 32 paths, that ends in a halting class
-below 178 that is none of the known ones (`HaltClass`), and the routes the censuses have not found.
+and every one of the first 18 routes against any end below 178 as well, without the far-shape search. (Taken at
+round 25, five of γ's paths were left against the ends at Q + 5,116 = 2⁶⁷ and 3 · 2⁶⁶; taken at round 27 their least
+R′³/L₁′² is 9,902 to 285,000, and the halting-classes census at those two lane values finds no pass start of the far
+shape on any of the five.) Against any end below 178, 26 paths are left (32 against 177³/9): six of γ's whose last pass
+start is in round 27, at 2⁶⁶ and 3 · 2⁶⁴ (widths up to 2^68.1), and the 20 on Q + 10,236, at 2^j for j = 64, 66 and 68
+and 3 · 2^j for j = 64 and 66 at most (widths up to 2^70.1). An end there is on one of five lines of pass starts (r, ℓ),
+those with r³/ℓ² at least the path's least R′³/L₁′²: (96, −4), (128, −4), (128, −18), (128, 10) and (128, 24). Run
+through the proved explorer's steps (b = b₀ + 64s, W = W₀ + 84s, the first wall free), the first two go wholly to clean
+tapes, which settles 18 of the 26 (and both lie in one proved class, `pass_clean8`, below), and the other three have
+only clean leaves and depth cuts, 0.025% to 0.035% at depth 28 (the halting-classes side's census, `routes/README.md`,
+"Small ends", untrusted). The chains from the 36- and
+40-digit entries meet none of these lane values (the count to 2⁷⁴, above). So, on the exhaustive check, what the
+censuses leave of the run from blank tape is a chain from an entry that the 40-digit tree does not settle, onto one of
+the eight paths that need those three lines, that ends on one of them in a halting class that is none of the known ones
+(`HaltClass`); the routes the censuses have not found; and the family's later lanes (next).
+
+The family goes on, though, past every floor. The lanes Q + 5 · 2^k − 4 = 2^j or 3 · 2^j halt for k = 3 and every
+k ≡ 2 or 3 (mod 4): between the chain's break and the re-entry the walls make n = (k − 6)/4 or (k − 7)/4 passes of a
+loop on four marks, eight rounds each, which the route-completeness side has kernel-checked on its class
+(`four_wall_pass`, with halting families for n = 0 to 9 on Q = 4 + 123 · 2^(4n+7); `routes/loop4/README.md` in the
+project files). Each pass divides R′ at the re-entry by 16 while L₁′ stays near −35W, so R′³/L₁′² leaves a lane's paths
+up to a width about 13 bits larger for every four in k (2^46.1 at k = 6 and 2^59.1 at k = 10, 2^48.1 at k = 7 and 2^60.7
+at k = 11), and the lanes from k = 14 on, whose paths have not been followed, past 2⁶⁶ (to about 2⁷² at k = 14 if the
+growth holds). So no floor leaves every lane out: the family has to be kept off by an argument over the 4-wall loop, its
+invariant r³/Λ² in place of R′³/L₁′², or by the far shape, which the families on Q = 4 + 123 · 2^(4n+7) lack for n ≥ 1
+(b close to W) but γ's lane, at n = 1, has (`lane769_far_wide`); for two or more passes that is open. The count above
+takes every lane of the family at once, but only to its width and only for its entries. A pass start is on the family
+when the odd part m of Q − 4 has m + 5 = 2^i or 3 · 2^i, k being the power of two in Q − 4, and on a class whose Q has a
+small odd step that holds at many k: the chains from the 40-digit entries, whose tree has the same 193,243 classes from
+2⁷² to 2²⁵⁶, meet the family at 32 members to width 2¹²⁸, at k from 3 to 108, and at 112 to 2²⁵⁶, at k up to 251, 74 of
+them in class 165,127 (Q = 3,082 + 3,146z), and from every one of their entries, and from those of the four members on
+census lanes, the run goes on to the next clean tape within 21 rounds. For these entries that leaves only the lanes that
+R′³/L₁′² leaves past 2²⁵⁶, from about k = 74 on if the growth holds.
 
 **The small ends** (`thm/PassClean.lean`; the census in `routes/small_ends.txt` in the halting-classes project files,
 untrusted). On a lane value R′ is fixed, so the right ends below 178 that R′ = 16^p · r allows are 2^i and 3 · 2^i,
@@ -1089,11 +1122,11 @@ and at a phase-0 pass start L₁ is even as well as 3 mod 7, so ℓ ≡ 10 (mod 
 R ≡ 0 (mod 8) and L₁ ≡ 4 (mod 8) reaches a wider one-marker clean tape after five rounds, whatever its other walls
 (`pass_clean8`: one branch of the pass-start tree with every coordinate free, checked by the kernel), so it is not
 the last pass start before a halt. The only ℓ with |ℓ| < 10 is −4, so at every such end from 8 up |ℓ| ≥ 10
-(`pass_clean_small`), and r³/ℓ² ≤ r³/100, at most 20,972 (r = 128), where r³/9 allowed 233,017. With these ends, 24 of
-the 32 paths are out at the 2⁶⁶ floor: 6 by ℓ's parity alone and 18 by `pass_clean8`. The other 8, on Q + 10,236
-and γ's lane, need ℓ = −18, 10 or 24 at r = 128. On those three lines the proved explorer finds only clean leaves
-and depth cuts, with cut mass 0.025% to 0.035% at depth 28 and no round decided as a halt (`PassLine2.lean` in
-`tools/routes/small/`, untrusted).
+(`pass_clean_small`), and r³/ℓ² ≤ r³/100, at most 20,972 (r = 128), where r³/16 allowed 131,072. The lines (96, −4)
+and (128, −4) are in that class, so the step from 26 paths to 8 is a theorem, not a census. The 8 left are the
+round-39 paths on Q + 10,236, at the lane value 2⁶⁴ only (widths 2⁶⁶ to 2^66.093, least R′³/L₁′² 3,142 to 10,431),
+and need ℓ = −18, 10 or 24 at r = 128, the three lines with depth cuts (`PassLine2.lean` in `tools/routes/small/`,
+untrusted).
 
 Above 769 the halting census finds the same lanes and three more (untrusted; `routes/lanes_r770_1004.txt` in the
 project files). At every even R from 770 to 1,004 with W − b up to 4,096 it finds 236 closing classes, which fall on 91
@@ -1243,15 +1276,16 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   to 2⁶³ of the chains from the loop entries of the 36- and 40-digit trees, `../runs/chain_lanes.py`, meets neither of
   them nor any other census lane, but deeper trees find more entries; R′³/L₁′² at the route's last pass start rules out
   every census route from any entry but seven of the first 18, on Q + 636 and Q + 316, and those seven below width
-  2^48.1 (2^61.1 against 177³/9), `../runs/lane_sigma.py`, where the halting-classes side finds no pass start with the
-  far shape on them, the step of each route's class in R taken from three R; γ's lane Q + 5,116 adds 21 paths that it
-  leaves up to 2^59.1, and Q + 10,236 20 more, up to 2^60.7, and with the exhaustive check to 64 digits in place of
-  `stepsBelow_direct`, untrusted, the pass start is wider than 2⁶⁶ and none of these routes and paths is left against
-  its end, 32 of the paths against 177³/9, on lane values the chains to 2⁷⁴ do not meet). Pass starts with R ≥ 769 that
-  halt, open at every depth, exist on every lane the census finds there (`lane769_open_halt`), and one meets every
-  condition of `blank_halt_open_big` on the pass start but its width (`lane769_far`: width 16,192). On γ's lane one
-  meets them all, its width included (`lane769_far_wide`: width 5,213,842,519,808, at Q + 5,116 = 3 · 2³⁹), below the
-  2⁶⁶ of the exhaustive check.
+  2^48.1 (2^58.1 against any end below 178), `../runs/lane_sigma.py`, where the halting-classes side finds no pass start
+  with the far shape on them, the step of each route's class in R taken from three R; γ's lane Q + 5,116 adds 21 paths
+  that it leaves up to 2^59.1, and Q + 10,236 20 more, up to 2^60.7, and with the exhaustive check to 64 digits in place
+  of `stepsBelow_direct`, untrusted, the pass start is wider than 2⁶⁶ and none of these routes and paths is left against
+  its end, 26 of the paths against any end below 178, on lane values the chains to 2⁷⁴ do not meet; but the family's
+  lanes go on for every k ≡ 2 or 3 (mod 4), and from k = 14 on the filter leaves them past 2⁶⁶). Pass starts with
+  R ≥ 769 that halt, open at every depth, exist on every lane the census finds there (`lane769_open_halt`), and one
+  meets every condition of `blank_halt_open_big` on the pass start but its width (`lane769_far`: width 16,192). On γ's
+  lane one meets them all, its width included (`lane769_far_wide`: width 5,213,842,519,808, at Q + 5,116 = 3 · 2³⁹),
+  below the 2⁶⁶ of the exhaustive check.
 * The **two-marker route trees** (`ROUTE_TREE.md`) are not used by the theorems above: the machine's run reaches
   two-marker states with a small first gap again and again ("Why a one-variable tree", above). `blank_halt_route`
   (`thm/RouteEntryHalt.lean`) states what they give for a halting run from blank tape, at each two-marker state with
@@ -1282,6 +1316,7 @@ python3 ../runs/chain_lanes.py entries36.txt 63 2000
 # blank-tape run's sampled loop entries lie in the classes (untrusted):
 python3 ../runs/chain_lanes.py entries40.txt 63 2000
 python3 ../runs/chain_lanes.py entries40.txt 74 2000
+python3 ../runs/chain_lanes.py entries40.txt 256 2000
 python3 ../runs/entry_member.py ../blankrun/results/sample16k.tsv.gz entries36.txt entries40.txt
 # which census lanes R'^3/L1'^2 at the route's re-entry rules out at the chain's last pass start, from any entry (the
 # forms from routes/ in the halting-classes project files; untrusted):
