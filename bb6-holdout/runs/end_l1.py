@@ -6,11 +6,11 @@ an even end r = R'/16^p below 178 (r^3/100 where 8 divides r).  But full passes 
 exactly 64 (`LoopOut` in `../lean/BB6/Loop.lean`), so the end's L1 is l = L1'/64^p itself, and L1' is affine on the
 lane value's polygon of pass starts (the shape `blank_halt_open_big` gives the chain's last pass start, with the width
 floor of `--floor`), so it lies between its values at the corners, [Lmin, Lmax].  The end needs an integer l in
-[Lmin, Lmax]/64^p with l = 10 (mod 14) (even and 3 mod 7 at a phase-0 start) whose start does not reach a clean tape
-at once (`../lean/thm/PassClean.lean`: l = 4 (mod 8) when 8 | r, `pass_clean8`; l = 16 (mod 32) when 16 | r or
-r = 24 (mod 32), `pass_clean16` and `pass_clean24`).  The forms, the polygon and the routes are `lane_sigma.py`'s, read
-with its functions; the forms of a path seen at one R are taken at every R, as there.  Prints, per route, the lane
-values r^3/16 leaves and those the end's L1 leaves, with the interval of l and its admissible values.
+[Lmin, Lmax]/64^p with l = 10 (mod 14) (even and 3 mod 7 at a phase-0 start) whose start does not reach a clean tape at
+once (`../lean/thm/PassClean.lean`: l = 4 (mod 8) when 4 | r and r >= 8, `pass_clean_l4`; l = 16 (mod 32) when 8 | r and
+r >= 16, `pass_clean_l16`).  The forms, the polygon and the routes are `lane_sigma.py`'s, read with its functions; the
+forms of a path seen at one R are taken at every R, as there.  Prints, per route, the lane values r^3/16 leaves and
+those the end's L1 leaves, with the interval of l and its admissible values.
 
 usage: python3 end_l1.py [--floor=66] [--no-clean] FORMS...   (the files of `lane_sigma.py`, in `halting-classes/routes`)
 """
@@ -49,7 +49,7 @@ def l1_range(Rf, Lf, N):
 
 def clean(r, l):
     """the end's start reaches a clean tape at once (`../lean/thm/PassClean.lean`)"""
-    return CLEAN and ((r % 8 == 0 and l % 8 == 4) or ((r % 16 == 0 or r % 32 == 24) and l % 32 == 16))
+    return CLEAN and ((r % 4 == 0 and r >= 8 and l % 8 == 4) or (r % 8 == 0 and r >= 16 and l % 32 == 16))
 
 
 def admissible(r, lo, hi):
