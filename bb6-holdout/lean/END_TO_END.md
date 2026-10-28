@@ -1058,11 +1058,12 @@ lane values, up to the same widths). Against any end below 178, every route of t
 ε′), γ's paths above 2^64.1, and those on Q + 10,236 above 2^66.1. `noSmall_sigma` bounds such an end by 177³/9, with
 ℓ ≡ 3 (mod 7) alone; but b is even at a pass start (the parities of `PassStart448` and `Landing`), so ℓ is even as well,
 ℓ ≡ 10 (mod 14) and |ℓ| ≥ 4, and the end r = R′/16^p, even, allows at most r³/16 at each lane value (the halting-classes
-side's observation), and r³/100 where 8 divides r (`pass_clean_small`, below; with 177³/9 the widths were 2^61.1, 2^71.7
-and 2^73.7, and with r³/16 at every end 2^58.1, 2^68.1 and 2^70.1). Four paths have no three-wall start to take it at.
-Three stop at round 15 in the census forms, before the round-17 start of δ or ζ: the class at R = 998 on
-Q + 636 = 3 · 2¹¹ (δ's route, which closes in the R = 6 class), and two on Q + 636 = 2¹⁵, δ's at R = 5,094 and 5,606 and
-ζ's at R = 5,094. At R = 972 the class on Q + R + 1,296 = 2¹³ makes only the half pass, onto Q + 636 = 2¹² at R = 486.
+side's observation), and r³/100 where r is a multiple of 4 from 8 up (`pass_clean_small4`, below; with 177³/9 the widths
+were 2^61.1, 2^71.7 and 2^73.7, and with r³/16 at every end 2^58.1, 2^68.1 and 2^70.1). Four paths have no three-wall
+start to take it at. Three stop at round 15 in the census forms, before the round-17 start of δ or ζ: the class at
+R = 998 on Q + 636 = 3 · 2¹¹ (δ's route, which closes in the R = 6 class), and two on Q + 636 = 2¹⁵, δ's at R = 5,094
+and 5,606 and ζ's at R = 5,094. At R = 972 the class on Q + R + 1,296 = 2¹³ makes only the half pass, onto Q + 636 = 2¹²
+at R = 486.
 
 At the lane values the filter left with r³/9 at the ends, the halting-classes side has searched each of the ten routes
 it left, the six above among them, and the route of the landings from R = 812 and 876 as well, for a pass start with the
@@ -1095,10 +1096,10 @@ were left against the ends at Q + 5,116 = 2⁶⁷ and 3 · 2⁶⁶; taken at rou
 and the halting-classes census at those two lane values finds no pass start of the far shape on any of the five.)
 Against any end below 178, r³/16 leaves 26 paths (32 against 177³/9): six of γ's whose last pass start is in round 27,
 at 2⁶⁶ and 3 · 2⁶⁴ (widths up to 2^68.1), and the 20 on Q + 10,236, at 2^j for j = 64, 66 and 68 and 3 · 2^j for j = 64
-and 66 at most (widths up to 2^70.1); with r³/100 at the multiples of 8 (below) 8 are left, the round-39 paths on
-Q + 10,236, at 2⁶⁴ (widths up to 2^66.1). An end there is on one of five lines of pass starts (r, ℓ), those with r³/ℓ²
-at least the path's least R′³/L₁′²: (96, −4), (128, −4), (128, −18), (128, 10) and (128, 24). Run through the proved
-explorer's steps (b = b₀ + 64s, W = W₀ + 84s, the first wall free), the first two go wholly to clean tapes, which
+and 66 at most (widths up to 2^70.1); with r³/100 at the multiples of 4 from 8 up (below) 8 are left, the round-39 paths
+on Q + 10,236, at 2⁶⁴ (widths up to 2^66.1). An end there is on one of five lines of pass starts (r, ℓ), those with
+r³/ℓ² at least the path's least R′³/L₁′²: (96, −4), (128, −4), (128, −18), (128, 10) and (128, 24). Run through the
+proved explorer's steps (b = b₀ + 64s, W = W₀ + 84s, the first wall free), the first two go wholly to clean tapes, which
 settles 18 of the 26 (and both lie in one proved class, `pass_clean8`, below), and the other three have only clean
 leaves and depth cuts, 0.025% to 0.035% at depth 28 (the halting-classes side's census, `routes/README.md`, "Small
 ends", untrusted). The chains from the 36- and 40-digit entries meet none of these lane values (the count to 2⁷⁴,
