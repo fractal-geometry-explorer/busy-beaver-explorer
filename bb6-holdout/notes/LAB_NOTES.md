@@ -3815,3 +3815,14 @@ the paths at k = 14 and 15 up to 2^63.1, k = 15's two round-31 paths up to 2^65.
 paths are out, so k = 15 is out against a close after all, and 3 are left instead of 5: the n = 3, 4 and 5 paths of
 `lanes_n3_n5_forms.txt` (from R = 6,656,742, 246,780,646 and 4,222,980,838), by the close's own L₁ too. The filter
 against any end below 178 does not use the closing classes and is unchanged.
+
+**The narrower classes in the lane filters (October 28; `../runs/lane_sigma.py` and `../runs/close_l1.py`,
+`--closeC`).** Both scripts take `closeClassC` with `--closeC` and reproduce the counts above on the twelve files: at
+the 2⁴¹ floor 90 routes and paths left by r³/ℓ² and 88 by the close's own L₁ (94 and 90 with `closeClasses`), the widths
+2.6 bits lower on 90 of them, and at the 2⁶⁶ floor only the n = 3, 4 and 5 paths, to 2^75.1, 2^87.1 and 2^99.1. The
+default stays on `closeClasses`, as `EntryNoClose` (`../lean/BB6/RouteEntry.lean`), the condition that `entry_halt` and
+the route theorems after it ask of a loop entry, still excludes the closes of `closeClasses`: a lane value whose only
+closes are in those classes but outside `closeClassC`, as k = 15's two round-31 paths at 2⁶⁶, passes the narrower filter
+but not `EntryNoClose`. Restating it with `closeClassC` needs the pass-start trees built with `closeClassC` too (their
+close leaves would become cuts wherever L₁ lies outside it; at 12 to 20 splits the close leaves are exactly `HaltClass`,
+which lies inside it, the halting-classes side's count), and `entry_halt` with end meetings at distance ≥ 2.
