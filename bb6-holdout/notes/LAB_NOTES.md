@@ -3753,3 +3753,17 @@ wholly to clean tapes, (96, −256) and (128, −256) wholly make a full pass, t
 `pass_clean8`), and the other 65 have only clean leaves and depth cuts, cut mass 0.05% to 0.23% (with 2 to 5 leaves on
 the ℓ = −32 lines where the cleaves run out, as before). As for the lines before, a cut leaf is open, so this is
 evidence, not proof, that the paths at k = 14 and 15 halt at no end below 178.
+
+**The clean classes widened (October 28; `../lean/thm/PassClean.lean`).** The straight branch of `pass_clean8` does not
+need R ≡ 0 (mod 8): every phase-0 pass start with R ≡ 0 (mod 4), R ≥ 8 and b ≡ 2 (mod 8) (L₁ ≡ 4 mod 8) reaches a wider
+one-marker clean tape in the same five rounds (`pass_clean_l4`, the kernel running them with R = 8 + 4z free), and every
+one with R ≡ 0 (mod 8), R ≥ 16 and b ≡ 14 (mod 32) (L₁ ≡ 16 mod 32) in seven (`pass_clean_l16`, R = 16 + 8z).
+`pass_clean8`, `pass_clean16` and `pass_clean24` now follow from these, and `pass_clean_small4` gives |L₁| ≥ 10 at the
+last pass start before a halt at every right end that is a multiple of 4 from 8 up. Neither floor can be lowered for a
+straight branch: from R = 4 the first class, and from R = 8 the second, reach no clean leaf without a split within 13
+rounds. Of the ends 2^i and 3 · 2^i below 178 the only one this adds is 12 (the census of lines had already found
+(12, −4) going wholly to clean tapes). With it `end_l1.py` drops ℓ = −4 at r = 12 from six paths at the 2⁶⁶ floor
+(R = 35,046 and 119,526 at k = 14, R = 955,110 at k = 15 and the n = 3, 4 and 5 paths at k = 19, 23 and 27), and a
+quarter of the ℓ it admits at r = 12 elsewhere, but takes out no route: against any end below 178, 29 routes and paths
+are still left at the 2⁶⁶ floor and 81 at the 2⁴¹, as before (all the files of `lane_sigma.py`). The six keep ℓ = −4 at
+r = 6. `lane_sigma.py`, taking r³/100 at r = 12 as well, would drop some lane values 3 · 2^j but no width it reports.

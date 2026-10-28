@@ -1133,10 +1133,11 @@ close).
 
 **The small ends** (`thm/PassClean.lean`; the census in `routes/small_ends.txt` in the halting-classes project files,
 untrusted). On a lane value R′ is fixed, so the right ends below 178 that R′ = 16^p · r allows are 2^i and 3 · 2^i, and
-at a phase-0 pass start L₁ is even as well as 3 mod 7, so ℓ ≡ 10 (mod 14) and |ℓ| ≥ 4. A pass start with R ≡ 0 (mod 8)
-and L₁ ≡ 4 (mod 8) reaches a wider one-marker clean tape after five rounds, whatever its other walls (`pass_clean8`: one
-branch of the pass-start tree with every coordinate free, checked by the kernel), so it is not the last pass start
-before a halt. The only ℓ with |ℓ| < 10 is −4, so at every such end from 8 up |ℓ| ≥ 10 (`pass_clean_small`), and
+at a phase-0 pass start L₁ is even as well as 3 mod 7, so ℓ ≡ 10 (mod 14) and |ℓ| ≥ 4. A pass start with R ≡ 0 (mod 4),
+R ≥ 8 and L₁ ≡ 4 (mod 8) reaches a wider one-marker clean tape after five rounds, whatever its other walls
+(`pass_clean_l4`: one branch of the pass-start tree with every coordinate free, checked by the kernel; `pass_clean8` is
+the case R ≡ 0 mod 8), so it is not the last pass start before a halt. The only ℓ with |ℓ| < 10 is −4, so at every such
+end from 8 up |ℓ| ≥ 10 (`pass_clean_small4`; all of them are multiples of 4, and only 12 is not a multiple of 8), and
 r³/ℓ² ≤ r³/100, at most 20,972 (r = 128), where r³/16 allowed 131,072. The lines (96, −4) and (128, −4) are in that
 class, so the step from 26 paths to 8 is a theorem, not a census. The 8 left are the round-39 paths on Q + 10,236, at
 the lane value 2⁶⁴ only (widths 2⁶⁶ to 2^66.093, least R′³/L₁′² 3,142 to 10,431), and need ℓ = −18, 10 or 24 at r = 128,
@@ -1152,10 +1153,11 @@ close's ℓ is pinned the same way and has to lie in its r's class as well (`clo
 3 · 2⁴⁰, each with ℓ = −32, below width 2^43.7, and γ's paths and those on Q + 10,236 at fewer lane values but up to the
 same widths. On the family's later lanes neither closes the 2⁶⁶ floor: the end's own ℓ leaves every path followed at
 k = 14 and 15, at lane values from 2⁶⁴ to 2⁷⁴ (with ℓ = 10, 24 or 94 on the six paths where L₁′ is positive, those from
-R = 1,318, 70,374, 85,222, 86,758, 133,350 and 145,638, ℓ = −4 at r = 6 and 12 on those from R = 35,046 and 119,526 and
-on the one at k = 15, and from −18 down on the others; the halting-classes side's run, `routes/README.md`, "All 31
-k = 14 classes followed", where the line explorer finds no halt on the 68 lines (r, ℓ) these ends need), and the close's
-own ℓ those at k = 19, 23 and 27 at most of the lane values that r³/ℓ² leaves, up to 2^77.7, 2^89.7 and 2^101.7.
+R = 1,318, 70,374, 85,222, 86,758, 133,350 and 145,638, ℓ = −4 at r = 6 on those from R = 35,046 and 119,526 and on the
+one at k = 15 (at r = 12 that is clean at once), and from −18 down on the others; the halting-classes side's run,
+`routes/README.md`, "All 31 k = 14 classes followed", where the line explorer finds no halt on the 68 lines (r, ℓ) these
+ends need), and the close's own ℓ those at k = 19, 23 and 27 at most of the lane values that r³/ℓ² leaves, up to 2^77.7,
+2^89.7 and 2^101.7.
 
 Above 769 the halting census finds the same lanes and three more (untrusted; `routes/lanes_r770_1004.txt` in the
 project files). At every even R from 770 to 1,004 with W − b up to 4,096 it finds 236 closing classes, which fall on 91
