@@ -115,7 +115,12 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    at three far R). So, untrusted, no census route reaches a halt from the chain's last pass start, from any entry. What
    is needed is a proof of that (the routes' forms and the steps in Lean) and, on the halting side, every halting class
    at every R: the censuses had missed ζ and the route at R ≡ 1,702 until run at every R of a class, and that run on γ's
-   lane Q + 5,116 finds paths none of the known routes takes.
+   lane Q + 5,116 finds paths none of the known routes takes: nine routes that recur with R, which R′³/L₁′² leaves up
+   to width 2^56.7 (2^69.7 on two). On two of them there are pass starts with R ≥ 769, the far shape and width above
+   2⁴¹ that halt, at Q + 5,116 = 3 · 2³⁹ (`lane769_far_wide` in `lean/thm/LaneHalt.lean`, kernel-checked), so on that
+   lane the shape alone does not rule the halt out. The untrusted 64-digit check of clean tapes puts the pass start
+   above width 2⁶⁶, beyond these, and there the filter leaves only the lane's five round-25 paths, at
+   Q + 5,116 = 2⁶⁷ and 3 · 2⁶⁶.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.

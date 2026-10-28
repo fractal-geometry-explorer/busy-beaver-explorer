@@ -3523,3 +3523,31 @@ bits a scale), so these routes recur. Two of them, at R = 294 and 8,486, are γ 
 (Q/4 − 3 = 3 · 2^j − 2), not its lane. With γ's forms `../runs/lane_sigma.py` would leave it at 2^j for j = 39 to 57
 and 61 and 3 · 2^j for j = 38 to 56 and 60 (least R′³/L₁′² 0.0004, widths up to 2^63.7), so the routes on this lane
 are next for the far-shape runs.
+
+**The far shape on γ's lane: halting pass starts wider than 2⁴¹ (October 28; `../lean/thm/LaneHalt.lean`,
+`routes/lanes_q5116_forms.txt`).** The census with b free at every R ≡ 38 (mod 64) on Q + 5,116 = 2¹⁶ (R up to 19,750)
+finds 29 closing classes at 16 R. Following one member of each with b, W and R free puts them on 16 paths: nine routes
+that recur with R, each with b in one class mod 2¹⁴ (γ at R ≡ 294 mod 8,192, and R ≡ 3,814 mod 4,096, R ≡ 3,302,
+3,814, 6,374 and 7,910 mod 8,192, R ≡ 294 (two) and 3,366 mod 16,384), and seven classes seen once (R = 230 (two),
+8,422, 11,494 (three) and 19,750). They re-enter at round 21 or 23 with R′ = N/4,096 and then N/8,192, or at rounds 19
+and 25 with N/2,048 and N/16,384, where N = Q + 5,116, and `../runs/lane_sigma.py` leaves every one of them at 2^j and
+3 · 2^j from j = 38 or 39 up to width 2^56.7, or 2^69.7 on the round-25 paths. The far-shape runs of the entry above
+(untrusted: the census with b fixed to the route's residue mod 2¹⁴ at three R of its class, the step of b's class from
+the first R to the second checked at the third, and a lattice search over every R of the route) find at 2³⁹ one or two
+classes per route at each R and least b/(W − b) from 0.48 to 2.6, below the 3.27 the far shape allows, but no member,
+since there the width is above 2⁴¹ only when b is above 3(W − b). At 3 · 2³⁹ two routes have members: 212 on the route
+at R ≡ 294 (mod 16,384) with b ≡ 3,422 (mod 2¹⁴), and 77 on the route at R ≡ 7,910 (mod 8,192) with b ≡ 1,694, each
+with R ≥ 769, every gap at least 448, width about 2⁴² and 15W ≤ 64(W − b). A census at three R of each, from
+R = 55,918,886 to 211,172,917,542, finds exactly the class the step predicts, 6 of 6. `gammaWide` holds the first member
+of each as a family (b modulo 2⁵⁸ and 2⁵⁷, 80 rounds of the model run), `routesGamma` the 24 classes at 2¹⁶ with
+R ≥ 769, and `gamma769_open_halt` proves all 26 halting and open at every depth, by the kernel with standard axioms.
+`lane769_far_wide` is one member: walls 449, 3,564,686,921,054 and 5,213,786,600,921, width 5,213,842,519,808,
+R = 55,918,886, a pass start that meets every condition `blank_halt_open_big` puts on it, its width included, and
+halts. So on this lane the far shape does not exclude the halt, and the conclusion of the entry above holds only for the
+eleven routes there. What keeps these out is the run from blank tape: `../runs/chain_lanes.py` checks the lanes
+Q + c = 2^j and 3 · 2^j for c = 5 · 2^k − 4, Q + 5,116 among them, and the chains from the 36- and 40-digit entries meet
+none of its values up to width 2⁶³ (untrusted; deeper trees find more entries, and the round-25 paths are left to
+2^69.7). The 64-digit check of clean tapes (untrusted) puts the pass start above width 2⁶⁶, beyond these members, and
+on that bound the filter leaves only the five round-25 paths of this lane, at Q + 5,116 = 2⁶⁷ and 3 · 2⁶⁶ (the reaching
+side), so the runs at 2⁴⁰ to 2⁴⁴ were stopped (at 2⁴⁰ the search had 207 members of the R ≡ 294 (mod 16,384) class,
+unchecked) and the census at those two values is next.

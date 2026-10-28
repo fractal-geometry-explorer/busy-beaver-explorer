@@ -164,10 +164,87 @@ theorem route769_open_halt {F : Fam} (hF : F ∈ zeta998 ++ routes5000 ++ routes
   exact ⟨of_decide_eq_true (List.all_eq_true.1 hR F hF),
     Fam.open_halt (List.all_eq_true.1 routes_ok F hF) ha h1 h2⟩
 
+/-! ## γ's lane, and the far shape with its width
+
+γ, the class at R = 294 and Q + 5,116 = 2^16, is not alone on its lane.  The census with b free at Q + 5,116 = 2^16
+at every R ≡ 38 (mod 64) up to 19,750 finds 29 classes at 16 R, and each of the first nine of those R has the same
+number of classes again at 2^17 to 2^21 (untrusted).  Following one member of each with b, W and R free puts them on
+16 paths, nine of them routes that recur with R (γ at R ≡ 294 mod 8,192, the others at R ≡ 3,814 mod 4,096,
+R ≡ 3,302, 3,814, 6,374 and 7,910 mod 8,192 and R ≡ 294, 294 and 3,366 mod 16,384), each with b in one class mod
+2^14; their forms are in the project's `halting-classes/routes` files.  `routesGamma` holds the 24 classes at 2^16
+with R ≥ 769.
+
+On two of these routes the class of b moves with R so that some members have the far shape.  At
+Q + 5,116 = 3 · 2^39 the classes at three R of each route, the step from the first to the second predicting the class
+at the third, and a lattice search over every R of the route put 212 members with 15b ≤ 49(W − b), W > 2⁴¹ and R ≥ 769
+on the route at R ≡ 294 (mod 16,384) and 77 on the route at R ≡ 7,910 (mod 8,192) (untrusted; a census at the R of six
+of them finds the predicted class each time).  `gammaWide` holds the first of each, and `lane769_far_wide` is a
+member: a pass start that meets every condition `blank_halt_open_big` puts on it, its width included, and halts. -/
+
+/-- The 24 classes at Q + 5,116 = 2^16 with R ≥ 769 (W − b = 2^16 − 5,138 − 2R), in order of R: R = 3,302, 3,366,
+3,814 (two), 6,374, 7,910 (two), 8,422, 8,486 (γ), 11,494 (four), 12,006 (two), 14,566, 16,102 (two), 16,678 (three, γ
+among them), 19,686 and 19,750 (two). -/
+def routesGamma : List Fam :=
+  [⟨7000736, 3302, 6946942, 23, 28⟩, ⟨16262912, 3366, 16209246, 24, 28⟩, ⟨2626752, 3814, 2573982, 22, 28⟩,
+   ⟨3523776, 3814, 3471006, 23, 28⟩, ⟨7090368, 6374, 7042718, 23, 28⟩, ⟨914624, 7910, 870046, 20, 29⟩,
+   ⟨1750208, 7910, 1705630, 22, 28⟩, ⟨15979168, 8422, 15935614, 24, 28⟩, ⟨2012928, 8486, 1969502, 23, 28⟩,
+   ⟨1954464, 11494, 1917054, 21, 29⟩, ⟨1979040, 11494, 1941630, 21, 29⟩, ⟨5722784, 11494, 5685374, 23, 28⟩,
+   ⟨16331424, 11494, 16294014, 24, 28⟩, ⟨873664, 12006, 837278, 22, 28⟩, ⟨4195520, 12006, 4159134, 23, 28⟩,
+   ⟨1339584, 14566, 1308318, 23, 28⟩, ⟨177344, 16102, 149150, 20, 29⟩, ⟨4191424, 16102, 4163230, 22, 28⟩,
+   ⟨1849088, 16678, 1822046, 21, 29⟩, ⟨4568832, 16678, 4541790, 23, 28⟩, ⟨13752064, 16678, 13725022, 24, 28⟩,
+   ⟨4444832, 19686, 4423806, 23, 28⟩, ⟨337664, 19750, 316766, 20, 29⟩, ⟨2893568, 19750, 2872670, 24, 28⟩]
+
+/-- Two members of the far shape at Q + 5,116 = 3 · 2^39: R = 55,918,886 on the route at R ≡ 294 (mod 16,384),
+b ≡ 3,422 (mod 2^14), and R = 59,244,262 on the route at R ≡ 7,910 (mod 8,192), b ≡ 1,694 (mod 2^14). -/
+def gammaWide : List Fam :=
+  [⟨5213842519808, 55918886, 3564686921054, 58, 80⟩, ⟨6911455278272, 59244262, 5262306330270, 57, 80⟩]
+
+/-- Each family's R and Q + 5,116, with Q = W − b + 2R + 22, which put it on the lane. -/
+theorem gamma_shape :
+    routesGamma.map (fun F => F.W0 - F.b0 + 2 * F.R0 + 22 + 5116) = List.replicate 24 (2 ^ 16) ∧
+    gammaWide.map (fun F => (F.R0, F.W0 - F.b0 + 2 * F.R0 + 22 + 5116)) =
+      [(55918886, 3 * 2 ^ 39), (59244262, 3 * 2 ^ 39)] := by
+  decide +kernel
+
+/-- All 26 pass the checks (the close run and the model's run on each, by the kernel). -/
+theorem gamma_ok : (routesGamma ++ gammaWide).all Fam.ok = true := by decide +kernel
+
+/-- **Pass starts with R ≥ 769 that halt, open at every depth, on γ's lane: nine routes and five more classes at
+Q + 5,116 = 2^16, and two of the routes at 3 · 2^39.** -/
+theorem gamma769_open_halt {F : Fam} (hF : F ∈ routesGamma ++ gammaWide) {a t : Nat} (ha : a % 2 = 1)
+    (h1 : 448 ≤ a)
+    (h2 : a + 448 ≤ F.b0 + 2 ^ F.k * t) :
+    769 ≤ F.R0 ∧
+    PassStart448 [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩] (F.W0 + 2 ^ F.k * t)
+      F.R0 ∧
+    (∀ d, (passTreeSym d).cutMem [((a : Int) - 1) / 2, ((F.b0 + 2 ^ F.k * t : Nat) : Int) / 2,
+      ((F.W0 + 2 ^ F.k * t : Nat) : Int) / 2, (F.R0 : Int) / 2] = true) ∧
+    ∃ T, steps T (roundStart [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩]
+      (F.W0 + 2 ^ F.k * t)) = none := by
+  have hR : (routesGamma ++ gammaWide).all (fun F => decide (769 ≤ F.R0)) = true := by decide +kernel
+  exact ⟨of_decide_eq_true (List.all_eq_true.1 hR F hF),
+    Fam.open_halt (List.all_eq_true.1 gamma_ok F hF) ha h1 h2⟩
+
+/-- **Every condition `blank_halt_open_big` puts on the pass start, its width included**: a pass start with R ≥ 769,
+width above 2⁴¹ and 15W ≤ 64(W − b), every gap at least 448, in a cut leaf of `passTreeSym` at every depth, from which
+the machine halts (walls 449, 3,564,686,921,054 and 5,213,786,600,921, width 5,213,842,519,808, R = 55,918,886:
+`gammaWide`'s first family, at Q + 5,116 = 3 · 2^39).  So the shape alone does not rule that pass start out. -/
+theorem lane769_far_wide : ∃ R a b W, 769 ≤ R ∧ 2 ^ 41 < W ∧ 15 * W ≤ 64 * (W - b) ∧
+    PassStart448 [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W R ∧
+    (∀ d, (passTreeSym d).cutMem [((a : Int) - 1) / 2, (b : Int) / 2, (W : Int) / 2, (R : Int) / 2] = true) ∧
+    ∃ T, steps T (roundStart [⟨.W, a⟩, ⟨.W, b⟩, ⟨.W, W - R - 1⟩] W) = none := by
+  have hF : (⟨5213842519808, 55918886, 3564686921054, 58, 80⟩ : Fam) ∈ routesGamma ++ gammaWide := by
+    simp [routesGamma, gammaWide]
+  obtain ⟨hR, hP, hcut, hT⟩ := gamma769_open_halt hF (a := 449) (t := 0) rfl (by omega) (by decide)
+  exact ⟨55918886, 449, 3564686921054, 5213842519808, hR, by decide, by decide, hP, hcut, hT⟩
+
 #print axioms lanes769_shape
 #print axioms lane769_open_halt
 #print axioms lane769_far
 #print axioms routes_shape
 #print axioms route769_open_halt
+#print axioms gamma_shape
+#print axioms gamma769_open_halt
+#print axioms lane769_far_wide
 
 end BB6
