@@ -3685,3 +3685,18 @@ round-39 paths on Q + 10,236, at lane value 2⁶⁴ only (widths 2⁶⁶ to 2^66
 where the cuts have mass 0.035%, 0.034% and 0.025% at depth 28. Whether those lines hold a halt is the same question as
 for the pass-start tree at R ≥ 178: the cuts are open, and a halt there would come by re-entry (as
 `pass_halt_example_reentry` does from R = 130).
+
+**The end's own L₁ (October 28; `../runs/end_l1.py`, untrusted).** `lane_sigma.py` keeps a lane value when the least
+R′³/L₁′² over its pass starts is at most r³/16 at some end r = R′/16^p below 178. But a full pass divides R by exactly
+16 and L₁ by exactly 64 (`LoopOut` in `../lean/BB6/Loop.lean`), so the end's L₁ is ℓ = L₁′/64^p itself, not only bounded
+by it, and L₁′ is affine on the lane value's polygon (R ≥ 769, every gap at least 448, W from the floor to 64D/15), so ℓ
+lies in the interval between its values at the corners. The end needs an integer ℓ ≡ 10 (mod 14) there whose start does
+not reach a clean tape at once (`../lean/thm/PassClean.lean`). With the forms and polygons of `lane_sigma.py` (a path
+seen at one R taken with its forms there at every R): at the 2⁶⁶ floor the 18 paths that need (96, −4) or (128, −4)
+have ℓ in intervals such as [−7.3, −1.7] and [−5.5, −1.7], which hold only −4, out by `pass_clean8`; the 8 round-39
+paths on Q + 10,236 have, at 2⁶⁴, where W runs only from 2⁶⁶ to 2^66.093, ℓ in [−14.2, −13.3] (R = 742),
+[−25.8, −24.2] (R = 15,654), [−15.2, −14.3] (R = 19,750) and the like, which hold no value ≡ 10 (mod 14) at all, and at
+their other lane values only −4. So no route or path found is left at the 2⁶⁶ floor against any end below 178 (23
+routes without `pass_clean8`; `pass_clean16` and `pass_clean24` are not needed). At the 2⁴¹ floor the polygons are
+wide and it takes out only Q + 36 at round 11 and 3Q + 76 at round 15 (52 routes left of 54). On all 26 paths L₁′ is
+negative over the whole polygon, so the end's ℓ is negative too, and ℓ = 10 or 24 never comes into it.

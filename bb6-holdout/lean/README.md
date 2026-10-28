@@ -206,7 +206,9 @@ Started October 25. Self-contained (no Mathlib): Lean 4 core only, so it can be 
   those with L₁ ≡ 16 (mod 32) and R ≡ 0 (mod 16) or 24 (mod 32), after seven. Since L₁ ≡ 10 (mod 14) at a
   phase-0 start, the last pass start before a halt at a right end that is a multiple of 8 has |L₁| ≥ 10 (`pass_clean_small`):
   at the right ends 2^i and 3·2^i that a lane value allows, R³/L₁² ≤ r³/100 there instead of r³/16. That leaves 8 of
-  the 26 paths below that the filter keeps against any end below 178, the round-39 ones on Q + 10,236 at 2⁶⁴.
+  the 26 paths below that the filter keeps against any end below 178, the round-39 ones on Q + 10,236 at 2⁶⁴, and the
+  end's own L₁ leaves none of those (`../runs/end_l1.py`, untrusted): full passes divide L₁ by exactly 64, so the end's
+  L₁ is the last pass start's L₁′/2⁵⁴, which on their pass starts at 2⁶⁴ holds no value ≡ 10 (mod 14).
 * **Both together** (`thm/OpenSmallHalt.lean`, October 27): `blank_halt_open_small` is `blank_halt_open` with the
   small-end check at the loop entries, so a halt from blank tape needs a clean tape that the plain clean-tape tree
   leaves open at every depth, then either the tree with checked entries leaves it open too, or a pass start with

@@ -129,7 +129,9 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    clean tape after five rounds (`pass_clean8`, `lean/thm/PassClean.lean`, kernel-checked), so at the ends that are
    multiples of 8 |L₁| ≥ 10; the 8 left, the round-39 paths on Q + 10,236 at 2⁶⁴, need (128, −18), (128, 10) or
    (128, 24), lines on which the halting side's explorer finds only clean leaves and depth cuts (`routes/small_ends.txt`,
-   untrusted); the chains from the 36- and 40-digit entries meet none of those (`runs/chain_lanes.py`, to width 2⁷⁴),
+   untrusted), and none of which the 8 can reach: full passes divide L₁ by exactly 64, so the end's L₁ is L₁′/2⁵⁴, and
+   on their pass starts at 2⁶⁴ that lies in intervals such as [−14.2, −13.3] with no value ≡ 10 (mod 14)
+   (`runs/end_l1.py`, untrusted, the forms taken at every R as in `lane_sigma.py`); the chains from the 36- and 40-digit entries meet none of those (`runs/chain_lanes.py`, to width 2⁷⁴),
    and from every one
    of their pass starts on a census lane or on a lane of the family Q + 5 · 2^k − 4 = 2^j or 3 · 2^j, at any k, to width
    2²⁵⁶ (116 of them) the run goes on to a clean tape (the mark model from its entry; the first two also by the halting

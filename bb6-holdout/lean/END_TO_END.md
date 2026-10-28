@@ -1096,7 +1096,7 @@ only clean leaves and depth cuts, 0.025% to 0.035% at depth 28 (the halting-clas
 40-digit entries meet none of these lane values (the count to 2⁷⁴, above). So, on the exhaustive check, what the
 censuses leave of the run from blank tape is a chain from an entry that the 40-digit tree does not settle, onto one of
 the eight paths that need those three lines, that ends on one of them in a halting class that is none of the known ones
-(`HaltClass`); the routes the censuses have not found; and the family's later lanes (next).
+(`HaltClass`), which the end's own L₁ rules out as well (below); the routes the censuses have not found; and the family's later lanes (next).
 
 The family goes on, though, past every floor. The lanes Q + 5 · 2^k − 4 = 2^j or 3 · 2^j halt for k = 3 and every
 k ≡ 2 or 3 (mod 4): between the chain's break and the re-entry the walls make n = (k − 6)/4 or (k − 7)/4 passes of a
@@ -1126,7 +1126,13 @@ the last pass start before a halt. The only ℓ with |ℓ| < 10 is −4, so at e
 and (128, −4) are in that class, so the step from 26 paths to 8 is a theorem, not a census. The 8 left are the
 round-39 paths on Q + 10,236, at the lane value 2⁶⁴ only (widths 2⁶⁶ to 2^66.093, least R′³/L₁′² 3,142 to 10,431),
 and need ℓ = −18, 10 or 24 at r = 128, the three lines with depth cuts (`PassLine2.lean` in `tools/routes/small/`,
-untrusted).
+untrusted). But the end's L₁ is not only bounded: full passes divide L₁ by exactly 64 (`LoopOut`), so it is
+ℓ = L₁′/64^p, and L₁′ is affine on the lane value's polygon of pass starts, so ℓ lies between its values at the
+corners (`../runs/end_l1.py`, untrusted, the forms and polygon of `lane_sigma.py`). At 2⁶⁴, where W runs only from
+2⁶⁶ to 64D/15 ≈ 2^66.093, the eight's ℓ lie in [−14.2, −13.3], [−25.8, −24.2] and the like, none holding a value
+≡ 10 (mod 14), so none of them ends below 178, and with `pass_clean8` no route or path found is left at the 2⁶⁶ floor
+against any end below 178 (23 without it). At the 2⁴¹ floor, where the polygons are wide, it takes out only two more
+routes, Q + 36 at round 11 and 3Q + 76 at round 15.
 
 Above 769 the halting census finds the same lanes and three more (untrusted; `routes/lanes_r770_1004.txt` in the
 project files). At every even R from 770 to 1,004 with W − b up to 4,096 it finds 236 closing classes, which fall on 91
