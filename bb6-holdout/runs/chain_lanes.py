@@ -12,20 +12,29 @@ an entry makes a half pass first or not, then full passes and round-7 breaks; in
 step on the subclass of the line where its divisions are exact, and imposes nothing else, so it holds every chain the
 model makes and more.  A subclass is z = z0 + M u, u >= 0, with the forms in u; it is cut where its least member is
 wider than 2^WMAX, so every pass start of a chain with W <= 2^WMAX is a member of a node.  For each node and each
-j <= 64 the lane F + c = T (F = Q, 3Q or 2Q - R with Q = W - b + 2R + 22, T = 2^j or 3 * 2^j) holds at most at one
-u, and the offsets c with |c| <= CMAX that some member meets are listed, with the census lanes' offsets
-(`halting-classes/routes` in the project files: Q = 2^j and 3 * 2^j on routes A, C and beta, Q + 36 on C3, C4 and
-alpha, Q + 636 on delta and epsilon, 3Q + 76 = 2^j on A3 and C2, 2Q - R + 6 on A2).
+j <= 64 the lane F + c = T (F = Q, 3Q, 2Q - R, Q + R or 2Q + R with Q = W - b + 2R + 22, T = 2^j or 3 * 2^j) holds
+at most at one u, and the offsets c with |c| <= CMAX that some member meets are listed, with the census lanes'
+offsets (`halting-classes/routes` in the project files, `lanes_r770_1004.txt` for R = 770 to 1,004: Q = 2^j and
+3 * 2^j on routes A, C and beta, Q + 36 on C3, C4 and alpha, Q + 636 on delta and epsilon, 3Q + 76 = 2^j on A3 and
+C2, 2Q - R + 6 on A2, and above R = 769 also 2Q - R + 26 = 2^j, Q + 316 = 2^j and Q + 636 = 3 * 2^j; and the lanes
+of the routes that begin with a half pass, Q + R + 24, Q + R + 96, Q + R + 1296 and 2Q + R + 60).
 
-usage: python3 chain_lanes.py entries36.txt 63 2000   (entries36.txt from `../lean/EntryForms.lean 2199023255552 36`)
+usage: python3 chain_lanes.py entries36.txt 63 2000   (entries36.txt from `../lean/EntryForms.lean 2199023255552 36`;
+       likewise entries40.txt at 40 digits)
 """
 import sys
 from collections import Counter
 from math import gcd
 
 G = 2 ** 41  # the cone: entries of width at least 2^41
-CENSUS = [('Q', '2^j', 0), ('Q', '3*2^j', 0), ('Q', '2^j', 36), ('Q', '3*2^j', 36), ('Q', '2^j', 636),
-          ('3Q', '2^j', 76), ('2Q - R', '2^j', 6), ('2Q - R', '3*2^j', 6)]
+# the forms F scanned, as (coefficients of W, b, R, constant); Q = W - b + 2R + 22
+FORMS = {'Q': (1, -1, 2, 22), '3Q': (3, -3, 6, 66), '2Q - R': (2, -2, 3, 44), 'Q + R': (1, -1, 3, 22),
+         '2Q + R': (2, -2, 5, 44)}
+# the census lanes (F, T, c): F + c = T; the last six begin with a half pass, so only an entry can start them
+CENSUS = [('Q', '2^j', 0), ('Q', '3*2^j', 0), ('Q', '2^j', 36), ('Q', '3*2^j', 36), ('Q', '2^j', 316),
+          ('Q', '2^j', 636), ('Q', '3*2^j', 636), ('3Q', '2^j', 76), ('2Q - R', '2^j', 6), ('2Q - R', '3*2^j', 6),
+          ('2Q - R', '2^j', 26), ('Q + R', '2^j', 24), ('Q + R', '3*2^j', 24), ('Q + R', '2^j', 96),
+          ('Q + R', '2^j', 1296), ('2Q + R', '2^j', 60), ('2Q + R', '3*2^j', 60)]
 
 
 def restrict(forms, f, d, z0, M):
@@ -73,8 +82,8 @@ def main():
 
     def visit(st, umin, cid, shape):
         b, E, R = st
-        Q0, Q1 = E[0] - b[0] + 2 * R[0] + 22, E[1] - b[1] + 2 * R[1]
-        for name, F0, F1 in (('Q', Q0, Q1), ('3Q', 3 * Q0, 3 * Q1), ('2Q - R', 2 * Q0 - R[0], 2 * Q1 - R[1])):
+        for name, (cW, cb, cR, c0) in FORMS.items():
+            F0, F1 = cW * E[0] + cb * b[0] + cR * R[0] + c0, cW * E[1] + cb * b[1] + cR * R[1]
             assert F1 > 0
             for j in range(30, 65):
                 for tn, T in (('2^j', 2 ** j), ('3*2^j', 3 * 2 ** j)):
