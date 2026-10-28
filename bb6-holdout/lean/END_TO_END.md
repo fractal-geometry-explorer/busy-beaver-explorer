@@ -961,10 +961,9 @@ at one member at most for each j, and no member of any class meets a census lane
 2Q − R + 6 = 2^j or 3 · 2^j (A2), nor those the census of R = 770 to 1,004 adds (`routes/lanes_r770_1004.txt`):
 2Q − R + 26 = 2^j, Q + 316 = 2^j, Q + 636 = 3 · 2^j (δ's route to the right end 6), and, at the entries, which alone can
 start a route with a half pass, Q + R + 24 and 2Q + R + 60 = 2^j or 3 · 2^j, Q + R + 96 and Q + R + 1,296 = 2^j. Other
-small offsets are met (the least are Q − 42 = 2^j and Q + 146 = 3 · 2^j), so this is a count, not a congruence. δ and ε
-need a width well below 2⁶³ (R′³/L₁′² rules them out past about 2⁴⁷ by the halting-classes estimate, and past 2⁵³ even
-with the bound r³/16 of a close at r ≤ 32), so if their forms hold and the count is right, no chain from these entries
-reaches either lane.
+small offsets are met (the least are Q − 42 = 2^j and Q + 146 = 3 · 2^j), so this is a count, not a congruence.
+R′³/L₁′² rules out δ and ε above a width of 2^52.7, or 2^60.1 against 177³/9 (below), so if their forms hold and the
+count is right, no chain from these entries reaches either lane.
 
 That is not yet the run from blank tape. The loop entry of `blank_halt_open_big` is the first one in the cycle of a
 clean tape, and it lies in one of these 28,660 classes only if `cleanTreeGB` settles that clean tape's class within 36
@@ -976,9 +975,29 @@ blank-tape run's sample of 1 in 16,384 cycles, of the 26,961 first entries after
 none of the 36-digit classes and 3 in none of the 40-digit ones, all late in their cycle (rounds 43 to 52) and in cycles
 that need 39 to 52 digits (`../runs/entry_member.py`, untrusted); the 430 later entries of a cycle lie in none, as they
 come after the first entry's chain has ended and belong to the run from its last pass start. The cut classes keep their
-number at every depth (next section), so no finite count covers every entry. A proof needs an argument for the entries
-at every depth, in Lean, and on the halting side every halting class at every R, not a census. There is no kernel-only
-version of `blank_halt_open_big`: its clean-tape tree starts at 2³⁷, where a round-7 break clears only 383.
+number at every depth (next section), so no finite count covers every entry.
+
+Most of the census lanes need no count, though, and for those the entry does not matter (`../runs/lane_sigma.py`,
+untrusted). On a route's lane R′ is fixed by the lane value and L₁′ is affine in the start, so over the pass starts of a
+lane value with R ≥ 769, width at least 2⁴¹ and the far shape, which is what `blank_halt_open_big` leaves, the least
+R′³/L₁′² is at a corner of a polygon, as for routes A to C4 above. Taken at the last three-wall start of every path of
+the census at R = 770 to 1,004 and of δ and ε (`routes/lanes_r770_1004_forms.txt` and `routes/lanes_r294_486.json`),
+with a path that begins with the loop's half pass taken at its landing, which is then the chain's last pass start, every
+route but four is above every bound its end can give at every lane value: r³/9 for each right end r of a halting class
+with R′ = 16^p · r, and 176³/256² for a close at the chain's end (`sigma_close`). These are the routes on Q, 3Q + 76,
+2Q − R + 6, 2Q − R + 26 and Q + 36 = 2^j or 3 · 2^j, like A to C4. The four are δ, up to width 2^50.7 (lane values 2^j
+for j = 39 to 44, 47 and 48, and 3 · 2^j for j = 38 to 43 and 47); ε, up to 2^52.7 (2^j for j = 39 to 46 and 50, 3 · 2^j
+for j = 38 to 43, 45 and 49; one of the paths from R = 972 is ε at its landing); Q + 316 = 2⁴² or 3 · 2⁴¹ at R = 934, up
+to 2^44.7; and a route on Q + 36 that the half pass from R = 812 lands on, whose re-entry has L₁′ ≈ −35W, up to 2^51.7.
+Against 177³/9, which bounds every end below 178 (`noSmall_sigma`), every route is out above 2^60.1. So the entries that
+only deeper trees find matter for these four lanes only, and only below 2^60.1, where the count covers the 36- and
+40-digit entries; and the halting-classes search finds no member of δ's lane Q + 636 = 2^j wider than 2⁴¹ with the far
+shape at any R ≡ 486 (mod 512) up to j = 49, which with the ends' r³/9 covers that lane from every entry. Two paths have
+no three-wall start to take it at: at R = 998 the class on Q + 636 = 3 · 2¹¹ closes in the R = 6 class, δ's route at
+that scale, and at R = 972 the class on Q + R + 1,296 = 2¹³ makes only the half pass, onto Q + 636 = 2¹² at R = 486. A
+proof needs the routes' forms in Lean, an argument for the four lanes from the entries of every depth, and on the
+halting side every halting class at every R, not a census. There is no kernel-only version of `blank_halt_open_big`:
+its clean-tape tree starts at 2³⁷, where a round-7 break clears only 383.
 
 ## Deeper trees: the open classes keep their number
 
@@ -1095,7 +1114,8 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   end, whatever its route; whether the run reaches a pass start with R ≥ 769 and that shape that halts is open (two
   lanes of halting classes recur at every R ≡ 486, mod 512 or 1,024, from 998 on; an untrusted count of the pass starts
   to 2⁶³ of the chains from the loop entries of the 36- and 40-digit trees, `../runs/chain_lanes.py`, meets neither of
-  them nor any other census lane, but deeper trees find more entries).
+  them nor any other census lane, but deeper trees find more entries; R′³/L₁′² at the route's re-entry rules out every
+  census lane but four from any entry, and those four below width 2^60.1, `../runs/lane_sigma.py`).
 * The **two-marker route trees** (`ROUTE_TREE.md`) are not used by the theorems above: the machine's run reaches
   two-marker states with a small first gap again and again ("Why a one-variable tree", above). `blank_halt_route`
   (`thm/RouteEntryHalt.lean`) states what they give for a halting run from blank tape, at each two-marker state with
@@ -1126,6 +1146,9 @@ python3 ../runs/chain_lanes.py entries36.txt 63 2000
 # blank-tape run's sampled loop entries lie in the classes (untrusted):
 python3 ../runs/chain_lanes.py entries40.txt 63 2000
 python3 ../runs/entry_member.py ../blankrun/results/sample16k.tsv.gz entries36.txt entries40.txt
+# which census lanes R'^3/L1'^2 at the route's re-entry rules out at the chain's last pass start, from any entry (the
+# forms from routes/ in the halting-classes project files; untrusted):
+python3 ../runs/lane_sigma.py lanes_r770_1004_forms.txt lanes_r294_486.json
 # the loop entries followed in the clean tape's coordinate (optional, after check_end.sh; Γ, d, e splits, landings):
 LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run ReachStats.lean 2199023255552 28 12 4
 # whether deeper trees close the cut classes at b digits (optional, after check_end.sh; b, r more splits, Γ):

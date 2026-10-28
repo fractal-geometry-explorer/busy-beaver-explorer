@@ -3345,3 +3345,19 @@ entry, and all but 11 of these lie in a 36-digit entry class, all but 3 in a 40-
 52 of cycles that need 39 to 52 digits. The 430 later entries of a cycle lie in none, as they should: they come after
 the first entry's chain has ended. So the 36-digit count covers about 99.96% of the run's first entries and the 40-digit
 one about 99.99%, and since the cut classes keep their number at every depth, no finite count covers them all.
+
+**R′³/L₁′² rules out all but four census lanes from every entry (October 28; `../runs/lane_sigma.py`, untrusted).** The
+count above covers only the chains from the 36- and 40-digit entries, but for most lanes the entry does not matter. What
+keeps a lane from the chain's last pass start is R′³/L₁′² at the route's re-entry, and `blank_halt_open_big`'s shape
+bounds it at every pass start of the lane. Over the pass starts of each lane value with R ≥ 769, width ≥ 2⁴¹ and
+15W ≤ 64(W − b), on the forms of every path of the census at R = 770 to 1,004 and of δ and ε
+(`routes/lanes_r770_1004_forms.txt`, `routes/lanes_r294_486.json`; a path that begins with the loop's half pass is taken
+at its landing), 12 of the 16 routes are above r³/9 for every end r that R′ = 16^p · r allows, and above 176³/256², at
+every lane value, as routes A to C4 are (the script gives their numbers again: 6.79 × 10⁶ for A, 2,831 for C3). Four are
+left: δ (lane values 2^j for j = 39 to 44, 47, 48 and 3 · 2^j for j = 38 to 43, 47; widths up to 2^50.7), ε (2^j for 39
+to 46 and 50, 3 · 2^j for 38 to 43, 45, 49; to 2^52.7; one path from R = 972 is ε at its landing), Q + 316 at R = 934
+(2⁴² and 3 · 2⁴¹ only; to 2^44.7), and a Q + 36 route that the half pass from R = 812 lands on, whose re-entry has
+L₁′ ≈ −35W, so that R′³/L₁′² is only about W/1.6 · 10¹² (2^j for 39 to 45 and 49, 3 · 2^j for 38 to 44 and 48; to
+2^51.7). Against 177³/9 every route is out above 2^60.1. The halting-classes search finds no far-shape member of δ's 2^j
+lane wider than 2⁴¹ through j = 49, which covers that lane, and it is running the same search on the other lists. So the
+entries that only deeper trees find matter for at most these four lanes, and only below 2^60.1.
