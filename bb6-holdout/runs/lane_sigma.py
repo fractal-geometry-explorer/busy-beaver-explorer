@@ -27,7 +27,7 @@ halting classes, `HaltClass`, all but R = 6's lie in closing classes, and R = 6'
 has.)  `close_l1.py` asks for the close's own l instead.  For any end below 178, a close or not, with only
 l = 3 (mod 7), r^3/l^2 is at most 177^3/9 (`noSmall_sigma`); but b is even at a phase-0 start, so l is even as well,
 |l| >= 4, and an end r = R'/16^p, even, allows at most r^3/16 (the halting-classes side's observation), and at most
-r^3/100 where 8 divides r, as a start there with |l| < 10 reaches a clean tape at once (`pass_clean_small`).  On a lane
+r^3/100 where 4 | r and r >= 8, as a start there with |l| < 10 reaches a clean tape (`pass_clean_small4`).  On a lane
 value N = c 2^e (c = 1 or 3) R' is fixed, and the pass starts with R >= 769, every gap at least 448, width at least 2^41
 and 15W <= 64(W - b), the shape `blank_halt_open_big` gives the chain's last pass start, form a polygon in (R, W) on
 which |L1'| is convex, so its least R'^3/L1'^2 is at a corner.  With --floor=e the pass start is wider than 2^e instead:
@@ -199,9 +199,9 @@ def sigma_min(Rf, Lf, N):
 
 def small_bound(Rp):
     """the largest r^3/l^2 over the even ends r = R'/16^p below 178: at a phase-0 start b is even, so L1 is even as well
-    as 3 mod 7 and |l| >= 4, and |l| >= 10 where r is a multiple of 8 (`pass_clean_small`)"""
+    as 3 mod 7 and |l| >= 4, and |l| >= 10 where r is a multiple of 4 from 8 up (`pass_clean_small4`)"""
     rs = [r for r in (Rp / 16 ** p for p in range(64)) if r.denominator == 1 and r % 2 == 0 and 2 <= r < 178]
-    return max([Fr(r ** 3, 100 if r % 8 == 0 else 16) for r in rs], default=Fr(0))
+    return max([Fr(r ** 3, 100 if r % 4 == 0 and r >= 8 else 16) for r in rs], default=Fr(0))
 
 
 def close_l1(r):

@@ -2,7 +2,7 @@
 `../lean/END_TO_END.md`, "The small ends".)
 
 `lane_sigma.py` keeps a lane value when R'^3/L1'^2, at its least over the lane value's pass starts, is at most r^3/16 at
-an even end r = R'/16^p below 178 (r^3/100 where 8 divides r).  But full passes divide R' by exactly 16 and L1' by
+an even end r = R'/16^p below 178 (r^3/100 where 4 | r and r >= 8).  But full passes divide R' by exactly 16 and L1' by
 exactly 64 (`LoopOut` in `../lean/BB6/Loop.lean`), so the end's L1 is l = L1'/64^p itself, and L1' is affine on the
 lane value's polygon of pass starts (the shape `blank_halt_open_big` gives the chain's last pass start, with the width
 floor of `--floor`), so it lies between its values at the corners, [Lmin, Lmax].  The end needs an integer l in
