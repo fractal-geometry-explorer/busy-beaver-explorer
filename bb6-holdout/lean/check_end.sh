@@ -21,9 +21,10 @@
 #      and that the pass-start tree for R >= 178 leaves open at every depth, two more at each scale of the third gap
 #      from 2^12 to 2^32 (R = 178 and R = 182), full passes of the loop's chain onto two of them, four with R = 230
 #      that halt with no other pass start on the way, and two with R = 486 at each scale from 2^12 to 2^30
-#      (thm/PassOpenHalt.lean, the model run on the families by the kernel), 57 more with R >= 769, one on each lane
+#      (thm/PassOpenHalt.lean, the model run on the families by the kernel), 62 more with R >= 769, one on each lane
 #      of a census at R = 770 to 1,004, one at each scale from 2^13 to 2^30 on one lane, eleven on a route that census
-#      misses and ten on the routes a census near R = 5,000 adds (thm/LaneHalt.lean, the same), the blank-tape prefix
+#      misses, ten on the routes a census near R = 5,000 adds and five on a route a census with b free at every
+#      R = 38 (mod 64) adds (thm/LaneHalt.lean, the same), the blank-tape prefix
 #      to width 2^32
 #      (thm/Prefix.lean, about 4 minutes), the clean-tape tree at every depth
 #      (thm/CleanTheorem.lean, the proved explorer, nothing evaluated), the clean tapes of width in [2^32, 2^41) run
