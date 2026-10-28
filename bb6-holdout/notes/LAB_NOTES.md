@@ -3700,3 +3700,39 @@ their other lane values only −4. So no route or path found is left at the 2⁶
 routes without `pass_clean8`; `pass_clean16` and `pass_clean24` are not needed). At the 2⁴¹ floor the polygons are
 wide and it takes out only Q + 36 at round 11 and 3Q + 76 at round 15 (52 routes left of 54). On all 26 paths L₁′ is
 negative over the whole polygon, so the end's ℓ is negative too, and ℓ = 10 or 24 never comes into it.
+
+**A close's own L₁, and the family's lanes past 2⁶⁶ (October 28; `../runs/close_l1.py`, `../runs/lane_sigma.py`,
+untrusted).** `lane_sigma.py` bounded a chain's end by the halting classes' residues and by 176³/256² ≈ 83 for a close,
+at every lane value. But from a width of 2²⁴ a chain that ends in a closing class is p full passes, after a half pass
+first only from W ≡ 2 (mod 4) (`LoopChain.close_wide`), and the last pass start has W ≡ 0 (mod 4), so the close's right
+end r = R′/16^p is in the closing set and its ℓ = L₁′/64^p in r's class (`closeClasses`), with |ℓ| ≥ 4, 4, 24, 32, 32,
+192, 256, 256 and 256 at r = 2, 4, 8, 16, 24, 32, 48, 64 and 176 once ℓ ≡ 3 (mod 7). On a lane value R′ is 2^i or
+3 · 2^i, so r = 176 never comes into it: a close allows r³/ℓ² ≤ 4 at 2^j and 13.5 at 3 · 2^j (r = 24), and nothing where
+no r of the set is R′/16^p. The halting classes lie in the closing classes but for R = 6's, which needs W ≡ 2 (mod 4),
+as no landing has. At the 2⁴¹ floor that leaves six of the first 18 routes instead of seven: δ, ζ and the two at
+R = 5,350 up to width 2^41.7, ε and ε′ up to 2^43.7 (they were left to 2^46.1 to 2^48.1, and the route at R ≡ 1,702 to
+2^43.1); γ's paths up to 2^47.7 (round 23) and 2^53.7 (round 27), and those on Q + 10,236 up to 2^55.7 (they were
+2^53.1, 2^59.1 and 2^60.7). The small ends now take r³/100 at the multiples of 8 (`pass_clean_small`), so against any
+end below 178 the first 18 are out above 2^54.1, γ's paths above 2^64.1 and those on Q + 10,236 above 2^66.1, and at the
+2⁶⁶ floor 8 paths are left instead of 26, the ones the end's own L₁ rules out (above). A close's ℓ is exact too, and has
+to lie in r's class modulo 7m between L₁′'s values at the polygon's corners over 64^p (`close_l1.py`): at the 2⁴¹ floor
+it leaves of the first 18 only ε at 3 · 2⁴⁰ (r = 24, ℓ in [−47.2, −8.8], so −32) and ε′ at 2⁴¹ (r = 16) and 3 · 2⁴⁰
+(r = 24), each with ℓ = −32, up to width 2^43.7, and γ's paths and those on Q + 10,236 at fewer lane values but up to
+the same widths (43 routes of 59 left, 47 by r³/ℓ²).
+
+The family's later lanes were followed by the other sides: the route-completeness side's
+`routes/lanes_k14_k15_forms.txt` (k = 14 at R = 1,318, and k = 15, the n = 2 family of `loopFams`) and
+`routes/lanes_n3_n5_forms.txt` (the n = 3, 4 and 5 families, k = 19, 23 and 27, to their re-entry in rounds 43, 51 and
+59 and the full passes after), and the halting side's `routes/lanes_k14_all_forms.txt` (all twelve classes of the census
+at Q + 81,916 = 2¹⁹ with b free, nine paths, R = 1,318's among them). At the re-entry R′ falls 16-fold a pass while L₁′
+stays near −1.53W at the far shape's edge (+1.7W on R = 1,318's path), not −35W as taken above, and the least R′³/L₁′²
+at the 2⁴¹ floor is 8.9 × 10⁻⁸, 2.2 × 10⁻¹¹, 5.3 × 10⁻¹⁵ and 1.3 × 10⁻¹⁸ at n = 2, 3, 4 and 5 (k = 15 to 27), about 2¹²
+less a pass. The widths up to which the filter leaves the paths grow 12 bits a pass: against a close 2^65.7, 2^77.7,
+2^89.7 and 2^101.7 at k = 15, 19, 23 and 27, and 2^59.7 to 2^65.7 at k = 14 (R = 35,046 the widest), and against any end
+below 178 2^76.1, 2^88.1, 2^100.1 and 2^112.1, and 2^70.1 to 2^76.1 at k = 14 (not about 2⁷², as extrapolated above). At
+the 2⁶⁶ floor all ten paths at k = 14 and 15 are out against a close, barely (R = 35,046's least R′³/L₁′² is 2.39 at
+2⁶⁴, where a close allows 0.89, and 4.78 at 2⁶⁵, where it allows 4), but left against any end below 178, by the end's
+own L₁ too (`end_l1.py`, at lane values from 3 · 2⁶³ to 2⁷⁴), and the n = 3, 4 and 5 paths are left against a close as
+well, by its own L₁ at most of the lane values. `end_l1.py` now counts the admissible ℓ by their residues modulo 224
+instead of listing them (on the family's wide intervals it would run through about 2⁴⁰ values at the 2⁴¹ floor and 2²⁸
+at 2⁶⁶), and the three scripts try lane values to 2¹⁵⁹ (`lane_sigma.ES`; n = 5's widths had been cut off at 2¹⁰⁹).
