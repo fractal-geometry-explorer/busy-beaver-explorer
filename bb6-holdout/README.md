@@ -201,6 +201,7 @@ python3 check_tree.py tree36_leaves.txt          # hours
 | `csearch/` | the C explorers (exhaustive check, route trees, plateau exits, and earlier experiments) |
 | `dfs/` | merged results of the exhaustive check to 54, 56, 58 and 60 digits, and the driver |
 | `simtest/` | the differential test of the simulators (Python, C, stepper) against the proved model and the bare machine |
+| `blankrun/` | the machine's own run from blank tape followed in the mark model to width 2⁴², with every pass start it passes analysed (how the run reaches it, its distance to the halting families, lanes and wide condition, the settle depth of its cycle), and the run's tables and data (`blankrun/README.md`) |
 | `audit/` | instrumented copies of the checkers and explorers used for the trailing-wall audit, with their outputs |
 | `rec/` | the Python symbolic prover of the mark rules, and the Python research scripts (simulators, invariant searches, halt-odds estimates, end-of-loop studies) |
 | `conc/` | Python studies of the routes into the loop, the extra-wall loops and their exits |

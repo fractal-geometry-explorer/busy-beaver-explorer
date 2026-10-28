@@ -3210,3 +3210,33 @@ W − b = 2^(j+2) − 386, open runs of 23 to 63 rounds), and the full pass onto
 (`full_pass_open_halt6`: from walls 449, 4,318 and 25,827, width 29,380, R = 3,552). The file takes 86 s. So on both
 lanes of the main route, R ≡ 2 and R ≡ 6 (mod 8), the halting pass starts checked are the last pass starts of their
 chains and lie in a cut leaf of `passTreeSym` at every depth.
+
+**The run from blank tape, followed to width 2⁴² (October 28; `../blankrun/`, untrusted).** The mark model's own run,
+cycle by cycle on integer positions, with the trailing-wall canonical form and every contact condition of `roundZ`
+checked, so that it stops instead of leaving the proved rules; split into four stretches whose joins are checked
+(paths of clean tapes merge within a few dozen cycles). It reproduces the Lean prefixes (294,033 rounds to width 2²⁰,
+1,204,297,272 to 2³²) and the trajectory follower's numbers ("The trajectory as a track": 10¹² after 110,250,943,952
+cycles, one more here counting the cycle to n = 2; the cascades at 37,558,132,238, 140,637,347,342 and the
+14-meeting one at 391,305,139,022), and reaches the clean tape of width 2⁴² after 242,444,389,027 cycles and
+1,233,200,303,024 rounds, never writing the trailing-wall form. Every three-wall round start is analysed with the
+loop's chain stretches as `EndEvent` defines them:
+- *Pass starts:* 903,101,649 (3.7 per 1,000 cycles at every width): 899,194,579 entries, 3,765,080 half-pass, 40,577
+  round-7 and 26,225 full-pass landings, 75,188 starts inside a stretch; never a landing with a gap below 448. The
+  chain after an entry lands at most three times (13 times three, 2,528 twice). 80% of the entries come in round 10
+  of their cycle with one shape (R/W = 0.3496, (W − b)/W = 0.8369). Every landing lies on the landing plane
+  2(b − a) = W − 2R − 6, and so do 96.05% of the entries at every width (3.42% at +2, 0.22% at −2).
+- *Families and lanes:* no pass start in the eight families of `PassOpenHalt.lean`; along the run R/W ≥ 0.0011 and
+  (W − b)/W ≥ 0.127, while the families fix R and W − b. Q = (W − b) + 2R + 22 is never 2^v or 3·2^v; v2(Q) has the
+  law of a random even number's (largest 32, Q = 809 · 2³²; smallest odd part 463).
+- *The wide condition* (W ≤ 64R + 6 or 15W ≤ 64(W − b), `../lean/thm/WideHalt.lean`): the first pass start of every
+  cycle is an entry within `EntryForms.lean`'s bounds on the clean-tape tree's entries (W/R ≤ 27.8, (W − b)/W ≥
+  0.45582 below 2³⁴ and in the sample above), but 1.6% of the entries come later in a cycle, after the first entry's
+  chain has ended, and these re-entries can be narrow (the narrowest entries in [2⁴¹, 2⁴²): W/R = 103,
+  (W − b)/W = 0.133). The
+  condition fails at 9 pass starts, all above 2³⁹ (1, 1 and 7 in the binary lengths 39, 40, 41); the four identified
+  are half-pass landings two rounds after a re-entry with W > 32R and 15W > 64(W − b), the lowest slack −0.0756. Only
+  entries and half-pass landings can fail it: a full pass lands with 15W ≤ 64(W − b) − 144R − 375, a round-7 break
+  with W′ < 11R′.
+- *Open classes:* 4.4 to 5.3 in 100,000 of the run's clean tapes are open at 36 digits, twice the cut classes'
+  measure, since every open class has n ≡ 2 (mod 4) and the run lands there 51% of the time; the cycles of entries and
+  half-pass landings are open there 0.45% of the time, of full-pass landings 74%, of round-7 breaks 27%.
