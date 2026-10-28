@@ -3464,3 +3464,37 @@ and the closest end meeting improves to 14.39 halvings at n = 3,185,173,435,214,
   round 59, in the chain of the cycle's third entry.
 - *Open classes:* 4.4 to 5.3 in 100,000 of the run's clean tapes are open at 36 digits in nine windows from 2³⁴ to
   2⁴², and the cycles of entries and half-pass landings 0.45% of the time at every width.
+
+**The far shape on the routes left (October 28; `routes/far_shape.txt`, `tools/routes/far/`, untrusted).** The reaching
+side's filter leaves ten routes, each at a list of lane values 2^j and 3 · 2^j with j from 38 to 50. On each, at each
+of those values, the census with b fixed to the route's residue (mod 2¹¹ to 2¹⁴) at three R of its class finds exactly
+one class of b at each R wherever the route closes (modulus 2^53 to 2^73, 73 to 99 rounds). The step of b's class per
+period of R, taken from the first two R, predicts the class at the third every time, and on each route it is one 2-adic
+rational at every scale (q · c ≡ p mod 2^k), as δ's is. Taking the step as exact at every R of the class with R ≥ 769
+(1,538 before a half pass) and W − b ≥ R + 449, a lattice search finds no member with 15b ≤ 49(W − b) and W > 2⁴¹ (at a
+landing, 15b ≤ 17D + 32R − 26 and b + D + 6 > 2⁴¹) on any route at any lane value the filter leaves it. The least b is
+at least 4.67 times the largest W − b (ε′ at 2⁴⁰), where 3.27 would do (1.13 at a landing), and it doubles every two
+scales. At three far R per route (R₁ + 1,000P, R₁ + 2²⁰P and the largest R₁ + 2^i·P, R up to 1.1 · 10¹²) the census
+with b fixed mod 2¹⁴ to the predicted residue finds exactly the predicted class, 36 of 36. The step is extrapolated,
+not proved, and the census drops a branch at its split and round budget (35% of the branches here).
+
+**A census with b free at every R of a class, and an eleventh route (October 28; `routes/README.md`,
+`../lean/thm/LaneHalt.lean`).** The censuses sample R (every even R from 178 to 262 and from 770 to 1,004, R = 294, 358
+and 486, eight R near 5,000), so a route whose class has none of those R is missed, as ζ was. With b free and 10 more
+splits and 40 more rounds, one lane value at one R takes about 2 s at 2^16, so the census can run at every R of a class
+(untrusted). On Q + 636 at every R ≡ 486 (mod 512) up to 87,526 (655 runs at 2^16 to 2^18 and 3 · 2^15 to 3 · 2^17) it
+finds δ, ε, ζ and ε′ only. On Q + 316 at every R ≡ 38 (mod 64) up to 43,942 (2,210 runs at 2^16, 2^17, 3 · 2^15 and
+3 · 2^16) it finds the five routes known there and one more, at every R ≡ 1,702 (mod 2,048) from 1,702 to 42,662. Its least
+R is above the census at R ≤ 1,004, and none of the eight R near 5,000 is in its class. It re-enters in round 11 with
+R′ = (Q + 316)/128 and L₁′ = (2,548b − 5,712W − 2,597R − 47,258)/128 (`routes/lanes_q316_1702_forms.txt`). Through the
+reaching side's filter it is left at 2^j for j = 39 to 41, 43 and 44 and at 3 · 2^j for j = 38, 39 and 43 (to width
+2^46.7), and the far-shape runs above find no member on it (least 25.8). `route769_open_halt` now proves 26 families
+with R ≥ 769 that halt and that `passTreeSym` leaves open at every depth; the five new ones are on this route
+(`routesSweep`: R = 1,702 at Q + 316 = 2¹⁶, 3 · 2¹⁵ and 2¹⁷, and R = 3,750 and 5,798 at 2¹⁶), checked by the kernel
+with standard axioms. On Q + 5,116, γ's lane, the first 141 runs at 2¹⁶ (R up to 8,998) have 14 classes at nine R from
+230 to 8,486, and each of those R has the same number of classes again at 2¹⁷, 2¹⁸, 2¹⁹ and 2²⁰ (one to three, the
+modulus growing by one or two bits a scale), so these routes recur. Two of them, at R = 294 and 8,486, are γ itself,
+with γ's forms in round 21 (R′ = (Q + 5,116)/4,096): γ is not sporadic. The check that called it so tried widths of
+another shape (Q/4 − 3 = 3 · 2^j − 2), not its lane. With γ's forms the reaching side's filter would leave it at 2^j
+for j = 39 to 57 and 61 and 3 · 2^j for j = 38 to 56 and 60 (least R′³/L₁′² 0.0004, widths up to 2^63.7), so the routes
+on this lane are next for the far-shape runs.
