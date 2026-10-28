@@ -55,7 +55,10 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    close, also from R ≥ 178 (`lean/thm/PassOpenHalt.lean`, item 2). On October 28 the closing classes were narrowed: an
    end meeting at distance 2 is not a close, so a close needs R in {2, 4, 8, 16, 32, 48} and L₁ in R's class of
    `closeClassC`, which gives R³/L₁² ≤ 4 (log₂W ≤ σ + 2), and from a width ≥ 2²⁰ a chain to a close with no
-   round-7 break (`loop_halt_sigma_close`, `loop_halt_wide_close`, `lean/thm/LoopClose.lean`). The original note:
+   round-7 break (`loop_halt_sigma_close`, `loop_halt_wide_close`, `lean/thm/LoopClose.lean`); with these classes
+   the pass-start trees give `pass_halt_chain_close` (`lean/thm/PassHaltClose.lean`), the end-to-end statement
+   `blank_halt_structure_close` (`lean/thm/EndToEndClose.lean`), and with the loop entries of `EntryNoCloseC`
+   `blank_halt_open_close` (`lean/thm/PassEntryHaltClose.lean`). The original note:
    **The loop's end for every width as one Lean theorem.** Prove the pass map (R → R/16, L → L/64) with R free
    using the symbolic runner (`BB6/SymRound`, `BB6/SymSplit`), then induct over passes, combined with
    `endgame_no_close` for R ≤ 4096: "a run through the loop closes only from R ∈ {2, 4, 8, 16, 24, 32, 48, 64, 176}

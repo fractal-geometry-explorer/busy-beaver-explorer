@@ -16,13 +16,13 @@
 #      width 2^20 (thm/PrefixKernel.lean), the loop through its passes (thm/LoopTheorem.lean), the halts after the
 #      exit and the loop, the loop's chain with end meetings at distance 2 passed, which closes only from R = 2, 4, 8,
 #      16, 32 and 48 (thm/LoopClose.lean, nothing evaluated), the pass-start trees from a pass start to the next
-#      landing or clean tape at every depth
-#      (thm/PassHalt.lean, the proved explorer of BB6/PassTree.lean, nothing evaluated), the eighth of the pass starts
-#      with R = 6 that halt (thm/PassHaltR6.lean, six rounds on the class evaluated by the kernel), the eight classes
-#      of pass starts that the mark model takes to a close at distance 0, each a halt (thm/PassHaltClasses.lean, the
-#      model run on each class by the kernel), the classes of pass starts that reach a clean tape at once
-#      (thm/PassClean.lean, five or seven rounds on each class by the kernel), eight families of pass starts with
-#      R >= 178 at every width that halt
+#      landing or clean tape at every depth (thm/PassHalt.lean, the proved explorer of BB6/PassTree.lean, nothing
+#      evaluated), and with the classes of thm/LoopClose.lean at their close leaves (thm/PassHaltClose.lean), the eighth
+#      of the pass starts with R = 6 that halt (thm/PassHaltR6.lean, six rounds on the class evaluated by the kernel),
+#      the eight classes of pass starts that the mark model takes to a close at distance 0, each a halt
+#      (thm/PassHaltClasses.lean, the model run on each class by the kernel), the classes of pass starts that reach a
+#      clean tape at once (thm/PassClean.lean, five or seven rounds on each class by the kernel), eight families of pass
+#      starts with R >= 178 at every width that halt
 #      and that the pass-start tree for R >= 178 leaves open at every depth, two more at each scale of the third gap
 #      from 2^12 to 2^32 (R = 178 and R = 182), full passes of the loop's chain onto two of them, four with R = 230
 #      that halt with no other pass start on the way, and two with R = 486 at each scale from 2^12 to 2^30
@@ -34,11 +34,11 @@
 #      the same), the blank-tape prefix to width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape tree at
 #      every depth
 #      (thm/CleanTheorem.lean, the proved explorer, nothing evaluated), the clean tapes of width in [2^32, 2^41) run
-#      one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and thm/EndToEndDirect.lean, the routes
-#      from two-marker states with their loop entries (thm/RouteTheorem.lean, thm/RouteEntryTheorem.lean,
-#      thm/RouteEntryHalt.lean, nothing evaluated), the clean-tape tree with loop entries and its chain from blank
-#      tape (thm/CleanEntryTheorem.lean, thm/CleanEntryHalt.lean, nothing evaluated), that chain joined to the
-#      pass-start trees, with the plain clean-tape tree taken first where it resolves a clean tape
+#      one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean, thm/EndToEndDirect.lean and
+#      thm/EndToEndClose.lean, the routes from two-marker states with their loop entries (thm/RouteTheorem.lean,
+#      thm/RouteEntryTheorem.lean, thm/RouteEntryHalt.lean, nothing evaluated), the clean-tape tree with loop entries
+#      and its chain from blank tape (thm/CleanEntryTheorem.lean, thm/CleanEntryHalt.lean, nothing evaluated), that
+#      chain joined to the pass-start trees, with the plain clean-tape tree taken first where it resolves a clean tape
 #      (thm/PassEntryHalt.lean), the same with loop entries from which the loop's chain ends at no small right end
 #      (thm/CleanSmallTheorem.lean, thm/SmallEndHalt.lean, nothing evaluated), and the two together
 #      (thm/OpenSmallHalt.lean), and with loop entries whose right end is at least a 32nd of the width, from which the
@@ -48,9 +48,10 @@
 #      thm/FarHalt.lean, nothing evaluated), and with far loop entries from which no run of full passes ends at a
 #      right end below 769, from which the chain ends at R >= 769 (thm/CleanBigTheorem.lean, thm/BigEndHalt.lean,
 #      nothing evaluated), and the routes and the clean-tape tree with the loop entries that cannot close in the
-#      narrower classes of closeClassC (thm/RouteEntryHaltC.lean, nothing evaluated), and the clean-tape trees with
-#      those loop entries and the small-end, wide, far or big-end checks (thm/CleanTreesC.lean, nothing evaluated);
-#      prints the axioms of the final theorems;
+#      narrower classes of closeClassC (thm/RouteEntryHaltC.lean, nothing evaluated), joined to the pass-start trees
+#      with those classes (thm/PassEntryHaltClose.lean), and the clean-tape trees with those loop entries and the
+#      small-end, wide, far or big-end checks (thm/CleanTreesC.lean, nothing evaluated); prints the axioms of the final
+#      theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,
 #      thm/CleanSmallMass.lean, thm/CleanWideMass.lean, thm/CleanFarMass.lean, thm/CleanBigMass.lean, about 5 minutes
@@ -126,10 +127,10 @@ stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass CleanEntry
   CleanSmallMass CleanWideMass CleanFarMass CleanBigMass ExitHalt LoopTheorem RouteEntryTheorem EndgameCloseTheorem
 stage LoopHalt
 stage EndToEnd RouteEntryHalt PassHalt PassHaltR6 LoopClose
-stage EndToEndDirect PassHaltClasses PassClean
+stage EndToEndDirect PassHaltClasses PassClean EndToEndClose PassHaltClose
 stage CleanEntryHalt PassOpenHalt RouteEntryHaltC
 stage PassEntryHalt LaneHalt CleanTreesC
-stage SmallEndHalt
+stage SmallEndHalt PassEntryHaltClose
 stage OpenSmallHalt
 stage WideHalt
 stage FarHalt
