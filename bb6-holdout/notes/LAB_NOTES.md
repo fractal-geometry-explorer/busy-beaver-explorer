@@ -3361,3 +3361,35 @@ L₁′ ≈ −35W, so that R′³/L₁′² is only about W/1.6 · 10¹² (2^j 
 2^51.7). Against 177³/9 every route is out above 2^60.1. The halting-classes search finds no far-shape member of δ's 2^j
 lane wider than 2⁴¹ through j = 49, which covers that lane, and it is running the same search on the other lists. So the
 entries that only deeper trees find matter for at most these four lanes, and only below 2^60.1.
+
+**Halting lanes above R = 769 (October 28; `../lean/thm/LaneHalt.lean`).** `blank_halt_open_big` (an entry above)
+puts the pass start a halt from blank tape needs at R ≥ 769, so the census went on there. At every even R from 770 to
+1,004 (W − b up to 4,096, the same search) it finds 236 closing classes, and following one member of each with W − b
+and R left free puts them on 91 paths. On each the run reaches three-wall round starts whose right end is N/2^m for
+one linear form N in b, W and R, and at every class N is a power of 2 or 3 times one. With Q = W − b + 2R + 22, N is
+one of the forms below 769 (Q in 59 classes and 3 · 2^j in 13, 3Q + 76 in 59, 2Q − R + 6 in 30, Q + 36 in 16) or one
+of three new ones: 2Q − R + 26 = 2^j (four classes, R ≡ 18 mod 64), Q + 316 = 2^j (R = 934) and Q + 636 = 3 · 2^j
+(R = 998, on δ's route to a right end of 6 in round 17). Each new one recurs at larger scales: 2Q − R + 26 at R = 786
+for j = 13 to 16, Q + 316 at R = 934 for j = 12 to 15, and Q + 636 = 3 · 2^j at R = 998 for j = 11 and 13. The other
+25 paths begin with a half pass (round 2, from W ≡ 2 mod 4, to R/2), so their starts are never the last pass start of
+a chain, and their conditions are these lanes at R/2 (Q + R + 24, 2Q + R + 60, Q + R + 96 or Q + R + 1,296 a power of
+2 or 3 times one). (Untrusted; the tables are in the shared folder, `halting-classes/routes`.) The reaching side's
+count (`../runs/chain_lanes.py`, the entries above) finds no member of the chain's tree on any of the new forms either,
+to 2⁶³.
+
+The kernel checks one family on each lane, four at successive scales for 2Q − R + 26 and for Q + 316 and two for
+Q + 636 = 3 · 2^j, and δ at R = 998 at each scale W − b = 2^(13+i) − 2,654 for i = 0 to 17: 36 families, each of which
+halts and lies in a cut leaf of `passTreeSym` at every depth (`lane769_open_halt`, `lanes769_shape`; runs of 19 to 55
+rounds; about a minute). So above 769 too, pass starts that halt and that the pass-start tree leaves open exist on
+every lane found, and one of them meets every condition `blank_halt_open_big` puts on the pass start but its width:
+walls 449, 2,462 and 15,193, width 16,192, R = 998, 15W ≤ 64(W − b) (`lane769_far`).
+
+The width is where δ fails, by an untrusted count. The pass start needs W > 2⁴¹ and b ≤ 49(W − b)/15, so W − b above
+about 2³⁹, which on δ is s ≥ 27 (Q + 636 = 2^(12+s)). δ's class of b at R = 486 and 998 for s = 19 to 37 has modulus
+2^45 to 2^72 (k = 45, 46, 48, 50, ..., 70, 72) and runs of 58 to 93 rounds. At each scale the class moves by a fixed
+step c for each 512 of R (seen at three R for s ≤ 32 and at nine for s ≤ 18), and 7,247c ≡ 1,024 · 7,394 (mod 2^k) at
+every scale, so taking that step as exact for every R ≡ 486 (mod 512), b's classes lie on 7,247 progressions in R, on
+each of which b grows by 7,571,456 per step of 7,247 · 512 in R while W − b falls. Searching them all, no member at any
+scale from 19 to 37 has W > 2⁴¹ and 15W ≤ 64(W − b), and the least b/(W − b) at the progressions' starts doubles every
+two scales from s = 23 on (4.2, 1.6, 9.3, 4.2, 19.7, ..., 330, 164 and 660 at s = 37). At s = 19 to 22 and 24 it is
+1.9 or less (0.28 at s = 19 and 22), within the shape, but there W is below 2³⁸.
