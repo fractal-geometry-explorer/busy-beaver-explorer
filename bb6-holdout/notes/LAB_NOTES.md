@@ -3841,6 +3841,18 @@ lane filters' default stays on `closeClasses`. At 36 digits over the widths ≥ 
 as `cleanTreeGE`, since none of their runs meets a three-wall round start within the depth: the narrower check matters
 at the entries past the depth, where the censuses' routes go.
 
+**The other clean-tape trees with the narrower classes (October 28; `../lean/BB6/EntryTestsC.lean`,
+`../lean/thm/CleanTreesC.lean`).** The entry tests of the trees with the small-end, wide, far and big-end checks, with
+`cleanEntryOKC` in place of `cleanEntryOK` (`cleanSmallOKC`, `cleanWideOKC`, `cleanFarOKC`, `cleanBigOKC`), and the
+trees with them and their steps at every depth (`cleanTreeGSC`, `cleanTreeGWC`, `cleanTreeGFC`, `cleanTreeGBC`;
+`clean_tree_small_stepC`, `clean_tree_wide_stepC`, `clean_tree_far_stepC`, `clean_tree_big_stepC`; standard axioms only,
+nothing evaluated). They are for the small, wide, far and big halting theorems with `closeClassC`, once the pass-start
+side's join (`entry_pass_halt_close`) is in. Evaluated natively here (untrusted: a one-off `#eval`, not part of
+`check_end.sh`), `cleanTreeGEC` and the four trees here all have at 36 digits over the widths ≥ 2⁴¹ the measure of
+`clean_entry_mass_36` exactly, loop entries included: 1,255,963 cut classes, 1,163,068 clean tapes and 28,660 loop
+entries. So at that depth the narrower classes leave the same clean tapes open; as with `cleanTreeGEC`, they matter at
+the loop entries past the depth.
+
 **An exact test on the lanes, and why it does not settle the routes (October 28; `tools/routes/exact/` in the shared
 folder, untrusted).** For a route or path whose forms do not depend on R, a lane value fixes D = W − b, so the left
 countdown at the end, L₁′ = (A b + B)/d, is affine in b alone, and an end at r = R′/16^p with countdown ℓ needs an

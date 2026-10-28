@@ -2,7 +2,7 @@
 # Check the end-to-end theorem (run ./check.sh first):
 #   1. the proved modules BB6/RouteTree.lean, BB6/CleanTree.lean, BB6/RouteExplore.lean, BB6/CleanRange.lean,
 #      BB6/RouteEntry.lean, BB6/EntryTree.lean, BB6/CleanEntryTree.lean, BB6/SmallEnd.lean, BB6/WideEntry.lean,
-#      BB6/BigEnd.lean, BB6/MassPar.lean and BB6/RouteEntryC.lean (seconds);
+#      BB6/BigEnd.lean, BB6/MassPar.lean, BB6/RouteEntryC.lean and BB6/EntryTestsC.lean (seconds);
 #   2. the exit and endgame trees, the endgame trees that pass end meetings at distance 2, and the run from blank
 #      tape to width 2^20, evaluated by Lean's kernel (`decide +kernel`; no compiler is trusted): the generated
 #      modules thm/ExitPieces*.lean, thm/EndgamePieces*.lean and thm/EndgameClosePieces*.lean hold one theorem per
@@ -49,7 +49,9 @@
 #      right end below 769, from which the chain ends at R >= 769 (thm/CleanBigTheorem.lean, thm/BigEndHalt.lean,
 #      nothing evaluated), and the routes and the clean-tape tree with the loop entries that cannot close in the
 #      narrower classes of closeClassC (thm/RouteEntryHaltC.lean, nothing evaluated), joined to the pass-start trees
-#      with those classes (thm/PassEntryHaltClose.lean); prints the axioms of the final theorems;
+#      with those classes (thm/PassEntryHaltClose.lean), and the clean-tape trees with those loop entries and the
+#      small-end, wide, far or big-end checks (thm/CleanTreesC.lean, nothing evaluated); prints the axioms of the final
+#      theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,
 #      thm/CleanSmallMass.lean, thm/CleanWideMass.lean, thm/CleanFarMass.lean, thm/CleanBigMass.lean, about 5 minutes
@@ -71,7 +73,7 @@ for a in "$@"; do
   esac
 done
 for f in RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree SmallEnd WideEntry BigEnd \
-  MassPar RouteEntryC; do
+  MassPar RouteEntryC EntryTestsC; do
   echo "== BB6/$f.lean"; $LEAN BB6/$f.lean -o out/BB6/$f.olean
 done
 for f in ExitStart EndgameStart EndgameCloseStart PrefixBase; do
@@ -127,7 +129,7 @@ stage LoopHalt
 stage EndToEnd RouteEntryHalt PassHalt PassHaltR6 LoopClose
 stage EndToEndDirect PassHaltClasses PassClean EndToEndClose PassHaltClose
 stage CleanEntryHalt PassOpenHalt RouteEntryHaltC
-stage PassEntryHalt LaneHalt
+stage PassEntryHalt LaneHalt CleanTreesC
 stage SmallEndHalt PassEntryHaltClose
 stage OpenSmallHalt
 stage WideHalt
