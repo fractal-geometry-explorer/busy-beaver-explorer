@@ -3928,3 +3928,38 @@ the filter with `closeClassC` leaves at k = 19, 23 and 27 (to 2^75.1, 2^87.1 and
 `Fam.loopOK` holds for them with exactly two, three, four and five passes (and fails with one more or fewer). So no
 condition on the pass start found so far keeps the family off, at any floor: that needs what the chain from the run's
 own loop entries reaches.
+
+**The 4-wall loop's halting pass starts against the run's own (October 28; the blank-run data, `../blankrun/`, and
+`routes/loop4/far_shape.md` in the halting-classes project files, untrusted).** What could keep the run off the far
+members above, checked against the data of the run to 2⁴³:
+
+- *Shape: nothing.* Every first loop entry of a cycle has R/W ≥ 0.035, and all but a few have (W − b)/W ≥ 0.455. In the
+  data from width 2³⁸ on, the last pass starts of the first entries' chains have R/W from 0.0012 to 0.465 and
+  (W − b)/W from 0.241 (one at 0.132) to 0.965. At 2⁶⁶, 57 of the 319 four-pass members and 5 of the 19 five-pass
+  members lie in the first entries' region. Of the same sets, 7 and 1 meet the inequalities of the window a full pass
+  lands in, 4D − 8R + 63 ≤ W ≤ (64D − 144R − 375)/15, and 258 and 16 are also wide (W ≤ 64R + 6). The 3,630 three-pass
+  members at 2⁶⁶ have (W − b)/W ≤ 0.383, outside the entries' region, but 84 of them are in the landing window. The
+  two-pass route has members in the entries' region at every lane value from 2⁴¹ to 2⁵⁵. So no bound on the shape
+  separates the members from the run, whether of the kind the theorems use or the one the run's own entries show.
+- *The lanes: no sign of structure either way.* No pass start in the data lies on a lane Q + 5·2^k − 4 = 2^j or 3·2^j
+  for any k. The data are every pass start of width below 2³⁴, the 1/1024 sample to 2⁴³, and the rare and notable
+  rows, 5.6 million in all. Write Q − 4 = 2^k u with u odd: the pass start is on such a lane iff u + 5 is 2^t or 3·2^t.
+  As the run's own check found, none has Q = 2^j or 3·2^j either. v2(Q − 4) is distributed as for a random even number
+  up to k = 23, so the low digits of Q put nothing in the way of the lanes with k ≥ 15.
+- *The classes converge 2-adically.* Fix R. The halting class at lane value 2^j is a class mod about 2^(1.5j), and it
+  agrees with the class at any 2^j′, j′ > j, in exactly j + 1 low bits. This holds on both k = 15 routes from 2³⁹ to
+  2⁶³, on the three-pass route at 2⁴¹ to 2⁴³ and 2⁶⁴ to 2⁶⁶, and on the four- and five-pass routes between 2⁴¹ and
+  2⁶⁶. So each route's classes have a 2-adic limit, and only their digits above j depend on j.
+- *The three-pass route within the widths `closeClassC` leaves at k = 19 (to 2^75.1).* At its three census R it has
+  classes at 2⁶⁴, 2⁶⁵ and 2⁶⁶, with 57, 1,660 and 3,630 far members wider than 2⁶⁶ (widths 2^66.06 to 2^67.39), and
+  none at any lane value from 2⁶⁷ to 2⁷⁵. The four-pass route has none at 2⁷² either. A class there would agree with
+  the 2⁴¹ one in its low 32 bits, so this is not an artifact of the census fixing them. The lanes at 3·2^j were not
+  checked at these scales, and no other routes were looked for.
+
+A heuristic, not a proof: the run's last pass starts double with each binary digit of the width (about W/5,000), so
+it should land on some lane roughly j/2,000 times per doubling. A halt also needs b in the lane's class mod about
+2^(1.5j), so the expected number of halts above 2⁶⁶ is around 2⁻¹⁰⁰. A proof has to follow the run's exact arithmetic.
+One handle: suppose the clean-tape tree settles a class of clean tapes n, with the chain's last pass start affine in
+n. Then the lane fixes n for each j, and since the classes have 2-adic limits, b's class asks two fixed 2-adic numbers
+to agree in about j digits. Only finitely many j can meet that unless the two are equal. What is left is the classes
+that the tree cuts at every depth.
