@@ -270,7 +270,10 @@ Started October 25. Self-contained (no Mathlib): Lean 4 core only, so it can be 
   class). R′³/L₁′² at the route's re-entry rules out every census route from any entry but eleven, on Q + 636, Q + 316
   and Q + 36, and those eleven below width 2^61.1 (`../runs/lane_sigma.py`, untrusted), where the halting-classes side
   finds no pass start with the far shape on them (untrusted, the step of each route's class in R taken from three R).
-  Halting pass starts with R ≥ 769, open at every depth, exist on every lane found there (`lane769_open_halt`).
+  γ's lane Q + 5,116 adds 16 paths that the filter leaves up to width 2^69.7; with the exhaustive check to 64 digits
+  (every clean tape below width 2⁶⁶ reaches a wider one, untrusted) in place of `stepsBelow_direct`, the pass start is
+  wider than 2⁶⁶, and then the filter alone leaves only five of γ's paths against their ends, at Q + 5,116 = 2⁶⁷ and
+  3 · 2⁶⁶. Halting pass starts with R ≥ 769, open at every depth, exist on every lane found there (`lane769_open_halt`).
 * **Deeper trees** (`BB6/MassPar.lean`, `thm/CleanEntryMass40.lean`, `thm/CleanEntryMass44.lean`, `ProjPar.lean`,
   `END_TO_END.md`, October 27): the clean-tape tree with loop entries cuts 6,582,732 classes at 40 digits (measure
   5.99 × 10⁻⁶) and 33,928,389 at 44 (1.93 × 10⁻⁶), evaluated on all cores; but below almost every class cut at b digits
