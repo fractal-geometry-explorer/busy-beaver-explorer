@@ -3924,7 +3924,8 @@ six of them, with `Fam.ok` by the kernel (about 30 s): one at 2⁴¹ at two pass
 and one at 2⁶⁶ at four and at five; `loop2_far_wide`, `loop3_far_wide`, `loop3_far_66`, `loop4_far_66` and
 `loop5_far_66` state each as a pass start that meets every condition `blank_halt_open_big` puts on it and halts, the
 last three of widths about 2^67.4, 2^67.0 and 2^66.7, above the 2⁶⁶ of the 64-digit check and within the widths that
-the filter with `closeClassC` leaves at k = 19, 23 and 27 (to 2^75.1, 2^87.1 and 2^99.1). On PR #90's branch
-`Fam.loopOK` holds for them with exactly two, three, four and five passes (and fails with one more or fewer). So no
+the filter with `closeClassC` leaves at k = 19, 23 and 27 (to 2^75.1, 2^87.1 and 2^99.1). `Fam.loopOK` holds for
+them with exactly two, three, four and five passes and fails with one more or fewer (`loop_far_routes`,
+`loop_far_exact`, `thm/RouteLoopFar.lean`). So no
 condition on the pass start found so far keeps the family off, at any floor: that needs what the chain from the run's
 own loop entries reaches.

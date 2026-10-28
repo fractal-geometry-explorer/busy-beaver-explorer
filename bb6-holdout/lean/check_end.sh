@@ -31,8 +31,9 @@
 #      misses, ten on the routes a census near R = 5,000 adds, five on a route a census with b free at every
 #      R = 38 (mod 64) adds, 24 on gamma's lane W - b + 2R + 5,138 = 2^16 and two on that lane at 3 * 2^39 that are
 #      wider than 2^41 with 15W <= 64(W - b), every condition the open case puts on the pass start (thm/LaneHalt.lean,
-#      the same), the blank-tape prefix to width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape tree at
-#      every depth
+#      the same), the 4-wall pass on its whole class (thm/FourWallPass.lean, eight rounds by the kernel) and ten
+#      families with 0 to 9 passes of it before the re-entry, so routes of every length (thm/RouteLoop.lean, the
+#      same), the blank-tape prefix to width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape tree at every depth
 #      (thm/CleanTheorem.lean, the proved explorer, nothing evaluated), the clean tapes of width in [2^32, 2^41) run
 #      one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean, thm/EndToEndDirect.lean and
 #      thm/EndToEndClose.lean, the routes from two-marker states with their loop entries (thm/RouteTheorem.lean,
@@ -53,8 +54,8 @@
 #      small-end, wide, far or big-end checks (thm/CleanTreesC.lean, nothing evaluated), joined to the pass-start
 #      trees in the theorems with those checks (thm/OpenHaltClose.lean, nothing evaluated), and six families of pass
 #      starts with the far shape, R >= 769 and width above 2^41 that halt on the 4-wall loop's lanes with two to five
-#      passes, three of them wider than 2^66 (thm/LoopFarHalt.lean, the model run on them by the kernel); prints the
-#      axioms of the final theorems;
+#      passes, three of them wider than 2^66 (thm/LoopFarHalt.lean, the model run on them by the kernel), which make
+#      exactly that many passes (thm/RouteLoopFar.lean, the same); prints the axioms of the final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,
 #      thm/CleanSmallMass.lean, thm/CleanWideMass.lean, thm/CleanFarMass.lean, thm/CleanBigMass.lean, about 5 minutes
@@ -118,7 +119,7 @@ compile() {
 export -f compile
 export LEAN DYN
 stage() { printf '%s\n' "$@" | xargs -P "$JOBS" -I{} bash -c 'compile {}'; }
-stage PrefixKernel EndgameTheorem ExitTheorem Prefix CleanTheorem RouteTheorem
+stage PrefixKernel EndgameTheorem ExitTheorem Prefix CleanTheorem RouteTheorem FourWallPass
 # each imports the one before (seconds each)
 stage CleanEntryTheorem
 stage CleanSmallTheorem
@@ -132,9 +133,9 @@ stage LoopHalt
 stage EndToEnd RouteEntryHalt PassHalt PassHaltR6 LoopClose
 stage EndToEndDirect PassHaltClasses PassClean EndToEndClose PassHaltClose
 stage CleanEntryHalt PassOpenHalt RouteEntryHaltC
-stage PassEntryHalt LaneHalt CleanTreesC
+stage PassEntryHalt LaneHalt CleanTreesC RouteLoop
 stage SmallEndHalt PassEntryHaltClose LoopFarHalt
-stage OpenSmallHalt
+stage OpenSmallHalt RouteLoopFar
 stage WideHalt
 stage FarHalt
 stage BigEndHalt
