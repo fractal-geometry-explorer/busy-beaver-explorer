@@ -3662,3 +3662,41 @@ above 2^58.1 (ε′; ε above 2^54.1), γ's paths above 2^68.1 and those on Q + 
 pass starts (r, ℓ) they need, run through the proved explorer's steps, finds (96, −4) and (128, −4) wholly clean, which
 settles 18 of the 26, and (128, −18), (128, 10) and (128, 24) with only clean leaves and depth cuts (`routes/README.md`,
 "Small ends").
+
+**The small ends (October 28; `../lean/thm/PassClean.lean`, `routes/small_ends.txt` and `tools/routes/small/` in the
+halting-classes project files).** The 26 paths left with L₁ even at the 2⁶⁶ floor (above) need far less than every end
+below 178. On a lane value R′ is fixed, so the right ends below 178 that full passes can reach are r = R′/16^p, which is
+2^i or 3·2^i, and ℓ ≡ 10 (mod 14). An end at r needs r³/ℓ² at least the path's least R′³/L₁′² there, so each open lane
+value needs only the lines (r, ℓ) with ℓ² ≤ r³/σ: five at most at the 2⁶⁶ floor, (96, −4), (128, −4), (128, −18),
+(128, 10) and (128, 24), and 50 at the 2⁴¹ floor (r = 24 to 128). A line is every pass start with R = r and L₁ = ℓ,
+b = b₀ + 64s, W = W₀ + 84s, the first wall free; the proved explorer's steps on it (`PassLine2.lean`, untrusted) find no
+land, close or round decided as a halt on any of the 50 lines at depth 24, and 15 lines go wholly to clean tapes without
+a split. No cut leaf splits the first wall: the cuts are classes of s alone, runs of 15 to 25 rounds after the pass
+breaks in round 2 (the right end falls to 1 and the walls halve each round, Collatz-like, to a clean tape), and their
+mass falls about threefold every 4 splits. With R symbolic the clean lines are uniform: every pass start with R ≡ 0
+(mod 8) and b ≡ 2 (mod 8), so L₁ ≡ 4 (mod 8), reaches a wider one-marker clean tape in five rounds, whatever a, b and W
+are otherwise (`pass_clean8`, the five rounds on the class run by the kernel in about a second), and those with
+b ≡ 14 (mod 32), L₁ ≡ 16 (mod 32), in seven, when R ≡ 0 (mod 16) or R ≡ 24 (mod 32) (`pass_clean16`,
+`pass_clean24`). Scanning ℓ from −300 to 300 with R = 8 + 8q symbolic, the wholly clean lines are exactly ℓ ≡ 4
+(mod 8); with R ≡ 0 (mod 16) also ℓ = −144 and 80, and at R ≡ 0 (mod 64) ℓ = −256. So at the ends 2^i and 3·2^i from
+8 up |ℓ| ≥ 10 (`pass_clean_small`) and r³/ℓ² ≤ r³/100 ≤ 20,972: the 18 of the 26 that need only (96, −4) and
+(128, −4), six of γ's and twelve on Q + 10,236, are out, kernel-checked where the census was not. The 8 left are the
+round-39 paths on Q + 10,236, at lane value 2⁶⁴ only (widths 2⁶⁶ to 2^66.093), and need ℓ = −18, 10 or 24 at r = 128,
+where the cuts have mass 0.035%, 0.034% and 0.025% at depth 28. Whether those lines hold a halt is the same question as
+for the pass-start tree at R ≥ 178: the cuts are open, and a halt there would come by re-entry (as
+`pass_halt_example_reentry` does from R = 130).
+
+**The end's own L₁ (October 28; `../runs/end_l1.py`, untrusted).** `lane_sigma.py` keeps a lane value when the least
+R′³/L₁′² over its pass starts is at most r³/16 at some end r = R′/16^p below 178. But a full pass divides R by exactly
+16 and L₁ by exactly 64 (`LoopOut` in `../lean/BB6/Loop.lean`), so the end's L₁ is ℓ = L₁′/64^p itself, not only bounded
+by it, and L₁′ is affine on the lane value's polygon (R ≥ 769, every gap at least 448, W from the floor to 64D/15), so ℓ
+lies in the interval between its values at the corners. The end needs an integer ℓ ≡ 10 (mod 14) there whose start does
+not reach a clean tape at once (`../lean/thm/PassClean.lean`). With the forms and polygons of `lane_sigma.py` (a path
+seen at one R taken with its forms there at every R): at the 2⁶⁶ floor the 18 paths that need (96, −4) or (128, −4)
+have ℓ in intervals such as [−7.3, −1.7] and [−5.5, −1.7], which hold only −4, out by `pass_clean8`; the 8 round-39
+paths on Q + 10,236 have, at 2⁶⁴, where W runs only from 2⁶⁶ to 2^66.093, ℓ in [−14.2, −13.3] (R = 742),
+[−25.8, −24.2] (R = 15,654), [−15.2, −14.3] (R = 19,750) and the like, which hold no value ≡ 10 (mod 14) at all, and at
+their other lane values only −4. So no route or path found is left at the 2⁶⁶ floor against any end below 178 (23
+routes without `pass_clean8`; `pass_clean16` and `pass_clean24` are not needed). At the 2⁴¹ floor the polygons are
+wide and it takes out only Q + 36 at round 11 and 3Q + 76 at round 15 (52 routes left of 54). On all 26 paths L₁′ is
+negative over the whole polygon, so the end's ℓ is negative too, and ℓ = 10 or 24 never comes into it.

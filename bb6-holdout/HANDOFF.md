@@ -124,9 +124,15 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    one; untrusted) in `blank_halt_open_of` in place of `stepsBelow_direct` (the clean tapes up to 2⁴¹), the pass start
    is wider than 2⁶⁶, and then the filter alone rules out every route and path found against its end, and all but 26
    paths against any end below 178 (six of γ's, at 2⁶⁶ and 3 · 2⁶⁴, and the 20 on Q + 10,236, at 2⁶⁴ to 2⁶⁸; b is even
-   at a phase-0 start, so an end r allows only r³/16, not 177³/9, and the halting side's small-end census settles 18 of
-   the 26 by two lines of pass starts that go wholly to clean tapes, leaving 8 on three lines with depth cuts); the
-   chains from the 36- and 40-digit entries meet none of those (`runs/chain_lanes.py`, to width 2⁷⁴), and from every one
+   at a phase-0 start, so an end r allows only r³/16, not 177³/9), and all but 8 of those: 18 need only the lines of
+   pass starts (r, L₁) = (96, −4) and (128, −4), and every pass start with R ≡ 0 (mod 8) and L₁ ≡ 4 (mod 8) reaches a
+   clean tape after five rounds (`pass_clean8`, `lean/thm/PassClean.lean`, kernel-checked), so at the ends that are
+   multiples of 8 |L₁| ≥ 10; the 8 left, the round-39 paths on Q + 10,236 at 2⁶⁴, need (128, −18), (128, 10) or
+   (128, 24), lines on which the halting side's explorer finds only clean leaves and depth cuts (`routes/small_ends.txt`,
+   untrusted), and none of which the 8 can reach: full passes divide L₁ by exactly 64, so the end's L₁ is L₁′/2⁵⁴, and
+   on their pass starts at 2⁶⁴ that lies in intervals such as [−14.2, −13.3] with no value ≡ 10 (mod 14)
+   (`runs/end_l1.py`, untrusted, the forms taken at every R as in `lane_sigma.py`); the chains from the 36- and 40-digit entries meet none of those (`runs/chain_lanes.py`, to width 2⁷⁴),
+   and from every one
    of their pass starts on a census lane or on a lane of the family Q + 5 · 2^k − 4 = 2^j or 3 · 2^j, at any k, to width
    2²⁵⁶ (116 of them) the run goes on to a clean tape (the mark model from its entry; the first two also by the halting
    side's census at each exact start). But the family goes on for every k ≡ 2 or 3 (mod 4), with (k − 6)/4 or (k − 7)/4
