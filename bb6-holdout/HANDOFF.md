@@ -52,7 +52,10 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    R = 2, 3/8 of R = 4, 1/32 to 1/256 of R = 8, 16, 32 and 48; `pass_class_halt`, `chain_class_halt`,
    `lean/thm/PassHaltClasses.lean`). In 600,000 random pass starts the model's run ends at a clean tape or that
    close, and every close passes through a class. Past the loop chain's end the run can enter the loop again and
-   close, also from R ≥ 178 (`lean/thm/PassOpenHalt.lean`, item 2). The original note:
+   close, also from R ≥ 178 (`lean/thm/PassOpenHalt.lean`, item 2). On October 28 the closing classes were narrowed: an
+   end meeting at distance 2 is not a close, so a close needs R in {2, 4, 8, 16, 32, 48} and L₁ in R's class of
+   `closeClassC`, which gives R³/L₁² ≤ 4 (log₂W ≤ σ + 2), and from a width ≥ 2²⁰ a chain to a close with no
+   round-7 break (`loop_halt_sigma_close`, `loop_halt_wide_close`, `lean/thm/LoopClose.lean`). The original note:
    **The loop's end for every width as one Lean theorem.** Prove the pass map (R → R/16, L → L/64) with R free
    using the symbolic runner (`BB6/SymRound`, `BB6/SymSplit`), then induct over passes, combined with
    `endgame_no_close` for R ≤ 4096: "a run through the loop closes only from R ∈ {2, 4, 8, 16, 24, 32, 48, 64, 176}

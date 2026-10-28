@@ -3787,3 +3787,31 @@ end below 178 all 18 are left, to 2^76.1 and the two to 2^78.1, by the end's own
 explorer at depth 24 finds no halt, uncovered round, gap or close (cut mass 0.06% to 0.20%). That makes 89 lines for the
 ends of all the paths followed at k = 14 and 15, none with a halt; a cut leaf is open, so this too is evidence, not
 proof.
+
+**An end meeting at distance 2 is not a close (October 28; `../lean/BB6/EndgameClose.lean`,
+`../lean/thm/LoopClose.lean`, and for the lanes a copy of `../runs/close_l1.py` with the new classes, untrusted).** The
+endgame trees stop at every end meeting at a constant distance ≤ 2 and show L₁ in a class there, so the closing classes
+(`closeClass`) are the classes of those meetings, and in every one with R ≥ 4 the meeting is at distance 2. That is not
+a close: the halving chain puts the next meeting at distance 0, the close, and anywhere else the run has left the chain.
+So ℓ = −32 at r = 16 and 24, which kept k = 15's two round-31 paths at the 2⁶⁶ floor (above), was in a closing class
+only through a meeting at distance 2. `Tree.okEndC` checks trees that run on past these meetings, to where the run
+leaves phase 0 or the chain at a round start that is not three walls (no step of the chain follows such a stretch), and
+`ExploreNC close` builds them for R = 8, 16, 24, 32, 64 and 176 (121 leaves, checked by the kernel). Their close leaves
+are end meetings at distance 0, with L₁ ≡ 0 mod 32 for R = 8, mod 64 for 16 and mod 128 for 32, the classes of
+`HaltClass` at W ≡ 0 (mod 4), and R = 24, 64 and 176 have none. So a close needs R in {2, 4, 8, 16, 32, 48} and L₁ in
+R's class of `closeClassC` (`endgame_stretch_close`). R = 2, 4 and 48 keep their classes; R = 4 keeps L₁ even because
+after one of its distance-2 meetings the run is back at three walls two rounds later, as at a half pass, which
+`Tree.okEndC` does not accept. `loop_chain_halt_close` restates the chain with these classes, at the price of end
+meetings at distance ≥ 2 (not 3) in its last stretch. With ℓ ≡ 3 (mod 7) the least |ℓ| is now 4, 4, 32, 192, 256 and 256
+at r = 2, 4, 8, 16, 32 and 48, so a close has r³/ℓ² ≤ 4, at r = 4 (it was 176³/256² ≈ 83; `sigma_closeC`): log₂W ≤ σ + 2
+at the start of the chain's last run of full passes, not σ + 6.38, and a round-7 landing within that bound needs a width
+below 2²⁰ (`break7_sigmaC`), so `loop_halt_wide_close` and `loop_halt_leaves_close` hold from 2²⁰ instead of 2²⁴. On the
+lanes a close now allows r³/ℓ² ≤ 4 at 2^j (r = 4) and 1.69 at 3 · 2^j (r = 48; it was 13.5, at r = 24). Over all twelve
+forms files (106 routes and paths), at the 2⁴¹ floor `close_l1.py` with these classes leaves 88 against a close by its
+own L₁ and 90 by r³/ℓ² (90 and 94 before): of the first 18 routes ε and ε′ are out by the close's own L₁ (all they had
+was ℓ = −32 at r = 16 and 24) and δ, ζ and the two at R = 5,350 by r³/ℓ² alone, and most widths left drop by 2.6 bits:
+the paths at k = 14 and 15 up to 2^63.1, k = 15's two round-31 paths up to 2^65.1 and the n = 3, 4 and 5 paths up to
+2^75.1, 2^87.1 and 2^99.1 (they were 2^65.7, 2^67.7, 2^77.7, 2^89.7 and 2^101.7). At the 2⁶⁶ floor the two round-31
+paths are out, so k = 15 is out against a close after all, and 3 are left instead of 5: the n = 3, 4 and 5 paths of
+`lanes_n3_n5_forms.txt` (from R = 6,656,742, 246,780,646 and 4,222,980,838), by the close's own L₁ too. The filter
+against any end below 178 does not use the closing classes and is unchanged.
