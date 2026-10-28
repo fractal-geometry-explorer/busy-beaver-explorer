@@ -3102,12 +3102,22 @@ no chain longer than two steps), every one has 15W ≤ 64(W − b), none is a me
 power of two or three times one.
 
 Past 2³² that no longer holds for every pass start (the same run to 2⁴², October 28): 680 of its pass starts have
-15W > 64(W − b), 9 of them W > 64R + 6 as well. By the step maps each is a later entry of its cycle, after the first
-entry's chain has ended without a clean tape between, or a half-pass landing after one; the four identified are
-half-pass landings two rounds after such a re-entry. None is on the chain of a cycle's first entry, the chain the Lean
-theorems are about: those entries are far ((W − b)/W ≥ 0.4558 at every entry class), full passes and round-7 breaks
-always land far, and their half passes do too by `EntryFar`. A later entry is part of the run from the chain's last pass
-start, which the theorems leave to the pass-start tree.
+15W > 64(W − b), 9 of them W > 64R + 6 as well. All but one are later entries of their cycle, after the first entry's
+chain has ended without a clean tape between, or half-pass landings after one; the four identified are half-pass
+landings two rounds after such a re-entry. Those are off the chain of a cycle's first entry, the chain the Lean theorems
+are about: the entries of the 36-digit tree's classes are far ((W − b)/W ≥ 0.4558 on every class), full passes and
+round-7 breaks always land far, and their half passes do too by `EntryFar`; a later entry is part of the run from the
+chain's last pass start, which the theorems leave to the pass-start tree. The one exception, found when the whole run
+was marked (to width 2⁴³: 1,379 such pass starts and 20 failing both, all the others on later chains; an earlier version
+of this note said there was none), is a first entry: round 46 of n = 1,480,645,918,802, in a cycle that needs 47 digits,
+with a = 6,437,135,253, b = 2,568,965,956,546, W = 2,961,291,837,770 and R = 139,690,975,514, so (W − b)/W = 0.1325 and
+W/R = 21.2. It is its chain's only pass start, has W ≤ 64R + 6 and fails `EntryFar`. That is no exception to the
+theorems: the clean-tape tree makes an entry leaf only at a round start that passes its check and otherwise follows the
+run on (`RTree.exploreWE`), here to the next clean tape, n = 1,480,645,918,895, so at enough depth the class ends in a
+clean leaf, not an entry leaf (the exhaustive check's class tree, untrusted, settles it at 47 digits). The far shape is
+proved for the chain from the first round start that passes the check, which need not be a cycle's first entry; this
+cycle has none. (A first correction of this note said that no depth of `cleanTreeGF` settles the class, making it the
+open clean-tape case; that was wrong.)
 
 **The chain's last pass start has its middle wall far from the end, and the halting routes found so far need it
 nearer (October 27, night; `../lean/thm/FarHalt.lean`, `../runs/reentry.py`).** The wide shape of the last entry,
@@ -3431,3 +3441,26 @@ R = 998, one at each scale it closes at from 2¹⁴ to 2²² (`zeta998`). The ot
 R = 5,002 to 5,862 adds (`routes5000`): ε′ at R = 5,094, the two pairs of Q + 316 routes at R ≡ 230 (mod 512 and mod
 1,024) at R = 5,350, and ε at R = 5,606. The close run and the model's rounds on each family are checked by the kernel,
 with standard axioms; with the 36 families of `lane769_open_halt` the file takes about a minute.
+
+**The run from blank tape to width 2⁴³, with each chain's entry marked (October 28; `../blankrun/`, untrusted).** The
+run of the entry "The run from blank tape, followed to width 2⁴²" goes on to the first clean tape of width at least
+2⁴³ (n = 4,398,046,511,105) after 484,888,773,759 cycles and 2,466,400,605,902 rounds, with no halt and no uncovered
+round. It was made again from blank tape with every pass start marked by the entry of its cycle whose chain it belongs
+to (on the old range every earlier line and count comes back). It has 1,806,203,417 pass starts (1,798,389,396 entries),
+and the closest end meeting improves to 14.39 halvings at n = 3,185,173,435,214, a 14-meeting cascade.
+- *First entries* (1,770,345,647: where the clean-tape trees stop when the entry's class passes their check). Every one
+  has W ≤ 32R and all but one pass `EntryFar`; the last pass start of every first-entry chain has the wide shape (least
+  slack 0.434) and all but one 15W ≤ 64(W − b); the chains land at most three times (25 three times, 1,889 twice), and
+  no Q is 2^v or 3 · 2^v at their last pass starts (largest v2(Q)/log2 Q 0.768). The exception is n = 1,480,645,918,802
+  (settle depth 47): its only pass start, the first entry at round 46, has (W − b)/W = 0.1325 and W/R = 21.2, fails
+  `EntryFar` and ends its chain with 15W > 64(W − b), though W ≤ 64R + 6. `RTree.exploreWE` stops a path only at a round
+  start that passes its check and otherwise follows the run on, so a tree with the far check goes past this entry, and
+  `FarHalt.lean` claims no shape for its chain. Of `EntryForms.lean`'s bounds, R > W/29.02 holds at every first entry
+  (W/R at most 28.4); W − b > 0.4558W fails late in cycles of clean tapes open at 40 digits (the 13 first entries that
+  set a record of their stretch below it come in rounds 46 to 62 of cycles with settle depths 41 to 61, down to 0.1325).
+- *Later entries* (28,043,749, after the first entry's chain has ended). Their chains hold the other 1,378 of the 1,379
+  pass starts with 15W > 64(W − b) (902 entries and 476 half-pass landings from them, all from width 2³² on) and all 20
+  that fail both wide conditions (1 entry, 19 half-pass landings); the lowest slack is −0.505 at n = 2,422,756,279,634,
+  round 59, in the chain of the cycle's third entry.
+- *Open classes:* 4.4 to 5.3 in 100,000 of the run's clean tapes are open at 36 digits in nine windows from 2³⁴ to
+  2⁴², and the cycles of entries and half-pass landings 0.45% of the time at every width.

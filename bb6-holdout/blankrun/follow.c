@@ -33,19 +33,29 @@
    usage: follow blank END ZONE [ALL_BITS]          from blank tape (roundStart [] 5) to the first clean tape >= END + ZONE
           follow chunk START END ZONE [ALL_BITS]    from the clean tape START
           follow pass A B C W NR                    NR rounds from the round start G 1, W A, W B, W C of width W
+   The cycle's first entry and later ones.  A halt from blank tape needs the last pass start of the chain from the
+   first loop entry after an open clean tape (blank_halt_open_small in ../lean/thm/OpenSmallHalt.lean); an entry later
+   in the same cycle, after that chain has ended, is part of the run from that pass start.  So each pass start is
+   marked with the entry of its cycle whose chain (or stretch, for i) it belongs to, and whether it is its chain's last
+   pass start (the statistics P1/P2: last pass starts of first-entry chains and of later ones; E1/E2: the entries,
+   with the entry checks W <= 32R of EntryWide and 15W <= 64D, 15W + 26 <= 32(D + R) of EntryFar, BB6/WideEntry.lean).
+
    ALL_BITS (default 34): every three-wall round start of width below 2^ALL_BITS is written (T lines); above, those of a
    1/1024 sample of the cycles (by a hash of n, T lines) and the notable ones (N lines): every three-wall round start
    other than an entry or a half-pass landing, and every pass start that sets a record of the stretch (largest sigma,
-   v2(Q)/log2 Q or chain position; smallest family distance, its next-step version, R, R/W, D/W, slack or log2 u), is
-   in a family or has Q = 2^v or 3 2^v, or has R < 2048, D < 65536 or 15W > 64D.
+   v2(Q)/log2 Q or chain position; smallest family distance, its next-step version, R, R/W, D/W, slack or log2 u; for
+   the last pass starts of first-entry chains the smallest slack and log2 u and the largest v2(Q)/log2 Q, for first
+   entries the smallest R/W, D/W and EntryFar margin), is in a family or has Q = 2^v or 3 2^v, has R < 2048,
+   D < 65536 or 15W > 64D, or is a first entry failing EntryWide or EntryFar.
 
    Output: V n cycle rounds (window clean tapes), K k W n cycle rounds (the clean tape first reaching width 2^k),
    P n cycle rounds (the first clean tape at or past each multiple of 10^11), C n cycle chain (a cycle whose end
    meetings make a halving chain of 11 or more; cycle = the cycles before n),
    T/N n r a b c W code chainpos sigma famdist famdist_next v2Q log2u flags (three-wall round starts: round r of the
-   cycle from clean tape n), H n cycle halvings chain d W (closest end-meeting records), S ... (statistics per binary
-   length of the width, at every 2^k from 2^30 and at the end), DONE.  Cycle and round counts are relative to the
-   stretch's start; stitch.py makes them absolute. */
+   cycle from clean tape n; flags FAMILY, QPOW2, Q3POW2, e<k> for the chain of the k-th entry of the cycle, k >= 2,
+   and last for the last pass start of a chain), H n cycle halvings chain d W (closest end-meeting records), S ...
+   (statistics per binary length of the width, at every 2^k from 2^30 and at the end), DONE.  Cycle and round counts
+   are relative to the stretch's start; stitch.py makes them absolute. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -89,6 +99,13 @@ typedef struct {
     double minRW, minDW, minslack, mRW[9], mDW[9];  /* exact minima of R/W, D/W and the wide slack; per code too */
     long long failboth[9];                           /* pass starts failing both wide conditions, per code */
     long long maxchain, maxv2Q;
+    /* g = 0: the chain of the cycle's first entry, g = 1: the chain of a later entry of the same cycle.  The chain's
+       last pass start (the one a halt would need, for g = 0): count, failing both wide conditions, W > 64R + 6,
+       15W > 64D, Q = 2^v or 3 2^v, landings before it; and the entries: count, failing W <= 32R (EntryWide),
+       failing 15W <= 64D and 15W + 26 <= 32(D + R) (EntryFar) */
+    long long pn[2], pfb[2], pw1f[2], pw2f[2], plane[2], pmaxv2Q[2], pchain[2][32], pcode[2][9], en[2], ewidef[2], efarf[2];
+    double pminslack[2], pminRW[2], pminDW[2], pmaxv2qr[2], pminlu[2], pmindelta[2];
+    double eminRW[2], eminDW[2], eminwide[2], eminfar2[2];   /* (32R - W)/W and (32(D + R) - 15W - 26)/W */
 } Bin;
 static Bin S[NB];
 static long long endchain_hist[64];
@@ -105,6 +122,11 @@ static void bin_init(void) {
         S[b].mindelta_next = 1e9; S[b].maxh = -1; S[b].maxv2qr = -1; S[b].minlu = 1e9;
         S[b].minRW = S[b].minDW = S[b].minslack = 1e9;
         for (int c = 0; c < 9; c++) S[b].mRW[c] = S[b].mDW[c] = 1e9;
+        for (int g = 0; g < 2; g++) {
+            S[b].pminslack[g] = S[b].pminRW[g] = S[b].pminDW[g] = S[b].pminlu[g] = S[b].pmindelta[g] = 1e9;
+            S[b].pmaxv2qr[g] = -1; S[b].pmaxv2Q[g] = -1;
+            S[b].eminRW[g] = S[b].eminDW[g] = S[b].eminwide[g] = S[b].eminfar2[g] = 1e9;
+        }
     }
 }
 static void hist(const char *name, const long long *h, int n) {
@@ -125,8 +147,22 @@ static void dump_stats(const char *tag) {
         for (int c = 0; c < 9; c++)
             if (s->mRW[c] < 1e8) printf(" mRW_%c %.8f mDW_%c %.8f", CODES[c], s->mRW[c], CODES[c], s->mDW[c]);
         for (int c = 0; c < 9; c++) if (s->failboth[c]) printf(" fb_%c %lld", CODES[c], s->failboth[c]);
+        for (int g = 0; g < 2; g++) {
+            if (s->pn[g])
+                printf(" P%d.n %lld P%d.fb %lld P%d.w1f %lld P%d.w2f %lld P%d.lane %lld P%d.maxv2Q %lld P%d.minslack %.8f"
+                       " P%d.minRW %.8f P%d.minDW %.8f P%d.maxv2qr %.4f P%d.minlu %.4f P%d.mindelta %.4f",
+                       g + 1, s->pn[g], g + 1, s->pfb[g], g + 1, s->pw1f[g], g + 1, s->pw2f[g], g + 1, s->plane[g],
+                       g + 1, s->pmaxv2Q[g], g + 1, s->pminslack[g], g + 1, s->pminRW[g], g + 1, s->pminDW[g],
+                       g + 1, s->pmaxv2qr[g], g + 1, s->pminlu[g], g + 1, s->pmindelta[g]);
+            if (s->en[g])
+                printf(" E%d.n %lld E%d.widef %lld E%d.farf %lld E%d.minRW %.8f E%d.minDW %.8f E%d.minwide %.8f"
+                       " E%d.minfar2 %.8f", g + 1, s->en[g], g + 1, s->ewidef[g], g + 1, s->efarf[g], g + 1, s->eminRW[g],
+                       g + 1, s->eminDW[g], g + 1, s->eminwide[g], g + 1, s->eminfar2[g]);
+        }
         hist("lr", s->hlr, NB); hist("ld", s->hld, NB); hist("v2R", s->hv2R, NB); hist("v2L", s->hv2L, NB);
         hist("v2Q", s->hv2Q, NB); hist("lu", s->hlu, NB); hist("chain", s->hchain, 32); hist("halv", s->hhalv, NB);
+        if (s->pn[0]) { hist("P1.chain", s->pchain[0], 32); hist("P1.code", s->pcode[0], 9); }
+        if (s->pn[1]) { hist("P2.chain", s->pchain[1], 32); hist("P2.code", s->pcode[1], 9); }
         printf("\n");
     }
     printf("S %s endchain", tag); for (int i = 0; i < 64; i++) if (endchain_hist[i]) printf(" %d:%lld", i, endchain_hist[i]);
@@ -177,13 +213,16 @@ static double next_delta(ll E, ll R, i128 L) {
 
 static double rec_sig = -1e9, rec_delta = 1e9, rec_dnext = 1e9, rec_v2qr = -1, rec_lu = 1e9, rec_q = 0;
 static double rec_RW = 1e9, rec_DW = 1e9, rec_slack = 1e9;
+static double rec_p1slack = 1e9, rec_p1v2qr = -1, rec_p1lu = 1e9, rec_e1RW = 1e9, rec_e1DW = 1e9, rec_e1far2 = 1e9;
 static long long rec_chain = 0; static ll rec_minR = -1;
 
-/* one three-wall round start, with its code (index into CODES) and chain position */
-static void record(ll n, const TW *t, int code, int chainpos, int sampled) {
+/* one three-wall round start, with its code (index into CODES), chain position, the entry of the cycle whose chain it
+   belongs to (1 = the first entry; 0 for x) and whether it is the last pass start of that chain */
+static void record(ll n, const TW *t, int code, int chainpos, int entry, int last, int sampled) {
     ll R = t->w - t->c - 1, D = t->w - t->b; int b = lg(t->w);
     Bin *s = &S[b]; s->tw++; s->code[code]++;
-    double sig = -1e9, delta = 1e9, dnext = 1e9, lu = -1, RW = 1e9, DW = 1e9, slack = 1e9; int v2Q = -1, fam = 0, qp = 0;
+    double sig = -1e9, delta = 1e9, dnext = 1e9, lu = -1, RW = 1e9, DW = 1e9, slack = 1e9, v2qr = -1, far2 = 1e9;
+    int v2Q = -1, fam = 0, qp = 0, ewf = 0, eff = 0;
     if (t->ps) {
         s->ps++;
         s->hlr[lg(t->w) - lg(R) < 0 ? 0 : lg(t->w) - lg(R)]++;
@@ -201,7 +240,7 @@ static void record(ll n, const TW *t, int code, int chainpos, int sampled) {
         if (chainpos > s->maxchain) s->maxchain = chainpos;
         ll Q = D + 2 * R + 22; v2Q = ctz128((i128)Q); ll u = Q >> v2Q;
         s->hv2Q[v2Q > 63 ? 63 : v2Q]++; if (v2Q > s->maxv2Q) s->maxv2Q = v2Q;
-        double v2qr = (double)v2Q / log2((double)Q); if (v2qr > s->maxv2qr) s->maxv2qr = v2qr;
+        v2qr = (double)v2Q / log2((double)Q); if (v2qr > s->maxv2qr) s->maxv2qr = v2qr;
         lu = log2((double)u); if (lu < s->minlu) s->minlu = lu;
         { int lu2 = lg(u); s->hlu[lu2 < 0 ? 0 : lu2 > 63 ? 63 : lu2]++; }
         if (u == 1) { s->qpow2++; qp = 1; } else if (u == 3) { s->q3pow2++; qp = 3; }
@@ -217,6 +256,32 @@ static void record(ll n, const TW *t, int code, int chainpos, int sampled) {
         if (RW < s->mRW[code]) s->mRW[code] = RW;
         if (!w1 && !w2) s->failboth[code]++;
         if (DW < s->mDW[code]) s->mDW[code] = DW;
+        /* the chain's last pass start and the entries, for the cycle's first entry (g = 0) and later ones (g = 1) */
+        int g = entry > 1;
+        if (last) {
+            s->pn[g]++; s->pchain[g][chainpos > 31 ? 31 : chainpos]++; s->pcode[g][code]++;
+            if (!w1 && !w2) s->pfb[g]++;
+            if (!w1) s->pw1f[g]++;
+            if (!w2) s->pw2f[g]++;
+            if (qp) s->plane[g]++;
+            if (v2Q > s->pmaxv2Q[g]) s->pmaxv2Q[g] = v2Q;
+            if (v2qr > s->pmaxv2qr[g]) s->pmaxv2qr[g] = v2qr;
+            if (lu < s->pminlu[g]) s->pminlu[g] = lu;
+            if (slack < s->pminslack[g]) s->pminslack[g] = slack;
+            if (RW < s->pminRW[g]) s->pminRW[g] = RW;
+            if (DW < s->pminDW[g]) s->pminDW[g] = DW;
+            if (delta < s->pmindelta[g]) s->pmindelta[g] = delta;
+        }
+        if (code == 0) {        /* EntryWide: W <= 32R; EntryFar: 15W <= 64D and 15W + 26 <= 32(D + R) */
+            ll ew = 32 * R - t->w; i128 ef2 = 32 * (i128)(D + R) - 15 * (i128)t->w - 26;
+            ewf = ew < 0; eff = !w2 || ef2 < 0;
+            s->en[g]++; s->ewidef[g] += ewf; s->efarf[g] += eff;
+            double wide = (double)ew / (double)t->w; far2 = (double)ef2 / (double)t->w;
+            if (RW < s->eminRW[g]) s->eminRW[g] = RW;
+            if (DW < s->eminDW[g]) s->eminDW[g] = DW;
+            if (wide < s->eminwide[g]) s->eminwide[g] = wide;
+            if (far2 < s->eminfar2[g]) s->eminfar2[g] = far2;
+        }
     }
     int notable = 0;
     if (t->ps) {
@@ -225,26 +290,40 @@ static void record(ll n, const TW *t, int code, int chainpos, int sampled) {
         if (dnext < rec_dnext) { rec_dnext = dnext; notable = 1; }
         if (chainpos > rec_chain) { rec_chain = chainpos; notable = 1; }
         if (rec_minR < 0 || R < rec_minR) { rec_minR = R; notable = 1; }
-        double v2qr = (double)v2Q / log2((double)(D + 2 * R + 22));
         if (v2qr > rec_v2qr) { rec_v2qr = v2qr; notable = 1; }
         if (lu < rec_lu) { rec_lu = lu; notable = 1; }
         if (RW < rec_RW) { rec_RW = RW; notable = 1; }
         if (DW < rec_DW) { rec_DW = DW; notable = 1; }
         if (slack < rec_slack) { rec_slack = slack; notable = 1; }
         if (fam || qp || R < 2048 || D < 65536 || 15 * (i128)t->w > 64 * (i128)D) notable = 1;
+        if (last && entry == 1) {
+            if (slack < rec_p1slack) { rec_p1slack = slack; notable = 1; }
+            if (v2qr > rec_p1v2qr) { rec_p1v2qr = v2qr; notable = 1; }
+            if (lu < rec_p1lu) { rec_p1lu = lu; notable = 1; }
+        }
+        if (code == 0 && entry == 1) {
+            if (RW < rec_e1RW) { rec_e1RW = RW; notable = 1; }
+            if (DW < rec_e1DW) { rec_e1DW = DW; notable = 1; }
+            if (far2 < rec_e1far2) { rec_e1far2 = far2; notable = 1; }
+            if (ewf || eff) notable = 1;
+        }
     }
     /* every landing other than a half pass, and every i and x, is rare enough to write */
     if (code != 0 && code != 2) notable = 1;
-    if (b < ALLBITS || sampled || notable)
-        printf("%c %lld %d %lld %lld %lld %lld %c %d %.4f %.4f %.4f %d %.4f%s%s\n", (b < ALLBITS || sampled) ? 'T' : 'N',
+    if (b < ALLBITS || sampled || notable) {
+        char ef[16] = ""; if (entry > 1) snprintf(ef, sizeof ef, " e%d", entry);
+        printf("%c %lld %d %lld %lld %lld %lld %c %d %.4f %.4f %.4f %d %.4f%s%s%s%s\n", (b < ALLBITS || sampled) ? 'T' : 'N',
                (long long)n, t->r, (long long)t->a, (long long)t->b, (long long)t->c, (long long)t->w, CODES[code], chainpos,
                t->ps ? sig : 0.0, t->ps ? delta : 0.0, t->ps ? dnext : 0.0, v2Q, t->ps ? lu : 0.0,
-               fam ? " FAMILY" : "", qp == 1 ? " QPOW2" : qp == 3 ? " Q3POW2" : "");
+               fam ? " FAMILY" : "", qp == 1 ? " QPOW2" : qp == 3 ? " Q3POW2" : "", ef, last ? " last" : "");
+    }
 }
 
-/* analyse the cycle's three-wall round starts in order, following each pass start's stretch to its end event */
+/* analyse the cycle's three-wall round starts in order, following each pass start's stretch to its end event; then
+   record each one with its code, chain position, entry and whether it is the last pass start of its chain */
+static int acode[MAXT], apos[MAXT], aent[MAXT], alast[MAXT];
 static void analyse(ll n, int sampled) {
-    int head = -1, chainpos = 0, ei = 0, broken = 0, have = 0, entry_bin = 0; ll lastd = 0;
+    int head = -1, chainpos = 0, ei = 0, broken = 0, have = 0, entry_bin = 0, nentry = 0; ll lastd = 0;
     int ti = 0, last = tws[nt - 1].r;
     for (int r = tws[0].r; r <= last; r++) {
         /* the end meetings of round r belong to the stretch of the head (round start r_h < r) */
@@ -258,28 +337,35 @@ static void analyse(ll n, int sampled) {
         if (head >= 0 && r > tws[head].r) {
             if (isT) {
                 int k = landing_kind(&tws[head], &tws[ti]);
+                alast[ti] = 0; aent[ti] = aent[head];
                 if (k) {
-                    TW *t = &tws[ti];
-                    if (t->ps) { chainpos++; record(n, t, k, chainpos, sampled); head = ti; broken = 0; have = 0; }
-                    else { record(n, t, 3 + k, chainpos + 1, sampled); S[entry_bin].hchain[chainpos + 1 > 31 ? 31 : chainpos + 1]++; head = -1; }
+                    if (tws[ti].ps) { chainpos++; acode[ti] = k; apos[ti] = chainpos; head = ti; broken = 0; have = 0; }
+                    else {
+                        acode[ti] = 3 + k; apos[ti] = chainpos + 1; alast[head] = 1;
+                        S[entry_bin].hchain[chainpos + 1 > 31 ? 31 : chainpos + 1]++; head = -1;
+                    }
                     ti++; continue;
                 }
                 /* a three-wall round start inside the stretch: no end event */
-                record(n, &tws[ti], tws[ti].ps ? 7 : 8, chainpos, sampled); ti++; continue;
+                acode[ti] = tws[ti].ps ? 7 : 8; apos[ti] = chainpos; if (!tws[ti].ps) aent[ti] = 0;
+                ti++; continue;
             } else {
                 int dr = r - tws[head].r;
                 int left = (dr == 1 && rsig[r] != SIG2(tB, tW)) || (dr == 2 && rsig[r] != SIG2(tM, tB));
-                if (left || broken) { S[entry_bin].hchain[chainpos > 31 ? 31 : chainpos]++; head = -1; }
+                if (left || broken) { alast[head] = 1; S[entry_bin].hchain[chainpos > 31 ? 31 : chainpos]++; head = -1; }
             }
         }
         if (isT) {
-            TW *t = &tws[ti];
-            if (t->ps) { record(n, t, 0, 0, sampled); head = ti; chainpos = 0; broken = 0; have = 0; entry_bin = lg(t->w); }
-            else record(n, t, 8, 0, sampled);
+            alast[ti] = 0;
+            if (tws[ti].ps) {
+                acode[ti] = 0; apos[ti] = 0; aent[ti] = ++nentry;
+                head = ti; chainpos = 0; broken = 0; have = 0; entry_bin = lg(tws[ti].w);
+            } else { acode[ti] = 8; apos[ti] = 0; aent[ti] = 0; }
             ti++;
         }
     }
-    if (head >= 0) S[entry_bin].hchain[chainpos > 31 ? 31 : chainpos]++;   /* the stretch outlasts the last three walls */
+    if (head >= 0) { alast[head] = 1; S[entry_bin].hchain[chainpos > 31 ? 31 : chainpos]++; }   /* the stretch outlasts the last three walls */
+    for (ti = 0; ti < nt; ti++) record(n, &tws[ti], acode[ti], apos[ti], aent[ti], alast[ti], sampled);
 }
 
 static void note_tw(int r) {

@@ -78,7 +78,9 @@ def parse_S(lines):
 
 MAXKEYS = {'maxsig', 'maxsigmargin', 'maxchain', 'maxh', 'maxv2Q', 'maxv2qr'}
 MINKEYS = {'minR', 'minD', 'mindelta', 'mindelta_next', 'minlu', 'minRW', 'minDW', 'minslack'}
-def is_min(k): return k in MINKEYS or k.startswith('mRW_') or k.startswith('mDW_')
+# grouped keys (P1.minslack, E2.n, ...): a minimum or maximum by the name after the dot, else a count
+def is_max(k): return k in MAXKEYS or ('.' in k and k.split('.')[-1].startswith('max'))
+def is_min(k): return k in MINKEYS or k.startswith('mRW_') or k.startswith('mDW_') or ('.' in k and k.split('.')[-1].startswith('min'))
 
 def merge_bins(all_bins):
     out = {}
@@ -88,7 +90,7 @@ def merge_bins(all_bins):
             for k, v in d.items():
                 if isinstance(v, dict):
                     h = o.setdefault(k, collections.Counter()); h.update(v)
-                elif k in MAXKEYS:
+                elif is_max(k):
                     o[k] = max(o.get(k, -1e18), v)
                 elif is_min(k):
                     o[k] = min(o.get(k, 1e18), v)

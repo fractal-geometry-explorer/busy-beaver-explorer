@@ -91,6 +91,50 @@ def main():
                                              for c in codes) + ' |')
     print()
 
+    gb = [b for b in bs if 'P1.n' in bins[b] or 'P2.n' in bins[b]]
+    if gb:
+        print('### The last pass start of each chain, for the first entry of the cycle and for later ones\n')
+        print('The pass start a halt from blank tape needs is the last pass start of the loop\'s chain from the first '
+              'loop entry after an open clean tape (`blank_halt_open_small`); `WideHalt.lean` and `FarHalt.lean` give it '
+              'W <= 64R + 6 or 15W <= 64(W - b), and 15W <= 64(W - b), from the entry checks W <= 32R (`EntryWide`) and '
+              '15W <= 64(W - b), 15W + 26 <= 32(W - b + R) (`EntryFar`). A later entry in the same cycle, after that '
+              'chain has ended, is part of the run from that pass start, which the theorems leave to the pass-start '
+              'tree. Per bin of the width of the last pass start (of the entry, for the entry columns): chains, how many '
+              'of their last pass starts fail both wide conditions, fail 15W <= 64(W - b), fail W <= 64R + 6, the least '
+              'slack, the largest v2(Q)/log2 Q and least log2 u (Q = 2^v u), Q = 2^v or 3 2^v, the landings before '
+              'it; the entries failing `EntryWide` and `EntryFar`, and their least R/W and (W - b)/W.\n')
+        for g, name in ((1, 'The first entry of the cycle'), (2, 'Later entries of the cycle')):
+            rows = [b for b in gb if ('P%d.n' % g) in bins[b] or ('E%d.n' % g) in bins[b]]
+            if not rows: continue
+            print('%s:\n' % name)
+            print('| b | chains | fail both | 15W > 64(W - b) | W > 64R + 6 | min slack | max v2(Q)/log2 Q | min log2 u | '
+                  'Q = 2^v, 3 2^v | landings before it | entries: W > 32R | not EntryFar | min R/W | min (W - b)/W |')
+            print('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|')
+            T = collections.Counter(); ch = collections.Counter(); ext = {}
+            def g_(d, k, dflt=0): return d.get('%s%d.%s' % (k[0], g, k[1:]), dflt)
+            for b in rows:
+                d = bins[b]
+                for k in ('Pn', 'Pfb', 'Pw2f', 'Pw1f', 'Plane', 'Ewidef', 'Efarf'): T[k] += g_(d, k)
+                h = d.get('P%d.chain' % g, {}); ch.update(h)
+                for k, f in (('Pminslack', min), ('Pmaxv2qr', max), ('Pminlu', min), ('EminRW', min), ('EminDW', min)):
+                    if ('%s%d.%s' % (k[0], g, k[1:])) in d:
+                        v = g_(d, k); ext[k] = f(ext[k], v) if k in ext else v
+                print('| %d | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |' % (
+                    b, fmt(g_(d, 'Pn')), fmt(g_(d, 'Pfb')), fmt(g_(d, 'Pw2f')), fmt(g_(d, 'Pw1f')),
+                    ('%.4f' % g_(d, 'Pminslack')) if 'P%d.n' % g in d else '', ('%.3f' % g_(d, 'Pmaxv2qr')) if 'P%d.n' % g in d else '',
+                    ('%.2f' % g_(d, 'Pminlu')) if 'P%d.n' % g in d else '', fmt(g_(d, 'Plane')),
+                    ' '.join('%d:%s' % (x, fmt(y)) for x, y in sorted(h.items())), fmt(g_(d, 'Ewidef')), fmt(g_(d, 'Efarf')),
+                    ('%.5f' % g_(d, 'EminRW')) if 'E%d.n' % g in d else '', ('%.5f' % g_(d, 'EminDW')) if 'E%d.n' % g in d else ''))
+            print('| all | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n' % (
+                fmt(T['Pn']), fmt(T['Pfb']), fmt(T['Pw2f']), fmt(T['Pw1f']), '%.4f' % ext.get('Pminslack', 0),
+                '%.3f' % ext.get('Pmaxv2qr', 0), '%.2f' % ext.get('Pminlu', 0), fmt(T['Plane']),
+                ' '.join('%d:%s' % (x, fmt(y)) for x, y in sorted(ch.items())), fmt(T['Ewidef']), fmt(T['Efarf']),
+                '%.5f' % ext.get('EminRW', 0), '%.5f' % ext.get('EminDW', 0)))
+        fbc = [c for c in 'EFH7i' if any(('fb_' + c) in bins[b] for b in gb)]
+        if fbc:
+            print('Pass starts failing both wide conditions, by how the run reached them: ' +
+                  ', '.join('%s %s' % (c, fmt(sum(bins[b].get('fb_' + c, 0) for b in gb))) for c in fbc) + '.\n')
+
     print('### How close the pass starts come to the halting lanes and families\n')
     print('Q = (W - b) + 2R + 22 = 2^v u with u odd: the halting lanes past the chain\'s end have u = 1 (Q = 2^(j+2), the '
           'off-chain meeting at 2^j - 2) or u = 3 on the other route. Family distance: max(|log2(R/R0)|, |log2(D/D0)|) to '
