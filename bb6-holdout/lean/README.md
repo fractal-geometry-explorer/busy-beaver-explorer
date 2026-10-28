@@ -296,10 +296,10 @@ Started October 25. Self-contained (no Mathlib): Lean 4 core only, so it can be 
   values that the chains from the 36- and 40-digit entries, counted to width 2⁷⁴, do not meet). But the family goes on
   for every k ≡ 2 or 3 (mod 4), its walls making (k − 6)/4 or (k − 7)/4 passes of a loop on four marks before the
   re-entry, and each pass adds 12 bits to the width up to which the filter leaves its paths (on those followed at
-  k = 14, 15, 19, 23 and 27), so at 2⁶⁶ it leaves the paths at k = 14 and 15 against any end below 178, and from k = 19
-  on against a close as well, and no floor closes it; the chains from the 40-digit entries meet its lanes, at any k, to
-  width 2²⁵⁶ only at pass starts from whose entry the run goes on to a clean tape. Halting pass starts with R ≥ 769,
-  open at every depth, exist on every lane found there (`lane769_open_halt`).
+  k = 14, 15, 19, 23 and 27), so at 2⁶⁶ it leaves the paths at k = 14 and 15 against any end below 178, and two at
+  k = 15 and all from k = 19 on against a close as well, and no floor closes it; the chains from the 40-digit entries
+  meet its lanes, at any k, to width 2²⁵⁶ only at pass starts from whose entry the run goes on to a clean tape. Halting
+  pass starts with R ≥ 769, open at every depth, exist on every lane found there (`lane769_open_halt`).
 * **Deeper trees** (`BB6/MassPar.lean`, `thm/CleanEntryMass40.lean`, `thm/CleanEntryMass44.lean`, `ProjPar.lean`,
   `END_TO_END.md`, October 27): the clean-tape tree with loop entries cuts 6,582,732 classes at 40 digits (measure
   5.99 × 10⁻⁶) and 33,928,389 at 44 (1.93 × 10⁻⁶), evaluated on all cores; but below almost every class cut at b digits

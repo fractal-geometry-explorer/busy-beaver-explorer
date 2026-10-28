@@ -3766,4 +3766,24 @@ rounds. Of the ends 2^i and 3 · 2^i below 178 the only one this adds is 12 (the
 (R = 35,046 and 119,526 at k = 14, R = 955,110 at k = 15 and the n = 3, 4 and 5 paths at k = 19, 23 and 27), and a
 quarter of the ℓ it admits at r = 12 elsewhere, but takes out no route: against any end below 178, 29 routes and paths
 are still left at the 2⁶⁶ floor and 81 at the 2⁴¹, as before (all the files of `lane_sigma.py`). The six keep ℓ = −4 at
-r = 6. `lane_sigma.py`, taking r³/100 at r = 12 as well, would drop some lane values 3 · 2^j but no width it reports.
+r = 6. Since PR #99 `lane_sigma.py` takes r³/100 at r = 12 too, dropping some lane values 3 · 2^j but no width or route.
+
+**The k = 15 census (October 28; `routes/lanes_k15_all_forms.txt`, `routes/README.md`, "The k = 15 census", and
+`routes/small_ends.txt`, "k = 15", in the project files, untrusted).** The census with b free on Q + 163,836 = 2²⁰, the
+family's next lane after k = 14's, at all 2,303 of its R (≡ 38 or 230 mod 256, to 294,694), finds 25 closing classes at
+17 R, with no undecided leaf. Each was followed to round 80 as at k = 14: the two classes at each of 7 R take the same
+path and the two at R = 217,318 take two, so 18 paths. 16 re-enter in round 35, as R = 955,110's path in
+`lanes_k14_k15_forms.txt` does (R′ = lane value / 2¹⁹), and fare as it does: against a close they are left up to 2^65.7
+at the 2⁴¹ floor (least R′³/L₁′² 6.8 × 10⁻⁸ to 8.9 × 10⁻⁸) and are out at the 2⁶⁶ floor. The two from R = 47,334 and
+288,038 re-enter in round 31 (R′ = lane value / 2¹⁷), four rounds ahead of the others, as k = 14's round-27 paths are
+ahead of its round-31 ones, and are left against a close up to 2^67.7 (least R′³/L₁′² 6.1 × 10⁻⁸ and 2.6 × 10⁻⁸). At the
+2⁶⁶ floor they are left at 3 · 2⁶⁴ (r = 24, both) and at 2⁶⁵ (r = 16, R = 288,038's), and by the close's own L₁ too
+(`close_l1.py`), with ℓ = −32 each time, which is in the closing classes of 16 and 24 though in no `HaltClass`. So the
+2⁶⁶ floor does not put k = 15 out against a close, contrary to what R = 955,110's path alone suggested (above). On the
+two lines these closes need, (16, −32) and (24, −32), `PassLine2.lean` at depth 24 finds no close or halt, only clean
+leaves and depth cuts, but for 2 leaves on each where the cleaves run out, as on the other ℓ = −32 lines. Against any
+end below 178 all 18 are left, to 2^76.1 and the two to 2^78.1, by the end's own L₁ too; their ends need 82 lines
+(`need_l1.py`), 21 of them not run before, with r from 12 to 128 and ℓ from −1,544 to −18, and on those the line
+explorer at depth 24 finds no halt, uncovered round, gap or close (cut mass 0.06% to 0.20%). That makes 89 lines for the
+ends of all the paths followed at k = 14 and 15, none with a halt; a cut leaf is open, so this too is evidence, not
+proof.
