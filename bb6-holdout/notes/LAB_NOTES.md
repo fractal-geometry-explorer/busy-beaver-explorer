@@ -3101,6 +3101,14 @@ starts with every gap at least 448 (878,495 entries, 3,670 half-pass landings, 4
 no chain longer than two steps), every one has 15W ≤ 64(W − b), none is a member of the 29 families, and no Q is a
 power of two or three times one.
 
+Past 2³² that no longer holds for every pass start (the same run to 2⁴², October 28): 680 of its pass starts have
+15W > 64(W − b), 9 of them W > 64R + 6 as well. By the step maps each is a later entry of its cycle, after the first
+entry's chain has ended without a clean tape between, or a half-pass landing after one; the four identified are
+half-pass landings two rounds after such a re-entry. None is on the chain of a cycle's first entry, the chain the Lean
+theorems are about: those entries are far ((W − b)/W ≥ 0.4558 at every entry class), full passes and round-7 breaks
+always land far, and their half passes do too by `EntryFar`. A later entry is part of the run from the chain's last pass
+start, which the theorems leave to the pass-start tree.
+
 **The chain's last pass start has its middle wall far from the end, and the halting routes found so far need it
 nearer (October 27, night; `../lean/thm/FarHalt.lean`, `../runs/reentry.py`).** The wide shape of the last entry,
 W ≤ 64R + 6 or 15W ≤ 64(W − b), has its first case only from the half pass and the round-7 break, and both land in the
@@ -3276,3 +3284,47 @@ kernel, `notWWW_of_none`), so no pass start lies between such a start and its ha
 at 510 or 1,022 off the chain, and halves to the close through round starts with four walls or with a marker or a
 block. A census at R = 230 for W − b from 4,098 to 8,192 finds ten more classes, every one with a three-wall start, so
 these four look sporadic.
+
+**The chain's last pass start has a right end of at least 769 (October 27, night, and October 28;
+`../lean/BB6/BigEnd.lean`, `../lean/thm/BigEndHalt.lean`, `../runs/chain_end.py`).** The small-end check (`smallOK`,
+`LoopChain.small_end`) uses 178 in one place only, the round-7 break: from a width E ≥ 2³⁷ it lands with
+R′³/L₁′² ≥ (3E + 5R)/527,023, above 177³/9. That bound folds two into one, 32R′ > S = 3E + 5R and
+0 < 96L₁′ < 385 · 32R′, and kept apart they give more. A run of p full passes from the landing ends at r only if
+R′ = 16^p · r and L₁′ = 64^p · ℓ with ℓ ≡ 3 (mod 7), and ℓ > 0 since L₁′ is, so ℓ ≥ 3. From E ≥ 2⁴¹, p ≤ 7 needs
+2³³ · r ≥ 32R′ > 3 · 2⁴¹, so r ≥ 769, and p ≥ 8 needs 96 · 4^p · ℓ < 12,320 · r, so r ≥ 1,533: no run of full passes
+after a round-7 break there ends below 769 (`break7_noEnd769`; R′³/L₁′² alone gives 483). The rest of the check is the
+same for any bound N: a run of full passes from a loop entry ends at r only if R = 16^p · r and L₁ = 64^p · ℓ, and on a
+class of one coordinate R = 16^p · r fixes the point, which then has to be an integer point of the cone with 64^p
+dividing L₁. At 36 digits every loop entry has R > 7.8 × 10¹⁰ (the least is 78,461,516,220), so an end below 5,000 takes
+p ≥ 6 exact full passes, and no entry class has a point that makes one: none for any r from 178 to 5,000, after a half
+pass or not (`chain_end.py`, a minute in Python; along a class R grows by about 10⁹ per unit of the coordinate, so
+R = 16^p · r is rarely an integer point, and 64^p | L₁ there is rarer still). `bigEntryOK 769` checks it in Lean for
+r < 769, and all 28,660 entries pass (`thm/CleanBigMass.lean`, 5 min 36 s). So the chain's last pass start has R ≥ 769
+and 15W ≤ 64(W − b) (`LoopChain.big_end`, `blank_halt_open_big`).
+
+This puts every halting class with R below 769 out of reach, whatever its route: the 72 classes of R = 178 to 198 (with
+the R = 182 lane of `reentry6_open_halt` at every scale), the 1,405 of R = 200 to 262 (the 1,272 at R = 256 close by the
+loop's own chain anyway), with the four at R = 230 that have no pass start after round 0 (`no_pass_open_halt`) and those
+that land straight in the R = 2, 4 or 6 classes, the five at R = 294 and the six at R = 486, with the 38 classes of the
+δ and ε lanes there up to Q + 636 = 2³⁰ (`lane486_open_halt`). Past it the census has two lanes that do not stop
+(`routes/lanes_r294_486.json` and `routes/lanes_delta_eps.txt` in the halting-classes project files): δ closes at every
+R ≡ 486 (mod 512) tried and ε at every R ≡ 486 (mod 1,024) tried, from 486 to 4,582 so far, at every scale Q + 636 = 2^j
+up to j = 30, with W − b = 2^j − 1,630 − 2(R − 486) and one class of b for each R and j, its modulus growing by about
+1.5 bits per scale. The class at R = 486 with D = 2,466 that lands at round 17 in the R = 4 class is δ at j = 12. They
+re-enter the loop at R′ = 2^(j−10) (δ) and 2^(j−8) (ε) with W ≡ 2 (mod 4) and go on by a half pass and full passes to
+the close, so their R′³/L₁′² is only about W/1.6 × 10¹² and W/2.3 × 10¹² at the edge of the far shape, not enough to
+exclude them below about 2⁴⁷. No bound on R reaches them. Whether the chain's last pass start can be on one is open: it
+would need Q + 636 = 2^j exactly, the chain's ends after full passes sit near W − b = 15W/63, where L₁ is near 0, so at
+W ≈ 4.2 · 2^j, and b would have to fall in a class modulo about 2^(1.5j).
+
+The chain from blank tape meets neither lane, by an untrusted count (`../runs/chain_lanes.py`, five seconds). Taking
+every step of the chain from each 36-digit entry class on the subclass where its map's divisions are exact (a half pass
+first or not, then full passes and round-7 breaks, with the walls of `StepMap`) gives a tree that holds every chain. Cut
+where a subclass's least member is wider than 2⁶³, it has 42,255 classes: the 28,660 entries, 9,640 after one step,
+3,659 after two, and 225, 63 and 8 after three, four and five. Q is affine on each, with a step of 2¹¹ to 2⁶¹, and no
+member of any meets Q = 2^j or 3 · 2^j, Q + 36 = 2^j or 3 · 2^j, Q + 636 = 2^j, 3Q + 76 = 2^j or 2Q − R + 6 = 2^j or
+3 · 2^j for j up to 64, which are the lanes of every halting route the census has; other offsets are met (44 with
+|c| ≤ 2,000 for Q + c = 2^j, the least −42), so it is a count and not a congruence. δ and ε need W below 2⁵³ even with
+r³/16 for a close at r ≤ 32, so neither is reached if their forms hold. The blank-tape run to 2⁴² (`../blankrun/`, the
+entry above, untrusted) agrees: no chain from any entry lands more than three times, Q is never 2^v or 3 · 2^v, and the
+largest v2(Q) is 32.

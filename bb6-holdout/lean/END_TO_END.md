@@ -32,8 +32,12 @@ chain from a loop entry of the clean-tape tree ends at a pass start with W ≤ 6
 only below width 2³⁵ (`blank_halt_not_family`, `thm/WideHalt.lean`, below, "The pass starts a halt needs are wide").
 That pass start also has its middle wall at least 15/64 of the width from the end (`blank_halt_open_far`,
 `thm/FarHalt.lean`), and with that shape none of the eight routes by which the halting classes with R from 178 to 198
-close can start from it (untrusted, below, "The middle wall is far from the end"); at larger R there are other routes,
-not all through a pass start.
+close can start from it (untrusted, below, "The middle wall is far from the end"). Its right end is at least 769
+(`blank_halt_open_big`, `thm/BigEndHalt.lean`, below, "The chain ends at a right end of at least 769"): no run of full
+passes from a loop entry ends lower, nor one after a round-7 break past 2⁴¹. That puts every halting class with R below
+769 out of its reach, whatever the class's route: all those of the census at R from 178 to 262, at 294 and at 486,
+including those that close with no pass start after the first. Past 769 the census finds two lanes of halting classes
+that recur at every R ≡ 486 (mod 512 or 1,024) and every scale, and whether the run reaches one is open.
 
 ## The statement
 
@@ -200,6 +204,10 @@ theorem blank_halt_open_wide (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = no
 theorem blank_halt_open_far (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) : …   -- thm/FarHalt.lean
   -- blank_halt_open_wide with cleanTreeGF for cleanTreeGW, and the pass start has 15 * W₁ ≤ 64 * (W₁ - b);
   -- blank_halt_open_far_kernel is the same from 2²⁰, and never_halts_of_far is never_halts_of_open with that
+
+theorem blank_halt_open_big (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) : …   -- thm/BigEndHalt.lean
+  -- blank_halt_open_far with cleanTreeGB for cleanTreeGF, and the pass start has 769 ≤ R as well;
+  -- never_halts_of_big is never_halts_of_open with both
 
 theorem blank_halt_not_family (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :   -- thm/WideHalt.lean
     ∃ W k, directWidth ≤ W ∧ W % 2 = 0 ∧ (∀ d, (cleanTreeG directWidth d).cutMem [(W : Int) / 2, 0] = true) ∧
@@ -498,7 +506,10 @@ start it names is a member of none of the eight families of `open_halt_families`
 `reentry_open_halt`. `blank_halt_open_far` (`thm/FarHalt.lean`) is `blank_halt_open_wide` with the tree whose loop
 entries have their middle wall far from the end (`cleanTreeGF`): the pass start a halt needs has 15W₁ ≤ 64(W₁ − b)
 (below, "The middle wall is far from the end"); `blank_halt_open_far_kernel` and `never_halts_of_far` are as for the
-wide shape.
+wide shape. `blank_halt_open_big` (`thm/BigEndHalt.lean`) is `blank_halt_open_far` with the tree whose far loop
+entries also end at no right end below 769 (`cleanTreeGB`): the pass start a halt needs has R ≥ 769 as well (below,
+"The chain ends at a right end of at least 769"), and `never_halts_of_big` leaves only those pass starts to rule out;
+there is no kernel-only version.
 
 ## The pieces
 
@@ -536,7 +547,10 @@ wide shape.
 | `thm/CleanWideTheorem.lean`, `thm/CleanWideMass.lean` | `clean_tree_wide_step`: as `clean_tree_small_step`, with `cleanTreeGW Γ d` and entries that also satisfy `EntryWide`; `clean_tree_wide_cut_mass`: at 36 digits over the widths ≥ 2⁴¹ the same counts as `cleanTreeGS` | the proved explorer, nothing evaluated; the counts by `exploreMassWE` and `native_decide`, used by no theorem about the machine |
 | `thm/CleanFarTheorem.lean`, `thm/CleanFarMass.lean` | `clean_tree_far_step`: the same with `cleanTreeGF Γ d` and entries that satisfy `EntryFar`; `clean_tree_far_cut_mass`: again the counts of `cleanTreeGS` | as for the wide entries |
 | `thm/WideHalt.lean` | `step_wide`, `LoopChain.wide_end`: from a pass start with W ≤ 64R + 6 and, if W ≡ 2 (mod 4), W ≤ 32R, every pass start of the loop's chain has W ≤ 64R + 6 or 15W ≤ 64(W − b) (`WideShape`), so W ≤ 32(W − b + 2R) + 6 (`wideShape_bound`; on a lane W − b + 2R + 22 = 2^m, W ≤ 2^(m+5) + 6, `wideShape_pow2`); `entry_wide_halt`; `blank_halt_open_wide`, `blank_halt_open_wide_kernel`, `never_halts_of_wide`: `blank_halt_open_small` and the open question with the shape at the pass start; `openHaltFams_wide`, `reentryFams_wide`: the eight families have the shape only below width 58,502, the 21 at larger scales only below 2³⁵; `blank_halt_not_family`: the run from blank tape halts through none of them | the steps' maps (`StepMap`) and the gaps by `omega`, the families' R and W − b by `decide`; `blank_halt_open_of` with `clean_tree_wide_step` (or `clean_wide_step_kernel`) and `entry_wide_halt`; nothing evaluated |
+| `BB6/BigEnd.lean` | `NoEndBelow N`, `endOK N`, `endOK_sound`, `endCert N`: `NoSmallAt`, `smallOK` and `smallCert` for the right ends below N; `EntryBigEnd N`, `bigEntryOK N`, `bigEntryOK_sound`: `EntryNoSmall` and its check with N for 178 and a width of at least 2⁴¹; `cleanBigOK N`: `cleanEntryOK`, `bigEntryOK N` and `farEntryOK` | proved, standard axioms |
+| `thm/CleanBigTheorem.lean`, `thm/CleanBigMass.lean` | `clean_tree_big_step`: as `clean_tree_far_step`, with `cleanTreeGB Γ d` and entries that satisfy `EntryBigEnd 769` for `EntryNoSmall`; `clean_tree_big_cut_mass`: again the counts of `cleanTreeGS` | as for the wide entries |
 | `thm/FarHalt.lean` | `step_far`, `LoopChain.far_end`: a full pass and a round-7 break land with 15W′ ≤ 64(W′ − b′), a half pass when 15E + 26 ≤ 32(E − b + R), so from a pass start with 15W ≤ 64(W − b) and that every pass start of the chain has 15W ≤ 64(W − b) (`FarShape`; on a lane W − b + 2R + 22 = 2^m, 15W + 128R + 1,408 ≤ 2^(m+6), `farShape_pow2`); `entry_far_halt`; `blank_halt_open_far`, `blank_halt_open_far_kernel`, `never_halts_of_far`: `blank_halt_open_wide` and the open question with that shape | as for `thm/WideHalt.lean` |
+| `thm/BigEndHalt.lean` | `noEnd_full`, `noEnd_end`, `break7_noEnd769`, `LoopChain.big_end`: a full pass keeps `NoEndBelow N`, a round-7 break from a width of at least 2⁴¹ lands with it for N = 769, so from a start of width at least 2⁴¹ with `NoEndBelow 769` (and after its half pass) the chain ends at R ≥ 769; `entry_big_halt`; `blank_halt_open_big`, `never_halts_of_big`: `blank_halt_open_far` and the open question with R ≥ 769 too | as for `thm/WideHalt.lean` |
 | `thm/CleanEntryMass.lean`, `thm/CleanEntryKernelMass.lean` | `clean_tree_entry_cut_mass`, `clean_entry_kernel_cut_mass`: the leaf counts and measures of `cleanTreeGE 2⁴¹ 36` and `cleanTreeGE 2²⁴ 36` | `exploreMassWE`, `native_decide`; used by no theorem about the machine |
 | `BB6/MassPar.lean` | `massPrefix_eq`: the tally of `exploreMassWE` is that of the leaves above a split level plus the tallies of the nodes on it; `massPar_eq`: the same with the nodes' tallies computed as parallel tasks | proved, standard axioms |
 | `thm/CleanEntryMass40.lean`, `thm/CleanEntryMass44.lean` | `clean_tree_entry_cut_mass40`, `clean_tree_entry_cut_mass44`: the leaf counts and measures of `cleanTreeGE 2⁴¹ 40` and `cleanTreeGE 2⁴¹ 44` | `massPar` (`massPar_eq`), `native_decide`; used by no theorem about the machine |
@@ -886,14 +900,70 @@ the least R′³/L₁′² is at a corner (`../runs/reentry.py sigma`, over ever
 
 With the far shape no lane of any route reaches its end's bound, and those of A, A2 and C stay above 177³/9 too: a pass
 start a halt from blank tape needs is on none of these routes. It rests on the routes' forms, which are observed on the
-model, not proved, and it covers these eight routes only. A census for R from 200 to 262 (W − b ≤ 4,096, running)
-finds more. Most of its classes reach a three-wall start P′ and go on to a class of `pass_class_halt`, as here, and
-need their forms checked the same way; but at R = 230 four classes (W − b = 1,570 three times and 3,618 once) reach no
-three-wall round start after round 0 and close by the halving alone, and two (W − b = 738) land at round 13 in the
-R = 6 class (`thm/PassHaltR6.lean`), so R′³/L₁′² says nothing about them. A census class keeps R and D = W − b fixed,
-and the far shape holds on it only up to width 64D/15, so no class by itself holds a pass start that a halt from blank
-tape needs (those are wider than 2⁴¹); what counts is whether a route's classes recur at every scale, as the lanes of
-A to C4 do.
+model, not proved, and it covers these eight routes only. A census for R from 200 to 262 (W − b ≤ 4,096) finds more.
+Most of its classes reach a three-wall start P′ and go on to a class of `pass_class_halt`, as here, and need their forms
+checked the same way; but at R = 230 four classes (W − b = 1,570 three times and 3,618 once) reach no three-wall round
+start after round 0 and close by the halving alone, and two (W − b = 738) land at round 13 in the R = 6 class
+(`thm/PassHaltR6.lean`), so R′³/L₁′² says nothing about them. A census class keeps R and D = W − b fixed, and the far
+shape holds on it only up to width 64D/15, so no class by itself holds a pass start that a halt from blank tape needs
+(those are wider than 2⁴¹); what counts is whether a route's classes recur at every scale, as the lanes of A to C4 do.
+All of these have R below 769, which the next section puts out of reach in Lean.
+
+## The chain ends at a right end of at least 769
+
+`LoopChain.small_end` (above, "No small right end past the loop") needs 178 only for the round-7 break. A run of full
+passes from a loop entry is checked to end at no right end below 178 on each entry class (`smallOK`), and a round-7
+break from a width of 2³⁷ lands with R′³/L₁′² ≥ (3E + 5R)/527,023 > 177³/9. From a width of 2⁴¹ the break lands higher.
+It lands with 32R′ > S = 3E + 5R ≥ 3 · 2⁴¹ and 0 < 96L₁′ < 385 · 32R′, and to end at a right end r after p full passes
+it needs R′ = 16^p · r and L₁′ = 64^p · ℓ with ℓ ≡ 3 (mod 7), so ℓ ≥ 3. For p ≤ 7 and r ≤ 768 that makes
+32R′ ≤ 2³³ · 768 = 3 · 2⁴¹, too small; for p ≥ 8 it needs 96 · 4^p · ℓ < 12,320 · r, while the left side is at least
+96 · 4⁸ · 3 = 18,874,368. So no run of full passes after a round-7 break from 2⁴¹ ends below 769 (`break7_noEnd769`,
+`thm/BigEndHalt.lean`). R′³/L₁′² ≥ S/527,023 folds the two bounds into one and gives only 483; past 768 a break can end
+after p = 7 full passes, but only from a width E < 2⁴¹ · r/768, and after p = 8 at r ≥ 1,533. The rest takes any bound
+N: `NoEndBelow N`, `endOK N` and `bigEntryOK N` (`BB6/BigEnd.lean`) are `NoSmallAt`, `smallOK` and `smallEntryOK` with N
+for 178, P past the linear bounds for right ends up to N − 1, and a width of at least 2⁴¹. A loop entry is far above
+these right ends (R > W/29.02 at 36 digits, so R > 7.5 × 10¹⁰), so ending below 769 takes at least seven exact full
+passes, R = 16^p · r and L₁ = 64^p · ℓ with p ≥ 7, and on a class of one coordinate R = 16^p · r fixes the point. Every
+one of the 28,660 loop entries at 36 digits passes `bigEntryOK 769` (`cleanTreeGB`, `thm/CleanBigTheorem.lean`, has the
+counts of `cleanTreeGS`, `thm/CleanBigMass.lean`), and an untrusted run of the same arithmetic finds no point of any
+entry class that ends at a right end from 178 to 5,000, after a half pass or not (`../runs/chain_end.py`). So the
+chain's last pass start has
+
+    R ≥ 769 and 15W ≤ 64(W − b)      (`LoopChain.big_end`, `entry_big_halt`, `blank_halt_open_big`),
+
+and what is left of the second question is the pass starts with both (`never_halts_of_big`). Every halting class with R
+below 769 is out of reach, whatever its route, and with it every class of the census at R from 178 to 262, at 294 and at
+486: the eight routes of the last section, the classes at R = 230 that close with no pass start after round 0, those
+that land straight in the R = 2, 4 or 6 classes, and at R = 486 those on the lanes of routes C and C4 and the class with
+W − b = 2,466 that lands at round 17 in the R = 4 class; and so are the families that the kernel proves halting and open
+at every depth with R = 182 (`reentry6_open_halt`), R = 230 (`no_pass_open_halt`) and R = 486 (`lane486_open_halt`).
+
+The class with W − b = 2,466 is the first of a lane that does not stop. The halting-classes census
+(`routes/lanes_r294_486.json` and `routes/lanes_delta_eps.txt` in the project files) finds two lanes that close at every
+right end tried with R ≡ 486 (mod 512) (δ) and R ≡ 486 (mod 1,024) (ε), from 486 to 4,582, and at every scale
+Q + 636 = 2^j from the first with W − b ≥ R + 449 up to j = 30, with W − b = 2^j − 1,630 − 2(R − 486) and one class of b
+at each R and j (for δ at R = 486, modulo 2¹⁶ at j = 12 and 2⁴⁴ at j = 30). Both re-enter the loop deep, with
+W ≡ 2 (mod 4) at R′ = 2^(j−10) (δ, round 17) or 2^(j−8) (ε, round 13), and go on by a half pass and full passes to the
+close, so R′³/L₁′² there is only about W/1.6 × 10¹² (δ) and W/2.3 × 10¹² (ε) at the edge of the far shape, too small to
+exclude them below a width of about 2⁴⁷ (untrusted; their forms are observed on the model at three scales). The far
+shape does not separate them either: full passes take W − b to about 15W/63 and L₁ = 35W − 147(W − b) + 392R − 186 near
+0, which on these lanes is at W ≈ 4.2 · 2^j. Since they recur at right ends past every bound, no bound on R reaches
+them.
+
+Nor, by an untrusted count, does the chain from a loop entry (`../runs/chain_lanes.py`). From an entry class the chain
+makes a half pass first or not, then full passes and round-7 breaks, and each step's map divides by a power of two;
+taking every step on the subclass where its divisions are exact gives a tree that holds every chain and more. Cut where
+a subclass's least member is wider than 2⁶³, it has 42,255 classes of one coordinate, none more than five steps from its
+entry (the blank-tape run to 2⁴² has no chain with more than three landings, untrusted). On each class
+Q = W − b + 2R + 22 is affine with a large step, so a lane Q + c = 2^j holds at one member at most for each j, and no
+member of any class meets a census lane at any j up to 64: not Q = 2^j or 3 · 2^j (routes A, C, β), Q + 36 = 2^j or
+3 · 2^j (C3, C4, α), Q + 636 = 2^j (δ, ε), 3Q + 76 = 2^j (A3, C2) or 2Q − R + 6 = 2^j or 3 · 2^j (A2). Other small
+offsets are met (the least are Q − 42 = 2^j and Q + 146 = 3 · 2^j), so this is a count, not a congruence. δ and ε need a
+width well below 2⁶³ (R′³/L₁′² rules them out past about 2⁴⁷ by the halting-classes estimate, and past 2⁵³ even with the
+bound r³/16 of a close at r ≤ 32), so if their forms hold and the count is right, the run from blank tape reaches
+neither lane. A proof needs that tree in Lean, and on the halting side every halting class at every R, not a census.
+There is no kernel-only version of `blank_halt_open_big`: its clean-tape tree starts at 2³⁷, where a round-7 break
+clears only 383.
 
 ## Deeper trees: the open classes keep their number
 
@@ -969,7 +1039,8 @@ nothing is evaluated for it either. `blank_halt_open_small`, `blank_halt_open_sm
 the same as `blank_halt_small` and `blank_halt_small_kernel`. `blank_halt_open_wide`, `never_halts_of_wide` and
 `blank_halt_not_family`, and `blank_halt_open_wide_kernel`: the same as these; the wide check is part of the explorer's
 entry test (`cleanWideOK`), and the shape follows from the steps' maps by `omega`. `blank_halt_open_far`,
-`never_halts_of_far` and `blank_halt_open_far_kernel`: the same, with `cleanFarOK`.
+`never_halts_of_far` and `blank_halt_open_far_kernel`: the same, with `cleanFarOK`. `blank_halt_open_big` and
+`never_halts_of_big`: the same, with `cleanBigOK`.
 
 `blank_halt_clean_kernel`, `blank_halt_structure_kernel` and `never_halts_of_cut_classes_kernel`: Lean's kernel
 alone (`#print axioms` lists `propext`, `Classical.choice` and `Quot.sound`, nothing else). The prefix to 2³² cannot be
@@ -1005,8 +1076,10 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   (`full_pass_open_halt`). The pass start a halt from blank tape needs has W ≤ 64R + 6 or 15W ≤ 64(W − b)
   (`blank_halt_open_wide`), so it is a member of none of these 29 families (`blank_halt_not_family`), and it has
   15W ≤ 64(W − b) (`blank_halt_open_far`), which keeps it off the eight routes of the halting classes with R = 178 to
-  198 (untrusted; classes with larger R take other routes, some with no pass start after the first); whether the run
-  reaches a pass start of that shape that halts is open.
+  198 (untrusted), and R ≥ 769 (`blank_halt_open_big`), which keeps it out of every halting class with a smaller right
+  end, whatever its route; whether the run reaches a pass start with R ≥ 769 and that shape that halts is open (two
+  lanes of halting classes recur at every R ≡ 486, mod 512 or 1,024, from 998 on; an untrusted count of the chain's
+  pass starts to 2⁶³, `../runs/chain_lanes.py`, meets neither of them nor any other census lane).
 * The **two-marker route trees** (`ROUTE_TREE.md`) are not used by the theorems above: the machine's run reaches
   two-marker states with a small first gap again and again ("Why a one-variable tree", above). `blank_halt_route`
   (`thm/RouteEntryHalt.lean`) states what they give for a halting run from blank tape, at each two-marker state with
@@ -1029,6 +1102,10 @@ LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run 
 # the loop entries of the clean-tape tree with the small-end check, as forms in the class's coordinate (optional,
 # after check_end.sh; Γ, d):
 LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run EntryForms.lean 2199023255552 36
+# and from those entries (saved to entries36.txt), whether a run of full passes ends at a right end from 178 to
+# 5,000 (untrusted):
+python3 ../runs/chain_end.py entries36.txt 178 5000
+python3 ../runs/chain_lanes.py entries36.txt 63 2000
 # the loop entries followed in the clean tape's coordinate (optional, after check_end.sh; Γ, d, e splits, landings):
 LEAN_PATH=/path/to/lib/lean:out lean --load-dynlib=cbuild/so/libBB6all.so --run ReachStats.lean 2199023255552 28 12 4
 # whether deeper trees close the cut classes at b digits (optional, after check_end.sh; b, r more splits, Γ):
@@ -1051,11 +1128,12 @@ python3 thm/gen_prefix.py checkpoints.txt thm 8
 | `thm/PrefixKernel.lean`, `EndgameTheorem.lean`, `ExitTheorem.lean`, `ExitHalt.lean`, `LoopTheorem.lean`, `LoopHalt.lean`, `PassHalt.lean`, `PassHaltR6.lean`, `PassHaltClasses.lean` | seconds |
 | `thm/PassOpenHalt.lean` (the families' model runs by the kernel) | 2 min 19 s beside the other theorem files |
 | `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 20 s |
-| `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean`, `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean`, `thm/CleanEntryTheorem.lean`, `thm/CleanEntryHalt.lean`, `thm/PassEntryHalt.lean`, `thm/CleanSmallTheorem.lean`, `thm/SmallEndHalt.lean`, `thm/OpenSmallHalt.lean`, `thm/CleanWideTheorem.lean`, `thm/WideHalt.lean`, `thm/CleanFarTheorem.lean`, `thm/FarHalt.lean` | seconds |
+| `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean`, `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean`, `thm/CleanEntryTheorem.lean`, `thm/CleanEntryHalt.lean`, `thm/PassEntryHalt.lean`, `thm/CleanSmallTheorem.lean`, `thm/SmallEndHalt.lean`, `thm/OpenSmallHalt.lean`, `thm/CleanWideTheorem.lean`, `thm/WideHalt.lean`, `thm/CleanFarTheorem.lean`, `thm/FarHalt.lean`, `thm/CleanBigTheorem.lean`, `thm/BigEndHalt.lean` | seconds |
 | `thm/CleanEntryMass.lean` (36 digits, cone 2⁴¹, with loop entries) | 5 min 1 s |
 | `thm/CleanSmallMass.lean` (36 digits, cone 2⁴¹, with loop entries and the small-end check) | about 5 min 30 s (2 min 26 s on a machine where `CleanEntryMass` takes 2 min 11 s) |
 | `thm/CleanWideMass.lean` (36 digits, cone 2⁴¹, with loop entries, the small-end check and W ≤ 32R) | 3 min 41 s alone |
 | `thm/CleanFarMass.lean` (the same with 15W ≤ 64(W − b) and 15W + 26 ≤ 32(W − b + R) for W ≤ 32R) | 3 min 39 s beside the other mass files |
+| `thm/CleanBigMass.lean` (36 digits, cone 2⁴¹, with loop entries, the far test and no end below 769) | 5 min 36 s beside the other mass files |
 | `thm/CleanEntryKernelMass.lean` (36 digits, cone 2²⁴, with loop entries) | 5 min 6 s |
 | `thm/CleanMass.lean` (36 digits, 3.2 million leaves) | 4 min 46 s |
 | `thm/CleanKernelMass.lean` (36 digits, cone 2²⁰) | 5 min 27 s |
@@ -1065,6 +1143,6 @@ python3 thm/gen_prefix.py checkpoints.txt thm 8
 | `thm/CleanEntryMass40.lean` (40 digits, cone 2⁴¹, with loop entries, `massPar` on 4 cores, `--deep`) | 6 min 38 s alone (24 min of CPU), 14 min 54 s beside the other `--deep` files |
 | `thm/CleanEntryMass44.lean` (44 digits, the same, `--deeper`) | 58 min 51 s beside the `--deep` files (2 h 2 min of CPU) |
 
-The whole of `check_end.sh --deep` took 38 min 51 s (4 cores; the files of a stage run in parallel, and the two
-40-digit measures, side by side, set the time); without `--deep` it took 22 min 6 s when last measured (October 27,
-evening). `check_end.sh --deep --deeper` took 71 min 19 s, the 44-digit measure setting the time.
+The whole of `check_end.sh --deep` took 38 min 51 s (4 cores; the files of a stage run in parallel, and the two 40-digit
+measures, side by side, set the time); without `--deep` it took 24 min 22 s when last measured (October 28).
+`check_end.sh --deep --deeper` took 71 min 19 s, the 44-digit measure setting the time.

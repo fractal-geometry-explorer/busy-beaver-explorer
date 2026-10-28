@@ -92,8 +92,17 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    `lean/thm/FarHalt.lean`), and with that none of the eight routes by which the 72 halting classes of a census
    (R = 178 to 198, W − b ≤ 8,192) close can start from it past 2⁴¹ (untrusted, `runs/reentry.py sigma`). A census at
    R = 200 to 262 finds more routes, among them classes at R = 230 that close with no pass start after the first,
-   which R′³/L₁′² does not reach. What is left of the second question is the pass starts of that shape
-   (`never_halts_of_far`) on the other routes.
+   which R′³/L₁′² does not reach. But the chain's last pass start also has R ≥ 769 (`blank_halt_open_big`,
+   `lean/thm/BigEndHalt.lean`: the small-end check raised to 769 at the loop entries, which all pass, and a round-7
+   break past 2⁴¹ ends at no right end up to 768), so every halting class with R below 769 is out of reach, whatever its
+   route, among them the R = 182 families of `reentry6_open_halt` and all those of the census at R = 486. What is left
+   of the second question is the pass starts with R ≥ 769 and that shape (`never_halts_of_big`). The census has two
+   lanes of halting classes there that recur at every R ≡ 486 (mod 512 or 1,024) and every scale Q + 636 = 2^j
+   (`lanes_delta_eps.txt` in the halting-classes project files); their re-entry into the loop is deep enough that
+   R′³/L₁′² does not exclude them below about 2⁴⁷. But an untrusted count of every pass start of the chain from the
+   36-digit loop entries up to width 2⁶³ (`runs/chain_lanes.py`: 42,255 classes of one coordinate, at most five steps
+   from the entry) meets none of the census lanes, δ and ε included, so the next step is that count in Lean and, on the
+   halting side, the halting classes at every R.
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
