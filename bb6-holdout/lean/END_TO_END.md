@@ -299,6 +299,24 @@ close through the loop makes no round-7 break: the chain to it is p full passes 
 half pass from W ≡ 2 (mod 4) and then p full passes (R = 2·16^p·R₁, 2·64^p·L₁′ = L₁ + 35W − 147R − 60)
 (`LoopChain.close_wide`, `loop_halt_wide`, `blank_halt_wide`).
 
+**An end meeting at distance 2 is not a close** (October 28). The endgame trees stop at every end meeting at a constant
+distance ≤ 2 and show L₁ in a class there, so `closeClasses` are the classes of those meetings. In every closing class
+with R ≥ 4 the meeting is at distance 2, and the halving chain puts the next one at distance 0, the close (`EndClose0`);
+when the next one is anywhere else, the run has left the chain. `Tree.okEndC` (`BB6/EndgameClose.lean`) checks a tree
+that runs on past such meetings, provided the leaf's run then ends where it has left phase 0 or the halving chain, at a
+round start that is not three walls, so that no step of the chain follows. `ExploreNC close` builds one for each of
+R = 8, 16, 24, 32, 64 and 176 (121 leaves, checked by the kernel in `thm/EndgameClosePieces*.lean`). Their close leaves
+are end meetings at distance 0, with L₁ ≡ 0 mod 32 for R = 8, mod 64 for R = 16 and mod 128 for R = 32: the classes of
+`HaltClass` at W ≡ 0 (mod 4). R = 24, 64 and 176 have none: every distance-2 meeting there is followed by one off the
+chain. So a close from a pass start needs R in {2, 4, 8, 16, 32, 48} and L₁ in R's class of `closeClassC`
+(`endgame_stretch_close`). R = 2, 4 and 48 keep their classes; R = 4 keeps L₁ even because after one of its distance-2
+meetings the run is back at three walls two rounds later, as at a half pass, which `Tree.okEndC` does not accept.
+`thm/LoopClose.lean` restates the chain with these classes, at the price of end meetings at distance ≥ 2 (not 3) in the
+chain's last stretch (`loop_chain_halt_close`). With L₁ ≡ 3 (mod 7) a close now has R³/L₁² ≤ 4, reached at R = 4 with
+|L₁| = 4 (`sigma_closeC`), so log₂W ≤ σ + 2 at the start of the chain's last run of full passes
+(`loop_halt_sigma_close`), and a round-7 landing within that bound needs a width below 2²⁰ (`break7_sigmaC`):
+`loop_halt_wide_close` and `loop_halt_leaves_close` hold from width 2²⁰.
+
 **From a pass start to the next checkpoint** (October 27). Where the loop's chain ends, `loop_chain_halt` only says
 that a stuck configuration follows. The pass-start trees (`BB6/PassTree.lean`) follow the run on, round by round, to
 the next *checkpoint*: a landing of the chain reached with every end meeting on the way at distance at least 3 (a step
@@ -369,7 +387,8 @@ splits the halting leaves are eight classes, by residues of the middle wall b an
 start with R = 2; with R = 4, those with W ≡ 0 (mod 4) and b ≡ 6 (mod 8) or W ≡ 2 (mod 4) and b ≡ 0 (mod 4) (3/8);
 with R = 6, the eighth of `pass_r6_halt`; and with W ≡ 0 (mod 4), those with R = 8 and b ≡ 30 (mod 32), R = 16 and
 b ≡ 30 (mod 64), R = 32 and b ≡ 30 + 16W (mod 128), and R = 48 and b ≡ 158 + 48W (mod 256) (1/32, 1/64, 1/128 and
-1/256). No other R < 178 has one, though 24, 64 and 176 are in the closing set. Apart from R = 6's, they are exactly
+1/256). No other R < 178 has one, though 24, 64 and 176 are in the closing set (only through end meetings at distance 2,
+which are not closes: above). Apart from R = 6's, they are exactly
 the close leaves: every close leaf of the pass-start trees halts. `pass_class_halt` proves that each class halts (the
 close run on each class, evaluated by the kernel, about two seconds for all eight), and `chain_class_halt` that a pass
 start whose loop chain reaches one halts. In 600,000 random pass starts with R < 178 (widths 2¹² to 2³⁰), the model's
@@ -523,6 +542,7 @@ there is no kernel-only version.
 | `thm/EndgameTheorem.lean`, `thm/LoopTheorem.lean` | `endgame_stretch`: from a phase-0 pass start with gaps ≥ 448, a close needs R in the closing set and L₁ in R's class, and otherwise the run is close-free to an end event: a round start that is not three walls after it leaves phase 0 or breaks the chain, or a landing (a full pass, a half pass or a round-7 break, with its exact map on E, R and L₁); `loop_step`, `LoopChain`: the chain of these steps through pass starts with gaps ≥ 448; `LoopChain.sigma`: a chain that ends in a closing class has R³/L₁² ≤ 176³/256² at the start of its last run of full passes; `break7_sigma`, `LoopChain.close_wide`: from a width ≥ 2²⁴ it makes no round-7 break | the endgame trees checked by the kernel (`Tree.okEnd`, `decide +kernel`); the closing classes with L₁ ≡ 3 mod 7 |
 | `thm/ExitTheorem.lean` | `exit_stretch`: from a loop state with gaps ≥ 390, the run is close-free to an exit event (`ExitEvent`) | the exit tree checked by the kernel (`Tree.okEnd`, `decide +kernel`) |
 | `thm/LoopHalt.lean`, `thm/ExitHalt.lean` | `loop_chain_halt`: a halt from a phase-0 pass start with gaps ≥ 448 needs a stuck configuration after the loop's chain from it; `exit_halt_needs_contact`: one from a loop state, after the certified exit stretch; `loop_halt_sigma`: beyond the σ bound, a close needs a half pass or a round-7 break on the way; `loop_halt_wide`: from a width ≥ 2²⁴, no round-7 break; `loop_halt_leaves`: and the chain ends where the run leaves three walls | `loop_step` and `halt_after_rounds`, by induction on the halting time (each step takes at least one machine step: `passStart_ne`); `exit_stretch` |
+| `BB6/EndgameClose.lean`, `thm/EndgameCloseTheorem.lean`, `thm/LoopClose.lean` | `Tree.okEndC` / `Tree.soundEndC`: an endgame tree check that passes end meetings at distance 2 where the run then leaves phase 0 or the halving chain at a round start that is not three walls (`EndEventC`); `endgame_stretch_close`: a close needs R in {2, 4, 8, 16, 32, 48} and L₁ in R's class of `closeClassC`; `loop_chain_halt_close`, `loop_halt_sigma_close` (R³/L₁² ≤ 4), `loop_halt_wide_close` and `loop_halt_leaves_close` (from width 2²⁰): `loop_chain_halt` and its consequences with these classes, with the last stretch's end meetings at distance ≥ 2 | the trees for R = 8, 16, 24, 32, 64 and 176 (`ExploreNC close`) checked by the kernel, `endgame_stretch` for every other R; `sigma_closeC`, `break7_sigmaC` |
 | `BB6/PassTree.lean`, `thm/PassHalt.lean` | `PTree.sound`: a pass-start tree's check gives, at every point of its class, a cut leaf, the left countdown in the closing class, or a halt-free run to a close-free landing of the chain or a wider clean tape; `PTree.explore_ok`: every tree the explorer builds passes the check (it cleaves a class where the cone's edge leaves a round undecided); `pass_next`: from every pass start with gaps ≥ 448, at every depth; `pass_halt_chain`: a halt from a pass start of width ≥ 2¹³ follows the chain to a last pass start in a closing class, or cut at every depth, or goes on to a wider clean tape | the proved explorer, nothing evaluated; induction on the halting time through `landing_wide` and `halt_after_rounds` |
 | `BB6/BlockHalt.lean`, `thm/PassHaltR6.lean` | `block_end_halt'`: from a round start whose only mark is a block three cells before an odd width W ≥ 9, the machine halts within W + 65 steps; `pass_r6_halt`: every phase-0 pass start with R = 6, b ≡ 2 (mod 8), W ≡ 2 (mod 4) and gaps ≥ 448 halts | `pass` and 72 steps by `rfl`; the six rounds on the class by `symRoundsZ`, `decide +kernel` |
 | `BB6/CloseHalt.lean`, `BB6/HaltTree.lean`, `thm/PassHaltClasses.lean` | `reach_close_halt`: a close at the right end with the end marker at distance 0 (`EndClose0`) that the model reaches from a well-formed start is a halt; `halt_iff_end_close`: where no interior contact is reachable and every such close is of this kind, the machine halts exactly when the model reaches one; `closeRun_sound`, `symCloseRun_halt`: the close run proves halts, of a start and of a class; `pass_halt_leaf`: every pass start in a halting leaf of a pass-start tree halts, at every depth; `pass_class_halt`: every pass start in a halting class (`HaltClass`: R = 2, 3/8 of R = 4, 1/8 of R = 6, 1/32, 1/64, 1/128 and 1/256 of R = 8, 16, 32 and 48) halts; `chain_class_halt`: so does every pass start whose loop chain reaches one | the model's events as runs of the machine (`gapEvent_ok`, `pktBack_run`, `pktLand_run`) and the close's 54 steps by `rfl`; `HTree.sound` and `HTree.ofPTree_ok`, nothing evaluated; the close run on each class by `decide +kernel` |

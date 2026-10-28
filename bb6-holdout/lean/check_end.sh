@@ -3,17 +3,20 @@
 #   1. the proved modules BB6/RouteTree.lean, BB6/CleanTree.lean, BB6/RouteExplore.lean, BB6/CleanRange.lean,
 #      BB6/RouteEntry.lean, BB6/EntryTree.lean, BB6/CleanEntryTree.lean, BB6/SmallEnd.lean, BB6/WideEntry.lean,
 #      BB6/BigEnd.lean and BB6/MassPar.lean (seconds);
-#   2. the exit and endgame trees and the run from blank tape to width 2^20, evaluated by Lean's kernel
-#      (`decide +kernel`; no compiler is trusted): the generated modules thm/ExitPieces*.lean and
-#      thm/EndgamePieces*.lean hold one theorem per subtree, thm/PrefixPieces*.lean one per stretch of 5,000 rounds;
-#      they compile in parallel (JOBS at a time, default 4; about 1 GB of memory each), and thm/ExitTheorem.lean,
-#      thm/EndgameTheorem.lean and thm/PrefixKernel.lean assemble them;
+#   2. the exit and endgame trees, the endgame trees that pass end meetings at distance 2, and the run from blank
+#      tape to width 2^20, evaluated by Lean's kernel (`decide +kernel`; no compiler is trusted): the generated
+#      modules thm/ExitPieces*.lean, thm/EndgamePieces*.lean and thm/EndgameClosePieces*.lean hold one theorem per
+#      subtree, thm/PrefixPieces*.lean one per stretch of 5,000 rounds; they compile in parallel (JOBS at a time,
+#      default 4; about 1 GB of memory each), and thm/ExitTheorem.lean, thm/EndgameTheorem.lean,
+#      thm/EndgameCloseTheorem.lean and thm/PrefixKernel.lean assemble them;
 #   3. the BB6 modules compiled to a shared library (lean -c, leanc), loaded with --load-dynlib so that native_decide
 #      runs the evaluated checks as native code (this adds the C compiler to the trusted base; without it the prefix
 #      alone takes about an hour in Lean's interpreter);
 #   4. the theorem files, in stages whose files are independent and compile JOBS at a time: the kernel-checked run to
 #      width 2^20 (thm/PrefixKernel.lean), the loop through its passes (thm/LoopTheorem.lean), the halts after the
-#      exit and the loop, the pass-start trees from a pass start to the next landing or clean tape at every depth
+#      exit and the loop, the loop's chain with end meetings at distance 2 passed, which closes only from R = 2, 4, 8,
+#      16, 32 and 48 (thm/LoopClose.lean, nothing evaluated), the pass-start trees from a pass start to the next
+#      landing or clean tape at every depth
 #      (thm/PassHalt.lean, the proved explorer of BB6/PassTree.lean, nothing evaluated), the eighth of the pass starts
 #      with R = 6 that halt (thm/PassHaltR6.lean, six rounds on the class evaluated by the kernel), the eight classes
 #      of pass starts that the mark model takes to a close at distance 0, each a halt (thm/PassHaltClasses.lean, the
@@ -69,9 +72,11 @@ for f in RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanE
   MassPar; do
   echo "== BB6/$f.lean"; $LEAN BB6/$f.lean -o out/BB6/$f.olean
 done
-for f in ExitStart EndgameStart PrefixBase; do echo "== thm/$f.lean"; $LEAN thm/$f.lean -o out/$f.olean; done
-PIECES=$(cd thm && ls PrefixPieces*.lean ExitPieces*.lean EndgamePieces*.lean | sed 's/\.lean$//')
-echo "== thm/PrefixPieces*.lean, thm/ExitPieces*.lean, thm/EndgamePieces*.lean (kernel, $JOBS at a time)"
+for f in ExitStart EndgameStart EndgameCloseStart PrefixBase; do
+  echo "== thm/$f.lean"; $LEAN thm/$f.lean -o out/$f.olean
+done
+PIECES=$(cd thm && ls PrefixPieces*.lean ExitPieces*.lean Endgame*Pieces*.lean | sed 's/\.lean$//')
+echo "== thm/PrefixPieces*.lean, thm/ExitPieces*.lean, thm/Endgame*Pieces*.lean (kernel, $JOBS at a time)"
 start=$(date +%s)
 printf '%s\n' $PIECES | xargs -P "$JOBS" -I{} "$LEAN" thm/{}.lean -o out/{}.olean
 echo "   $(( $(date +%s) - start )) s"
@@ -115,9 +120,9 @@ DEEPMASS=""
 [ -n "$DEEP" ] && DEEPMASS="CleanMass40 CleanDirectMass40 CleanEntryMass40"
 [ -n "$DEEPER" ] && DEEPMASS="$DEEPMASS CleanEntryMass44"
 stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass CleanEntryMass CleanEntryKernelMass \
-  CleanSmallMass CleanWideMass CleanFarMass CleanBigMass ExitHalt LoopTheorem RouteEntryTheorem
+  CleanSmallMass CleanWideMass CleanFarMass CleanBigMass ExitHalt LoopTheorem RouteEntryTheorem EndgameCloseTheorem
 stage LoopHalt
-stage EndToEnd RouteEntryHalt PassHalt PassHaltR6
+stage EndToEnd RouteEntryHalt PassHalt PassHaltR6 LoopClose
 stage EndToEndDirect PassHaltClasses PassClean
 stage CleanEntryHalt PassOpenHalt
 stage PassEntryHalt LaneHalt
