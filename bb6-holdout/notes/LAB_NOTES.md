@@ -3111,10 +3111,13 @@ chain's last pass start, which the theorems leave to the pass-start tree. The on
 was marked (to width 2⁴³: 1,379 such pass starts and 20 failing both, all the others on later chains; an earlier version
 of this note said there was none), is a first entry: round 46 of n = 1,480,645,918,802, in a cycle that needs 47 digits,
 with a = 6,437,135,253, b = 2,568,965,956,546, W = 2,961,291,837,770 and R = 139,690,975,514, so (W − b)/W = 0.1325 and
-W/R = 21.2. It is its chain's only pass start, has W ≤ 64R + 6 and fails `EntryFar`, so no depth of `cleanTreeGF` or
-`cleanTreeGB` settles its clean tape's class. That makes it the open clean-tape case of `blank_halt_open_far` and
-`blank_halt_open_big`, not a counterexample; but the far shape belongs to the chains from the classes a tree settles,
-not to every first entry's.
+W/R = 21.2. It is its chain's only pass start, has W ≤ 64R + 6 and fails `EntryFar`. That is no exception to the
+theorems: the clean-tape tree makes an entry leaf only at a round start that passes its check and otherwise follows the
+run on (`RTree.exploreWE`), here to the next clean tape, n = 1,480,645,918,895, so at enough depth the class ends in a
+clean leaf, not an entry leaf (the exhaustive check's class tree, untrusted, settles it at 47 digits). The far shape is
+proved for the chain from the first round start that passes the check, which need not be a cycle's first entry; this
+cycle has none. (A first correction of this note said that no depth of `cleanTreeGF` settles the class, making it the
+open clean-tape case; that was wrong.)
 
 **The chain's last pass start has its middle wall far from the end, and the halting routes found so far need it
 nearer (October 27, night; `../lean/thm/FarHalt.lean`, `../runs/reentry.py`).** The wide shape of the last entry,

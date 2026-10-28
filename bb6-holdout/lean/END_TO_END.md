@@ -977,13 +977,12 @@ blank-tape run's sample of 1 in 16,384 cycles, of the 26,961 first entries after
 none of the 36-digit classes and 3 in none of the 40-digit ones, all late in their cycle (rounds 43 to 52) and in cycles
 that need 39 to 52 digits (`../runs/entry_member.py`, untrusted); the 430 later entries of a cycle lie in none, as they
 come after the first entry's chain has ended and belong to the run from its last pass start. The cut classes keep their
-number at every depth (next section), so no finite count covers every entry. And some clean tapes of the run are in a
-class that no depth settles: the first entry in round 46 of n = 1,480,645,918,802, in a cycle that needs 47 digits, has
-(W − b)/W = 0.1325 and W/R = 21.2 at W ≈ 2^41.4, so it fails `EntryFar`, and being its chain's only pass start, it is a
-last pass start without the far shape. No depth of `cleanTreeGB` settles that clean tape's class, so a halt through such
-a clean tape is the open clean-tape case of `blank_halt_open_big`, outside the pass-start analysis below (untrusted: the
-blank-tape run with every entry marked to width 2⁴³, where it is the only chain from a first entry without the far
-shape).
+number at every depth (next section), so no finite count covers every entry. Nor does every first entry pass the entry
+check: the first entry in round 46 of n = 1,480,645,918,802 (a cycle that needs 47 digits, W ≈ 2^41.4) has
+(W − b)/W = 0.1325, fails `EntryFar`, and is its chain's only pass start. The trees do not stop there: `RTree.exploreWE`
+makes an entry leaf only where the check passes and otherwise follows the run on, here to the next clean tape, so the
+theorems never take their pass start at such an entry (untrusted: the blank-tape run with every entry marked to width
+2⁴³, where it is the only chain from a first entry without the far shape).
 
 Most of the census routes need no count, though, and for those the entry does not matter (`../runs/lane_sigma.py`,
 untrusted). On a route's lane R′ is fixed by the lane value and L₁′ is affine in the start, so over the pass starts of a
