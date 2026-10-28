@@ -24,8 +24,8 @@ Q + 5 * 2^k - 4 = 2^j or 3 * 2^j for k = 3 to 11 (c = 36 to 10,236, gamma's Q + 
 before a half pass, Q + R + 24 + 2c; a lane with |c| > CMAX is checked at its own offset.
 
 usage: python3 chain_lanes.py entries36.txt 63 2000   (entries36.txt from `../lean/EntryForms.lean 2199023255552 36`;
-       likewise entries40.txt at 40 digits; 70 in place of 63 counts to width 2^70, past the widths at which
-       R'^3/L1'^2 leaves gamma's paths against their ends)
+       likewise entries40.txt at 40 digits; 72 in place of 63 counts to width 2^72, past the widths at which
+       R'^3/L1'^2 leaves gamma's paths)
 """
 import sys
 from collections import Counter
