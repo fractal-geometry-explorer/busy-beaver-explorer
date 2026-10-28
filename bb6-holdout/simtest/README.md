@@ -8,6 +8,7 @@ mark model, and compares them round by round:
 | oracle | `Oracle.lean`: `roundZ` from `../lean/BB6/Round.lean`, proved to follow the machine |
 | `endgame`, `exit`, `tree` | the round function of `../cert/check_*.py` (`pysim.py`) |
 | `nrefdfs2`, `lined`, `rtree3d`, `rtree3e`, `gx3` | the C engines in `../csearch/`, through `drv_q.c`, `drv_f.c`, `drv_gx.c` |
+| `br`, `brf` | the blank-tape run's engines `../blankrun/engine.h` and `fast.h`, through `drv_br.c`, `drv_brf.c` |
 | `stepper` | `../stepper/engine.js` (`stepper.js`) |
 | `machine` | the bare transition table (`stepper.js NR machine`) |
 
