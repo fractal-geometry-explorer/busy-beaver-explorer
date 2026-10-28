@@ -59,6 +59,18 @@ closes.)
 * `full_pass_open_halt6`: as `full_pass_open_halt`, a full pass of the loop's chain from a pass start with R = 3,552
   lands at width 29,404 on a pass start with R = 222 ≡ 6 (mod 8) (the class of the scale j = 11), open at every depth,
   from which the machine halts.
+* `no_pass_open_halt`: four families with R = 230 (W − b = 1,570 and 3,618) that halt, open at every depth, and whose
+  run meets no three-wall round start after the first (`symNoWWWRun`, round by round on the class): the end is met at
+  228, then at 510 or 1,022 off the loop's chain, and the meetings halve to the close through round starts with four
+  walls or with a marker or a block.  So no pass start lies between such a start and its halt.  (Untrusted: a census
+  of R = 230 with W − b up to 8,192 finds no others.)
+* `lane486_open_halt`: two lanes with R = 486, at each scale W − b = 2^(12+s) − 1,630 from s = 0 to 18
+  (Q = W − b + 2R + 22 = 2^(12+s) − 636; `lane486_shape`).  The run meets the end at 484 = R − 2, then off the chain
+  at Q/4 − 3 = 2^(10+s) − 162, whose chain runs 2^(9+s) − 82, ..., 2^(6+s) − 12, 2^(5+s) − 2, ..., 2, 0.  On the
+  first lane its first three-wall round start after the first is in round 17, with width ≡ 2 (mod 4) and right end
+  (Q + 636)/1,024; on the second in round 13, with right end (Q + 636)/256.  Each start's half pass begins full
+  passes to the close.  (Untrusted: the same lanes close at every R ≡ 486 (mod 512), resp. (mod 1,024), tried up to
+  4,582, with one class of b at each scale.)
 -/
 
 namespace BB6
@@ -440,6 +452,26 @@ def Fam.ok (F : Fam) : Bool :=
   symCloseRun F.start.2.2 448 closeFuel [] (YForm.const 1) F.start.1 F.start.2.1 &&
   symOpenRun2 F.start.2.2 448 F.forms F.N F.start.1 F.start.2.1
 
+/-- A member of a family, with its first wall at a and its second at b₀ + 2^k t, agrees with the family's class at
+y = [(a − 1)/2, t]. -/
+theorem Fam.ag {F : Fam} (hg : F.b0 + 448 + F.R0 + 1 ≤ F.W0) {a t : Nat} (ha : a % 2 = 1) (h1 : 448 ≤ a)
+    (h2 : a + 448 ≤ F.b0 + 2 ^ F.k * t) :
+    inCone F.start.2.2 448 [((a : Int) - 1) / 2, (t : Int)] ∧
+    agL [((a : Int) - 1) / 2, (t : Int)] F.start.1
+      [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩] ∧
+    agN [((a : Int) - 1) / 2, (t : Int)] F.start.2.1 (F.W0 + 2 ^ F.k * t) := by
+  have hXI : (2 : Int) ^ F.k * (t : Int) = ((2 ^ F.k * t : Nat) : Int) := by
+    rw [Int.natCast_mul, Int.natCast_pow]; rfl
+  refine ⟨?_, ?_, ?_⟩
+  · intro f hf
+    simp only [Fam.start, List.mem_cons, List.mem_nil_iff, or_false] at hf
+    rcases hf with rfl | rfl
+    · simp only [YForm.eval, dot]; omega
+    · simp only [eval_sub]; simp only [YForm.eval, dot]; rw [hXI]; omega
+  · refine ⟨⟨rfl, ?_⟩, ⟨rfl, ?_⟩, ⟨rfl, ?_⟩, trivial⟩ <;> simp only [agN, eval_addc] <;>
+      simp only [YForm.eval, dot] <;> (try rw [hXI]) <;> omega
+  · simp only [agN, Fam.start, YForm.eval, dot]; rw [hXI]; omega
+
 /-- **A family that passes the checks halts, open at every depth**, as `family_open_halt`: every member is a pass
 start with every gap at least 448 that lies in a cut leaf of `passTreeSym` at every depth, and the machine halts from
 it. -/
@@ -459,17 +491,7 @@ theorem Fam.open_halt {F : Fam} (hF : F.ok = true) {a t : Nat} (ha : a % 2 = 1) 
   have hXI : (2 : Int) ^ F.k * (t : Int) = ((2 ^ F.k * t : Nat) : Int) := by
     rw [Int.natCast_mul, Int.natCast_pow]; rfl
   let y : List Int := [((a : Int) - 1) / 2, (t : Int)]
-  have hy : inCone F.start.2.2 448 y := by
-    intro f hf
-    simp only [Fam.start, List.mem_cons, List.mem_nil_iff, or_false] at hf
-    rcases hf with rfl | rfl
-    · simp only [y, YForm.eval, dot]; omega
-    · simp only [eval_sub]; simp only [y, YForm.eval, dot]; rw [hXI]; omega
-  have hs : agL y F.start.1 [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩] := by
-    refine ⟨⟨rfl, ?_⟩, ⟨rfl, ?_⟩, ⟨rfl, ?_⟩, trivial⟩ <;> simp only [agN, eval_addc] <;>
-      simp only [y, YForm.eval, dot] <;> (try rw [hXI]) <;> omega
-  have hWa : agN y F.start.2.1 (F.W0 + 2 ^ F.k * t) := by
-    simp only [y, agN, Fam.start, YForm.eval, dot]; rw [hXI]; omega
+  obtain ⟨hy, hs, hWa⟩ := Fam.ag hg ha h1 h2
   have hP : PassStart448 [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩]
       (F.W0 + 2 ^ F.k * t) F.R0 :=
     ⟨a, F.b0 + 2 ^ F.k * t, rfl, ha, by omega, by omega, hR0, by omega, h1, h2, by omega⟩
@@ -664,6 +686,145 @@ theorem full_pass_open_halt6 :
   rw [hr] at hk
   exact ⟨.cons .full 8 kk hP₀ hk hr full_pass_meets6 (by decide) ⟨rfl, rfl, by decide, rfl⟩ (.nil hP₁), hcut, hT⟩
 
+/-! ## With no pass start on the way -/
+
+/-- No round start of the model's run on the class after round 0 is three walls: none from round 1 to round N − 1,
+and round N is left uncovered. -/
+def symNoWWWRun (ts : List YForm) (Γ : Int) (N : Nat) (ss : List SMark) (sW : YForm) : Bool :=
+  (List.range N).all (fun r => r == 0 || match symRoundsZ ts Γ 1000 r ss sW with
+    | some (.newRound ss' _) => (swwwOf ss').isNone
+    | _ => false) &&
+  match symRoundsZ ts Γ 1000 N ss sW with
+  | some .uncovered => true
+  | _ => false
+
+theorem symNoWWWRun_sound {ts : List YForm} {Γ : Int} {N : Nat} {ss : List SMark} {sW : YForm}
+    (h : symNoWWWRun ts Γ N ss sW = true) {y : List Int} (hy : inCone ts Γ y) {ms : List Mark} {W : Nat}
+    (hs : agL y ss ms) (hW : agN y sW W) {r : Nat} (hr0 : 0 < r) {ms' : List Mark} {W' : Nat}
+    (hr : roundsZ 1000 r ms W = .newRound ms' W') : NotWWW ms' := by
+  simp only [symNoWWWRun, Bool.and_eq_true, List.all_eq_true, List.mem_range, Bool.or_eq_true, beq_iff_eq] at h
+  obtain ⟨hc, hN⟩ := h
+  by_cases hrN : r < N
+  · rcases hc r hrN with h | h
+    · omega
+    · cases e : symRoundsZ ts Γ 1000 r ss sW with
+      | none => rw [e] at h; cases h
+      | some sr =>
+        have hag := symRoundsZ_sound ts Γ hy 1000 r ss ms sW W sr hs hW e
+        rw [e] at h
+        rw [hr] at hag
+        cases sr with
+        | newRound ss' sW' =>
+          simp only [Option.isNone_iff_eq_none] at h
+          exact notWWW_of_none hag.1 h
+        | _ => exact absurd hag id
+  · have hU : roundsZ 1000 N ms W = .uncovered := by
+      cases e : symRoundsZ ts Γ 1000 N ss sW with
+      | none => rw [e] at hN; cases hN
+      | some sr =>
+        have hag := symRoundsZ_sound ts Γ hy 1000 N ss ms sW W sr hs hW e
+        rw [e] at hN
+        cases sr with
+        | uncovered =>
+          generalize roundsZ 1000 N ms W = cr at hag ⊢
+          cases cr with
+          | uncovered => rfl
+          | _ => exact absurd hag id
+        | _ => cases hN
+    have := roundsZ_uncovered_add 1000 N (r - N) ms W hU
+    rw [show N + (r - N) = r by omega, hr] at this
+    cases this
+
+/-- Four families with R = 230, as (W₀, R₀, b₀, k, N): the classes of an untrusted census (every even R from 178 to
+262, W − b up to 4,096 or 8,192) whose run reaches no three-wall round start after the first.  The run meets the end at
+228 = R − 2, then at 510 = 2⁹ − 2 (W − b = 1,570) or 1,022 = 2¹⁰ − 2 (W − b = 3,618) off the loop's chain, and halves
+from there, 254, 126, ..., 2, 0, to the close, through round starts with four walls or with a marker or a block. -/
+def noPassFams : List Fam :=
+  [⟨13504, 230, 11934, 15, 19⟩, ⟨29888, 230, 28318, 16, 22⟩, ⟨62656, 230, 61086, 16, 19⟩,
+   ⟨36032, 230, 32414, 16, 21⟩]
+
+/-- All four pass the checks, and on each no round start of the model's run after round 0 is three walls (by the
+kernel). -/
+theorem noPassFams_ok :
+    noPassFams.all (fun F => F.ok && symNoWWWRun F.start.2.2 448 F.N F.start.1 F.start.2.1) = true := by
+  decide +kernel
+
+/-- **Four families of pass starts with R = 230 that halt, open at every depth, at every width, with no pass start
+on the way**: as `open_halt_families`, and no round start of the model's run after round 0 is three walls, so the
+run from such a pass start to the halt meets no other pass start, and no right end R′ or left countdown L₁′ of a
+later one bounds the width. -/
+theorem no_pass_open_halt {F : Fam} (hF : F ∈ noPassFams) {a t : Nat} (ha : a % 2 = 1) (h1 : 448 ≤ a)
+    (h2 : a + 448 ≤ F.b0 + 2 ^ F.k * t) :
+    PassStart448 [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩] (F.W0 + 2 ^ F.k * t)
+      F.R0 ∧
+    (∀ d, (passTreeSym d).cutMem [((a : Int) - 1) / 2, ((F.b0 + 2 ^ F.k * t : Nat) : Int) / 2,
+      ((F.W0 + 2 ^ F.k * t : Nat) : Int) / 2, (F.R0 : Int) / 2] = true) ∧
+    (∃ T, steps T (roundStart [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩]
+      (F.W0 + 2 ^ F.k * t)) = none) ∧
+    ∀ r, 0 < r → ∀ ms' W', roundsZ 1000 r [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩,
+      ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩] (F.W0 + 2 ^ F.k * t) = .newRound ms' W' → NotWWW ms' := by
+  have h := List.all_eq_true.1 noPassFams_ok F hF
+  simp only [Bool.and_eq_true] at h
+  obtain ⟨hok, hnw⟩ := h
+  obtain ⟨hP, hcut, hT⟩ := Fam.open_halt hok ha h1 h2
+  have hg : F.b0 + 448 + F.R0 + 1 ≤ F.W0 := by
+    simp only [Fam.ok, Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at hok
+    obtain ⟨⟨⟨⟨⟨⟨⟨-, -⟩, -⟩, -⟩, -⟩, hg⟩, -⟩, -⟩ := hok
+    exact hg
+  obtain ⟨hy, hs, hWa⟩ := Fam.ag hg ha h1 h2
+  exact ⟨hP, hcut, hT, fun r hr0 ms' W' hr => symNoWWWRun_sound hnw hy hs hWa hr0 hr⟩
+
+/-! ## Two lanes at R = 486, at every scale tried -/
+
+/-- One family at each scale from Q = W − b + 2R + 22 = 2¹² − 636 to 2³⁰ − 636, all with R = 486 (so
+W − b = 2^(12+s) − 1,630, s = 0 to 18), as (W₀, R₀, b₀, k, N): the class of b modulo 2^k that the untrusted search
+finds on this lane at that scale.  The run meets the end at 484 = R − 2, then off the loop's chain at
+Q/4 − 3 = 2^(10+s) − 162, and its end meetings follow the chain from there to 0.  Its first three-wall round start
+after the first is in round 17, with width ≡ 2 (mod 4) and right end (Q + 636)/1,024; that start's half pass, in round
+19, begins the full passes of the loop's chain to the close. -/
+def lane486a : List Fam :=
+  [⟨15168, 486, 12702, 16, 21⟩, ⟨60224, 486, 53662, 18, 22⟩, ⟨412480, 486, 397726, 20, 24⟩,
+   ⟨592704, 486, 561566, 21, 27⟩, ⟨953152, 486, 889246, 22, 29⟩, ⟨5868352, 486, 5738910, 24, 30⟩,
+   ⟨49253184, 486, 48992670, 26, 32⟩, ⟨35359552, 486, 34836894, 27, 35⟩, ⟨141790016, 486, 140743070, 28, 37⟩,
+   ⟨623086400, 486, 620990878, 30, 38⟩, ⟨3733162816, 486, 3728970142, 32, 40⟩, ⟨7805832000, 486, 7797445022, 33, 43⟩,
+   ⟨7361235776, 486, 7344460190, 34, 45⟩, ⟨6472043328, 486, 6438490526, 36, 46⟩,
+   ⟨176492350272, 486, 176425243038, 38, 48⟩, ⟨241655057216, 486, 241520841118, 39, 51⟩,
+   ⟨921736284992, 486, 921467851166, 40, 53⟩, ⟨82875484992, 486, 82338615710, 42, 54⟩,
+   ⟨13798316673856, 486, 13797242933662, 44, 56⟩]
+
+/-- The second lane, as `lane486a`: the first three-wall round start after the first is in round 13, with width ≡ 2
+(mod 4) and right end (Q + 636)/256, and its half pass begins the full passes to the close. -/
+def lane486b : List Fam :=
+  [⟨34624, 486, 32158, 15, 20⟩, ⟨30528, 486, 23966, 16, 23⟩, ⟨22336, 486, 7582, 17, 25⟩,
+   ⟨137024, 486, 105886, 19, 26⟩, ⟨890688, 486, 826782, 21, 28⟩, ⟨3446592, 486, 3317150, 22, 31⟩,
+   ⟨4364096, 486, 4103582, 23, 33⟩, ⟨31364928, 486, 30842270, 25, 34⟩, ⟨102143808, 486, 101096862, 27, 36⟩,
+   ⟨176592704, 486, 174497182, 28, 39⟩, ⟨325490496, 486, 321297822, 29, 41⟩, ⟨1160156992, 486, 1151770014, 31, 42⟩,
+   ⟨1755748160, 486, 1738972574, 33, 44⟩, ⟨11536865088, 486, 11503312286, 34, 47⟩,
+   ⟨31099098944, 486, 31031991710, 35, 49⟩, ⟨104583305024, 486, 104449088926, 37, 50⟩,
+   ⟨251551717184, 486, 251283283358, 39, 52⟩, ⟨270610634560, 486, 270073765278, 40, 55⟩,
+   ⟨1408240097088, 486, 1407166356894, 41, 57⟩]
+
+/-- The s-th of each lane has R = 486 and W − b = 2^(12+s) − 1,630. -/
+theorem lane486_shape :
+    lane486a.map (fun F => (F.R0, F.W0 - F.b0)) = (List.range 19).map (fun i => (486, 2 ^ (i + 12) - 1630)) ∧
+    lane486b.map (fun F => (F.R0, F.W0 - F.b0)) = (List.range 19).map (fun i => (486, 2 ^ (i + 12) - 1630)) := by
+  decide +kernel
+
+/-- All 38 pass the checks (the close run and the model's run on each, by the kernel). -/
+theorem lane486_ok : (lane486a ++ lane486b).all Fam.ok = true := by decide +kernel
+
+/-- **At each scale W − b = 2^(12+s) − 1,630 from s = 0 to 18, two families of pass starts with R = 486 that halt,
+open at every depth, at every width.** -/
+theorem lane486_open_halt {F : Fam} (hF : F ∈ lane486a ++ lane486b) {a t : Nat} (ha : a % 2 = 1) (h1 : 448 ≤ a)
+    (h2 : a + 448 ≤ F.b0 + 2 ^ F.k * t) :
+    PassStart448 [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩] (F.W0 + 2 ^ F.k * t)
+      F.R0 ∧
+    (∀ d, (passTreeSym d).cutMem [((a : Int) - 1) / 2, ((F.b0 + 2 ^ F.k * t : Nat) : Int) / 2,
+      ((F.W0 + 2 ^ F.k * t : Nat) : Int) / 2, (F.R0 : Int) / 2] = true) ∧
+    ∃ T, steps T (roundStart [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩]
+      (F.W0 + 2 ^ F.k * t)) = none :=
+  Fam.open_halt (List.all_eq_true.1 lane486_ok F hF) ha h1 h2
+
 /-! ## At every width -/
 
 /-- **Pass starts with R ≥ 178 that halt and that `passTreeSym` leaves open at every depth, at every width.** -/
@@ -690,6 +851,9 @@ theorem sym_open_halt_wide : ∃ R a b W, directWidth < W ∧ 178 ≤ R ∧
 #print axioms reentryFams6_shape
 #print axioms reentry6_open_halt
 #print axioms full_pass_open_halt6
+#print axioms no_pass_open_halt
+#print axioms lane486_shape
+#print axioms lane486_open_halt
 #print axioms sym_open_halt
 #print axioms sym_open_halt_wide
 

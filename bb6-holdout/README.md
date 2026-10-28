@@ -73,6 +73,9 @@ mark rules interactively.
     W − b = 2^(j+2) − 378 meets the end off the chain at 2^j − 2, halves to 0 and closes (`reentry_open_halt`), and
     so does one with R = 182 (`reentry6_open_halt`), whose three-wall round start in round 7 is no landing of the
     loop's chain; a full pass lands on one at width 29,404 (`full_pass_open_halt6`: from R = 3,552 to R = 222).
+    Above R = 483, two lanes with W − b + 2R + 22 = 2^(12+s) − 636 halt at every scale tried (`lane486_open_halt`:
+    R = 486, s = 0 to 18), and four families with R = 230 halt with no other pass start on the way
+    (`no_pass_open_halt`).
 
   The number of rounds in all three is existential (chosen per class by an untrusted program), but each stretch ends at
   its stated event. The first versions (`exit_no_halt`, `endgame_no_close`, `loop_no_close`, `loop_pass`) said only
