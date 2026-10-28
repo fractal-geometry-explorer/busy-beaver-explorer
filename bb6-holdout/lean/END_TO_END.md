@@ -1182,7 +1182,14 @@ of the 19 at k = 15 (at r = 12 that is clean at once), and from −18 down on th
 the 89 lines (r, ℓ) these ends need), and the close's own ℓ two at k = 15, at 2⁶⁵ and 3 · 2⁶⁴ with ℓ = −32 at r = 16 and
 24 (in the closing classes there but in no `HaltClass`; on these two lines the line explorer finds no close at depth
 24), and those at k = 19, 23 and 27 at most of the lane values that r³/ℓ² leaves, up to 2^67.7, 2^77.7, 2^89.7 and
-2^101.7.
+2^101.7. With the narrower classes of `closeClassC` instead (`loop_halt_wide_close`, above; `--closeC` in both scripts),
+where a close allows at most 4 at 2^j and 1.69 at 3 · 2^j (r = 48), r³/ℓ² leaves of the first 18 routes at the 2⁴¹ floor
+only ε and ε′, below width 2^41.1, and the close's own ℓ none of them; it leaves 90 of the 106 routes and paths of all
+the files there, and their own ℓ 88 (94 and 90 with `closeClasses`), most widths 2.6 bits lower; and at the 2⁶⁶ floor
+only the paths at k = 19, 23 and 27 are left, up to 2^75.1, 2^87.1 and 2^99.1, the two at k = 15 being out with the
+rest. But `EntryNoClose`, which the route theorems ask of a loop entry, still excludes the closes of `closeClasses` (the
+pass-start trees' close leaves are in them), so these are what restating it with `closeClassC` would give, not yet what
+the theorems take.
 
 Above 769 the halting census finds the same lanes and three more (untrusted; `routes/lanes_r770_1004.txt` in the
 project files). At every even R from 770 to 1,004 with W − b up to 4,096 it finds 236 closing classes, which fall on 91
@@ -1332,17 +1339,18 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   to 2⁶³ of the chains from the loop entries of the 36- and 40-digit trees, `../runs/chain_lanes.py`, meets neither of
   them nor any other census lane, but deeper trees find more entries; R′³/L₁′² at the route's last pass start rules out
   every census route from any entry but six of the first 18 against a close, on Q + 636 and Q + 316, and those six below
-  width 2^43.7 (2^54.1 against any end below 178; the close's own L₁ leaves only ε and ε′, `../runs/close_l1.py`),
-  `../runs/lane_sigma.py`, where the halting-classes side finds no pass start with the far shape on them, the step of
-  each route's class in R taken from three R; γ's lane Q + 5,116 adds 21 paths that it leaves up to 2^53.7, and
-  Q + 10,236 20 more, up to 2^55.7, and with the exhaustive check to 64 digits in place of `stepsBelow_direct`,
-  untrusted, the pass start is wider than 2⁶⁶ and none of these routes and paths is left against a close, nor against
-  any end below 178 by the end's own L₁ (`../runs/end_l1.py`), on lane values the chains to 2⁷⁴ do not meet; but the
-  family's lanes go on for every k ≡ 2 or 3 (mod 4), each pass of the 4-wall loop adding 12 bits to the widths the
-  filter leaves, and the paths followed at k = 14 and 15 are left past 2⁶⁶ against any end below 178, and two at k = 15
-  and those at k = 19 to 27 against a close as well). Pass starts with R ≥ 769 that halt, open at every depth, exist on
-  every lane the census finds there (`lane769_open_halt`), and one meets every condition of `blank_halt_open_big` on the
-  pass start but its width (`lane769_far`: width 16,192). On γ's lane one meets them all, its width included
+  width 2^43.7 (2^54.1 against any end below 178; the close's own L₁ leaves only ε and ε′, `../runs/close_l1.py`, and
+  with the classes of `closeClassC`, which `EntryNoClose` does not take yet, none), `../runs/lane_sigma.py`, where the
+  halting-classes side finds no pass start with the far shape on them, the step of each route's class in R taken from
+  three R; γ's lane Q + 5,116 adds 21 paths that it leaves up to 2^53.7, and Q + 10,236 20 more, up to 2^55.7, and with
+  the exhaustive check to 64 digits in place of `stepsBelow_direct`, untrusted, the pass start is wider than 2⁶⁶ and
+  none of these routes and paths is left against a close, nor against any end below 178 by the end's own L₁
+  (`../runs/end_l1.py`), on lane values the chains to 2⁷⁴ do not meet; but the family's lanes go on for every k ≡ 2 or
+  3 (mod 4), each pass of the 4-wall loop adding 12 bits to the widths the filter leaves, and the paths followed at
+  k = 14 and 15 are left past 2⁶⁶ against any end below 178, and two at k = 15 and those at k = 19 to 27 against a close
+  as well, only the latter with `closeClassC`). Pass starts with R ≥ 769 that halt, open at every depth, exist on every
+  lane the census finds there (`lane769_open_halt`), and one meets every condition of `blank_halt_open_big` on the pass
+  start but its width (`lane769_far`: width 16,192). On γ's lane one meets them all, its width included
   (`lane769_far_wide`: width 5,213,842,519,808, at Q + 5,116 = 3 · 2³⁹), below the 2⁶⁶ of the exhaustive check.
 * The **two-marker route trees** (`ROUTE_TREE.md`) are not used by the theorems above: the machine's run reaches
   two-marker states with a small first gap again and again ("Why a one-variable tree", above). `blank_halt_route`
@@ -1381,19 +1389,25 @@ python3 ../runs/entry_member.py ../blankrun/results/sample16k.tsv.gz entries36.t
 python3 ../runs/lane_sigma.py lanes_r770_1004_forms.txt lanes_r5002_5862_forms.txt lanes_r294_486.json lanes_zeta_forms.txt \
     lanes_q316_1702_forms.txt lanes_q5116_forms.txt lanes_q5116_new17_forms.txt lanes_q10236_forms.txt
 # and on the family's later lanes, k = 14, 15, 19, 23 and 27 (the first two files share the path from R = 1,318):
-python3 ../runs/lane_sigma.py lanes_k14_all_forms.txt lanes_k14_k15_forms.txt lanes_n3_n5_forms.txt
+python3 ../runs/lane_sigma.py lanes_k14_all_forms.txt lanes_k14_k15_forms.txt lanes_n3_n5_forms.txt \
+    lanes_k15_all_forms.txt
 # the same with the exhaustive check to 64 digits in place of stepsBelow_direct, so with the pass start wider
 # than 2^66 (untrusted):
 python3 ../runs/lane_sigma.py --floor=66 lanes_r770_1004_forms.txt lanes_r5002_5862_forms.txt lanes_r294_486.json \
     lanes_zeta_forms.txt lanes_q316_1702_forms.txt lanes_q5116_forms.txt lanes_q5116_new17_forms.txt \
     lanes_q10236_forms.txt
-python3 ../runs/lane_sigma.py --floor=66 lanes_k14_all_forms.txt lanes_k14_k15_forms.txt lanes_n3_n5_forms.txt
+python3 ../runs/lane_sigma.py --floor=66 lanes_k14_all_forms.txt lanes_k14_k15_forms.txt lanes_n3_n5_forms.txt \
+    lanes_k15_all_forms.txt
 # which lane values the end's own L1 leaves at an end below 178, and a close's own L1 at a close (each also on the
 # family's files, and with or without --floor=66; untrusted):
 python3 ../runs/end_l1.py --floor=66 lanes_r770_1004_forms.txt lanes_r5002_5862_forms.txt lanes_r294_486.json \
     lanes_zeta_forms.txt lanes_q316_1702_forms.txt lanes_q5116_forms.txt lanes_q5116_new17_forms.txt \
     lanes_q10236_forms.txt
 python3 ../runs/close_l1.py lanes_r770_1004_forms.txt lanes_r5002_5862_forms.txt lanes_r294_486.json \
+    lanes_zeta_forms.txt lanes_q316_1702_forms.txt lanes_q5116_forms.txt lanes_q5116_new17_forms.txt \
+    lanes_q10236_forms.txt
+# the same with the narrower closing classes of closeClassC (lane_sigma.py takes --closeC too; untrusted):
+python3 ../runs/close_l1.py --closeC lanes_r770_1004_forms.txt lanes_r5002_5862_forms.txt lanes_r294_486.json \
     lanes_zeta_forms.txt lanes_q316_1702_forms.txt lanes_q5116_forms.txt lanes_q5116_new17_forms.txt \
     lanes_q10236_forms.txt
 # the loop entries followed in the clean tape's coordinate (optional, after check_end.sh; Γ, d, e splits, landings):

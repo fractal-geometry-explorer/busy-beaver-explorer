@@ -38,11 +38,12 @@ chain's last pass start there: its forms are rewritten in the landing's coordina
 R = 2R'), and its rounds are counted from there.  Paths with the same forms there, in lowest terms, take the same route,
 which is printed once, with the census R and lanes it was found at.
 
-With --closeC a close is one of `closeClassC` instead (`../lean/thm/LoopClose.lean`): an end meeting at distance 2 is
-not a close, and once the endgame trees pass these, a halting chain from a width of at least 2^20 closes only at
-r = 2, 4, 8, 16, 32 or 48, with l in r's narrower class (`loop_halt_wide_close`), so a close allows at most 4 at 2^j
-and 1.69 at 3 2^j (r = 48).  But `EntryNoClose`, which the route theorems ask of a loop entry, still excludes the
-closes of `closeClasses`; the default is what they take, and --closeC what they would with `closeClassC`.
+With --closeC a close is one of `closeClassC` instead (`../lean/thm/EndgameCloseStart.lean`): an end meeting at
+distance 2 is not a close, and once the endgame trees pass these, a halting chain from a width of at least 2^20 closes
+only at r = 2, 4, 8, 16, 32 or 48, with l in r's narrower class (`loop_halt_wide_close` in
+`../lean/thm/LoopClose.lean`), so a close allows at most 4 at 2^j and 1.69 at 3 2^j (r = 48).  But `EntryNoClose`,
+which the route theorems ask of a loop entry, still excludes the closes of `closeClasses`; the default is what they
+take, and --closeC what they would with `closeClassC`.
 
 usage: python3 lane_sigma.py [--floor=66] [--closeC] lanes_r770_1004_forms.txt lanes_r5002_5862_forms.txt \
            lanes_r294_486.json lanes_zeta_forms.txt lanes_q316_1702_forms.txt lanes_q5116_forms.txt \
