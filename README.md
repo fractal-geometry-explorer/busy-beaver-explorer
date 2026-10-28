@@ -7,7 +7,7 @@ Explorations of six-state Busy Beaver machines.
 - [`bb6-holdout/`](bb6-holdout/): research on the holdout `1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0LD1RE`, one of the
   six-state machines whose halting status is open. It contains Lean 4 proofs of the mark rules, the round theorem and
   two loop theorems, certificates with independent checkers, an exhaustive check showing that no clean tape below
-  2^61 reaches a halt, the research log and the programs behind it. The question is not settled there.
+  2^65 reaches a halt, the research log and the programs behind it. The question is not settled there.
   - [`bb6-holdout/README.md`](bb6-holdout/README.md): what is established and how to check it
   - [`bb6-holdout/HANDOFF.md`](bb6-holdout/HANDOFF.md): state of the work and proposed next steps
   - [`bb6-holdout/notes/LAB_NOTES.md`](bb6-holdout/notes/LAB_NOTES.md): the full research log

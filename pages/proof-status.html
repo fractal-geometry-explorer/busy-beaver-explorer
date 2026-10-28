@@ -230,9 +230,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>lean/thm/ExitTheorem.lean</code>, <code>EndgameTheorem.lean</code> · <span class="tag t-kernel">kernel</span></p>
       </div>
       <div class="card">
-        <h3>The 60-digit exhaustive search</h3>
-        <p>Every clean tape below 2⁶¹ reaches the next clean tape without halting: 36.9 billion settled classes and 121 billion direct runs, about 1.8 × 10⁵² machine steps. Rerun with the corrected simulator (the "trailing wall" fix found by the formalization), it reproduces the original result line for line, the corrected case never occurring.</p>
-        <p class="where"><code>csearch/nrefdfs2.c</code>, <code>dfs/merged60_fixed.txt</code> · <span class="tag t-comp">C search</span></p>
+        <h3>The 64-digit exhaustive search</h3>
+        <p>Every clean tape below 2⁶⁵ reaches the next clean tape without halting: 205 billion settled classes and 662 billion direct runs, about 6.7 × 10⁵⁵ machine steps. Rerun to 60 digits with the corrected simulator (the "trailing wall" fix found by the formalization), it reproduces the original result line for line, the corrected case never occurring; a 128-bit copy of the fixed program then took it to 64 digits, matching the 60-digit run at every shared level.</p>
+        <p class="where"><code>csearch/nrefdfs2.c</code>, <code>csearch/nrefdfs2w.c</code>, <code>dfs/merged64.txt</code> · <span class="tag t-comp">C search</span></p>
       </div>
     </div>
     <div class="prose">
@@ -248,7 +248,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <tbody>
           <tr><td><code>blank_halt_open_far_kernel</code></td><td class="num">2²⁰</td><td>Lean's kernel and the three standard axioms</td></tr>
           <tr><td><code>blank_halt_open_big</code>, <code>never_halts_of_big</code>, <code>blank_halt_open_far</code>, <code>blank_halt_not_family</code></td><td class="num">2⁴¹</td><td>the above, plus Lean's compiler (and a C compiler) for <code>native_decide</code> on the prefix to 2³² and the 26.5 million direct runs</td></tr>
-          <tr><td>with the exhaustive search</td><td class="num">2⁶¹</td><td>the above, plus the C program <code>nrefdfs2</code>; this combination is not a Lean theorem</td></tr>
+          <tr><td>with the exhaustive search</td><td class="num">2⁶⁵</td><td>the above, plus the C program <code>nrefdfs2w</code>; this combination is not a Lean theorem</td></tr>
         </tbody>
       </table>
     </div>
@@ -305,7 +305,7 @@ python3 check_endgame.py endgame_leaves.txt
 python3 check_exit.py exit_leaves.txt
 python3 check_tree.py tree36_leaves.txt     # hours</code></pre>
     <div class="prose">
-      <p>The exhaustive search is about 80 CPU hours to 60 digits, split into 384 parts by <code>dfs/run_parts.sh</code> and merged with <code>dfs/merge.py</code>; compare the result with <code>dfs/merged60_fixed.txt</code>.</p>
+      <p>The exhaustive search is about 80 CPU hours to 60 digits, split into 384 parts by <code>dfs/run_parts.sh</code> and merged with <code>dfs/merge.py</code>; compare the result with <code>dfs/merged60_fixed.txt</code>. To 64 digits it is about 420 CPU hours with <code>csearch/nrefdfs2w.c</code> in 1536 parts at split level 33; compare with <code>dfs/merged64.txt</code>.</p>
     </div>
     <details>
       <summary>The statement of blank_halt_open_big in Lean</summary>
