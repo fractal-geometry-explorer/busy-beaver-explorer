@@ -50,8 +50,9 @@
 #      nothing evaluated), and the routes and the clean-tape tree with the loop entries that cannot close in the
 #      narrower classes of closeClassC (thm/RouteEntryHaltC.lean, nothing evaluated), joined to the pass-start trees
 #      with those classes (thm/PassEntryHaltClose.lean), and the clean-tape trees with those loop entries and the
-#      small-end, wide, far or big-end checks (thm/CleanTreesC.lean, nothing evaluated); prints the axioms of the final
-#      theorems;
+#      small-end, wide, far or big-end checks (thm/CleanTreesC.lean, nothing evaluated), joined to the pass-start
+#      trees in the theorems with those checks (thm/OpenHaltClose.lean, nothing evaluated); prints the axioms of the
+#      final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,
 #      thm/CleanSmallMass.lean, thm/CleanWideMass.lean, thm/CleanFarMass.lean, thm/CleanBigMass.lean, about 5 minutes
@@ -135,5 +136,6 @@ stage OpenSmallHalt
 stage WideHalt
 stage FarHalt
 stage BigEndHalt
+stage OpenHaltClose
 $LEAN thm/EndToEndAxioms.lean
 echo "END TO END CHECKED"

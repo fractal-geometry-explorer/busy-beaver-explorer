@@ -209,6 +209,10 @@ theorem blank_halt_open_big (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = non
   -- blank_halt_open_far with cleanTreeGB for cleanTreeGF, and the pass start has 769 ≤ R as well;
   -- never_halts_of_big is never_halts_of_open with both
 
+theorem blank_halt_open_big_close (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) : …   -- thm/OpenHaltClose.lean
+  -- blank_halt_open_big with the narrower classes of closeClassC (cleanTreeGBC for cleanTreeGB, the same pass
+  -- starts), and so for the others above: blank_halt_open_small_close, never_halts_of_big_close and so on
+
 theorem blank_halt_not_family (T : Nat) (hT : steps T ⟨blank, blank, .A⟩ = none) :   -- thm/WideHalt.lean
     ∃ W k, directWidth ≤ W ∧ W % 2 = 0 ∧ (∀ d, (cleanTreeG directWidth d).cutMem [(W : Int) / 2, 0] = true) ∧
       steps k ⟨blank, blank, .A⟩ = some (roundStart [⟨.M, W - 2⟩] W) ∧
@@ -544,6 +548,17 @@ entries also end at no right end below 769 (`cleanTreeGB`): the pass start a hal
 "The chain ends at a right end of at least 769"), and `never_halts_of_big` leaves only those pass starts to rule out;
 there is no kernel-only version.
 
+With the narrower closing classes of `closeClassC` on both sides of the loop's end, `thm/OpenHaltClose.lean` restates
+these: `blank_halt_open_small_close`, `blank_halt_open_wide_close`, `blank_halt_open_far_close` and
+`blank_halt_open_big_close`, the kernel versions of the first three, `blank_halt_not_family_close`, and
+`never_halts_of_open_close`, `never_halts_of_wide_close`, `never_halts_of_far_close` and `never_halts_of_big_close`.
+Each has the clean-tape tree with the same check and the loop entries of `EntryNoCloseC` (`cleanTreeGSC`,
+`cleanTreeGWC`, `cleanTreeGFC`, `cleanTreeGBC`, `thm/CleanTreesC.lean`) in place of the older one, and
+`entry_pass_halt_close` past the loop's end (below, "Past the loop's end, from blank tape"). The pass starts left to
+rule out are the same: the chain's last one has R ≥ 178, where the pass-start tree with the classes of `closeClassC`
+is `passTreeSym` too (`passCutC_iff`). The clean tapes left to rule out are those that `cleanTreeG 2⁴¹ d` and the new
+tree leave open at every depth, among those the older theorems leave.
+
 ## The pieces
 
 | file | result | how |
@@ -592,6 +607,7 @@ there is no kernel-only version.
 | `thm/CleanBigTheorem.lean`, `thm/CleanBigMass.lean` | `clean_tree_big_step`: as `clean_tree_far_step`, with `cleanTreeGB Γ d` and entries that satisfy `EntryBigEnd 769` for `EntryNoSmall`; `clean_tree_big_cut_mass`: again the counts of `cleanTreeGS` | as for the wide entries |
 | `thm/FarHalt.lean` | `step_far`, `LoopChain.far_end`: a full pass and a round-7 break land with 15W′ ≤ 64(W′ − b′), a half pass when 15E + 26 ≤ 32(E − b + R), so from a pass start with 15W ≤ 64(W − b) and that every pass start of the chain has 15W ≤ 64(W − b) (`FarShape`; on a lane W − b + 2R + 22 = 2^m, 15W + 128R + 1,408 ≤ 2^(m+6), `farShape_pow2`); `entry_far_halt`; `blank_halt_open_far`, `blank_halt_open_far_kernel`, `never_halts_of_far`: `blank_halt_open_wide` and the open question with that shape | as for `thm/WideHalt.lean` |
 | `thm/BigEndHalt.lean` | `noEnd_full`, `noEnd_end`, `break7_noEnd769`, `LoopChain.big_end`: a full pass keeps `NoEndBelow N`, a round-7 break from a width of at least 2⁴¹ lands with it for N = 769, so from a start of width at least 2⁴¹ with `NoEndBelow 769` (and after its half pass) the chain ends at R ≥ 769; `entry_big_halt`; `blank_halt_open_big`, `never_halts_of_big`: `blank_halt_open_far` and the open question with R ≥ 769 too | as for `thm/WideHalt.lean` |
+| `thm/OpenHaltClose.lean` | `entry_small_halt_close`, `entry_wide_halt_close`, `entry_far_halt_close`, `entry_big_halt_close`: `entry_small_halt`, `entry_wide_halt`, `entry_far_halt` and `entry_big_halt` from a loop entry of `EntryNoCloseC`, with the same conclusions; `blank_halt_open_small_close`, `blank_halt_open_small_kernel_close`, `never_halts_of_open_close`, `blank_halt_open_wide_close`, `blank_halt_open_wide_kernel_close`, `never_halts_of_wide_close`, `blank_halt_not_family_close`, `blank_halt_open_far_close`, `blank_halt_open_far_kernel_close`, `never_halts_of_far_close`, `blank_halt_open_big_close`, `never_halts_of_big_close`: the theorems of `thm/OpenSmallHalt.lean`, `thm/WideHalt.lean`, `thm/FarHalt.lean` and `thm/BigEndHalt.lean` with the clean-tape trees of `thm/CleanTreesC.lean` | `entry_pass_halt_close` and `passCutC_iff` (from R = 178 on the pass-start tree is `passTreeSym`), the chain lemmas of the older files, `blank_halt_open_of`; nothing evaluated |
 | `thm/CleanEntryMass.lean`, `thm/CleanEntryKernelMass.lean` | `clean_tree_entry_cut_mass`, `clean_entry_kernel_cut_mass`: the leaf counts and measures of `cleanTreeGE 2⁴¹ 36` and `cleanTreeGE 2²⁴ 36` | `exploreMassWE`, `native_decide`; used by no theorem about the machine |
 | `BB6/MassPar.lean` | `massPrefix_eq`: the tally of `exploreMassWE` is that of the leaves above a split level plus the tallies of the nodes on it; `massPar_eq`: the same with the nodes' tallies computed as parallel tasks | proved, standard axioms |
 | `thm/CleanEntryMass40.lean`, `thm/CleanEntryMass44.lean` | `clean_tree_entry_cut_mass40`, `clean_tree_entry_cut_mass44`: the leaf counts and measures of `cleanTreeGE 2⁴¹ 40` and `cleanTreeGE 2⁴¹ 44` | `massPar` (`massPar_eq`), `native_decide`; used by no theorem about the machine |
@@ -758,7 +774,8 @@ an entry needs a pass start cut at every depth of its tree with those classes (`
 a wider clean tape. From blank tape, `blank_halt_pass_close` and `blank_halt_pass_kernel_close` are `blank_halt_pass`
 and `blank_halt_pass_kernel` with it and with `cleanTreeGEC` in place of `cleanTreeGE` (`clean_tree_entry_stepC`), and
 `blank_halt_open_close` and `blank_halt_open_kernel_close` are the same for `blank_halt_open` ("The open clean tapes
-come first", below). The later theorems, with the small-end, wide, far and big-end checks, still take `EntryNoClose`.
+come first", below). The later theorems, with the small-end, wide, far and big-end checks, have the same versions
+(`thm/OpenHaltClose.lean`, "The statement", above).
 
 So every part of a halting run from blank tape is followed: from clean tape to clean tape by the clean-tape tree, into
 the loop at the entries, through the loop by its chain, and past the loop's end by the pass-start trees, to the next
@@ -1237,9 +1254,9 @@ only ε and ε′, below width 2^41.1, and the close's own ℓ none of them; it 
 the files there, and their own ℓ 88 (94 and 90 with `closeClasses`), most widths 2.6 bits lower; and at the 2⁶⁶ floor
 only the paths at k = 19, 23 and 27 are left, up to 2^75.1, 2^87.1 and 2^99.1, the two at k = 15 being out with the
 rest. Past the loop's end `entry_pass_halt_close`, `blank_halt_pass_close` and `blank_halt_open_close` take these
-classes (`EntryNoCloseC` with the pass-start trees of `closeClassC`, above, "Past the loop's end, from blank tape"), but
-the theorems with the small-end, wide, far and big-end checks still take `EntryNoClose`, which excludes the closes of
-`closeClasses`; for them these are what the narrower classes would give, not yet what the theorems take.
+classes (`EntryNoCloseC` with the pass-start trees of `closeClassC`, above, "Past the loop's end, from blank tape"), and
+so do the theorems with the small-end, wide, far and big-end checks in their versions of `thm/OpenHaltClose.lean`
+(`blank_halt_open_big_close`, `never_halts_of_big_close` and the others): these are what the theorems take.
 
 Above 769 the halting census finds the same lanes and three more (untrusted; `routes/lanes_r770_1004.txt` in the
 project files). At every even R from 770 to 1,004 with W − b up to 4,096 it finds 236 closing classes, which fall on 91
@@ -1347,7 +1364,9 @@ the same as `blank_halt_small` and `blank_halt_small_kernel`. `blank_halt_open_w
 `blank_halt_not_family`, and `blank_halt_open_wide_kernel`: the same as these; the wide check is part of the explorer's
 entry test (`cleanWideOK`), and the shape follows from the steps' maps by `omega`. `blank_halt_open_far`,
 `never_halts_of_far` and `blank_halt_open_far_kernel`: the same, with `cleanFarOK`. `blank_halt_open_big` and
-`never_halts_of_big`: the same, with `cleanBigOK`.
+`never_halts_of_big`: the same, with `cleanBigOK`. The versions with the narrower classes
+(`thm/PassEntryHaltClose.lean`, `thm/OpenHaltClose.lean`): the same as the theorems they restate, with `cleanEntryOKC`
+in the entry tests and the pass-start trees of `closeClassC`, built by the same proved explorers.
 
 `blank_halt_clean_kernel`, `blank_halt_structure_kernel` and `never_halts_of_cut_classes_kernel`: Lean's kernel
 alone (`#print axioms` lists `propext`, `Classical.choice` and `Quot.sound`, nothing else). The prefix to 2³² cannot be
@@ -1390,7 +1409,7 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   them nor any other census lane, but deeper trees find more entries; R′³/L₁′² at the route's last pass start rules out
   every census route from any entry but six of the first 18 against a close, on Q + 636 and Q + 316, and those six below
   width 2^43.7 (2^54.1 against any end below 178; the close's own L₁ leaves only ε and ε′, `../runs/close_l1.py`, and
-  with `closeClassC`, not yet taken by `blank_halt_open_big`, none), `../runs/lane_sigma.py`, where the
+  with `closeClassC`, which `blank_halt_open_big_close` takes, none), `../runs/lane_sigma.py`, where the
   halting-classes side finds no pass start with the far shape on them, the step of each route's class in R taken from
   three R; γ's lane Q + 5,116 adds 21 paths that it leaves up to 2^53.7, and Q + 10,236 20 more, up to 2^55.7, and with
   the exhaustive check to 64 digits in place of `stepsBelow_direct`, untrusted, the pass start is wider than 2⁶⁶ and
@@ -1484,7 +1503,7 @@ python3 thm/gen_prefix.py checkpoints.txt thm 8
 | `thm/PassOpenHalt.lean` (the families' model runs by the kernel) | 2 min 19 s beside the other theorem files |
 | `thm/LaneHalt.lean` (62 families, by the kernel) | about 1 to 2 min |
 | `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 20 s |
-| `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean`, `thm/EndToEndClose.lean`, `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean`, `thm/CleanEntryTheorem.lean`, `thm/CleanEntryHalt.lean`, `thm/PassEntryHalt.lean`, `thm/PassEntryHaltClose.lean`, `thm/CleanSmallTheorem.lean`, `thm/SmallEndHalt.lean`, `thm/OpenSmallHalt.lean`, `thm/CleanWideTheorem.lean`, `thm/WideHalt.lean`, `thm/CleanFarTheorem.lean`, `thm/FarHalt.lean`, `thm/CleanBigTheorem.lean`, `thm/BigEndHalt.lean`, `thm/RouteEntryHaltC.lean`, `thm/CleanTreesC.lean` | seconds |
+| `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean`, `thm/EndToEndClose.lean`, `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean`, `thm/CleanEntryTheorem.lean`, `thm/CleanEntryHalt.lean`, `thm/PassEntryHalt.lean`, `thm/PassEntryHaltClose.lean`, `thm/CleanSmallTheorem.lean`, `thm/SmallEndHalt.lean`, `thm/OpenSmallHalt.lean`, `thm/CleanWideTheorem.lean`, `thm/WideHalt.lean`, `thm/CleanFarTheorem.lean`, `thm/FarHalt.lean`, `thm/CleanBigTheorem.lean`, `thm/BigEndHalt.lean`, `thm/RouteEntryHaltC.lean`, `thm/CleanTreesC.lean`, `thm/OpenHaltClose.lean` | seconds |
 | `thm/CleanEntryMass.lean` (36 digits, cone 2⁴¹, with loop entries) | 5 min 1 s |
 | `thm/CleanSmallMass.lean` (36 digits, cone 2⁴¹, with loop entries and the small-end check) | about 5 min 30 s (2 min 26 s on a machine where `CleanEntryMass` takes 2 min 11 s) |
 | `thm/CleanWideMass.lean` (36 digits, cone 2⁴¹, with loop entries, the small-end check and W ≤ 32R) | 3 min 41 s alone |

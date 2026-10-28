@@ -3882,3 +3882,19 @@ entries of `EntryNoCloseC` (`../lean/thm/RouteEntryHaltC.lean`) past the loop's 
 `blank_halt_open_close` are `blank_halt_pass` and `blank_halt_open` with these classes on both sides of the loop's end
 (`../lean/thm/PassEntryHaltClose.lean`): a halt from blank tape needs a clean tape cut at every depth, or a pass start
 cut at every depth of its tree (`PassCutC`) after a loop entry that cannot close in a class of `closeClassC`.
+
+**The small-end, wide, far and big-end theorems with the narrower classes (October 28;
+`../lean/thm/OpenHaltClose.lean`).** With the pass-start side's join in (`entry_pass_halt_close`,
+`../lean/thm/PassEntryHaltClose.lean`), the theorems of `OpenSmallHalt`, `WideHalt`, `FarHalt` and `BigEndHalt` with the
+narrower classes of `closeClassC`: `entry_small_halt_close` and its wide, far and big versions;
+`blank_halt_open_small_close`, `blank_halt_open_wide_close`, `blank_halt_open_far_close` and
+`blank_halt_open_big_close`, with kernel versions of the first three on the standard axioms only;
+`blank_halt_not_family_close`; and `never_halts_of_open_close`, `never_halts_of_wide_close`, `never_halts_of_far_close`
+and `never_halts_of_big_close`. Nothing new had to be proved past the entry: the chain's last pass start has R ≥ 178
+(`LoopChain.small_end` does not depend on the closing classes), and from R = 178 on `PassCutC` is `PassCut`
+(`passCutC_iff`), so `SmallQ`, `WideQ`, `FarQ` and `BigQ` and their `pass` lemmas serve unchanged. The pass starts left
+to rule out are those of `never_halts_of_big`; the clean tapes are those that `cleanTreeG 2⁴¹ d` and
+`cleanTreeGBC 2⁴¹ d` leave open at every depth, among those that `cleanTreeGB` leaves (at 36 digits the same, above). So
+the lane filters' `--closeC` numbers are now the ones that bear on the theorems (untrusted): with the close's own L₁
+they leave none of the first 18 census routes at the 2⁴¹ floor, and at the 2⁶⁶ floor only the paths at k = 19,
+23 and 27.
