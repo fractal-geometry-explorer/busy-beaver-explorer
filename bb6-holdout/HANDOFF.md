@@ -149,8 +149,13 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    those at k = 14 and 15 against any end below 178, by the end's own L₁ too (all 24 paths of the census at k = 14 and
    its 18 at k = 15; on the 89 lines (r, ℓ) those ends need the halting side's line explorer finds only clean leaves and
    depth cuts, `routes/small_ends.txt`, untrusted), and two at k = 15 and all from k = 19 on against a close as well, by
-   its own L₁ too, and no floor closes the family: that needs an argument over the 4-wall loop (its invariant
-   r³/Λ²) or the far shape. What is needed is a proof (the routes' forms in Lean, and the exhaustive check or the
+   its own L₁ too, and no floor closes the family, nor does the far shape: on the lanes with two to five passes there
+   are pass starts with R ≥ 769, the far shape and width above 2⁴¹ that halt, open at every depth, and from three passes
+   on some wider than 2⁶⁶ (`loop2_far_wide`, `loop3_far_wide`, `loop3_far_66`, `loop4_far_66` and `loop5_far_66` in
+   `lean/thm/LoopFarHalt.lean`; the search, untrusted, finds them at two passes at every lane value from 2⁴⁰ to 2⁵⁵ and
+   at three to five passes at 2⁶⁶, `routes/loop4/far_shape.md`), so keeping the family off needs an argument over the
+   4-wall loop (its invariant r³/Λ²) together with what the chain from the run's loop entries reaches. What is needed is
+   a proof (the routes' forms in Lean, and the exhaustive check or the
    far-shape search) and, on the halting side, every halting class at every R: the censuses had missed ζ, the route at
    R ≡ 1,702 and γ's paths until run at every R of a class.
    The original note:

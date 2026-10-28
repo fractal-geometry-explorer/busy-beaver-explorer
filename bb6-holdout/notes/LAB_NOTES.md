@@ -3898,3 +3898,33 @@ to rule out are those of `never_halts_of_big`; the clean tapes are those that `c
 the lane filters' `--closeC` numbers are now the ones that bear on the theorems (untrusted): with the close's own L₁
 they leave none of the first 18 census routes at the 2⁴¹ floor, and at the 2⁶⁶ floor only the paths at k = 19,
 23 and 27.
+
+**The far shape on the 4-wall loop's lanes: halting pass starts at two to five passes, above 2⁶⁶ from three on
+(October 28; `../lean/thm/LoopFarHalt.lean`; the search in `routes/loop4/far_shape.md` and `tools/routes/far/loop/` in
+the halting-classes project files, untrusted).** The docs left open whether the lanes Q + 5 · 2^k − 4 with two or more
+4-wall passes have halting pass starts with 15W ≤ 64(W − b), since the families on Q = 4 + 123 · 2^(4n+7) have b
+close to W. The halting side's far-shape search (census at three R of a route, the step of b's class in R checked at
+the third, a lattice search over every R of the route), with the census compiled to native code (3 s at 2⁴¹ with b
+fixed mod 2³², 100 s at 2⁵⁹, 3 to 8 minutes at 2⁶⁶), on the families' routes: R ≡ 37,606 (mod 2¹⁷) on Q + 163,836
+(n = 2) and the k = 15 census's other route, R ≡ 13,030 (mod 2¹⁸); R ≡ 365,286 (mod 2²¹) on Q + 2,621,436 (n = 3),
+R ≡ 11,899,622 (mod 2²⁵) on Q + 41,943,036 (n = 4) and R ≡ 464,884,454 (mod 2²⁹) on Q + 671,088,636 (n = 5), the
+periods from the families' lattices. Far members with R ≥ 769 and width above 2⁴¹: on the n = 2 route 11, 18, 23, 46,
+92, 186, 733 and 3,861 at 2⁴⁰, 2⁴¹, 2⁴², 2⁴³, 2⁴⁵, 2⁴⁷, 2⁵¹ and 2⁵⁵ and none at 2⁵⁹ and 2⁶³ (the other k = 15 route
+alike, 957 at 2⁵⁵); on the n = 3 route 2, 2 and 3 at 2⁴¹ to 2⁴³ and 3,630 at 2⁶⁶, and no class at 2⁶⁷; on the n = 4
+and 5 routes none at 2⁴¹ to 2⁴³ (least b/(W − b) 52, 18 and 4.9 at n = 4) and 319 and 19 at 2⁶⁶; at 2⁶⁶ all are
+wider than 2⁶⁶. Why a route's counts stop: the step is one 2-adic number at every scale, and the lattice
+{(i, b): b ≡ b₀ + i · step mod 2^m} has a short vector (q, r), q periods of R moving b by r: (29,361,887,
+7,697,741,643,776) on the n = 2 route from 2⁵¹ on, (1,879,055,327, 7,881,374,283,333,632) on the n = 3 route at 2⁶⁶.
+The members lie on the lines qb − ri = const, and the class's modulus grows 1.5 bits a scale against 1 for the region,
+so the lines through it thin out (on the n = 2 route about 2^(28 − j/2): 6 at 2⁵¹, 2 at 2⁵⁵, none in the far region
+from 2⁵⁹ on); the 3,630 at 2⁶⁶ lie on one line, of width 2^67.385 throughout (b grows by 2 for each 1 of R along it).
+At n = 4 and 5 the short vector is still long at 2⁶⁶ and the counts are about a random class's (the 319 lie on 19
+lines). A census at each member's own R finds the predicted class (six of six checked), and `loopFar_open_halt` proves
+six of them, with `Fam.ok` by the kernel (about 30 s): one at 2⁴¹ at two passes, two at 2⁴¹ and one at 2⁶⁶ at three,
+and one at 2⁶⁶ at four and at five; `loop2_far_wide`, `loop3_far_wide`, `loop3_far_66`, `loop4_far_66` and
+`loop5_far_66` state each as a pass start that meets every condition `blank_halt_open_big` puts on it and halts, the
+last three of widths about 2^67.4, 2^67.0 and 2^66.7, above the 2⁶⁶ of the 64-digit check and within the widths that
+the filter with `closeClassC` leaves at k = 19, 23 and 27 (to 2^75.1, 2^87.1 and 2^99.1). On PR #90's branch
+`Fam.loopOK` holds for them with exactly two, three, four and five passes (and fails with one more or fewer). So no
+condition on the pass start found so far keeps the family off, at any floor: that needs what the chain from the run's
+own loop entries reaches.

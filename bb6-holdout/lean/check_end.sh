@@ -51,8 +51,10 @@
 #      narrower classes of closeClassC (thm/RouteEntryHaltC.lean, nothing evaluated), joined to the pass-start trees
 #      with those classes (thm/PassEntryHaltClose.lean), and the clean-tape trees with those loop entries and the
 #      small-end, wide, far or big-end checks (thm/CleanTreesC.lean, nothing evaluated), joined to the pass-start
-#      trees in the theorems with those checks (thm/OpenHaltClose.lean, nothing evaluated); prints the axioms of the
-#      final theorems;
+#      trees in the theorems with those checks (thm/OpenHaltClose.lean, nothing evaluated), and six families of pass
+#      starts with the far shape, R >= 769 and width above 2^41 that halt on the 4-wall loop's lanes with two to five
+#      passes, three of them wider than 2^66 (thm/LoopFarHalt.lean, the model run on them by the kernel); prints the
+#      axioms of the final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,
 #      thm/CleanSmallMass.lean, thm/CleanWideMass.lean, thm/CleanFarMass.lean, thm/CleanBigMass.lean, about 5 minutes
@@ -131,7 +133,7 @@ stage EndToEnd RouteEntryHalt PassHalt PassHaltR6 LoopClose
 stage EndToEndDirect PassHaltClasses PassClean EndToEndClose PassHaltClose
 stage CleanEntryHalt PassOpenHalt RouteEntryHaltC
 stage PassEntryHalt LaneHalt CleanTreesC
-stage SmallEndHalt PassEntryHaltClose
+stage SmallEndHalt PassEntryHaltClose LoopFarHalt
 stage OpenSmallHalt
 stage WideHalt
 stage FarHalt
