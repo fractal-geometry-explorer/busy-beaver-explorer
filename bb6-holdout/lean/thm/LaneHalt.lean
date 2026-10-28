@@ -6,7 +6,7 @@ open BB6 BB6.Sym
 `blank_halt_open_big` (`thm/BigEndHalt.lean`) puts the pass start a halt from blank tape needs at a right end
 R ≥ 769.  This file shows that the right end alone cannot rule it out: pass starts with R ≥ 769 that halt and that
 `passTreeSym` leaves open at every depth exist on every lane that the census at R = 770 to 1,004 finds, and on one of
-them at every scale tried.
+them at every scale tried; and (last section) on the routes that census does not find.
 
 The lanes, with Q = W − b + 2R + 22 (untrusted: a census at every even R from 770 to 1,004, W − b up to 4,096, finds
 236 closing classes, and following one point of each with W − b and R left free puts them on 91 paths).  On each the
@@ -93,8 +93,68 @@ theorem lane769_far : ∃ R a b W, 769 ≤ R ∧ 15 * W ≤ 64 * (W - b) ∧
   obtain ⟨hR, hP, hcut, hT⟩ := lane769_open_halt hF (a := 449) (t := 0) rfl (by omega) (by decide)
   exact ⟨998, 449, 2462, 16192, hR, by omega, hP, hcut, hT⟩
 
+/-! ## Routes the census at R = 770 to 1,004 does not find
+
+A lane can carry several routes (paths with their own class of (R, W − b, b) and forms), and some close only at
+scales above the census's W − b ≤ 4,096.  ζ, at R ≡ 998 (mod 1,024) on Q + 636, closes at Q + 636 = 2^14 to 2^22 at
+R = 998, 2,022 and 3,046 but not at 2^12, the census's scale there; the census at R = 5,002 to 5,862 (W − b up to about
+22,000) finds it at R = 5,094, and the census with b free at Q + 636 = 3 · 2^39 and 3 · 2^43 finds it at R = 998 and
+2,022 beside δ.  The census at R = 5,002 to 5,862 also finds ε′ at R ≡ 998 (mod 2,048) on Q + 636, two routes at
+R ≡ 230 (mod 512) and two at R ≡ 230 (mod 1,024) on Q + 316, and ε at R = 5,606 (untrusted, as above; their forms are
+in the project's `halting-classes/routes` files).  `zeta998` holds ζ at R = 998 at each scale it closes at from 2^14 to
+2^22, and `routes5000` one or two families on each of the others. -/
+
+/-- ζ at R = 998, one family at each scale Q + 636 = 2^14, 2^15, 2^16, 3 · 2^15, 2^17, ..., 2^20, 3 · 2^19, 2^21 and
+2^22 (W − b = Q + 636 − 2,654). -/
+def zeta998 : List Fam :=
+  [⟨406560, 998, 392830, 21, 24⟩, ⟨3437600, 998, 3407486, 22, 27⟩, ⟨5305376, 998, 5242494, 23, 29⟩,
+   ⟨2978848, 998, 2883198, 24, 32⟩, ⟨652320, 998, 523902, 25, 30⟩, ⟨125563936, 998, 125304446, 27, 32⟩,
+   ⟨241169440, 998, 240647806, 28, 35⟩, ⟨472380448, 998, 471334526, 29, 37⟩, ⟨166720544, 998, 165150334, 30, 40⟩,
+   ⟨397931552, 998, 395837054, 31, 38⟩, ⟨7765226528, 998, 7761034878, 33, 40⟩]
+
+/-- The census at R = 5,002 to 5,862: ε′ at R = 5,094 (Q + 636 = 3 · 2^13 and 2^15), the routes at R ≡ 230 (mod 512)
+on Q + 316 at R = 5,350 (2^15 and 3 · 2^13 on each), the two at R ≡ 230 (mod 1,024) (2^15), and ε at R = 5,606
+(Q + 636 = 3 · 2^13 and 2^15). -/
+def routes5000 : List Fam :=
+  [⟨506912, 5094, 493182, 19, 28⟩, ⟨482336, 5094, 460414, 20, 26⟩, ⟨1246656, 5350, 1224926, 21, 26⟩,
+   ⟨255424, 5350, 241886, 20, 28⟩, ⟨657248, 5350, 635518, 21, 26⟩, ⟨583520, 5350, 569982, 20, 28⟩,
+   ⟨781664, 5350, 759934, 20, 27⟩, ⟨895936, 5350, 874206, 20, 27⟩, ⟨165696, 5606, 152990, 18, 28⟩,
+   ⟨354112, 5606, 333214, 19, 26⟩]
+
+/-- Each family's R and Q = W − b + 2R + 22, which put it on its lane. -/
+theorem routes_shape :
+    zeta998.map (fun F => (F.R0, F.W0 - F.b0 + 2 * F.R0 + 22 + 636)) =
+      [(998, 2 ^ 14), (998, 2 ^ 15), (998, 2 ^ 16), (998, 3 * 2 ^ 15), (998, 2 ^ 17), (998, 2 ^ 18), (998, 2 ^ 19),
+       (998, 2 ^ 20), (998, 3 * 2 ^ 19), (998, 2 ^ 21), (998, 2 ^ 22)] ∧
+    routes5000.map (fun F => (F.R0, F.W0 - F.b0 + 2 * F.R0 + 22)) =
+      [(5094, 3 * 2 ^ 13 - 636), (5094, 2 ^ 15 - 636), (5350, 2 ^ 15 - 316), (5350, 3 * 2 ^ 13 - 316),
+       (5350, 2 ^ 15 - 316), (5350, 3 * 2 ^ 13 - 316), (5350, 2 ^ 15 - 316), (5350, 2 ^ 15 - 316),
+       (5606, 3 * 2 ^ 13 - 636), (5606, 2 ^ 15 - 636)] := by
+  decide +kernel
+
+/-- All 21 pass the checks (the close run and the model's run on each, by the kernel). -/
+theorem routes_ok : (zeta998 ++ routes5000).all Fam.ok = true := by decide +kernel
+
+/-- **Pass starts with R ≥ 769 that halt, open at every depth, on the routes the census at R = 770 to 1,004 does not
+find: ζ at R = 998 at eleven scales from 2^14 to 2^22, and ε′, the four Q + 316 routes at R ≡ 230 and ε at
+R = 5,094 to 5,606.** -/
+theorem route769_open_halt {F : Fam} (hF : F ∈ zeta998 ++ routes5000) {a t : Nat} (ha : a % 2 = 1) (h1 : 448 ≤ a)
+    (h2 : a + 448 ≤ F.b0 + 2 ^ F.k * t) :
+    769 ≤ F.R0 ∧
+    PassStart448 [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩] (F.W0 + 2 ^ F.k * t)
+      F.R0 ∧
+    (∀ d, (passTreeSym d).cutMem [((a : Int) - 1) / 2, ((F.b0 + 2 ^ F.k * t : Nat) : Int) / 2,
+      ((F.W0 + 2 ^ F.k * t : Nat) : Int) / 2, (F.R0 : Int) / 2] = true) ∧
+    ∃ T, steps T (roundStart [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩]
+      (F.W0 + 2 ^ F.k * t)) = none := by
+  have hR : (zeta998 ++ routes5000).all (fun F => decide (769 ≤ F.R0)) = true := by decide +kernel
+  exact ⟨of_decide_eq_true (List.all_eq_true.1 hR F hF),
+    Fam.open_halt (List.all_eq_true.1 routes_ok F hF) ha h1 h2⟩
+
 #print axioms lanes769_shape
 #print axioms lane769_open_halt
 #print axioms lane769_far
+#print axioms routes_shape
+#print axioms route769_open_halt
 
 end BB6

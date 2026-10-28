@@ -3421,3 +3421,13 @@ there but L₁′ = (−1,813b − 110,376W + 5,390R − 2,407,742)/65,536. Thro
 1.46), and it is left against the ends at 2^j for j = 39 to 45, 47 and 48 and 3 · 2^j for 38 to 43 and 47, up to width
 2^50.7, and against 177³/9 up to 2^59.7. So there are 18 routes, 8 out and 10 left, still on Q + 636, Q + 316 and Q + 36
 and still only below 2^52.7 (2^61.1 against 177³/9); the count scans both of ζ's lanes already.
+
+**Halting families on the routes the census at R ≤ 1,004 misses (October 28; `../lean/thm/LaneHalt.lean`).** A lane
+can carry several routes, and some close only above that census's W − b ≤ 4,096. ζ (R ≡ 998 mod 1,024 on Q + 636, the
+entry above) first closes at Q + 636 = 2¹⁴ at R = 998, then at every 2^j tried up to 2²² and at 3 · 2^j for j ≡ 3
+(mod 4) (untrusted: the census with b fixed to ζ's residue mod 2¹⁴ at R = 998, 2,022 and 3,046). `route769_open_halt`
+proves 21 more families with R ≥ 769 that halt and that `passTreeSym` leaves open at every depth. Eleven are ζ at
+R = 998, one at each scale it closes at from 2¹⁴ to 2²² (`zeta998`). The other ten lie on the routes the census at
+R = 5,002 to 5,862 adds (`routes5000`): ε′ at R = 5,094, the two pairs of Q + 316 routes at R ≡ 230 (mod 512 and mod
+1,024) at R = 5,350, and ε at R = 5,606. The close run and the model's rounds on each family are checked by the kernel,
+with standard axioms; with the 36 families of `lane769_open_halt` the file takes about a minute.
