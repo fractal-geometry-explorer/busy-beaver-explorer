@@ -106,29 +106,44 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    eight R near 5,000, δ and ε included. Deeper trees find more entries (in the blank-tape run's sample, 3 in 26,961
    first entries lie in no 40-digit class, `runs/entry_member.py`), and the cut classes keep their number at every
    depth. For most census routes the entry does not matter: R′³/L₁′² at the route's re-entry is too large at every pass
-   start of the lane with R ≥ 769, the far shape and width ≥ 2⁴¹ (`runs/lane_sigma.py`, untrusted). The seven routes it
-   leaves, on two lanes (Q + 636: δ, ε, and ε′ and ζ from the census near R = 5,000; Q + 316: two routes at R = 5,350,
-   and one at R ≡ 1,702 (mod 2,048) that the census finds when run with b free at every R of a class), escape it only
-   below width 2^48.1 (2^61.1 against 177³/9; a chain's end is bounded by the halting classes' own residues, at most
-   176³/256² at every lane value), and at those lane values the halting side finds no pass start with the far shape on
-   any of them (`routes/README.md` and `routes/far_shape.txt` in its project files, untrusted: each class's step in R is
-   taken from three R and checked at three far R). So, untrusted, none of those routes reaches a halt from the chain's
-   last pass start, from any entry. (A route after the half pass from R = 812 was among them until the halting side
-   found that its last listed start, in round 15, is inside a full pass; the filter now takes such a path at the pass's
-   next phase-0 start, where that route is out.) γ's lane Q + 5,116 carries 21 more paths
-   (`routes/lanes_q5116_forms.txt`, `routes/lanes_q5116_new17_forms.txt`), which the filter leaves up to width 2^59.1,
-   and the next lane of its family, Q + 10,236, 20 more (`routes/lanes_q10236_forms.txt`), up to 2^60.7. On two of them
+   start of the lane with R ≥ 769, the far shape and width ≥ 2⁴¹ (`runs/lane_sigma.py`, untrusted). The six routes it
+   leaves against a close, on two lanes (Q + 636: δ, ε, and ε′ and ζ from the census near R = 5,000; Q + 316: two routes
+   at R = 5,350), escape it only below width 2^43.7 (2^54.1 against any end below 178; from a width of 2²⁴ a close at
+   the chain's end is p full passes, `LoopChain.close_wide`, so its right end R′/16^p is in the closing set and its L₁,
+   L₁′/64^p, in that end's class, which on a lane value allows at most 4 at 2^j and 13.5 at 3 · 2^j; with that L₁ itself
+   only ε and ε′ are left, `runs/close_l1.py`), and at those lane values the halting side finds no pass start with the
+   far shape on any of them (`routes/README.md` and `routes/far_shape.txt` in its project files, untrusted: each class's
+   step in R is taken from three R and checked at three far R). So, untrusted, none of those routes reaches a halt from
+   the chain's last pass start, from any entry. (A route after the half pass from R = 812 was among them until the
+   halting side found that its last listed start, in round 15, is inside a full pass; the filter now takes such a path
+   at the pass's next phase-0 start, where that route is out.) γ's lane Q + 5,116 carries 21 more paths
+   (`routes/lanes_q5116_forms.txt`, `routes/lanes_q5116_new17_forms.txt`), which the filter leaves up to width 2^53.7,
+   and the next lane of its family, Q + 10,236, 20 more (`routes/lanes_q10236_forms.txt`), up to 2^55.7. On two of them
    there are pass starts with R ≥ 769, the far shape and width above 2⁴¹ that halt, at Q + 5,116 = 3 · 2³⁹
    (`lane769_far_wide` in `lean/thm/LaneHalt.lean`, kernel-checked), so at the proved bound the shape alone does not
    rule the halt out there. With the exhaustive check to 64 digits (every clean tape below width 2⁶⁶ reaches a wider
    one; untrusted) in `blank_halt_open_of` in place of `stepsBelow_direct` (the clean tapes up to 2⁴¹), the pass start
-   is wider than 2⁶⁶, and then the filter alone rules out every route and path found against its end, and all but 32
-   paths against 177³/9 (twelve of γ's, at lane values 2⁶⁴ to 3 · 2⁶⁸, and the 20 on Q + 10,236, at 2⁶⁴ to 3 · 2⁷⁰); the
-   chains from the 36- and 40-digit entries meet none of those (`runs/chain_lanes.py`, to width 2⁷⁴), and the only two
-   of their pass starts that meet a census or sweep lane Q + c = 2^j or 3 · 2^j run on to a clean tape (the halting
-   side's census at each exact start). What is needed is a proof (the routes' forms in Lean, and the exhaustive check or
-   the far-shape search) and, on the halting side, every halting class at every R: the censuses had missed ζ, the route
-   at R ≡ 1,702 and γ's paths until run at every R of a class.
+   is wider than 2⁶⁶, and then the filter alone rules out every route and path found against a close, and all but 26
+   paths against any end below 178 (six of γ's, at 2⁶⁶ and 3 · 2⁶⁴, and the 20 on Q + 10,236, at 2⁶⁴ to 2⁶⁸; b is even
+   at a phase-0 start, so an end r allows only r³/16, not 177³/9), and all but 8 of those: 18 need only the lines of
+   pass starts (r, L₁) = (96, −4) and (128, −4), and every pass start with R ≡ 0 (mod 8) and L₁ ≡ 4 (mod 8) reaches a
+   clean tape after five rounds (`pass_clean8`, `lean/thm/PassClean.lean`, kernel-checked), so at the ends that are
+   multiples of 8 |L₁| ≥ 10; the 8 left, the round-39 paths on Q + 10,236 at 2⁶⁴, need (128, −18), (128, 10) or
+   (128, 24), lines on which the halting side's explorer finds only clean leaves and depth cuts
+   (`routes/small_ends.txt`, untrusted), and none of which the 8 can reach: full passes divide L₁ by exactly 64, so the
+   end's L₁ is L₁′/2⁵⁴, and on their pass starts at 2⁶⁴ that lies in intervals such as [−14.2, −13.3] with no
+   value ≡ 10 (mod 14) (`runs/end_l1.py`, untrusted, the forms taken at every R as in `lane_sigma.py`); the chains from
+   the 36- and 40-digit entries meet none of those (`runs/chain_lanes.py`, to width 2⁷⁴), and from every one of their
+   pass starts on a census lane or on a lane of the family Q + 5 · 2^k − 4 = 2^j or 3 · 2^j, at any k, to width 2²⁵⁶
+   (116 of them) the run goes on to a clean tape (the mark model from its entry; the first two also by the halting
+   side's census at each exact start). But the family goes on for every k ≡ 2 or 3 (mod 4), with (k − 6)/4 or (k − 7)/4
+   passes of a loop on four marks before the re-entry (the route-completeness side, `routes/loop4/README.md`), each pass
+   leaving R′³/L₁′² 12 bits weaker (on the paths followed at k = 14, 15, 19, 23 and 27), so at 2⁶⁶ the filter leaves
+   those at k = 14 and 15 against any end below 178, by the end's own L₁ too, and from k = 19 on against a close as
+   well, by its own L₁ too, and no floor closes the family: that needs an argument over the 4-wall loop (its invariant
+   r³/Λ²) or the far shape. What is needed is a proof (the routes' forms in Lean, and the exhaustive check or the
+   far-shape search) and, on the halting side, every halting class at every R: the censuses had missed ζ, the route at
+   R ≡ 1,702 and γ's paths until run at every R of a class.
    **The routes are not finite** (October 28, `lean/thm/FourWallPass.lean`, `lean/thm/RouteLoop.lean`). Every lane
    Q + c = 2^j or 3 · 2^j with a constant c > 0 found so far has c = 5 · 2^k − 4 (k = 3, 6, 7, 10, 11: Q + 36, 316,
    636, 5,116 and 10,236), and between the chain's break and the re-entry the run makes n passes of a loop on four

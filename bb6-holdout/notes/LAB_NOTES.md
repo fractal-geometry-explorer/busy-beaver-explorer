@@ -3624,3 +3624,115 @@ a clean tape. One is Q + 156 = 2⁷² at the round-10 entry of class 165,127 (cl
 n = 1,537,095,765,562,147,710,930 ≈ 2^70.4, W ≈ 2^71.4, R ≡ 36 mod 64), a clean tape six rounds on. The other is
 Q + 316 = 2⁶⁶ at the entry of class 18,468 (W ≈ 2^65.8), which has W ≡ 2 (mod 4), so it is two rounds before the loop's
 half pass and not on the lane, and whose clean tape, n ≈ 2^64.8, is below 2⁶⁵ anyway: a clean tape at round 11.
+
+**The family's lanes at every k (October 28; `../runs/chain_lanes.py`, untrusted).** The route-completeness side found
+that the lanes Q + 5 · 2^k − 4 = 2^j or 3 · 2^j halt for k = 3 and every k ≡ 2 or 3 (mod 4), the walls making (k − 6)/4
+or (k − 7)/4 passes of a loop on four marks between the chain's break and the re-entry (`routes/loop4/README.md`), and
+that each pass divides R′ at the re-entry by 16 while L₁′ stays near −35W. So the widths up to which R′³/L₁′² leaves a
+lane's paths grow about 13 bits for every four in k (2^46.1 and 2^59.1 at k = 6 and 10, 2^48.1 and 2^60.7 at k = 7 and
+11), the lanes from k = 14 on are left past the 2⁶⁶ floor (about 2⁷² at k = 14 if the growth holds; their paths have not
+been followed), and no floor closes the family. `chain_lanes.py` now scans the whole family, Q + 5 · 2^k − 4 and
+Q + R + 10 · 2^k + 16 before a half pass, at every k from 3 that a member up to the width bound can meet, by the residue
+of each lane value modulo the step of the form, and follows the run from the entry of every member it finds on a census
+lane or the family, in the mark model of `../rec/clean_recurrence.py`, to the next clean tape. A pass start is on the
+family when the odd part m of Q − 4 has m + 5 = 2^i or 3 · 2^i (k is the power of 2 in Q − 4), so a class whose Q has a
+small odd step meets it at many k. To 2⁶³ the 36- and 40-digit entries meet it at Q + 5 · 2⁴² − 4 = 2⁵⁷, at the entry of
+class 165,127 (40 digits; Q = 3,082 + 3,146z) of width 2^56.4, whose run reaches the next clean tape in round 8, besides
+two half-pass-first forms at entries with W ≡ 0 (mod 4), which make no half pass. To 2⁷⁴ the 40-digit ones meet it at
+seven members (six pass starts), among them Q + 5 · 2⁶² − 4 = 2⁶⁶ at the landing of a half pass that the tree takes from
+the entry of class 15,431 of width 2^66.9 but the run does not make (round 2 has no three walls; a clean tape in
+round 5); to 2¹²⁸ at 32, at k from 3 to 108, and the census lanes at three (Q = 3 · 2⁹², Q + 36 = 3 · 2⁸³ and
+Q + 316 = 2⁶⁶); to 2²⁵⁶ at 112, at k up to 251, and the census lanes at four (Q = 2¹⁷² as well). The tree has the same
+193,243 classes from 2⁷² to 2²⁵⁶, none more than five steps from its entry. From every entry the run goes on to the next
+clean tape, within 21 rounds; the two members met before, which the halting side ran to a tape with no walls left in
+rounds 6 and 11, reach one in rounds 20 and 13. So for these entries the count leaves only the lanes that R′³/L₁′²
+leaves past its width, from about k = 74 on at 2²⁵⁶ if the growth holds, and for every entry and width the family needs
+an argument over the 4-wall loop (its invariant r³/Λ²) or the far shape.
+
+**Small ends with L₁ even (October 28; `../runs/lane_sigma.py`, untrusted).** The halting side pointed out that the
+bound for any end below 178 can be cut down too: on a lane value R′ is fixed, so the end is r = R′/16^p, and at a pass
+start b is even (the parities of `PassStart448` and `Landing`), so L₁ is even as well as 3 mod 7, ℓ ≡ 10 (mod 14) and
+|ℓ| ≥ 4: an even end r allows at most r³/16, where `noSmall_sigma` takes 177³/9 for every end. `lane_sigma.py` now
+prints that bound per lane value next to 177³/9 (the largest r³/16 over the even r = R′/16^p below 178, and at least
+176³/256²; the blank-tape run's sample and its landings, `../blankrun/results/`, have b even at all 110,313 and 133,518
+of their three-wall starts and L₁ ≡ 10 (mod 14) at every phase-0 one). At the 2⁴¹ floor the first 18 routes are out
+above 2^58.1 (ε′; ε above 2^54.1), γ's paths above 2^68.1 and those on Q + 10,236 above 2^70.1 (2^61.1, 2^71.7 and
+2^73.7 with 177³/9). At the 2⁶⁶ floor 26 paths are left instead of 32: six of γ's nine round-27 paths, at 2⁶⁶ and
+3 · 2⁶⁴, and all 20 on Q + 10,236, at 2⁶⁴ to 2⁶⁸ and 3 · 2⁶⁴, 3 · 2⁶⁶. The halting side's census of the five lines of
+pass starts (r, ℓ) they need, run through the proved explorer's steps, finds (96, −4) and (128, −4) wholly clean, which
+settles 18 of the 26, and (128, −18), (128, 10) and (128, 24) with only clean leaves and depth cuts (`routes/README.md`,
+"Small ends").
+
+**The small ends (October 28; `../lean/thm/PassClean.lean`, `routes/small_ends.txt` and `tools/routes/small/` in the
+halting-classes project files).** The 26 paths left with L₁ even at the 2⁶⁶ floor (above) need far less than every end
+below 178. On a lane value R′ is fixed, so the right ends below 178 that full passes can reach are r = R′/16^p, which is
+2^i or 3·2^i, and ℓ ≡ 10 (mod 14). An end at r needs r³/ℓ² at least the path's least R′³/L₁′² there, so each open lane
+value needs only the lines (r, ℓ) with ℓ² ≤ r³/σ: five at most at the 2⁶⁶ floor, (96, −4), (128, −4), (128, −18),
+(128, 10) and (128, 24), and 50 at the 2⁴¹ floor (r = 24 to 128). A line is every pass start with R = r and L₁ = ℓ,
+b = b₀ + 64s, W = W₀ + 84s, the first wall free; the proved explorer's steps on it (`PassLine2.lean`, untrusted) find no
+land, close or round decided as a halt on any of the 50 lines at depth 24, and 15 lines go wholly to clean tapes without
+a split. No cut leaf splits the first wall: the cuts are classes of s alone, runs of 15 to 25 rounds after the pass
+breaks in round 2 (the right end falls to 1 and the walls halve each round, Collatz-like, to a clean tape), and their
+mass falls about threefold every 4 splits. With R symbolic the clean lines are uniform: every pass start with R ≡ 0
+(mod 8) and b ≡ 2 (mod 8), so L₁ ≡ 4 (mod 8), reaches a wider one-marker clean tape in five rounds, whatever a, b and W
+are otherwise (`pass_clean8`, the five rounds on the class run by the kernel in about a second), and those with
+b ≡ 14 (mod 32), L₁ ≡ 16 (mod 32), in seven, when R ≡ 0 (mod 16) or R ≡ 24 (mod 32) (`pass_clean16`,
+`pass_clean24`). Scanning ℓ from −300 to 300 with R = 8 + 8q symbolic, the wholly clean lines are exactly ℓ ≡ 4
+(mod 8); with R ≡ 0 (mod 16) also ℓ = −144 and 80, and at R ≡ 0 (mod 64) ℓ = −256. So at the ends 2^i and 3·2^i from
+8 up |ℓ| ≥ 10 (`pass_clean_small`) and r³/ℓ² ≤ r³/100 ≤ 20,972: the 18 of the 26 that need only (96, −4) and
+(128, −4), six of γ's and twelve on Q + 10,236, are out, kernel-checked where the census was not. The 8 left are the
+round-39 paths on Q + 10,236, at lane value 2⁶⁴ only (widths 2⁶⁶ to 2^66.093), and need ℓ = −18, 10 or 24 at r = 128,
+where the cuts have mass 0.035%, 0.034% and 0.025% at depth 28. Whether those lines hold a halt is the same question as
+for the pass-start tree at R ≥ 178: the cuts are open, and a halt there would come by re-entry (as
+`pass_halt_example_reentry` does from R = 130).
+
+**The end's own L₁ (October 28; `../runs/end_l1.py`, untrusted).** `lane_sigma.py` keeps a lane value when the least
+R′³/L₁′² over its pass starts is at most r³/16 at some end r = R′/16^p below 178. But a full pass divides R by exactly
+16 and L₁ by exactly 64 (`LoopOut` in `../lean/BB6/Loop.lean`), so the end's L₁ is ℓ = L₁′/64^p itself, not only bounded
+by it, and L₁′ is affine on the lane value's polygon (R ≥ 769, every gap at least 448, W from the floor to 64D/15), so ℓ
+lies in the interval between its values at the corners. The end needs an integer ℓ ≡ 10 (mod 14) there whose start does
+not reach a clean tape at once (`../lean/thm/PassClean.lean`). With the forms and polygons of `lane_sigma.py` (a path
+seen at one R taken with its forms there at every R): at the 2⁶⁶ floor the 18 paths that need (96, −4) or (128, −4)
+have ℓ in intervals such as [−7.3, −1.7] and [−5.5, −1.7], which hold only −4, out by `pass_clean8`; the 8 round-39
+paths on Q + 10,236 have, at 2⁶⁴, where W runs only from 2⁶⁶ to 2^66.093, ℓ in [−14.2, −13.3] (R = 742),
+[−25.8, −24.2] (R = 15,654), [−15.2, −14.3] (R = 19,750) and the like, which hold no value ≡ 10 (mod 14) at all, and at
+their other lane values only −4. So no route or path found is left at the 2⁶⁶ floor against any end below 178 (23
+routes without `pass_clean8`; `pass_clean16` and `pass_clean24` are not needed). At the 2⁴¹ floor the polygons are
+wide and it takes out only Q + 36 at round 11 and 3Q + 76 at round 15 (52 routes left of 54). On all 26 paths L₁′ is
+negative over the whole polygon, so the end's ℓ is negative too, and ℓ = 10 or 24 never comes into it.
+
+**A close's own L₁, and the family's lanes past 2⁶⁶ (October 28; `../runs/close_l1.py`, `../runs/lane_sigma.py`,
+untrusted).** `lane_sigma.py` bounded a chain's end by the halting classes' residues and by 176³/256² ≈ 83 for a close,
+at every lane value. But from a width of 2²⁴ a chain that ends in a closing class is p full passes, after a half pass
+first only from W ≡ 2 (mod 4) (`LoopChain.close_wide`), and the last pass start has W ≡ 0 (mod 4), so the close's right
+end r = R′/16^p is in the closing set and its ℓ = L₁′/64^p in r's class (`closeClasses`), with |ℓ| ≥ 4, 4, 24, 32, 32,
+192, 256, 256 and 256 at r = 2, 4, 8, 16, 24, 32, 48, 64 and 176 once ℓ ≡ 3 (mod 7). On a lane value R′ is 2^i or
+3 · 2^i, so r = 176 never comes into it: a close allows r³/ℓ² ≤ 4 at 2^j and 13.5 at 3 · 2^j (r = 24), and nothing where
+no r of the set is R′/16^p. The halting classes lie in the closing classes but for R = 6's, which needs W ≡ 2 (mod 4),
+as no landing has. At the 2⁴¹ floor that leaves six of the first 18 routes instead of seven: δ, ζ and the two at
+R = 5,350 up to width 2^41.7, ε and ε′ up to 2^43.7 (they were left to 2^46.1 to 2^48.1, and the route at R ≡ 1,702 to
+2^43.1); γ's paths up to 2^47.7 (round 23) and 2^53.7 (round 27), and those on Q + 10,236 up to 2^55.7 (they were
+2^53.1, 2^59.1 and 2^60.7). The small ends now take r³/100 at the multiples of 8 (`pass_clean_small`), so against any
+end below 178 the first 18 are out above 2^54.1, γ's paths above 2^64.1 and those on Q + 10,236 above 2^66.1, and at the
+2⁶⁶ floor 8 paths are left instead of 26, the ones the end's own L₁ rules out (above). A close's ℓ is exact too, and has
+to lie in r's class modulo 7m between L₁′'s values at the polygon's corners over 64^p (`close_l1.py`): at the 2⁴¹ floor
+it leaves of the first 18 only ε at 3 · 2⁴⁰ (r = 24, ℓ in [−47.2, −8.8], so −32) and ε′ at 2⁴¹ (r = 16) and 3 · 2⁴⁰
+(r = 24), each with ℓ = −32, up to width 2^43.7, and γ's paths and those on Q + 10,236 at fewer lane values but up to
+the same widths (43 routes of 59 left, 47 by r³/ℓ²).
+
+The family's later lanes were followed by the other sides: the route-completeness side's
+`routes/lanes_k14_k15_forms.txt` (k = 14 at R = 1,318, and k = 15, the n = 2 family of `loopFams`) and
+`routes/lanes_n3_n5_forms.txt` (the n = 3, 4 and 5 families, k = 19, 23 and 27, to their re-entry in rounds 43, 51 and
+59 and the full passes after), and the halting side's `routes/lanes_k14_all_forms.txt` (all twelve classes of the census
+at Q + 81,916 = 2¹⁹ with b free, nine paths, R = 1,318's among them). At the re-entry R′ falls 16-fold a pass while L₁′
+stays near −1.53W at the far shape's edge (+1.7W on R = 1,318's path), not −35W as taken above, and the least R′³/L₁′²
+at the 2⁴¹ floor is 8.9 × 10⁻⁸, 2.2 × 10⁻¹¹, 5.3 × 10⁻¹⁵ and 1.3 × 10⁻¹⁸ at n = 2, 3, 4 and 5 (k = 15 to 27), about 2¹²
+less a pass. The widths up to which the filter leaves the paths grow 12 bits a pass: against a close 2^65.7, 2^77.7,
+2^89.7 and 2^101.7 at k = 15, 19, 23 and 27, and 2^59.7 to 2^65.7 at k = 14 (R = 35,046 the widest), and against any end
+below 178 2^76.1, 2^88.1, 2^100.1 and 2^112.1, and 2^70.1 to 2^76.1 at k = 14 (not about 2⁷², as extrapolated above). At
+the 2⁶⁶ floor all ten paths at k = 14 and 15 are out against a close, barely (R = 35,046's least R′³/L₁′² is 2.39 at
+2⁶⁴, where a close allows 0.89, and 4.78 at 2⁶⁵, where it allows 4), but left against any end below 178, by the end's
+own L₁ too (`end_l1.py`, at lane values from 3 · 2⁶³ to 2⁷⁴), and the n = 3, 4 and 5 paths are left against a close as
+well, by its own L₁ at most of the lane values. `end_l1.py` now counts the admissible ℓ by their residues modulo 224
+instead of listing them (on the family's wide intervals it would run through about 2⁴⁰ values at the 2⁴¹ floor and 2²⁸
+at 2⁶⁶), and the three scripts try lane values to 2¹⁵⁹ (`lane_sigma.ES`; n = 5's widths had been cut off at 2¹⁰⁹).
