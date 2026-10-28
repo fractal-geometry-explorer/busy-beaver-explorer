@@ -77,7 +77,9 @@ mark rules interactively.
     R = 486, s = 0 to 18), and four families with R = 230 halt with no other pass start on the way
     (`no_pass_open_halt`). Above R = 769 (`thm/LaneHalt.lean`), a family halts open at every depth on every lane a
     census at R = 770 to 1,004 finds, and δ at R = 998 at each scale from 2¹³ to 2³⁰ (`lane769_open_halt`), and on the
-    routes found since, ζ at eleven scales among them (`route769_open_halt`).
+    routes found since, ζ at eleven scales among them (`route769_open_halt`), and on γ's lane Q + 5,116
+    (`gamma769_open_halt`), where one is wider than 2⁴¹ with 15W ≤ 64(W − b), every condition the open case puts on
+    the pass start (`lane769_far_wide`).
 
   The number of rounds in all three is existential (chosen per class by an untrusted program), but each stretch ends at
   its stated event. The first versions (`exit_no_halt`, `endgame_no_close`, `loop_no_close`, `loop_pass`) said only
@@ -132,7 +134,8 @@ mark rules interactively.
   (R = 182), `no_pass_open_halt` (R = 230) and `lane486_open_halt` (R = 486) among them; the two lanes of the last
   recur past that, at every R ≡ 486 (mod 512 or 1,024) and every scale, and pass starts with R ≥ 769 that halt, open
   at every depth, exist on every lane the census finds there and on every route found since (`lane769_open_halt`,
-  `route769_open_halt`, `lean/thm/LaneHalt.lean`).
+  `route769_open_halt`, `lean/thm/LaneHalt.lean`); on γ's lane Q + 5,116 one of them has the far shape and width
+  above 2⁴¹ (`lane769_far_wide`), so there the shape alone does not rule out the halt.
   Deeper trees shrink the open clean tapes' measure (6,582,732 classes of measure 6.0 × 10⁻⁶ at 40 digits, 33,928,389
   of 1.93 × 10⁻⁶ at 44, by `native_decide` on all cores, `lean/BB6/MassPar.lean`), but not the number of open classes
   at a fixed number of digits: nearly every one holds a 2-adic value of W/2 that no depth settles, so closing them

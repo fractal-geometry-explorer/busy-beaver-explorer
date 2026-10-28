@@ -3552,3 +3552,21 @@ R = 230 and two at R = 11,494) are left against the ends at Q + 5,116 = 2⁶⁷ 
 against 177³/9 they are left at 2^j for j = 64 to 75 and 3 · 2^j for j = 63 to 74, the round-27 path at j = 64 to 69 and
 63 to 67, and the round-23 path at R = 230 at the lane value 2⁶⁴. The halting side has moved its far-shape runs on γ's
 lane to those two lane values.
+
+**The far shape on γ's lane: halting pass starts wider than 2⁴¹ (October 28; `../lean/thm/LaneHalt.lean`,
+`routes/far_shape.txt`).** On the nine routes of γ's lane (entry above), the far-shape runs of the entry before last
+(untrusted: the census with b fixed to the route's residue mod 2¹⁴ at three R of its class, the step of b's class from
+the first R to the second checked at the third, and a lattice search over every R of the route) find at 2³⁹ one or two
+classes per route at each R and least b/(W − b) from 0.48 to 2.6, below the 3.27 the far shape allows, but no member,
+since there the width is above 2⁴¹ only when b is above 3(W − b). At 3 · 2³⁹ two routes have members: 212 on the route
+at R ≡ 294 (mod 16,384) with b ≡ 3,422 (mod 2¹⁴), and 77 on the route at R ≡ 7,910 (mod 8,192) with b ≡ 1,694, each
+with R ≥ 769, every gap at least 448, width about 2⁴² and 15W ≤ 64(W − b). A census at three R of each, from
+R = 55,918,886 to 211,172,917,542, finds exactly the class the step predicts, 6 of 6. `gammaWide` holds the first member
+of each as a family (b modulo 2⁵⁸ and 2⁵⁷, 80 rounds of the model run), `routesGamma` the 24 classes at 2¹⁶ with
+R ≥ 769, and `gamma769_open_halt` proves all 26 halting and open at every depth, by the kernel with standard axioms.
+`lane769_far_wide` is one member: walls 449, 3,564,686,921,054 and 5,213,786,600,921, width 5,213,842,519,808,
+R = 55,918,886, a pass start that meets every condition `blank_halt_open_big` puts on it, its width included, and
+halts. So at the proved floor of 2⁴¹ the far shape does not exclude the halt on this lane, and only the run from blank
+tape can (the chains from the 36- and 40-digit entries meet no value of the lane, entry above). The floor of 2⁶⁶ from
+the exhaustive check (untrusted) is above these members, so the runs at 2⁴⁰ to 2⁴⁴ were stopped (at 2⁴⁰ and 2⁴¹ the
+search had members on four routes, unchecked), and the census at 2⁶⁷ and 3 · 2⁶⁶ is next.
