@@ -3407,7 +3407,17 @@ is left up to width 2^52.7 (2^j for j = 39 to 46, 49, 50, 3 · 2^j for 38 to 45,
 now the largest of all. On Q + 316, two routes at R = 5,350 and 5,862 (R ≡ 230 mod 512) are left only at 2⁴² and
 3 · 2⁴¹, as the one at R = 934 is, and two at R = 5,350 (R ≡ 230 mod 1,024) re-enter in round 11 with R′ = (Q + 316)/128
 and |L₁′| about 85W (2^j for j = 39 to 44, 48, 3 · 2^j for 38 to 43, 47; to 2^50.7, and 2^59.1 against 177³/9). Two
-classes on Q + 636 = 2¹⁵, at R = 5,094 and 5,606, have no three-wall start in the forms: the census marks them as δ's,
-followed only to round 15, before δ's start in round 17. Q + 316 = 3 · 2^j is a lane the count had not scanned; with it
+classes on Q + 636 = 2¹⁵, at R = 5,094 and 5,606, have no three-wall start in the forms, which stop at round 15: one is
+δ's, and the other, at R = 5,094, is ζ's (next entry). Q + 316 = 3 · 2^j is a lane the count had not scanned; with it
 (`../runs/chain_lanes.py`, 18 lanes) no chain from the 36- or 40-digit entries meets any census lane to 2⁶³. So the
 entries that only deeper trees find matter for Q + 636, Q + 316 and Q + 36 only, and only below 2^61.1.
+
+**ζ, a tenth route left (October 28; `../runs/lane_sigma.py`, untrusted).** The halting-classes side found that the
+second class at R = 5,094 with no three-wall start in the census forms is not δ's but a route of its own, ζ, at
+R ≡ 998 (mod 1,024) on Q + 636 = 2^j or 3 · 2^j: its census with b free at Q + 636 = 3 · 2³⁹ and 3 · 2⁴³ finds it at
+R = 998 and 2,022 next to δ (`routes/lanes_zeta_forms.txt`, followed to round 74). Like δ it halves from round 1,
+reaches its first three-wall start in round 17 with R′ = (Q + 636)/1,024 and makes a half pass in round 19, with δ's R′
+there but L₁′ = (−1,813b − 110,376W + 5,390R − 2,407,742)/65,536. Through the filter its least R′³/L₁′² is 1.21 (δ's is
+1.46), and it is left against the ends at 2^j for j = 39 to 45, 47 and 48 and 3 · 2^j for 38 to 43 and 47, up to width
+2^50.7, and against 177³/9 up to 2^59.7. So there are 18 routes, 8 out and 10 left, still on Q + 636, Q + 316 and Q + 36
+and still only below 2^52.7 (2^61.1 against 177³/9); the count scans both of ζ's lanes already.
