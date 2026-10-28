@@ -1115,11 +1115,13 @@ halting families for n = 0 to 9 on Q = 4 + 123 · 2^(4n+7); `routes/loop4/README
 divides R′ at the re-entry by 16 while L₁′ stays near −1.5W at the far shape's edge, so R′³/L₁′² there falls by about
 2¹² a pass, and the width up to which it leaves a lane's paths grows 12 bits a pass. Against a close the width is 2^41.7
 at k = 6, 2^43.7 at k = 7, 2^53.7 at k = 10 and 2^55.7 at k = 11, and on the paths since followed on the later lanes
-2^65.7 at k = 14 (24 paths, from the census at Q + 81,916 = 2¹⁹ with b free, `routes/lanes_k14_all_forms.txt`) and at
-k = 15, and 2^77.7, 2^89.7 and 2^101.7 at k = 19, 23 and 27 (the families of n = 2 to 5 on Q = 4 + 123 · 2^(4n+7), one
-path each, `routes/lanes_k14_k15_forms.txt` and `routes/lanes_n3_n5_forms.txt`); against any end below 178 it is 2^76.1
-at k = 14 and 15, and 2^88.1, 2^100.1 and 2^112.1 at k = 19, 23 and 27. So at the 2⁶⁶ floor the paths at k = 14 and 15
-are out against a close but left against any end below 178, by the end's own L₁ too (below), and from k = 19 on they are
+2^65.7 at k = 14 (24 paths, from the census at Q + 81,916 = 2¹⁹ with b free, `routes/lanes_k14_all_forms.txt`), 2^67.7
+at k = 15 (19 paths, 18 from the same census at Q + 163,836 = 2²⁰, `routes/lanes_k15_all_forms.txt`), and 2^77.7, 2^89.7
+and 2^101.7 at k = 19, 23 and 27 (the families of n = 2 to 5 on Q = 4 + 123 · 2^(4n+7), one path each,
+`routes/lanes_k14_k15_forms.txt` and `routes/lanes_n3_n5_forms.txt`); against any end below 178 it is 2^76.1 at k = 14,
+2^78.1 at k = 15, and 2^88.1, 2^100.1 and 2^112.1 at k = 19, 23 and 27. So at the 2⁶⁶ floor the paths at k = 14 and 15
+are left against any end below 178, by the end's own L₁ too (below), and out against a close but for two at k = 15, the
+paths from R = 47,334 and 288,038, which re-enter in round 31, not 35; those two, and from k = 19 on every path, are
 left against a close as well, by the close's own L₁ too. No floor leaves every lane out: the family has to be kept off
 by an argument over the 4-wall loop, its invariant r³/Λ² in place of R′³/L₁′², or by the far shape, which the families
 on Q = 4 + 123 · 2^(4n+7) lack for n ≥ 1 (b close to W) but γ's lane, at n = 1, has (`lane769_far_wide`); for two or
@@ -1153,12 +1155,14 @@ close's ℓ is pinned the same way and has to lie in its r's class as well (`clo
 `../runs/close_l1.py`, untrusted): at the 2⁴¹ floor it leaves of the first 18 routes only ε at 3 · 2⁴⁰ and ε′ at 2⁴¹ and
 3 · 2⁴⁰, each with ℓ = −32, below width 2^43.7, and γ's paths and those on Q + 10,236 at fewer lane values but up to the
 same widths. On the family's later lanes neither closes the 2⁶⁶ floor: the end's own ℓ leaves every path followed at
-k = 14 and 15, at lane values from 2⁶⁴ to 2⁷⁴ (with ℓ = 10, 24 or 94 on the six paths where L₁′ is positive, those from
-R = 1,318, 70,374, 85,222, 86,758, 133,350 and 145,638, ℓ = −4 at r = 6 on those from R = 35,046 and 119,526 and on the
-one at k = 15 (at r = 12 that is clean at once), and from −18 down on the others; the halting-classes side's run,
-`routes/README.md`, "All 31 k = 14 classes followed", where the line explorer finds no halt on the 68 lines (r, ℓ) these
-ends need), and the close's own ℓ those at k = 19, 23 and 27 at most of the lane values that r³/ℓ² leaves, up to 2^77.7,
-2^89.7 and 2^101.7.
+k = 14 and 15, at lane values from 2⁶⁴ to 2⁷⁶ (with ℓ = 10, 24 or 94 on the six paths where L₁′ is positive, those from
+R = 1,318, 70,374, 85,222, 86,758, 133,350 and 145,638, ℓ = −4 at r = 6 on those from R = 35,046 and 119,526 and on 18
+of the 19 at k = 15 (at r = 12 that is clean at once), and from −18 down on the others; the halting-classes side's runs,
+`routes/README.md`, "All 31 k = 14 classes followed" and "The k = 15 census", where the line explorer finds no halt on
+the 89 lines (r, ℓ) these ends need), and the close's own ℓ two at k = 15, at 2⁶⁵ and 3 · 2⁶⁴ with ℓ = −32 at r = 16 and
+24 (in the closing classes there but in no `HaltClass`; on these two lines the line explorer finds no close at depth
+24), and those at k = 19, 23 and 27 at most of the lane values that r³/ℓ² leaves, up to 2^67.7, 2^77.7, 2^89.7 and
+2^101.7.
 
 Above 769 the halting census finds the same lanes and three more (untrusted; `routes/lanes_r770_1004.txt` in the
 project files). At every even R from 770 to 1,004 with W − b up to 4,096 it finds 236 closing classes, which fall on 91
@@ -1315,11 +1319,11 @@ takes about 2 minutes on 4 cores, and the tree above it, like every clean-tape t
   untrusted, the pass start is wider than 2⁶⁶ and none of these routes and paths is left against a close, nor against
   any end below 178 by the end's own L₁ (`../runs/end_l1.py`), on lane values the chains to 2⁷⁴ do not meet; but the
   family's lanes go on for every k ≡ 2 or 3 (mod 4), each pass of the 4-wall loop adding 12 bits to the widths the
-  filter leaves, and the paths followed at k = 14 and 15 are left past 2⁶⁶ against any end below 178, and those at
-  k = 19 to 27 against a close as well). Pass starts with R ≥ 769 that halt, open at every depth, exist on every lane
-  the census finds there (`lane769_open_halt`), and one meets every condition of `blank_halt_open_big` on the pass start
-  but its width (`lane769_far`: width 16,192). On γ's lane one meets them all, its width included (`lane769_far_wide`:
-  width 5,213,842,519,808, at Q + 5,116 = 3 · 2³⁹), below the 2⁶⁶ of the exhaustive check.
+  filter leaves, and the paths followed at k = 14 and 15 are left past 2⁶⁶ against any end below 178, and two at k = 15
+  and those at k = 19 to 27 against a close as well). Pass starts with R ≥ 769 that halt, open at every depth, exist on
+  every lane the census finds there (`lane769_open_halt`), and one meets every condition of `blank_halt_open_big` on the
+  pass start but its width (`lane769_far`: width 16,192). On γ's lane one meets them all, its width included
+  (`lane769_far_wide`: width 5,213,842,519,808, at Q + 5,116 = 3 · 2³⁹), below the 2⁶⁶ of the exhaustive check.
 * The **two-marker route trees** (`ROUTE_TREE.md`) are not used by the theorems above: the machine's run reaches
   two-marker states with a small first gap again and again ("Why a one-variable tree", above). `blank_halt_route`
   (`thm/RouteEntryHalt.lean`) states what they give for a halting run from blank tape, at each two-marker state with
