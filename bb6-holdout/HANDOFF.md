@@ -139,7 +139,9 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    side's census at each exact start). But the family goes on for every k ≡ 2 or 3 (mod 4), with (k − 6)/4 or (k − 7)/4
    passes of a loop on four marks before the re-entry (the route-completeness side, `routes/loop4/README.md`), each pass
    leaving R′³/L₁′² 12 bits weaker (on the paths followed at k = 14, 15, 19, 23 and 27), so at 2⁶⁶ the filter leaves
-   those at k = 14 and 15 against any end below 178, by the end's own L₁ too, and from k = 19 on against a close as
+   those at k = 14 and 15 against any end below 178, by the end's own L₁ too (all 24 paths of the census at k = 14;
+   on the 68 lines (r, ℓ) those ends need the halting side's line explorer finds only clean leaves and depth cuts,
+   `routes/small_ends.txt`, untrusted), and from k = 19 on against a close as
    well, by its own L₁ too, and no floor closes the family: that needs an argument over the 4-wall loop (its invariant
    r³/Λ²) or the far shape. What is needed is a proof (the routes' forms in Lean, and the exhaustive check or the
    far-shape search) and, on the halting side, every halting class at every R: the censuses had missed ζ, the route at
