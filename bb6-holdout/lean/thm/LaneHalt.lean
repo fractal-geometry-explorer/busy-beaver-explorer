@@ -102,7 +102,10 @@ R = 998, 2,022 and 3,046 but not at 2^12, the census's scale there; the census a
 2,022 beside δ.  The census at R = 5,002 to 5,862 also finds ε′ at R ≡ 998 (mod 2,048) on Q + 636, two routes at
 R ≡ 230 (mod 512) and two at R ≡ 230 (mod 1,024) on Q + 316, and ε at R = 5,606 (untrusted, as above; their forms are
 in the project's `halting-classes/routes` files).  `zeta998` holds ζ at R = 998 at each scale it closes at from 2^14 to
-2^22, and `routes5000` one or two families on each of the others. -/
+2^22, and `routes5000` one or two families on each of the others.  The census with b free at Q + 316 = 2^16, 3 · 2^15
+and 2^17 at every R ≡ 38 (mod 64) up to 43,000 finds one more route there, at every R ≡ 1,702 (mod 2,048): its least R
+is 1,702, so neither census has an R in its class.  `routesSweep` holds it at R = 1,702 at those three scales and at
+R = 3,750 and 5,798 at 2^16. -/
 
 /-- ζ at R = 998, one family at each scale Q + 636 = 2^14, 2^15, 2^16, 3 · 2^15, 2^17, ..., 2^20, 3 · 2^19, 2^21 and
 2^22 (W − b = Q + 636 − 2,654). -/
@@ -121,6 +124,12 @@ def routes5000 : List Fam :=
    ⟨781664, 5350, 759934, 20, 27⟩, ⟨895936, 5350, 874206, 20, 27⟩, ⟨165696, 5606, 152990, 18, 28⟩,
    ⟨354112, 5606, 333214, 19, 26⟩]
 
+/-- The sweep's route on Q + 316 at R ≡ 1,702 (mod 2,048): R = 1,702 at Q + 316 = 2^16, 3 · 2^15 and 2^17, and
+R = 3,750 and 5,798 at 2^16. -/
+def routesSweep : List Fam :=
+  [⟨204672, 1702, 142878, 18, 29⟩, ⟨368512, 1702, 273950, 19, 32⟩, ⟨532352, 1702, 405022, 20, 30⟩,
+   ⟨231808, 3750, 174110, 18, 29⟩, ⟨258944, 5798, 205342, 18, 29⟩]
+
 /-- Each family's R and Q = W − b + 2R + 22, which put it on its lane. -/
 theorem routes_shape :
     zeta998.map (fun F => (F.R0, F.W0 - F.b0 + 2 * F.R0 + 22 + 636)) =
@@ -129,16 +138,20 @@ theorem routes_shape :
     routes5000.map (fun F => (F.R0, F.W0 - F.b0 + 2 * F.R0 + 22)) =
       [(5094, 3 * 2 ^ 13 - 636), (5094, 2 ^ 15 - 636), (5350, 2 ^ 15 - 316), (5350, 3 * 2 ^ 13 - 316),
        (5350, 2 ^ 15 - 316), (5350, 3 * 2 ^ 13 - 316), (5350, 2 ^ 15 - 316), (5350, 2 ^ 15 - 316),
-       (5606, 3 * 2 ^ 13 - 636), (5606, 2 ^ 15 - 636)] := by
+       (5606, 3 * 2 ^ 13 - 636), (5606, 2 ^ 15 - 636)] ∧
+    routesSweep.map (fun F => (F.R0, F.W0 - F.b0 + 2 * F.R0 + 22)) =
+      [(1702, 2 ^ 16 - 316), (1702, 3 * 2 ^ 15 - 316), (1702, 2 ^ 17 - 316), (3750, 2 ^ 16 - 316),
+       (5798, 2 ^ 16 - 316)] := by
   decide +kernel
 
-/-- All 21 pass the checks (the close run and the model's run on each, by the kernel). -/
-theorem routes_ok : (zeta998 ++ routes5000).all Fam.ok = true := by decide +kernel
+/-- All 26 pass the checks (the close run and the model's run on each, by the kernel). -/
+theorem routes_ok : (zeta998 ++ routes5000 ++ routesSweep).all Fam.ok = true := by decide +kernel
 
 /-- **Pass starts with R ≥ 769 that halt, open at every depth, on the routes the census at R = 770 to 1,004 does not
-find: ζ at R = 998 at eleven scales from 2^14 to 2^22, and ε′, the four Q + 316 routes at R ≡ 230 and ε at
-R = 5,094 to 5,606.** -/
-theorem route769_open_halt {F : Fam} (hF : F ∈ zeta998 ++ routes5000) {a t : Nat} (ha : a % 2 = 1) (h1 : 448 ≤ a)
+find: ζ at R = 998 at eleven scales from 2^14 to 2^22, ε′, the four Q + 316 routes at R ≡ 230 and ε at R = 5,094 to
+5,606, and the Q + 316 route at R ≡ 1,702 (mod 2,048).** -/
+theorem route769_open_halt {F : Fam} (hF : F ∈ zeta998 ++ routes5000 ++ routesSweep) {a t : Nat} (ha : a % 2 = 1)
+    (h1 : 448 ≤ a)
     (h2 : a + 448 ≤ F.b0 + 2 ^ F.k * t) :
     769 ≤ F.R0 ∧
     PassStart448 [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩] (F.W0 + 2 ^ F.k * t)
@@ -147,7 +160,7 @@ theorem route769_open_halt {F : Fam} (hF : F ∈ zeta998 ++ routes5000) {a t : N
       ((F.W0 + 2 ^ F.k * t : Nat) : Int) / 2, (F.R0 : Int) / 2] = true) ∧
     ∃ T, steps T (roundStart [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩]
       (F.W0 + 2 ^ F.k * t)) = none := by
-  have hR : (zeta998 ++ routes5000).all (fun F => decide (769 ≤ F.R0)) = true := by decide +kernel
+  have hR : (zeta998 ++ routes5000 ++ routesSweep).all (fun F => decide (769 ≤ F.R0)) = true := by decide +kernel
   exact ⟨of_decide_eq_true (List.all_eq_true.1 hR F hF),
     Fam.open_halt (List.all_eq_true.1 routes_ok F hF) ha h1 h2⟩
 

@@ -3489,3 +3489,19 @@ c = 5 · 2^k − 4 (36 to 10,236 for k = 3 to 11), and `chain_lanes.py` now chec
 forms Q + R + 24 + 2c: the chains from the 36- and 40-digit entries, up to width 2⁶³, meet none of them but
 Q + R + 336 = 3 · 2⁵⁸, at one member of a 36-digit entry class, with W = 458,541,540,931,153,868 ≈ 2^58.7, which has
 W ≡ 0 (mod 4) and so makes no half pass.
+
+**Halting families on the eleventh route, and γ's lane (October 28; `../lean/thm/LaneHalt.lean`, `routes/README.md`).**
+The census with b free at every R of a class (untrusted; about 2 s a run at 2^16, with 10 more splits and 40 more
+rounds than the census at three R) finds on Q + 636, at every R ≡ 486 (mod 512) up to 87,526 (655 runs at 2^16 to 2^18
+and 3 · 2^15 to 3 · 2^17), δ, ε, ζ and ε′ only, and on Q + 316, at every R ≡ 38 (mod 64) up to 43,942 (2,210 runs at
+2^16, 2^17, 3 · 2^15 and 3 · 2^16), the five routes known there and the eleventh route of the entry above, at every
+R ≡ 1,702 (mod 2,048) from 1,702 to 42,662. `route769_open_halt` now proves 26 families with R ≥ 769 that halt and that
+`passTreeSym` leaves open at every depth; the five new ones are on that route (`routesSweep`: R = 1,702 at
+Q + 316 = 2¹⁶, 3 · 2¹⁵ and 2¹⁷, and R = 3,750 and 5,798 at 2¹⁶), checked by the kernel with standard axioms. On
+Q + 5,116, γ's lane, the first 141 runs at 2¹⁶ (R up to 8,998) have 14 classes at nine R from 230 to 8,486, and each of
+those R has the same number of classes again at 2¹⁷, 2¹⁸, 2¹⁹ and 2²⁰ (one to three, the modulus growing by one or two
+bits a scale), so these routes recur. Two of them, at R = 294 and 8,486, are γ itself, with γ's forms in round 21
+(R′ = (Q + 5,116)/4,096): γ is not sporadic. The check that called it so tried widths of another shape
+(Q/4 − 3 = 3 · 2^j − 2), not its lane. With γ's forms `../runs/lane_sigma.py` would leave it at 2^j for j = 39 to 57
+and 61 and 3 · 2^j for j = 38 to 56 and 60 (least R′³/L₁′² 0.0004, widths up to 2^63.7), so the routes on this lane
+are next for the far-shape runs.
