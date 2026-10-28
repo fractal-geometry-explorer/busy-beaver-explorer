@@ -758,7 +758,7 @@ an entry needs a pass start cut at every depth of its tree with those classes (`
 a wider clean tape. From blank tape, `blank_halt_pass_close` and `blank_halt_pass_kernel_close` are `blank_halt_pass`
 and `blank_halt_pass_kernel` with it and with `cleanTreeGEC` in place of `cleanTreeGE` (`clean_tree_entry_stepC`), and
 `blank_halt_open_close` and `blank_halt_open_kernel_close` are the same for `blank_halt_open` ("The open clean tapes
-come first", below). The later theorems, with small, wide, far and big right ends, still take `EntryNoClose`.
+come first", below). The later theorems, with the small-end, wide, far and big-end checks, still take `EntryNoClose`.
 
 So every part of a halting run from blank tape is followed: from clean tape to clean tape by the clean-tape tree, into
 the loop at the entries, through the loop by its chain, and past the loop's end by the pass-start trees, to the next
@@ -1238,7 +1238,7 @@ the files there, and their own ℓ 88 (94 and 90 with `closeClasses`), most widt
 only the paths at k = 19, 23 and 27 are left, up to 2^75.1, 2^87.1 and 2^99.1, the two at k = 15 being out with the
 rest. Past the loop's end `entry_pass_halt_close`, `blank_halt_pass_close` and `blank_halt_open_close` take these
 classes (`EntryNoCloseC` with the pass-start trees of `closeClassC`, above, "Past the loop's end, from blank tape"), but
-the theorems with small, wide, far and big right ends still take `EntryNoClose`, which excludes the closes of
+the theorems with the small-end, wide, far and big-end checks still take `EntryNoClose`, which excludes the closes of
 `closeClasses`; for them these are what the narrower classes would give, not yet what the theorems take.
 
 Above 769 the halting census finds the same lanes and three more (untrusted; `routes/lanes_r770_1004.txt` in the
