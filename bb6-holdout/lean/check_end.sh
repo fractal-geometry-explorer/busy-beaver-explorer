@@ -34,11 +34,11 @@
 #      the same), the blank-tape prefix to width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape tree at
 #      every depth
 #      (thm/CleanTheorem.lean, the proved explorer, nothing evaluated), the clean tapes of width in [2^32, 2^41) run
-#      one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and thm/EndToEndDirect.lean, the routes
-#      from two-marker states with their loop entries (thm/RouteTheorem.lean, thm/RouteEntryTheorem.lean,
-#      thm/RouteEntryHalt.lean, nothing evaluated), the clean-tape tree with loop entries and its chain from blank
-#      tape (thm/CleanEntryTheorem.lean, thm/CleanEntryHalt.lean, nothing evaluated), that chain joined to the
-#      pass-start trees, with the plain clean-tape tree taken first where it resolves a clean tape
+#      one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean, thm/EndToEndDirect.lean and
+#      thm/EndToEndClose.lean, the routes from two-marker states with their loop entries (thm/RouteTheorem.lean,
+#      thm/RouteEntryTheorem.lean, thm/RouteEntryHalt.lean, nothing evaluated), the clean-tape tree with loop entries
+#      and its chain from blank tape (thm/CleanEntryTheorem.lean, thm/CleanEntryHalt.lean, nothing evaluated), that
+#      chain joined to the pass-start trees, with the plain clean-tape tree taken first where it resolves a clean tape
 #      (thm/PassEntryHalt.lean), the same with loop entries from which the loop's chain ends at no small right end
 #      (thm/CleanSmallTheorem.lean, thm/SmallEndHalt.lean, nothing evaluated), and the two together
 #      (thm/OpenSmallHalt.lean), and with loop entries whose right end is at least a 32nd of the width, from which the
@@ -123,7 +123,7 @@ stage $DEEPMASS CleanDirect CleanMass CleanDirectMass CleanKernelMass CleanEntry
   CleanSmallMass CleanWideMass CleanFarMass CleanBigMass ExitHalt LoopTheorem RouteEntryTheorem EndgameCloseTheorem
 stage LoopHalt
 stage EndToEnd RouteEntryHalt PassHalt PassHaltR6 LoopClose
-stage EndToEndDirect PassHaltClasses PassClean
+stage EndToEndDirect PassHaltClasses PassClean EndToEndClose
 stage CleanEntryHalt PassOpenHalt
 stage PassEntryHalt LaneHalt
 stage SmallEndHalt

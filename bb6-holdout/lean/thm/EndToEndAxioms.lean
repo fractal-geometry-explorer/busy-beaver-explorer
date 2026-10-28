@@ -1,5 +1,6 @@
 import EndToEnd
 import EndToEndDirect
+import EndToEndClose
 import CleanMass
 import CleanDirectMass
 import CleanKernelMass
@@ -19,6 +20,14 @@ import CleanKernelMass
 #print axioms BB6.blank_halt_structure_kernel
 #check @BB6.never_halts_of_cut_classes_kernel
 #print axioms BB6.never_halts_of_cut_classes_kernel
+#check @BB6.blank_halt_structure_close
+#print axioms BB6.blank_halt_structure_close
+#check @BB6.blank_halt_sigma_close
+#print axioms BB6.blank_halt_sigma_close
+#check @BB6.blank_halt_wide_close
+#print axioms BB6.blank_halt_wide_close
+#check @BB6.blank_halt_structure_close_kernel
+#print axioms BB6.blank_halt_structure_close_kernel
 #check @BB6.blank_halt_clean_direct
 #print axioms BB6.blank_halt_clean_direct
 #check @clean_tree_cut_mass

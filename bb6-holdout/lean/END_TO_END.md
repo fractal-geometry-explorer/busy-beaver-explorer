@@ -315,7 +315,10 @@ meetings the run is back at three walls two rounds later, as at a half pass, whi
 chain's last stretch (`loop_chain_halt_close`). With L₁ ≡ 3 (mod 7) a close now has R³/L₁² ≤ 4, reached at R = 4 with
 |L₁| = 4 (`sigma_closeC`), so log₂W ≤ σ + 2 at the start of the chain's last run of full passes
 (`loop_halt_sigma_close`), and a round-7 landing within that bound needs a width below 2²⁰ (`break7_sigmaC`):
-`loop_halt_wide_close` and `loop_halt_leaves_close` hold from width 2²⁰.
+`loop_halt_wide_close` and `loop_halt_leaves_close` hold from width 2²⁰. From blank tape, `thm/EndToEndClose.lean` gives
+`blank_halt_loop_close`, `blank_halt_sigma_close`, `blank_halt_wide_close`, and `blank_halt_structure_close` and
+`blank_halt_structure_close_kernel`: `blank_halt_structure` and `blank_halt_structure_kernel` with item 3 so (the kernel
+version on the standard axioms only).
 
 **From a pass start to the next checkpoint** (October 27). Where the loop's chain ends, `loop_chain_halt` only says
 that a stuck configuration follows. The pass-start trees (`BB6/PassTree.lean`) follow the run on, round by round, to
@@ -556,6 +559,7 @@ there is no kernel-only version.
 | `BB6/CleanRange.lean` | `directOK_sound`: a run of the mark model from a clean tape to a wider one, as a statement about the machine; `RTree.cuts1_sound`: the cut classes of a one-variable tree as residues of W/2; `rangeOK_sound`: every clean tape of width in [lo, hi) that the tree leaves open runs directly to a wider one | proved, standard axioms |
 | `thm/CleanDirect.lean` | `clean_step_direct`: every clean tape of even width in [2³², 2⁴¹) reaches a wider clean tape, with no exception | `rangeOK` on `cleanTree 36` evaluated by `native_decide` (26,508,327 members of the cut classes, each run to a wider clean tape), and `clean_tree_step` for the rest |
 | `thm/EndToEndDirect.lean` | `blank_halt_clean_direct`, `never_halts_of_cut_classes_direct` | `blank_halt_clean_from` (`thm/EndToEnd.lean`: the chain from a clean tape the run reaches, for any bounds A ≤ B with every clean tape of width in [A, B) reaching a wider one, with the tree `cleanTreeG B d` above B) with the prefix to 2³², A = 2³² and B = 2⁴¹ |
+| `thm/EndToEndClose.lean` | `blank_halt_loop_close`, `blank_halt_sigma_close`, `blank_halt_wide_close`, `blank_halt_structure_close`, `blank_halt_structure_close_kernel`: the end-to-end statements with end meetings at distance 2 passed (a close needs R in {2, 4, 8, 16, 32, 48} and L₁ in R's class of `closeClassC`; R³/L₁² ≤ 4; from a width ≥ 2²⁰ no round-7 break) | `loop_chain_halt_close`, `loop_halt_sigma_close`, `loop_halt_wide_close` (`thm/LoopClose.lean`) with `steps_none_split`; the kernel version on the standard axioms only |
 | `thm/CleanDirectMass.lean`, `thm/CleanDirectMass40.lean` | `clean_direct_cut_mass`, `clean_direct_cut_mass40`: the leaf counts and cut measure of `cleanTreeG 2⁴¹ 36` and `cleanTreeG 2⁴¹ 40` | `exploreMassW`, `native_decide`; used by no theorem about the machine |
 | `BB6/CleanEntryTree.lean` | `RTree.okWE` / `RTree.soundWE`: a clean-tape tree with `entry` leaves checked by a given test; `RTree.exploreWE`: the explorer `RTree.exploreW` that also stops a path at the first round start passing the test, with `exploreWE_okWE`; `cleanEntryOK`: `entryOK` (`BB6/RouteEntry.lean`) and the entry decided to be wider than the start | proved, standard axioms |
 | `thm/CleanEntryTheorem.lean` | `clean_tree_entry_step`: for every Γ ≥ 6 and every depth d, from every clean tape of even width W ≥ Γ, the machine reaches a wider clean tape or a wider loop entry that cannot close (`EntryNoClose`) without halting, unless W/2 is in a cut class of `cleanTreeGE Γ d` | `RTree.soundWE` and `exploreWE_okWE`; nothing evaluated |
@@ -1419,7 +1423,7 @@ python3 thm/gen_prefix.py checkpoints.txt thm 8
 | `thm/PassOpenHalt.lean` (the families' model runs by the kernel) | 2 min 19 s beside the other theorem files |
 | `thm/LaneHalt.lean` (62 families, by the kernel) | about 1 to 2 min |
 | `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 20 s |
-| `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean`, `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean`, `thm/CleanEntryTheorem.lean`, `thm/CleanEntryHalt.lean`, `thm/PassEntryHalt.lean`, `thm/CleanSmallTheorem.lean`, `thm/SmallEndHalt.lean`, `thm/OpenSmallHalt.lean`, `thm/CleanWideTheorem.lean`, `thm/WideHalt.lean`, `thm/CleanFarTheorem.lean`, `thm/FarHalt.lean`, `thm/CleanBigTheorem.lean`, `thm/BigEndHalt.lean` | seconds |
+| `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean`, `thm/EndToEndClose.lean`, `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean`, `thm/CleanEntryTheorem.lean`, `thm/CleanEntryHalt.lean`, `thm/PassEntryHalt.lean`, `thm/CleanSmallTheorem.lean`, `thm/SmallEndHalt.lean`, `thm/OpenSmallHalt.lean`, `thm/CleanWideTheorem.lean`, `thm/WideHalt.lean`, `thm/CleanFarTheorem.lean`, `thm/FarHalt.lean`, `thm/CleanBigTheorem.lean`, `thm/BigEndHalt.lean` | seconds |
 | `thm/CleanEntryMass.lean` (36 digits, cone 2⁴¹, with loop entries) | 5 min 1 s |
 | `thm/CleanSmallMass.lean` (36 digits, cone 2⁴¹, with loop entries and the small-end check) | about 5 min 30 s (2 min 26 s on a machine where `CleanEntryMass` takes 2 min 11 s) |
 | `thm/CleanWideMass.lean` (36 digits, cone 2⁴¹, with loop entries, the small-end check and W ≤ 32R) | 3 min 41 s alone |
