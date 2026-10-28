@@ -266,9 +266,10 @@ Started October 25. Self-contained (no Mathlib): Lean 4 core only, so it can be 
   untrusted count of the pass starts up to width 2⁶³ of the chains from the loop entries of the 36- and 40-digit trees
   (`../runs/chain_lanes.py`) meets neither of them, nor any other lane of the census, but deeper trees find more entries
   (`../runs/entry_member.py`: 3 of the blank-tape run's 26,961 sampled first entries above 2⁴¹ lie in no 40-digit
-  class). R′³/L₁′² at the route's re-entry rules out every census route from any entry but ten, on Q + 636, Q + 316 and
-  Q + 36, and those ten below width 2^61.1 (`../runs/lane_sigma.py`, untrusted). Halting pass starts with R ≥ 769, open
-  at every depth, exist on every lane found there (`lane769_open_halt`).
+  class). R′³/L₁′² at the route's re-entry rules out every census route from any entry but eleven, on Q + 636, Q + 316
+  and Q + 36, and those eleven below width 2^61.1 (`../runs/lane_sigma.py`, untrusted), where the halting-classes side
+  finds no pass start with the far shape on them (untrusted, the step of each route's class in R taken from three R).
+  Halting pass starts with R ≥ 769, open at every depth, exist on every lane found there (`lane769_open_halt`).
 * **Deeper trees** (`BB6/MassPar.lean`, `thm/CleanEntryMass40.lean`, `thm/CleanEntryMass44.lean`, `ProjPar.lean`,
   `END_TO_END.md`, October 27): the clean-tape tree with loop entries cuts 6,582,732 classes at 40 digits (measure
   5.99 × 10⁻⁶) and 33,928,389 at 44 (1.93 × 10⁻⁶), evaluated on all cores; but below almost every class cut at b digits

@@ -3464,3 +3464,28 @@ and the closest end meeting improves to 14.39 halvings at n = 3,185,173,435,214,
   round 59, in the chain of the cycle's third entry.
 - *Open classes:* 4.4 to 5.3 in 100,000 of the run's clean tapes are open at 36 digits in nine windows from 2³⁴ to
   2⁴², and the cycles of entries and half-pass landings 0.45% of the time at every width.
+
+**The far shape on the eleven routes left, and the sweep's lanes (October 28; `../runs/lane_sigma.py`,
+`../runs/chain_lanes.py` and the halting-classes project files, untrusted).** Run with b free at every R of a class on
+Q + 636 and Q + 316 (`routes/README.md`, "A census with b free at every R of a class"), the halting-classes census finds
+one route more, on Q + 316 = 2^j or 3 · 2^j at R ≡ 1,702 (mod 2,048), whose least R, 1,702, is above the census at
+R ≤ 1,004, while no R of the census near 5,000 is in its class (`routes/lanes_q316_1702_forms.txt`). It re-enters in
+round 11 with R′ = (Q + 316)/128, as the r11 pair at R ≡ 230 (mod 1,024) does, and
+L₁′ = (2,548b − 5,712W − 2,597R − 47,258)/128. Through `lane_sigma.py` with that file added its least R′³/L₁′² is 16.7,
+and it is left at 2^j for j = 39 to 41, 43 and 44 and 3 · 2^j for j = 38, 39 and 43 (widths up to 2^46.7; against 177³/9
+up to 2^56.1): 19 routes, 8 out and 11 left, the bounds 2^52.7 and 2^61.1 unchanged. The halting side then searched each
+of the eleven, at each lane value the filter leaves it, for a pass start with the far shape (`routes/README.md`, "The
+far shape on the routes left"; `routes/far_shape.txt`). With b fixed to the route's residue the census at three R of its
+class finds one closing class of b at each wherever the route closes (modulus 2^53 to 2^73); the step of the class from
+the first R to the second predicts it at the third, and at three far R per route up to R ≈ 1.1 × 10¹² (36 of 36); and
+taking the step as exact at every R of the class, a lattice search finds no member with R ≥ 769, width above 2⁴¹, every
+gap at least 448 and 15W ≤ 64(W − b) (at a landing, that shape in the landing's coordinates). The least b is 4.67 times
+the largest W − b of its lane value (ε′ at 2⁴⁰), where 3.27 would be needed (about 1.13 at a landing), and on each route
+it doubles every two scales; δ's lane values 2^j had been searched to 2⁴⁹. So, if the steps hold at every R and the
+census sees every class, no census route takes the run from the pass start `blank_halt_open_big` leaves to a halt, from
+any entry. The run at every R goes on, on γ's lane Q + 5,116 among others, where at 2¹⁶ it finds closing classes at
+R = 3,302 to 8,486 that none of the known routes takes. The lanes it searches are Q + c = 2^j or 3 · 2^j with
+c = 5 · 2^k − 4 (36 to 10,236 for k = 3 to 11), and `chain_lanes.py` now checks them all, with their half-pass-first
+forms Q + R + 24 + 2c: the chains from the 36- and 40-digit entries, up to width 2⁶³, meet none of them but
+Q + R + 336 = 3 · 2⁵⁸, at one member of a 36-digit entry class, with W = 458,541,540,931,153,868 ≈ 2^58.7, which has
+W ≡ 0 (mod 4) and so makes no half pass.
