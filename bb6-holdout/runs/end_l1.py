@@ -2,15 +2,15 @@
 `../lean/END_TO_END.md`, "The small ends".)
 
 `lane_sigma.py` keeps a lane value when R'^3/L1'^2, at its least over the lane value's pass starts, is at most r^3/16 at
-an even end r = R'/16^p below 178.  But full passes divide R' by exactly 16 and L1' by exactly 64 (`LoopOut` in
-`../lean/BB6/Loop.lean`), so the end's L1 is l = L1'/64^p itself, and L1' is affine on the lane value's polygon of pass
-starts (the shape `blank_halt_open_big` gives the chain's last pass start, with the width floor of `--floor`), so it
-lies between its values at the corners, [Lmin, Lmax].  The end needs an integer l in [Lmin, Lmax]/64^p with
-l = 10 (mod 14) (even and 3 mod 7 at a phase-0 start) whose start does not reach a clean tape at once
-(`../lean/thm/PassClean.lean`: l = 4 (mod 8) when 8 | r, `pass_clean8`; l = 16 (mod 32) when 16 | r or r = 24 (mod 32),
-`pass_clean16` and `pass_clean24`).  The forms, the polygon and the routes are `lane_sigma.py`'s, read with its
-functions; the forms of a path seen at one R are taken at every R, as there.  Prints, per route, the lane values
-r^3/16 leaves and those the end's L1 leaves, with the interval of l and its admissible values.
+an even end r = R'/16^p below 178 (r^3/100 where 8 divides r).  But full passes divide R' by exactly 16 and L1' by
+exactly 64 (`LoopOut` in `../lean/BB6/Loop.lean`), so the end's L1 is l = L1'/64^p itself, and L1' is affine on the
+lane value's polygon of pass starts (the shape `blank_halt_open_big` gives the chain's last pass start, with the width
+floor of `--floor`), so it lies between its values at the corners, [Lmin, Lmax].  The end needs an integer l in
+[Lmin, Lmax]/64^p with l = 10 (mod 14) (even and 3 mod 7 at a phase-0 start) whose start does not reach a clean tape
+at once (`../lean/thm/PassClean.lean`: l = 4 (mod 8) when 8 | r, `pass_clean8`; l = 16 (mod 32) when 16 | r or
+r = 24 (mod 32), `pass_clean16` and `pass_clean24`).  The forms, the polygon and the routes are `lane_sigma.py`'s, read
+with its functions; the forms of a path seen at one R are taken at every R, as there.  Prints, per route, the lane
+values r^3/16 leaves and those the end's L1 leaves, with the interval of l and its admissible values.
 
 usage: python3 end_l1.py [--floor=66] [--no-clean] FORMS...   (the files of `lane_sigma.py`, in `halting-classes/routes`)
 """
@@ -52,6 +52,14 @@ def clean(r, l):
     return CLEAN and ((r % 8 == 0 and l % 8 == 4) or ((r % 16 == 0 or r % 32 == 24) and l % 32 == 16))
 
 
+def admissible(r, lo, hi):
+    """the l in [lo, hi] with l = 10 (mod 14) outside the clean classes: a list of at most 6, else their count (l mod
+    224 decides both, so a wide interval is counted, not run through)"""
+    a, b = ceil(lo), floor(hi)
+    n = sum((b - x) // 224 - (a - 1 - x) // 224 for x in range(224) if x % 14 == 10 and not clean(r, x))
+    return [x for x in range(a, b + 1) if x % 14 == 10 and not clean(r, x)] if n <= 6 else n
+
+
 def main():
     global CLEAN
     args = sys.argv[1:]
@@ -72,7 +80,7 @@ def main():
         form, s = ls.lane(Rf)
         small, left = [], []
         for c in (1, 3):
-            for e in range(20, 110):
+            for e in ls.ES:
                 N = c * 2 ** e * s
                 sg = ls.sigma_min(Rf, Lf, N)
                 if sg is None:
@@ -87,10 +95,10 @@ def main():
                     if sg <= Fr(r ** 3, 16):
                         small.append('%d * 2^%d (r = %d)' % (c, e, r))
                     lo, hi = Lmin / 64 ** p, Lmax / 64 ** p
-                    ls_ = [x for x in range(ceil(lo), floor(hi) + 1) if x % 14 == 10 and not clean(r, x)]
+                    ls_ = admissible(r, lo, hi)
                     if ls_:
                         left.append('%d * 2^%d, r = %d: l in [%.4g, %.4g], %s' % (
-                            c, e, r, float(lo), float(hi), ls_ if len(ls_) <= 6 else '%d values' % len(ls_)))
+                            c, e, r, float(lo), float(hi), ls_ if isinstance(ls_, list) else '%d values' % ls_))
         nsmall += bool(small)
         nleft += bool(left)
         if small:
