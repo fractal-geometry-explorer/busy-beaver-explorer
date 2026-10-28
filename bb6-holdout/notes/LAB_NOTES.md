@@ -3317,14 +3317,31 @@ exclude them below about 2⁴⁷. No bound on R reaches them. Whether the chain'
 would need Q + 636 = 2^j exactly, the chain's ends after full passes sit near W − b = 15W/63, where L₁ is near 0, so at
 W ≈ 4.2 · 2^j, and b would have to fall in a class modulo about 2^(1.5j).
 
-The chain from blank tape meets neither lane, by an untrusted count (`../runs/chain_lanes.py`, five seconds). Taking
-every step of the chain from each 36-digit entry class on the subclass where its map's divisions are exact (a half pass
-first or not, then full passes and round-7 breaks, with the walls of `StepMap`) gives a tree that holds every chain. Cut
-where a subclass's least member is wider than 2⁶³, it has 42,255 classes: the 28,660 entries, 9,640 after one step,
-3,659 after two, and 225, 63 and 8 after three, four and five. Q is affine on each, with a step of 2¹¹ to 2⁶¹, and no
-member of any meets Q = 2^j or 3 · 2^j, Q + 36 = 2^j or 3 · 2^j, Q + 636 = 2^j, 3Q + 76 = 2^j or 2Q − R + 6 = 2^j or
-3 · 2^j for j up to 64, which are the lanes of every halting route the census has; other offsets are met (44 with
-|c| ≤ 2,000 for Q + c = 2^j, the least −42), so it is a count and not a congruence. δ and ε need W below 2⁵³ even with
-r³/16 for a close at r ≤ 32, so neither is reached if their forms hold. The blank-tape run to 2⁴² (`../blankrun/`, the
-entry above, untrusted) agrees: no chain from any entry lands more than three times, Q is never 2^v or 3 · 2^v, and the
-largest v2(Q) is 32.
+The chains from the 36-digit tree's loop entries meet neither lane, by an untrusted count (`../runs/chain_lanes.py`,
+five seconds). Taking every step of the chain from each 36-digit entry class on the subclass where its map's divisions
+are exact (a half pass first or not, then full passes and round-7 breaks, with the walls of `StepMap`) gives a tree that
+holds every chain from them. Cut where a subclass's least member is wider than 2⁶³, it has 42,255 classes: the 28,660
+entries, 9,640 after one step, 3,659 after two, and 225, 63 and 8 after three, four and five. Q is affine on each, with
+a step of 2¹¹ to 2⁶¹, and no member of any meets Q = 2^j or 3 · 2^j, Q + 36 = 2^j or 3 · 2^j, Q + 636 = 2^j,
+3Q + 76 = 2^j or 2Q − R + 6 = 2^j or 3 · 2^j for j up to 64, which were the lanes of every halting route the census had;
+other offsets are met (44 with |c| ≤ 2,000 for Q + c = 2^j, the least −42), so it is a count and not a congruence. δ and
+ε need W below 2⁵³ even with r³/16 for a close at r ≤ 32, so no chain from these entries reaches either if their forms
+hold. The blank-tape run to 2⁴² (`../blankrun/`, the entry above, untrusted) agrees: no chain from any entry lands more
+than three times, Q is never 2^v or 3 · 2^v, and the largest v2(Q) is 32.
+
+**The lane count covers the entries of the 36- and 40-digit trees, not every entry (October 28;
+`../runs/chain_lanes.py`, `../runs/entry_member.py`, untrusted).** The loop entry of `blank_halt_open_big` is the first
+one in the cycle of a clean tape whose class `cleanTreeGB` settles at some depth, not necessarily within 36 digits: in
+one of the 1,255,963 classes cut there, the entry is one that only a deeper tree finds, and the count above says nothing
+about its chain. The 40-digit tree has 169,631 entry classes (`EntryForms.lean 2199023255552 40`, 24 minutes). The
+chains from them have 193,242 classes below 2⁶³ (the entries, 18,283 after one step, 4,865 after two, and 382, 73 and 8
+after three, four and five), and no member meets any lane of the census, now with those of R = 770 to 1,004
+(`routes/lanes_r770_1004.txt` in the halting-classes project files: 2Q − R + 26 = 2^j, Q + 316 = 2^j, Q + 636 = 3 · 2^j,
+and at the entries, which alone can start a route with a half pass, Q + R + 24, 2Q + R + 60, Q + R + 96 and
+Q + R + 1,296). Over all offsets |c| ≤ 2,000 of the five forms scanned, the 140,971 new entry classes meet one offset
+that the 28,660 do not (2Q + R − 1,538 = 3 · 2^j): a class found deeper has a larger step. In the run's sample of 1
+cycle in 16,384 (`../blankrun/results/sample16k.tsv.gz`), 26,961 cycles of clean tapes wider than 2⁴¹ have a first
+entry, and all but 11 of these lie in a 36-digit entry class, all but 3 in a 40-digit one; the 11 come in rounds 43 to
+52 of cycles that need 39 to 52 digits. The 430 later entries of a cycle lie in none, as they should: they come after
+the first entry's chain has ended. So the 36-digit count covers about 99.96% of the run's first entries and the 40-digit
+one about 99.99%, and since the cut classes keep their number at every depth, no finite count covers them all.
