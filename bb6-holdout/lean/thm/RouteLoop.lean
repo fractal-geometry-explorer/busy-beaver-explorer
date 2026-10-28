@@ -274,14 +274,13 @@ kernel). -/
 theorem loopFams_ok : ((List.range 10).zip loopFams).all (fun p => p.2.loopOK p.1) = true := by
   decide +kernel
 
-/-- **Halting pass starts with n passes of the 4-wall loop, for each n from 0 to 9.**  Every member of the n-th
-family is a pass start with R ≥ 769 and every gap at least 448, in a cut leaf of `passTreeSym` at every depth, from
-which the machine halts; its round starts in rounds 8i + 5 (i < n) are in the 4-wall pass's class
+/-- **Halting pass starts with n passes of the 4-wall loop, from the checks.**  Every member of a family with
+`F.loopOK n` is a pass start with R ≥ 769 and every gap at least 448, in a cut leaf of `passTreeSym` at every depth,
+from which the machine halts; its round starts in rounds 8i + 5 (i < n) are in the 4-wall pass's class
 (`four_wall_pass`); none in rounds 1 to 8n + 16 has three walls, the one in round 8n + 17 does, and the one in round
 8n + 19 has three walls with the phase-0 parities, the re-entry. -/
-theorem loop_open_halt {n : Nat} (hn : n < 10) {a t : Nat} (ha : a % 2 = 1) (h1 : 448 ≤ a)
-    (h2 : a + 448 ≤ (loopFams.getD n ⟨0, 0, 0, 0, 0⟩).b0 + 2 ^ (loopFams.getD n ⟨0, 0, 0, 0, 0⟩).k * t) :
-    let F := loopFams.getD n ⟨0, 0, 0, 0, 0⟩
+theorem Fam.loop_route {F : Fam} {n : Nat} (hok : F.loopOK n = true) {a t : Nat} (ha : a % 2 = 1) (h1 : 448 ≤ a)
+    (h2 : a + 448 ≤ F.b0 + 2 ^ F.k * t) :
     let ms : List Mark := [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩]
     let W := F.W0 + 2 ^ F.k * t
     769 ≤ F.R0 ∧ PassStart448 ms W F.R0 ∧
@@ -295,15 +294,7 @@ theorem loop_open_halt {n : Nat} (hn : n < 10) {a t : Nat} (ha : a % 2 = 1) (h1 
     (∃ a' b' c' W', roundsZ 1000 (8 * n + 17) ms W = .newRound [⟨.W, a'⟩, ⟨.W, b'⟩, ⟨.W, c'⟩] W') ∧
     (∃ a' b' c' W', roundsZ 1000 (8 * n + 19) ms W = .newRound [⟨.W, a'⟩, ⟨.W, b'⟩, ⟨.W, c'⟩] W' ∧
       a' % 2 = 1 ∧ b' % 2 = 0 ∧ W' % 4 = 0) := by
-  intro F ms W
-  have hmem : (n, F) ∈ (List.range 10).zip loopFams := by
-    have hlen : loopFams.length = 10 := by decide
-    rw [List.mem_iff_getElem]
-    refine ⟨n, by simp [hlen]; omega, ?_⟩
-    simp only [List.getElem_zip, List.getElem_range]
-    simp only [F, List.getD_eq_getElem?_getD, List.getElem?_eq_getElem (show n < loopFams.length by omega),
-      Option.getD_some]
-  have hok := List.all_eq_true.1 loopFams_ok _ hmem
+  intro ms W
   simp only [Fam.loopOK, Bool.and_eq_true, decide_eq_true_eq] at hok
   obtain ⟨⟨hF, hR⟩, hrun⟩ := hok
   obtain ⟨hP, hcut, hT⟩ := Fam.open_halt hF ha h1 h2
@@ -340,6 +331,34 @@ theorem loop_open_halt {n : Nat} (hn : n < 10) {a t : Nat} (ha : a % 2 = 1) (h1 
     obtain ⟨a', b', c', rfl, h1', h2', h3'⟩ := p0Check_sound hl hw (loopPred_19 hp rfl)
     exact ⟨a', b', c', W', he, h1', h2', h3'⟩
 
+/-- **Halting pass starts with n passes of the 4-wall loop, for each n from 0 to 9**: `Fam.loop_route` on the n-th
+family. -/
+theorem loop_open_halt {n : Nat} (hn : n < 10) {a t : Nat} (ha : a % 2 = 1) (h1 : 448 ≤ a)
+    (h2 : a + 448 ≤ (loopFams.getD n ⟨0, 0, 0, 0, 0⟩).b0 + 2 ^ (loopFams.getD n ⟨0, 0, 0, 0, 0⟩).k * t) :
+    let F := loopFams.getD n ⟨0, 0, 0, 0, 0⟩
+    let ms : List Mark := [⟨.W, a⟩, ⟨.W, F.b0 + 2 ^ F.k * t⟩, ⟨.W, F.W0 + 2 ^ F.k * t - F.R0 - 1⟩]
+    let W := F.W0 + 2 ^ F.k * t
+    769 ≤ F.R0 ∧ PassStart448 ms W F.R0 ∧
+    (∀ d, (passTreeSym d).cutMem [((a : Int) - 1) / 2, ((F.b0 + 2 ^ F.k * t : Nat) : Int) / 2,
+      ((F.W0 + 2 ^ F.k * t : Nat) : Int) / 2, (F.R0 : Int) / 2] = true) ∧
+    (∃ T, steps T (roundStart ms W) = none) ∧
+    (∀ i < n, ∃ μ w₁ w₂ w₃ E, roundsZ 1000 (8 * i + 5) ms W = .newRound [⟨.M, μ⟩, ⟨.W, w₁⟩, ⟨.W, w₂⟩, ⟨.W, w₃⟩] E ∧
+      448 ≤ μ ∧ μ + 448 ≤ w₁ ∧ w₁ + 448 ≤ w₂ ∧ w₂ + 448 ≤ w₃ ∧ w₃ + 448 ≤ E ∧ μ % 4 = 2 ∧ w₁ % 4 = 2 ∧
+      (w₁ + w₂) % 128 = 45 ∧ (w₃ - w₂) % 32 = 1 ∧ (E - w₃) % 32 = 1) ∧
+    (∀ r, 0 < r → r < 8 * n + 17 → ∃ ms' W', roundsZ 1000 r ms W = .newRound ms' W' ∧ NotWWW ms') ∧
+    (∃ a' b' c' W', roundsZ 1000 (8 * n + 17) ms W = .newRound [⟨.W, a'⟩, ⟨.W, b'⟩, ⟨.W, c'⟩] W') ∧
+    (∃ a' b' c' W', roundsZ 1000 (8 * n + 19) ms W = .newRound [⟨.W, a'⟩, ⟨.W, b'⟩, ⟨.W, c'⟩] W' ∧
+      a' % 2 = 1 ∧ b' % 2 = 0 ∧ W' % 4 = 0) := by
+  intro F
+  have hmem : (n, F) ∈ (List.range 10).zip loopFams := by
+    have hlen : loopFams.length = 10 := by decide
+    rw [List.mem_iff_getElem]
+    refine ⟨n, by simp [hlen]; omega, ?_⟩
+    simp only [List.getElem_zip, List.getElem_range]
+    simp only [F, List.getD_eq_getElem?_getD, List.getElem?_eq_getElem (show n < loopFams.length by omega),
+      Option.getD_some]
+  exact Fam.loop_route (List.all_eq_true.1 loopFams_ok _ hmem) ha h1 h2
+
 /-- **No finite list of routes**: for each n from 0 to 9 a pass start with R ≥ 769 and every gap at least 448, from
 which the machine halts, whose first three-wall round start after round 0 is in round 8n + 17 (walls at 449,
 b₀ and W₀ − R₀ − 1 of the n-th family).  The rounds differ for every n, and `four_wall_pass` is what repeats. -/
@@ -364,6 +383,7 @@ theorem loop_routes : ∀ n < 10, ∃ a b W R, 769 ≤ R ∧ PassStart448 [⟨.W
   exact ⟨449, _, _, _, hR, hP, hT, hw, h17⟩
 
 #print axioms loopFams_shape
+#print axioms Fam.loop_route
 #print axioms loop_open_halt
 #print axioms loop_routes
 

@@ -6,7 +6,7 @@ open BB6 BB6.Sym
 The lanes Q + 5 · 2^k − 4 = 2^j or 3 · 2^j (Q = W − b + 2R + 22) carry halting classes for k = 3 and every
 k ≡ 2 or 3 (mod 4).  On the lane with k = 4n + 7 the walls make n passes of a loop on four marks between the chain's
 break and the re-entry, eight rounds each (the route-completeness side's `four_wall_pass`, with halting families on
-Q = 4 + 123 · 2^(4n+7) for n = 0 to 9: `thm/FourWallPass.lean` and `thm/RouteLoop.lean` of PR #90, not on main).  For
+Q = 4 + 123 · 2^(4n+7) for n = 0 to 9: `thm/FourWallPass.lean` and `thm/RouteLoop.lean`).  For
 n ≥ 1 those families have b close to W, so not the far shape 15W ≤ 64(W − b) that `blank_halt_open_far` puts on the
 pass start a halt from blank tape needs.  γ's lane Q + 5,116 (k = 10) has members with that shape wider than 2⁴¹
 (`lane769_far_wide`), below the 2⁶⁶ that the untrusted 64-digit check of clean tapes puts on that pass start.  This
@@ -31,10 +31,10 @@ finds its class.
 
 `loopFar2`, `loopFar3`, `loopFar66`, `loopFar4` and `loopFar5` hold one member at 2⁴¹ on the two-pass route, two at
 2⁴¹ and one at 2⁶⁶ on the three-pass route, and one at 2⁶⁶ on each of the four- and five-pass routes, each as a family
-with the first wall free (`Fam`, `thm/PassOpenHalt.lean`).  With PR #90's `Fam.loopOK` (the round starts in rounds
-8i + 5, i < n, in the 4-wall pass's class, the next three-wall round start in round 8n + 17 and the re-entry in round
-8n + 19), the first has `loopOK 2`, the next three `loopOK 3`, then `loopOK 4` and `loopOK 5`, and none of them
-`loopOK` with one pass fewer or more (evaluated on PR #90's branch; to be stated here once that is on main). -/
+with the first wall free (`Fam`, `thm/PassOpenHalt.lean`).  With `Fam.loopOK` (`thm/RouteLoop.lean`: the round
+starts in rounds 8i + 5, i < n, in the 4-wall pass's class, the next three-wall round start in round 8n + 17 and the
+re-entry in round 8n + 19), the first has `loopOK 2`, the next three `loopOK 3`, then `loopOK 4` and `loopOK 5`,
+and none of them `loopOK` with one pass fewer or more (`thm/RouteLoopFar.lean`: `loop_far_routes`, `loop_far_exact`). -/
 
 namespace BB6
 
