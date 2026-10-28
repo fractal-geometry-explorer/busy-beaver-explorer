@@ -528,6 +528,8 @@ there is no kernel-only version.
 | `BB6/CloseHalt.lean`, `BB6/HaltTree.lean`, `thm/PassHaltClasses.lean` | `reach_close_halt`: a close at the right end with the end marker at distance 0 (`EndClose0`) that the model reaches from a well-formed start is a halt; `halt_iff_end_close`: where no interior contact is reachable and every such close is of this kind, the machine halts exactly when the model reaches one; `closeRun_sound`, `symCloseRun_halt`: the close run proves halts, of a start and of a class; `pass_halt_leaf`: every pass start in a halting leaf of a pass-start tree halts, at every depth; `pass_class_halt`: every pass start in a halting class (`HaltClass`: R = 2, 3/8 of R = 4, 1/8 of R = 6, 1/32, 1/64, 1/128 and 1/256 of R = 8, 16, 32 and 48) halts; `chain_class_halt`: so does every pass start whose loop chain reaches one | the model's events as runs of the machine (`gapEvent_ok`, `pktBack_run`, `pktLand_run`) and the close's 54 steps by `rfl`; `HTree.sound` and `HTree.ofPTree_ok`, nothing evaluated; the close run on each class by `decide +kernel` |
 | `thm/PassOpenHalt.lean` | `family_open_halt`: every pass start with walls at a, b and b + 467 and width b + 646 (R = 178), a odd, a ≥ 448, b − a ≥ 448 and b ≡ 2,010 (mod 2¹⁴), lies in a cut leaf of `passTreeSym` at every depth and halts; `sym_open_halt`, `sym_open_halt_wide`: such pass starts at every width, and above 2⁴¹; `open_halt_families`: the same for eight families (first wall free, the other walls and the width moved by multiples of 2¹³ to 2¹⁷); `full_pass_open_halt`: a full pass of the loop's chain (`LoopChain`, R = 2,976 to R = 186) lands on a member of the eighth; `reentry_open_halt`: the eighth's route at each scale j from 10 to 30, a family with R = 178 and W − b = 2^(j+2) − 378 (`reentryFams_shape`); `reentry6_open_halt`: the same with R = 182 (`reentryFams6_shape`); `full_pass_open_halt6`: a full pass (R = 3,552 to R = 222) onto a member of the class at width 29,404; `sym_open_of_run`: a pass start with R ≥ 178 whose model run leaves a round uncovered before any possible checkpoint is cut at every depth, and `sym_open_of_run2` the same before any checkpoint; `no_pass_open_halt`: four families with R = 230 that halt with no three-wall round start after round 0; `lane486_open_halt`: two families with R = 486 at each scale W − b = 2^(12+s) − 1,630, s = 0 to 18 | `pass_next` with `no_checkpoint`; the model's rounds on each family (`symOpenRun`, or `symOpenRun2` with `notLandingCheck` where a three-wall round start is decidedly not a landing, `symRoundsZ_sound`) and the close run (`symCloseRun_halt`) by `decide +kernel`, as are the full pass's eight rounds (`rounds_run`) and the round starts' types (`symNoWWWRun`) |
 | `thm/LaneHalt.lean` | `lane769_open_halt`: 36 families of pass starts with R ≥ 769 (first wall free, the other walls and the width moved by multiples of 2^k), each lying in a cut leaf of `passTreeSym` at every depth and halting: one on each lane of the census at R = 770 to 1,004 and δ at R = 998 at each scale W − b = 2^j − 2,654, j = 13 to 30 (`lanes769`, `delta998`); `lanes769_shape`: each family's R and Q = W − b + 2R + 22; `lane769_far`: a member with 15W ≤ 64(W − b), width 16,192; `route769_open_halt`: 26 more on the routes that census does not find, ζ at R = 998 at eleven scales from 2^14 to 2^22, ε′, the four Q + 316 routes at R ≡ 230 and ε from the census at R = 5,002 to 5,862, and the Q + 316 route at R ≡ 1,702 (mod 2,048) from a census with b free at every R ≡ 38 (mod 64) (`zeta998`, `routes5000`, `routesSweep`, `routes_shape`); `gamma769_open_halt`: 26 on γ's lane Q + 5,116, the 24 classes with R ≥ 769 at Q + 5,116 = 2^16 and two members at 3 · 2^39 wider than 2^41 with 15W ≤ 64(W − b) (`routesGamma`, `gammaWide`, `gamma_shape`); `lane769_far_wide`: a member with every condition `blank_halt_open_big` puts on the pass start, its width included (width 5,213,842,519,808) | `Fam.open_halt`; the close run and the model's rounds on each family by `decide +kernel` |
+| `thm/FourWallPass.lean` | `four_wall_pass`: from a round start M μ, W w₁, W w₂, W w₃ of width E with μ ≡ 2 (mod 4), w₁ ≡ 2 (mod 4), w₁ + w₂ ≡ 45 (mod 128), w₃ − w₂ ≡ 1 (mod 32), E − w₃ ≡ 1 (mod 32) and every gap at least 448, the model's next eight rounds end at M μ′, W w₁′, W w₂′, W w₃′ of width E + 24 with 16(E + 24 − w₃′) = ρ + 15, 16(E + 24 − w₂′) = σ + 4ρ + 26, 64(E + 24 − w₁′) = 30E + τ + 5σ + 12ρ + 697 and 32μ′ = w₁ + w₂ + 19 (τ, σ, ρ the walls' distances from the end) | the eight rounds on the class (five coordinates, every test decided on the cone) by `decide +kernel`, `symRoundsZ_sound` |
+| `thm/RouteLoop.lean` | `loop_open_halt`: for each n from 0 to 9 a family on Q = 4 + 123 · 2^(4n+7) (first wall free, b ≡ b₀ mod 2^(20+6n)) whose members halt, lie in a cut leaf of `passTreeSym` at every depth and have R ≥ 769, whose round starts in rounds 8i + 5 (i < n) are in `four_wall_pass`'s class, with no three-wall round start in rounds 1 to 8n + 16, three walls in round 8n + 17 and the phase-0 parities in round 8n + 19 (`loopFams`, `loopFams_shape`); `loop_routes`: so the first three-wall round start after round 0 is in round 8n + 17, a different route for each n | `Fam.open_halt`; the round starts to the re-entry on each family (`symRoundsAll`, `loopPred`) by `decide +kernel` |
 | `thm/EndToEnd.lean` | `clean_chain`, `blank_halt_clean_from`, `blank_halt_clean`, `blank_halt_clean_kernel`, `blank_halt_loop`, `blank_halt_sigma`, `blank_halt_wide`, `blank_halt_exit`, `blank_halt_structure`, `blank_halt_structure_kernel`, `never_halts_of_cut_classes`, `never_halts_of_cut_classes_kernel` | strong induction on the halting time: at each clean tape, either it is cut at every depth, or some depth decides it and the run goes on to a wider clean tape, which takes at least one machine step |
 | `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean` (`ROUTE_TREE.md`) | `route_tree_clean`, `route_tree_entry`: from every two-marker state with both gaps ≥ Γ, a halt-free run to a clean tape, or (`routeTreeE`) to a loop entry from which no point of its class closes through the loop, unless the start is in a cut class; `entry_halt`, `route_halt`, `blank_halt_route`: a halt from such an entry needs the loop's chain to end without a close where the run leaves three walls, and a stuck configuration after it, and so does a halt from blank tape at each such two-marker state it passes, unless the state is cut at every depth | `RTree.sound`, `RTree.soundE` with the proved explorers (`explore_ok`, `exploreE_okE`); `entryOK_sound`, `EntryNoClose.no_close` (`LoopChain.close_wide`) and `loop_halt_leaves`; nothing evaluated |
 | `thm/CleanMass.lean`, `thm/CleanMass40.lean` | `clean_tree_cut_mass`, `clean_tree_cut_mass40`: the leaf counts and cut measure of `cleanTree 36` and `cleanTree 40` | `exploreMassW` evaluated by `native_decide`; used by no theorem about the machine |
@@ -1089,6 +1091,44 @@ three R as on δ, and a census at six of their R finds the predicted class each 
 on it and halts. So the shape alone does not exclude a halting pass start; only the run from blank tape can. (The
 untrusted 64-digit check of clean tapes puts that pass start above width 2⁶⁶, beyond these members.)
 
+## Routes of every length: the 4-wall loop
+
+The census lanes Q + c = 2^j or 3 · 2^j with a constant c > 0 are one family. Every one found so far, Q + 36,
+Q + 316, Q + 636 (δ), Q + 5,116 (γ) and Q + 10,236, has c = 5 · 2^k − 4, with k = 3, 6, 7, 10 and 11, and a census on the lanes
+Q + 5 · 2^k − 4 = 2^j for k = 3 to 14 finds closing classes at k = 3, 6, 7, 10, 11 and 14 and none at the others
+(untrusted). On such a lane the end meetings follow u = d + 2 from (Q − 4)/4 = 2^(k−2)(2^(j−k) − 5): k − 3 halvings, one
+swap to 2^(j−k), and halvings from there to the close. While the meetings halve, the walls go round a loop of their own
+on four marks, the 4-wall pass (`four_wall_pass`, `thm/FourWallPass.lean`). From the round start M μ, W w₁, W w₂, W w₃
+of width E, on the class μ ≡ 2 (mod 4), w₁ ≡ 2 (mod 4), w₁ + w₂ ≡ 45 (mod 128), w₃ − w₂ ≡ 1 (mod 32),
+E − w₃ ≡ 1 (mod 32), with every gap at least 448, eight rounds (round starts MWWW, WWWW, BWW, WWWW, BWW, MBW, MWWW,
+MBW) end at a round start of the same kind of width E + 24, with
+
+    ρ′ = (ρ + 15)/16,  σ′ = (σ + 4ρ + 26)/16,  τ′ = (30E + τ + 5σ + 12ρ + 697)/64,  μ′ = (w₁ + w₂ + 19)/32,
+
+where τ, σ and ρ are the walls' distances from the end. Like the loop's full pass on three walls (R → R/16,
+L₁ → L₁/64) it is an exact affine map on a residue class: r = ρ − 1 goes to r/16, s = σ − 2 to (s + 4r)/16 and
+Λ = 3,969τ − 1,890E − 6,615σ + 19,404ρ − 5,391 to Λ/64, so r³/Λ² is invariant as R³/L₁² is. From a pass start the run
+reaches the pass's four marks in round 5 with r = (Q − 4)/16, so on the lane with k = 4n + 7 the class holds for n
+passes, rounds 5 to 8n + 5; then the run leaves by an exit that does not depend on n, has three walls again in round
+8n + 17 (W ≡ 2 mod 4) and re-enters with the phase-0 parities in round 8n + 19. `loop_open_halt` (`thm/RouteLoop.lean`)
+proves one family for each n from 0 to 9, on Q = 4 + 123 · 2^(4n+7): every member halts, is open at every depth and
+has R ≥ 769, its round starts in rounds 8i + 5 (i < n) are in the pass's class, and none of its round starts before
+round 8n + 17 has three walls (`loop_routes`). n = 0 is δ at R = 998. On the lanes with k ≡ 2 (mod 4) (Q + 316, γ's
+Q + 5,116) the passes are of this kind or of variants with a pair of markers in their third round (untrusted).
+
+So no finite list of routes holds the halting classes: a route is a prefix, n 4-wall passes and an exit, the
+construction gives halting pass starts for every n tried (to 10 by the model, to 9 in Lean; that it does for every n
+is not proved), and each new k brings a new lane (the next are Q + 81,916, Q + 163,836, Q + 1,310,716 and
+Q + 2,621,436). The routes are still described finitely, as the chain's full passes are: a prefix, a loop and an exit.
+What cannot be complete is a list of fixed routes. A census at
+fixed scales finds the routes with few passes only, and R′³/L₁′² at the re-entry does not exclude the others
+uniformly: L₁′ stays near −35W while R′ falls 16-fold with each pass. A uniform argument has to go through the 4-wall
+loop the way the σ bound goes through the full pass, for example with r³/Λ² at its entry. Not shown: for n ≥ 1 these
+families have b close to W, so they do not have 15W ≤ 64(W − b). On γ's lane some members meet every condition
+`blank_halt_open_big` puts on the pass start (`lane769_far_wide`). Whether lanes with two or more passes do is open;
+the class conditions grow by about ten bits a pass against eight of the lane's scale, so if they do, it is at larger
+scales.
+
 ## Deeper trees: the open classes keep their number
 
 The clean tapes that both trees leave open are those in the cut classes of `cleanTreeGE 2⁴¹ d`. A deeper tree cuts
@@ -1275,6 +1315,7 @@ python3 thm/gen_prefix.py checkpoints.txt thm 8
 | `thm/PrefixKernel.lean`, `EndgameTheorem.lean`, `ExitTheorem.lean`, `ExitHalt.lean`, `LoopTheorem.lean`, `LoopHalt.lean`, `PassHalt.lean`, `PassHaltR6.lean`, `PassHaltClasses.lean` | seconds |
 | `thm/PassOpenHalt.lean` (the families' model runs by the kernel) | 2 min 19 s beside the other theorem files |
 | `thm/LaneHalt.lean` (62 families, by the kernel) | about 1 to 2 min |
+| `thm/FourWallPass.lean`, `thm/RouteLoop.lean` (the 4-wall pass and ten families, by the kernel) | 5 s and 34 s |
 | `thm/Prefix.lean` (1.2 × 10⁹ rounds) | 4 min 20 s |
 | `thm/CleanTheorem.lean`, `thm/EndToEnd.lean`, `thm/EndToEndDirect.lean`, `thm/RouteTheorem.lean`, `thm/RouteEntryTheorem.lean`, `thm/RouteEntryHalt.lean`, `thm/CleanEntryTheorem.lean`, `thm/CleanEntryHalt.lean`, `thm/PassEntryHalt.lean`, `thm/CleanSmallTheorem.lean`, `thm/SmallEndHalt.lean`, `thm/OpenSmallHalt.lean`, `thm/CleanWideTheorem.lean`, `thm/WideHalt.lean`, `thm/CleanFarTheorem.lean`, `thm/FarHalt.lean`, `thm/CleanBigTheorem.lean`, `thm/BigEndHalt.lean` | seconds |
 | `thm/CleanEntryMass.lean` (36 digits, cone 2⁴¹, with loop entries) | 5 min 1 s |

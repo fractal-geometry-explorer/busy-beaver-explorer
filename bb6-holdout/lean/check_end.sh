@@ -26,8 +26,9 @@
 #      misses, ten on the routes a census near R = 5,000 adds, five on a route a census with b free at every
 #      R = 38 (mod 64) adds, 24 on gamma's lane W - b + 2R + 5,138 = 2^16 and two on that lane at 3 * 2^39 that are
 #      wider than 2^41 with 15W <= 64(W - b), every condition the open case puts on the pass start (thm/LaneHalt.lean,
-#      the same), the blank-tape prefix to width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape tree at
-#      every depth
+#      the same), the 4-wall pass on its whole class (thm/FourWallPass.lean, eight rounds by the kernel) and ten
+#      families with 0 to 9 passes of it before the re-entry, so routes of every length (thm/RouteLoop.lean, the
+#      same), the blank-tape prefix to width 2^32 (thm/Prefix.lean, about 4 minutes), the clean-tape tree at every depth
 #      (thm/CleanTheorem.lean, the proved explorer, nothing evaluated), the clean tapes of width in [2^32, 2^41) run
 #      one by one (thm/CleanDirect.lean, about 11 minutes), thm/EndToEnd.lean and thm/EndToEndDirect.lean, the routes
 #      from two-marker states with their loop entries (thm/RouteTheorem.lean, thm/RouteEntryTheorem.lean,
@@ -104,7 +105,7 @@ compile() {
 export -f compile
 export LEAN DYN
 stage() { printf '%s\n' "$@" | xargs -P "$JOBS" -I{} bash -c 'compile {}'; }
-stage PrefixKernel EndgameTheorem ExitTheorem Prefix CleanTheorem RouteTheorem
+stage PrefixKernel EndgameTheorem ExitTheorem Prefix CleanTheorem RouteTheorem FourWallPass
 # each imports the one before (seconds each)
 stage CleanEntryTheorem
 stage CleanSmallTheorem
@@ -118,7 +119,7 @@ stage LoopHalt
 stage EndToEnd RouteEntryHalt PassHalt PassHaltR6
 stage EndToEndDirect PassHaltClasses
 stage CleanEntryHalt PassOpenHalt
-stage PassEntryHalt LaneHalt
+stage PassEntryHalt LaneHalt RouteLoop
 stage SmallEndHalt
 stage OpenSmallHalt
 stage WideHalt
