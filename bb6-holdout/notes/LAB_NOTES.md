@@ -3523,3 +3523,32 @@ bits a scale), so these routes recur. Two of them, at R = 294 and 8,486, are γ 
 (Q/4 − 3 = 3 · 2^j − 2), not its lane. With γ's forms `../runs/lane_sigma.py` would leave it at 2^j for j = 39 to 57
 and 61 and 3 · 2^j for j = 38 to 56 and 60 (least R′³/L₁′² 0.0004, widths up to 2^63.7), so the routes on this lane
 are next for the far-shape runs.
+
+**γ's lane, and a floor of 2⁶⁶ from the exhaustive check (October 28; `../runs/lane_sigma.py`, `../runs/chain_lanes.py`,
+untrusted).** γ is not sporadic: the census with b free at Q + 5,116 = 2¹⁶ at every R ≡ 38 (mod 64) up to 19,942 finds
+29 closing classes at 16 R, on 16 paths (`routes/lanes_q5116_forms.txt`): nine routes seen at two or more R, in R
+classes mod 4,096 to 16,384 (γ is the route at R ≡ 294 mod 8,192, with the round-21 forms of
+`routes/lanes_r294_486.json`), and seven paths seen at one R only, whose forms have the R term folded into the constant
+(`lane_sigma.py` takes them with those forms at every R and prints their lanes as Q − 2R + c). The paths re-enter in
+round 21 with R′ = (Q + 5,116)/4,096 and make a half pass in round 23, or re-enter in round 19 with
+R′ = (Q + 5,116)/2,048 and again in round 25 with R′ = (Q + 5,116)/16,384 (one, at R = 19,750, also in round 27).
+Through the filter none is out: the round-23 ones are left up to width 2^56.7 (2^66.1 against 177³/9), the round-25 ones
+up to 2^69.7 with least R′³/L₁′² about 5 · 10⁻⁶ (2^77.7), the round-27 one up to 2^62.7 (2^71.1). `chain_lanes.py` now
+scans j up to e + 3 for the width bound 2^e (with j ≤ 64 at 2⁶³ it could miss lane values near the top, such as
+3Q + c = 2⁶⁵ or 2⁶⁶; the lines at 2⁶³ come back the same) and indexes the lanes outside its window. Counted to width 2⁷⁰
+(193,243 classes, 88 s), the chains from the 36- and 40-digit entries meet no Q + 5,116 = 2^j or 3 · 2^j, and the only
+census lane met is Q + 316 = 2⁶⁶, at an entry with W = 64,033,359,752,358,914,394 ≈ 2^65.8, where every Q + 316 route is
+out. Then the floor, from the coordinator's question: `blank_halt_open_big` is `blank_halt_open_of` with
+`stepsBelow_direct` (every clean tape of width in [2³², 2⁴¹) reaches a wider one), so its clean tape W is at least 2⁴¹
+and its pass start wider than W. The exhaustive check to 64 digits finds every clean tape n < 2⁶⁵ (of width 2n + 6, so
+every one narrower than 2⁶⁶) reaching the next clean tape without halting (`../dfs/merged64.txt`); that is
+`StepsBelow cleanGamma 2⁶⁶`, and with it in place of `stepsBelow_direct` the same proof gives W ≥ 2⁶⁶. That is not
+`blank_halt_open_big` as stated: its W is the first clean tape cut at every depth, and the run may pass more clean tapes
+after it before it halts. With the pass start wider than 2⁶⁶ (`lane_sigma.py --floor=66`) all 19 earlier routes are out
+at every lane value, against the ends and against 177³/9, with no far-shape search. On γ's lane the five paths whose
+last three-wall start is in round 25 (the routes at R ≡ 7,910 mod 8,192 and R ≡ 294 mod 16,384, and the one-R paths at
+R = 230 and two at R = 11,494) are left against the ends at Q + 5,116 = 2⁶⁷ (R′ = 2⁵³ = 32 · 16¹², end 32) and 3 · 2⁶⁶
+(R′ = 3 · 2⁵² = 48 · 16¹², end 48) only, their least R′³/L₁′² 156 to 181 against 32³/9 = 3,641 and 48³/9 = 12,288;
+against 177³/9 they are left at 2^j for j = 64 to 75 and 3 · 2^j for j = 63 to 74, the round-27 path at j = 64 to 69 and
+63 to 67, and the round-23 path at R = 230 at the lane value 2⁶⁴. The halting side has moved its far-shape runs on γ's
+lane to those two lane values.
