@@ -108,3 +108,85 @@ exactly when the head gets back to the left end.
 **Next.** The halting condition is a statement about the orbit of an explicit list map. Look for an invariant of
 `next` that excludes "`n` odd, all 2s", or a coarser description (the other thread's wave recurrence) in which it
 becomes arithmetic.
+
+## October 29, 2026: the left-going wave, and why the left end is reached so rarely
+
+**The returns do not stop; the next one is at step 26,618,972,322.** The head reached new tape on the left at
+2,047,931 and then not again up to 10¹⁰, but that is just because the next arrival is later. The block-list model
+below predicted it at step 26,618,972,322 (with the first block 110,037 cells long), and a direct run to 2.7·10¹⁰ steps
+finds exactly that step and no other new left cell in between (**computed**: `tools/c/tm.h`, a twenty-line loop that
+prints each new left cell; `WAVES_LONG=1 python3 tests/test_waves.py` repeats it).
+
+**The macro step** (`py/waves.py`, `step`; **computed**: checked against direct simulation). Take as an event the head
+in state A on the blank just right of the last block. The tape is then `1^b1 0 1^b2 0 … 0 1^bn A>0` (blocks separated
+by single 0s; the last block may be empty), and the next event follows from (b1, …, bn) alone, with an exact step
+count. In between, a *wave* runs left from the right end. At each block of length c it does c // 2 *cycles*
+(`1^y 0 [B] 1^m 000 1^k → 1^(y+1) 0 [B] 1^(m-2) 000 1^(k+1)`, 2m + 5 steps: the inner loop a route census would
+see as an infinite family); then, if c is even, the wave moves on to the block to the left with c' = y + c/2 − 2, and if
+c is odd it turns and state A sweeps back right, turning each `00` into `0`. The local rules, each with its step count,
+are listed at the top of `waves.py`. The model gives the same block lists at the same steps as `tools/c/tmrun` at every
+event of the first 10⁹ steps (12,927 events), and every new left cell in `runs/left_records_1e10.txt`.
+
+**The super step and the number N** (**computed**: checked against four macro steps for 150,000 super steps).
+From the second event on, every fourth event has the tape [p1, …, pm, 5, 0], and the next one depends on
+P = (p1, …, pm) only. Put d_{m+1} = 20 and d_l = p_l + d_{l+1}/2 for l = m, …, 1. The wave turns at the largest i
+with d_i odd, and
+
+    P' = (p1, …, p_{i−2}, p_{i−1} + (d_i − 1)/2, (d_i + 5)/2, d_{i+1}/2, …, d_m/2).
+
+If d_2, …, d_m are all even, the wave reaches the left end. Write d_1 = 2^s·u with u odd: u ≥ 5 adds s + 1 blocks on
+the left (P' = ((u−1)/2, (u+5)/2, u, 2u, …, 2^(s−1)u, d_2/2, …, d_m/2)); u = 3 is a visit to the left end in state F
+(steps 81 and 1,135); **u = 1 is the halt.** On the tape this is: at the left end the wave halves the first block
+again and again (c → c/2 − 2, the "first block roughly halves between returns" of the first entry, e.g.
+192 → 94 → 45), and when c reaches 0 the next transitions are B0 C0 D1 E0 C0 D0. That is the only way to reach D0:
+every other C0 in the model is entered from B0, with B's 1 to its left.
+
+All of this is one number: with **N = 10 + Σ p_l·2^(m−l)** (the blocks read as binary digits, p_m the units), the
+wave goes v₂(N) + 1 blocks deep, reaches the left end exactly when 2^(m−1) divides N, and **the machine halts if and
+only if N is a power of two at some super step**.
+
+**Why the returns are rare.** The wave is a binary carry: to reach the left end it has to pass all m blocks, which
+needs v₂(N) ≥ m − 1. If N's low bits behave like coin flips, that happens about once every 2^(m−1) super steps, and
+each return adds at least one block. The observed gaps fit: m = 11 → 14 blocks at the return at macro step 542, the
+next return 56,176 macro steps later (2^(m+1) = 32,768 at m = 14); then 42,352 (65,536), 241,552 (524,288),
+1,380,464 (2,097,152). Machine steps grow roughly as the square of the macro step count (the tape holds 3k + 6 ones
+after k macro steps: every macro step adds exactly three), so the returns thin out fast:
+
+| macro step | machine step | first c at the left end (then halved while even) |
+|---:|---:|---|
+| 542 | 2,023,931 | 192, 94, 45 |
+| 56,718 | 26,618,972,322 | 110,037 |
+| 99,070 | 64,022,989,933 | 175,000, 87,498, 43,747 |
+| 340,622 | 755,504,733,976 | 214,534, 107,265 |
+| 1,721,086 | 20,158,696,255,640 | 1,588,452, …, 198,553 |
+| 13,775,502 | 1.08·10¹⁵ | 5,955,848, 2,977,922, 1,488,959 |
+| 389,093,150 | 8.6·10¹⁷ | 666,308,297 |
+| 539,460,350 | 1.6·10¹⁸ | 666,595,623 |
+| 653,532,558 | 3.1·10¹⁸ | 721,789,438, 360,894,717 |
+| 3,471,184,510 | 7.9·10¹⁹ | 1,697,194,888, …, 424,298,719 |
+| 14,329,196,574 | 1.4·10²¹ | 4,349,076,901 |
+
+(`c/blkrun.c`, the same model in C with 128-bit step counts, checked against `waves.py` in the tests; full list in
+`runs/left_arrivals_macro.txt`: 16 arrivals, 33 new left cells, up to 7·10¹⁰ macro steps.) None of
+these has c + 4 a power of two, so **no halt in the first 3.7·10²² machine steps (7·10¹⁰ macro steps; computed, resting on the model)**.
+
+**Halting, heuristically.** At a return the value that decides is d_1, a number of the size of the first blocks
+(now about 10⁹). If it behaved like a random integer, the chance of a power of two at each return would be about
+1/d_1, and the sum over all future returns (sizes growing geometrically) is far below 10⁻⁶. So the machine almost
+certainly runs forever, but a proof has to show that N never lands on a power of two: a Collatz-like question about
+one orbit. There is no easy modular obstruction: in the first 200,000 super steps N takes every residue modulo each
+q from 3 to 21 (**heuristic**: looked at, not a theorem about all super steps).
+
+**How this relates to the proved macro step.** The entry above proves, in Lean, a macro map in a different cut
+(`X(ls, n, cs)`, A at the start of the head's block) and that the machine halts iff that map's run reaches
+"n odd, every left block 2". In that cut my wave is
+a sequence of its macro steps (its n is my c − 1): my cycles are its transfers, my "c even, move on" is its carry
+(n odd), a level with y = 2 being a block of 2 that the carry eats, my odd end is its sweep (n even), and the halt at
+the left end is its carry eating blocks of 2 up to the left end. Both models describe the same run, and
+`tests/test_waves.py` checks that they agree: from each of the first 2,000 configurations of `py/macro.py`, direct
+simulation reaches the next event of `waves.py` at the step and with the block list `waves.py` gives. So "N is a power
+of two" is a restatement of the proved halting condition along the orbit; what is not in Lean is the super step itself.
+
+**What a Lean proof would need.** (1) The super step (`superstep`) as a theorem about `next` from `lean/Macro.lean`:
+four of my macro steps are a bounded number of `next` steps plus the wave's levels, so this is bookkeeping;
+(2) a proof that the orbit of P never makes N a power of two. (1) is routine; (2) is the open problem.
