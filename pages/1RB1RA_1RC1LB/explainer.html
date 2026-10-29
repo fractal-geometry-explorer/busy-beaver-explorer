@@ -335,7 +335,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section class="level" id="l4" aria-labelledby="h-l4">
     <div class="lvhead"><span class="lvnum">Level 4</span><h2 id="h-l4">One number: N = 10 + Σ p<sub>l</sub>·2<sup>m−l</sup></h2><span class="tag t-kernel">kernel</span></div>
     <div class="prose">
-      <p>From event 3 on (step 136), every fourth event ends the same way: the tape is <code>[p<sub>1</sub>, …, p<sub>m</sub>, 5, 0]</code>. Four waves later it is again of that form, and the new list <code>P'</code> follows from <code>P</code> by one formula, the <b>super step</b>. Put <code>d<sub>m+1</sub> = 20</code> and, going left, <code>d<sub>l</sub> = p<sub>l</sub> + d<sub>l+1</sub>/2</code>. The wave turns at the last odd <code>d<sub>i</sub></code>; if <code>d<sub>2</sub>, …, d<sub>m</sub></code> are all even it reaches the left end, and it halts there if <code>d<sub>1</sub></code> is a power of two.</p>
+      <p>From event 3 on (step 136), every fourth event ends the same way: the tape is <code>[p<sub>1</sub>, …, p<sub>m</sub>, 5, 0]</code>. Four waves later it is again of that form, and the new list <code>P'</code> follows from <code>P</code> by one formula, the <b>super step</b>. Put <code>d<sub>m+1</sub> = 20</code> and, going left, <code>d<sub>l</sub> = p<sub>l</sub> + d<sub>l+1</sub>/2</code>. The wave turns at the last odd <code>d<sub>i</sub></code>, and <code>d</code> gives the new blocks: every block the wave passed (<code>l &gt; i</code>) becomes <code>d<sub>l</sub>/2</code>, block <code>i</code> becomes <code>(d<sub>i</sub> + 5)/2</code>, block <code>i − 1</code> gains <code>(d<sub>i</sub> − 1)/2</code>, and the blocks further left stay as they are (the row <code>P'</code> in the table). If <code>d<sub>2</sub>, …, d<sub>m</sub></code> are all even it reaches the left end, and it halts there if <code>d<sub>1</sub></code> is a power of two.</p>
       <p>All of that is one number. Read the blocks as binary digits, <code>p<sub>m</sub></code> the units: <b>N = 10 + Σ p<sub>l</sub>·2<sup>m−l</sup></b>. As long as the values to its right are even, <code>d<sub>l</sub>·2<sup>m−l</sup> = 10 + Σ<sub>k≥l</sub> p<sub>k</sub>·2<sup>m−k</sup></code>, the part of N from block <code>l</code> on, so the wave goes <code>v<sub>2</sub>(N) + 1</code> blocks deep (one more than the number of trailing zeros of N), reaches the left end exactly when <code>2<sup>m−1</sup></code> divides N, and <b>the machine halts iff N is a power of two</b>. The chart shows how rarely the wave gets deep: it has to reach the line <code>m</code>.</p>
       <p><span class="tag t-kernel">kernel</span> Lean proves the super step from the macro map of level 2 (<code>super_run</code>) and that <b>the machine halts from blank tape iff N is ever a power of two</b> along this orbit (<code>halts_iff_pow2'</code>); the <a href="reduction.html#n">write-up</a> has the argument. The machine step counts shown here are computed. Here the super step is also checked against four waves at every step. <span class="tag t-open">open</span> whether N is ever a power of two along the run.</p>
     </div>
@@ -1121,6 +1121,18 @@ if (typeof module !== "undefined") module.exports = BB;
         if (s.kind === "halt" && l === 1) cls.push("hit");
         return `<td class="${cls.join(" ")}">${fmt(d)}</td>`;
       }).join("") + `<td class="wave">20</td></tr>`;
+      // P' under the blocks it comes from: unchanged left of the turn, then p_{i-1} + (d_i - 1)/2 and (d_i + 5)/2,
+      // then d_l / 2 for every block the wave passed. At the left end the new blocks come in front (see the panel).
+      if (s.kind === "turn") {
+        const i = s.turn;
+        h += "<tr><th>P'</th>" + P.map((p, k) => {
+          const l = k + 1;
+          if (l < i - 1) return `<td class="dim" title="unchanged">${fmt(p)}</td>`;
+          if (l === i - 1) return `<td title="p + (d_i − 1)/2">${fmt(s.next[k])}</td>`;
+          if (l === i) return `<td class="turn" title="(d_i + 5)/2">${fmt(s.next[k])}</td>`;
+          return `<td title="d / 2">${fmt(s.next[k])}</td>`;
+        }).join("") + `<td class="dim">5, 0</td></tr>`;
+      }
       $("l4-grid").innerHTML = h;
       // N.
       const bin = N.toString(2), lead = bin.slice(0, bin.length - v), tz = bin.slice(bin.length - v);
@@ -1140,6 +1152,8 @@ if (typeof module !== "undefined") module.exports = BB;
           : s.kind === "F" ? `<div>u = 3: the head visits the left end in state F; ${s.s} new block${s.s === 1 ? "" : "s"} on the left.</div>`
           : `<div>u = ${s.u} ≥ 5: the tape grows by ${s.s + 1} block${s.s ? "s" : ""} on the left.</div>`;
       }
+      if (s.kind === "turn") o += `<div>Then P' (last row of the table): blocks left of block ${s.turn - 1} stay; block ${s.turn - 1} gains (d<sub>${s.turn}</sub> − 1)/2 = ${fmt((s.d[s.turn] - 1) / 2)}; block ${s.turn} becomes (d<sub>${s.turn}</sub> + 5)/2 = ${fmt((s.d[s.turn] + 5) / 2)}; ${s.turn < m ? `each block to its right becomes half its d.` : "there are no blocks to its right."}</div>`;
+      else if (s.next) o += `<div>Then P' is the new blocks ((u−1)/2, (u+5)/2, u, 2u, …, 2<sup>s−1</sup>u), followed by d<sub>2</sub>/2, …, d<sub>m</sub>/2: every block the wave passed is replaced by half its d.</div>`;
       if (s.next) o += `<div class="mono">P' = ${esc(list(s.next, 14))}</div>`;
       $("l4-out").innerHTML = o;
       // N as a sum.
