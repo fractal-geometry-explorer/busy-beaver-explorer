@@ -191,9 +191,60 @@ of two" is a restatement of the proved halting condition along the orbit; what i
 four of my macro steps are a bounded number of `next` steps plus the wave's levels, so this is bookkeeping;
 (2) a proof that the orbit of P never makes N a power of two. (1) is routine; (2) is the open problem.
 
+## October 29, 2026: looking for an invariant that keeps N off the powers of two
+
+**Result: none found, and the evidence says there is no simple one.** The question was whether the orbit of the
+super step keeps some property that every power of two lacks, so that "N is never a power of two" would follow by
+induction. Four families were tried (`py/n_search.py`; everything below rests on `waves.superstep`, which is computed
+and tested, not proved in Lean). Nothing new is proved in Lean in this entry.
+
+**Residues of N** (**computed**, `python3 py/n_search.py residues 4000000`, super steps 1,000 to 4·10⁶). For every
+odd q from 3 to 127, N takes every residue mod q that a power of two takes. That rules out any invariant "N mod q
+avoids a set S" with S containing the powers of two's residues. The stronger version ties the residue to N's size: a
+power of two with a + 1 bits is 2^a, so an invariant could say "while N has a + 1 bits, N mod q ≠ 2^a mod q". For each
+odd q ≤ 127 and each class c mod ord_q(2) that the run visits often enough (at least 20q super steps with N's bit
+length ≡ c + 1), the pair (c, 2^c mod q) occurs. The classes left out are thin only because N's bit length takes few
+values (23 to 48) in this range; none of them is a miss among well-sampled classes. Mod powers of two there is
+nothing to find: the left-end visits themselves have v₂(N) ≥ m − 1.
+
+**Binary digits** (**computed**, `py/n_search.py digits 4000000`). A power of two has one 1 bit. N's popcount at each
+bit length has the minimum a random number would give in that many samples (for example 10 at 48 bits over 556,125
+super steps, where a uniform 48-bit number gives popcount ≤ 10 about 7 times). Its leading bits come within
+15 zeros of a power of two (super step 166,051: N = 0b1000000000000000011…, 38 bits), so there is no gap below or above
+the powers of two in the top bits either.
+
+**The right end is a fixed gadget** (**proved by hand** from the super-step formula, and seen in the run). With
+d_{m+1} = 20 the last block cycles 11 → 13 → 14 → 12 → 11: 11 and 13 give d_m = 21, 23, odd, so the wave turns at
+once and the block becomes (d_m + 5)/2 = 13, 14; 14 and 12 give d_m = 24, 22, even, and the block becomes d_m/2 = 12,
+11, whichever way the wave ends. So N is odd, odd, even, even in turn (the depth sequence reads 0 0 x y), and the
+block before it is 19 or 21 at the start of each cycle. Further left the blocks are no longer finite-state (8, 29, 43,
+98 values at depths 2 to 5 from the right) and lie between about 3·2^j and 48·2^j at depth j. This is an exact pattern the
+map keeps, but it is about N's last bits, which say nothing about N being a power of two: the left-end visits make
+N divisible by 2^(m−1) anyway.
+
+**Growth bounds on the blocks cannot do it on their own.** Halting depends only on N, and N is a sum: any lower
+bound on the blocks only bounds N from below, and there are block lists with arbitrarily large blocks and N a power
+of two. At a visit the deciding number is d_1 = N/2^(m−1) = p_1 + d_2/2, set mostly by the first blocks, which are
+fossils of the previous visit (P' = ((u−1)/2, (u+5)/2, u, 2u, …)) changed only by rare deep turns. A bound of the form
+"d_1/2^m stays in a window with no power of two" would settle it, but the run's values of d_1/2^m at its visits
+(2.25, 1.5, 0.28, 0.23, 0.096, 6.7, 5.3, 0.82, 1.51, 0.355, …) wander over two decades.
+
+**The map itself halts at the random rate** (**computed**, `py/n_search.py starts 60 20000`). From the 3,600 starts
+[a, b] with 1 ≤ a, b ≤ 60, the super step reaches the left end 20,910 times in 20,000 super steps each and halts
+217 times. If d_1 were a random integer at each visit, the expected count would be Σ 1/(d_1 ln 2) ≈ 239. So the
+super step has no invariant of its own shape that forbids halting: started near the blank-tape orbit it halts as
+often as chance says. Any proof that the blank-tape run never halts has to use something special about that one
+orbit.
+
+**What the evidence says.** By every test the deciding number d_1 behaves like a random integer that grows
+geometrically from visit to visit (10⁹ now); the chance that it is ever a power of two from here on is far below
+10⁻⁶ (the estimate of the previous entry stands). That is heuristic. A proof would need an argument of the kind
+nobody has for Collatz-like orbits; none of the four families above can give it. Lean has nothing new to prove from
+this search.
+
 ## October 29, 2026: the super step and the power-of-two criterion, proved
 
-**Proved in Lean, kernel only** (`lean/Wave.lean`, standard axioms): (1) of the entry above is done, and the whole
+**Proved in Lean, kernel only** (`lean/Wave.lean`, standard axioms): (1) of the wave entry above ("What a Lean proof would need") is done, and the whole
 halting criterion with it. `halts_iff_pow2'`: the machine halts from blank tape iff some P of the super orbit from
 (1, 6) has N = 10 + Σ p_l·2^(m−l) a power of two, with `superstep` the formula of `waves.py`.
 

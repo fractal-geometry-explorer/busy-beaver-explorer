@@ -114,8 +114,14 @@
     {
       "level": "heuristic",
       "title": "Almost certainly no halt",
-      "text": "At a return the deciding number is now about 10<sup>9</sup> and grows; if it behaved like a random integer, the chance of ever hitting a power of two would be far below 10<sup>&minus;6</sup>. N shows no modular obstruction (all residues mod 3 to 21 occur).",
+      "text": "At a return the deciding number is now about 10<sup>9</sup> and grows; if it behaved like a random integer, the chance of ever hitting a power of two would be far below 10<sup>&minus;6</sup>. N shows no modular obstruction (see below).",
       "where": "<code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "heuristic",
+      "title": "No invariant keeps N off the powers of two",
+      "text": "Searched for a property of the orbit that every power of two lacks; none found. For every odd q &le; 127, N takes every residue a power of two takes mod q, also jointly with N's bit length (2<sup>a</sup> has a + 1 bits). N's popcount and leading bits look like a random number's (it comes within 15 zeros of a power of two). Lower bounds on the blocks cannot help, since halting depends only on the sum N. And the super step started from 3,600 small tapes halts 217 times against about 239 expected if the deciding number were random: the map has no invariant of its own that forbids halting. The one exact pattern found, a four-step cycle 11 &rarr; 13 &rarr; 14 &rarr; 12 of the last block (proved by hand from the super-step formula), only fixes N's parity pattern.",
+      "where": "<code>py/n_search.py</code>, <code>notes/LAB_NOTES.md</code>"
     },
     {
       "level": "open",
@@ -131,6 +137,7 @@
     "python3 tools/tests/test_tools.py           # the shared tools",
     "python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py",
     "python3 bb6-1RB1RA_1RC1LB/py/macro.py 50    # the macro run",
-    "python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py   # the wave model against direct simulation (about 25 s)"
+    "python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py   # the wave model against direct simulation (about 25 s)",
+    "python3 bb6-1RB1RA_1RC1LB/py/n_search.py residues 4000000   # the invariant search (also: digits, starts)"
   ]
 }
