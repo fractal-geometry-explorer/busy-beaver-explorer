@@ -22,6 +22,13 @@ Whether this machine halts from blank tape is open. This folder holds its work; 
 configuration of the first 1,000 macro steps); no conserved quantity a·ones + b·pos + W[state] modulo 2 to 12
 (`tools/py/bbtools/invariants.py`).
 
+**Computed, resting on the wave model** (`py/waves.py`, `c/blkrun.c`, `tests/test_waves.py`; checked against direct
+simulation and against `py/macro.py`): read four macro steps at a time, the run is a carry wave going left through
+the blocks. With the blocks p₁ … pₘ, N = 10 + Σ p_l·2^(m−l): the wave goes v₂(N) + 1 blocks deep, reaches the left end
+of the tape when 2^(m−1) divides N (which is why the head gets there so rarely: the next time after step 2,047,931 is
+step 26,618,972,322, confirmed by a direct run), and **the machine halts iff N is ever a power of two**. No halt in
+the first 3.7·10²² steps.
+
 **Observed only**: no macro configuration up to 9·10¹³ steps comes near the halting shape (left blocks in the
 hundreds of thousands); see the notes.
 
@@ -36,7 +43,10 @@ hundreds of thousands); see the notes.
 | `lean/MacroRun.lean` | bounded runs from blank tape by the macro step |
 | `py/macro.py` | the same macro map in Python (`python3 py/macro.py 50` prints the run) |
 | `lean/Axioms.lean` | prints what each theorem rests on |
+| `py/waves.py` | the wave model: the run in another cut, and the super step with N, exact step counts |
+| `c/blkrun.c` | the wave model in C, for runs far beyond direct simulation |
 | `tests/test_machine.py` | the generated files are current, early facts of the run |
+| `tests/test_waves.py` | the block model against `tmrun`, the reference simulator and `runs/` |
 | `runs/` | outputs of long runs |
 
 ## Checking
@@ -45,4 +55,5 @@ hundreds of thousands); see the notes.
 bash scripts/setup-lean.sh && . /etc/profile.d/lean.sh
 bb6-1RB1RA_1RC1LB/lean/check.sh                 # about 2 min
 python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py
+python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py     # about 20 s
 ```
