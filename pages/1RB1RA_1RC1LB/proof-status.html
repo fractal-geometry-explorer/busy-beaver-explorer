@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What is known about 1RB1RA_1RC1LB, and what is open</title>
+<meta name="description" content="Proof status of the six-state machine 1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB: what is proved in Lean, what is computed, what is only observed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 36px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; overflow-x: auto; font-family: var(--font-display); font-size: 0.74rem; line-height: 1.6; }
+.top { display: grid; gap: 12px; max-width: 70ch; }
+.crumb { font-size: 0.9rem; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.asof { font-size: 0.88rem; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 70ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 0.88rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.card p { font-size: 0.94rem; }
+.card .where { font-size: 0.84rem; color: var(--muted); }
+.card.open { border-left: 4px solid var(--open); }
+.empty { color: var(--muted); font-size: 0.94rem; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / 1RB1RA_1RC1LB</p>
+    <h1>What is known about 1RB1RA_1RC1LB, and what is open</h1>
+    <p class="machine">1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.</p>
+    <p>The work has just started: the shared tools are in place and the run has been looked at. Nearly everything about its structure is still observation.</p>
+    <p class="asof">Status as of 29 October 2026.</p>
+  </header>
+  <section aria-labelledby="h-short">
+    <h2 id="h-short">In short</h2>
+    <div class="verdict">
+      <p><b>The question is open.</b> Lean proves that the machine does not halt in its first 10,000,000 steps (the first 20,000 checked by Lean's kernel alone), and two shift rules that hold for every block length. A direct simulation finds no halt in the first 10<sup>10</sup> steps.</p>
+      <p>The only halting transition is D reading 0, and D is entered only from C reading 0, so a halt needs C to meet two 0s in a row. The run keeps its tape as blocks of ones separated by single 0s during its rightward sweeps (and by 00 when the head is back at the left end): finding the rules that act on these blocks is the next step.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-claims">
+    <h2 id="h-claims">What each result rests on</h2>
+    <div class="legend" aria-label="Legend">
+      <span><span class="tag t-kernel">kernel</span> checked by Lean's kernel alone</span>
+      <span><span class="tag t-native">native</span> evaluated by compiled code</span>
+      <span><span class="tag t-comp">trusted</span> C or Python in the repository, exhaustive</span>
+      <span><span class="tag t-heur">heuristic</span> sampling, extrapolation, patterns</span>
+      <span><span class="tag t-open">open</span> not known</span>
+    </div>
+    <h3><span class="tag t-kernel">kernel</span> Proved in Lean, kernel-checked</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in 20,000 steps</h3>
+        <p>From blank tape the machine makes 20,000 steps without halting. Evaluated by Lean's kernel on a list simulator proved to agree with the machine's semantics.</p>
+        <p class="where"><code>blank_runs_20000</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Two shift rules</h3>
+        <p>State A runs right over a block of n ones in n steps; state B runs left over a block of n ones to the 0 before it in n + 1 steps; for every n and any surrounding tape.</p>
+        <p class="where"><code>a_sweep</code>, <code>b_sweep</code>, <code>lean/Rules.lean</code> (generated by <code>lean/rules.py</code>)</p>
+      </div>
+    </div>
+    <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in 10 million steps</h3>
+        <p>The same statement for 10,000,000 steps, evaluated by compiled code.</p>
+        <p class="where"><code>blank_runs_10M</code>, <code>lean/Blank.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in 10<sup>10</sup> steps</h3>
+        <p>A direct simulation in C runs 10<sup>10</sup> steps without a halt (137,072 ones on the tape then). The simulator is tested against the Python reference simulator and on machines with known step counts.</p>
+        <p class="where"><code>tools/c/tmrun</code></p>
+      </div>
+      <div class="card">
+        <h3>No simple conserved quantity</h3>
+        <p>No quantity a·(number of 1s) + b·(head position) + W[state] is conserved modulo any m from 2 to 12. (The other machine has one modulo 3, which the same search finds.)</p>
+        <p class="where"><code>tools/py/bbtools/invariants.py</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>The tape is a list of blocks</h3>
+        <p>Seen in the run: blocks of ones separated by single 0s during rightward sweeps, by 00 (a 000 after the first block) when the head is back at the left end.</p>
+        <p class="where"><code>notes/LAB_NOTES.md</code></p>
+      </div>
+      <div class="card">
+        <h3>Returns to the left end</h3>
+        <p>The left end of the visited tape moves out 15 times, the last at step 2,047,931, and then not again up to 10<sup>10</sup> steps. Between returns the first block roughly halves.</p>
+        <p class="where"><code>notes/LAB_NOTES.md</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-open">open</span> Open</h3>
+    <div class="cards">
+      <div class="card open">
+        <h3>The block rules</h3>
+        <p>What one sweep does to the list of block lengths, as rules proved for every length.</p>
+        <p class="where">next step</p>
+      </div>
+      <div class="card open">
+        <h3>Whether it halts</h3>
+        <p>Whether the run from blank tape ever brings C onto two 0s in a row.</p>
+      </div>
+    </div>
+  </section>
+  <section aria-labelledby="h-check">
+    <h2 id="h-check">Check it yourself</h2>
+    <pre><code>bash scripts/setup-lean.sh                  # Lean 4.34.0, core only
+. /etc/profile.d/lean.sh
+bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank (about 25 s)
+python3 tools/tests/test_tools.py           # the shared tools
+python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB 10000000000</code></pre>
+  </section>
+  <footer>
+    <p>Built by <code>tools/pages/build_status.py</code> from <code>bb6-1RB1RA_1RC1LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>
+    <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+  </footer>
+</main>
+</body>
+</html>

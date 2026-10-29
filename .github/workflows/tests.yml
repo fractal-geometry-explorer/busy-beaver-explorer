@@ -1,0 +1,29 @@
+# Tests of the shared tools (tools/) and of the machines that use them. The holdout in bb6-holdout has its own
+# checks (bb6-holdout/lean/check.sh), which take longer and are not run here.
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tools:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Lean
+        run: sudo bash scripts/setup-lean.sh
+      - name: Lean library
+        run: . /etc/profile.d/lean.sh && tools/lean/check.sh
+      - name: Tool tests (C, Python, generated Lean)
+        run: . /etc/profile.d/lean.sh && python3 tools/tests/test_tools.py
+      - name: 1RB1RA_1RC1LB Lean
+        run: . /etc/profile.d/lean.sh && bb6-1RB1RA_1RC1LB/lean/check.sh
+      - name: 1RB1RA_1RC1LB tests
+        run: python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py

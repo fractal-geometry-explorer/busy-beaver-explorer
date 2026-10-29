@@ -1,7 +1,7 @@
 # Pages
 
-Five self-contained HTML pages. Open any of them in a browser; they need no server. They load two fonts from Google
-Fonts and fall back to system fonts offline. `index.html` is a landing page that links to the five, and
+Six self-contained HTML pages. Open any of them in a browser; they need no server. They load two fonts from Google
+Fonts and fall back to system fonts offline. `index.html` is a landing page that links to the six, and
 `.github/workflows/pages.yml` publishes this folder to GitHub Pages on every push to main.
 
 | page | machine | what it shows |
@@ -9,6 +9,7 @@ Fonts and fall back to system fonts offline. `index.html` is a landing page that
 | [`proof-status.html`](proof-status.html) | the holdout | where the formal proof stands: what `blank_halt_open_big` and the kernel-only `blank_halt_open_far_kernel` say, what each result trusts, what is open, and how to check it |
 | [`closing-gap-rule-map.html`](closing-gap-rule-map.html) | the holdout `1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0LD1RE` | the summary of the research in [`../bb6-holdout`](../bb6-holdout): what each rule does, the mark model, the loop and how it ends, and the table "What is established, and how firmly" |
 | [`mark-rule-stepper.html`](mark-rule-stepper.html) | the holdout | steps the mark rules one round at a time from a tape you choose; on small tapes each round is also run on the bare machine and compared |
+| [`1RB1RA_1RC1LB/proof-status.html`](1RB1RA_1RC1LB/proof-status.html) | the machine `1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB` | its proof status: what is proved in Lean, computed, or only observed, from [`../bb6-1RB1RA_1RC1LB`](../bb6-1RB1RA_1RC1LB) |
 | [`champion-rule-map.html`](champion-rule-map.html) | the BB(6) champion `1RB1RA_1RC1RZ_1LD0RF_1RA0LE_0LD1RC_1RA0RE` (mxdys, 2025) | what each of the champion's twelve rules does, sorted into routines |
 | [`champion-explorer.html`](champion-explorer.html) | the BB(6) champion | runs the champion step by step and decodes its tape into a countdown, a phase, a middle counter and a pile |
 
@@ -37,6 +38,9 @@ here, and at the move both builders reproduced the committed pages byte for byte
 
   `warm.js` prints the warm-up of the run from blank tape that `warm_tapes.json` records.
 
-The proof-status page, the stepper and the explorer are written by hand: the HTML file is the source. When a result
+`1RB1RA_1RC1LB/proof-status.html` is built by `../tools/pages/build_status.py` from
+`../bb6-1RB1RA_1RC1LB/status.json`; edit the JSON and rebuild.
+
+The holdout's proof-status page, the stepper and the explorer are written by hand: the HTML file is the source. When a result
 changes, update `proof-status.html` along with `established.py`. The stepper's mark-rule engine is also
 in `../bb6-holdout/stepper/engine.js`, where the Node scripts cited in the research log use it.
