@@ -23,4 +23,60 @@ theorem b_sweep (n : Nat) (L R : Tape) :
   have h1 : steps 1 ⟨cons false (L), cons true (rep (n) [true] (R)), .B⟩ = some ⟨L, cons false (cons true (rep (n) [true] (R))), .B⟩ := rfl
   exact steps_congr trans (a := (n) * 1 + (1)) (by omega) (steps_seq trans h0 (h1))
 
+/-- Transfer: two ones of the block under the head go one to the block on the left, one to the block past `000`. -/
+theorem transfer (n : Nat) (L R : Tape) :
+    steps (2 * n + 11) ⟨cons false (L), rep (n + 2) [true] (cons false (cons false (cons false (R)))), .A⟩ = some ⟨cons false (cons true (L)), rep (n) [true] (cons false (cons false (cons false (cons true (R))))), .A⟩ := by
+  have c0 : ∀ L R : Tape, steps 1 ⟨app [] L, app [true] R, .A⟩ = some ⟨app [] (app [true] L), R, .A⟩ := fun _ _ => rfl
+  have h0 : steps ((n + 2) * 1) ⟨cons false (L), rep (n + 2) [true] (cons false (cons false (cons false (R)))), .A⟩ = some ⟨rep (n + 2) [true] (cons false (L)), cons false (cons false (cons false (R))), .A⟩ :=
+    cross_r trans c0 (n + 2) (cons false (L)) (cons false (cons false (cons false (R))))
+  have h1 : steps 6 ⟨rep (n + 2) [true] (cons false (L)), cons false (cons false (cons false (R))), .A⟩ = some ⟨rep (n) [true] (cons false (L)), cons true (cons false (cons false (cons false (cons true (R))))), .B⟩ := rfl
+  have c2 : ∀ L R : Tape, steps 1 ⟨app [true] L, app [true] R, .B⟩ = some ⟨L, app [true] (app [true] R), .B⟩ := fun _ _ => rfl
+  have h2 : steps ((n) * 1) ⟨rep (n) [true] (cons false (L)), cons true (cons false (cons false (cons false (cons true (R))))), .B⟩ = some ⟨cons false (L), cons true (rep (n) [true] (cons false (cons false (cons false (cons true (R)))))), .B⟩ :=
+    cross_l trans c2 (n) (cons false (L)) (cons false (cons false (cons false (cons true (R)))))
+  have h3 : steps 3 ⟨cons false (L), cons true (rep (n) [true] (cons false (cons false (cons false (cons true (R)))))), .B⟩ = some ⟨cons false (cons true (L)), rep (n) [true] (cons false (cons false (cons false (cons true (R))))), .A⟩ := rfl
+  exact steps_congr trans (a := (n + 2) * 1 + (6 + ((n) * 1 + (3)))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (h3))))
+
+/-- The block under the head is empty: the left block gains one and A starts a sweep to the right. -/
+theorem empty_start (L R : Tape) :
+    steps (15) ⟨cons false (L), cons false (cons false (cons false (R))), .A⟩ = some ⟨cons false (cons true (L)), cons true (cons true (R)), .A⟩ := by
+  have h0 : steps 15 ⟨cons false (L), cons false (cons false (cons false (R))), .A⟩ = some ⟨cons false (cons true (L)), cons true (cons true (R)), .A⟩ := rfl
+  exact steps_congr trans (a := 15) (by omega) (h0)
+
+/-- One block of the sweep to the right: `00` becomes `0`, the block gains two cells, A moves on to the next. -/
+theorem sweep_step (m : Nat) (L R : Tape) :
+    steps (m + 3) ⟨L, rep (m) [true] (cons false (cons false (cons true (R)))), .A⟩ = some ⟨cons false (cons true (cons true (rep (m) [true] (L)))), R, .A⟩ := by
+  have c0 : ∀ L R : Tape, steps 1 ⟨app [] L, app [true] R, .A⟩ = some ⟨app [] (app [true] L), R, .A⟩ := fun _ _ => rfl
+  have h0 : steps ((m) * 1) ⟨L, rep (m) [true] (cons false (cons false (cons true (R)))), .A⟩ = some ⟨rep (m) [true] (L), cons false (cons false (cons true (R))), .A⟩ :=
+    cross_r trans c0 (m) (L) (cons false (cons false (cons true (R))))
+  have h1 : steps 3 ⟨rep (m) [true] (L), cons false (cons false (cons true (R))), .A⟩ = some ⟨cons false (cons true (cons true (rep (m) [true] (L)))), R, .A⟩ := rfl
+  exact steps_congr trans (a := (m) * 1 + (3)) (by omega) (steps_seq trans h0 (h1))
+
+/-- The block under the head has one cell: F starts carrying to the left. -/
+theorem carry_start (L R : Tape) :
+    steps (6) ⟨cons false (L), cons true (cons false (cons false (cons false (R)))), .A⟩ = some ⟨cons false (L), cons true (cons false (cons false (cons true (R)))), .F⟩ := by
+  have h0 : steps 6 ⟨cons false (L), cons true (cons false (cons false (cons false (R)))), .A⟩ = some ⟨cons false (L), cons true (cons false (cons false (cons true (R)))), .F⟩ := rfl
+  exact steps_congr trans (a := 6) (by omega) (h0)
+
+/-- The carry crosses the block to its left: two of its cells become `001` on the right. -/
+theorem carry_two (j : Nat) (L Q : Tape) :
+    steps (5) ⟨cons false (rep (j + 2) [true] (cons false (L))), cons true (Q), .F⟩ = some ⟨rep (j) [true] (cons false (L)), cons true (cons false (cons false (cons true (Q)))), .F⟩ := by
+  have h0 : steps 5 ⟨cons false (rep (j + 2) [true] (cons false (L))), cons true (Q), .F⟩ = some ⟨rep (j) [true] (cons false (L)), cons true (cons false (cons false (cons true (Q)))), .F⟩ := rfl
+  exact steps_congr trans (a := 5) (by omega) (h0)
+
+/-- The carry ends inside a block: the block to its left gains one and a new transfer phase starts. -/
+theorem carry_exit (m : Nat) (L Q : Tape) :
+    steps (m + 4) ⟨rep (m + 1) [true] (cons false (L)), cons true (Q), .F⟩ = some ⟨cons false (cons true (L)), rep (m) [true] (cons false (Q)), .A⟩ := by
+  have h0 : steps 1 ⟨rep (m + 1) [true] (cons false (L)), cons true (Q), .F⟩ = some ⟨rep (m) [true] (cons false (L)), cons true (cons false (Q)), .B⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 1 ⟨app [true] L, app [true] R, .B⟩ = some ⟨L, app [true] (app [true] R), .B⟩ := fun _ _ => rfl
+  have h1 : steps ((m) * 1) ⟨rep (m) [true] (cons false (L)), cons true (cons false (Q)), .B⟩ = some ⟨cons false (L), cons true (rep (m) [true] (cons false (Q))), .B⟩ :=
+    cross_l trans c1 (m) (cons false (L)) (cons false (Q))
+  have h2 : steps 3 ⟨cons false (L), cons true (rep (m) [true] (cons false (Q))), .B⟩ = some ⟨cons false (cons true (L)), rep (m) [true] (cons false (Q)), .A⟩ := rfl
+  exact steps_congr trans (a := 1 + ((m) * 1 + (3))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (h2)))
+
+/-- The carry meets a block of one cell: it is absorbed and A starts a sweep to the right. -/
+theorem carry_one (L Q : Tape) :
+    steps (15) ⟨cons false (cons true (cons false (L))), cons true (Q), .F⟩ = some ⟨cons false (cons true (L)), cons true (cons true (Q)), .A⟩ := by
+  have h0 : steps 15 ⟨cons false (cons true (cons false (L))), cons true (Q), .F⟩ = some ⟨cons false (cons true (L)), cons true (cons true (Q)), .A⟩ := rfl
+  exact steps_congr trans (a := 15) (by omega) (h0)
+
 end BB6b
