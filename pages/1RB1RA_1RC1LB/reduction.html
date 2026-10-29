@@ -91,15 +91,15 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
     <p class="machine">1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page follows its run from single steps down to a question about one number, link by link, and says for each link what it rests on: a proof checked by Lean, a program in the repository that has been tested but not proved, or only evidence.</p>
     <p>The interactive <a href="explainer.html">level-by-level explainer</a> runs each level in the browser. The <a href="proof-status.html">proof status page</a> lists every result about the machine.</p>
-    <p class="asof">As of 29 October 2026. The reduction is from pull requests <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/116">#116</a> (the macro step, proved) and <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/117">#117</a> (the wave and the number N).</p>
+    <p class="asof">As of 29 October 2026. The reduction is from pull requests <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/116">#116</a> (the macro step, proved), <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/117">#117</a> (the wave and the number N, computed), <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/119">#119</a> (the super step and the N criterion, proved) and <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/118">#118</a> (a search for an invariant, none found).</p>
   </header>
 
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>Proved in Lean (kernel only):</b> the machine is an explicit map <code>next</code> on lists of block lengths, step counts included, and <b>it halts from blank tape iff that map's run reaches one shape</b>: the head's block is odd and, after its transfers, every block to the left of the head is 2.</p>
-      <p><b>Computed, not yet proved in Lean:</b> read every fourth time the head stands on the blank right end of the tape, the run is a step on a list P = (p<sub>1</sub>, …, p<sub>m</sub>), and with <b>N = 10 + Σ p<sub>l</sub>·2<sup>m−l</sup></b> the machine halts iff N is ever a power of two. The super step behind this is tested against the machine; from the super step to the statement about N is the short argument <a href="#n">below</a>.</p>
-      <p><b>Open:</b> whether N is ever a power of two. Nothing suggests it will be: no halt in the first 2·10<sup>10</sup> steps (kernel), 9·10<sup>13</sup> (Lean with <code>native_decide</code>) or 3.7·10<sup>22</sup> (computed from the wave model), and a heuristic puts the chance of a halt far below 10<sup>−6</sup>. But no proof rules it out.</p>
+      <p><b>Proved in Lean (kernel only):</b> the machine is an explicit map <code>next</code> on lists of block lengths, step counts included, and it halts from blank tape iff that map's run reaches one shape: the head's block is odd and, after its transfers, every block to the left of the head is 2. Read every fourth time the head stands on the blank right end of the tape, the run is a <i>super step</i> on a list P = (p<sub>1</sub>, …, p<sub>m</sub>), and with <b>N = 10 + Σ p<sub>l</sub>·2<sup>m−l</sup></b>, <b>the machine halts from blank tape iff N is ever a power of two</b> along the super orbit from P = (1, 6) (<code>halts_iff_pow2'</code>).</p>
+      <p><b>Computed, not proved:</b> the step counts of the wave model (so the bound of 3.7·10<sup>22</sup> steps below), and its finer cut into single events.</p>
+      <p><b>Open:</b> whether N is ever a power of two. A search for an invariant that rules it out found none; nothing suggests it will be: no halt in the first 2·10<sup>10</sup> steps (kernel), 9·10<sup>13</sup> (Lean with <code>native_decide</code>) or 3.7·10<sup>22</sup> (computed from the wave model), and a heuristic puts the chance of a halt far below 10<sup>−6</sup>. But no proof rules it out.</p>
     </div>
   </section>
 
@@ -118,9 +118,9 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
       <li><span class="lv">1</span><div><b>Seven block rules.</b> From step 15 on, the tape is blocks of ones, and the head moves cells between blocks by seven moves, each for every block length. <span class="tag t-kernel">kernel</span> <span class="where"><a href="#rules">§1</a>, <code>lean/Rules.lean</code></span></div></li>
       <li><span class="lv">2</span><div><b>The macro step.</b> The machine goes from every configuration <code>X(ls, n, cs)</code> to the one the list function <code>next</code> gives, in the number of steps it gives. <span class="tag t-kernel">kernel</span> <span class="where"><a href="#macro">§2</a>, <code>next_sound</code></span></div></li>
       <li><span class="lv">3</span><div><b>The halting shape.</b> The machine halts from blank tape iff the macro run halts, and a macro step halts iff <code>n</code> is odd and every left block, after the transfers, is 2. <span class="tag t-kernel">kernel</span> <span class="where"><a href="#halt">§3</a>, <code>halts_iff</code>, <code>next_halt_iff</code></span></div></li>
-      <li><span class="lv">4</span><div><b>The halving wave.</b> Cut at the moments A stands right of the last block, a run of macro steps is one wave of halvings running left; every fourth such moment the tape is <code>[P, 5, 0]</code> and the next <code>P</code> follows by the super step. <span class="tag t-comp">computed</span> <span class="where"><a href="#wave">§4</a>, <code>py/waves.py</code>, <code>tests/test_waves.py</code></span></div></li>
-      <li><span class="lv">5</span><div><b>The number N.</b> The wave goes v<sub>2</sub>(N) + 1 blocks deep, reaches the left end iff 2<sup>m−1</sup> divides N, and the machine halts iff N is a power of two. <span class="tag t-hand">on paper</span> from link 4 <span class="where"><a href="#n">§5</a></span> <!-- STATUS lean-n: change to a kernel tag when the Lean proof of links 4 and 5 lands --><span class="tag t-open">Lean: in progress</span></div></li>
-      <li><span class="lv">?</span><div><b>Is N ever a power of two?</b> <span class="tag t-open">open</span> <span class="tag t-heur">heuristic</span> almost certainly not. <span class="where"><a href="#why">§6</a></span> <!-- STATUS invariant: update when the search for an invariant finishes --></div></li>
+      <li><span class="lv">4</span><div><b>The halving wave.</b> Cut at the moments A stands right of the last block, a run of macro steps is one wave of halvings running left; every fourth such moment the tape is <code>[P, 5, 0]</code> and the next <code>P</code> follows by the super step. <span class="tag t-kernel">kernel</span> for the super step; <span class="tag t-comp">computed</span> for the step counts and single events. <span class="where"><a href="#wave">§4</a>, <code>super_run</code> in <code>lean/Wave.lean</code>; <code>py/waves.py</code>, <code>tests/test_waves.py</code></span></div></li>
+      <li><span class="lv">5</span><div><b>The number N.</b> The wave goes v<sub>2</sub>(N) + 1 blocks deep, reaches the left end iff 2<sup>m−1</sup> divides N, and the machine halts iff N is a power of two. <span class="tag t-kernel">kernel</span> <span class="where"><a href="#n">§5</a>, <code>superL_none_iff</code>, <code>halts_iff_pow2'</code></span></div></li>
+      <li><span class="lv">?</span><div><b>Is N ever a power of two?</b> <span class="tag t-open">open</span> <span class="tag t-heur">heuristic</span> almost certainly not. No invariant found. <span class="where"><a href="#why">§6</a>, <code>py/n_search.py</code></span></div></li>
     </ol>
   </section>
 
@@ -181,7 +181,7 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
   </section>
 
   <section aria-labelledby="wave">
-    <h2 id="wave">4. The halving wave and the super step <span class="tag t-comp">computed</span></h2>
+    <h2 id="wave">4. The halving wave and the super step <span class="tag t-kernel">kernel</span> <span class="tag t-comp">computed</span></h2>
     <div class="prose">
       <p>The same run, cut at different moments. Call it an <b>event</b> when A stands on the blank just right of the last block. The tape is then <code>1^b_1 0 1^b_2 0 … 0 1^b_n A&gt;0</code>, blocks separated by single 0s (the last block may be empty), and the next event follows from <code>b</code> alone.</p>
       <p>Between two events a <b>wave</b> runs left from the right end. At each block it carries a value <code>c</code>, at first the last block less one. It halves the block with <code>⌊c/2⌋</code> cycles (<code>1^y 0 [B] 1^m 000 1^k → 1^(y+1) 0 [B] 1^(m−2) 000 1^(k+1)</code>, 2m + 5 steps each). If <code>c</code> is odd the wave turns and A sweeps back to the right end. If <code>c</code> is even, it moves on to the next block left, of length <code>y</code>, with <code>c' = y + c/2 − 2</code>. At the left end <code>y = 0</code>: the wave keeps halving into new tape (<code>c → c/2 − 2</code>), and if it reaches <code>c = 0</code> the next transitions are B0 C0 D1 E0 C0 D0, the halt. So a wave that reaches the left end halts the machine iff it arrives with <code>c + 4</code> a power of two.</p>
@@ -191,12 +191,13 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
     <pre>P' = (p_1, …, p_(i−2),  p_(i−1) + (d_i − 1)/2,  (d_i + 5)/2,  d_(i+1)/2, …, d_m/2).</pre>
     <div class="prose">
       <p>If <code>d_2, …, d_m</code> are all even, the wave reaches the left end. Write <code>d_1 = 2^s·u</code> with u odd. If <code>u ≥ 3</code> the tape grows on the left, <code>P' = ((u−1)/2, (u+5)/2, u, 2u, …, 2^(s−1)·u, d_2/2, …, d_m/2)</code> (with <code>u = 3</code> the head reaches the left end in state F, as at steps 81 and 1,135). If <code>u = 1</code> the machine halts.</p>
-      <p><b>What this rests on.</b> The wave's rules were found by hand and are checked by <code>tests/test_waves.py</code>: every event of the first 10<sup>9</sup> steps (12,927 events) against direct simulation with exact step counts; every new left cell up to 10<sup>10</sup> steps; a direct run to 2.7·10<sup>10</sup> steps that confirms the predicted return to the left end at step 26,618,972,322; and from each of the first 2,000 configurations of <code>py/macro.py</code>, the cut that Lean proves, direct simulation reaches the next event that <code>waves.py</code> gives. The super step is checked against four wave steps for 150,000 super steps. <code>c/blkrun.c</code> is the same model in C with 128-bit step counts. None of this is a Lean proof.</p>
+      <p><b>What this rests on.</b> The wave's rules were found by hand and are checked by <code>tests/test_waves.py</code>: every event of the first 10<sup>9</sup> steps (12,927 events) against direct simulation with exact step counts; every new left cell up to 10<sup>10</sup> steps; a direct run to 2.7·10<sup>10</sup> steps that confirms the predicted return to the left end at step 26,618,972,322; and from each of the first 2,000 configurations of <code>py/macro.py</code>, the cut that Lean proves, direct simulation reaches the next event that <code>waves.py</code> gives. The super step is checked against four wave steps for 150,000 super steps. <code>c/blkrun.c</code> is the same model in C with 128-bit step counts.</p>
+      <p><b>What Lean proves.</b> <code>super_run</code> (<code>lean/Wave.lean</code>, kernel only) proves the super step from the macro map of §2: from the tape <code>[p_1, …, p_m, 5, 0]</code>, which is the macro configuration <code>X(5 :: [p_m, …, p_1], 0, [])</code>, the macro run reaches <code>[P', 5, 0]</code> with <code>P' = superstep P</code>, or halts, for every list. <code>orbit_tape</code> says every tape of the super orbit from <code>(1, 6)</code> occurs on the run from blank tape. Lean follows the run without step counts, so the step formulas of <code>waves.py</code>, its single events, and the bounds computed from them remain computed.</p>
     </div>
   </section>
 
   <section aria-labelledby="n">
-    <h2 id="n">5. Halting iff N is a power of two <span class="tag t-hand">on paper</span></h2>
+    <h2 id="n">5. Halting iff N is a power of two <span class="tag t-kernel">kernel</span></h2>
     <div class="prose">
       <p>Read the blocks as binary digits, <code>p_m</code> the units, and add 10:</p>
     </div>
@@ -207,14 +208,13 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
       <p><i>(b) Depth.</i> Let <code>i ≥ 2</code> be the largest index with <code>d_i</code> odd. By (a), <code>N_i = d_i·2^(m−i)</code> has exactly <code>m − i</code> factors of 2, and <code>N − N_i = Σ<sub>k&lt;i</sub> p_k·2^(m−k)</code> is divisible by <code>2^(m−i+1)</code>. So <code>v_2(N) = m − i</code>: the wave turns at block <code>i = m − v_2(N)</code> and goes <code>m − i + 1 = v_2(N) + 1</code> blocks deep.</p>
       <p><i>(c) The left end.</i> If no such i exists, (a) applies at <code>l = 1</code> and <code>N = d_1·2^(m−1)</code>, so <code>2^(m−1)</code> divides N. If one exists, <code>v_2(N) = m − i ≤ m − 2</code> and it does not.</p>
       <p><i>(d) Halting.</i> The machine halts in this super step iff the wave reaches the left end and <code>u = 1</code>, that is, iff <code>d_1 = N / 2^(m−1)</code> is a power of two, so N is a power of two. Conversely, if N is a power of two then <code>N &gt; p_1·2^(m−1) ≥ 2^(m−1)</code>, so <code>2^(m−1)</code> divides N, the wave reaches the left end by (c), and <code>d_1 = N / 2^(m−1)</code> is a power of two. ∎</p>
-      <p>The argument is elementary, but it is only as good as the super step it starts from, which is computed (§4), not proved. Composed with §3, it says the machine halts from blank tape iff some N along the orbit of P is a power of two.</p>
+      <p>Lean checks the same statement: <code>superL_none_iff</code> (a super step halts iff N is a power of two) and, composed with §3 and <code>super_run</code>, <b><code>halts_iff_pow2'</code>: the machine halts from blank tape iff some P of the super orbit from (1, 6) has N a power of two</b>. Both are kernel-checked with the standard axioms only. The argument above is the hand version.</p>
     </div>
   </section>
 
   <section aria-labelledby="status">
     <h2 id="status">What is proved, what is trusted, what is heuristic</h2>
-    <!-- STATUS: this table and the box under it are the part to update when the Lean proof of the N criterion and the
-         invariant search finish. Keep proof-status.html (from bb6-1RB1RA_1RC1LB/status.json) in step with it. -->
+    <!-- STATUS: update this table with bb6-1RB1RA_1RC1LB/status.json (which builds proof-status.html) when a result changes. -->
     <div class="scroller">
       <table class="t">
         <thead><tr><th>claim</th><th>status</th><th>rests on</th></tr></thead>
@@ -222,24 +222,23 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
           <tr><td>The seven block rules and the two shift rules, for every block length</td><td><span class="tag t-kernel">kernel</span></td><td><code>lean/Rules.lean</code>, generated by <code>lean/rules.py</code></td></tr>
           <tr><td>The machine does what <code>next</code> says, step counts included</td><td><span class="tag t-kernel">kernel</span></td><td><code>next_sound</code>, <code>lean/Macro.lean</code></td></tr>
           <tr><td>Halts from blank tape iff the macro run halts; when a macro step halts</td><td><span class="tag t-kernel">kernel</span></td><td><code>halts_iff</code>, <code>next_halt_iff</code></td></tr>
+          <tr><td>The super step, for every list; every tape of its orbit is on the run</td><td><span class="tag t-kernel">kernel</span></td><td><code>super_run</code>, <code>orbit_tape</code>, <code>lean/Wave.lean</code></td></tr>
+          <tr id="st-n"><td><b>Halts iff N is ever a power of two</b> along the super orbit from (1, 6)</td><td><span class="tag t-kernel">kernel</span></td><td><code>superL_none_iff</code>, <code>halts_iff_pow2'</code>; the hand proof in §5</td></tr>
           <tr><td>No halt in the first 2·10<sup>10</sup> steps</td><td><span class="tag t-kernel">kernel</span></td><td><code>blank_runs_2e10</code>, <code>lean/MacroRun.lean</code></td></tr>
           <tr><td>No halt in the first 9·10<sup>13</sup> steps</td><td><span class="tag t-native">native</span></td><td><code>blank_runs_9e13</code>, also trusts Lean's compiler</td></tr>
           <tr><td><code>py/macro.py</code> computes <code>next</code></td><td><span class="tag t-comp">computed</span></td><td>tested against direct simulation for 1,000 macro steps</td></tr>
-          <tr id="st-wave"><td>The wave model and the super step</td><td><span class="tag t-comp">computed</span></td><td><code>py/waves.py</code>, <code>tests/test_waves.py</code>; Python and the C simulator <code>tools/c/tmrun</code></td></tr>
-          <tr id="st-n"><td>Halts iff N is ever a power of two</td><td><span class="tag t-hand">on paper</span> <span class="tag t-comp">computed</span></td><td>the proof in §5, from the computed super step</td></tr>
-          <tr><td>No halt in the first 3.7·10<sup>22</sup> steps</td><td><span class="tag t-comp">computed</span></td><td><code>c/blkrun.c</code>, 7·10<sup>10</sup> wave events; rests on the wave model</td></tr>
+          <tr id="st-wave"><td>The wave's single events and step counts</td><td><span class="tag t-comp">computed</span></td><td><code>py/waves.py</code>, <code>tests/test_waves.py</code>; Python and the C simulator <code>tools/c/tmrun</code></td></tr>
+          <tr><td>No halt in the first 3.7·10<sup>22</sup> steps</td><td><span class="tag t-comp">computed</span></td><td><code>c/blkrun.c</code>, 7·10<sup>10</sup> wave events; the orbit is proved, the step count is computed</td></tr>
+          <tr><td>The last block cycles 11 → 13 → 14 → 12, so N runs odd, odd, even, even</td><td><span class="tag t-hand">on paper</span></td><td>from the super-step formula (<code>notes/LAB_NOTES.md</code>); the only exact pattern found</td></tr>
+          <tr><td>No invariant in the families tried (residues, binary digits, growth bounds)</td><td><span class="tag t-comp">computed</span></td><td><code>py/n_search.py</code>, §6</td></tr>
           <tr><td>The machine almost certainly never halts</td><td><span class="tag t-heur">heuristic</span></td><td>§6</td></tr>
           <tr id="st-open"><td>Whether N is ever a power of two</td><td><span class="tag t-open">open</span></td><td></td></tr>
         </tbody>
       </table>
     </div>
-    <div class="wip" id="in-progress">
-      <h3>Under way</h3>
-      <ul>
-        <li id="wip-lean-n"><b>A Lean proof of the super step and the N criterion</b> from <code>next</code>: four events are a bounded number of macro steps plus the wave's levels, so this is bookkeeping on top of §2 and §3. When it lands, links 4 and 5 become <span class="tag t-kernel">kernel</span>, and the halting question is, in Lean, whether N is ever a power of two.</li>
-        <li id="wip-invariant"><b>A search for an invariant</b> of the super step that keeps N away from powers of two. The simplest kind does not exist for the machine itself (no quantity a·ones + b·position + W[state] is conserved modulo 2 to 12), and N shows no modular obstruction in the first 200,000 super steps (every residue modulo 3 to 21 occurs), so an invariant would have to be subtler.</li>
-      </ul>
-      <p class="note">This section will be updated as each one finishes.</p>
+    <div class="wip" id="next">
+      <h3>What a proof would need</h3>
+      <p>Lean now reduces the question to the orbit of one explicit map: show that N never becomes a power of two. The search for an invariant shows how hard that is. The same super step, started from 3,600 nearby lists <code>[a, b]</code> with <code>a, b ≤ 60</code>, halts 217 times, about the 239 a random <code>d<sub>1</sub></code> would give. So the map itself forbids nothing, and a proof has to use something special about the orbit from (1, 6).</p>
     </div>
   </section>
 
@@ -247,6 +246,7 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
     <h2 id="why">6. Why it almost certainly never halts <span class="tag t-heur">heuristic</span></h2>
     <div class="prose">
       <p>The wave is a binary carry. To reach the left end it needs <code>v_2(N) ≥ m − 1</code>, which happens about once every <code>2^(m−1)</code> super steps if N's low bits behave like coin flips, and each visit adds at least one block. The observed gaps fit that estimate within a factor of two, so the visits do not stop; they thin out. The head reaches new tape on the left at steps 2,047,931, then 26,618,972,322, then 6.4·10<sup>10</sup>, and so on: 16 visits in the first 3.7·10<sup>22</sup> steps (<code>runs/left_arrivals_macro.txt</code>).</p>
+      <p><b>No invariant in sight.</b> Along the orbit (super steps 10<sup>3</sup> to 4·10<sup>6</sup>), N takes every residue modulo each odd q ≤ 127 that a power of two can take, also jointly with its bit length. Its binary digits look random: the lowest digit count at each length matches random numbers, and the leading bits come within 15 zeros of a power of two. Bounds on growth cannot help on their own, since halting depends only on the sum N. The only exact pattern is at the right end: the last block cycles 11 → 13 → 14 → 12, so N is odd, odd, even, even, which says nothing about powers of two (<code>py/n_search.py</code>, PR #118).</p>
       <p>At a visit, what decides is <code>d_1</code>, a number the size of the first blocks, now about 10<sup>9</sup> and growing. If it behaved like a random integer, the chance of a power of two would be about <code>1/d_1</code> per visit, and summed over all future visits (whose sizes grow geometrically) it is far below 10<sup>−6</sup>. That is a reason to expect the machine to run forever, not a proof: a proof has to show that one particular orbit never hits a power of two, a question with the flavour of the Collatz problem.</p>
     </div>
   </section>
@@ -255,7 +255,7 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>bash scripts/setup-lean.sh                       # Lean 4.34.0, core only
 . /etc/profile.d/lean.sh
-bb6-1RB1RA_1RC1LB/lean/check.sh                  # Rules, Macro, MacroRun (about 2 min)
+bb6-1RB1RA_1RC1LB/lean/check.sh                  # Rules, Macro, MacroRun, Wave (about 2 min)
 python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py  # py/macro.py against direct simulation
 python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py    # the wave model and the super step (about 25 s)
 python3 bb6-1RB1RA_1RC1LB/py/waves.py super 20   # the super steps, with N
@@ -263,7 +263,7 @@ python3 bb6-1RB1RA_1RC1LB/py/waves.py left 100000  # the wave's visits to the le
   </section>
 
   <footer>
-    <p>Written by hand from <code>bb6-1RB1RA_1RC1LB/notes/LAB_NOTES.md</code> and <code>lean/Macro.lean</code>. When a result changes, update this page with <code>bb6-1RB1RA_1RC1LB/status.json</code> (which builds <a href="proof-status.html">proof-status.html</a>).</p>
+    <p>Written by hand from <code>bb6-1RB1RA_1RC1LB/notes/LAB_NOTES.md</code>, <code>lean/Macro.lean</code> and <code>lean/Wave.lean</code>. When a result changes, update this page with <code>bb6-1RB1RA_1RC1LB/status.json</code> (which builds <a href="proof-status.html">proof-status.html</a>).</p>
     <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
   </footer>
 </main>
