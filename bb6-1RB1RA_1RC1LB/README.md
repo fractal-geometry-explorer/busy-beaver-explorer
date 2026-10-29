@@ -32,6 +32,12 @@ the first 3.7·10²² steps.
 **Observed only**: no macro configuration up to 9·10¹³ steps comes near the halting shape (left blocks in the
 hundreds of thousands); see the notes.
 
+**No invariant found** (heuristic; `py/n_search.py`, resting on the wave model): nothing tried keeps N off the powers
+of two. N takes every power-of-two residue mod each odd q ≤ 127, also jointly with its bit length; its binary digits
+look random; block growth bounds cannot help since halting depends only on the sum N; and the super step from 3,600
+small tapes halts at the rate a random deciding number predicts (217 against about 239). A proof has to use
+something special about the blank-tape orbit.
+
 ## Layout
 
 | path | contents |
@@ -44,6 +50,7 @@ hundreds of thousands); see the notes.
 | `py/macro.py` | the same macro map in Python (`python3 py/macro.py 50` prints the run) |
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `py/waves.py` | the wave model: the run in another cut, and the super step with N, exact step counts |
+| `py/n_search.py` | the search for an invariant that keeps N off the powers of two |
 | `c/blkrun.c` | the wave model in C, for runs far beyond direct simulation |
 | `tests/test_machine.py` | the generated files are current, early facts of the run |
 | `tests/test_waves.py` | the block model against `tmrun`, the reference simulator and `runs/` |
