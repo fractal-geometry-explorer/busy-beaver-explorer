@@ -16,6 +16,21 @@ M = "1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB"
 RULES = [
     ("a_sweep", "L A> 1^n R", "L 1^n A> R", "State A runs right over a block of ones."),
     ("b_sweep", "L 0 1^n B> 1 R", "L B> 0 1 1^n R", "State B runs left over a block of ones to the 0 before it."),
+    # The macro rules of `Macro.lean` (see notes/LAB_NOTES.md, "the macro step").
+    ("transfer", "L 0 A> 1^n+2 0 0 0 R", "L 1 0 A> 1^n 0 0 0 1 R",
+     "Transfer: two ones of the block under the head go one to the block on the left, one to the block past `000`."),
+    ("empty_start", "L 0 A> 0 0 0 R", "L 1 0 A> 1 1 R",
+     "The block under the head is empty: the left block gains one and A starts a sweep to the right."),
+    ("sweep_step", "L A> 1^m 0 0 1 R", "L 1^m+2 0 A> R",
+     "One block of the sweep to the right: `00` becomes `0`, the block gains two cells, A moves on to the next."),
+    ("carry_start", "L 0 A> 1 0 0 0 R", "L 0 F> 1 0 0 1 R",
+     "The block under the head has one cell: F starts carrying to the left."),
+    ("carry_two", "L 0 1^j+2 0 F> 1 Q", "L 0 1^j F> 1 0 0 1 Q",
+     "The carry crosses the block to its left: two of its cells become `001` on the right."),
+    ("carry_exit", "L 0 1^m+1 F> 1 Q", "L 1 0 A> 1^m 0 Q",
+     "The carry ends inside a block: the block to its left gains one and a new transfer phase starts."),
+    ("carry_one", "L 0 1 0 F> 1 Q", "L 1 0 A> 1 1 Q",
+     "The carry meets a block of one cell: it is absorbed and A starts a sweep to the right."),
 ]
 
 
