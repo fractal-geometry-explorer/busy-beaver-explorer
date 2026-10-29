@@ -14,6 +14,10 @@ at each level.
   machine goes from every `X` where the list function `next` says, in the steps it says (`next_sound`);
 - **the machine halts from blank tape iff the macro run halts** (`halts_iff`), and a macro step halts iff `n` is odd
   and every left block, after `l_1 += n/2`, is 2 (`next_halt_iff`);
+- **the machine halts from blank tape iff N = 10 + Σ p_l·2^(m−l) is a power of two at some super step**
+  (`halts_iff_pow2'`, `lean/Wave.lean`): every fourth time A stands on the blank right of the tape, the tape is
+  p₁ … pₘ then 5, 0, the next such tape is `superstep P` (a wave of halvings going left: `super_run`, for every list),
+  and a super step halts iff N is a power of two (`superL_none_iff`); the orbit starts at (1, 6);
 - the block rules behind it (`transfer`, `empty_start`, `sweep_step`, `carry_*`) and the shift rules `a_sweep`,
   `b_sweep`, for every block length;
 - no halt in the first 2·10¹⁰ steps (`blank_runs_2e10`, 10⁵ macro steps) and in the first 20,000 step by step.
@@ -26,14 +30,20 @@ configuration of the first 1,000 macro steps); no conserved quantity a·ones + b
 (`tools/py/bbtools/invariants.py`).
 
 **Computed, resting on the wave model** (`py/waves.py`, `c/blkrun.c`, `tests/test_waves.py`; checked against direct
-simulation and against `py/macro.py`): read four macro steps at a time, the run is a carry wave going left through
-the blocks. With the blocks p₁ … pₘ, N = 10 + Σ p_l·2^(m−l): the wave goes v₂(N) + 1 blocks deep, reaches the left end
-of the tape when 2^(m−1) divides N (which is why the head gets there so rarely: the next time after step 2,047,931 is
-step 26,618,972,322, confirmed by a direct run), and **the machine halts iff N is ever a power of two**. No halt in
-the first 3.7·10²² steps.
+simulation and against `py/macro.py`): the finer events (each time A is at the right end) and their exact step counts.
+The wave goes v₂(N) + 1 blocks deep and reaches the left end of the tape when 2^(m−1) divides N (which is why the
+head gets there so rarely: the next time after step 2,047,931 is step 26,618,972,322, confirmed by a direct run). No
+halt in the first 3.7·10²² steps (the orbit's verdict is proved to decide halting; the run is C, the step count rests
+on the model's step formulas).
 
 **Observed only**: no macro configuration up to 9·10¹³ steps comes near the halting shape (left blocks in the
 hundreds of thousands); see the notes.
+
+**No invariant found** (heuristic; `py/n_search.py`, resting on the wave model): nothing tried keeps N off the powers
+of two. N takes every power-of-two residue mod each odd q ≤ 127, also jointly with its bit length; its binary digits
+look random; block growth bounds cannot help since halting depends only on the sum N; and the super step from 3,600
+small tapes halts at the rate a random deciding number predicts (217 against about 239). A proof has to use
+something special about the blank-tape orbit.
 
 ## Layout
 
@@ -45,8 +55,10 @@ hundreds of thousands); see the notes.
 | `lean/Macro.lean` | the macro step on block lists, its soundness, and halting iff the macro run halts |
 | `lean/MacroRun.lean` | bounded runs from blank tape by the macro step |
 | `py/macro.py` | the same macro map in Python (`python3 py/macro.py 50` prints the run) |
+| `lean/Wave.lean` | the super step proved from `next`, and halting iff N is a power of two |
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `py/waves.py` | the wave model: the run in another cut, and the super step with N, exact step counts |
+| `py/n_search.py` | the search for an invariant that keeps N off the powers of two |
 | `c/blkrun.c` | the wave model in C, for runs far beyond direct simulation |
 | `tests/test_machine.py` | the generated files are current, early facts of the run |
 | `tests/test_waves.py` | the block model against `tmrun`, the reference simulator and `runs/` |
