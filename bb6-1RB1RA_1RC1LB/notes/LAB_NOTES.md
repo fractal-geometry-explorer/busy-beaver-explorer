@@ -241,3 +241,29 @@ geometrically from visit to visit (10⁹ now); the chance that it is ever a powe
 10⁻⁶ (the estimate of the previous entry stands). That is heuristic. A proof would need an argument of the kind
 nobody has for Collatz-like orbits; none of the four families above can give it. Lean has nothing new to prove from
 this search.
+
+## October 29, 2026: the super step and the power-of-two criterion, proved
+
+**Proved in Lean, kernel only** (`lean/Wave.lean`, standard axioms): (1) of the wave entry above ("What a Lean proof would need") is done, and the whole
+halting criterion with it. `halts_iff_pow2'`: the machine halts from blank tape iff some P of the super orbit from
+(1, 6) has N = 10 + Σ p_l·2^(m−l) a power of two, with `superstep` the formula of `waves.py`.
+
+How it goes, in the cut of `Macro.lean` (lists nearest first, L = [p_m, …, p_1]):
+
+- The tape [P, 5, 0] is `X (5 :: L) 0 []`, reached at macro step 5 (step 136). Five `next` steps lead to the first
+  carry of the wave, `carry ((p_m + 8) :: …)`: the carry value is always d − 2, where d is the wave's value at that block.
+- `carry_wave`, by induction on L (and `carry_left`, by induction on fuel, for the halvings at the left end): a carry
+  with value d − 2 does one of four things. d = 3: it meets a block of 1 and A sweeps right. d = 4: it eats a block of 2
+  inside the same `next` and goes on with p + 2. d odd ≥ 5: a transfer phase, then a sweep (the turn). d even ≥ 6: a
+  transfer phase, then the carry again with p + d/2. Throughout, the blocks on the right are `c0 :: R ++ [1]`, and the
+  sweep at the end turns them into exactly the blocks d/2 the wave has left behind (`pre`, `sweep_pre`).
+- `wave_none_iff`: the wave halts iff d + 2·S(L) is a power of two, with S the blocks read as binary digits; for the
+  first block d = p_m + 10, which is N.
+- `run_halts_iff`: since the macro run is deterministic (`Res.run_det`) and each super step takes at least one macro
+  step, the run from `X (5 :: L) 0 []` halts iff the super orbit hits a power of two. With `halts_iff` this is the
+  theorem. `orbit_tape` adds that every tape of the orbit occurs on the machine's run from blank tape.
+
+The proofs follow the macro run without step counts (`Res`), so the step counts of `waves.py` and its finer events are
+still computed, not proved. `superstep` is checked by `decide` against the examples in `waves.py`.
+
+**Open, now exactly**: whether N is ever a power of two along the orbit from (1, 6).

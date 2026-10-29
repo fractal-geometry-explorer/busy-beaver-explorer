@@ -40,7 +40,9 @@ when some N is a power of two.
 Trust: the rules above were found by hand and are checked here against direct simulation (tests/test_waves.py: every
 event of the first 10^9 steps, with exact step counts, and the predicted left-end records against
 runs/left_records_1e10.txt and a direct run to 2.7 10^10 steps, and against the first 2,000 configurations of
-py/macro.py, the cut of the same run that lean/Macro.lean proves).  The super step is not yet proved in Lean.
+py/macro.py, the cut of the same run that lean/Macro.lean proves).  The super step and the halting criterion are
+proved in Lean (lean/Wave.lean: `super_run`, `superL_none_iff`, `halts_iff_pow2'`); the finer events of `step` and
+the step counts are not.
 """
 import sys
 
