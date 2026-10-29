@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>1RB1RA_1RC1LB: the reduction</title>
+<meta name="description" content="How the open six-state machine 1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB comes down to whether one number is ever a power of two, and what each step of that reduction rests on.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --hand: #0A6E7A; --hand-bg: #DDF1F3; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --hand: #5CCFDB; --hand-bg: #12313A; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --hand: #5CCFDB; --hand-bg: #12313A; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 36px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; overflow-x: auto; font-family: var(--font-display); font-size: 0.74rem; line-height: 1.6; }
+.top { display: grid; gap: 12px; max-width: 70ch; }
+.crumb { font-size: 0.9rem; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.asof { font-size: 0.88rem; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 70ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 0.88rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.card p { font-size: 0.94rem; }
+.card .where { font-size: 0.84rem; color: var(--muted); }
+.card.open { border-left: 4px solid var(--open); }
+.empty { color: var(--muted); font-size: 0.94rem; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.t-hand { color: var(--hand); background: var(--hand-bg); }
+.note { font-size: 0.88rem; color: var(--muted); }
+.scroller { overflow-x: auto; }
+h2 .tag { margin-left: 6px; }
+table.t { border-collapse: collapse; font-size: 0.88rem; background: var(--surface); min-width: 100%; }
+table.t th, table.t td { border: 1px solid var(--rule); padding: 7px 10px; text-align: left; vertical-align: top; }
+table.t th { font-family: var(--font-display); font-size: 0.72rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+table.t td code { white-space: nowrap; }
+ol.chain { list-style: none; padding: 0; display: grid; gap: 8px; }
+ol.chain li { display: grid; grid-template-columns: 2.2em minmax(0, 1fr); gap: 10px; align-items: start; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 14px; }
+ol.chain .lv { font-family: var(--font-display); font-weight: 700; color: var(--link); font-size: 1.05rem; line-height: 1.5; }
+ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margin-top: 2px; }
+.prose ol, .prose ul { padding-left: 1.3em; display: grid; gap: 6px; }
+.claim { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 12px 16px; max-width: 76ch; }
+.wip { background: var(--surface); border: 1px dashed var(--muted); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 10px; }
+.wip ul { padding-left: 1.2em; display: grid; gap: 8px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / 1RB1RA_1RC1LB / the reduction</p>
+    <h1>How 1RB1RA_1RC1LB comes down to one number</h1>
+    <p class="machine">1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page follows its run from single steps down to a question about one number, link by link, and says for each link what it rests on: a proof checked by Lean, a program in the repository that has been tested but not proved, or only evidence.</p>
+    <p>The interactive <a href="explainer.html">level-by-level explainer</a> runs each level in the browser. The <a href="proof-status.html">proof status page</a> lists every result about the machine.</p>
+    <p class="asof">As of 29 October 2026. The reduction is from pull requests <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/116">#116</a> (the macro step, proved) and <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/117">#117</a> (the wave and the number N).</p>
+  </header>
+
+  <section aria-labelledby="h-short">
+    <h2 id="h-short">In short</h2>
+    <div class="verdict">
+      <p><b>Proved in Lean (kernel only):</b> the machine is an explicit map <code>next</code> on lists of block lengths, step counts included, and <b>it halts from blank tape iff that map's run reaches one shape</b>: the head's block is odd and, after its transfers, every block to the left of the head is 2.</p>
+      <p><b>Computed, not yet proved in Lean:</b> read every fourth time the head stands on the blank right end of the tape, the run is a step on a list P = (p<sub>1</sub>, …, p<sub>m</sub>), and with <b>N = 10 + Σ p<sub>l</sub>·2<sup>m−l</sup></b> the machine halts iff N is ever a power of two. The super step behind this is tested against the machine; from the super step to the statement about N is the short argument <a href="#n">below</a>.</p>
+      <p><b>Open:</b> whether N is ever a power of two. Nothing suggests it will be: no halt in the first 2·10<sup>10</sup> steps (kernel), 9·10<sup>13</sup> (Lean with <code>native_decide</code>) or 3.7·10<sup>22</sup> (computed from the wave model), and a heuristic puts the chance of a halt far below 10<sup>−6</sup>. But no proof rules it out.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-chain">
+    <h2 id="h-chain">The chain of reductions</h2>
+    <div class="legend" aria-label="Legend">
+      <span><span class="tag t-kernel">kernel</span> checked by Lean's kernel alone</span>
+      <span><span class="tag t-native">native</span> Lean with compiled evaluation</span>
+      <span><span class="tag t-comp">computed</span> C or Python in the repository, tested, not proved</span>
+      <span><span class="tag t-hand">on paper</span> a short proof on this page</span>
+      <span><span class="tag t-heur">heuristic</span> evidence only</span>
+      <span><span class="tag t-open">open</span> not known</span>
+    </div>
+    <ol class="chain">
+      <li><span class="lv">0</span><div><b>The machine.</b> Six states, one halting transition (D reading 0). <span class="where">the definition, <code>lean/Machine.lean</code></span></div></li>
+      <li><span class="lv">1</span><div><b>Seven block rules.</b> From step 15 on, the tape is blocks of ones, and the head moves cells between blocks by seven moves, each for every block length. <span class="tag t-kernel">kernel</span> <span class="where"><a href="#rules">§1</a>, <code>lean/Rules.lean</code></span></div></li>
+      <li><span class="lv">2</span><div><b>The macro step.</b> The machine goes from every configuration <code>X(ls, n, cs)</code> to the one the list function <code>next</code> gives, in the number of steps it gives. <span class="tag t-kernel">kernel</span> <span class="where"><a href="#macro">§2</a>, <code>next_sound</code></span></div></li>
+      <li><span class="lv">3</span><div><b>The halting shape.</b> The machine halts from blank tape iff the macro run halts, and a macro step halts iff <code>n</code> is odd and every left block, after the transfers, is 2. <span class="tag t-kernel">kernel</span> <span class="where"><a href="#halt">§3</a>, <code>halts_iff</code>, <code>next_halt_iff</code></span></div></li>
+      <li><span class="lv">4</span><div><b>The halving wave.</b> Cut at the moments A stands right of the last block, a run of macro steps is one wave of halvings running left; every fourth such moment the tape is <code>[P, 5, 0]</code> and the next <code>P</code> follows by the super step. <span class="tag t-comp">computed</span> <span class="where"><a href="#wave">§4</a>, <code>py/waves.py</code>, <code>tests/test_waves.py</code></span></div></li>
+      <li><span class="lv">5</span><div><b>The number N.</b> The wave goes v<sub>2</sub>(N) + 1 blocks deep, reaches the left end iff 2<sup>m−1</sup> divides N, and the machine halts iff N is a power of two. <span class="tag t-hand">on paper</span> from link 4 <span class="where"><a href="#n">§5</a></span> <!-- STATUS lean-n: change to a kernel tag when the Lean proof of links 4 and 5 lands --><span class="tag t-open">Lean: in progress</span></div></li>
+      <li><span class="lv">?</span><div><b>Is N ever a power of two?</b> <span class="tag t-open">open</span> <span class="tag t-heur">heuristic</span> almost certainly not. <span class="where"><a href="#why">§6</a></span> <!-- STATUS invariant: update when the search for an invariant finishes --></div></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="rules">
+    <h2 id="rules">1. The tape is blocks, moved by seven rules <span class="tag t-kernel">kernel</span></h2>
+    <div class="prose">
+      <p>Write tapes left to right, <code>S&gt;</code> for the head in state S on the next cell, <code>1^n</code> for n ones, and L, R, Q for any tape. The symbolic prover (<code>tools/py/bbtools/symtm.py</code>) proves each rule below in Lean from the machine's table, for every block length and any surrounding tape; <code>lean/rules.py</code> lists them and generates <code>lean/Rules.lean</code>.</p>
+    </div>
+    <div class="scroller">
+      <table class="t">
+        <thead><tr><th>rule</th><th>from</th><th>to</th><th>steps</th><th>what it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>transfer</code></td><td><code>L 0 A&gt; 1^(n+2) 000 R</code></td><td><code>L 1 0 A&gt; 1^n 000 1 R</code></td><td>2n + 11</td><td>two cells of the head's block move out, one to the block on the left and one past the <code>000</code></td></tr>
+          <tr><td><code>empty_start</code></td><td><code>L 0 A&gt; 000 R</code></td><td><code>L 1 0 A&gt; 1 1 R</code></td><td>15</td><td>the block is used up: the left block gains one and A starts a sweep right</td></tr>
+          <tr><td><code>sweep_step</code></td><td><code>L A&gt; 1^m 00 1 R</code></td><td><code>L 1^(m+2) 0 A&gt; R</code></td><td>m + 3</td><td>one block of the sweep: <code>00</code> becomes <code>0</code> and the block gains two</td></tr>
+          <tr><td><code>carry_start</code></td><td><code>L 0 A&gt; 1 000 R</code></td><td><code>L 0 F&gt; 1 001 R</code></td><td>6</td><td>one cell is left: F starts carrying left</td></tr>
+          <tr><td><code>carry_two</code></td><td><code>L 0 1^(j+2) 0 F&gt; 1 Q</code></td><td><code>L 0 1^j F&gt; 1 001 Q</code></td><td>5</td><td>F takes two cells of the block on its left and leaves <code>001</code> on the right; a block of exactly 2 disappears</td></tr>
+          <tr><td><code>carry_exit</code></td><td><code>L 0 1^(m+1) F&gt; 1 Q</code></td><td><code>L 1 0 A&gt; 1^m 0 Q</code></td><td>m + 4</td><td>the carry stops inside a block, which starts a new transfer phase</td></tr>
+          <tr><td><code>carry_one</code></td><td><code>L 0 1 0 F&gt; 1 Q</code></td><td><code>L 1 0 A&gt; 1 1 Q</code></td><td>15</td><td>the carry meets a block of one cell; A sweeps right</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Two shift rules underlie them: A runs right over a block of n ones in n steps (<code>a_sweep</code>), and B runs left over one to the 0 before it in n + 1 steps (<code>b_sweep</code>).</p>
+  </section>
+
+  <section aria-labelledby="macro">
+    <h2 id="macro">2. The macro step: a map on lists <span class="tag t-kernel">kernel</span></h2>
+    <div class="prose">
+      <p>A <b>macro configuration</b> is</p>
+    </div>
+    <pre>X(ls, n, cs) = 0^∞ 1^l_r 0 … 0 1^l_1 0 A&gt; 1^n 000 1^c_1 00 1^c_2 … 00 1^c_s 0^∞</pre>
+    <div class="prose">
+      <p>with <code>ls = [l_1, …, l_r]</code> the blocks left of the head, nearest first, separated by single 0s; <code>n</code> the block under the head; and <code>cs</code> the blocks to the right, separated by <code>00</code> (and by <code>000</code> from the head's block). The run from blank tape is at <code>X([1], 2, [])</code> after 15 steps (<code>init_X</code>). Write <code>bump</code> for "the first block gains one, or a new block 1 if there is none". One macro step, <code>next ls n cs</code>, is:</p>
+      <ol>
+        <li><b>Transfers.</b> <code>q = ⌊n/2⌋</code> transfers: <code>l_1</code> and <code>c_1</code> each gain q, the head's block drops to <code>n mod 2</code>; <code>q(2(n mod 2) + 2q + 9)</code> steps.</li>
+        <li><b>n even: sweep right.</b> <code>l_1</code> gains one and A sweeps right to the end of the tape. Every <code>00</code> becomes <code>0</code>: <code>c_1</code> gains 4 (two from <code>empty_start</code>, two from its <code>sweep_step</code>) and <code>c_2 … c_(s−1)</code> gain 1 (A takes one cell of each to cross into it, and the sweep adds two); all of them join the left list, and the last block becomes the head's block (<code>c_s − 1</code>, or <code>c_1 + 2</code> if there is only one). With <code>cs</code> empty the result is <code>X(bump ls, 2, [])</code>.</li>
+        <li><b>n odd: carry left.</b> F carries left. Every block equal to 2 it meets disappears and leaves a <code>001</code> on the right (5 steps each). At the first block <code>k ≠ 2</code>, after <code>i</code> twos:
+          <ul>
+            <li><code>k ≥ 3</code>: <code>X(bump(rest), k − 3, [1]^(i+1) ++ bump(cs))</code>, a new transfer phase in the middle of the tape;</li>
+            <li><code>k = 1</code>: <code>bump(rest)</code>, then a sweep right as in 2, over <code>[1]^i ++ bump(cs)</code>, starting from a block of 2;</li>
+            <li>no such block, because every block to the left is 2: <b>the machine halts</b>, 6 steps later (F B C D E C, then D reads 0).</li>
+          </ul>
+        </li>
+      </ol>
+      <p><code>next_sound</code> says that from <code>X ls n cs</code> the machine reaches exactly the configuration <code>next</code> gives, in exactly the steps it gives, or halts where it says. It is proved for every case and every block length, by Lean's kernel alone. <code>py/macro.py</code> computes the same map in Python (tested against direct simulation at every configuration of the first 1,000 macro steps, 1,322,171 machine steps, the same count as Lean's <code>runM_1000</code>).</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="halt">
+    <h2 id="halt">3. Halting iff the macro run halts <span class="tag t-kernel">kernel</span></h2>
+    <div class="prose">
+      <p>Every reachable macro configuration has a left block and no empty blocks (<code>Good</code>, <code>next_fine</code>), so <code>next</code> never gets stuck and every macro step takes at least one machine step. Together with <code>next_sound</code> that gives</p>
+    </div>
+    <div class="claim"><b><code>halts_iff</code>:</b> the machine halts from blank tape iff the macro run <code>runM</code> reaches a halt.<br><b><code>next_halt_iff</code>:</b> a macro step from <code>X(k :: ls, n, cs)</code> halts iff <code>n</code> is odd and every block of <code>(k + ⌊n/2⌋) :: ls</code> equals 2.</div>
+    <div class="prose">
+      <p>So the question is entirely about the orbit of an explicit list map. For example <code>X([2, 2, 2], 1, cs)</code> and <code>X([1], 3, cs)</code> halt. Running the map, Lean's kernel proves no halt in the first 2·10<sup>10</sup> steps (10<sup>5</sup> macro steps, <code>blank_runs_2e10</code>), and with <code>native_decide</code> none in the first 9·10<sup>13</sup> (10<sup>7</sup> macro steps, <code>blank_runs_9e13</code>). In those runs the left list holds blocks in the hundreds of thousands, nowhere near all 2s.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="wave">
+    <h2 id="wave">4. The halving wave and the super step <span class="tag t-comp">computed</span></h2>
+    <div class="prose">
+      <p>The same run, cut at different moments. Call it an <b>event</b> when A stands on the blank just right of the last block. The tape is then <code>1^b_1 0 1^b_2 0 … 0 1^b_n A&gt;0</code>, blocks separated by single 0s (the last block may be empty), and the next event follows from <code>b</code> alone.</p>
+      <p>Between two events a <b>wave</b> runs left from the right end. At each block it carries a value <code>c</code>, at first the last block less one. It halves the block with <code>⌊c/2⌋</code> cycles (<code>1^y 0 [B] 1^m 000 1^k → 1^(y+1) 0 [B] 1^(m−2) 000 1^(k+1)</code>, 2m + 5 steps each). If <code>c</code> is odd the wave turns and A sweeps back to the right end. If <code>c</code> is even, it moves on to the next block left, of length <code>y</code>, with <code>c' = y + c/2 − 2</code>. At the left end <code>y = 0</code>: the wave keeps halving into new tape (<code>c → c/2 − 2</code>), and if it reaches <code>c = 0</code> the next transitions are B0 C0 D1 E0 C0 D0, the halt. So a wave that reaches the left end halts the machine iff it arrives with <code>c + 4</code> a power of two.</p>
+      <p>In the terms of §2 a wave is a run of macro steps: its cycles are transfers, "c even, move on" is a carry (n odd), a level with a block of 2 is a block the carry eats, the turn is a sweep (n even), and the halt at the left end is the carry eating blocks of 2 all the way to the left end. <code>py/waves.py</code> lists all the local rules with their step counts.</p>
+      <p><b>The super step.</b> From the fourth event on (step 136, tape <code>[1, 6, 5, 0]</code>), every fourth event has the tape <code>[p_1, …, p_m, 5, 0]</code>, and the next such event depends on <code>P = (p_1, …, p_m)</code> only. Put <code>d_(m+1) = 20</code> and <code>d_l = p_l + d_(l+1)/2</code> for <code>l = m, …, 1</code>, stopping at the first odd one. If <code>i ≥ 2</code> is the largest index with <code>d_i</code> odd, the wave turns there and</p>
+    </div>
+    <pre>P' = (p_1, …, p_(i−2),  p_(i−1) + (d_i − 1)/2,  (d_i + 5)/2,  d_(i+1)/2, …, d_m/2).</pre>
+    <div class="prose">
+      <p>If <code>d_2, …, d_m</code> are all even, the wave reaches the left end. Write <code>d_1 = 2^s·u</code> with u odd. If <code>u ≥ 3</code> the tape grows on the left, <code>P' = ((u−1)/2, (u+5)/2, u, 2u, …, 2^(s−1)·u, d_2/2, …, d_m/2)</code> (with <code>u = 3</code> the head reaches the left end in state F, as at steps 81 and 1,135). If <code>u = 1</code> the machine halts.</p>
+      <p><b>What this rests on.</b> The wave's rules were found by hand and are checked by <code>tests/test_waves.py</code>: every event of the first 10<sup>9</sup> steps (12,927 events) against direct simulation with exact step counts; every new left cell up to 10<sup>10</sup> steps; a direct run to 2.7·10<sup>10</sup> steps that confirms the predicted return to the left end at step 26,618,972,322; and from each of the first 2,000 configurations of <code>py/macro.py</code>, the cut that Lean proves, direct simulation reaches the next event that <code>waves.py</code> gives. The super step is checked against four wave steps for 150,000 super steps. <code>c/blkrun.c</code> is the same model in C with 128-bit step counts. None of this is a Lean proof.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="n">
+    <h2 id="n">5. Halting iff N is a power of two <span class="tag t-hand">on paper</span></h2>
+    <div class="prose">
+      <p>Read the blocks as binary digits, <code>p_m</code> the units, and add 10:</p>
+    </div>
+    <div class="claim"><b>N = 10 + Σ<sub>l=1…m</sub> p<sub>l</sub>·2<sup>m−l</sup></b>. Given the super step of §4: the wave goes <b>v<sub>2</sub>(N) + 1</b> blocks deep, it <b>reaches the left end iff 2<sup>m−1</sup> divides N</b>, and <b>the machine halts iff N is a power of two</b>.</div>
+    <div class="prose">
+      <p><b>Proof.</b> Write <code>N_l = 10 + Σ<sub>k≥l</sub> p_k·2^(m−k)</code>, the part of N from block l on, so <code>N = N_1</code>.</p>
+      <p><i>(a) If <code>d_(l+1), …, d_m</code> are all even, then <code>d_l·2^(m−l) = N_l</code>.</i> For <code>l = m</code>: <code>d_m = p_m + 20/2 = N_m</code>. Going left, <code>d_(l+1)</code> is even, so <code>d_l·2^(m−l) = p_l·2^(m−l) + d_(l+1)·2^(m−l−1) = p_l·2^(m−l) + N_(l+1) = N_l</code>.</p>
+      <p><i>(b) Depth.</i> Let <code>i ≥ 2</code> be the largest index with <code>d_i</code> odd. By (a), <code>N_i = d_i·2^(m−i)</code> has exactly <code>m − i</code> factors of 2, and <code>N − N_i = Σ<sub>k&lt;i</sub> p_k·2^(m−k)</code> is divisible by <code>2^(m−i+1)</code>. So <code>v_2(N) = m − i</code>: the wave turns at block <code>i = m − v_2(N)</code> and goes <code>m − i + 1 = v_2(N) + 1</code> blocks deep.</p>
+      <p><i>(c) The left end.</i> If no such i exists, (a) applies at <code>l = 1</code> and <code>N = d_1·2^(m−1)</code>, so <code>2^(m−1)</code> divides N. If one exists, <code>v_2(N) = m − i ≤ m − 2</code> and it does not.</p>
+      <p><i>(d) Halting.</i> The machine halts in this super step iff the wave reaches the left end and <code>u = 1</code>, that is, iff <code>d_1 = N / 2^(m−1)</code> is a power of two, so N is a power of two. Conversely, if N is a power of two then <code>N &gt; p_1·2^(m−1) ≥ 2^(m−1)</code>, so <code>2^(m−1)</code> divides N, the wave reaches the left end by (c), and <code>d_1 = N / 2^(m−1)</code> is a power of two. ∎</p>
+      <p>The argument is elementary, but it is only as good as the super step it starts from, which is computed (§4), not proved. Composed with §3, it says the machine halts from blank tape iff some N along the orbit of P is a power of two.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="status">
+    <h2 id="status">What is proved, what is trusted, what is heuristic</h2>
+    <!-- STATUS: this table and the box under it are the part to update when the Lean proof of the N criterion and the
+         invariant search finish. Keep proof-status.html (from bb6-1RB1RA_1RC1LB/status.json) in step with it. -->
+    <div class="scroller">
+      <table class="t">
+        <thead><tr><th>claim</th><th>status</th><th>rests on</th></tr></thead>
+        <tbody>
+          <tr><td>The seven block rules and the two shift rules, for every block length</td><td><span class="tag t-kernel">kernel</span></td><td><code>lean/Rules.lean</code>, generated by <code>lean/rules.py</code></td></tr>
+          <tr><td>The machine does what <code>next</code> says, step counts included</td><td><span class="tag t-kernel">kernel</span></td><td><code>next_sound</code>, <code>lean/Macro.lean</code></td></tr>
+          <tr><td>Halts from blank tape iff the macro run halts; when a macro step halts</td><td><span class="tag t-kernel">kernel</span></td><td><code>halts_iff</code>, <code>next_halt_iff</code></td></tr>
+          <tr><td>No halt in the first 2·10<sup>10</sup> steps</td><td><span class="tag t-kernel">kernel</span></td><td><code>blank_runs_2e10</code>, <code>lean/MacroRun.lean</code></td></tr>
+          <tr><td>No halt in the first 9·10<sup>13</sup> steps</td><td><span class="tag t-native">native</span></td><td><code>blank_runs_9e13</code>, also trusts Lean's compiler</td></tr>
+          <tr><td><code>py/macro.py</code> computes <code>next</code></td><td><span class="tag t-comp">computed</span></td><td>tested against direct simulation for 1,000 macro steps</td></tr>
+          <tr id="st-wave"><td>The wave model and the super step</td><td><span class="tag t-comp">computed</span></td><td><code>py/waves.py</code>, <code>tests/test_waves.py</code>; Python and the C simulator <code>tools/c/tmrun</code></td></tr>
+          <tr id="st-n"><td>Halts iff N is ever a power of two</td><td><span class="tag t-hand">on paper</span> <span class="tag t-comp">computed</span></td><td>the proof in §5, from the computed super step</td></tr>
+          <tr><td>No halt in the first 3.7·10<sup>22</sup> steps</td><td><span class="tag t-comp">computed</span></td><td><code>c/blkrun.c</code>, 7·10<sup>10</sup> wave events; rests on the wave model</td></tr>
+          <tr><td>The machine almost certainly never halts</td><td><span class="tag t-heur">heuristic</span></td><td>§6</td></tr>
+          <tr id="st-open"><td>Whether N is ever a power of two</td><td><span class="tag t-open">open</span></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="wip" id="in-progress">
+      <h3>Under way</h3>
+      <ul>
+        <li id="wip-lean-n"><b>A Lean proof of the super step and the N criterion</b> from <code>next</code>: four events are a bounded number of macro steps plus the wave's levels, so this is bookkeeping on top of §2 and §3. When it lands, links 4 and 5 become <span class="tag t-kernel">kernel</span>, and the halting question is, in Lean, whether N is ever a power of two.</li>
+        <li id="wip-invariant"><b>A search for an invariant</b> of the super step that keeps N away from powers of two. The simplest kind does not exist for the machine itself (no quantity a·ones + b·position + W[state] is conserved modulo 2 to 12), and N shows no modular obstruction in the first 200,000 super steps (every residue modulo 3 to 21 occurs), so an invariant would have to be subtler.</li>
+      </ul>
+      <p class="note">This section will be updated as each one finishes.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="why">
+    <h2 id="why">6. Why it almost certainly never halts <span class="tag t-heur">heuristic</span></h2>
+    <div class="prose">
+      <p>The wave is a binary carry. To reach the left end it needs <code>v_2(N) ≥ m − 1</code>, which happens about once every <code>2^(m−1)</code> super steps if N's low bits behave like coin flips, and each visit adds at least one block. The observed gaps fit that estimate within a factor of two, so the visits do not stop; they thin out. The head reaches new tape on the left at steps 2,047,931, then 26,618,972,322, then 6.4·10<sup>10</sup>, and so on: 16 visits in the first 3.7·10<sup>22</sup> steps (<code>runs/left_arrivals_macro.txt</code>).</p>
+      <p>At a visit, what decides is <code>d_1</code>, a number the size of the first blocks, now about 10<sup>9</sup> and growing. If it behaved like a random integer, the chance of a power of two would be about <code>1/d_1</code> per visit, and summed over all future visits (whose sizes grow geometrically) it is far below 10<sup>−6</sup>. That is a reason to expect the machine to run forever, not a proof: a proof has to show that one particular orbit never hits a power of two, a question with the flavour of the Collatz problem.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-check">
+    <h2 id="h-check">Check it yourself</h2>
+    <pre><code>bash scripts/setup-lean.sh                       # Lean 4.34.0, core only
+. /etc/profile.d/lean.sh
+bb6-1RB1RA_1RC1LB/lean/check.sh                  # Rules, Macro, MacroRun (about 2 min)
+python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py  # py/macro.py against direct simulation
+python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py    # the wave model and the super step (about 25 s)
+python3 bb6-1RB1RA_1RC1LB/py/waves.py super 20   # the super steps, with N
+python3 bb6-1RB1RA_1RC1LB/py/waves.py left 100000  # the wave's visits to the left end</code></pre>
+  </section>
+
+  <footer>
+    <p>Written by hand from <code>bb6-1RB1RA_1RC1LB/notes/LAB_NOTES.md</code> and <code>lean/Macro.lean</code>. When a result changes, update this page with <code>bb6-1RB1RA_1RC1LB/status.json</code> (which builds <a href="proof-status.html">proof-status.html</a>).</p>
+    <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+  </footer>
+</main>
+</body>
+</html>

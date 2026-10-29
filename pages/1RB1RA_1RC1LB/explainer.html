@@ -1,0 +1,1226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>1RB1RA_1RC1LB, level by level</title>
+<meta name="description" content="An interactive explainer of the six-state machine 1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB: its raw steps, then each level of structure that emerges from them, down to one number that decides whether it halts.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --sunk: #E4E9F0; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --head: #DB4E17; --wave: #0A8174; --wave-bg: #DDF2EE; --one: #2E3B52; --hit: #B3261E; --hit-bg: #FBE6E4;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --sunk: #1F2935; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --head: #FF7B44; --wave: #2FC4B2; --wave-bg: #12332F; --one: #C9D3E0; --hit: #FF8A80; --hit-bg: #3A1714;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --sunk: #1F2935; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --head: #FF7B44; --wave: #2FC4B2; --wave-bg: #12332F; --one: #C9D3E0; --hit: #FF8A80; --hit-bg: #3A1714;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 40px 16px 64px; display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+p, ul, ol { margin: 0; }
+a { color: var(--link); }
+code, .mono { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+.top { display: grid; gap: 12px; max-width: 70ch; }
+.crumb { font-size: 0.9rem; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+section.level { display: grid; gap: 16px; scroll-margin-top: 16px; }
+.prose { display: grid; gap: 10px; max-width: 70ch; }
+.lvhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.lvnum { font-family: var(--font-display); font-size: 0.72rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+
+/* The ladder of levels at the top. */
+.ladder { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+.ladder a { display: grid; gap: 4px; height: 100%; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 12px; color: var(--ink); text-decoration: none; }
+.ladder a:hover { border-color: var(--muted); }
+.ladder b { font-family: var(--font-display); font-size: 0.8rem; }
+.ladder span.d { font-size: 0.84rem; color: var(--muted); }
+
+/* A widget: one surface with a readout, a picture and controls. */
+.bench { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button, select, input[type="text"], input[type="number"] { font-family: var(--font-display); font-size: 0.74rem; color: var(--ink); background: var(--sunk); border: 1px solid var(--rule); border-radius: 5px; padding: 7px 11px; }
+button { cursor: pointer; white-space: nowrap; font-weight: 500; }
+button:hover { border-color: var(--muted); }
+button.primary { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+button:disabled { opacity: 0.45; cursor: default; }
+input[type="text"], input[type="number"] { background: var(--surface); min-width: 0; }
+button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.readout { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 0.9rem; }
+.readout div { display: grid; }
+.readout .k { font-size: 0.72rem; color: var(--muted); font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.06em; }
+.readout .v { font-family: var(--font-display); font-size: 0.86rem; overflow-wrap: anywhere; }
+.note { font-size: 0.88rem; color: var(--muted); }
+.ok { color: var(--kernel); font-weight: 700; }
+.bad { color: var(--hit); font-weight: 700; }
+.scroller { overflow-x: auto; padding-bottom: 4px; }
+.cols2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+@media (max-width: 760px) { .cols2 { grid-template-columns: minmax(0, 1fr); } }
+.panel { border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 12px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+
+/* Level 0: the table and the cells. */
+.ttable { border-collapse: collapse; font-family: var(--font-display); font-size: 0.76rem; }
+.ttable th, .ttable td { border: 1px solid var(--rule); padding: 4px 9px; text-align: center; }
+.ttable th { color: var(--muted); font-weight: 500; }
+.ttable td.on { background: var(--head); color: var(--surface); font-weight: 700; }
+.ttable td.halt { color: var(--hit); }
+.cells { display: flex; gap: 2px; padding-top: 22px; position: relative; min-height: 48px; }
+.cell { flex: 0 0 auto; width: 16px; height: 22px; border-radius: 3px; background: var(--sunk); position: relative; }
+.cell.one { background: var(--one); }
+.cell.head { box-shadow: 0 0 0 2px var(--head); }
+.cell.head::before { content: attr(data-s); position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-family: var(--font-display); font-size: 0.7rem; font-weight: 700; color: var(--head); }
+canvas.st { width: 100%; height: 260px; display: block; border-radius: 4px; background: var(--sunk); image-rendering: pixelated; }
+
+/* Block strips: runs of ones as pills, zeros as dots, the head as a cell. */
+.strip { display: flex; align-items: flex-end; gap: 3px; padding-top: 24px; min-height: 56px; }
+.strip .b { flex: 0 0 auto; height: 24px; border-radius: 4px; background: var(--one); color: var(--surface); font-family: var(--font-display); font-size: 0.66rem; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
+.strip .z { flex: 0 0 auto; display: flex; gap: 3px; height: 24px; align-items: center; }
+.strip .z i { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); display: block; }
+.strip .h { flex: 0 0 auto; width: 18px; height: 24px; border-radius: 4px; position: relative; box-shadow: 0 0 0 2px var(--head); background: var(--sunk); }
+.strip .h.one { background: var(--one); }
+.strip .h::before { content: attr(data-s); position: absolute; top: -21px; left: 50%; transform: translateX(-50%); font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; color: var(--head); }
+.strip .more { font-family: var(--font-display); font-size: 0.7rem; color: var(--muted); align-self: center; padding: 0 4px; }
+
+/* Rule cards. */
+.rule { font-family: var(--font-display); font-size: 0.76rem; display: grid; gap: 4px; }
+.rule .name { font-weight: 700; color: var(--link); }
+.rule .pat { overflow-wrap: anywhere; }
+.log { font-family: var(--font-display); font-size: 0.72rem; display: grid; gap: 2px; max-height: 220px; overflow-y: auto; }
+.log div { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); gap: 8px; }
+.log div span:first-child { color: var(--muted); text-align: right; }
+
+/* Tables of lists. */
+table.grid { border-collapse: collapse; font-family: var(--font-display); font-size: 0.72rem; }
+table.grid th, table.grid td { border: 1px solid var(--rule); padding: 3px 7px; text-align: right; white-space: nowrap; }
+table.grid th { color: var(--muted); font-weight: 500; text-align: left; position: sticky; left: 0; background: var(--surface); }
+table.grid td.wave { background: var(--wave-bg); color: var(--wave); font-weight: 700; }
+table.grid td.turn { box-shadow: inset 0 0 0 2px var(--wave); }
+table.grid td.odd { color: var(--head); font-weight: 700; }
+table.grid td.dim { color: var(--muted); }
+table.grid td.hit { background: var(--hit-bg); color: var(--hit); font-weight: 700; }
+table.hist td { text-align: left; }
+
+.bits { font-family: var(--font-display); font-size: 0.8rem; overflow-wrap: anywhere; letter-spacing: 0.04em; }
+.bits .tz { color: var(--wave); font-weight: 700; }
+.meter { height: 10px; border-radius: 5px; background: var(--sunk); overflow: hidden; position: relative; }
+.meter span { display: block; height: 100%; background: var(--wave); }
+canvas.chart { width: 100%; height: 190px; display: block; }
+details summary { cursor: pointer; font-size: 0.9rem; color: var(--link); }
+pre { margin: 0; font-family: var(--font-display); font-size: 0.72rem; line-height: 1.5; overflow-x: auto; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / 1RB1RA_1RC1LB / level by level</p>
+    <h1>1RB1RA_1RC1LB, level by level</h1>
+    <p class="machine">1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</p>
+    <p>This machine's run from blank tape can be read at five levels. At the bottom it is one cell at a time. Watch long enough and the cells form blocks, the blocks follow seven rules, the rules group into a macro step on lists of numbers, the macro steps are a wave of halvings running left, and four waves together are one step on a single number N. The machine halts exactly when that number is a power of two.</p>
+    <p>Each level below runs the same machine from blank tape and can be stepped on its own. Where a level's moment is small enough, <b>Show in the machine</b> runs the bare machine to the same step so you can compare. The <a href="reduction.html">write-up</a> states each level precisely and says what is proved about it; the tags here say the same in short.</p>
+    <ol class="ladder" aria-label="The levels">
+      <li><a href="#l0"><span class="lvnum">Level 0</span><b>The machine</b><span class="d">cells, states and the table</span></a></li>
+      <li><a href="#l1"><span class="lvnum">Level 1</span><b>Block rules</b><span class="d">transfers, sweeps and carries</span></a></li>
+      <li><a href="#l2"><span class="lvnum">Level 2</span><b>The macro step</b><span class="d">a map on lists of block lengths</span></a></li>
+      <li><a href="#l3"><span class="lvnum">Level 3</span><b>The halving wave</b><span class="d">one wave per event, running left</span></a></li>
+      <li><a href="#l4"><span class="lvnum">Level 4</span><b>The number N</b><span class="d">halts iff N is a power of two</span></a></li>
+    </ol>
+  </header>
+
+  <!-- ======================= Level 0 ======================= -->
+  <section class="level" id="l0" aria-labelledby="h-l0">
+    <div class="lvhead"><span class="lvnum">Level 0</span><h2 id="h-l0">The machine, one cell at a time</h2></div>
+    <div class="prose">
+      <p>Six states, two symbols, one halting transition. The machine starts in state A on a blank tape (all 0). At each step it reads the cell under the head, looks up the state and symbol in the table, writes, moves one cell and changes state. Only D reading 0 halts, and D is entered only from C reading 0, so a halt needs C to read a 0 with another 0 to its left.</p>
+      <p>The diagram under the tape is a space-time picture of the last 200 steps, newest at the bottom: dark cells are 1s and the orange mark is the head. Run it for a few thousand steps and the head settles into long sweeps across a tape of blocks, with short back-and-forth loops where it moves cells from one block to another.</p>
+      <p><span class="tag t-kernel">kernel</span> no halt in the first 20,000 steps, run step by step in Lean's kernel. <span class="tag t-native">native</span> no halt in the first 10,000,000 steps.</p>
+    </div>
+    <div class="bench">
+      <div class="readout" aria-live="polite">
+        <div><span class="k">step</span><span class="v" id="l0-t">0</span></div>
+        <div><span class="k">state</span><span class="v" id="l0-s">A</span></div>
+        <div><span class="k">next transition</span><span class="v" id="l0-next">A0 → 1RB</span></div>
+        <div><span class="k">ones on the tape</span><span class="v" id="l0-ones">0</span></div>
+        <div><span class="k">cells visited</span><span class="v" id="l0-span">1</span></div>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>The table</h3>
+          <div class="scroller"><table class="ttable" id="l0-table" aria-label="Transition table"></table></div>
+          <p class="note">Each entry is: write, move (R or L), next state. The highlighted entry is the one the next step uses.</p>
+        </div>
+        <div class="panel">
+          <h3>The tape around the head</h3>
+          <div class="scroller"><div class="cells" id="l0-cells" aria-label="Tape cells around the head"></div></div>
+          <p class="note" id="l0-window"></p>
+        </div>
+      </div>
+      <div style="display: grid; gap: 4px">
+        <canvas class="st" id="l0-st" aria-label="Space-time diagram of the last 200 steps"></canvas>
+        <p class="note">The last 200 steps, oldest at the top; showing <span id="l0-st-say">the whole tape</span>.</p>
+      </div>
+      <div class="controls">
+        <button id="l0-reset">Reset</button>
+        <button id="l0-back">Back</button>
+        <button class="primary" id="l0-step">Step</button>
+        <button id="l0-10">+10</button>
+        <button id="l0-100">+100</button>
+        <button id="l0-1000">+1,000</button>
+        <button id="l0-play" aria-pressed="false">Play</button>
+        <label class="note">speed <select id="l0-speed"><option value="1">1 step / tick</option><option value="5" selected>5 / tick</option><option value="50">50 / tick</option><option value="500">500 / tick</option></select></label>
+      </div>
+      <div class="controls">
+        <label class="note" for="l0-goto">go to step</label>
+        <input type="number" id="l0-goto" min="0" max="20000000" value="2023931" style="width: 11em">
+        <button id="l0-go">Go</button>
+        <span class="note">up to 20,000,000; step 2,023,931 is a return of the head to the left end.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= Level 1 ======================= -->
+  <section class="level" id="l1" aria-labelledby="h-l1">
+    <div class="lvhead"><span class="lvnum">Level 1</span><h2 id="h-l1">Blocks, and seven rules that move them</h2><span class="tag t-kernel">kernel</span></div>
+    <div class="prose">
+      <p>From step 15 on, the tape is blocks of ones separated by one, two or three 0s, and everything the head does is one of a few moves on those blocks. Below, the tape is drawn as blocks (a pill is a block of ones, labelled with its length; a dot is a 0; the outlined cell is the head) and the run advances one move at a time:</p>
+      <ul>
+        <li><b>transfer</b>: A runs over the block under it and back; the block loses two cells, one going to the block on its left and one to the first block past its <code>000</code>.</li>
+        <li><b>empty_start</b>, <b>sweep_step</b>: when the block is used up, A sweeps right, turning every <code>00</code> into <code>0</code> and adding two cells to each block it passes.</li>
+        <li><b>carry_start</b>, <b>carry_two</b>, <b>carry_exit</b>, <b>carry_one</b>: when one cell is left, F carries left. Each block of exactly 2 it meets disappears into a <code>001</code> on the right; the first other block stops it.</li>
+      </ul>
+      <p>Lean proves each move for every block length and any surrounding tape, with its exact step count (<code>lean/Rules.lean</code>). Here every move is also checked against the bare machine run to the same step.</p>
+    </div>
+    <div class="bench">
+      <div class="readout" aria-live="polite">
+        <div><span class="k">step</span><span class="v" id="l1-t">0</span></div>
+        <div><span class="k">moves made</span><span class="v" id="l1-k">0</span></div>
+        <div><span class="k">bare machine at this step</span><span class="v" id="l1-check">–</span></div>
+      </div>
+      <div class="scroller"><div class="strip" id="l1-strip" aria-label="The tape as blocks"></div></div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>Last move</h3>
+          <div class="rule" id="l1-rule"></div>
+        </div>
+        <div class="panel">
+          <h3>Moves so far</h3>
+          <div class="log" id="l1-log"></div>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="l1-reset">Reset</button>
+        <button id="l1-back">Back</button>
+        <button class="primary" id="l1-step">Next move</button>
+        <button id="l1-macro" title="Run moves until the next macro configuration of level 2">To next macro step</button>
+        <button id="l1-play" aria-pressed="false">Play</button>
+        <button id="l1-show">Show in the machine</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= Level 2 ======================= -->
+  <section class="level" id="l2" aria-labelledby="h-l2">
+    <div class="lvhead"><span class="lvnum">Level 2</span><h2 id="h-l2">The macro step: the machine as a map on lists</h2><span class="tag t-kernel">kernel</span></div>
+    <div class="prose">
+      <p>Group the moves between two transfer phases and the tape only needs three things: the blocks to the left of the head (<code>ls</code>, nearest first), the block under it (<code>n</code>) and the blocks to the right (<code>cs</code>). Write the configuration as <code>X(ls, n, cs)</code>. One macro step does <code>⌊n/2⌋</code> transfers, then a sweep right if <code>n</code> is even or a carry left if <code>n</code> is odd, and lands on the next <code>X</code>.</p>
+      <p>Lean proves that the machine does exactly this, step counts included (<code>next_sound</code>), and that <b>the machine halts from blank tape iff this map's run reaches a halt</b> (<code>halts_iff</code>). A macro step halts exactly when <code>n</code> is odd and, after the transfers, every block to the left of the head is 2 (<code>next_halt_iff</code>): the carry then eats every block and reaches the left end. The panel <b>Distance from halting</b> shows how far each configuration is from that shape. To see a halt, start from <code>X([2, 2, 2], 1, [3])</code>.</p>
+    </div>
+    <div class="bench">
+      <div class="readout" aria-live="polite">
+        <div><span class="k">macro step</span><span class="v" id="l2-k">0</span></div>
+        <div><span class="k">machine step</span><span class="v" id="l2-t">15</span></div>
+        <div><span class="k">blocks left / right</span><span class="v" id="l2-sizes"></span></div>
+        <div><span class="k">ones on the tape</span><span class="v" id="l2-ones"></span></div>
+      </div>
+      <p class="mono" id="l2-x" style="font-size: 0.82rem"></p>
+      <div class="scroller"><div class="strip" id="l2-strip" aria-label="The macro configuration as blocks"></div></div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>The next macro step</h3>
+          <ol id="l2-plan" style="padding-left: 1.2em; display: grid; gap: 4px; font-size: 0.92rem"></ol>
+        </div>
+        <div class="panel">
+          <h3>Distance from halting</h3>
+          <div id="l2-dist" style="display: grid; gap: 6px; font-size: 0.92rem"></div>
+        </div>
+      </div>
+      <div class="scroller"><table class="grid hist" id="l2-hist" aria-label="The last macro steps"></table></div>
+      <div class="controls">
+        <button id="l2-reset">Reset</button>
+        <button id="l2-back">Back</button>
+        <button class="primary" id="l2-step">Next macro step</button>
+        <button id="l2-10">+10</button>
+        <button id="l2-100">+100</button>
+        <button id="l2-1000">+1,000</button>
+        <button id="l2-play" aria-pressed="false">Play</button>
+        <button id="l2-show">Show in the machine</button>
+      </div>
+      <div class="controls">
+        <span class="note">Start from</span>
+        <label class="note">ls <input type="text" id="l2-ls" value="2, 2, 2" style="width: 9em"></label>
+        <label class="note">n <input type="number" id="l2-n" value="1" min="0" style="width: 5em"></label>
+        <label class="note">cs <input type="text" id="l2-cs" value="3" style="width: 9em"></label>
+        <button id="l2-custom">Start here</button>
+      </div>
+      <p class="note" id="l2-msg"></p>
+    </div>
+  </section>
+
+  <!-- ======================= Level 3 ======================= -->
+  <section class="level" id="l3" aria-labelledby="h-l3">
+    <div class="lvhead"><span class="lvnum">Level 3</span><h2 id="h-l3">The halving wave</h2><span class="tag t-comp">computed</span></div>
+    <div class="prose">
+      <p>Cut the same run at a different moment: each time A stands on the blank just right of the last block. Call that an <b>event</b>. At an event the tape is blocks separated by single 0s, <code>1<sup>b<sub>1</sub></sup> 0 … 0 1<sup>b<sub>n</sub></sup> A&gt;0</code>, and the next event follows from the list <code>b</code> alone.</p>
+      <p>In between, a wave runs left from the right end. At a block it carries a value <code>c</code> (the first one is the last block minus 1). It halves the block: <code>⌊c/2⌋</code> cycles, which are level 2's transfers. If <code>c</code> is odd the wave turns and A sweeps back to the right end. If <code>c</code> is even it moves on to the next block left, of length <code>y</code>, with <code>c' = y + c/2 − 2</code>. At the left end there is no block (<code>y = 0</code>), so the wave keeps halving into new tape, <code>c → c/2 − 2</code>. <b>It halts if it reaches <code>c = 0</code></b>, that is, if it arrives with <code>c + 4</code> a power of two. (When the last block is empty there is no wave: the tape just gains a block of 2 at the end, in 17 steps.)</p>
+      <p>The table under the tape shows the wave that runs from the current event: the value <code>c</code> at each block it reaches, and where it turns.</p>
+      <p><span class="tag t-comp">computed</span> found by hand and checked in <code>tests/test_waves.py</code>: every event of the first 10<sup>9</sup> steps against direct simulation, with exact step counts, and the first 2,000 configurations of the proved level 2. Here every event is also checked against the bare machine while the step is small. Not yet proved in Lean.</p>
+    </div>
+    <div class="bench">
+      <div class="readout" aria-live="polite">
+        <div><span class="k">event</span><span class="v" id="l3-k">0</span></div>
+        <div><span class="k">machine step</span><span class="v" id="l3-t">17</span></div>
+        <div><span class="k">blocks</span><span class="v" id="l3-m"></span></div>
+        <div><span class="k">next wave goes</span><span class="v" id="l3-depth"></span></div>
+        <div><span class="k">visits to the left end so far</span><span class="v" id="l3-left">0</span></div>
+        <div><span class="k">bare machine at this step</span><span class="v" id="l3-check">–</span></div>
+      </div>
+      <div class="scroller"><table class="grid" id="l3-grid" aria-label="Blocks and the wave"></table></div>
+      <p class="note" id="l3-say"></p>
+      <div class="controls">
+        <button id="l3-reset">Reset</button>
+        <button id="l3-back">Back</button>
+        <button class="primary" id="l3-step">Next event</button>
+        <button id="l3-4">+4 (one super step)</button>
+        <button id="l3-100">+100</button>
+        <button id="l3-play" aria-pressed="false">Play</button>
+        <button id="l3-toleft" title="Run until the wave reaches the left end">To the next visit to the left end</button>
+        <button id="l3-show">Show in the machine</button>
+      </div>
+      <div class="log" id="l3-visits" aria-label="Visits to the left end"></div>
+    </div>
+  </section>
+
+  <!-- ======================= Level 4 ======================= -->
+  <section class="level" id="l4" aria-labelledby="h-l4">
+    <div class="lvhead"><span class="lvnum">Level 4</span><h2 id="h-l4">One number: N = 10 + Σ p<sub>l</sub>·2<sup>m−l</sup></h2><span class="tag t-comp">computed</span></div>
+    <div class="prose">
+      <p>From event 3 on (step 136), every fourth event ends the same way: the tape is <code>[p<sub>1</sub>, …, p<sub>m</sub>, 5, 0]</code>. Four waves later it is again of that form, and the new list <code>P'</code> follows from <code>P</code> by one formula, the <b>super step</b>. Put <code>d<sub>m+1</sub> = 20</code> and, going left, <code>d<sub>l</sub> = p<sub>l</sub> + d<sub>l+1</sub>/2</code>. The wave turns at the last odd <code>d<sub>i</sub></code>; if <code>d<sub>2</sub>, …, d<sub>m</sub></code> are all even it reaches the left end, and it halts there if <code>d<sub>1</sub></code> is a power of two.</p>
+      <p>All of that is one number. Read the blocks as binary digits, <code>p<sub>m</sub></code> the units: <b>N = 10 + Σ p<sub>l</sub>·2<sup>m−l</sup></b>. As long as the values to its right are even, <code>d<sub>l</sub>·2<sup>m−l</sup> = 10 + Σ<sub>k≥l</sub> p<sub>k</sub>·2<sup>m−k</sup></code>, the part of N from block <code>l</code> on, so the wave goes <code>v<sub>2</sub>(N) + 1</code> blocks deep (one more than the number of trailing zeros of N), reaches the left end exactly when <code>2<sup>m−1</sup></code> divides N, and <b>the machine halts iff N is a power of two</b>. The chart shows how rarely the wave gets deep: it has to reach the line <code>m</code>.</p>
+      <p><span class="tag t-comp">computed</span> the super step is checked against four waves for 150,000 super steps in the tests, and here at every step. From the super step to the statement about N is a few lines of arithmetic (see the <a href="reduction.html#n">write-up</a>). <span class="tag t-open">open</span> whether N is ever a power of two along the run.</p>
+    </div>
+    <div class="bench">
+      <div class="readout" aria-live="polite">
+        <div><span class="k">super step</span><span class="v" id="l4-k">0</span></div>
+        <div><span class="k">event</span><span class="v" id="l4-ev">3</span></div>
+        <div><span class="k">machine step</span><span class="v" id="l4-t">136</span></div>
+        <div><span class="k">m (blocks)</span><span class="v" id="l4-m"></span></div>
+        <div><span class="k">four waves agree</span><span class="v" id="l4-check">–</span></div>
+      </div>
+      <div class="scroller"><table class="grid" id="l4-grid" aria-label="The blocks p and the values d"></table></div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>N</h3>
+          <div class="mono" id="l4-n" style="font-size: 0.82rem"></div>
+          <div class="bits" id="l4-bits"></div>
+          <div class="meter" aria-hidden="true"><span id="l4-meter"></span></div>
+          <p class="note" id="l4-meter-say"></p>
+        </div>
+        <div class="panel">
+          <h3>This super step</h3>
+          <div id="l4-out" style="display: grid; gap: 6px; font-size: 0.92rem"></div>
+        </div>
+      </div>
+      <details>
+        <summary>N as a sum of shifted blocks</summary>
+        <pre id="l4-sum"></pre>
+      </details>
+      <canvas class="chart" id="l4-chart" aria-label="Depth of the wave at each of the last super steps, against m"></canvas>
+      <div class="controls">
+        <button id="l4-reset">Reset</button>
+        <button id="l4-back">Back</button>
+        <button class="primary" id="l4-step">Next super step</button>
+        <button id="l4-10">+10</button>
+        <button id="l4-100">+100</button>
+        <button id="l4-1000">+1,000</button>
+        <button id="l4-toleft" title="Run until the wave reaches the left end">To the next visit to the left end</button>
+        <button id="l4-stop" disabled>Stop</button>
+      </div>
+      <div class="controls">
+        <label class="note">Start from P = <input type="text" id="l4-p" value="1, 4" style="width: 12em"></label>
+        <button id="l4-custom">Start here</button>
+        <span class="note">[1, 4] gives N = 16, a power of two: the wave reaches the left end and the machine halts.</span>
+      </div>
+      <p class="note" id="l4-msg"></p>
+      <div class="log" id="l4-visits" aria-label="Visits to the left end"></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Everything on this page runs in your browser. The engine is the same map as <code>py/macro.py</code> and <code>py/waves.py</code> in <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/bb6-1RB1RA_1RC1LB"><code>bb6-1RB1RA_1RC1LB</code></a>, and <code>tests/test_explainer.py</code> checks it against them and against the bare machine. What each level rests on: <a href="reduction.html">the write-up</a> and <a href="proof-status.html">the proof status</a>.</p>
+    <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+  </footer>
+</main>
+<script id="engine">
+// The engine of explainer.html: the machine, and the four coarser descriptions of its run.
+// tests/test_explainer.py (in bb6-1RB1RA_1RC1LB) runs this script in Node against py/macro.py, py/waves.py and the
+// raw machine.
+const BB = (() => {
+  "use strict";
+  const MACHINE = "1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB";
+  const STATES = "ABCDEF";
+  // TABLE[state][symbol] = [write, move (+1 right, -1 left), next state] or null (halt).
+  const TABLE = MACHINE.split("_").map(s => [0, 1].map(r => {
+    const t = s.slice(3 * r, 3 * r + 3);
+    return t === "---" ? null : [+t[0], t[1] === "R" ? 1 : -1, STATES.indexOf(t[2])];
+  }));
+
+  // ---------- Level 0: the machine, cell by cell ----------
+  class Raw {
+    constructor() { this.reset(); }
+    reset() {
+      this.size = 1024; this.off = 512; this.tape = new Uint8Array(this.size);
+      this.pos = 0; this.state = 0; this.t = 0; this.halted = false; this.lo = 0; this.hi = 0;
+      this.log = []; this.logMax = 512;      // the last steps, newest last: [pos, old symbol, old state]
+    }
+    grow() {
+      const n = new Uint8Array(this.size * 2), shift = this.size / 2;
+      n.set(this.tape, shift); this.tape = n; this.off += shift; this.size *= 2;
+    }
+    read(p) { const i = p + this.off; return i >= 0 && i < this.size ? this.tape[i] : 0; }
+    // Runs k steps (or until the halt); keeps a log of the last steps only if `keep`.
+    run(k, keep) {
+      let { tape, off, pos, state, t, lo, hi } = this;
+      const size = this.size;
+      for (let s = 0; s < k; s++) {
+        const i = pos + off;
+        if (i <= 0 || i >= size - 1) {
+          Object.assign(this, { pos, state, t, lo, hi }); this.grow(); return s + this.run(k - s, keep);
+        }
+        const sym = tape[i], tr = TABLE[state][sym];
+        if (!tr) { this.halted = true; break; }
+        if (keep) { this.log.push([pos, sym, state]); if (this.log.length > this.logMax) this.log.shift(); }
+        tape[i] = tr[0]; pos += tr[1]; state = tr[2]; t++;
+        if (pos < lo) lo = pos; if (pos > hi) hi = pos;
+      }
+      Object.assign(this, { pos, state, t, lo, hi });
+      return k;
+    }
+    // The transition that the next step uses: [state, symbol].
+    next() { return [this.state, this.read(this.pos)]; }
+  }
+
+  // A machine at step t from blank tape (simulated from the start).
+  function rawAt(t) {
+    const m = new Raw();
+    const keep = Math.min(t, m.logMax);
+    m.run(t - keep, false); m.run(keep, true);
+    return m;
+  }
+
+  // ---------- Pictures: a configuration as cells ----------
+  // A picture is { cells: [0|1...], head: index into cells, state: "A".."F" }, trimmed to the first and last 1 (the
+  // head's cell is always kept).
+  function picture(cells, head, state) {
+    let a = 0, b = cells.length - 1;
+    while (a < head && cells[a] === 0) a++;
+    while (b > head && cells[b] === 0) b--;
+    return { cells: cells.slice(a, b + 1), head: head - a, state };
+  }
+  const push = (a, v, n) => { for (let i = 0; i < n; i++) a.push(v); return a; };
+  // Blocks to the left of the head, nearest first, single-0 separated, written left to right (0 1^{l_r} ... 0 1^{l_1}).
+  function leftCells(ls) {
+    const out = [];
+    for (let i = ls.length - 1; i >= 0; i--) push(push(out, 0, 1), 1, ls[i]);
+    return out;
+  }
+  // Blocks separated by 00, appended to `out`.
+  function rightCells(out, cs) {
+    cs.forEach((c, i) => { push(out, 1, c); if (i < cs.length - 1) push(out, 0, 2); });
+    return out;
+  }
+  function rawPicture(m) {
+    const cells = [];
+    for (let p = Math.min(m.lo, m.pos) - 1; p <= Math.max(m.hi, m.pos) + 1; p++) cells.push(m.read(p));
+    return picture(cells, m.pos - (Math.min(m.lo, m.pos) - 1), STATES[m.state]);
+  }
+
+  // ---------- Level 1: the block rules of lean/Rules.lean ----------
+  // Configurations of the rule level (the shapes of lean/Macro.lean):
+  //   X  ls n cs : 0 A> 1^n 000 [cs]          (A at the start of the head's block)
+  //   W  ls m cs : 0 A> 1^m 00 [cs]           (A sweeping right)
+  //   Fs ls cr   : 1^{l1} 0 F> 1 00 [cr]       (F carrying left, just right of a separator)
+  //   Fi ls j cr : 0 1^j F> 1 00 [cr]          (F carrying left, inside a block of j cells; ls are the blocks beyond)
+  // ls are the blocks to the left, nearest first, separated by single 0s; cs/cr the blocks to the right, by 00.
+  const bump = (xs, q = 1) => q === 0 ? xs.slice() : xs.length ? [xs[0] + q, ...xs.slice(1)] : [q];
+
+  function rulePicture(c) {
+    const L = leftCells(c.ls), h = L.length + 1;
+    if (c.kind === "X") return picture(rightCells(push(push(push(L, 0, 1), 1, c.n), 0, 3), c.cs), h, "A");
+    if (c.kind === "W") return picture(rightCells(push(push(push(L, 0, 1), 1, c.m), 0, 2), c.cs), h, "A");
+    if (c.kind === "Fs") return picture(rightCells(push(push(push(L, 0, 1), 1, 1), 0, 2), c.cr), h, "F");
+    if (c.kind === "Fi") return picture(rightCells(push(push(push(push(L, 0, 1), 1, c.j), 1, 1), 0, 2), c.cr), h + c.j, "F");
+    if (c.kind === "halt") return c.pic;
+    if (c.kind === "blank") return picture([0], 0, "A");
+    throw new Error("no picture for " + c.kind);
+  }
+
+  // The rule that applies to c, its step count, and the configuration after it. Step counts as in lean/Macro.lean;
+  // test_explainer.py checks every one against the machine.
+  function ruleStep(c) {
+    switch (c.kind) {
+      case "blank":
+        return { rule: "start", t: 15, next: { kind: "X", ls: [1], n: 2, cs: [] } };
+      case "X":
+        if (c.n >= 2)
+          return { rule: "transfer", t: 2 * (c.n - 2) + 11, next: { kind: "X", ls: bump(c.ls), n: c.n - 2, cs: bump(c.cs) } };
+        if (c.n === 0) {
+          const ls = bump(c.ls);
+          const next = c.cs.length ? { kind: "W", ls, m: c.cs[0] + 2, cs: c.cs.slice(1) } : { kind: "X", ls, n: 2, cs: [] };
+          return { rule: "empty_start", t: 15, next };
+        }
+        return { rule: "carry_start", t: 6, next: { kind: "Fs", ls: c.ls.slice(), cr: bump(c.cs) } };
+      case "W":
+        if (!c.cs.length) return { rule: "sweep_end", t: 0, next: { kind: "X", ls: c.ls, n: c.m, cs: [] } };
+        return { rule: "sweep_step", t: c.m + 3, next: { kind: "W", ls: [c.m + 2, ...c.ls], m: c.cs[0] - 1, cs: c.cs.slice(1) } };
+      case "Fs": {
+        if (!c.ls.length) return { rule: "halt", t: 6, next: { kind: "halt", pic: haltPicture(c) } };
+        const [k, ...rest] = c.ls, cr = [1, ...c.cr];
+        if (k === 2) return { rule: "carry_two", t: 5, next: { kind: "Fs", ls: rest, cr } };
+        if (k >= 3) return { rule: "carry_two", t: 5, next: { kind: "Fi", ls: rest, j: k - 2, cr } };
+        return { rule: "carry_one", t: 15, next: { kind: "W", ls: bump(rest), m: 2, cs: c.cr } };
+      }
+      case "Fi":
+        return { rule: "carry_exit", t: c.j + 3, next: { kind: "X", ls: bump(c.ls), n: c.j - 1, cs: c.cr } };
+    }
+    return null;
+  }
+  // F at the left end, every block eaten: F B C D E C, then D reads 0 and the machine halts.
+  function haltPicture(c) {
+    const m = new Raw(), p = rulePicture(c);
+    p.cells.forEach((v, i) => { m.tape[m.off + i] = v; });
+    m.pos = p.head; m.state = 5; m.hi = p.cells.length; m.run(6, false);
+    return rawPicture(m);
+  }
+
+  // ---------- Level 2: the macro step of lean/Macro.lean (py/macro.py) ----------
+  // From X(ls, n, cs): the rules up to the next X (or the halt), with what happened.
+  function macroStep(x) {
+    let c = { kind: "X", ls: x.ls, n: x.n, cs: x.cs }, t = 0;
+    const rules = [];
+    let carried = 0, last;
+    const branch = x.n % 2 === 0 ? "sweep" : "carry";
+    do {
+      const r = ruleStep(c);
+      rules.push({ rule: r.rule, t: r.t, from: c });
+      if (r.rule === "carry_two" && c.ls[0] === 2) carried++;
+      t += r.t; c = r.next; last = r.rule;
+    } while ((c.kind !== "X" || last === "transfer") && c.kind !== "halt");
+    return { next: c, t, rules, branch, carried, halted: c.kind === "halt" };
+  }
+
+  // ---------- Level 3: the wave (py/waves.py, `step`) ----------
+  // An event: A on the blank right of the last block, tape 1^b1 0 ... 0 1^bn A>0.  waveStep(b) returns the next
+  // event's blocks, the machine steps to it (BigInt), and the wave's levels: for each, the blocks left of it (i), the
+  // value c there, the block y it meets, the cycles j, and what it does: "on" (moves left), "turn", "left" (sits at
+  // the left end) or "halt".
+  function waveStep(b0) {
+    let b = b0.slice();
+    const levels = [];
+    if (b[b.length - 1] === 0) {
+      b.pop(); b[b.length - 1] += 1; b.push(2);
+      return { b, t: 17n, levels, trailing: true };
+    }
+    let c = b.pop() - 1;
+    const R = [1];
+    let t = BigInt(6 + c);
+    for (;;) {
+      const y0 = b.length ? b[b.length - 1] : 0;
+      const j = Math.floor(c / 2), lv = { i: b.length, c, y: y0, j, t };
+      levels.push(lv);
+      t += BigInt(j) * BigInt(2 * c + 7) - 2n * BigInt(j) * BigInt(j);
+      R[0] += j;
+      let x;
+      if (c % 2 === 0) {
+        const y = y0 + j;
+        if (y >= 2) {
+          if (b.length) b.pop();
+          t += BigInt(y + 3); c = y - 2; R.unshift(1); lv.does = "on"; lv.next = c;
+          continue;
+        }
+        if (y === 0) { lv.does = "halt"; return { b: null, t: t + 6n, levels, halted: true }; }
+        if (b.length) b.pop();
+        b.push(1, 4); x = R[0] - 1; t += 19n; lv.does = "one";
+      } else {
+        if (b.length) b[b.length - 1] = y0 + j + 2; else b.push(j + 2);
+        x = R[0] + 2; t += 17n; lv.does = "turn";
+      }
+      const rest = R.slice(1);
+      t += BigInt(x) + rest.reduce((s, r) => s + BigInt(2 + r), 0n);
+      if (!rest.length) b.push(x);
+      else b.push(x + 2, ...rest.slice(0, -1).map(r => r + 1), rest[rest.length - 1] - 1);
+      return { b, t, levels };
+    }
+  }
+  const WAVE_START = { b: [1, 2], t: 17n };
+
+  // ---------- Level 4: the super step and N (py/waves.py, `superstep`, `big_n`) ----------
+  function superStep(P) {
+    const m = P.length, d = new Array(m + 2).fill(0);
+    d[m + 1] = 20;
+    for (let l = m; l >= 1; l--) {
+      d[l] = P[l - 1] + d[l + 1] / 2;          // d[l + 1] is even here (we stop at the first odd one)
+      if (d[l] % 2 && l >= 2) {
+        const i = l;
+        const next = [...P.slice(0, i - 2), P[i - 2] + (d[i] - 1) / 2, (d[i] + 5) / 2];
+        for (let k = i + 1; k <= m; k++) next.push(d[k] / 2);
+        return { next, kind: "turn", turn: i, depth: m - i + 1, d };
+      }
+    }
+    let s = 0, u = d[1];
+    while (u % 2 === 0) { s++; u /= 2; }
+    const up = [];
+    for (let k = 2; k <= m; k++) up.push(d[k] / 2);
+    if (u === 1) return { next: null, kind: "halt", depth: m, d, s, u };
+    const pre = u === 3 ? [1, 4] : [(u - 1) / 2, (u + 5) / 2];
+    const mid = [];
+    for (let k = 0; k < s; k++) mid.push((u === 3 ? 3 : u) * 2 ** k);
+    return { next: [...pre, ...mid, ...up], kind: u === 3 ? "F" : "left", depth: m, d, s, u };
+  }
+  function bigN(P) {
+    const m = P.length;
+    let N = 10n;
+    P.forEach((p, l) => { N += BigInt(p) << BigInt(m - 1 - l); });
+    return N;
+  }
+  function v2(N) { let k = 0; while (N > 0n && (N & 1n) === 0n) { N >>= 1n; k++; } return k; }
+  const isPow2 = N => N > 0n && (N & (N - 1n)) === 0n;
+  // The super step as four wave events from [*P, 5, 0], with the steps they take.
+  function superByWaves(P) {
+    let b = [...P, 5, 0], t = 0n;
+    const events = [];
+    for (let k = 0; k < 4; k++) {
+      const r = waveStep(b);
+      events.push(r);
+      t += r.t;
+      if (r.halted) return { halted: true, t, events };
+      b = r.b;
+    }
+    return { b, t, events };
+  }
+  // The run in super steps: the first [p1, ..., pm, 5, 0] event is the fourth (step 136, [1, 6, 5, 0]).
+  const SUPER_START = { P: [1, 6], t: 136n };
+
+  return { MACHINE, STATES, TABLE, Raw, rawAt, rawPicture, picture, rulePicture, ruleStep, macroStep, bump,
+           waveStep, WAVE_START, superStep, bigN, v2, isPow2, superByWaves, SUPER_START, leftCells };
+})();
+if (typeof module !== "undefined") module.exports = BB;
+</script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const RAWMAX = 20000000;                       // the largest step the page runs the bare machine to
+  const fmt = n => {
+    const s = n.toLocaleString("en-US");
+    if ((typeof n === "bigint" ? n >= 10n ** 12n : n >= 1e12)) {
+      const str = n.toString(), e = str.length - 1;
+      return s + " (≈ " + str[0] + "." + str.slice(1, 3) + "·10" + sup(e) + ")";
+    }
+    return s;
+  };
+  const sup = e => String(e).split("").map(ch => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+ch]).join("");
+  const list = (xs, k = 8) => "[" + (xs.length > k ? xs.slice(0, k).join(", ") + ", … (" + xs.length + ")" : xs.join(", ")) + "]";
+  const sum = xs => xs.reduce((a, b) => a + b, 0);
+  const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const rgb = hex => { const h = hex.replace("#", ""); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); };
+  const esc = s => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
+  function parseList(s) {
+    const xs = s.split(/[\s,\[\]]+/).filter(Boolean).map(Number);
+    if (xs.some(x => !Number.isInteger(x) || x < 0)) return null;
+    return xs;
+  }
+  // A repeating action on a button that toggles Play / Pause; `tick` returns false to stop.
+  function player(button, ms, tick) {
+    let id = null;
+    const stop = () => { if (id !== null) { clearInterval(id); id = null; } button.textContent = "Play"; button.setAttribute("aria-pressed", "false"); };
+    button.addEventListener("click", () => {
+      if (id !== null) return stop();
+      button.textContent = "Pause"; button.setAttribute("aria-pressed", "true");
+      id = setInterval(() => { if (tick() === false) stop(); }, ms);
+    });
+    return { stop };
+  }
+
+  // ---------- Block strips ----------
+  // Tokens: ["b", n] a block of n ones, ["z", n] n zeros, ["h", symbol, state] the head's cell.
+  function tokensFromPicture(p) {
+    const out = [], c = p.cells;
+    let i = 0;
+    while (i < c.length) {
+      if (i === p.head) { out.push(["h", c[i], p.state]); i++; continue; }
+      let j = i;
+      while (j < c.length && c[j] === c[i] && j !== p.head) j++;
+      out.push([c[i] ? "b" : "z", j - i]); i = j;
+    }
+    return out;
+  }
+  function blockTokens(ls, toks, maxBlocks = 60) {
+    const out = [];
+    const shown = ls.length > maxBlocks ? ls.slice(0, maxBlocks) : ls;
+    if (shown.length < ls.length) out.push(["more", ls.length - shown.length]);
+    for (let i = shown.length - 1; i >= 0; i--) out.push(["b", shown[i]], ["z", 1]);
+    return out.concat(toks);
+  }
+  function rightTokens(cs, sep, maxBlocks = 60) {
+    const out = [];
+    cs.slice(0, maxBlocks).forEach((c, i) => { if (i) out.push(["z", sep]); out.push(["b", c]); });
+    if (cs.length > maxBlocks) out.push(["more", cs.length - maxBlocks]);
+    return out;
+  }
+  // The macro configuration X(ls, n, cs) as tokens, without building its cells.
+  function xTokens(ls, n, cs) {
+    const head = n ? [["h", 1, "A"], ...(n > 1 ? [["b", n - 1]] : []), ["z", 3]] : [["h", 0, "A"], ["z", 2]];
+    return blockTokens(ls, head).concat(rightTokens(cs, 2));
+  }
+  function renderStrip(el, toks) {
+    const parts = toks.map(([k, a, b]) => {
+      if (k === "b") return `<span class="b" style="min-width:${Math.round(14 + 6 * Math.log2(a + 1))}px" title="a block of ${a} ones">${a}</span>`;
+      if (k === "z") return `<span class="z" title="${a} zero${a > 1 ? "s" : ""}">${"<i></i>".repeat(Math.min(a, 4))}${a > 4 ? `<span class="more">${a}</span>` : ""}</span>`;
+      if (k === "h") return `<span class="h${a ? " one" : ""}" data-s="${b}" title="the head, in state ${b}, on a ${a}"></span>`;
+      return `<span class="more">… ${a} more</span>`;
+    });
+    el.innerHTML = parts.join("");
+  }
+  const samePicture = (p, q) => p.head === q.head && p.state === q.state && p.cells.length === q.cells.length && p.cells.every((v, i) => v === q.cells[i]);
+
+  // ======================= Level 0 =======================
+  const L0 = (() => {
+    let m = new BB.Raw();
+    const table = $("l0-table");
+    {
+      let h = "<tr><th></th><th>0</th><th>1</th></tr>";
+      BB.STATES.split("").forEach((s, i) => {
+        h += `<tr><th>${s}</th>` + [0, 1].map(r => {
+          const tr = BB.TABLE[i][r];
+          return tr ? `<td id="tt-${i}-${r}">${tr[0]}${tr[1] > 0 ? "R" : "L"}${BB.STATES[tr[2]]}</td>` : `<td id="tt-${i}-${r}" class="halt">halt</td>`;
+        }).join("") + "</tr>";
+      });
+      table.innerHTML = h;
+    }
+    function drawCells() {
+      const box = $("l0-cells"), w = Math.max(9, Math.floor((box.parentElement.clientWidth - 8) / 18));
+      const half = Math.floor(w / 2);
+      let a = m.pos - half, b = m.pos + half;
+      if (m.hi - m.lo + 3 <= w) { a = m.lo - 1; b = a + w - 1; }
+      let h = "";
+      for (let p = a; p <= b; p++) {
+        const v = m.read(p), hd = p === m.pos;
+        h += `<span class="cell${v ? " one" : ""}${hd ? " head" : ""}"${hd ? ` data-s="${m.halted ? "D" : BB.STATES[m.state]}"` : ""}></span>`;
+      }
+      box.innerHTML = h;
+      $("l0-window").textContent = `The head is on cell ${fmt(m.pos - m.lo + 1)} of the ${fmt(m.hi - m.lo + 1)} cells visited so far, counted from the left.`;
+    }
+    function drawSpaceTime() {
+      const cv = $("l0-st"), rows = 200, rowH = 2;
+      // The cells the head visited in these steps, with a margin (the whole tape while it is small).
+      let a = m.pos, b = m.pos;
+      for (let i = Math.max(0, m.log.length - rows); i < m.log.length; i++) { a = Math.min(a, m.log[i][0]); b = Math.max(b, m.log[i][0]); }
+      let lo = a - 20, hi = b + 20;
+      if (m.hi - m.lo < 160) { lo = m.lo - 1; hi = m.hi + 1; }
+      else if (hi - lo < 160) { const c = (a + b) >> 1; lo = c - 80; hi = c + 80; }
+      const span = hi - lo + 1;
+      $("l0-st-say").textContent = lo <= m.lo && hi >= m.hi ? "the whole tape" : `cells ${fmt(lo - m.lo + 1)} to ${fmt(hi - m.lo + 1)} of ${fmt(m.hi - m.lo + 1)}, around the head`;
+      // One column per cell, several pixels wide; past 1,200 cells, columns average several cells.
+      const cols = Math.min(span, 1200), W = span > 1200 ? 1200 : span * Math.max(1, Math.floor(1200 / span));
+      cv.width = W; cv.height = rows * rowH;
+      const ctx = cv.getContext("2d"), img = ctx.createImageData(W, rows * rowH);
+      const bg = rgb(css("--sunk")), one = rgb(css("--one")), head = rgb(css("--head"));
+      const tape = new Uint8Array(span);
+      for (let p = lo; p <= hi; p++) tape[p - lo] = m.read(p);
+      const px = (y, x, c) => { for (let dy = 0; dy < rowH; dy++) { const o = ((y * rowH + dy) * W + x) * 4; img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = 255; } };
+      const pw = W / cols;
+      let pos = m.pos, y = rows - 1, k = m.log.length - 1;
+      const paint = () => {
+        for (let col = 0; col < cols; col++) {
+          let s = 0;
+          const a = Math.floor(col * span / cols), b = Math.max(a + 1, Math.floor((col + 1) * span / cols));
+          for (let i = a; i < b; i++) s += tape[i];
+          const f = 0.8 * s / (b - a), c = [0, 1, 2].map(ch => Math.round(bg[ch] + (one[ch] - bg[ch]) * f));
+          for (let x = 0; x < pw; x++) px(y, col * pw + x, c);
+        }
+        const hc = Math.min(cols - 1, Math.floor((pos - lo) * cols / span));
+        for (let x = 0; x < pw; x++) px(y, hc * pw + x, head);
+      };
+      while (y >= 0) {
+        paint();
+        if (k < 0) break;
+        const [p, old] = m.log[k--];
+        tape[p - lo] = old; pos = p; y--;
+      }
+      for (y--; y >= 0; y--) for (let x = 0; x < W; x++) px(y, x, bg);
+      ctx.putImageData(img, 0, 0);
+    }
+    function render() {
+      $("l0-t").textContent = fmt(m.t);
+      $("l0-s").textContent = m.halted ? "halted" : BB.STATES[m.state];
+      const [s, r] = m.next(), tr = BB.TABLE[s][r];
+      $("l0-next").textContent = m.halted ? "D0: halt" : `${BB.STATES[s]}${r} → ` + (tr ? `${tr[0]}${tr[1] > 0 ? "R" : "L"}${BB.STATES[tr[2]]}` : "halt");
+      let ones = 0;
+      for (let p = m.lo; p <= m.hi; p++) ones += m.read(p);
+      $("l0-ones").textContent = fmt(ones);
+      $("l0-span").textContent = fmt(m.hi - m.lo + 1);
+      table.querySelectorAll("td.on").forEach(td => td.classList.remove("on"));
+      $(`tt-${s}-${r}`).classList.add("on");
+      $("l0-back").disabled = m.t === 0;
+      drawCells(); drawSpaceTime();
+    }
+    const run = k => { m.run(k, true); render(); };
+    const goto = t => { m = BB.rawAt(Math.max(0, Math.min(RAWMAX, t))); render(); };
+    $("l0-reset").onclick = () => { play.stop(); goto(0); };
+    $("l0-back").onclick = () => goto(m.t - 1);
+    $("l0-step").onclick = () => run(1);
+    $("l0-10").onclick = () => run(10);
+    $("l0-100").onclick = () => run(100);
+    $("l0-1000").onclick = () => run(1000);
+    $("l0-go").onclick = () => goto(+$("l0-goto").value || 0);
+    const play = player($("l0-play"), 50, () => { m.run(+$("l0-speed").value, true); render(); return !m.halted && m.t < RAWMAX; });
+    window.addEventListener("resize", () => drawCells());
+    render();
+    return {
+      // Runs the bare machine to step t and shows it.
+      show(t) {
+        if (t > RAWMAX) return false;
+        play.stop(); goto(t); $("l0-goto").value = t;
+        $("l0").scrollIntoView({ behavior: "smooth" });
+        return true;
+      },
+    };
+  })();
+
+  // ======================= Level 1 =======================
+  const RULES = {
+    start: ["blank tape", "X([1], 2, [])", "15", "the first 15 steps", "blank_runs_20000 runs them"],
+    transfer: ["L 0 A> 1^(n+2) 000 R", "L 1 0 A> 1^n 000 1 R", "2n + 11", "two cells of the head's block move out, one each way", "transfer"],
+    empty_start: ["L 0 A> 000 R", "L 1 0 A> 1 1 R", "15", "the block is empty: the left block gains one, A starts a sweep right", "empty_start"],
+    sweep_step: ["L A> 1^m 00 1 R", "L 1^(m+2) 0 A> R", "m + 3", "one block of the sweep: 00 becomes 0, the block gains two", "sweep_step"],
+    sweep_end: ["A> 1^m 00 then blank", "A> 1^m 000 (= X)", "0", "the sweep reached the right end; nothing moves, this is the next macro configuration", "the definition of X"],
+    carry_start: ["L 0 A> 1 000 R", "L 0 F> 1 001 R", "6", "one cell left: F starts carrying left", "carry_start"],
+    carry_two: ["L 0 1^(j+2) 0 F> 1 Q", "L 0 1^j F> 1 001 Q", "5", "F takes two cells of the block to its left and leaves 001 on the right; a block of 2 disappears", "carry_two"],
+    carry_exit: ["L 0 1^(m+1) F> 1 Q", "L 1 0 A> 1^m 0 Q", "m + 4", "the carry ends inside a block: a new transfer phase starts on it", "carry_exit"],
+    carry_one: ["L 0 1 0 F> 1 Q", "L 1 0 A> 1 1 Q", "15", "the carry meets a block of 1: it is absorbed and A sweeps right", "carry_one"],
+    halt: ["0^∞ 0 F> 1 …", "D reading 0", "6", "every block was 2: F reaches the left end, F B C D E C, and D reads 0", "next_halt_iff"],
+  };
+  const L1 = (() => {
+    let st;
+    function reset() { st = { c: { kind: "blank", ls: [] }, t: 0, k: 0, last: null, log: [], hist: [], raw: new BB.Raw() }; render(); }
+    function move() {
+      if (st.c.kind === "halt") return false;
+      const r = BB.ruleStep(st.c);
+      st.hist.push({ c: st.c, t: st.t, k: st.k, last: st.last });
+      if (st.hist.length > 3000) st.hist.shift();
+      st.c = r.next; st.t += r.t; st.k++; st.last = r;
+      st.log.push([st.t, r.rule]); if (st.log.length > 200) st.log.shift();
+      if (st.raw && st.t <= RAWMAX) st.raw.run(r.t, false); else st.raw = null;
+      return st.c.kind !== "halt";
+    }
+    function render() {
+      $("l1-t").textContent = fmt(st.t);
+      $("l1-k").textContent = fmt(st.k);
+      const pic = BB.rulePicture(st.c);
+      renderStrip($("l1-strip"), tokensFromPicture(pic));
+      if (st.raw) {
+        const same = samePicture(pic, BB.rawPicture(st.raw));
+        $("l1-check").innerHTML = same ? '<span class="ok">✓</span> same tape, same state' : '<span class="bad">✗ differs</span>';
+      } else $("l1-check").textContent = "beyond the in-page check";
+      const r = st.last;
+      if (!r) $("l1-rule").innerHTML = `<span class="note">Blank tape, state A. The next move is <b>start</b>: 15 steps to the first macro configuration.</span>`;
+      else {
+        const d = RULES[r.rule];
+        $("l1-rule").innerHTML = `<span class="name">${r.rule}</span><span class="pat">${esc(d[0])}</span><span class="pat">→ ${esc(d[1])}</span>` +
+          `<span>${r.t} steps (${esc(d[2])})</span><span class="note" style="font-family: var(--font-body)">${esc(d[3])}. Lean: <code>${esc(d[4])}</code></span>`;
+      }
+      $("l1-log").innerHTML = st.log.slice(-60).reverse().map(([t, n]) => `<div><span>${fmt(t)}</span><span>${n}</span></div>`).join("");
+      $("l1-back").disabled = !st.hist.length;
+      $("l1-step").disabled = $("l1-macro").disabled = st.c.kind === "halt";
+      $("l1-show").disabled = st.t > RAWMAX;
+    }
+    $("l1-reset").onclick = () => { play.stop(); reset(); };
+    $("l1-back").onclick = () => {
+      const h = st.hist.pop(); if (!h) return;
+      Object.assign(st, h); st.log.pop();
+      st.raw = st.t <= RAWMAX ? BB.rawAt(st.t) : null;
+      render();
+    };
+    $("l1-step").onclick = () => { move(); render(); };
+    $("l1-macro").onclick = () => {
+      let go = move();
+      while (go && !(st.c.kind === "X" && st.last.rule !== "transfer")) go = move();
+      render();
+    };
+    $("l1-show").onclick = () => L0.show(st.t);
+    const play = player($("l1-play"), 350, () => { const go = move(); render(); return go; });
+    reset();
+  })();
+
+  // ======================= Level 2 =======================
+  const L2 = (() => {
+    let st;
+    const START = { ls: [1], n: 2, cs: [] };
+    function reset(x = START, custom = false) {
+      st = { x, k: 0, t: custom ? 0 : 15, hist: [], rows: [], custom, halted: null };
+      $("l2-msg").textContent = custom ? "A configuration you chose: it need not be on the run from blank tape, so step counts start at 0 and Show in the machine is off." : "";
+      render();
+    }
+    function step() {
+      if (st.halted) return false;
+      const r = BB.macroStep(st.x);
+      st.hist.push({ x: st.x, k: st.k, t: st.t, rows: st.rows.slice(-1) });
+      if (st.hist.length > 5000) st.hist.shift();
+      st.t += r.t; st.k++;
+      const what = r.halted ? "halt" : r.branch === "sweep" ? "sweep right" : `carry left${r.carried ? ` (ate ${r.carried} × 2)` : ""}`;
+      st.rows.push([st.k, st.t, st.x, what]); if (st.rows.length > 10) st.rows.shift();
+      if (r.halted) { st.halted = r; return false; }
+      st.x = r.next;
+      return true;
+    }
+    function plan(x) {
+      const r = BB.macroStep(x), q = Math.floor(x.n / 2), out = [];
+      const tt = sum(r.rules.filter(u => u.rule === "transfer").map(u => u.t));
+      if (q) out.push(`${q} transfer${q > 1 ? "s" : ""} (${fmt(tt)} steps): the head's block goes from ${x.n} to ${x.n % 2}, the nearest left block gains ${q}, the first right block gains ${q}.`);
+      else out.push(`No transfers: the head's block is ${x.n}.`);
+      if (x.n % 2 === 0) {
+        const sweeps = r.rules.filter(u => u.rule === "sweep_step").length;
+        out.push(`The block is empty: the left block gains one and A sweeps right over ${sweeps} block${sweeps === 1 ? "" : "s"}, turning each 00 into 0; the last block becomes the head's block.`);
+      } else {
+        const two = r.carried;
+        const eaten = two ? `eats ${two} block${two > 1 ? "s" : ""} of 2, ` : "";
+        if (r.halted) out.push(`One cell is left: F carries left, ${eaten}and finds no other block: <b>it reaches the left end and the machine halts</b>.`);
+        else if (r.rules.some(u => u.rule === "carry_exit")) out.push(`One cell is left: F carries left, ${eaten}and stops in a block of ${(x.ls[two] + (two ? 0 : q))} (3 or more): a new transfer phase starts there.`);
+        else out.push(`One cell is left: F carries left, ${eaten}and meets a block of 1: it is absorbed and A sweeps right.`);
+      }
+      if (!r.halted) out.push(`Lands on X(${list(r.next.ls, 5)}, ${r.next.n}, ${list(r.next.cs, 5)}) after ${fmt(r.t)} steps.`);
+      return out;
+    }
+    function render() {
+      const x = st.x;
+      $("l2-k").textContent = fmt(st.k);
+      $("l2-t").textContent = fmt(st.t) + (st.custom ? " (from your start)" : "");
+      $("l2-sizes").textContent = `${x.ls.length} / ${x.cs.length}`;
+      $("l2-ones").textContent = fmt(sum(x.ls) + x.n + sum(x.cs));
+      $("l2-x").textContent = st.halted ? `halted after X(${list(x.ls, 12)}, ${x.n}, ${list(x.cs, 12)})` : `X(${list(x.ls, 12)}, ${x.n}, ${list(x.cs, 12)})`;
+      renderStrip($("l2-strip"), xTokens(x.ls, x.n, x.cs));
+      $("l2-plan").innerHTML = st.halted ? `<li>The machine halted, ${fmt(st.halted.t)} steps after this configuration (then D reads 0).</li>` : plan(x).map(s => `<li>${s}</li>`).join("");
+      // Distance from the halting shape.
+      const q = Math.floor(x.n / 2), after = [x.ls[0] + q, ...x.ls.slice(1)];
+      let i = 0;
+      while (i < after.length && after[i] === 2) i++;
+      const odd = x.n % 2 === 1;
+      $("l2-dist").innerHTML =
+        `<div>n = ${x.n} is <b>${odd ? "odd" : "even"}</b>${odd ? "" : ": this step sweeps right and cannot halt"}.</div>` +
+        `<div>After the transfers the left blocks are ${esc(list(after, 10))}: <b>${i} of ${after.length}</b> from the head are 2${i < after.length ? `, then a block of ${after[i]}` : ""}.</div>` +
+        `<div>${odd && i === after.length ? '<span class="bad">This macro step halts.</span>' : `Halting needs n odd and all ${after.length} to be 2.`}</div>`;
+      const rows = st.rows.slice().reverse();
+      $("l2-hist").innerHTML = "<tr><th>after step</th><th>machine step</th><th>from ls</th><th>n</th><th>cs</th><th>what it did</th></tr>" +
+        rows.map(([k, t, x0, what]) => `<tr><td>${fmt(k)}</td><td>${fmt(t)}</td><td>${esc(list(x0.ls, 5))}</td><td>${x0.n}</td><td>${esc(list(x0.cs, 5))}</td><td>${what}</td></tr>`).join("");
+      $("l2-back").disabled = !st.hist.length;
+      ["l2-step", "l2-10", "l2-100", "l2-1000"].forEach(id => { $(id).disabled = !!st.halted; });
+      $("l2-show").disabled = st.custom || st.t > RAWMAX;
+    }
+    const many = k => { for (let i = 0; i < k && step(); i++); render(); };
+    $("l2-reset").onclick = () => { play.stop(); reset(); };
+    $("l2-back").onclick = () => {
+      const h = st.hist.pop(); if (!h) return;
+      st.x = h.x; st.k = h.k; st.t = h.t; st.halted = null; st.rows.pop();
+      render();
+    };
+    $("l2-step").onclick = () => many(1);
+    $("l2-10").onclick = () => many(10);
+    $("l2-100").onclick = () => many(100);
+    $("l2-1000").onclick = () => many(1000);
+    $("l2-show").onclick = () => L0.show(st.t);
+    $("l2-custom").onclick = () => {
+      const ls = parseList($("l2-ls").value), cs = parseList($("l2-cs").value), n = +$("l2-n").value;
+      if (!ls || !ls.length || ls.some(v => v < 1) || !cs || cs.some(v => v < 1) || !Number.isInteger(n) || n < 0) {
+        $("l2-msg").textContent = "ls needs at least one block, and every block in ls and cs needs at least one cell; n is 0 or more.";
+        return;
+      }
+      play.stop(); reset({ ls, n, cs }, true);
+    };
+    const play = player($("l2-play"), 250, () => { const go = step(); render(); return go; });
+    reset();
+  })();
+  void L2;
+
+  // ======================= Level 3 =======================
+  const L3 = (() => {
+    let st, busy = false;
+    function reset() {
+      st = { b: BB.WAVE_START.b.slice(), k: 0, t: BB.WAVE_START.t, hist: [], visits: [], halted: false, raw: BB.rawAt(17) };
+      render();
+    }
+    const eventPicture = b => {
+      const cells = [];
+      b.forEach((x, i) => { if (i) cells.push(0); for (let j = 0; j < x; j++) cells.push(1); });
+      cells.push(0);
+      return BB.picture(cells, cells.length - 1, "A");
+    };
+    function step(keep = true) {
+      if (st.halted) return false;
+      const r = BB.waveStep(st.b);
+      if (keep) { st.hist.push({ b: st.b, k: st.k, t: st.t, nv: st.visits.length }); if (st.hist.length > 1000) st.hist.shift(); }
+      const atLeft = r.levels.filter(l => l.i === 0);
+      if (atLeft.length) st.visits.push({ k: st.k, t: st.t + atLeft[0].t, cs: atLeft.map(l => l.c), halted: !!r.halted });
+      if (st.raw) { if (st.t + r.t <= BigInt(RAWMAX)) st.raw.run(Number(r.t), false); else st.raw = null; }
+      st.t += r.t; st.k++;
+      if (r.halted) { st.halted = true; return false; }
+      st.b = r.b;
+      return true;
+    }
+    function render() {
+      const b = st.b, r = st.halted ? null : BB.waveStep(b);
+      $("l3-k").textContent = fmt(st.k);
+      $("l3-t").textContent = fmt(st.t);
+      $("l3-m").textContent = b.length;
+      $("l3-left").textContent = st.visits.length;
+      if (st.raw) {
+        const same = samePicture(eventPicture(b), BB.rawPicture(st.raw));
+        $("l3-check").innerHTML = same ? '<span class="ok">✓</span> same tape' : '<span class="bad">✗ differs</span>';
+      } else $("l3-check").textContent = "beyond the in-page check";
+      // The grid: a column for new tape at the left end, then one per block.
+      const n = b.length, waveAt = new Array(n).fill(null), extra = [];
+      let say = "";
+      if (r && r.trailing) say = "The last block is empty: the tape gains a block of 2 at the end (17 steps). No wave this time.";
+      else if (r) {
+        let firstLeft = true;
+        r.levels.forEach(lv => {
+          if (lv.i === 0 && !firstLeft) extra.push(lv);
+          else { waveAt[lv.i] = lv; if (lv.i === 0) firstLeft = false; }
+        });
+        const last = r.levels[r.levels.length - 1];
+        const depth = r.levels.length;
+        if (r.halted) say = `The wave reaches the left end and halves down to c = 0 there: <b>the machine halts</b>, ${fmt(r.t)} steps after this event.`;
+        else if (r.levels.some(l => l.i === 0)) say = `The wave passes every block and reaches the left end (new tape), halving c there: ${r.levels.filter(l => l.i === 0).map(l => l.c).join(" → ")}. None reaches c = 0 (c + 4 a power of two), so the machine goes on.`;
+        else say = `The wave halves ${depth} block${depth > 1 ? "s" : ""} and turns at block ${last.i + 1}, where c = ${last.c} is ${last.does === "turn" ? "odd" : "a block of 1"}; then A sweeps back to the right end (${fmt(r.t)} steps in all).`;
+        $("l3-depth").textContent = r.levels.some(l => l.i === 0) ? `to the left end` : `${depth} block${depth > 1 ? "s" : ""} deep`;
+      }
+      if (!r || r.trailing) $("l3-depth").textContent = st.halted ? "halted" : "no wave";
+      if (st.halted) say = "The machine halted.";
+      let h = "<tr><th>block</th><td class='dim'>new tape</td>" + b.map((x, i) => `<td class="dim">${i + 1}</td>`).join("") + "</tr>";
+      h += "<tr><th>length</th><td class='dim'>0</td>" + b.map(x => `<td>${fmt(x)}</td>`).join("") + "</tr>";
+      const cell = lv => !lv ? "<td></td>" : `<td class="wave${lv.does !== "on" ? " turn" : ""}${lv.does === "halt" ? " hit" : ""}" title="${lv.j} cycles">${fmt(lv.c)}</td>`;
+      h += "<tr><th>wave c</th>" + (extra.length ? `<td class="wave${extra[extra.length - 1].does === "halt" ? " hit" : ""}">${extra.map(l => fmt(l.c)).reverse().join(" ← ")}</td>` : "<td></td>") + waveAt.map(cell).join("") + "</tr>";
+      $("l3-grid").innerHTML = h;
+      $("l3-say").innerHTML = say;
+      $("l3-visits").innerHTML = st.visits.slice(-20).reverse().map(v =>
+        `<div><span>event ${fmt(v.k)}</span><span>step ${fmt(v.t)}: c = ${v.cs.join(" → ")}${v.halted ? " → halt" : ""}</span></div>`).join("");
+      $("l3-back").disabled = !st.hist.length;
+      ["l3-step", "l3-4", "l3-100", "l3-toleft"].forEach(id => { $(id).disabled = st.halted || busy; });
+      $("l3-show").disabled = st.t > BigInt(RAWMAX);
+    }
+    const many = k => { for (let i = 0; i < k && step(); i++); render(); };
+    $("l3-reset").onclick = () => { play.stop(); reset(); };
+    $("l3-back").onclick = () => {
+      const h = st.hist.pop(); if (!h) return;
+      st.b = h.b; st.k = h.k; st.t = h.t; st.visits.length = h.nv; st.halted = false;
+      st.raw = st.t <= BigInt(RAWMAX) ? BB.rawAt(Number(st.t)) : null;
+      render();
+    };
+    $("l3-step").onclick = () => many(1);
+    $("l3-4").onclick = () => many(4);
+    $("l3-100").onclick = () => many(100);
+    $("l3-show").onclick = () => L0.show(Number(st.t));
+    // Stops at the event whose wave reaches the left end, so that the table shows it.
+    $("l3-toleft").onclick = () => {
+      if (busy) return;
+      busy = true; render();
+      const chunk = () => {
+        for (let i = 0; i < 20000; i++) {
+          const r = BB.waveStep(st.b);
+          if (r.halted || r.levels.some(l => l.i === 0)) { busy = false; render(); return; }
+          if (!step(false)) { busy = false; render(); return; }
+        }
+        $("l3-say").textContent = `Running… event ${fmt(st.k)}, step ${fmt(st.t)}`;
+        setTimeout(chunk, 0);
+      };
+      step(); chunk();
+    };
+    const play = player($("l3-play"), 400, () => { const go = step(); render(); return go; });
+    reset();
+  })();
+  void L3;
+
+  // ======================= Level 4 =======================
+  const L4 = (() => {
+    let st, running = null;
+    function reset(P = BB.SUPER_START.P.slice(), custom = false) {
+      st = { P, s: 0, t: custom ? 0n : BB.SUPER_START.t, hist: [], series: [], visits: [], custom, halted: false, check: null };
+      $("l4-msg").textContent = custom ? "A list you chose: it need not be on the run from blank tape, so machine steps count from the event [P, 5, 0]." : "";
+      render();
+    }
+    function step(keep = true) {
+      if (st.halted) return false;
+      const s = BB.superStep(st.P), w = BB.superByWaves(st.P), N = BB.bigN(st.P);
+      const agree = s.kind === "halt" ? !!w.halted : !w.halted && w.b.length === s.next.length + 2 && s.next.every((v, i) => v === w.b[i]) && w.b[w.b.length - 2] === 5 && w.b[w.b.length - 1] === 0;
+      st.check = agree;
+      if (keep) { st.hist.push({ P: st.P, s: st.s, t: st.t, nv: st.visits.length, ns: st.series.length }); if (st.hist.length > 1000) st.hist.shift(); }
+      st.series.push([s.kind === "turn" ? s.depth : st.P.length, st.P.length]); if (st.series.length > 400) st.series.shift();
+      if (s.kind !== "turn") st.visits.push({ s: st.s, t: st.t, m: st.P.length, kind: s.kind, d1: s.d[1], N });
+      st.t += w.t; st.s++;
+      if (s.kind === "halt") { st.halted = true; return false; }
+      st.P = s.next;
+      return agree;
+    }
+    function render() {
+      const P = st.P, m = P.length, s = BB.superStep(P), N = BB.bigN(P), v = BB.v2(N);
+      $("l4-k").textContent = fmt(st.s);
+      $("l4-ev").textContent = st.custom ? "–" : fmt(3 + 4 * st.s);
+      $("l4-t").textContent = fmt(st.t) + (st.custom ? " (from your start)" : "");
+      $("l4-m").textContent = m;
+      $("l4-check").innerHTML = st.check === null ? "–" : st.check ? '<span class="ok">✓</span> on the last super step' : '<span class="bad">✗ differs</span>';
+      // Grid: l, p_l, d_l, with the wave's columns marked.
+      const turn = s.kind === "turn" ? s.turn : 1;
+      let h = "<tr><th>block l</th>" + P.map((_, i) => `<td class="dim">${i + 1}</td>`).join("") + `<td class="dim">m+1</td></tr>`;
+      h += "<tr><th>p</th>" + P.map(p => `<td>${fmt(p)}</td>`).join("") + `<td class="dim">5, 0</td></tr>`;
+      h += "<tr><th>d</th>" + P.map((_, i) => {
+        const l = i + 1;
+        if (l < turn) return `<td class="dim">·</td>`;
+        const d = s.d[l], cls = ["wave"];
+        if (l === turn) cls.push("turn");
+        if (d % 2) cls.push("odd");
+        if (s.kind === "halt" && l === 1) cls.push("hit");
+        return `<td class="${cls.join(" ")}">${fmt(d)}</td>`;
+      }).join("") + `<td class="wave">20</td></tr>`;
+      $("l4-grid").innerHTML = h;
+      // N.
+      const bin = N.toString(2), lead = bin.slice(0, bin.length - v), tz = bin.slice(bin.length - v);
+      $("l4-n").innerHTML = `N = ${fmt(N)}`;
+      $("l4-bits").innerHTML = `${lead}<span class="tz">${tz}</span><sub>2</sub>`;
+      const need = m - 1;
+      $("l4-meter").style.width = `${need ? Math.min(100, 100 * v / need) : 100}%`;
+      $("l4-meter-say").innerHTML = BB.isPow2(N)
+        ? `<span class="bad">N = 2${sup(bin.length - 1)} is a power of two: the machine halts in this super step.</span>`
+        : `v<sub>2</sub>(N) = ${v} trailing zero${v === 1 ? "" : "s"}, so the wave goes ${Math.min(v + 1, m)} block${v ? "s" : ""} deep. Reaching the left end needs m − 1 = ${need}.`;
+      // The outcome.
+      let o;
+      if (s.kind === "turn") o = `<div>The last odd d<sub>i</sub> is at i = ${s.turn}: the wave goes ${s.depth} block${s.depth > 1 ? "s" : ""} deep (v<sub>2</sub>(N) + 1 = ${v + 1}) and turns.</div>`;
+      else {
+        o = `<div>d<sub>2</sub>, …, d<sub>m</sub> are all even: <b>the wave reaches the left end</b> (2<sup>m−1</sup> divides N). There d<sub>1</sub> = ${fmt(s.d[1])} = 2${sup(s.s)}·${s.u}.</div>`;
+        o += s.kind === "halt" ? `<div><span class="bad">u = 1: d<sub>1</sub> is a power of two, the wave halves down to 0 and the machine halts.</span></div>`
+          : s.kind === "F" ? `<div>u = 3: the head visits the left end in state F; ${s.s} new block${s.s === 1 ? "" : "s"} on the left.</div>`
+          : `<div>u = ${s.u} ≥ 5: the tape grows by ${s.s + 1} block${s.s ? "s" : ""} on the left.</div>`;
+      }
+      if (s.next) o += `<div class="mono">P' = ${esc(list(s.next, 14))}</div>`;
+      $("l4-out").innerHTML = o;
+      // N as a sum.
+      if (m <= 24) {
+        const w = bin.length + 1, rows = P.map((p, i) => (p.toString(2) + "0".repeat(m - 1 - i)).padStart(w) + `   p${i + 1} = ${p} × 2^${m - 1 - i}`);
+        rows.push("1010".padStart(w) + "   10");
+        $("l4-sum").textContent = rows.join("\n") + "\n" + "─".repeat(w) + "\n" + bin.padStart(w) + "   N = " + N.toString();
+      } else $("l4-sum").textContent = `m = ${m}: too wide to write out here.`;
+      // Visits.
+      $("l4-visits").innerHTML = st.visits.slice(-20).reverse().map(v =>
+        `<div><span>super ${fmt(v.s)}</span><span>${st.custom ? "" : `events ${fmt(3 + 4 * v.s)} to ${fmt(6 + 4 * v.s)}, from step ${fmt(v.t)}: `}m = ${v.m}, d<sub>1</sub> = ${fmt(v.d1)}, ${v.kind === "halt" ? "halt" : v.kind === "F" ? "state F at the left end" : "new blocks on the left"}</span></div>`).join("");
+      drawChart();
+      ["l4-step", "l4-10", "l4-100", "l4-1000", "l4-toleft"].forEach(id => { $(id).disabled = st.halted || !!running; });
+      ["l4-custom", "l4-reset"].forEach(id => { $(id).disabled = !!running; });
+      $("l4-back").disabled = !st.hist.length || !!running;
+      $("l4-stop").disabled = !running;
+    }
+    function drawChart() {
+      const cv = $("l4-chart"), dpr = window.devicePixelRatio || 1;
+      const W = cv.clientWidth, H = cv.clientHeight;
+      cv.width = W * dpr; cv.height = H * dpr;
+      const ctx = cv.getContext("2d");
+      ctx.scale(dpr, dpr);
+      const S = st.series, pad = { l: 34, r: 8, t: 18, b: 22 };
+      const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+      ctx.font = `11px ${css("--font-display")}`;
+      ctx.fillStyle = css("--muted");
+      ctx.fillText("depth of each wave (bars) and m (line), last " + S.length + " super steps", pad.l, 12);
+      if (!S.length) return;
+      const ymax = Math.max(...S.map(x => x[1])) + 1;
+      const y = v => pad.t + ih - (v / ymax) * ih, bw = iw / Math.max(S.length, 40);
+      ctx.strokeStyle = css("--rule"); ctx.lineWidth = 1;
+      [0, Math.round(ymax / 2), ymax].forEach(v => { ctx.beginPath(); ctx.moveTo(pad.l, y(v) + 0.5); ctx.lineTo(W - pad.r, y(v) + 0.5); ctx.stroke(); ctx.fillText(String(v), 6, y(v) + 4); });
+      S.forEach(([d, m], i) => {
+        ctx.fillStyle = d >= m ? css("--wave") : css("--muted");
+        ctx.globalAlpha = d >= m ? 1 : 0.55;
+        ctx.fillRect(pad.l + i * bw + 0.5, y(d), Math.max(1, bw - 1), y(0) - y(d));
+      });
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = css("--head"); ctx.lineWidth = 1.5; ctx.beginPath();
+      S.forEach(([, m], i) => { const X = pad.l + i * bw, Y = y(m); if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); ctx.lineTo(X + bw, Y); });
+      ctx.stroke();
+      ctx.fillStyle = css("--muted");
+      ctx.fillText("super step " + fmt(st.s - S.length) + " → " + fmt(st.s - 1), pad.l, H - 6);
+    }
+    const many = k => { for (let i = 0; i < k && step(); i++); render(); };
+    $("l4-reset").onclick = () => reset();
+    $("l4-back").onclick = () => {
+      const h = st.hist.pop(); if (!h) return;
+      st.P = h.P; st.s = h.s; st.t = h.t; st.visits.length = h.nv; st.series.length = Math.min(st.series.length, h.ns); st.halted = false;
+      render();
+    };
+    $("l4-step").onclick = () => many(1);
+    $("l4-10").onclick = () => many(10);
+    $("l4-100").onclick = () => many(100);
+    $("l4-1000").onclick = () => many(1000);
+    $("l4-toleft").onclick = () => {
+      if (running) return;
+      running = { stop: false }; render();
+      step();
+      const chunk = () => {
+        for (let i = 0; i < 20000; i++) {
+          if (running.stop || st.halted || BB.superStep(st.P).kind !== "turn") { running = null; render(); return; }
+          if (!step(false)) { running = null; render(); return; }
+        }
+        $("l4-msg").textContent = `Running… super step ${fmt(st.s)}, m = ${st.P.length}`;
+        setTimeout(chunk, 0);
+      };
+      chunk();
+    };
+    $("l4-stop").onclick = () => { if (running) running.stop = true; };
+    $("l4-custom").onclick = () => {
+      const P = parseList($("l4-p").value);
+      if (!P || !P.length || P.some(v => v < 1)) { $("l4-msg").textContent = "P needs at least one block, each of at least one cell."; return; }
+      reset(P, true);
+    };
+    window.addEventListener("resize", drawChart);
+    reset();
+  })();
+  void L4;
+})();
+</script>
+</body>
+</html>

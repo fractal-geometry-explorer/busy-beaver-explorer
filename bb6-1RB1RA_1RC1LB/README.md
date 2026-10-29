@@ -2,7 +2,10 @@
 
 Whether this machine halts from blank tape is open. This folder holds its work; the shared tools are in
 [`../tools`](../tools), the proof-status page is [`../pages/1RB1RA_1RC1LB/proof-status.html`](../pages/1RB1RA_1RC1LB/proof-status.html)
-(built from [`status.json`](status.json)), and the log is [`notes/LAB_NOTES.md`](notes/LAB_NOTES.md).
+(built from [`status.json`](status.json)), and the log is [`notes/LAB_NOTES.md`](notes/LAB_NOTES.md). Two more pages
+explain the run: [`reduction.html`](../pages/1RB1RA_1RC1LB/reduction.html), the reduction to the number N with what
+each link rests on, and [`explainer.html`](../pages/1RB1RA_1RC1LB/explainer.html), which runs the machine in the browser
+at each level.
 
 ## What is established
 
@@ -47,6 +50,7 @@ hundreds of thousands); see the notes.
 | `c/blkrun.c` | the wave model in C, for runs far beyond direct simulation |
 | `tests/test_machine.py` | the generated files are current, early facts of the run |
 | `tests/test_waves.py` | the block model against `tmrun`, the reference simulator and `runs/` |
+| `tests/test_explainer.py` | the engine of `pages/1RB1RA_1RC1LB/explainer.html` against `py/macro.py`, `py/waves.py` and the reference simulator (needs Node) |
 | `runs/` | outputs of long runs |
 
 ## Checking
@@ -56,4 +60,5 @@ bash scripts/setup-lean.sh && . /etc/profile.d/lean.sh
 bb6-1RB1RA_1RC1LB/lean/check.sh                 # about 2 min
 python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py     # about 20 s
+python3 bb6-1RB1RA_1RC1LB/tests/test_explainer.py # the explainer page's engine (Node), a few seconds
 ```
