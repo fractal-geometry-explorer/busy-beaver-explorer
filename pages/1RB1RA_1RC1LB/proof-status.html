@@ -76,7 +76,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.</p>
     <p>The run's structure is now proved in two layers. Lean has the machine as an explicit map on lists of block lengths, and a theorem that the machine halts exactly when that map's run reaches one specific shape. Read four macro steps at a time, that map is a carry wave running left through the blocks, and Lean now also proves that the halting shape is one arithmetic event: a single number built from the blocks being a power of two. What is open is whether it ever is.</p>
     <p><a href="reduction.html">The reduction</a> walks through this link by link; <a href="explainer.html">level by level</a> runs the machine in the browser at each level.</p>
-    <p class="asof">Status as of 29 October 2026.</p>
+    <p class="asof">Status as of 30 October 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -84,6 +84,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>The question is open, and it is now a question about a list map.</b> Lean proves that one macro step of the machine (a phase of transfers, then a sweep to the right or a carry to the left) is an explicit function <code>next</code> on the lists of block lengths, step counts included, and that <b>the machine halts from blank tape iff the macro run reaches a halt</b>. A macro step halts exactly when the head's block is odd and, after the transfers, every block to the left of the head is 2.</p>
       <p>Running that map, Lean's kernel proves no halt in the first 2·10<sup>10</sup> steps, and with <code>native_decide</code> in the first 9·10<sup>13</sup>. In those runs the left list holds blocks in the hundreds of thousands, far from all 2s. What is missing is an argument that the map never produces that shape.</p>
       <p><b>The halting condition in one number, proved.</b> Every fourth time A stands on the blank right of the tape, the tape is blocks p<sub>1</sub>, &hellip;, p<sub>m</sub> followed by 5, 0, and the next such tape follows from an explicit formula: with d<sub>m+1</sub> = 20 and d<sub>l</sub> = p<sub>l</sub> + d<sub>l+1</sub>/2, a wave of halvings runs left while d is even and turns at the first odd d. Lean proves this super step from the macro map for every list, and proves that <b>the machine halts from blank tape iff N = 10 + &Sigma; p<sub>l</sub>&middot;2<sup>m&minus;l</sup> (the blocks read as binary digits) is a power of two at some super step</b> of the orbit from (1, 6). The wave reaches the left end when 2<sup>m&minus;1</sup> divides N, which explains why the head gets there so rarely (computed, not part of the proof). Running the wave model in C, there is no halt in 3.7&middot;10<sup>22</sup> steps.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-s0">
+    <h2 id="h-s0">Prior work</h2>
+    <div class="prose">
+      <p>The machine is an open BB(6) holdout on @mxdys's lists (623 machines up to equivalence, 24 October 2026) and sits unannotated in the community ledger's "Cubic Mess" class. It is not a named cryptid and has no page on the <a href="https://wiki.bbchallenge.org/wiki/Cryptid">bbchallenge wiki</a>.</p>
+      <p>Google DeepMind's <a href="https://github.com/google-deepmind/cryptids">cryptids</a> repository lists it as an open acceleration problem (<a href="https://github.com/google-deepmind/cryptids/pull/18">PR #18</a>, 27 October 2026), with a Lean proof that it halts iff a map on two stacks of block lengths halts: the level of the macro step here. Nothing found reduces it further; the super step and the criterion on N appear to be new.</p>
+      <p>The machine <code>1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB</code>, which the ledger says was merged into another equivalence class in April 2026, runs through the same tapes and halts from the same configurations (<code>py/sibling.py</code>), so these results should apply to it too. Its Collatz-like map is not Antihydra's or Hydra's: those iterate one integer under n &rarr; &lfloor;3n/2&rfloor;, while here the state is a growing list and N does not determine the next N. Sources and details: <code>notes/PRIOR_WORK.md</code>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">

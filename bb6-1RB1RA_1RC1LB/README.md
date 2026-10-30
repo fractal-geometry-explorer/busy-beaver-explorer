@@ -45,6 +45,15 @@ look random; block growth bounds cannot help since halting depends only on the s
 small tapes halts at the rate a random deciding number predicts (217 against about 239). A proof has to use
 something special about the blank-tape orbit.
 
+## Prior work
+
+It is an open holdout, unannotated in the community ledger's "Cubic Mess" class, and not a named cryptid. Google
+DeepMind's [cryptids](https://github.com/google-deepmind/cryptids) repository lists it as an open problem with a Lean
+reduction to a map on stacks of block lengths (27 October 2026), the level of `lean/Macro.lean`; nothing found goes
+as far as the criterion on N. Its map is not Antihydra's or Hydra's. One machine merged into an equivalence class by
+bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same tapes. Details and sources:
+[`notes/PRIOR_WORK.md`](notes/PRIOR_WORK.md).
+
 ## Layout
 
 | path | contents |
@@ -59,11 +68,13 @@ something special about the blank-tape orbit.
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `py/waves.py` | the wave model: the run in another cut, and the super step with N, exact step counts |
 | `py/n_search.py` | the search for an invariant that keeps N off the powers of two |
+| `py/sibling.py` | checks that `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, merged by bbchallenge into an equivalence class, runs as this machine does |
 | `c/blkrun.c` | the wave model in C, for runs far beyond direct simulation |
 | `tests/test_machine.py` | the generated files are current, early facts of the run |
 | `tests/test_waves.py` | the block model against `tmrun`, the reference simulator and `runs/` |
 | `tests/test_explainer.py` | the engine of `pages/1RB1RA_1RC1LB/explainer.html` against `py/macro.py`, `py/waves.py` and the reference simulator (needs Node) |
 | `runs/` | outputs of long runs |
+| `notes/PRIOR_WORK.md` | what the community and the literature knew about this machine (30 October 2026), with sources |
 
 ## Checking
 

@@ -9,7 +9,7 @@
     "The run's structure is now proved in two layers. Lean has the machine as an explicit map on lists of block lengths, and a theorem that the machine halts exactly when that map's run reaches one specific shape. Read four macro steps at a time, that map is a carry wave running left through the blocks, and Lean now also proves that the halting shape is one arithmetic event: a single number built from the blocks being a power of two. What is open is whether it ever is.",
     "<a href=\"reduction.html\">The reduction</a> walks through this link by link; <a href=\"explainer.html\">level by level</a> runs the machine in the browser at each level."
   ],
-  "asof": "Status as of 29 October 2026.",
+  "asof": "Status as of 30 October 2026.",
   "verdict": [
     "<b>The question is open, and it is now a question about a list map.</b> Lean proves that one macro step of the machine (a phase of transfers, then a sweep to the right or a carry to the left) is an explicit function <code>next</code> on the lists of block lengths, step counts included, and that <b>the machine halts from blank tape iff the macro run reaches a halt</b>. A macro step halts exactly when the head's block is odd and, after the transfers, every block to the left of the head is 2.",
     "Running that map, Lean's kernel proves no halt in the first 2·10<sup>10</sup> steps, and with <code>native_decide</code> in the first 9·10<sup>13</sup>. In those runs the left list holds blocks in the hundreds of thousands, far from all 2s. What is missing is an argument that the map never produces that shape.",
@@ -140,5 +140,15 @@
     "python3 bb6-1RB1RA_1RC1LB/py/macro.py 50    # the macro run",
     "python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py   # the wave model against direct simulation (about 25 s)",
     "python3 bb6-1RB1RA_1RC1LB/py/n_search.py residues 4000000   # the invariant search (also: digits, starts)"
+  ],
+  "sections": [
+    {
+      "heading": "Prior work",
+      "paragraphs": [
+        "The machine is an open BB(6) holdout on @mxdys's lists (623 machines up to equivalence, 24 October 2026) and sits unannotated in the community ledger's \"Cubic Mess\" class. It is not a named cryptid and has no page on the <a href=\"https://wiki.bbchallenge.org/wiki/Cryptid\">bbchallenge wiki</a>.",
+        "Google DeepMind's <a href=\"https://github.com/google-deepmind/cryptids\">cryptids</a> repository lists it as an open acceleration problem (<a href=\"https://github.com/google-deepmind/cryptids/pull/18\">PR #18</a>, 27 October 2026), with a Lean proof that it halts iff a map on two stacks of block lengths halts: the level of the macro step here. Nothing found reduces it further; the super step and the criterion on N appear to be new.",
+        "The machine <code>1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB</code>, which the ledger says was merged into another equivalence class in April 2026, runs through the same tapes and halts from the same configurations (<code>py/sibling.py</code>), so these results should apply to it too. Its Collatz-like map is not Antihydra's or Hydra's: those iterate one integer under n &rarr; &lfloor;3n/2&rfloor;, while here the state is a growing list and N does not determine the next N. Sources and details: <code>notes/PRIOR_WORK.md</code>."
+      ]
+    }
   ]
 }
