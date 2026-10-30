@@ -2,6 +2,7 @@ import Blank
 import Rules
 import MacroRun
 import Wave
+import WaveTime
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
 a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
@@ -30,3 +31,8 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6b.halts_iff_pow2
 #print axioms BB6b.halts_iff_pow2'
 #print axioms BB6b.orbit_tape
+#print axioms BB6b.carry_wave_t
+#print axioms BB6b.super_steps
+#print axioms BB6b.orbitT_steps
+#print axioms BB6b.orbitT_halt
+#print axioms BB6b.runs_of_orbitT

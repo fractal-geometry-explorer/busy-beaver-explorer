@@ -76,14 +76,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.</p>
     <p>The run's structure is now proved in two layers. Lean has the machine as an explicit map on lists of block lengths, and a theorem that the machine halts exactly when that map's run reaches one specific shape. Read four macro steps at a time, that map is a carry wave running left through the blocks, and Lean now also proves that the halting shape is one arithmetic event: a single number built from the blocks being a power of two. What is open is whether it ever is.</p>
     <p><a href="reduction.html">The reduction</a> walks through this link by link; <a href="explainer.html">level by level</a> runs the machine in the browser at each level.</p>
-    <p class="asof">Status as of 29 October 2026.</p>
+    <p class="asof">Status as of 30 October 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open, and it is now a question about a list map.</b> Lean proves that one macro step of the machine (a phase of transfers, then a sweep to the right or a carry to the left) is an explicit function <code>next</code> on the lists of block lengths, step counts included, and that <b>the machine halts from blank tape iff the macro run reaches a halt</b>. A macro step halts exactly when the head's block is odd and, after the transfers, every block to the left of the head is 2.</p>
       <p>Running that map, Lean's kernel proves no halt in the first 2·10<sup>10</sup> steps, and with <code>native_decide</code> in the first 9·10<sup>13</sup>. In those runs the left list holds blocks in the hundreds of thousands, far from all 2s. What is missing is an argument that the map never produces that shape.</p>
-      <p><b>The halting condition in one number, proved.</b> Every fourth time A stands on the blank right of the tape, the tape is blocks p<sub>1</sub>, &hellip;, p<sub>m</sub> followed by 5, 0, and the next such tape follows from an explicit formula: with d<sub>m+1</sub> = 20 and d<sub>l</sub> = p<sub>l</sub> + d<sub>l+1</sub>/2, a wave of halvings runs left while d is even and turns at the first odd d. Lean proves this super step from the macro map for every list, and proves that <b>the machine halts from blank tape iff N = 10 + &Sigma; p<sub>l</sub>&middot;2<sup>m&minus;l</sup> (the blocks read as binary digits) is a power of two at some super step</b> of the orbit from (1, 6). The wave reaches the left end when 2<sup>m&minus;1</sup> divides N, which explains why the head gets there so rarely (computed, not part of the proof). Running the wave model in C, there is no halt in 3.7&middot;10<sup>22</sup> steps.</p>
+      <p><b>The halting condition in one number, proved.</b> Every fourth time A stands on the blank right of the tape, the tape is blocks p<sub>1</sub>, &hellip;, p<sub>m</sub> followed by 5, 0, and the next such tape follows from an explicit formula: with d<sub>m+1</sub> = 20 and d<sub>l</sub> = p<sub>l</sub> + d<sub>l+1</sub>/2, a wave of halvings runs left while d is even and turns at the first odd d. Lean proves this super step from the macro map for every list, and proves that <b>the machine halts from blank tape iff N = 10 + &Sigma; p<sub>l</sub>&middot;2<sup>m&minus;l</sup> (the blocks read as binary digits) is a power of two at some super step</b> of the orbit from (1, 6). The wave reaches the left end when 2<sup>m&minus;1</sup> divides N, which explains why the head gets there so rarely (computed, not part of the proof). Read from the right end, the super step is a cascade in which each block only passes something to the block on its left, so the last k blocks evolve on their own and fall into exact cycles (the last 44 repeat every 1.8&middot;10<sup>21</sup> super steps). A search that tabulates those cycles and skips over them finds <b>no halt in the first 6&middot;10<sup>23</sup> super steps, 2.7&middot;10<sup>49</sup> machine steps</b> (computed, not proved). Lean proves that the last blocks run on their own and that the tables are sound, and with <code>native_decide</code> the same tables give <b>no halt in the first 4.4&middot;10<sup>37</sup> steps</b>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -137,6 +137,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>State A runs right over a block of n ones in n steps; state B runs left over a block of n ones to the 0 before it in n + 1 steps; for every n and any surrounding tape.</p>
         <p class="where"><code>a_sweep</code>, <code>b_sweep</code>, <code>lean/Rules.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The last blocks run on their own; the skip tables are sound</h3>
+        <p>Split the list (nearest first) as B ++ U: the super step of B ++ U is B's own step followed by what B passes on (nothing, an add, or a wave) applied to U, and its step count <code>superT</code> splits the same way. A table that is one period of B can stand in for B: running U on it follows the timed orbit over whole periods. A table for one more level, built over L passes, is a period as soon as the level comes back to its block, which the builder checks. Every list, every k.</p>
+        <p class="where"><code>superL_split</code>, <code>superT_split</code>, <code>pass_sound</code>, <code>build_rep</code>, <code>drive_sound</code>, <code>runs_of_drive</code>, <code>lean/Cascade.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -144,6 +149,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in 9·10<sup>13</sup> steps</h3>
         <p>10<sup>7</sup> macro steps, by compiled evaluation: more than 9·10<sup>13</sup> machine steps without a halt. (Step by step: 10,000,000.)</p>
         <p class="where"><code>blank_runs_9e13</code>, <code>lean/MacroRun.lean</code>; <code>blank_runs_10M</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 4.4&middot;10<sup>37</sup> steps, by the tables</h3>
+        <p>The tables for the last 1 to 35 blocks, each built and checked inside the evaluation, and then 6 passes of the last (8.8&middot;10<sup>16</sup> super steps each): 6.75&middot;10<sup>17</sup> super steps, to machine step 44,405,698,359,075,157,430,295,693,458,238,990,120, without a halt. About 4 minutes; the plan (<code>py/superrun.py plan 35 6</code>) is only a hint.</p>
+        <p class="where"><code>blank_runs_4e37</code>, <code>lean/CascadeRun.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -169,9 +179,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>tests/test_waves.py</code> (<code>WAVES_LONG=1</code>)</p>
       </div>
       <div class="card">
-        <h3>No halt in 3.7&middot;10<sup>22</sup> steps</h3>
-        <p>The wave model in C (128-bit step counts) runs 7&middot;10<sup>10</sup> macro steps without a halt. The wave reaches the left end 16 times on the way, never with N a power of two. That the orbit decides halting is proved; the run itself is C, and the step count rests on the unproved step-count formulas.</p>
-        <p class="where"><code>c/blkrun.c</code>, <code>runs/left_arrivals_macro.txt</code></p>
+        <h3>No halt in 2.7&middot;10<sup>49</sup> steps</h3>
+        <p>The super orbit runs 599,258,349,609,526,266,612,571 super steps (6&middot;10<sup>23</sup>), to machine step 27,264,770,338,578,141,293,580,742,812,737,757,101,373,338,361,002, without N becoming a power of two. The wave reaches the left end 38 times on the way (23 of them beyond the old bound of 3.7&middot;10<sup>22</sup>); N comes closest at super step 7&middot;10<sup>21</sup>, 0.5% above 2<sup>149</sup>. That the orbit decides halting is proved; the run is C (checked against <code>blkrun.c</code>, a direct run, an independent Python version and <code>waves.py</code>), and the step count is a per-level split of the super step's step count.</p>
+        <p class="where"><code>c/superrun.c</code>, <code>py/superrun.py</code>, <code>tests/test_superrun.py</code>, <code>runs/superrun_long.txt</code></p>
+      </div>
+      <div class="card">
+        <h3>The last blocks are periodic</h3>
+        <p>Numbering the blocks from the right, block k only receives an add or a wave from block k&minus;1 and passes one on, so the last k blocks are a closed system. Each wave halves a block, and they fall into exact cycles: the last block 11 &rarr; 13 &rarr; 14 &rarr; 12, the last two with period 8, the last 20 with period 1.7&middot;10<sup>10</sup>, the last 44 with period 1.8&middot;10<sup>21</sup> super steps (each a 2<sup>a</sup>&middot;5<sup>b</sup>). The search checks each cycle before using it. For every k, either the last k blocks become periodic or the wave stops reaching the left end (by hand, not in Lean).</p>
+        <p class="where"><code>c/superrun.c</code> (lines <code>table</code> of <code>runs/superrun_long.txt</code>), <code>notes/LAB_NOTES.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
@@ -188,7 +203,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Almost certainly no halt</h3>
-        <p>At a return the deciding number is now about 10<sup>9</sup> and grows; if it behaved like a random integer, the chance of ever hitting a power of two would be far below 10<sup>&minus;6</sup>. N shows no modular obstruction (see below).</p>
+        <p>At a return the deciding number is now about 10<sup>27</sup> and grows; if it behaved like a random integer, the chance of ever hitting a power of two would be far below 10<sup>&minus;6</sup>. N shows no modular obstruction (see below).</p>
         <p class="where"><code>notes/LAB_NOTES.md</code></p>
       </div>
       <div class="card">
@@ -214,6 +229,7 @@ python3 tools/tests/test_tools.py           # the shared tools
 python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB/py/macro.py 50    # the macro run
 python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py   # the wave model against direct simulation (about 25 s)
+python3 bb6-1RB1RA_1RC1LB/tests/test_superrun.py   # the tabulated search against blkrun, waves.py and Python (about 20 s)
 python3 bb6-1RB1RA_1RC1LB/py/n_search.py residues 4000000   # the invariant search (also: digits, starts)</code></pre>
   </section>
   <footer>

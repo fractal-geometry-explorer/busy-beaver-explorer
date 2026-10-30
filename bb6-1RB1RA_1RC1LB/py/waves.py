@@ -41,8 +41,9 @@ Trust: the rules above were found by hand and are checked here against direct si
 event of the first 10^9 steps, with exact step counts, and the predicted left-end records against
 runs/left_records_1e10.txt and a direct run to 2.7 10^10 steps, and against the first 2,000 configurations of
 py/macro.py, the cut of the same run that lean/Macro.lean proves).  The super step and the halting criterion are
-proved in Lean (lean/Wave.lean: `super_run`, `superL_none_iff`, `halts_iff_pow2'`); the finer events of `step` and
-the step counts are not.
+proved in Lean (lean/Wave.lean: `super_run`, `superL_none_iff`, `halts_iff_pow2'`), and so are the step counts of
+the super step (lean/WaveTime.lean: `super_steps`, the formula of `super_steps` here); the finer events of `step` and
+their step counts are not.
 """
 import sys
 
@@ -129,6 +130,24 @@ def superstep(P):
     if u == 3:
         return [1, 4] + [3 << t for t in range(s)] + up, "F", d[1]
     return [(u - 1) // 2, (u + 5) // 2] + [u << t for t in range(s)] + up, "left", d[1]
+
+
+def super_steps(P):
+    """The machine steps of the super step from [*P, 5, 0] to [*P', 5, 0] (or to the halting configuration, the
+    halting transition not counted), as lean/WaveTime.lean proves them (`superT`): 200, then (2q^2 + q - 5) for each
+    block the wave passes with even d = 2q, then 2q^2 + 4q + 17 + A where it turns at an odd d = 2q + 1, A being 3 plus
+    q + 1 for each block passed; at the left end the wave goes on with p = 0, and halting there (d = 4) costs 11."""
+    rest = list(P[:-1])
+    d, A, t = P[-1] + 10, 3, 200
+    while True:
+        q = d // 2
+        if d % 2:
+            return t + 2 * q * q + 4 * q + 17 + A
+        if not rest and d == 4:
+            return t + 11
+        t += 2 * q * q + q - 5
+        A += q + 1
+        d = (rest.pop() if rest else 0) + q
 
 
 def big_n(P):
