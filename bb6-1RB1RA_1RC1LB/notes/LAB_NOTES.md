@@ -442,7 +442,7 @@ its chunks with `orbitT_trans`, so `lean/check_orbit.sh` checks the files in par
   10⁷ then 99 chunks of up to 10⁹, ending at step 1,020,655,748,109,356,278,914,592. `check_orbit.sh` compiles the
   modules the chunks call to C with the same `lean -c` and links them with `leanc` (what Lake's `precompileModules`
   does), and loads the library with `--load-dynlib`: about 250 ns per super step against several µs interpreted;
-  the 99 chunks take about 6 CPU hours (`set_option maxHeartbeats 0`: compiled evaluation counts against the limit). This
+  the 99 chunks take about 4 CPU hours (`set_option maxHeartbeats 0`: compiled evaluation counts against the limit). This
   covers the C run of the wave model to 3.7·10²² steps, whose step count was the unproved part.
 
 The search thread built a faster route on top of `WaveTime.lean` (tabulating the periodic bottom blocks, PR #124: no
@@ -552,3 +552,39 @@ return (log₂ d₁ from 3 to 91 over 38 returns), and Σ 1/(d₁ ln 2) over the
 is the factor ρ = 1.2764 for the wave depth: the gaps between returns are shorter than 2^(m−1) super steps (the
 measured gaps over 2^(m−1)/ρ have median 0.43; the top levels, fresh from the left end, are not coin flips either),
 which changes how many returns come per machine step, not the chance per return.
+
+## October 30, 2026: the cycles of the last 30 blocks, and no halt in the first 1.2·10³² steps, by the kernel alone
+
+**The last 1 to 30 blocks cycle on the orbit, with their least periods** (**proved, kernel only**: `cycle1`–`cycle30`,
+`lean/CycleRun.lean`), and **no halt in the first 120,264,458,847,608,883,162,407,865,309,662 steps** (1.2·10³², the
+same: `blank_runs_cycles`), up from 1.4·10¹⁶ by the plain orbit. The periods are 4, 8, 32, …, 171,798,691,840,000
+(1.7·10¹⁴ super steps for the last 30), the factors from level 7 on ×4, ×1, ×4, ×4, ×5, ×1, ×4, ×4, ×2, ×5, ×4, ×5,
+×4, ×4, ×4, ×4, ×5, ×1, ×1, ×4, ×4, ×4, ×2, ×1, as `c/superrun.c` has them. The bound is the plan of
+`lean/CascadeRun.lean` for 30 levels and then 4 passes of the last table: 1.4·10¹⁵ super steps.
+
+**Why pieces.** `drive` (`lean/Cascade.lean`) evaluated by `decide +kernel` checks 16 levels in 14 s and 18 in 56 s,
+but its memory doubles with each level (1.8 GB at 16, 5.5 GB at 18) and 20 levels run out of 16 GB: the kernel keeps
+every intermediate term of a declaration, about 60 KB per table entry processed. So the work is cut into
+declarations. `lean/cycle_gen.py` runs the plan in Python, mirroring the Lean definitions, and writes out every table
+(`CycleData/`, read by the `tbl%` term of `lean/TableLit.lean`, which builds the list term directly; the elaborator
+takes 30 s and times out on a 20,000-entry list literal, `tbl%` 2 s). Each piece (`CyclePieces/`) is one pass of one
+level over a stretch of 3,000 entries of the table below (`lvSeg`), or of the levels further left (`pseg`), from a
+written state to a written state, checked by `decide +kernel` in about 3 s. `CycleLevels/` chains the pieces into
+`passes` and `build` of `lean/Cascade.lean` (`lvPass_seg`, `lvSeg_app`, `build_segs`, `pass_pseg`), and
+`CycleRun.lean` chains the levels from blank tape by `step_sound` (`passes_sound` and `build_rep`). Nothing written is
+trusted: a wrong entry fails its piece.
+
+Two traps on the way, both from Lean treating `lenT T + c` as something to compute: any unification or kernel
+definitional check of a sum with `lenT T` on a written table that is not syntactically closed evaluates `lenT` on the
+whole table (the elaborator hits its recursion limit, the kernel takes minutes, doubling per level). The generated
+proofs therefore only ever compare such terms syntactically (`build_len'`).
+
+**Least periods.** For each level the pieces say where the new block is at the end of each of the L passes; each pass
+is the pass map `topv m B` (`topv_of_seg`), the block meets its start only after the last, so the least period of the
+bottom with one more block is L times the least period below (`least_append`, with `LeastP`: comes back after m, and
+only after multiples of m).
+
+**Cost.** 5,920 pieces in 501 files, plus 144 MB of written tables; about 4 CPU hours, an hour on 4 cores
+(`check_cycles.sh 30 4`). Each level costs about as much as the size of the table below times the passes over it, so
+the cost about doubles per level; 35 levels, the native bound's, would be some 20 times more. CI checks the first 16
+levels and 2 passes (`check_cycles.sh 16 2`, about a minute).
