@@ -15,7 +15,7 @@
  * steps spent below level K) and runs the levels from K up explicitly.  Whenever level K's block is the same at two
  * passes through the table, level K is periodic from then on (its input is periodic and its state recurred), and
  * the table for K + 1 is built from L passes of the table for K.  A pass of the table for K stands for about
- * 2^(K+13) super steps, so the run speeds up about twofold per level.
+ * 2^(K+14) to 2^(K+17) super steps, so the run speeds up about twofold per level.
  *
  * Machine steps: a super step (from the tape [P, 5, 0] with A on the blank right of the last block to the next such
  * tape) takes 210 + sum g(d) over the levels that receive a wave, + 17 for the level that receives the add, with

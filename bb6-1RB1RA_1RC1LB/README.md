@@ -32,9 +32,14 @@ configuration of the first 1,000 macro steps); no conserved quantity a·ones + b
 **Computed, resting on the wave model** (`py/waves.py`, `c/blkrun.c`, `tests/test_waves.py`; checked against direct
 simulation and against `py/macro.py`): the finer events (each time A is at the right end) and their exact step counts.
 The wave goes v₂(N) + 1 blocks deep and reaches the left end of the tape when 2^(m−1) divides N (which is why the
-head gets there so rarely: the next time after step 2,047,931 is step 26,618,972,322, confirmed by a direct run). No
-halt in the first 3.7·10²² steps (the orbit's verdict is proved to decide halting; the run is C, the step count rests
-on the model's step formulas).
+head gets there so rarely: the next time after step 2,047,931 is step 26,618,972,322, confirmed by a direct run).
+
+**Computed, by skipping over cycles** (`c/superrun.c`, `py/superrun.py`, `tests/test_superrun.py`; checked against
+`c/blkrun.c`, a direct run and `py/waves.py`): read from the right end, the super step is a cascade in which each block
+only passes something to the block on its left, so the last k blocks are a closed system, and they fall into exact
+cycles (the last 44 repeat every 1.8·10²¹ super steps). Tabulating those cycles, the orbit runs 6·10²³ super steps
+with no halt: **no halt in the first 2.7·10⁴⁹ steps** (the orbit is proved to decide halting; the run is C, the step
+count rests on the per-level step formula).
 
 **Observed only**: no macro configuration up to 9·10¹³ steps comes near the halting shape (left blocks in the
 hundreds of thousands); see the notes.
@@ -60,8 +65,10 @@ something special about the blank-tape orbit.
 | `py/waves.py` | the wave model: the run in another cut, and the super step with N, exact step counts |
 | `py/n_search.py` | the search for an invariant that keeps N off the powers of two |
 | `c/blkrun.c` | the wave model in C, for runs far beyond direct simulation |
+| `c/superrun.c`, `py/superrun.py` | the super orbit with the cycles of the last blocks tabulated and skipped (C, and the same in Python) |
 | `tests/test_machine.py` | the generated files are current, early facts of the run |
 | `tests/test_waves.py` | the block model against `tmrun`, the reference simulator and `runs/` |
+| `tests/test_superrun.py` | `superrun` against `waves.py`, `blkrun.c`, its direct mode and `py/superrun.py` |
 | `tests/test_explainer.py` | the engine of `pages/1RB1RA_1RC1LB/explainer.html` against `py/macro.py`, `py/waves.py` and the reference simulator (needs Node) |
 | `runs/` | outputs of long runs |
 
@@ -72,5 +79,6 @@ bash scripts/setup-lean.sh && . /etc/profile.d/lean.sh
 bb6-1RB1RA_1RC1LB/lean/check.sh                 # about 2 min
 python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py     # about 20 s
+python3 bb6-1RB1RA_1RC1LB/tests/test_superrun.py  # about 20 s
 python3 bb6-1RB1RA_1RC1LB/tests/test_explainer.py # the explainer page's engine (Node), a few seconds
 ```
