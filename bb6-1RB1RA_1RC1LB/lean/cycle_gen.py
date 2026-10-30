@@ -350,7 +350,7 @@ def write_levels(levels):
             for x in reversed(steps):
                 s = f"(lvSegs_succ T{prev} {pair(tl)} _ _ _ _ _ _ _ _ _ _ {x} {s} rfl)"
             unfold = ", ".join([f"T{k}"] + [f"G{k}_{g}" for g in range(len(lv["gnames"]))])
-            body.append(f"theorem build{k} : build T{prev} {pair(tl)} {lv['p']} {lv['L']} = (T{k}, {pair(lv['tl'])}, "
+            body.append(f"set_option maxRecDepth 100000 in\ntheorem build{k} : build T{prev} {pair(tl)} {lv['p']} {lv['L']} = (T{k}, {pair(lv['tl'])}, "
                         f"{lv['p']}) := by\n  rw [build_segs]\n  have h := {s}\n"
                         f"  simpa only [{unfold}, List.append_assoc, List.append_nil] using h\n")
             U, t = lv["U"], lv["t"]

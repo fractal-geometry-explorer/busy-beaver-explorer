@@ -442,7 +442,7 @@ its chunks with `orbitT_trans`, so `lean/check_orbit.sh` checks the files in par
   10⁷ then 99 chunks of up to 10⁹, ending at step 1,020,655,748,109,356,278,914,592. `check_orbit.sh` compiles the
   modules the chunks call to C with the same `lean -c` and links them with `leanc` (what Lake's `precompileModules`
   does), and loads the library with `--load-dynlib`: about 250 ns per super step against several µs interpreted;
-  the 99 chunks take about 6 CPU hours (`set_option maxHeartbeats 0`: compiled evaluation counts against the limit). This
+  the 99 chunks take about 4 CPU hours (`set_option maxHeartbeats 0`: compiled evaluation counts against the limit). This
   covers the C run of the wave model to 3.7·10²² steps, whose step count was the unproved part.
 
 The search thread built a faster route on top of `WaveTime.lean` (tabulating the periodic bottom blocks, PR #124: no
@@ -584,7 +584,7 @@ is the pass map `topv m B` (`topv_of_seg`), the block meets its start only after
 bottom with one more block is L times the least period below (`least_append`, with `LeastP`: comes back after m, and
 only after multiples of m).
 
-**Cost.** 5,988 pieces in 501 files, plus 144 MB of written tables; about 6 CPU hours, 1.5 hours on 4 cores
+**Cost.** 5,920 pieces in 501 files, plus 144 MB of written tables; about 4 CPU hours, an hour on 4 cores
 (`check_cycles.sh 30 4`). Each level costs about as much as the size of the table below times the passes over it, so
 the cost about doubles per level; 35 levels, the native bound's, would be some 20 times more. CI checks the first 16
 levels and 2 passes (`check_cycles.sh 16 2`, about a minute).

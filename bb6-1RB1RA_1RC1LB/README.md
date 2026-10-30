@@ -25,7 +25,7 @@ at each level.
 - the block rules behind it (`transfer`, `empty_start`, `sweep_step`, `carry_*`) and the shift rules `a_sweep`,
   `b_sweep`, for every block length;
 - **no halt in the first 1.2·10³² steps** (`blank_runs_cycles`, `lean/CycleRun.lean`): the tables of the last 1 to 30
-  blocks, built level by level and checked in 5,988 pieces by `check_cycles.sh 30 4` (about 6 CPU hours), then 4
+  blocks, built level by level and checked in 5,920 pieces by `check_cycles.sh 30 4` (about 4 CPU hours), then 4
   passes of the last, 1.4·10¹⁵ super steps in all. By the plain orbit, no halt in the first 1.4·10¹⁶ steps
   (`blank_runs_1_4e16`, `lean/OrbitKernel.lean`: the first 10⁷ super steps, checked in 1,000 chunks by
   `check_orbit.sh`, about three CPU hours); within `check.sh`, no halt in the first 2·10¹⁰ steps (`blank_runs_2e10`,
@@ -128,7 +128,7 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 bash scripts/setup-lean.sh && . /etc/profile.d/lean.sh
 bb6-1RB1RA_1RC1LB/lean/check.sh                 # about 6 min (CascadeRun about 4)
 bb6-1RB1RA_1RC1LB/lean/check_orbit.sh all       # the plain orbit in chunks, in parallel: about 9 CPU hours
-bb6-1RB1RA_1RC1LB/lean/check_cycles.sh 30 4     # the tables of 30 levels in pieces, kernel only: about 6 CPU hours
+bb6-1RB1RA_1RC1LB/lean/check_cycles.sh 30 4     # the tables of 30 levels in pieces, kernel only: about 4 CPU hours
 python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py     # about 20 s
 python3 bb6-1RB1RA_1RC1LB/tests/test_superrun.py  # about 20 s

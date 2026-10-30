@@ -8,7 +8,7 @@
 #   PASSES   passes of the last table after them, for the bound (default 0)
 # With RESUME=1 it keeps the generated files and skips those already checked (after an interrupted run).
 #
-# 16 levels take about a minute; 30 levels and 4 passes (6,000 pieces) about 6 CPU hours.
+# 16 levels take about a minute; 30 levels and 4 passes (5,920 pieces) about 4 CPU hours.
 set -e
 cd "$(dirname "$0")"
 K=${1:?usage: check_cycles.sh K [PASSES] [JOBS]}
