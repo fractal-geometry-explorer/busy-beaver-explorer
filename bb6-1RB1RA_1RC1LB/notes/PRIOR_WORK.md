@@ -18,7 +18,10 @@ known about this machine before and alongside the work in this folder.
   [cryptids](https://github.com/google-deepmind/cryptids) repository added it on 27 October 2026 as one of 20 "open
   BB(6) acceleration problems" ([PR #18](https://github.com/google-deepmind/cryptids/pull/18), Tom Zahavy). It proves
   in Lean, with Mathlib, that the machine halts iff an explicit map on two stacks of block lengths halts, and gives a
-  higher-level map with one stack removed. It does not reduce halting to a single number. As far as this search
+  higher-level map with one stack removed. The base map is the run of our macro step cut at slightly different
+  moments; the higher-level map is exactly the event map of `py/waves.py` (each time A is on the blank right end), one
+  level below the super step, which it proves in Lean where this folder only computes it. It does not reduce halting
+  to a single number. As far as this search
   found, the criterion proved here (halting iff N = 10 + Σ p_l·2^(m−l) is ever a power of two) is new.
 - **One equivalent machine is known.** The ledger records that
   `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB` was "merged into another equivalence class in April 2026" (mxdys, -d).
@@ -88,9 +91,22 @@ That is strong evidence, not a proof; a proof would be a simulation of each macr
 - listed as "Stacked", one of seven open stack-family problems; the repository describes the family as "local
   Collatz-like residue branching at the head with arbitrarily deep historical memory".
 
-This is the same level as the macro step proved here (`lean/Macro.lean`, `halts_iff`), with a different cut: this
-folder starts from X([1], 2, []) after 15 steps. Nothing in the repository corresponds to the super step or to the
-number N. DeepMind's map was public two days before the macro step here was merged (29 October); this folder's work
+How the two line up (`py/deepmind.py`):
+
+- **The states.** C(a, L, R) is state C on the 0 in `0 1^(L_2+1) 0 1^(L_1+1) 0 1^(a+1) C>0 1^(R_1) 00 1^(R_2+1) 00 …`.
+  From our X(ls, n, cs) the head crosses 1^n and A0, B0 add two 1s, so n + 2 steps later the machine is at
+  C(n + 1, ls − 1, (c_1, c_2 − 1, …)). Their start C(3, [0], []) at step 19 is our X([1], 2, []) at step 15.
+- **The base map** is the same run cut at different moments, at about the same rate: in the first 10^5 macro steps
+  here (100,002 of their steps over the same stretch), 48,271 configurations are shared, in the same order, and each
+  map has configurations the other skips. Where n is odd (their even a), their step stops after one block of the
+  carry to the left; ours carries over every 2 and then sweeps back to the right end.
+- **The higher-level map** (`highLevelNext`, the section R = []) is exactly the event map of `py/waves.py`: the event
+  (b_1, …, b_n), A on the blank right of the tape, is C(b_n + 1, (b_(n−1) − 1, …, b_1 − 1), []) two steps later, and
+  the two orbits agree at all of the first 20,000 events. This folder proves the super step (every fourth event, from
+  [P, 5, 0]) and checks the single events only against simulation; DeepMind's Lean proof covers the single events too,
+  without step counts.
+- **Beyond.** Nothing in the repository corresponds to the super step's closed formula, to the number N, or to the
+  power-of-two criterion. DeepMind's map was public two days before the macro step here was merged (29 October); this folder's work
 did not use it, so it has priority for the block-level reduction, and the super step and the N criterion go beyond it.
 
 ## Comparison with Antihydra and Hydra
