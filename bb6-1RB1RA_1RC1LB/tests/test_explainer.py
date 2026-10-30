@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.join(REPO, "tools", "py"))
 sys.path.insert(0, os.path.join(ROOT, "py"))
 
 from bbtools.machine import Machine, Run  # noqa: E402
+import cycles  # noqa: E402
 import macro  # noqa: E402
 import waves  # noqa: E402
 
@@ -78,6 +79,21 @@ out.raw = [0, 1, 2, 5, 17, 68, 136, 1000, 5000, 100000].map(t => [t, BB.rawPictu
   }
   out.super = { sup, disagree };
   out.custom = [[1, 4], [2, 1, 4], [1, 4, 4, 6], [3, 1, 1]].map(P => [P, BB.superStep(P).kind, BB.bigN(P).toString(), !!BB.superByWaves(P).halted]);
+}
+// The last blocks on their own: bottomStep against the super step, what they send on, and their cycles.
+{
+  let P = BB.SUPER_START.P.slice(), bad = null;
+  const outs = [];
+  for (let s = 0; s < 3000 && !bad; s++) {
+    const next = BB.superStep(P).next;
+    for (let k = 1; k < P.length; k++) {
+      const r = BB.bottomStep(BB.bottom(P, k));
+      if (!eq(r.next, BB.bottom(next, k))) { bad = [s, k]; break; }
+      if (s < 300 && k <= 4) outs.push([BB.bottom(P, k), r.next, r.out]);
+    }
+    P = next;
+  }
+  out.bottom = { bad, outs, cycles: [1, 2, 3, 4, 5, 6, 7, 8].map(k => BB.findCycle(k)) };
 }
 console.log(JSON.stringify(out));
 """
@@ -172,6 +188,23 @@ class TestExplainer(unittest.TestCase):
             n = int(N)
             self.assertEqual(halted, n & (n - 1) == 0, P)
             self.assertEqual(kind == "halt", halted, P)
+
+    def test_bottom(self):
+        """Level 5: the last k blocks of the next super step follow from the last k blocks alone (`bottomStep`, as
+        `bstep` in py/cycles.py and lean/Cascade.lean), and the cycles the page finds are those of py/cycles.py and,
+        for the last 1 to 6 blocks, those of `cycle_1` to `cycle_6` in lean/Cycles.lean."""
+        b = self.out["bottom"]
+        self.assertIsNone(b["bad"])
+        for B, nxt, ev in b["outs"]:
+            want, want_ev, _ = cycles.bstep(B)
+            self.assertEqual(nxt, want)
+            self.assertEqual(None if ev is None else (ev["kind"], ev.get("h", ev.get("a"))), want_ev)
+        lean = [(4, 3), (8, 7), (32, 11), (128, 31), (256, 60), (1024, 163)]
+        rows = cycles.table(8)
+        for k, got in enumerate(b["cycles"], 1):
+            self.assertEqual((got["period"], got["start"]), rows[k - 1][1:3], k)
+            if k <= 6:
+                self.assertEqual((got["period"], got["start"]), lean[k - 1], k)
 
 
 if __name__ == "__main__":
