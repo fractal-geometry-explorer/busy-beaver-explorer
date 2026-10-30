@@ -138,6 +138,51 @@ canvas.chart { width: 100%; height: 190px; display: block; }
 details summary { cursor: pointer; font-size: 0.9rem; color: var(--link); }
 pre { margin: 0; font-family: var(--font-display); font-size: 0.72rem; line-height: 1.5; overflow-x: auto; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+/* Explanatory figures. */
+.zoom { list-style: none; padding: 0; display: grid; gap: 6px; }
+.zoom a { display: grid; grid-template-columns: 5.5em minmax(0, 12em) minmax(0, 1fr) auto; gap: 4px 14px; align-items: baseline; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 14px; color: var(--ink); text-decoration: none; }
+.zoom li:nth-child(1) a { margin-right: 0; border-left: 4px solid var(--wave); }
+.zoom li:nth-child(2) a { margin-right: 3%; border-left: 4px solid var(--wave); }
+.zoom li:nth-child(3) a { margin-right: 6%; border-left: 4px solid var(--link); }
+.zoom li:nth-child(4) a { margin-right: 9%; border-left: 4px solid var(--link); }
+.zoom li:nth-child(5) a { margin-right: 12%; border-left: 4px solid var(--muted); }
+.zoom a:hover { border-color: var(--muted); }
+.zoom b { font-family: var(--font-display); font-size: 0.82rem; }
+.zoom .d { font-size: 0.9rem; color: var(--muted); }
+.zoom .cnt { font-family: var(--font-display); font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+@media (max-width: 760px) { .zoom a { grid-template-columns: minmax(0, 1fr); margin-right: 0 !important; } }
+.legend-list { list-style: none; padding: 0; display: grid; gap: 8px; font-size: 0.92rem; }
+.gloss { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 12px; font-size: 0.92rem; }
+.gloss dt { font-family: var(--font-display); font-size: 0.78rem; font-weight: 700; padding-top: 2px; }
+.gloss dd { margin: 0; }
+.fig { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
+.fig figcaption, .gcard figcaption { font-size: 0.88rem; color: var(--muted); }
+.cap { display: block; font-family: var(--font-display); font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.cells.static { min-height: 0; }
+.onestep { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.onestep .arrow { font-size: 1.4rem; color: var(--head); display: grid; justify-items: center; }
+.onestep .arrow .cap { text-transform: none; font-size: 0.74rem; color: var(--ink); }
+.twoviews { display: flex; flex-wrap: wrap; gap: 12px 40px; align-items: flex-end; }
+.gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.gcard { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; overflow-x: auto; }
+.gcard figcaption { color: var(--ink); }
+.gcard.hit { border-left: 4px solid var(--hit); }
+.gcard .strip { padding-top: 20px; min-height: 48px; }
+.anat { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 8px; }
+.anat .ai { display: grid; justify-items: center; gap: 4px; }
+.anat .ai .strip { padding-top: 22px; min-height: 0; }
+.anat .ai span.lab { font-family: var(--font-display); font-size: 0.7rem; color: var(--muted); text-align: center; min-height: 2.6em; line-height: 1.3; }
+.anat .ai.key span.lab { color: var(--link); font-weight: 700; }
+.flow { display: grid; gap: 4px; justify-items: stretch; font-size: 0.9rem; }
+.fbox { background: var(--sunk); border: 1px solid var(--rule); border-radius: var(--r); padding: 8px 12px; text-align: center; }
+.fbox.hit { background: var(--hit-bg); color: var(--hit); border-color: var(--hit); }
+.fdown { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 2px 0; }
+.fsplit { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: start; }
+.fsplit.inner { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 6px; }
+.fcol { display: grid; gap: 4px; align-content: start; }
+.formula { font-family: var(--font-display); font-size: 0.86rem; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 14px; overflow-x: auto; white-space: nowrap; }
+table.grid.ex td { white-space: nowrap; }
+table.grid.ex td.dim { white-space: normal; min-width: 9em; font-family: var(--font-body); font-size: 0.8rem; text-align: left; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style>
 </head>
@@ -147,38 +192,87 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / 1RB1RA_1RC1LB / level by level</p>
     <h1>1RB1RA_1RC1LB, level by level</h1>
     <p class="machine">1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</p>
-    <p>This machine's run from blank tape can be read at five levels. At the bottom it is one cell at a time. Watch long enough and the cells form blocks, the blocks follow seven rules, the rules group into a macro step on lists of numbers, the macro steps are a wave of halvings running left, and four waves together are one step on a single number N. The machine halts exactly when that number is a power of two.</p>
-    <p>Each level below runs the same machine from blank tape and can be stepped on its own. Where a level's moment is small enough, <b>Show in the machine</b> runs the bare machine to the same step so you can compare. The <a href="reduction.html">write-up</a> states each level precisely and says what is proved about it; the tags here say the same in short.</p>
-    <ol class="ladder" aria-label="The levels">
-      <li><a href="#l0"><span class="lvnum">Level 0</span><b>The machine</b><span class="d">cells, states and the table</span></a></li>
-      <li><a href="#l1"><span class="lvnum">Level 1</span><b>Block rules</b><span class="d">transfers, sweeps and carries</span></a></li>
-      <li><a href="#l2"><span class="lvnum">Level 2</span><b>The macro step</b><span class="d">a map on lists of block lengths</span></a></li>
-      <li><a href="#l3"><span class="lvnum">Level 3</span><b>The halving wave</b><span class="d">one wave per event, running left</span></a></li>
-      <li><a href="#l4"><span class="lvnum">Level 4</span><b>The number N</b><span class="d">halts iff N is a power of two</span></a></li>
-    </ol>
+    <p>This page is about one very small computer program, a six-state <b>Turing machine</b>, and one question about it: <b>if you start it on an empty tape, does it ever stop?</b> Nobody knows yet. People have been asking this question about every machine of this size (the "Busy Beaver" problem), and this machine is one of the few whose answer is still open.</p>
+    <p>Watching the machine one step at a time tells you almost nothing, because it runs for billions of steps and longer. But if you step back, patterns appear, and each pattern can be described more simply than the one below it. This page climbs that ladder in five levels. Each level is a working simulator you can step through yourself. By the top level, the whole question has turned into a question about one number, <b>N</b>: the machine stops exactly when N becomes a power of two (2, 4, 8, 16, …).</p>
   </header>
+
+  <section class="level" aria-labelledby="h-map">
+    <div class="lvhead"><h2 id="h-map">The five levels at a glance</h2></div>
+    <div class="prose">
+      <p>Each level groups many steps of the level below into one step. The numbers on the right say how much happens in the first 1,322,171 steps of the machine, counted at each level. The higher you go, the fewer steps there are to look at, and the more each step tells you.</p>
+    </div>
+    <ol class="zoom" aria-label="The levels">
+      <li><a href="#l4"><span class="lvnum">Level 4</span><b>The number N</b><span class="d">The tape is summed up by one number. The machine stops exactly when N is a power of two.</span><span class="cnt">about 120 super steps</span></a></li>
+      <li><a href="#l3"><span class="lvnum">Level 3</span><b>The halving wave</b><span class="d">A ripple runs leftward through the blocks, halving as it goes, and turns back at the first odd number.</span><span class="cnt">479 waves</span></a></li>
+      <li><a href="#l2"><span class="lvnum">Level 2</span><b>The macro step</b><span class="d">The tape is a list of numbers (the block lengths), and one rule turns each list into the next.</span><span class="cnt">1,000 macro steps</span></a></li>
+      <li><a href="#l1"><span class="lvnum">Level 1</span><b>Block moves</b><span class="d">The tape is made of blocks of 1s, and the head only ever does a handful of things to them.</span><span class="cnt">11,475 moves</span></a></li>
+      <li><a href="#l0"><span class="lvnum">Level 0</span><b>The machine</b><span class="d">One cell, one step at a time: read, write, move, change state.</span><span class="cnt">1,322,171 steps</span></a></li>
+    </ol>
+    <div class="cols2">
+      <div class="panel">
+        <h3>How sure are we?</h3>
+        <p>Every level is tagged with how firmly it is known.</p>
+        <ul class="legend-list">
+          <li><span class="tag t-kernel">proved</span> A computer-checked proof in the <b>Lean</b> proof assistant shows this holds for every possible case, not just the ones we tried.</li>
+          <li><span class="tag t-native">proved, fast check</span> Proved in Lean, but with a faster checking method that also trusts Lean's compiler.</li>
+          <li><span class="tag t-comp">computed</span> Programs check it on enormous numbers of cases and it has never failed, but there is no proof.</li>
+          <li><span class="tag t-open">open</span> Nobody knows.</li>
+        </ul>
+        <p class="note">The <a href="reduction.html">write-up</a> states each level precisely, with every proof referenced.</p>
+      </div>
+      <div class="panel">
+        <h3>Words used on this page</h3>
+        <dl class="gloss">
+          <dt>tape</dt><dd>An endless row of cells, each holding 0 or 1. It starts as all 0s.</dd>
+          <dt>head</dt><dd>The machine's read/write position on the tape, drawn with an orange outline.</dd>
+          <dt>state</dt><dd>One of six letters, A to F: the machine's "mood", which decides what it does next.</dd>
+          <dt>block</dt><dd>A run of 1s next to each other. A block of 5 is 11111.</dd>
+          <dt>halt</dt><dd>Stop. This machine stops only if it is in state D and reads a 0.</dd>
+          <dt>power of two</dt><dd>1, 2, 4, 8, 16, 32, … In binary these are a 1 followed only by 0s.</dd>
+        </dl>
+      </div>
+    </div>
+    <p class="note">Wherever a level is at a moment early enough to replay, the <b>Show in the machine</b> button runs the plain machine to that same moment, so you can compare the two pictures.</p>
+  </section>
 
   <!-- ======================= Level 0 ======================= -->
   <section class="level" id="l0" aria-labelledby="h-l0">
     <div class="lvhead"><span class="lvnum">Level 0</span><h2 id="h-l0">The machine, one cell at a time</h2></div>
     <div class="prose">
-      <p>Six states, two symbols, one halting transition. The machine starts in state A on a blank tape (all 0). At each step it reads the cell under the head, looks up the state and symbol in the table, writes, moves one cell and changes state. Only D reading 0 halts, and D is entered only from C reading 0, so a halt needs C to read a 0 with another 0 to its left.</p>
-      <p>The diagram under the tape is a space-time picture of the last 200 steps, newest at the bottom: dark cells are 1s and the orange mark is the head. Run it for a few thousand steps and the head settles into long sweeps across a tape of blocks, with short back-and-forth loops where it moves cells from one block to another.</p>
-      <p><span class="tag t-kernel">kernel</span> no halt in the first 20,000 steps, run step by step in Lean's kernel. <span class="tag t-native">native</span> no halt in the first 10,000,000 steps.</p>
+      <p>A Turing machine is about the simplest computer there is. It has a tape of cells holding 0s and 1s, a head that looks at one cell, and a state, which is one of a few letters. Every step follows the same three moves:</p>
+      <ol>
+        <li><b>Look up</b> the current state and the symbol under the head in the table below.</li>
+        <li><b>Write</b> the symbol the table says (0 or 1) into the cell.</li>
+        <li><b>Move</b> one cell left (L) or right (R) and <b>switch</b> to the state the table names.</li>
+      </ol>
+      <p>For example, the very first step: the machine is in state A and reads a 0. The table entry for A and 0 is <code>1RB</code>: write a 1, move right, switch to state B.</p>
+    </div>
+    <figure class="fig" aria-label="The first step of the machine">
+      <div class="onestep">
+        <div><span class="cap">before: state A reads 0</span><div class="cells static"><span class="cell"></span><span class="cell"></span><span class="cell head" data-s="A"></span><span class="cell"></span><span class="cell"></span></div></div>
+        <div class="arrow">→<span class="cap">table: A, 0 → <b>1RB</b></span></div>
+        <div><span class="cap">after: a 1 written, head moved right, now B</span><div class="cells static"><span class="cell"></span><span class="cell"></span><span class="cell one"></span><span class="cell head" data-s="B"></span><span class="cell"></span></div></div>
+      </div>
+      <figcaption>Dark squares are 1s, light squares are 0s, and the orange outline is the head, with its state written above it.</figcaption>
+    </figure>
+    <div class="prose">
+      <p>The table has one entry with no instruction: <b>D reading 0</b>. That is the only way to stop. So the whole question is whether the machine ever reaches state D while looking at a 0.</p>
+      <p><b>Try this:</b> press <b>Step</b> a few times and watch the table highlight the entry being used. Then press <b>+1,000</b> a few times and watch the picture under the tape. That picture stacks the last 200 tapes on top of each other, oldest at the top, so the head's path draws a line. You will see long diagonal sweeps across the whole tape, and short zig-zags where the head shuttles back and forth over one stretch. Those two shapes are what level 1 is about.</p>
+      <p><span class="tag t-kernel">proved</span> The machine does not stop in its first 20,000 steps. <span class="tag t-native">proved, fast check</span> Nor in its first 10,000,000.</p>
     </div>
     <div class="bench">
       <div class="readout" aria-live="polite">
         <div><span class="k">step</span><span class="v" id="l0-t">0</span></div>
         <div><span class="k">state</span><span class="v" id="l0-s">A</span></div>
-        <div><span class="k">next transition</span><span class="v" id="l0-next">A0 → 1RB</span></div>
-        <div><span class="k">ones on the tape</span><span class="v" id="l0-ones">0</span></div>
+        <div><span class="k">next table entry</span><span class="v" id="l0-next">A0 → 1RB</span></div>
+        <div><span class="k">1s on the tape</span><span class="v" id="l0-ones">0</span></div>
         <div><span class="k">cells visited</span><span class="v" id="l0-span">1</span></div>
       </div>
       <div class="cols2">
         <div class="panel">
           <h3>The table</h3>
           <div class="scroller"><table class="ttable" id="l0-table" aria-label="Transition table"></table></div>
-          <p class="note">Each entry is: write, move (R or L), next state. The highlighted entry is the one the next step uses.</p>
+          <p class="note">Rows are states, columns are the symbol read. <code>1RB</code> means write 1, move Right, go to state B. The highlighted entry is the one the next step will use.</p>
         </div>
         <div class="panel">
           <h3>The tape around the head</h3>
@@ -188,7 +282,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div style="display: grid; gap: 4px">
         <canvas class="st" id="l0-st" aria-label="Space-time diagram of the last 200 steps"></canvas>
-        <p class="note">The last 200 steps, oldest at the top; showing <span id="l0-st-say">the whole tape</span>.</p>
+        <p class="note">The last 200 tapes, oldest at the top, one row per step; the orange mark is the head. Showing <span id="l0-st-say">the whole tape</span>.</p>
       </div>
       <div class="controls">
         <button id="l0-reset">Reset</button>
@@ -201,25 +295,61 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <label class="note">speed <select id="l0-speed"><option value="1">1 step / tick</option><option value="5" selected>5 / tick</option><option value="50">50 / tick</option><option value="500">500 / tick</option></select></label>
       </div>
       <div class="controls">
-        <label class="note" for="l0-goto">go to step</label>
+        <label class="note" for="l0-goto">jump to step</label>
         <input type="number" id="l0-goto" min="0" max="20000000" value="2023931" style="width: 11em">
         <button id="l0-go">Go</button>
-        <span class="note">up to 20,000,000; step 2,023,931 is a return of the head to the left end.</span>
+        <span class="note">Any step up to 20,000,000. Step 2,023,931 is one of the rare moments when the head reaches new tape on the far left.</span>
       </div>
     </div>
   </section>
 
   <!-- ======================= Level 1 ======================= -->
   <section class="level" id="l1" aria-labelledby="h-l1">
-    <div class="lvhead"><span class="lvnum">Level 1</span><h2 id="h-l1">Blocks, and seven rules that move them</h2><span class="tag t-kernel">kernel</span></div>
+    <div class="lvhead"><span class="lvnum">Level 1</span><h2 id="h-l1">Blocks of 1s, and a few moves that change them</h2><span class="tag t-kernel">proved</span></div>
     <div class="prose">
-      <p>From step 15 on, the tape is blocks of ones separated by one, two or three 0s, and everything the head does is one of a few moves on those blocks. Below, the tape is drawn as blocks (a pill is a block of ones, labelled with its length; a dot is a 0; the outlined cell is the head) and the run advances one move at a time:</p>
+      <p>After its first 15 steps, the tape always looks the same way: <b>blocks of 1s with short gaps of 0s between them</b>. So instead of drawing every cell, we can draw each block as one rounded bar labelled with its length, and each 0 in a gap as a dot. The head is still the orange outlined cell.</p>
+    </div>
+    <figure class="fig" aria-label="The same tape drawn as cells and as blocks">
+      <div class="twoviews">
+        <div><span class="cap">as cells</span><div class="cells static"><span class="cell one"></span><span class="cell one"></span><span class="cell one"></span><span class="cell"></span><span class="cell head one" data-s="A"></span><span class="cell one"></span><span class="cell one"></span><span class="cell one"></span><span class="cell one"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell one"></span><span class="cell one"></span></div></div>
+        <div><span class="cap">as blocks</span><div class="strip" data-demo='{"kind":"X","ls":[3],"n":5,"cs":[2]}'></div></div>
+      </div>
+      <figcaption>The tape <code>111 0 11111 000 11</code> with the head in state A at the start of the middle block. As blocks: a block of 3, one 0, the head's block of 5, three 0s, a block of 2.</figcaption>
+    </figure>
+    <div class="prose">
+      <p>Seen this way, the head turns out to do only three kinds of thing, shown in the gallery below with real before-and-after pictures:</p>
       <ul>
-        <li><b>transfer</b>: A runs over the block under it and back; the block loses two cells, one going to the block on its left and one to the first block past its <code>000</code>.</li>
-        <li><b>empty_start</b>, <b>sweep_step</b>: when the block is used up, A sweeps right, turning every <code>00</code> into <code>0</code> and adding two cells to each block it passes.</li>
-        <li><b>carry_start</b>, <b>carry_two</b>, <b>carry_exit</b>, <b>carry_one</b>: when one cell is left, F carries left. Each block of exactly 2 it meets disappears into a <code>001</code> on the right; the first other block stops it.</li>
+        <li><b>Transfer.</b> The head, in state A, sits at the start of a block. It runs across the block and back, and in doing so moves two cells out of it: one cell to the block on its left, and one to the first block on its right. The block shrinks by 2.</li>
+        <li><b>Sweep right.</b> When the head's block has been used up completely, the head runs all the way to the right end of the tape, closing up the double gaps as it goes.</li>
+        <li><b>Carry left.</b> When exactly one cell is left, the head (now in state F) heads left instead. Every block of exactly 2 that it meets gets swallowed. The first block that is not 2 stops it. <b>If every block to its left is 2, it swallows them all, runs off the left end, and the machine stops.</b> That is the only way this machine ever halts.</li>
       </ul>
-      <p>Lean proves each move for every block length and any surrounding tape, with its exact step count (<code>lean/Rules.lean</code>). Here every move is also checked against the bare machine run to the same step.</p>
+    </div>
+    <div class="gallery" aria-label="Examples of each kind of move">
+      <figure class="gcard">
+        <figcaption><b>Transfer</b>: the middle block loses 2, its neighbours gain 1 each.</figcaption>
+        <span class="cap">before</span><div class="strip" data-demo='{"kind":"X","ls":[3],"n":5,"cs":[2]}'></div>
+        <span class="cap">after one transfer (17 steps)</span><div class="strip" data-demo='{"kind":"X","ls":[4],"n":3,"cs":[3]}'></div>
+      </figure>
+      <figure class="gcard">
+        <figcaption><b>Sweep right</b>: the head's block is empty, so A sweeps to the right end. Each double gap closes to a single 0.</figcaption>
+        <span class="cap">before</span><div class="strip" data-demo='{"kind":"X","ls":[4],"n":0,"cs":[3,2,5]}'></div>
+        <span class="cap">after the sweep (27 steps)</span><div class="strip" data-macro='{"ls":[4],"n":0,"cs":[3,2,5]}'></div>
+      </figure>
+      <figure class="gcard">
+        <figcaption><b>Carry left</b>: one cell is left, so F carries left. It swallows the two blocks of 2 and stops in the block of 5.</figcaption>
+        <span class="cap">before</span><div class="strip" data-demo='{"kind":"X","ls":[2,2,5],"n":1,"cs":[1]}'></div>
+        <span class="cap">after the carry (27 steps)</span><div class="strip" data-macro='{"ls":[2,2,5],"n":1,"cs":[1]}'></div>
+      </figure>
+      <figure class="gcard hit">
+        <figcaption><b>The halt</b>: one cell is left and every block to the left is 2. F swallows them all, reaches empty tape, and the machine stops.</figcaption>
+        <span class="cap">before</span><div class="strip" data-demo='{"kind":"X","ls":[2,2],"n":1,"cs":[]}'></div>
+        <span class="cap">22 steps later: state D reads 0, halt</span><div class="strip" data-macro='{"ls":[2,2],"n":1,"cs":[]}'></div>
+      </figure>
+    </div>
+    <div class="prose">
+      <p>In the proofs, these three kinds of thing are split into seven precisely stated <b>moves</b> (the names in the box below, like <code>transfer</code> and <code>carry_two</code>), plus a starting move for the first 15 steps. Each one is proved to work for blocks of any length, with an exact count of how many machine steps it takes.</p>
+      <p><b>Try this:</b> press <b>Next move</b> and read the box <b>Last move</b>: it names the move, shows its pattern (<code>A&gt;</code> means "the head, in state A, is on the next cell"), and gives its step count. The line <b>bare machine at this step</b> shows a ✓ when the plain level-0 machine, run to the same step, has exactly the same tape.</p>
+      <p><span class="tag t-kernel">proved</span> in Lean, for every block length and whatever else is on the tape (<code>lean/Rules.lean</code>).</p>
     </div>
     <div class="bench">
       <div class="readout" aria-live="polite">
@@ -234,7 +364,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
           <div class="rule" id="l1-rule"></div>
         </div>
         <div class="panel">
-          <h3>Moves so far</h3>
+          <h3>Moves so far (newest first)</h3>
           <div class="log" id="l1-log"></div>
         </div>
       </div>
@@ -242,7 +372,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <button id="l1-reset">Reset</button>
         <button id="l1-back">Back</button>
         <button class="primary" id="l1-step">Next move</button>
-        <button id="l1-macro" title="Run moves until the next macro configuration of level 2">To next macro step</button>
+        <button id="l1-macro" title="Run moves until the next macro configuration of level 2">To the next macro step</button>
         <button id="l1-play" aria-pressed="false">Play</button>
         <button id="l1-show">Show in the machine</button>
       </div>
@@ -251,17 +381,57 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 
   <!-- ======================= Level 2 ======================= -->
   <section class="level" id="l2" aria-labelledby="h-l2">
-    <div class="lvhead"><span class="lvnum">Level 2</span><h2 id="h-l2">The macro step: the machine as a map on lists</h2><span class="tag t-kernel">kernel</span></div>
+    <div class="lvhead"><span class="lvnum">Level 2</span><h2 id="h-l2">The macro step: the tape as a list of numbers</h2><span class="tag t-kernel">proved</span></div>
     <div class="prose">
-      <p>Group the moves between two transfer phases and the tape only needs three things: the blocks to the left of the head (<code>ls</code>, nearest first), the block under it (<code>n</code>) and the blocks to the right (<code>cs</code>). Write the configuration as <code>X(ls, n, cs)</code>. One macro step does <code>⌊n/2⌋</code> transfers, then a sweep right if <code>n</code> is even or a carry left if <code>n</code> is odd, and lands on the next <code>X</code>.</p>
-      <p>Lean proves that the machine does exactly this, step counts included (<code>next_sound</code>), and that <b>the machine halts from blank tape iff this map's run reaches a halt</b> (<code>halts_iff</code>). A macro step halts exactly when <code>n</code> is odd and, after the transfers, every block to the left of the head is 2 (<code>next_halt_iff</code>): the carry then eats every block and reaches the left end. The panel <b>Distance from halting</b> shows how far each configuration is from that shape. To see a halt, start from <code>X([2, 2, 2], 1, [3])</code>.</p>
+      <p>Since the tape is just blocks, it is completely described by their lengths. At the start of each round of transfers we write it as three things:</p>
+      <ul>
+        <li><code>ls</code>: the blocks to the <b>left</b> of the head, listed from the nearest one outward;</li>
+        <li><code>n</code>: the length of the block the head is on;</li>
+        <li><code>cs</code>: the blocks to the <b>right</b>, listed from the nearest one outward.</li>
+      </ul>
+      <p>We write this as <code>X(ls, n, cs)</code>. For example, here is <code>X([4, 1], 6, [2, 3])</code>:</p>
+    </div>
+    <figure class="fig" aria-label="How X(ls, n, cs) maps onto the tape">
+      <div class="anat" id="anat"></div>
+      <figcaption>The left list is read outward from the head, so its first entry (4) is the block right next to the head. A single 0 separates blocks on the left; a triple 0 follows the head's block and double 0s separate the blocks on the right.</figcaption>
+    </figure>
+    <div class="prose">
+      <p>One <b>macro step</b> takes you from one <code>X</code> to the next. It always goes the same way, and the only thing that decides which way it goes is whether <code>n</code> is even or odd:</p>
+    </div>
+    <figure class="fig" aria-label="What one macro step does">
+      <div class="flow">
+        <div class="fbox">Head's block has <b>n</b> cells</div>
+        <div class="fdown">↓</div>
+        <div class="fbox">Transfer until 0 or 1 cell is left: <b>n ÷ 2</b> transfers. The nearest left block and the nearest right block each grow by n ÷ 2.</div>
+        <div class="fsplit">
+          <div class="fcol">
+            <div class="fdown">↓ <b>n was even</b> (0 left)</div>
+            <div class="fbox">Sweep right to the end of the tape. The last block becomes the new head block.</div>
+          </div>
+          <div class="fcol">
+            <div class="fdown">↓ <b>n was odd</b> (1 left)</div>
+            <div class="fbox">Carry left, swallowing every block of exactly 2.</div>
+            <div class="fsplit inner">
+              <div class="fcol"><div class="fdown">stops at a block ≥ 3</div><div class="fbox">That block becomes the new head block (minus 3).</div></div>
+              <div class="fcol"><div class="fdown">stops at a block of 1</div><div class="fbox">Absorbs it, then sweeps right.</div></div>
+              <div class="fcol"><div class="fdown">all blocks were 2</div><div class="fbox hit"><b>Halt.</b></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>The whole machine, at this level. Everything else it does is bookkeeping on the list.</figcaption>
+    </figure>
+    <div class="prose">
+      <p>This is a big simplification. Instead of a tape with millions of cells, the machine is now a rule that turns one short list of numbers into another, and Lean proves that this rule matches the machine exactly, including how many steps each macro step takes. Lean also proves that <b>the machine halts if and only if this list rule eventually hits the halting branch</b>: <code>n</code> odd, and every block on the left equal to 2 after the transfers.</p>
+      <p><b>Try this:</b> press <b>Next macro step</b> a few times and read <b>The next macro step</b>, which spells out what is about to happen, and <b>Distance from halting</b>, which counts how many blocks on the left are already 2. Then press <b>+1,000</b> and see how far from halting it is: the blocks on the left grow into the hundreds and thousands, nowhere near all 2s. To watch a halt, use the inputs at the bottom: <code>ls = 2, 2, 2</code>, <code>n = 1</code>, <code>cs = 3</code>, then <b>Start here</b> and <b>Next macro step</b>.</p>
+      <p><span class="tag t-kernel">proved</span> in Lean: the list rule matches the machine (<code>next_sound</code>), and the machine halts exactly when the list rule does (<code>halts_iff</code>). Running the list rule, Lean also proves there is no halt in the first 20 billion steps.</p>
     </div>
     <div class="bench">
       <div class="readout" aria-live="polite">
         <div><span class="k">macro step</span><span class="v" id="l2-k">0</span></div>
         <div><span class="k">machine step</span><span class="v" id="l2-t">15</span></div>
         <div><span class="k">blocks left / right</span><span class="v" id="l2-sizes"></span></div>
-        <div><span class="k">ones on the tape</span><span class="v" id="l2-ones"></span></div>
+        <div><span class="k">1s on the tape</span><span class="v" id="l2-ones"></span></div>
       </div>
       <p class="mono" id="l2-x" style="font-size: 0.82rem"></p>
       <div class="scroller"><div class="strip" id="l2-strip" aria-label="The macro configuration as blocks"></div></div>
@@ -287,7 +457,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <button id="l2-show">Show in the machine</button>
       </div>
       <div class="controls">
-        <span class="note">Start from</span>
+        <span class="note">Start from your own tape:</span>
         <label class="note">ls <input type="text" id="l2-ls" value="2, 2, 2" style="width: 9em"></label>
         <label class="note">n <input type="number" id="l2-n" value="1" min="0" style="width: 5em"></label>
         <label class="note">cs <input type="text" id="l2-cs" value="3" style="width: 9em"></label>
@@ -301,10 +471,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section class="level" id="l3" aria-labelledby="h-l3">
     <div class="lvhead"><span class="lvnum">Level 3</span><h2 id="h-l3">The halving wave</h2><span class="tag t-comp">computed</span></div>
     <div class="prose">
-      <p>Cut the same run at a different moment: each time A stands on the blank just right of the last block. Call that an <b>event</b>. At an event the tape is blocks separated by single 0s, <code>1<sup>b<sub>1</sub></sup> 0 … 0 1<sup>b<sub>n</sub></sup> A&gt;0</code>, and the next event follows from the list <code>b</code> alone.</p>
-      <p>In between, a wave runs left from the right end. At a block it carries a value <code>c</code> (the first one is the last block minus 1). It halves the block: <code>⌊c/2⌋</code> cycles, which are level 2's transfers. If <code>c</code> is odd the wave turns and A sweeps back to the right end. If <code>c</code> is even it moves on to the next block left, of length <code>y</code>, with <code>c' = y + c/2 − 2</code>. At the left end there is no block (<code>y = 0</code>), so the wave keeps halving into new tape, <code>c → c/2 − 2</code>. <b>It halts if it reaches <code>c = 0</code></b>, that is, if it arrives with <code>c + 4</code> a power of two. (When the last block is empty there is no wave: the tape just gains a block of 2 at the end, in 17 steps.)</p>
-      <p>The table under the tape shows the wave that runs from the current event: the value <code>c</code> at each block it reaches, and where it turns.</p>
-      <p><span class="tag t-comp">computed</span> found by hand and checked in <code>tests/test_waves.py</code>: every event of the first 10<sup>9</sup> steps against direct simulation, with exact step counts, and the first 2,000 configurations of the proved level 2. Here every event is also checked against the bare machine while the step is small. Lean proves the wave four events at a time (level 4); the single events and their step counts are computed.</p>
+      <p>Level 2 still takes a lot of macro steps to see anything happen. Level 3 looks at the same run from a different angle, and finds a single shape behind it: a <b>wave</b>.</p>
+      <p>Take a snapshot each time the head, in state A, has just arrived at the right end of the tape. Call that moment an <b>event</b>. At every event the tape is simply blocks separated by single 0s. Between one event and the next, the head makes a trip leftward into the tape and back. That trip behaves like a wave carrying a number, which we call <code>c</code>:</p>
+      <ol>
+        <li>The wave starts at the last block: <code>c</code> = (length of the last block) − 1.</li>
+        <li>If <code>c</code> is <b>even</b>, the wave moves on to the next block to the left. Its new value is <b>that block's length + c/2 − 2</b>. Half of <code>c</code> is carried over, which is where the "halving" comes from.</li>
+        <li>If <code>c</code> is <b>odd</b>, the wave <b>turns around</b>, and the head sweeps back to the right end. That is the next event.</li>
+        <li>If the wave gets past the first block, it is on empty tape (block length 0), and it keeps halving there: <code>c → c/2 − 2</code>. <b>If it ever gets down to exactly 0, the machine halts.</b> That happens when the wave arrives with <code>c + 4</code> equal to a power of two.</li>
+      </ol>
+      <p class="note">One special case: if the last block is empty, there is no wave. The tape just gains a block of 2 at its right end.</p>
+    </div>
+    <figure class="fig" aria-label="A worked example of one wave">
+      <div class="scroller"><table class="grid ex">
+        <tr><th>block</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td></tr>
+        <tr><th>length</th><td>1</td><td>4</td><td>3</td><td>6</td><td>8</td><td>14</td><td>8</td><td>1</td></tr>
+        <tr><th>wave c</th><td></td><td></td><td></td><td></td><td></td><td class="wave turn">15</td><td class="wave">6</td><td class="wave">0</td></tr>
+        <tr><th>how</th><td></td><td></td><td></td><td></td><td></td><td class="dim">14 + 6/2 − 2 = 15: odd, turn</td><td class="dim">8 + 0/2 − 2 = 6: even, go on</td><td class="dim">1 − 1 = 0: even, go on</td></tr>
+      </table></div>
+      <figcaption>The event at step 1,331. The wave starts at the right with c = 0, passes two blocks, and turns at block 6, where c = 15 is odd. It never got near the left end, so the machine is safe this time.</figcaption>
+    </figure>
+    <div class="prose">
+      <p>This explains a puzzle from level 0: <b>why the head so rarely reaches the far left of the tape</b>. To get there, the wave has to find an even number at every single block, all the way down. With dozens of blocks, that is like flipping a coin dozens of times and getting heads every time. So most waves turn back after a block or two, and visits to the left end get rarer and rarer: the head reaches new tape on the left at step 2,047,931, and then not again until step 26,618,972,322.</p>
+      <p><b>Try this:</b> press <b>Next event</b> and look at the table: each column is a block, and the green row shows the wave's value at each block it reaches, with an outline where it turns. Then press <b>To the next visit to the left end</b> to jump to the next time the wave makes it all the way, and see how far apart these visits are.</p>
+      <p><span class="tag t-comp">computed</span> This description was found by studying the run, and is checked against the plain machine at every event in the first billion steps, with exact step counts. Lean proves it four events at a time (that is level 4), but not one event at a time.</p>
     </div>
     <div class="bench">
       <div class="readout" aria-live="polite">
@@ -333,11 +522,33 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 
   <!-- ======================= Level 4 ======================= -->
   <section class="level" id="l4" aria-labelledby="h-l4">
-    <div class="lvhead"><span class="lvnum">Level 4</span><h2 id="h-l4">One number: N = 10 + Σ p<sub>l</sub>·2<sup>m−l</sup></h2><span class="tag t-kernel">kernel</span></div>
+    <div class="lvhead"><span class="lvnum">Level 4</span><h2 id="h-l4">One number decides it all</h2><span class="tag t-kernel">proved</span></div>
     <div class="prose">
-      <p>From event 3 on (step 136), every fourth event ends the same way: the tape is <code>[p<sub>1</sub>, …, p<sub>m</sub>, 5, 0]</code>. Four waves later it is again of that form, and the new list <code>P'</code> follows from <code>P</code> by one formula, the <b>super step</b>. Put <code>d<sub>m+1</sub> = 20</code> and, going left, <code>d<sub>l</sub> = p<sub>l</sub> + d<sub>l+1</sub>/2</code>. The wave turns at the last odd <code>d<sub>i</sub></code>, and <code>d</code> gives the new blocks: every block the wave passed (<code>l &gt; i</code>) becomes <code>d<sub>l</sub>/2</code>, block <code>i</code> becomes <code>(d<sub>i</sub> + 5)/2</code>, block <code>i − 1</code> gains <code>(d<sub>i</sub> − 1)/2</code>, and the blocks further left stay as they are (the row <code>P'</code> in the table). If <code>d<sub>2</sub>, …, d<sub>m</sub></code> are all even it reaches the left end, and it halts there if <code>d<sub>1</sub></code> is a power of two.</p>
-      <p>All of that is one number. Read the blocks as binary digits, <code>p<sub>m</sub></code> the units: <b>N = 10 + Σ p<sub>l</sub>·2<sup>m−l</sup></b>. As long as the values to its right are even, <code>d<sub>l</sub>·2<sup>m−l</sup> = 10 + Σ<sub>k≥l</sub> p<sub>k</sub>·2<sup>m−k</sup></code>, the part of N from block <code>l</code> on, so the wave goes <code>v<sub>2</sub>(N) + 1</code> blocks deep (one more than the number of trailing zeros of N), reaches the left end exactly when <code>2<sup>m−1</sup></code> divides N, and <b>the machine halts iff N is a power of two</b>. The chart shows how rarely the wave gets deep: it has to reach the line <code>m</code>.</p>
-      <p><span class="tag t-kernel">kernel</span> Lean proves the super step from the macro map of level 2 (<code>super_run</code>) and that <b>the machine halts from blank tape iff N is ever a power of two</b> along this orbit (<code>halts_iff_pow2'</code>); the <a href="reduction.html#n">write-up</a> has the argument. The machine step counts shown here are computed. Here the super step is also checked against four waves at every step. <span class="tag t-open">open</span> whether N is ever a power of two along the run.</p>
+      <p>One more pattern: <b>every fourth event, the tape ends in the same way</b>, with a block of 5 and then an empty block. So at those moments the tape is a list <code>P = [p<sub>1</sub>, …, p<sub>m</sub>]</code> followed by 5 and 0, and four waves later it is again such a list, <code>P'</code>. Going from <code>P</code> to <code>P'</code> is one <b>super step</b>, and it can be worked out with simple arithmetic.</p>
+      <p><b>Step 1: the wave values d.</b> Start at the right with <code>d = 20</code>, and work leftward: each block's value is <b>its length plus half the value to its right</b>. Stop at the first odd value: that is where the wave turns.</p>
+      <p><b>Step 2: the new list P'.</b> Every block the wave passed becomes <b>half its d</b>. The block where it turned becomes <b>(d + 5) ÷ 2</b>. The block just left of that gains <b>(d − 1) ÷ 2</b>. Blocks further left are untouched.</p>
+    </div>
+    <figure class="fig" aria-label="A worked example of one super step">
+      <div class="scroller"><table class="grid ex">
+        <tr><th>block</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td class="dim">end</td></tr>
+        <tr><th>p (length)</th><td>1</td><td>4</td><td>3</td><td>6</td><td>17</td><td>12</td><td class="dim">5, 0</td></tr>
+        <tr><th>d</th><td class="dim">·</td><td class="dim">·</td><td class="wave turn odd">3 + 20/2 = 13</td><td class="wave">6 + 28/2 = 20</td><td class="wave">17 + 22/2 = 28</td><td class="wave">12 + 20/2 = 22</td><td class="wave">20</td></tr>
+        <tr><th>P'</th><td class="dim">1</td><td>4 + 6 = 10</td><td class="turn">(13 + 5)/2 = 9</td><td>20/2 = 10</td><td>28/2 = 14</td><td>22/2 = 11</td><td class="dim">5, 0</td></tr>
+      </table></div>
+      <figcaption>Super step 3 of the run. The values 22, 28 and 20 are even, so the wave passes blocks 6, 5 and 4 and turns at block 3, where d = 13 is odd. Block 2 gains (13 − 1)/2 = 6. Result: P' = [1, 10, 9, 10, 14, 11].</figcaption>
+    </figure>
+    <div class="prose">
+      <p><b>The key observation.</b> "Halve and add, and stop at the first odd number" is exactly what happens when you read the list as one big binary number. Treat each block as a digit in binary, with the last block as the units, and add 10:</p>
+      <p class="formula">N = 10 + p<sub>m</sub> + 2·p<sub>m−1</sub> + 4·p<sub>m−2</sub> + 8·p<sub>m−3</sub> + …</p>
+      <p>For the example above, N = 10 + 12 + 2·17 + 4·6 + 8·3 + 16·4 + 32·1 = 200, which is <code>11001000</code> in binary. It ends in three 0s, and the wave went 3 + 1 = 4 blocks deep. That is true in general:</p>
+      <ul>
+        <li>The wave goes <b>(number of 0s at the end of N in binary) + 1</b> blocks deep.</li>
+        <li>So it reaches the left end only when N ends in at least <code>m − 1</code> zeros, where <code>m</code> is the number of blocks. With 30 blocks, that is like flipping a coin and getting 29 heads in a row.</li>
+        <li>And <b>the machine halts if and only if N is a power of two</b>, which in binary is a single 1 followed by nothing but 0s.</li>
+      </ul>
+      <p>So the whole question, "does this machine ever stop?", has become: <b>as the super steps go on, does N ever land exactly on a power of two?</b> N is already above 10<sup>20</sup> and keeps growing. Powers of two are very sparse among numbers that size, which is why it almost certainly never happens. But nobody has a proof, and questions like this one, about whether a simple number sequence ever hits a target, are famously hard (the Collatz problem is one).</p>
+      <p><b>Try this:</b> press <b>Next super step</b> and compare the table with the steps above: the <b>d</b> row is computed right to left, the turn is outlined, and the <b>P'</b> row shows the new list under the blocks it came from. The <b>N</b> panel shows N in binary with its trailing zeros in green, and the bar shows how close they come to reaching the left end. The chart below tracks how deep each wave went (bars) against the number of blocks (line). A bar only touches the line when the wave reaches the left end. Press <b>To the next visit to the left end</b> to see one. To see a halt, type <code>1, 4</code> in the box at the bottom and press <b>Start here</b>: N = 10 + 4 + 2·1 = 16, a power of two.</p>
+      <p><span class="tag t-kernel">proved</span> Lean proves the super step for every list, and that <b>the machine halts if and only if N is a power of two at some super step</b> (<code>halts_iff_pow2'</code>; the <a href="reduction.html#n">write-up</a> explains the argument). The machine step counts shown here are computed, not proved. <span class="tag t-open">open</span> Whether N ever is a power of two.</p>
     </div>
     <div class="bench">
       <div class="readout" aria-live="polite">
@@ -345,7 +556,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <div><span class="k">event</span><span class="v" id="l4-ev">3</span></div>
         <div><span class="k">machine step</span><span class="v" id="l4-t">136</span></div>
         <div><span class="k">m (blocks)</span><span class="v" id="l4-m"></span></div>
-        <div><span class="k">four waves agree</span><span class="v" id="l4-check">–</span></div>
+        <div><span class="k">same as four waves</span><span class="v" id="l4-check">–</span></div>
       </div>
       <div class="scroller"><table class="grid" id="l4-grid" aria-label="The blocks p and the values d"></table></div>
       <div class="cols2">
@@ -362,7 +573,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         </div>
       </div>
       <details>
-        <summary>N as a sum of shifted blocks</summary>
+        <summary>N written out as a binary sum of the blocks</summary>
         <pre id="l4-sum"></pre>
       </details>
       <canvas class="chart" id="l4-chart" aria-label="Depth of the wave at each of the last super steps, against m"></canvas>
@@ -377,9 +588,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <button id="l4-stop" disabled>Stop</button>
       </div>
       <div class="controls">
-        <label class="note">Start from P = <input type="text" id="l4-p" value="1, 4" style="width: 12em"></label>
+        <label class="note">Start from your own list P = <input type="text" id="l4-p" value="1, 4" style="width: 12em"></label>
         <button id="l4-custom">Start here</button>
-        <span class="note">[1, 4] gives N = 16, a power of two: the wave reaches the left end and the machine halts.</span>
+        <span class="note">[1, 4] gives N = 16, a power of two, so the machine halts.</span>
       </div>
       <p class="note" id="l4-msg"></p>
       <div class="log" id="l4-visits" aria-label="Visits to the left end"></div>
@@ -387,7 +598,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   </section>
 
   <footer>
-    <p>Everything on this page runs in your browser. The engine is the same map as <code>py/macro.py</code> and <code>py/waves.py</code> in <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/bb6-1RB1RA_1RC1LB"><code>bb6-1RB1RA_1RC1LB</code></a>, and <code>tests/test_explainer.py</code> checks it against them and against the bare machine. What each level rests on: <a href="reduction.html">the write-up</a> and <a href="proof-status.html">the proof status</a>.</p>
+    <p>Everything on this page runs in your browser. The simulators follow the same rules as <code>py/macro.py</code> and <code>py/waves.py</code> in <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/bb6-1RB1RA_1RC1LB"><code>bb6-1RB1RA_1RC1LB</code></a>, and <code>tests/test_explainer.py</code> checks them against those programs and against the plain machine. For the precise statements and proofs, see <a href="reduction.html">the write-up</a> and <a href="proof-status.html">the proof status</a>.</p>
     <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
   </footer>
 </main>
@@ -1029,9 +1240,9 @@ if (typeof module !== "undefined") module.exports = BB;
         });
         const last = r.levels[r.levels.length - 1];
         const depth = r.levels.length;
-        if (r.halted) say = `The wave reaches the left end and halves down to c = 0 there: <b>the machine halts</b>, ${fmt(r.t)} steps after this event.`;
-        else if (r.levels.some(l => l.i === 0)) say = `The wave passes every block and reaches the left end (new tape), halving c there: ${r.levels.filter(l => l.i === 0).map(l => l.c).join(" → ")}. None reaches c = 0 (c + 4 a power of two), so the machine goes on.`;
-        else say = `The wave halves ${depth} block${depth > 1 ? "s" : ""} and turns at block ${last.i + 1}, where c = ${last.c} is ${last.does === "turn" ? "odd" : "a block of 1"}; then A sweeps back to the right end (${fmt(r.t)} steps in all).`;
+        if (r.halted) say = `The wave reaches the left end and halves all the way down to c = 0: <b>the machine halts</b>, ${fmt(r.t)} steps after this event.`;
+        else if (r.levels.some(l => l.i === 0)) say = `The wave from this event gets past every block and reaches the left end, then keeps halving on empty tape: c = ${r.levels.filter(l => l.i === 0).map(l => l.c).join(" → ")}. It stops at an odd number instead of reaching exactly 0, so the machine goes on.`;
+        else say = `The wave from this event (green) starts at the last block and turns at block ${last.i + 1}, ${depth > 1 ? `${depth - 1} block${depth > 2 ? "s" : ""} further left, ` : ""}where c = ${last.c} is ${last.does === "turn" ? "odd" : "a block of 1"}. Then the head sweeps back to the right end: the next event comes ${fmt(r.t)} steps later.`;
         $("l3-depth").textContent = r.levels.some(l => l.i === 0) ? `to the left end` : `${depth} block${depth > 1 ? "s" : ""} deep`;
       }
       if (!r || r.trailing) $("l3-depth").textContent = st.halted ? "halted" : "no wave";
@@ -1107,10 +1318,10 @@ if (typeof module !== "undefined") module.exports = BB;
       $("l4-ev").textContent = st.custom ? "–" : fmt(3 + 4 * st.s);
       $("l4-t").textContent = fmt(st.t) + (st.custom ? " (from your start)" : "");
       $("l4-m").textContent = m;
-      $("l4-check").innerHTML = st.check === null ? "–" : st.check ? '<span class="ok">✓</span> on the last super step' : '<span class="bad">✗ differs</span>';
+      $("l4-check").innerHTML = st.check === null ? "–" : st.check ? '<span class="ok">✓</span> the formula and four waves agree' : '<span class="bad">✗ differs</span>';
       // Grid: l, p_l, d_l, with the wave's columns marked.
       const turn = s.kind === "turn" ? s.turn : 1;
-      let h = "<tr><th>block l</th>" + P.map((_, i) => `<td class="dim">${i + 1}</td>`).join("") + `<td class="dim">m+1</td></tr>`;
+      let h = "<tr><th>block</th>" + P.map((_, i) => `<td class="dim">${i + 1}</td>`).join("") + `<td class="dim">m+1</td></tr>`;
       h += "<tr><th>p</th>" + P.map(p => `<td>${fmt(p)}</td>`).join("") + `<td class="dim">5, 0</td></tr>`;
       h += "<tr><th>d</th>" + P.map((_, i) => {
         const l = i + 1;
@@ -1142,18 +1353,19 @@ if (typeof module !== "undefined") module.exports = BB;
       $("l4-meter").style.width = `${need ? Math.min(100, 100 * v / need) : 100}%`;
       $("l4-meter-say").innerHTML = BB.isPow2(N)
         ? `<span class="bad">N = 2${sup(bin.length - 1)} is a power of two: the machine halts in this super step.</span>`
-        : `v<sub>2</sub>(N) = ${v} trailing zero${v === 1 ? "" : "s"}, so the wave goes ${Math.min(v + 1, m)} block${v ? "s" : ""} deep. Reaching the left end needs m − 1 = ${need}.`;
+        : `In binary, N ends in ${v} zero${v === 1 ? "" : "s"}, so the wave goes ${Math.min(v + 1, m)} block${Math.min(v + 1, m) > 1 ? "s" : ""} deep. To reach the left end it would need ${need} zero${need === 1 ? "" : "s"} (one fewer than the number of blocks); the bar shows how close it is.`;
       // The outcome.
       let o;
-      if (s.kind === "turn") o = `<div>The last odd d<sub>i</sub> is at i = ${s.turn}: the wave goes ${s.depth} block${s.depth > 1 ? "s" : ""} deep (v<sub>2</sub>(N) + 1 = ${v + 1}) and turns.</div>`;
-      else {
-        o = `<div>d<sub>2</sub>, …, d<sub>m</sub> are all even: <b>the wave reaches the left end</b> (2<sup>m−1</sup> divides N). There d<sub>1</sub> = ${fmt(s.d[1])} = 2${sup(s.s)}·${s.u}.</div>`;
-        o += s.kind === "halt" ? `<div><span class="bad">u = 1: d<sub>1</sub> is a power of two, the wave halves down to 0 and the machine halts.</span></div>`
-          : s.kind === "F" ? `<div>u = 3: the head visits the left end in state F; ${s.s} new block${s.s === 1 ? "" : "s"} on the left.</div>`
-          : `<div>u = ${s.u} ≥ 5: the tape grows by ${s.s + 1} block${s.s ? "s" : ""} on the left.</div>`;
+      const sub = k => `d<sub>${k}</sub>`;
+      if (s.kind === "turn") {
+        const i = s.turn;
+        o = `<div>Working leftward from 20, the first odd value is ${sub(i)} = ${fmt(s.d[i])}, at block ${i}. So the wave passes ${s.depth - 1} block${s.depth === 2 ? "" : "s"}, turns at block ${i}, and goes ${s.depth} deep in all (N ends in ${v} zero${v === 1 ? "" : "s"}, plus one).</div>`;
+        o += `<div>The new list P' (bottom row of the table): ${i < m ? `each block the wave passed becomes half its d; ` : ""}block ${i} becomes (${fmt(s.d[i])} + 5)/2 = ${fmt((s.d[i] + 5) / 2)}; block ${i - 1} gains (${fmt(s.d[i])} − 1)/2 = ${fmt((s.d[i] - 1) / 2)}${i > 2 ? "; blocks further left stay as they are" : ""}.</div>`;
+      } else {
+        o = `<div>Every value from block 2 on is even, so <b>the wave reaches the left end</b> (in binary, N ends in at least ${m - 1} zeros). There it keeps halving ${sub(1)} = ${fmt(s.d[1])}${s.s ? `, which is 2${sup(s.s)} × ${s.u}: it can be halved ${s.s} time${s.s === 1 ? "" : "s"} before an odd number, ${s.u}, is left` : `, which is already odd`}.</div>`;
+        o += s.kind === "halt" ? `<div><span class="bad">Only 1 is left: ${sub(1)} is a power of two, the wave halves all the way down, and the machine halts.</span></div>`
+          : `<div>${s.u} is not 1, so the machine does not halt. The tape grows by ${s.s + 1} new block${s.s ? "s" : ""} on the left${s.kind === "F" ? " (and the head briefly visits the left end in state F)" : ""}, and every block the wave passed becomes half its d.</div>`;
       }
-      if (s.kind === "turn") o += `<div>Then P' (last row of the table): blocks left of block ${s.turn - 1} stay; block ${s.turn - 1} gains (d<sub>${s.turn}</sub> − 1)/2 = ${fmt((s.d[s.turn] - 1) / 2)}; block ${s.turn} becomes (d<sub>${s.turn}</sub> + 5)/2 = ${fmt((s.d[s.turn] + 5) / 2)}; ${s.turn < m ? `each block to its right becomes half its d.` : "there are no blocks to its right."}</div>`;
-      else if (s.next) o += `<div>Then P' is the new blocks ((u−1)/2, (u+5)/2, u, 2u, …, 2<sup>s−1</sup>u), followed by d<sub>2</sub>/2, …, d<sub>m</sub>/2: every block the wave passed is replaced by half its d.</div>`;
       if (s.next) o += `<div class="mono">P' = ${esc(list(s.next, 14))}</div>`;
       $("l4-out").innerHTML = o;
       // N as a sum.
@@ -1234,6 +1446,21 @@ if (typeof module !== "undefined") module.exports = BB;
     reset();
   })();
   void L4;
+
+  // ======================= Figures =======================
+  // Block strips for the fixed examples in the text, drawn by the same engine.
+  document.querySelectorAll("[data-demo]").forEach(el => renderStrip(el, tokensFromPicture(BB.rulePicture(JSON.parse(el.dataset.demo)))));
+  document.querySelectorAll("[data-macro]").forEach(el => {
+    const next = BB.macroStep(JSON.parse(el.dataset.macro)).next;
+    renderStrip(el, tokensFromPicture(next.kind === "halt" ? next.pic : BB.rulePicture(next)));
+  });
+  // X([4, 1], 6, [2, 3]) with each part labelled.
+  {
+    const parts = [[[["b", 1]], "ls<br>2nd"], [[["z", 1]], ""], [[["b", 4]], "ls<br>1st"], [[["z", 1]], ""],
+      [[["h", 1, "A"], ["b", 5]], "n = 6", true], [[["z", 3]], ""], [[["b", 2]], "cs<br>1st"], [[["z", 2]], ""], [[["b", 3]], "cs<br>2nd"]];
+    $("anat").innerHTML = parts.map(([, lab, key], i) => `<div class="ai${key ? " key" : ""}"><div class="strip" id="anat-${i}"></div><span class="lab">${lab}</span></div>`).join("");
+    parts.forEach(([toks], i) => renderStrip($(`anat-${i}`), toks));
+  }
 })();
 </script>
 </body>
