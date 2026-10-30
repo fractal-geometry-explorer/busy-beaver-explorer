@@ -11,6 +11,7 @@ Fonts and fall back to system fonts offline. `index.html` is a landing page that
 | [`mark-rule-stepper.html`](mark-rule-stepper.html) | the holdout | steps the mark rules one round at a time from a tape you choose; on small tapes each round is also run on the bare machine and compared |
 | [`1RB1RA_1RC1LB/proof-status.html`](1RB1RA_1RC1LB/proof-status.html) | the machine `1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB` | its proof status: what is proved in Lean, computed, or only observed, from [`../bb6-1RB1RA_1RC1LB`](../bb6-1RB1RA_1RC1LB) |
 | [`1RB1RA_1RC1LB/reduction.html`](1RB1RA_1RC1LB/reduction.html) | the same machine | the reduction from the machine to "is N = 10 + Σ p_l·2^(m−l) ever a power of two?", link by link, with what each link rests on and a section to update as the open work lands |
+| [`1RB1RA_1RC1LB/top-blocks.html`](1RB1RA_1RC1LB/top-blocks.html) | the same machine | where halting is decided: the number d1 at each return to the left end, the theorem that N only grows, the corrected odds of a halt, the law of N mod 2^k, and tests of the random model from 60,000 starts |
 | [`1RB1RA_1RC1LB/explainer.html`](1RB1RA_1RC1LB/explainer.html) | the same machine | runs the machine at six levels (raw steps, block rules, the macro step, the halving wave, the number N, and the cycles of the last blocks), each checked against the bare machine or the models where the step is small enough |
 | [`1RB1RA_1LC1LD/proof-status.html`](1RB1RA_1LC1LD/proof-status.html) | the machine `1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB` | its proof status, from [`../bb6-1RB1RA_1LC1LD`](../bb6-1RB1RA_1LC1LD) |
 | [`champion-rule-map.html`](champion-rule-map.html) | the BB(6) champion `1RB1RA_1RC1RZ_1LD0RF_1RA0LE_0LD1RC_1RA0RE` (mxdys, 2025) | what each of the champion's twelve rules does, sorted into routines |
@@ -45,7 +46,7 @@ here, and at the move both builders reproduced the committed pages byte for byte
 `../bb6-1RB1RA_1RC1LB/status.json`; `1RB1RA_1LC1LD/proof-status.html` the same way from
 `../bb6-1RB1RA_1LC1LD/status.json`. Edit the JSON and rebuild.
 
-`1RB1RA_1RC1LB/reduction.html` and `1RB1RA_1RC1LB/explainer.html` are written by hand. The reduction's section "What is
+`1RB1RA_1RC1LB/reduction.html`, `1RB1RA_1RC1LB/top-blocks.html` and `1RB1RA_1RC1LB/explainer.html` are written by hand. The reduction's section "What is
 proved, what is trusted, what is heuristic" (marked `STATUS` in the HTML) is the part to update when a result changes,
 together with `status.json`. The explainer's engine is the `<script id="engine">` block;
 `../bb6-1RB1RA_1RC1LB/tests/test_explainer.py` runs it in Node against `py/macro.py`, `py/waves.py` and the reference

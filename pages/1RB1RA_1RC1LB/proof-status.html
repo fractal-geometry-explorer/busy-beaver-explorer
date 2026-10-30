@@ -131,6 +131,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>superL_none_iff</code>, <code>wave_none_iff</code>, <code>lean/Wave.lean</code></p>
       </div>
       <div class="card">
+        <h3>N only grows</h3>
+        <p>N strictly increases at every super step that does not halt, so along the orbit from blank tape it is strictly increasing and meets each power of two at most once. Where the wave turns at block i (j = m &minus; i) N gains more than 2<sup>j+1</sup>; at a return it is multiplied by more than (3 + s)/2. Since m is fixed between returns, the next return's d<sub>1</sub> exceeds p<sub>1</sub> + p<sub>2</sub>/2 + p<sub>3</sub>/4 + &hellip; for the blocks at any time before it.</p>
+        <p class="where"><code>superL_grows</code>, <code>orbit_grows</code>, <code>blank_orbit_grows</code> (with <code>leftEnd_grows</code>, <code>wave_grows</code>), <code>lean/Monotone.lean</code></p>
+      </div>
+      <div class="card">
         <h3>The machine halts iff the macro run does</h3>
         <p>With X(ls, n, cs) = 0<sup>∞</sup> 1<sup>l<sub>r</sub></sup> 0 … 0 1<sup>l<sub>1</sub></sup> 0 A&gt; 1<sup>n</sup> 000 1<sup>c<sub>1</sub></sup> 00 … 00 1<sup>c<sub>s</sub></sup> 0<sup>∞</sup>, the run from blank tape is at X([1], 2, []) after 15 steps, and from every X the machine goes where the list function <code>next</code> says, in exactly the steps it says (<code>next_sound</code>). Every reachable X is well formed, so the machine halts from blank tape iff the macro run <code>runM</code> reaches a halt (<code>halts_iff</code>).</p>
         <p class="where"><code>halts_iff</code>, <code>next_sound</code>, <code>runM_sound</code>, <code>lean/Macro.lean</code></p>
@@ -216,6 +221,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Numbering the blocks from the right, block k only receives an add or a wave from block k&minus;1 and passes one on, so the last k blocks are a closed system. Each wave halves a block, and they fall into exact cycles: the last block 11 &rarr; 13 &rarr; 14 &rarr; 12, the last two with period 8, the last 20 with period 1.7&middot;10<sup>10</sup>, the last 44 with period 1.8&middot;10<sup>21</sup> super steps (each a 2<sup>a</sup>&middot;5<sup>b</sup>). The search checks each cycle before using it. That every level either cycles or goes silent is now proved in Lean (above), and so is the rule for the factors; the periods of the last 1 to 30 blocks are kernel-checked (above), and beyond those they are computed. Every one of the 44 factors is the one the mod-5 rule predicts, and from the fourth block on a settled block remembers only its residue mod 5 from one period to the next.</p>
         <p class="where"><code>c/superrun.c</code> (lines <code>table</code> of <code>runs/superrun_long.txt</code>; <code>-r</code> and <code>runs/periods_rules.txt</code> for the rule), <code>notes/LAB_NOTES.md</code></p>
       </div>
+      <div class="card">
+        <h3>The next return needs 2<sup>80</sup> | d<sub>1</sub></h3>
+        <p>At the end of the long run (super step 6&middot;10<sup>23</sup>) the top four blocks give p<sub>1</sub> + p<sub>2</sub>/2 + p<sub>3</sub>/4 + p<sub>4</sub>/8 = 1.18&middot;10<sup>24</sup> = 2<sup>79.96</sup>, so by <code>orbit_grows</code> the next return halts only if d<sub>1</sub> = 2<sup>a</sup> with a &ge; 80.</p>
+        <p class="where"><code>py/top_stats.py odds</code>; the blocks from <code>c/superrun.c</code> (<code>runs/superrun_long.txt</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The law of N mod 2<sup>k</sup> at the right end</h3>
+        <p>N mod 2<sup>k</sup> depends only on the last k blocks, which cycle; over one exact period of the last 18 (1,048,576,000 super steps) v<sub>2</sub>(N) = j occurs 1, 0.5, 1.25, 1.75, 2.13, 1.44, &hellip; times 2<sup>&minus;(j+1)</sup>, then near 1.28; the next bit given the lower ones is off from a fair coin by 0.07 on average at bit 4 and 0.0018 at bit 17, so the 2-adic law of N has a density (no class above 3.5 times uniform); and N is never 3030 or 4054 mod 2<sup>12</sup>, the only residues mod 2<sup>18</sup> it misses.</p>
+        <p class="where"><code>c/bottom2adic.c</code>, <code>runs/bottom2adic_18.txt</code>, <code>tests/test_top.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -231,8 +246,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Almost certainly no halt</h3>
-        <p>At a return the deciding number d<sub>1</sub> is now about 1.9&middot;10<sup>27</sup> and has grown by about 2.4 bits per return; if it behaved like a random integer, the chance of ever hitting a power of two from here would be about 10<sup>&minus;27</sup>. The rule for the periods explains the last blocks completely but gives no obstruction: halting is decided at the top, where the blocks are young. N shows no modular obstruction (see below).</p>
-        <p class="where"><code>notes/LAB_NOTES.md</code></p>
+        <p>At a return the deciding number d<sub>1</sub> is now about 1.9&middot;10<sup>24</sup> (81 bits) and has grown by about 2.1 bits per return; if it behaved like a random integer, the chance of ever hitting a power of two from here would be about 5&middot;10<sup>&minus;25</sup> (10% to 90% over resampled futures: 5&middot;10<sup>&minus;26</sup> to 1.4&middot;10<sup>&minus;24</sup>). Earlier versions said 1.9&middot;10<sup>27</sup> and 10<sup>&minus;27</sup>, from a miscounted d<sub>1</sub>. The rule for the periods explains the last blocks completely but gives no obstruction: halting is decided at the top, where the blocks are young. N shows no modular obstruction (see below).</p>
+        <p class="where"><code>py/top_stats.py odds</code>, <code>runs/odds.txt</code>, <code>pages/1RB1RA_1RC1LB/top-blocks.html</code></p>
+      </div>
+      <div class="card">
+        <h3>The random model holds on the map within a factor of about 2</h3>
+        <p>From 60,000 random starts (522,749 returns, d<sub>1</sub> up to 2<sup>30</sup>) the super step halts 2,018 times against 2,023.7 predicted by 1/(d<sub>1</sub> ln 2). Near-halts (odd part of d<sub>1</sub> below 2<sup>c</sup>, c &le; 20) come at 0.4 to 1.4 times the predicted rate at every scale; v<sub>2</sub>(d<sub>1</sub>) is geometric within 3% up to 7 and about 15% short beyond (about 3&sigma;); d<sub>1</sub>'s residues and leading bits are within a few percent of uniform. On the blank-tape orbit, waves pass each of the top 24 blocks half the time (0.4998 to 0.5006 where over 10<sup>5</sup> waves reach them).</p>
+        <p class="where"><code>c/ensemble.c</code>, <code>py/top_stats.py</code>, <code>runs/ensemble_summary.txt</code>, <code>runs/toppass_1e17.txt</code>; <code>pages/1RB1RA_1RC1LB/top-blocks.html</code></p>
       </div>
       <div class="card">
         <h3>No invariant keeps N off the powers of two</h3>
@@ -252,7 +272,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>bash scripts/setup-lean.sh                  # Lean 4.34.0, core only
 . /etc/profile.d/lean.sh
-bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave, WaveTime, Cascade, CascadeRun, Cycles, Periods (about 6 min)
+bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave, Events, DeepMind, Monotone, WaveTime, Cascade, CascadeRun, Cycles, Periods (about 6 min)
 bb6-1RB1RA_1RC1LB/lean/check_orbit.sh all   # the long runs in parallel (about 3 CPU hours kernel, 6 native)
 bb6-1RB1RA_1RC1LB/lean/check_cycles.sh 30 4  # the tables of 30 levels in pieces, kernel only (about 4 CPU hours)
 python3 tools/tests/test_tools.py           # the shared tools
@@ -260,7 +280,9 @@ python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB/py/macro.py 50    # the macro run
 python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py   # the wave model against direct simulation (about 25 s)
 python3 bb6-1RB1RA_1RC1LB/tests/test_superrun.py   # the tabulated search against blkrun, waves.py and Python (about 20 s)
-python3 bb6-1RB1RA_1RC1LB/py/n_search.py residues 4000000   # the invariant search (also: digits, starts)</code></pre>
+python3 bb6-1RB1RA_1RC1LB/py/n_search.py residues 4000000   # the invariant search (also: digits, starts)
+python3 bb6-1RB1RA_1RC1LB/tests/test_top.py      # the ensemble and 2-adic tools against waves.py (seconds)
+python3 bb6-1RB1RA_1RC1LB/py/top_stats.py odds    # the next return&#x27;s floor and the odds of a halt</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>bb6-1RB1RA_1RC1LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>
