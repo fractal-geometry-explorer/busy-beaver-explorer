@@ -81,8 +81,9 @@ something special about the blank-tape orbit.
 
 It is an open holdout, unannotated in the community ledger's "Cubic Mess" class, and not a named cryptid. Google
 DeepMind's [cryptids](https://github.com/google-deepmind/cryptids) repository lists it as an open problem with a Lean
-reduction to a map on stacks of block lengths (27 October 2026), the level of `lean/Macro.lean`; nothing found goes
-as far as the criterion on N. Its map is not Antihydra's or Hydra's. One machine merged into an equivalence class by
+reduction to a map on stacks of block lengths (27 October 2026): the macro step cut at other moments, and a
+higher-level map that is exactly the event map of `py/waves.py`, one level below the super step (`py/deepmind.py`
+checks both). Nothing found goes as far as the super step's formula or the criterion on N. Its map is not Antihydra's or Hydra's. One machine merged into an equivalence class by
 bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same tapes. Details and sources:
 [`notes/PRIOR_WORK.md`](notes/PRIOR_WORK.md).
 
@@ -110,6 +111,7 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `py/waves.py` | the wave model: the run in another cut, and the super step with N, exact step counts |
 | `py/n_search.py` | the search for an invariant that keeps N off the powers of two |
+| `py/deepmind.py` | lines up google-deepmind/cryptids' stack map and its high-level map with `py/macro.py` and `py/waves.py` |
 | `py/sibling.py` | checks that `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, merged by bbchallenge into an equivalence class, runs as this machine does |
 | `c/blkrun.c` | the wave model in C, for runs far beyond direct simulation |
 | `c/orbitck.c` | the super orbit with `superT`, for the checkpoints of `lean/Orbit/` (not trusted: Lean recomputes them) |
