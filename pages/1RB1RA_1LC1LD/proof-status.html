@@ -80,7 +80,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps. These are floors, not the way to an answer.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>11</sup> steps. These are floors, not the way to an answer.</p>
       <p><b>Where a halt would come from.</b> The only halting transition is E0, and E is entered only from D reading a 0, which writes a 1 and moves right. So the machine halts exactly when D reads a 0 with a 0 to its right (proved in Lean). At the left end of the tape D keeps arriving on a 0, but in the first 3&middot;10<sup>9</sup> steps (1,382 visits, C simulator) always with a 1 to its right.</p>
     </div>
   </section>
@@ -117,8 +117,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>10</sup> steps</h3>
-        <p>The shared C simulator runs 10<sup>10</sup> steps from blank tape without a halt; the tape then holds 5,580 ones and the head has visited 6,278 cells. The C simulator agrees with the Python reference simulator on the first 80 records of the run (a test).</p>
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>The shared C simulator runs 10<sup>11</sup> steps from blank tape without a halt (12,410 ones at the end; at 10<sup>10</sup> steps 5,580 ones and 6,278 cells visited). The C simulator agrees with the Python reference simulator on the first 80 records of the run (a test).</p>
         <p class="where"><code>tools/c/tmrun.c</code>, <code>tests/test_machine.py</code></p>
       </div>
       <div class="card">

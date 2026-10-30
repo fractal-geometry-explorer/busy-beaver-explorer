@@ -20,7 +20,7 @@ The table, with the halting transition E0:
 a 0 whose right neighbour is 0 (`halt_shape`, kernel). A sweeps right over 1s (A1 = 1RA) and turns at the first 0.
 
 **Bounded runs.** No halt in 20,000 steps (kernel), 10⁷ (`native_decide`), 10¹⁰ (C `tmrun`, 5,580 ones, 6,278
-cells visited).
+cells visited), 10¹¹ (C, 12,410 ones, about 9 minutes).
 
 **No linear invariant.** `bbtools.invariants` finds no conserved a·ones + b·pos + W[state] modulo 2 to 12.
 

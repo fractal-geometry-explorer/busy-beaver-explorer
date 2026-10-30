@@ -12,7 +12,7 @@ the first 20,000 steps (`blank_runs_20000`).
 
 **Proved in Lean with `native_decide`**: no halt in the first 10,000,000 steps (`blank_runs_10M`).
 
-**Computed** (trusted C/Python, tested): no halt in the first 10¹⁰ steps (`tools/c/tmrun.c`); no conserved
+**Computed** (trusted C/Python, tested): no halt in the first 10¹¹ steps (`tools/c/tmrun.c`); no conserved
 a·ones + b·pos + W[state] modulo 2 to 12 (`tools/py/bbtools/invariants.py`).
 
 **Observed only**: the width grows like the square root of the step count; the left of the tape fills with `1^2 0`
