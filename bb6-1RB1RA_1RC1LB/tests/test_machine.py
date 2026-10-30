@@ -35,6 +35,17 @@ class TestGenerated(unittest.TestCase):
         with open(os.path.join(ROOT, "lean", "Rules.lean")) as f:
             self.assertEqual(f.read(), out)
 
+    def test_orbit_current(self):
+        """The first file of the chunked orbit check (lean/Orbit/K00.lean) is what lean/orbit_gen.py writes."""
+        sys.path.insert(0, os.path.join(ROOT, "lean"))
+        import orbit_gen
+        n, k = orbit_gen.KERNEL_CHUNK, orbit_gen.KERNEL_PER_FILE
+        cks = [([6, 1], 136)] + [(P, T) for _, T, P in orbit_gen.checkpoints(n, k)]
+        src, _ = orbit_gen.segment("k00", [(n, cks[i], cks[i + 1]) for i in range(k)], "decide +kernel",
+                                   "Checked by Lean's kernel")
+        with open(os.path.join(ROOT, "lean", "Orbit", "K00.lean")) as f:
+            self.assertEqual(f.read(), src)
+
     def test_page_current(self):
         sys.path.insert(0, os.path.join(TOOLS, "pages"))
         import json

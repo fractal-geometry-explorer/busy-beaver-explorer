@@ -267,3 +267,41 @@ The proofs follow the macro run without step counts (`Res`), so the step counts 
 still computed, not proved. `superstep` is checked by `decide` against the examples in `waves.py`.
 
 **Open, now exactly**: whether N is ever a power of two along the orbit from (1, 6).
+
+## October 30, 2026: the step count of the super step, proved, and the orbit checked to 10²⁴ steps
+
+**Proved in Lean, kernel only** (`lean/WaveTime.lean`, standard axioms): `super_steps`. From the tape [P, 5, 0] the
+machine reaches [P', 5, 0] in exactly `superT` steps, or, if the super step halts, makes exactly that many steps and
+then the halting transition. In the cut of `Macro.lean` (L = [p_m, …, p_1]):
+
+    superT = 200 + Σ_{blocks passed, d = 2q even} (2q² + q − 5) + (2q² + 4q + 17 + A)   at the turn, d = 2q + 1,
+
+with A = 3 + Σ (q + 1) over the blocks passed (the sweep back over the blocks the wave left on the right). At the left
+end the wave goes on with p = 0, and the halt (d = 4 there, the last block of 2) costs 11. The first 200 steps are five
+macro steps (164) and the transfers before the first carry (36). The proof follows `carry_wave` again, now with
+`runFrom` and its times (`Reach`, `carry_wave_t`, `carry_left_t`); the only new fact is the sweep's time
+(`sweep_pre_t`: m + 6 + c0 + 3e + Σ (r + 2)). The formula equals the sum of `waves.py`'s four macro steps on 300,000
+super steps, and the search thread's independent closed form (210 + Σ g(d) …) on the same steps (**computed**).
+
+`orbitT` runs the super orbit with the time, tail recursive. `orbitT_steps`: if the machine is at [L, 5, 0] after t
+steps, it is at the end of `orbitT j L t` after the step it gives. `runs_of_orbitT` makes that a no-halt bound from the
+tape [1, 6, 5, 0] at step 136 (`orbit_start`).
+
+**The orbit, checked in chunks.** `lean/orbit_gen.py` cuts the orbit at checkpoints computed by `c/orbitck.c` (the same
+super step and step count in C, about 50 million super steps a second) and writes one theorem per chunk,
+`orbitT n P T = some (P', T')`, so Lean recomputes everything and the checkpoints are not trusted. Each file chains
+its chunks with `orbitT_trans`, so `lean/check_orbit.sh` checks the files in parallel.
+
+- **Lean, kernel only**: `blank_runs_1_4e16`, no halt in the first 1.4·10¹⁶ steps: 10⁷ super steps in 1,000 chunks of
+  10⁴, `decide +kernel`, 3,030 s on three cores. The kernel needs about 1 ms per super step; chunks much longer than
+  2·10⁴ slow down sharply (10⁵ did not finish in 10 minutes), hence the many short ones.
+- **Lean, `native_decide`**: `blank_runs_1e24`, no halt in the first 10²⁴ steps: 9.9·10¹⁰ super steps, the kernel's
+  10⁷ then 99 chunks of up to 10⁹, ending at step 1,020,655,748,109,356,278,914,592. `check_orbit.sh` compiles the
+  modules the chunks call to C with the same `lean -c` and links them with `leanc` (what Lake's `precompileModules`
+  does), and loads the library with `--load-dynlib`: about 250 ns per super step against several µs interpreted;
+  the 99 chunks take about 6 CPU hours (`set_option maxHeartbeats 0`: compiled evaluation counts against the limit). This
+  covers the C run of the wave model to 3.7·10²² steps, whose step count was the unproved part.
+
+The search thread built a faster route on top of `WaveTime.lean` (tabulating the periodic bottom blocks, PR #124: no
+halt in 4.4·10³⁷ steps with `native_decide`); the direct check here is the simple independent one, resting only on
+`orbitT`.

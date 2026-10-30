@@ -9,11 +9,11 @@
     "The run's structure is now proved in two layers. Lean has the machine as an explicit map on lists of block lengths, and a theorem that the machine halts exactly when that map's run reaches one specific shape. Read four macro steps at a time, that map is a carry wave running left through the blocks, and Lean now also proves that the halting shape is one arithmetic event: a single number built from the blocks being a power of two. What is open is whether it ever is.",
     "<a href=\"reduction.html\">The reduction</a> walks through this link by link; <a href=\"explainer.html\">level by level</a> runs the machine in the browser at each level."
   ],
-  "asof": "Status as of 29 October 2026.",
+  "asof": "Status as of 30 October 2026.",
   "verdict": [
     "<b>The question is open, and it is now a question about a list map.</b> Lean proves that one macro step of the machine (a phase of transfers, then a sweep to the right or a carry to the left) is an explicit function <code>next</code> on the lists of block lengths, step counts included, and that <b>the machine halts from blank tape iff the macro run reaches a halt</b>. A macro step halts exactly when the head's block is odd and, after the transfers, every block to the left of the head is 2.",
-    "Running that map, Lean's kernel proves no halt in the first 2·10<sup>10</sup> steps, and with <code>native_decide</code> in the first 9·10<sup>13</sup>. In those runs the left list holds blocks in the hundreds of thousands, far from all 2s. What is missing is an argument that the map never produces that shape.",
-    "<b>The halting condition in one number, proved.</b> Every fourth time A stands on the blank right of the tape, the tape is blocks p<sub>1</sub>, &hellip;, p<sub>m</sub> followed by 5, 0, and the next such tape follows from an explicit formula: with d<sub>m+1</sub> = 20 and d<sub>l</sub> = p<sub>l</sub> + d<sub>l+1</sub>/2, a wave of halvings runs left while d is even and turns at the first odd d. Lean proves this super step from the macro map for every list, and proves that <b>the machine halts from blank tape iff N = 10 + &Sigma; p<sub>l</sub>&middot;2<sup>m&minus;l</sup> (the blocks read as binary digits) is a power of two at some super step</b> of the orbit from (1, 6). The wave reaches the left end when 2<sup>m&minus;1</sup> divides N, which explains why the head gets there so rarely (computed, not part of the proof). Running the wave model in C, there is no halt in 3.7&middot;10<sup>22</sup> steps."
+    "Running that map, Lean's kernel proves no halt in the first 2&middot;10<sup>10</sup> steps. Lean now also proves the exact machine-step count of each super step (below), so following the super orbit gives longer runs: <b>no halt in the first 1.4&middot;10<sup>16</sup> steps, checked by the kernel alone</b>, and <b>no halt in the first 10<sup>24</sup> steps with <code>native_decide</code></b>. In those runs the blocks reach the billions, far from all 2s. What is missing is an argument that the map never produces that shape.",
+    "<b>The halting condition in one number, proved.</b> Every fourth time A stands on the blank right of the tape, the tape is blocks p<sub>1</sub>, &hellip;, p<sub>m</sub> followed by 5, 0, and the next such tape follows from an explicit formula: with d<sub>m+1</sub> = 20 and d<sub>l</sub> = p<sub>l</sub> + d<sub>l+1</sub>/2, a wave of halvings runs left while d is even and turns at the first odd d. Lean proves this super step from the macro map for every list, and proves that <b>the machine halts from blank tape iff N = 10 + &Sigma; p<sub>l</sub>&middot;2<sup>m&minus;l</sup> (the blocks read as binary digits) is a power of two at some super step</b> of the orbit from (1, 6). The wave reaches the left end when 2<sup>m&minus;1</sup> divides N, which explains why the head gets there so rarely (computed, not part of the proof)."
   ],
   "claims": [
     {
@@ -27,6 +27,12 @@
       "title": "The super step",
       "text": "From the tape [p<sub>1</sub>, &hellip;, p<sub>m</sub>, 5, 0] (A on the blank right of the last block), the macro run reaches [P&prime;, 5, 0] with P&prime; = <code>superstep</code> P, or halts. With d<sub>m+1</sub> = 20 and d<sub>l</sub> = p<sub>l</sub> + d<sub>l+1</sub>/2, the wave leaves d/2 at each block with d even; at the first odd d<sub>i</sub> the block becomes (d<sub>i</sub> + 5)/2 and the one to its left gains (d<sub>i</sub> &minus; 1)/2. At the left end it goes on halving, and halts when d reaches 1. Proved for every list and every block length, and every tape of the orbit is reached by the machine from blank tape (<code>orbit_tape</code>).",
       "where": "<code>super_run</code>, <code>carry_wave</code>, <code>carry_left</code>, <code>orbit_tape</code>, <code>lean/Wave.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "The step count of a super step",
+      "text": "From the tape [p<sub>1</sub>, &hellip;, p<sub>m</sub>, 5, 0] the machine reaches the next super-step tape in exactly <code>superT</code> steps, or halts right after that many: 200 steps to the first carry of the wave, then 2q<sup>2</sup> + q &minus; 5 for each block the wave passes with even d = 2q, then 2q<sup>2</sup> + 4q + 17 + A where it turns at an odd d = 2q + 1, with A = 3 plus q + 1 for each block passed. At the left end the wave goes on with p = 0, and a halt there costs 11 steps. Proved for every list by following the timed macro steps of <code>next_sound</code> through the wave. It equals the sum of the four step counts of <code>py/waves.py</code> on 150,000 super steps (a test).",
+      "where": "<code>super_steps</code>, <code>carry_wave_t</code>, <code>superT</code>, <code>lean/WaveTime.lean</code>"
     },
     {
       "level": "kernel",
@@ -54,9 +60,9 @@
     },
     {
       "level": "kernel",
-      "title": "No halt in 2·10<sup>10</sup> steps",
-      "text": "10<sup>5</sup> macro steps from blank tape, evaluated by Lean's kernel, take more than 2·10<sup>10</sup> machine steps without a halt. (Step by step, the kernel checks 20,000.)",
-      "where": "<code>blank_runs_2e10</code>, <code>lean/MacroRun.lean</code>; <code>blank_runs_20000</code>, <code>lean/Blank.lean</code>"
+      "title": "No halt in 1.4&middot;10<sup>16</sup> steps",
+      "text": "The first 10<sup>7</sup> super steps from [1, 6, 5, 0], with their step counts, are evaluated by Lean's kernel in 1,000 chunks between checkpoints (the checkpoints come from a C program, <code>c/orbitck.c</code>, and are not trusted: every chunk is recomputed). They end after 14,027,148,336,216,160 machine steps without a halt. About 50 minutes on three cores. The macro map, evaluated directly, gives 2&middot;10<sup>10</sup> steps (10<sup>5</sup> macro steps), and step by step the kernel checks 20,000.",
+      "where": "<code>blank_runs_1_4e16</code>, <code>lean/OrbitKernel.lean</code>, <code>lean/Orbit/K*.lean</code> (generated by <code>lean/orbit_gen.py</code>, checked by <code>lean/check_orbit.sh</code>); <code>blank_runs_2e10</code>, <code>lean/MacroRun.lean</code>; <code>blank_runs_20000</code>, <code>lean/Blank.lean</code>"
     },
     {
       "level": "kernel",
@@ -66,9 +72,9 @@
     },
     {
       "level": "native",
-      "title": "No halt in 9·10<sup>13</sup> steps",
-      "text": "10<sup>7</sup> macro steps, by compiled evaluation: more than 9·10<sup>13</sup> machine steps without a halt. (Step by step: 10,000,000.)",
-      "where": "<code>blank_runs_9e13</code>, <code>lean/MacroRun.lean</code>; <code>blank_runs_10M</code>, <code>lean/Blank.lean</code>"
+      "title": "No halt in 10<sup>24</sup> steps",
+      "text": "The super orbit continued to 9.9&middot;10<sup>10</sup> super steps by compiled evaluation (<code>native_decide</code>), in 99 chunks after the kernel's 10<sup>7</sup>: more than 10<sup>24</sup> machine steps (1,020,655,748,109,356,278,914,592) without a halt. This covers the earlier C run of the wave model to 3.7&middot;10<sup>22</sup> steps. With the macro map directly: 9&middot;10<sup>13</sup> steps (10<sup>7</sup> macro steps); step by step: 10,000,000.",
+      "where": "<code>blank_runs_1e24</code>, <code>lean/OrbitNative.lean</code>, <code>lean/Orbit/N*.lean</code> (<code>check_orbit.sh all</code>, about 1.7 hours on four cores); <code>blank_runs_9e13</code>, <code>lean/MacroRun.lean</code>; <code>blank_runs_10M</code>, <code>lean/Blank.lean</code>"
     },
     {
       "level": "trusted",
@@ -85,7 +91,7 @@
     {
       "level": "trusted",
       "title": "The wave model's finer events and step counts",
-      "text": "<code>py/waves.py</code>: each time A stands on the blank right of the tape (four times per super step), the next such time follows from the block lengths by a left-going wave, with exact machine step counts. The super step and the halting criterion are now proved in Lean; the step counts and the finer events are not. Checked against <code>tmrun</code> at all 12,927 such times of the first 10<sup>9</sup> steps, against every new left cell up to 10<sup>10</sup> steps, and against the first 2,000 configurations of the proved macro map; Lean's <code>superstep</code> agrees with <code>waves.py</code> on its examples.",
+      "text": "<code>py/waves.py</code>: each time A stands on the blank right of the tape (four times per super step), the next such time follows from the block lengths by a left-going wave, with exact machine step counts. The super step, the halting criterion and the step count of a whole super step are now proved in Lean; the finer events and their single step counts are not. Checked against <code>tmrun</code> at all 12,927 such times of the first 10<sup>9</sup> steps, against every new left cell up to 10<sup>10</sup> steps, and against the first 2,000 configurations of the proved macro map; Lean's <code>superstep</code> and <code>superT</code> agree with <code>waves.py</code> on its examples.",
       "where": "<code>py/waves.py</code>, <code>tests/test_waves.py</code>, <code>notes/LAB_NOTES.md</code>"
     },
     {
@@ -93,12 +99,6 @@
       "title": "The next return to the left end",
       "text": "After step 2,047,931 the head next reaches new tape on the left at step 26,618,972,322, as the wave model predicted; a direct run to 2.7&middot;10<sup>10</sup> steps confirms it and finds no other new left cell in between.",
       "where": "<code>tests/test_waves.py</code> (<code>WAVES_LONG=1</code>)"
-    },
-    {
-      "level": "trusted",
-      "title": "No halt in 3.7&middot;10<sup>22</sup> steps",
-      "text": "The wave model in C (128-bit step counts) runs 7&middot;10<sup>10</sup> macro steps without a halt. The wave reaches the left end 16 times on the way, never with N a power of two. That the orbit decides halting is proved; the run itself is C, and the step count rests on the unproved step-count formulas.",
-      "where": "<code>c/blkrun.c</code>, <code>runs/left_arrivals_macro.txt</code>"
     },
     {
       "level": "heuristic",
@@ -134,7 +134,8 @@
   "check": [
     "bash scripts/setup-lean.sh                  # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave (about 2 min)",
+    "bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave, WaveTime (about 2 min)",
+    "bb6-1RB1RA_1RC1LB/lean/check_orbit.sh all   # the long runs in parallel (about 3 CPU hours kernel, 6 native)",
     "python3 tools/tests/test_tools.py           # the shared tools",
     "python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py",
     "python3 bb6-1RB1RA_1RC1LB/py/macro.py 50    # the macro run",
