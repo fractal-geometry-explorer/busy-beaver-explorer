@@ -591,6 +591,36 @@ only after multiples of m).
 the cost about doubles per level; 35 levels, the native bound's, would be some 20 times more. CI checks the first 16
 levels and 2 passes (`check_cycles.sh 16 2`, about a minute).
 
+## October 30, 2026: the single events in Lean, and DeepMind's high-level map
+
+**Lean, kernel only** (`lean/Events.lean`, `lean/DeepMind.lean`, in `check.sh`):
+
+- `ev`: the event map in closed form. An event is A on the blank right of the last block; with the blocks nearest
+  first, `ev (x :: k :: ls)` with q = x/2 is `(q + 2) :: (k + q + 1) :: ls` for even x, and `q :: W` with
+  `wave (k + q + 2) ls = some W` for odd x (`none` is a halt). `wave` is the one of `Wave.lean`: the single event uses
+  the same wave as the super step, started at another value. Agrees with `waves.py` `step` on the first 200,000 events
+  (a one-off Python comparison) and on the examples in the file.
+- `carry_ev`: `carry_wave` with any right part. The wave ends with the sweep over `1^e ++ bump cs`, written `close` as
+  a list function; `carry_wave` had the right part `c0 :: R ++ [1]` of the super step only.
+- `ev_sound`: from `E b` the machine reaches `E b'` when `ev b = some b'` and halts when `ev b = none`, for every b
+  with two blocks or more and every block but the last nonempty. `E (x :: ls)` is reached x steps after
+  `X ls x []` (A runs over the block); the first macro step from there takes at least x steps (`next_t`), so the run
+  from `E b` is the macro run from `X ls x []` minus its first x steps (`steps_sub`).
+- `ev4`: four events from `0 :: 5 :: L` are `0 :: 5 :: superL L` (or a halt); `evOrbit_orbit`: 4j events are j super
+  steps. `halts_iff_ev`: the machine halts from blank tape iff the event orbit from [2, 1] (step 17) reaches `none`;
+  `evOrbit_tape`: every list of that orbit is a tape of the run.
+- `lean/DeepMind.lean` copies google-deepmind/cryptids' `bumpHead`, `transferBHL`, `runEpoch` and `highLevelNext`
+  (commit `e5f59ed`) into core Lean, with their termination proof. `toHL (x :: ls) = C(x + 1, ls − 1)`, the event two
+  steps later. `transferBHL_close`: their sweep onto the left stack is `close`; `runEpoch_wave`: an epoch is the wave;
+  `highLevelNext_eq`: `highLevelNext (toHL b) = (ev b).map toHL` for every event of the run. So `halts_iff_hl`: the
+  machine halts iff their high-level orbit from C(3, [0]) halts, their `isHalt_iff_highLevel_acceleration` reached
+  here through our macro step and super step.
+
+Not proved: the step counts of a single event (`waves.py` has them; `WaveTime.lean` proves only their sum over a super
+step), and that no other event lies between `E b` and `E (ev b)`. Lean proves that the run passes through these
+events, not that they are all of them; `tests/test_waves.py` checks against direct simulation that they are, for
+every event of the first 10⁹ steps.
+
 ## October 30, 2026: how the top blocks decide halting, N only grows, and the odds corrected
 
 **A correction first.** The entries above (and the reduction page, `status.json`) put d₁ at the last return at

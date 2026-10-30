@@ -30,6 +30,12 @@
     },
     {
       "level": "kernel",
+      "title": "The single events, and DeepMind's high-level map",
+      "text": "Each time A stands on the blank right of the tape (an event, four per super step), the next event follows in closed form. If the last two blocks are k and x and q = &lfloor;x/2&rfloor;: for even x they become k + q + 1, q + 2; for odd x the wave of the super step starts at k with value k + q + 2, and the last block of the new tape is q. Proved from the macro map for every tape of the run's shape (the machine reaches the next event, or halts where the map says), and four events from [P, 5, 0] are the super step. So the machine halts iff the event orbit from [1, 2] (step 17) halts, and every tape of that orbit occurs. Google DeepMind's <code>highLevelNext</code> (cryptids, 27 October 2026), copied into core Lean, equals this map on every event, two steps later; their reduction is reached here again by another route.",
+      "where": "<code>ev_sound</code>, <code>carry_ev</code>, <code>ev4</code>, <code>halts_iff_ev</code>, <code>evOrbit_tape</code>, <code>lean/Events.lean</code>; <code>highLevelNext_eq</code>, <code>halts_iff_hl</code>, <code>lean/DeepMind.lean</code>"
+    },
+    {
+      "level": "kernel",
       "title": "The step count of a super step",
       "text": "From the tape [p<sub>1</sub>, &hellip;, p<sub>m</sub>, 5, 0] the machine reaches the next super-step tape in exactly <code>superT</code> steps, or halts right after that many: 200 steps to the first carry of the wave, then 2q<sup>2</sup> + q &minus; 5 for each block the wave passes with even d = 2q, then 2q<sup>2</sup> + 4q + 17 + A where it turns at an odd d = 2q + 1, with A = 3 plus q + 1 for each block passed. At the left end the wave goes on with p = 0, and a halt there costs 11 steps. Proved for every list by following the timed macro steps of <code>next_sound</code> through the wave. It equals the sum of the four step counts of <code>py/waves.py</code> on 150,000 super steps (a test).",
       "where": "<code>super_steps</code>, <code>carry_wave_t</code>, <code>superT</code>, <code>lean/WaveTime.lean</code>"
@@ -120,8 +126,8 @@
     },
     {
       "level": "trusted",
-      "title": "The wave model's finer events and step counts",
-      "text": "<code>py/waves.py</code>: each time A stands on the blank right of the tape (four times per super step), the next such time follows from the block lengths by a left-going wave, with exact machine step counts. The super step, the halting criterion and the step count of a whole super step are now proved in Lean; the finer events and their single step counts are not. Checked against <code>tmrun</code> at all 12,927 such times of the first 10<sup>9</sup> steps, against every new left cell up to 10<sup>10</sup> steps, and against the first 2,000 configurations of the proved macro map; Lean's <code>superstep</code> and <code>superT</code> agree with <code>waves.py</code> on its examples.",
+      "title": "The step counts of single events",
+      "text": "<code>py/waves.py</code>: each time A stands on the blank right of the tape (four times per super step), the next such time follows from the block lengths by a left-going wave, with exact machine step counts. The super step, the single events, the halting criterion and the step count of a whole super step are proved in Lean; the step counts of single events are not. Checked against <code>tmrun</code> at all 12,927 such times of the first 10<sup>9</sup> steps, against every new left cell up to 10<sup>10</sup> steps, and against the first 2,000 configurations of the proved macro map; Lean's <code>superstep</code> and <code>superT</code> agree with <code>waves.py</code> on its examples.",
       "where": "<code>py/waves.py</code>, <code>tests/test_waves.py</code>, <code>notes/LAB_NOTES.md</code>"
     },
     {
@@ -194,7 +200,7 @@
   "check": [
     "bash scripts/setup-lean.sh                  # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave, Monotone, WaveTime, Cascade, CascadeRun, Cycles, Periods (about 6 min)",
+    "bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave, Events, DeepMind, Monotone, WaveTime, Cascade, CascadeRun, Cycles, Periods (about 6 min)",
     "bb6-1RB1RA_1RC1LB/lean/check_orbit.sh all   # the long runs in parallel (about 3 CPU hours kernel, 6 native)",
     "bb6-1RB1RA_1RC1LB/lean/check_cycles.sh 30 4  # the tables of 30 levels in pieces, kernel only (about 4 CPU hours)",
     "python3 tools/tests/test_tools.py           # the shared tools",
@@ -211,7 +217,7 @@
       "heading": "Prior work",
       "paragraphs": [
         "The machine is an open BB(6) holdout on @mxdys's lists (623 machines up to equivalence, 24 October 2026) and sits unannotated in the community ledger's \"Cubic Mess\" class. It is not a named cryptid and has no page on the <a href=\"https://wiki.bbchallenge.org/wiki/Cryptid\">bbchallenge wiki</a>.",
-        "Google DeepMind's <a href=\"https://github.com/google-deepmind/cryptids\">cryptids</a> repository lists it as an open acceleration problem (<a href=\"https://github.com/google-deepmind/cryptids/pull/18\">PR #18</a>, 27 October 2026), with a Lean proof that it halts iff a map on two stacks of block lengths halts. That map is the macro step here cut at other moments, and its higher-level map is exactly the event map of <code>py/waves.py</code> (each time A is on the blank right end), one level below the super step (<code>py/deepmind.py</code>). Nothing found reduces it further; the super step's formula and the criterion on N appear to be new.",
+        "Google DeepMind's <a href=\"https://github.com/google-deepmind/cryptids\">cryptids</a> repository lists it as an open acceleration problem (<a href=\"https://github.com/google-deepmind/cryptids/pull/18\">PR #18</a>, 27 October 2026), with a Lean proof that it halts iff a map on two stacks of block lengths halts. That map is the macro step here cut at other moments, and its higher-level map is exactly the event map of <code>py/waves.py</code> (each time A is on the blank right end), one level below the super step (<code>py/deepmind.py</code> checks it, <code>lean/DeepMind.lean</code> proves it for every event). Nothing found reduces it further; the super step's formula and the criterion on N appear to be new.",
         "The machine <code>1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB</code>, which the ledger says was merged into another equivalence class in April 2026, runs through the same tapes and halts from the same configurations (<code>py/sibling.py</code>), so these results should apply to it too. Its Collatz-like map is not Antihydra's or Hydra's: those iterate one integer under n &rarr; &lfloor;3n/2&rfloor;, while here the state is a growing list and N does not determine the next N. Sources and details: <code>notes/PRIOR_WORK.md</code>."
       ]
     }
