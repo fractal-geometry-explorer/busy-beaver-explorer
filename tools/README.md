@@ -23,6 +23,18 @@ as they are and keeps only what is about its own machine.
 The other machine's C exhaustive search itself (`bb6-holdout/csearch/nrefdfs2*.c`) runs that machine's mark model and
 is not generic; what carries over is its harness: split into parts, run them in parallel, merge and check.
 
+## Adding a machine
+
+`bb6-1RB1RA_1LC1LD/` is the smallest complete example. For a new machine `M`:
+
+1. `python3 -m bbtools.leangen M Namespace` (from `tools/py`) writes `lean/Machine.lean`; add `lean/Blank.lean` with
+   `blank_runs` goals and a `lean/check.sh` that calls `tools/lean/check.sh . Machine.lean Blank.lean ...`.
+2. Put the machine's own scripts in `py/` (import `bbtools` from `../../tools/py`) and tests in `tests/` that compare
+   the generated files and the page with what the tools write now.
+3. Write `status.json` and build `pages/<short name>/proof-status.html` with `pages/build_status.py`; link it from
+   `pages/index.html`.
+4. Add the machine's Lean check and tests to `.github/workflows/tests.yml`.
+
 ## Use
 
 ```sh

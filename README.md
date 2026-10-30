@@ -14,6 +14,9 @@ Explorations of six-state Busy Beaver machines.
 - [`bb6-1RB1RA_1RC1LB/`](bb6-1RB1RA_1RC1LB/): work on the open machine `1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB`,
   just started: bounded runs and shift rules in Lean, observations of its run
   ([`README.md`](bb6-1RB1RA_1RC1LB/README.md), [`notes/LAB_NOTES.md`](bb6-1RB1RA_1RC1LB/notes/LAB_NOTES.md)).
+- [`bb6-1RB1RA_1LC1LD/`](bb6-1RB1RA_1LC1LD/): work on the open machine `1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB`,
+  just started: the machine in Lean on the shared library, bounded runs, first observations
+  ([`README.md`](bb6-1RB1RA_1LC1LD/README.md), [`notes/LAB_NOTES.md`](bb6-1RB1RA_1LC1LD/notes/LAB_NOTES.md)).
 - [`tools/`](tools/): machine-agnostic tooling taken from the holdout's code: a Lean library for any machine (with
   proved bounded-run evaluation), a symbolic prover that writes Lean proofs of shift rules, C and Python simulators,
   a parallel parts runner with a checked merge, an invariant finder and a proof-status page builder
@@ -33,7 +36,8 @@ it to `/opt/lean-4.34.0` and sets `LEAN` and `LEANLIB` in `/etc/profile.d/lean.s
 cd bb6-holdout/lean && ./check.sh      # all 21 files, under a minute
 ```
 
-The shared library and the second machine: `tools/lean/check.sh` and `bb6-1RB1RA_1RC1LB/lean/check.sh`;
+The shared library and the other machines: `tools/lean/check.sh`, `bb6-1RB1RA_1RC1LB/lean/check.sh` and
+`bb6-1RB1RA_1LC1LD/lean/check.sh`;
 `python3 tools/tests/test_tools.py` tests every tool (CI runs it on each pull request, `.github/workflows/tests.yml`).
 
 The two loop theorems in `bb6-holdout/lean/thm/` take 13 and 40 minutes; see `bb6-holdout/README.md`.

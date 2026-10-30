@@ -1,0 +1,75 @@
+{
+  "title": "What is known about 1RB1RA_1LC1LD, and what is open",
+  "description": "Proof status of the six-state machine 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB: what is proved in Lean, what is computed, what is only observed.",
+  "machine": "1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB",
+  "crumb": "1RB1RA_1LC1LD",
+  "home": "../index.html",
+  "intro": [
+    "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.",
+    "The work has just started: the machine is set up in Lean on the shared library, and the run from blank tape is simulated in Python, C and Lean. The macro structure of the run is not found yet."
+  ],
+  "asof": "Status as of 30 October 2026.",
+  "verdict": [
+    "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps. These are floors, not the way to an answer.",
+    "<b>Where a halt would come from.</b> The only halting transition is E0, and E is entered only from D reading a 0, which writes a 1 and moves right. So the machine halts exactly when D reads a 0 with a 0 to its right (proved in Lean). At the left end of the tape D keeps arriving on a 0, but in the first 3&middot;10<sup>9</sup> steps (1,382 visits, C simulator) always with a 1 to its right."
+  ],
+  "claims": [
+    {
+      "level": "kernel",
+      "title": "The halting configurations",
+      "text": "The machine stops exactly in state E reading a 0, and <code>D&gt;0 0</code> halts after one more ordinary step, whatever the rest of the tape.",
+      "where": "<code>step_none_iff</code>, <code>halt_shape</code>, <code>lean/Blank.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "No halt in the first 20,000 steps",
+      "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 20,000 steps from blank tape without a halt, evaluated by Lean's kernel. At step 46 the tape is <code>1^2 0 1^5 A&gt;0</code> (<code>blank_at_46</code>).",
+      "where": "<code>blank_runs_20000</code>, <code>blank_at_46</code>, <code>lean/Blank.lean</code>"
+    },
+    {
+      "level": "native",
+      "title": "No halt in the first 10,000,000 steps",
+      "text": "The same run for 10<sup>7</sup> steps, evaluated by compiled code.",
+      "where": "<code>blank_runs_10M</code>, <code>lean/Blank.lean</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "No halt in the first 10<sup>10</sup> steps",
+      "text": "The shared C simulator runs 10<sup>10</sup> steps from blank tape without a halt; the tape then holds 5,580 ones and the head has visited 6,278 cells. The C simulator agrees with the Python reference simulator on the first 80 records of the run (a test).",
+      "where": "<code>tools/c/tmrun.c</code>, <code>tests/test_machine.py</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "No simple conserved quantity",
+      "text": "No a&middot;ones + b&middot;pos + W[state] is conserved modulo 2 to 12, so the mod-3 argument of the first holdout has no counterpart of this linear kind here.",
+      "where": "<code>tools/py/bbtools/invariants.py</code>"
+    },
+    {
+      "level": "heuristic",
+      "title": "The tape grows slowly and splits into two regions",
+      "text": "The visited width grows roughly like the square root of the step count (about 6,300 cells after 10<sup>10</sup> steps). The left part of the tape fills with blocks <code>1^2 0</code>, with an occasional <code>1 0</code>, and the head sweeps over it; the right part holds a few long blocks of 1s. The head reaches new cells mostly on the right.",
+      "where": "<code>py/blank.py records</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "open",
+      "title": "The macro structure",
+      "text": "Which configurations recur (a pass start with a growing width, a counter, a carry), and a Lean theorem that maps one to the next. This is the next step.",
+      "where": "<code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "open",
+      "title": "Does it halt from blank tape?",
+      "text": "Not known.",
+      "where": ""
+    }
+  ],
+  "check": [
+    "bash scripts/setup-lean.sh                    # Lean 4.34.0, core only",
+    ". /etc/profile.d/lean.sh",
+    "bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, Axioms (under a minute)",
+    "python3 bb6-1RB1RA_1LC1LD/tests/test_machine.py",
+    "python3 bb6-1RB1RA_1LC1LD/py/blank.py records 100000 60",
+    "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 10000000000",
+    "cd tools/py && python3 -m bbtools.invariants 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 12"
+  ]
+}
