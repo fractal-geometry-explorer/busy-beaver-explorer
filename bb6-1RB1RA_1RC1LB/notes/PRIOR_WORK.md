@@ -28,8 +28,8 @@ known about this machine before and alongside the work in this folder.
   parity count goes negative. This machine's map acts on a list of numbers, a carry wave of halvings, and the next N is
   not a function of N (below). Its halting question is of the same "probviously non-halting" kind, though.
 - **No better bounds are published.** The community has simulated every BB(6) holdout to 10^13 steps. The bounds
-  here (no halt in 9·10^13 steps, proved in Lean with `native_decide`; none in 3.7·10^22 steps by the C wave model)
-  go further than anything found.
+  here go far beyond it: no halt in 1.4·10^16 steps (Lean kernel), 4.4·10^37 (Lean with `native_decide`) and
+  2.7·10^49 (the tabulated search); see the folder README for what each rests on.
 
 ## The holdout lists and the ledger
 
