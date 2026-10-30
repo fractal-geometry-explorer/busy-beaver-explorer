@@ -20,7 +20,8 @@ known about this machine before and alongside the work in this folder.
   in Lean, with Mathlib, that the machine halts iff an explicit map on two stacks of block lengths halts, and gives a
   higher-level map with one stack removed. The base map is the run of our macro step cut at slightly different
   moments; the higher-level map is exactly the event map of `py/waves.py` (each time A is on the blank right end), one
-  level below the super step, which it proves in Lean where this folder only computes it. It does not reduce halting
+  level below the super step. Its Lean proof covered the single events before this folder's; `lean/DeepMind.lean`
+  now proves that their `highLevelNext` is this folder's event map `ev` for every event. It does not reduce halting
   to a single number. As far as this search
   found, the criterion proved here (halting iff N = 10 + Σ p_l·2^(m−l) is ever a power of two) is new.
 - **One equivalent machine is known.** The ledger records that
@@ -102,9 +103,11 @@ How the two line up (`py/deepmind.py`):
   carry to the left; ours carries over every 2 and then sweeps back to the right end.
 - **The higher-level map** (`highLevelNext`, the section R = []) is exactly the event map of `py/waves.py`: the event
   (b_1, …, b_n), A on the blank right of the tape, is C(b_n + 1, (b_(n−1) − 1, …, b_1 − 1), []) two steps later, and
-  the two orbits agree at all of the first 20,000 events. This folder proves the super step (every fourth event, from
-  [P, 5, 0]) and checks the single events only against simulation; DeepMind's Lean proof covers the single events too,
-  without step counts.
+  the two orbits agree at all of the first 20,000 events. `lean/Events.lean` (30 October 2026) proves the single events
+  from the machine (`ev_sound`) and four of them to be the super step (`ev4`), and `lean/DeepMind.lean` copies
+  `highLevelNext` into core Lean and proves `highLevelNext (toHL b) = (ev b).map toHL` for every event b
+  (`highLevelNext_eq`), by induction along the wave and without Mathlib. Neither proof counts the steps of a single
+  event.
 - **Beyond.** Nothing in the repository corresponds to the super step's closed formula, to the number N, or to the
   power-of-two criterion. DeepMind's map was public two days before the macro step here was merged (29 October); this folder's work
 did not use it, so it has priority for the block-level reduction, and the super step and the N criterion go beyond it.
