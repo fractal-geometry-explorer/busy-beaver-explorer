@@ -135,6 +135,12 @@ table.hist td { text-align: left; }
 .meter { height: 10px; border-radius: 5px; background: var(--sunk); overflow: hidden; position: relative; }
 .meter span { display: block; height: 100%; background: var(--wave); }
 canvas.chart { width: 100%; height: 190px; display: block; }
+/* Level 5: the periods, block by block. */
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chips span { font-family: var(--font-display); font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; color: var(--comp); background: var(--comp-bg); }
+.chips span.pv { color: var(--kernel); background: var(--kernel-bg); }
+.chips span.cur { box-shadow: 0 0 0 2px var(--link); }
+table.grid .plus { color: var(--head); font-weight: 700; }
 details summary { cursor: pointer; font-size: 0.9rem; color: var(--link); }
 pre { margin: 0; font-family: var(--font-display); font-size: 0.72rem; line-height: 1.5; overflow-x: auto; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
@@ -143,9 +149,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 .zoom a { display: grid; grid-template-columns: 5.5em minmax(0, 12em) minmax(0, 1fr) auto; gap: 4px 14px; align-items: baseline; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 14px; color: var(--ink); text-decoration: none; }
 .zoom li:nth-child(1) a { margin-right: 0; border-left: 4px solid var(--wave); }
 .zoom li:nth-child(2) a { margin-right: 3%; border-left: 4px solid var(--wave); }
-.zoom li:nth-child(3) a { margin-right: 6%; border-left: 4px solid var(--link); }
+.zoom li:nth-child(3) a { margin-right: 6%; border-left: 4px solid var(--wave); }
 .zoom li:nth-child(4) a { margin-right: 9%; border-left: 4px solid var(--link); }
-.zoom li:nth-child(5) a { margin-right: 12%; border-left: 4px solid var(--muted); }
+.zoom li:nth-child(5) a { margin-right: 12%; border-left: 4px solid var(--link); }
+.zoom li:nth-child(6) a { margin-right: 15%; border-left: 4px solid var(--muted); }
 .zoom a:hover { border-color: var(--muted); }
 .zoom b { font-family: var(--font-display); font-size: 0.82rem; }
 .zoom .d { font-size: 0.9rem; color: var(--muted); }
@@ -193,15 +200,16 @@ table.grid.ex td.dim { white-space: normal; min-width: 9em; font-family: var(--f
     <h1>1RB1RA_1RC1LB, level by level</h1>
     <p class="machine">1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</p>
     <p>This page is about one very small computer program, a six-state <b>Turing machine</b>, and one question about it: <b>if you start it on an empty tape, does it ever stop?</b> Nobody knows yet. People have been asking this question about every machine of this size (the "Busy Beaver" problem), and this machine is one of the few whose answer is still open.</p>
-    <p>Watching the machine one step at a time tells you almost nothing, because it runs for billions of steps and longer. But if you step back, patterns appear, and each pattern can be described more simply than the one below it. This page climbs that ladder in five levels. Each level is a working simulator you can step through yourself. By the top level, the whole question has turned into a question about one number, <b>N</b>: the machine stops exactly when N becomes a power of two (2, 4, 8, 16, …).</p>
+    <p>Watching the machine one step at a time tells you almost nothing, because it runs for billions of steps and longer. But if you step back, patterns appear, and each pattern can be described more simply than the one below it. This page climbs that ladder in six levels. Each level is a working simulator you can step through yourself. By level 4, the whole question has turned into a question about one number, <b>N</b>: the machine stops exactly when N becomes a power of two (2, 4, 8, 16, …). Level 5 shows the one part of the run that is completely regular, the right end of the tape, and why it is.</p>
   </header>
 
   <section class="level" aria-labelledby="h-map">
-    <div class="lvhead"><h2 id="h-map">The five levels at a glance</h2></div>
+    <div class="lvhead"><h2 id="h-map">The six levels at a glance</h2></div>
     <div class="prose">
-      <p>Each level groups many steps of the level below into one step. The numbers on the right say how much happens in the first 1,322,171 steps of the machine, counted at each level. The higher you go, the fewer steps there are to look at, and the more each step tells you.</p>
+      <p>Each level groups many steps of the level below into one step. The numbers on the right say how much happens in the first 1,322,171 steps of the machine, counted at each level (level 5 shows a cycle instead). The higher you go, the fewer steps there are to look at, and the more each step tells you.</p>
     </div>
     <ol class="zoom" aria-label="The levels">
+      <li><a href="#l5"><span class="lvnum">Level 5</span><b>The last blocks repeat</b><span class="d">Information only flows left, so the right end of the tape settles into exact cycles, block by block. The left end, where N is decided, never does.</span><span class="cnt">the last block: a cycle of 4</span></a></li>
       <li><a href="#l4"><span class="lvnum">Level 4</span><b>The number N</b><span class="d">The tape is summed up by one number. The machine stops exactly when N is a power of two.</span><span class="cnt">about 120 super steps</span></a></li>
       <li><a href="#l3"><span class="lvnum">Level 3</span><b>The halving wave</b><span class="d">A ripple runs leftward through the blocks, halving as it goes, and turns back at the first odd number.</span><span class="cnt">479 waves</span></a></li>
       <li><a href="#l2"><span class="lvnum">Level 2</span><b>The macro step</b><span class="d">The tape is a list of numbers (the block lengths), and one rule turns each list into the next.</span><span class="cnt">1,000 macro steps</span></a></li>
@@ -597,6 +605,76 @@ table.grid.ex td.dim { white-space: normal; min-width: 9em; font-family: var(--f
     </div>
   </section>
 
+  <!-- ======================= Level 5 ======================= -->
+  <section class="level" id="l5" aria-labelledby="h-l5">
+    <div class="lvhead"><span class="lvnum">Level 5</span><h2 id="h-l5">The last blocks repeat</h2><span class="tag t-kernel">proved</span><span class="tag t-comp">computed</span></div>
+    <div class="prose">
+      <p>Run level 4 for a while and watch the right end of the list. The last block only ever takes the values 12, 11, 13, 14, over and over. The last two blocks repeat every 8 super steps, the last three every 32. The tape as a whole never repeats, because it keeps growing on the left, but its right end settles into exact cycles. This level shows why.</p>
+      <p><b>Information only flows left.</b> The head sweeps back and forth across the tape, but look at what one super step does to one block. Something arrives from its right, a wave carrying a number <code>h</code>. The last block always gets <code>h = 10</code> (half of the 20 that level 4 starts from). A block of length <code>p</code> adds it up, <code>d = p + h</code>, and then:</p>
+      <ul>
+        <li>if <code>d</code> is <b>even</b>, the block becomes <b>d/2</b> and the wave goes on to the left with <b>h = d/2</b>;</li>
+        <li>if <code>d</code> is <b>odd</b>, the block becomes <b>(d + 5)/2</b>, the block on its left gains <b>(d − 1)/2</b>, and the super step is over.</li>
+      </ul>
+      <p>This is level 4's rule, read one block at a time. Nothing is ever sent to the right. So <b>a block's next value depends only on itself and on what comes from its right</b>, and the last k blocks run as a small machine of their own, whatever the rest of the tape does.</p>
+    </div>
+    <figure class="fig" aria-label="The last block's cycle">
+      <div class="scroller"><table class="grid ex">
+        <tr><th>last block p</th><td>12</td><td>11</td><td>13</td><td>14</td><td class="dim">12 again</td></tr>
+        <tr><th>d = p + 10</th><td class="wave">22</td><td class="wave turn odd">21</td><td class="wave turn odd">23</td><td class="wave">24</td><td></td></tr>
+        <tr><th>new p</th><td>22/2 = 11</td><td>(21 + 5)/2 = 13</td><td>(23 + 5)/2 = 14</td><td>24/2 = 12</td><td></td></tr>
+        <tr><th>sent left</th><td>wave, h = 11</td><td>add 10</td><td>add 11</td><td>wave, h = 12</td><td></td></tr>
+      </table></div>
+      <figcaption>The last block gets the same h = 10 every time, and halving keeps it small, so it can only take a few values. A rule with finitely many states has to come back to one it has seen, and from then on it repeats: 12 → 11 → 13 → 14 → 12, a cycle of 4. What it sends left, two waves and two adds, repeats with it.</figcaption>
+    </figure>
+    <div class="prose">
+      <p><b>Why every level repeats.</b> The same argument climbs from the right, one block at a time.</p>
+      <ol>
+        <li>The <b>last block</b> gets the same input every super step, so it cycles (above).</li>
+        <li>The <b>next block</b> gets the output of that cycle, which repeats. The adds push it up, but by a bounded amount per cycle, and every wave roughly halves it. So it stays below a fixed bound, and once the last block is in its cycle the pair has only finitely many states. It repeats too, here every 8 super steps.</li>
+        <li><b>Each further block</b> works the same way, on top of the cycle of the blocks to its right. Its period is the one below times a whole number. So far that number has always been 1, 2, 4 or 5.</li>
+      </ol>
+      <p>One thing could break the chain: a cycle that sends no wave at all to the left, only adds. The next block would then only grow, never repeat, and pass nothing further on. But then no wave would ever again reach the left end of the tape, so the machine would never halt. So each level either cycles, or the machine never halts. That has not happened in any level checked so far.</p>
+      <p><b>Try this:</b> choose how many blocks to watch and press <b>Run until they repeat</b>. The table lists the last few super steps, one per row, with the blocks in tape order (the last block on the right). A green cell passed the wave on, an outlined one turned it, a <code>+</code> marks a block that received an add, and the first column shows what left the group. Rows with the same values as the current one are marked. Then press <b>Jump one period</b>: the blocks come back exactly, while the rest of the tape, and with it N, has moved on.</p>
+      <p><span class="tag t-kernel">proved</span> Lean proves that the last k blocks run on their own, and that for every k they either cycle or stop sending anything left, which means no halt (<code>cycles_or_never_halts</code>). It also checks that the last 1 to 6 blocks really do cycle on this run, from super steps 3, 7, 11, 31, 60 and 163, with periods 4, 8, 32, 128, 256 and 1,024 (<code>cycle₁</code> to <code>cycle₆</code>). <span class="tag t-comp">computed</span> The cycles of the last 7 to 44 blocks, found by program. <span class="tag t-open">open</span> None of this decides the question: the left end, where N is decided, never settles.</p>
+    </div>
+    <div class="bench">
+      <div class="controls">
+        <label class="note" for="l5-k">Watch the last</label>
+        <select id="l5-k"></select>
+        <span class="note">blocks</span>
+      </div>
+      <div class="readout" aria-live="polite">
+        <div><span class="k">super step</span><span class="v" id="l5-s">0</span></div>
+        <div><span class="k">m (blocks)</span><span class="v" id="l5-m"></span></div>
+        <div><span class="k">last k blocks now</span><span class="v" id="l5-b"></span></div>
+        <div><span class="k">cycle</span><span class="v" id="l5-cyc">not found yet</span></div>
+      </div>
+      <div class="scroller"><table class="grid" id="l5-grid" aria-label="The last blocks over the last super steps"></table></div>
+      <p class="note" id="l5-say"></p>
+      <div class="controls">
+        <button id="l5-reset">Reset</button>
+        <button class="primary" id="l5-step">Next super step</button>
+        <button id="l5-10">+10</button>
+        <button id="l5-run" title="Run until the last k blocks are in a state they were in before">Run until they repeat</button>
+        <button id="l5-jump" title="Run one whole period">Jump one period</button>
+        <button id="l5-stop" disabled>Stop</button>
+      </div>
+      <div class="cols2">
+        <div class="panel">
+          <h3>The leftmost watched block, over one period</h3>
+          <canvas class="chart" id="l5-chart" aria-label="The value of the leftmost watched block over one period of the cycle"></canvas>
+          <p class="note" id="l5-chart-say">Find the cycle first.</p>
+        </div>
+        <div class="panel">
+          <h3>The periods, block by block</h3>
+          <p class="note">Each further block multiplies the period by this much. <span class="tag t-kernel">proved</span> for the last 6, <span class="tag t-comp">computed</span> up to 44 (<code>c/superrun.c</code>).</p>
+          <div class="chips" id="l5-chips"></div>
+          <p class="note" id="l5-chips-say"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <footer>
     <p>Everything on this page runs in your browser. The simulators follow the same rules as <code>py/macro.py</code> and <code>py/waves.py</code> in <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/bb6-1RB1RA_1RC1LB"><code>bb6-1RB1RA_1RC1LB</code></a>, and <code>tests/test_explainer.py</code> checks them against those programs and against the plain machine. For the precise statements and proofs, see <a href="reduction.html">the write-up</a> and <a href="proof-status.html">the proof status</a>.</p>
     <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
@@ -852,8 +930,54 @@ const BB = (() => {
   // The run in super steps: the first [p1, ..., pm, 5, 0] event is the fourth (step 136, [1, 6, 5, 0]).
   const SUPER_START = { P: [1, 6], t: 136n };
 
+  // ---------- Level 5: the last blocks on their own (py/cycles.py, `bstep` in lean/Cascade.lean) ----------
+  // B is the last blocks, nearest the right end first. Each super step the last block receives a wave h = 10; a block
+  // p that receives a wave h has d = p + h, and either passes the wave d/2 on (d even, the block becomes d/2) or turns
+  // it (d odd, the block becomes (d + 5)/2 and the block on its left gains (d − 1)/2). `lv[i]` says what happened at
+  // B[i]; `out` is what goes on to the blocks left of B (null if the super step ended inside B).
+  function bottomStep(B) {
+    const next = B.slice(), lv = B.map(() => ({ kind: "none" }));
+    let h = 10;
+    for (let i = 0; i < next.length; i++) {
+      const d = next[i] + h;
+      if (d % 2) {
+        next[i] = (d + 5) / 2;
+        lv[i] = { kind: "turn", h, d };
+        if (i + 1 < next.length) {
+          next[i + 1] += (d - 1) / 2;
+          lv[i + 1] = { kind: "add", a: (d - 1) / 2 };
+          return { next, lv, out: null };
+        }
+        return { next, lv, out: { kind: "add", a: (d - 1) / 2 } };
+      }
+      lv[i] = { kind: "pass", h, d };
+      next[i] = h = d / 2;
+    }
+    return { next, lv, out: { kind: "wave", h } };
+  }
+  // The last k blocks of P, nearest the right end first.
+  const bottom = (P, k) => P.slice(-k).reverse();
+  // Run the super orbit from blank tape until its last k blocks repeat. Their state is only recorded while there is a
+  // block to their left (then they run on their own, `superL_split`), so the first repeat gives the super step where
+  // the cycle starts and its least period.
+  function findCycle(k, maxS = 1e6) {
+    let P = SUPER_START.P.slice();
+    const seen = new Map();
+    for (let s = 0; s <= maxS; s++) {
+      if (P.length > k) {
+        const key = bottom(P, k).join(",");
+        if (seen.has(key)) return { start: seen.get(key), period: s - seen.get(key) };
+        seen.set(key, s);
+      }
+      P = superStep(P).next;
+      if (!P) return null;
+    }
+    return null;
+  }
+
   return { MACHINE, STATES, TABLE, Raw, rawAt, rawPicture, picture, rulePicture, ruleStep, macroStep, bump,
-           waveStep, WAVE_START, superStep, bigN, v2, isPow2, superByWaves, SUPER_START, leftCells };
+           waveStep, WAVE_START, superStep, bigN, v2, isPow2, superByWaves, SUPER_START, leftCells,
+           bottomStep, bottom, findCycle };
 })();
 if (typeof module !== "undefined") module.exports = BB;
 </script>
@@ -1446,6 +1570,161 @@ if (typeof module !== "undefined") module.exports = BB;
     reset();
   })();
   void L4;
+
+  // ======================= Level 5: the last blocks cycle =======================
+  const L5 = (() => {
+    // By how much each further block multiplies the period (the first entry is the last block's own period), from the
+    // "table" lines of c/superrun.c in runs/superrun_long.txt. The first six are proved (cycle₁–cycle₆).
+    const MULT = [4, 2, 4, 4, 2, 4, 4, 1, 4, 4, 5, 1, 4, 4, 2, 5, 4, 5, 4, 4, 4, 4, 5, 1, 1, 4, 4, 4, 2, 1, 2, 4, 4, 4, 4, 4, 4, 2, 4, 1, 2, 4, 5, 4];
+    const KMAX = 12, ROWS = 12;
+    let st, running = null;
+    const sel = $("l5-k");
+    for (let k = 1; k <= KMAX; k++) sel.insertAdjacentHTML("beforeend", `<option value="${k}"${k === 2 ? " selected" : ""}>${k}</option>`);
+    function reset() {
+      st = { k: +sel.value, P: BB.SUPER_START.P.slice(), s: 0, hist: [], seen: new Map(), found: null, jump: null };
+      note();
+      render();
+    }
+    // Record the last k blocks (only while there is a block to their left: then they run on their own).
+    function note() {
+      if (st.found || st.P.length <= st.k) return;
+      const key = BB.bottom(st.P, st.k).join(",");
+      if (st.seen.has(key)) {
+        const start = st.seen.get(key);
+        st.found = { start, period: st.s - start, at: st.s };
+        st.seen = null;
+      } else st.seen.set(key, st.s);
+    }
+    function step(keep = true) {
+      const r = BB.superStep(st.P);
+      if (!r.next) return false;
+      if (keep) { st.hist.push({ s: st.s, P: st.P }); if (st.hist.length > ROWS) st.hist.shift(); }
+      st.P = r.next; st.s++;
+      note();
+      return true;
+    }
+    function row(s, P, now) {
+      const k = st.k, m = P.length, B = BB.bottom(P, Math.min(k, m)), own = m > k;
+      const r = own ? BB.bottomStep(B) : null, cur = BB.bottom(st.P, k).join(",");
+      const same = !now && own && st.P.length > k && B.join(",") === cur;
+      let h = `<tr><th>${now ? "<b>now</b> " : ""}${fmt(s)}${same ? ' <span class="ok">= now</span>' : ""}</th>`;
+      h += `<td class="dim">${!own ? "–" : !r.out ? "·" : r.out.kind === "wave" ? `wave, h = ${fmt(r.out.h)}` : `add ${fmt(r.out.a)}`}</td>`;
+      for (let i = k - 1; i >= 0; i--) {
+        if (i >= B.length) { h += `<td class="dim"></td>`; continue; }
+        const e = r ? r.lv[i] : { kind: "none" }, cls = [];
+        if (e.kind === "pass") cls.push("wave");
+        if (e.kind === "turn") cls.push("wave", "turn", "odd");
+        if (!own) cls.push("dim");
+        const add = e.kind === "add" ? ` <span class="plus">+${fmt(e.a)}</span>` : "";
+        const tip = e.kind === "pass" ? `d = ${e.d}: even, pass ${e.d / 2} on` : e.kind === "turn" ? `d = ${e.d}: odd, turn` : e.kind === "add" ? `receives ${e.a}` : "untouched";
+        h += `<td class="${cls.join(" ")}" title="${tip}">${fmt(B[i])}${add}</td>`;
+      }
+      return h + "</tr>";
+    }
+    function render() {
+      const k = st.k, m = st.P.length;
+      $("l5-s").textContent = fmt(st.s);
+      $("l5-m").textContent = m;
+      $("l5-b").textContent = m > k ? "[" + BB.bottom(st.P, k).reverse().join(", ") + "]" : `only ${m} blocks so far`;
+      const f = st.found;
+      $("l5-cyc").innerHTML = f ? `<span class="ok">✓</span> period ${fmt(f.period)}, from super step ${fmt(f.start)}` : "not found yet";
+      let h = `<tr><th>super step</th><td class="dim">sent left</td>`;
+      for (let i = k; i >= 1; i--) h += `<td class="dim">${i === 1 ? "last" : i + (i === 2 ? "nd" : i === 3 ? "rd" : "th") + " last"}</td>`;
+      h += "</tr>" + st.hist.map(x => row(x.s, x.P, false)).join("") + row(st.s, st.P, true);
+      $("l5-grid").innerHTML = h;
+      let say;
+      if (st.jump) say = st.jump;
+      else if (m <= k) say = `The tape has only ${m} blocks, so the last ${k} include the left end. Step on until there are more.`;
+      else if (f) say = `The last ${k} block${k > 1 ? "s were" : " was"} in this state ${fmt(f.period)} super steps before super step ${fmt(f.at)}. Since they run on their own, they repeat with that period from super step ${fmt(f.start)} on, for as long as the machine runs.`;
+      else say = `${fmt(st.seen.size)} different states of the last ${k} block${k > 1 ? "s" : ""} so far, none seen twice.`;
+      $("l5-say").textContent = say;
+      ["l5-step", "l5-10", "l5-run"].forEach(id => { $(id).disabled = !!running; });
+      $("l5-run").disabled = !!running || !!f;
+      $("l5-jump").disabled = !!running || !f || st.s < f.start;
+      $("l5-reset").disabled = sel.disabled = !!running;
+      $("l5-stop").disabled = !running;
+      chips();
+      drawChart();
+    }
+    function chips() {
+      let p = 1n;
+      $("l5-chips").innerHTML = MULT.map((x, i) => {
+        p *= BigInt(x);
+        const cls = [i < 6 ? "pv" : "", i + 1 === st.k ? "cur" : ""].join(" ");
+        return `<span class="${cls}" title="last ${i + 1}: period ${p.toLocaleString("en-US")}">${i ? "×" + x : x}</span>`;
+      }).join("");
+      const c = { 1: 0, 2: 0, 4: 0, 5: 0 };
+      MULT.slice(1).forEach(x => c[x]++);
+      $("l5-chips-say").innerHTML = `Multiplied out, the last 44 blocks repeat every ${fmt(p)} super steps. Of the 43 factors, ${c[4]} are 4, ${c[2]} are 2, ${c[1]} are 1 and ${c[5]} are 5; whether they follow a rule is not known.`;
+    }
+    let chartFor = null, chartVals = null;
+    function drawChart() {
+      const cv = $("l5-chart"), dpr = window.devicePixelRatio || 1;
+      const W = cv.clientWidth, H = cv.clientHeight;
+      cv.width = W * dpr; cv.height = H * dpr;
+      const ctx = cv.getContext("2d");
+      ctx.scale(dpr, dpr);
+      const f = st.found;
+      if (!f || st.s < f.start) { chartFor = null; $("l5-chart-say").textContent = "Find the cycle first."; return; }
+      // One period of the k-th last block, from the current state (which is on the cycle).
+      const key = st.k + ":" + f.start;
+      if (chartFor !== key) {
+        let B = BB.bottom(st.P, st.k);
+        chartVals = [];
+        for (let i = 0; i < f.period; i++) { chartVals.push(B[st.k - 1]); B = BB.bottomStep(B).next; }
+        chartFor = key;
+      }
+      const V = chartVals, lo = Math.min(...V), hi = Math.max(...V), pad = { l: 44, r: 8, t: 10, b: 20 };
+      const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+      const y = v => pad.t + ih - ((v - 0) / (hi || 1)) * ih;
+      ctx.font = `11px ${css("--font-display")}`;
+      ctx.strokeStyle = css("--rule"); ctx.fillStyle = css("--muted"); ctx.lineWidth = 1;
+      [0, hi].forEach(v => { ctx.beginPath(); ctx.moveTo(pad.l, y(v) + 0.5); ctx.lineTo(W - pad.r, y(v) + 0.5); ctx.stroke(); ctx.fillText(fmt(v), 4, y(v) + 4); });
+      ctx.fillText(`one period: ${fmt(V.length)} super steps`, pad.l, H - 5);
+      // Min and max per pixel column, so long periods still show their range.
+      const cols = Math.max(1, Math.min(V.length, Math.floor(iw)));
+      ctx.fillStyle = css("--wave");
+      for (let c = 0; c < cols; c++) {
+        const a = Math.floor(c * V.length / cols), b = Math.max(a + 1, Math.floor((c + 1) * V.length / cols));
+        let mn = Infinity, mx = -Infinity;
+        for (let i = a; i < b; i++) { mn = Math.min(mn, V[i]); mx = Math.max(mx, V[i]); }
+        const x0 = pad.l + c * iw / cols, w = Math.max(1, iw / cols - (V.length <= 64 ? 1 : 0));
+        ctx.fillRect(x0, y(mx), w, Math.max(2, y(mn) - y(mx)));
+      }
+      $("l5-chart-say").textContent = `The ${st.k === 1 ? "last block" : `${st.k}th last block`} stays between ${fmt(lo)} and ${fmt(hi)}, taking ${new Set(V).size} different values. The adds push it up, the waves halve it, and it never escapes.`;
+    }
+    const many = k => { st.jump = null; for (let i = 0; i < k && step(); i++); render(); };
+    // Run in chunks until `done`, then `after`.
+    function runUntil(done, after) {
+      running = { stop: false }; st.jump = null; render();
+      const chunk = () => {
+        for (let i = 0; i < 20000; i++) {
+          if (running.stop || done()) { running = null; after(); render(); return; }
+          if (!step()) { running = null; render(); return; }
+        }
+        $("l5-say").textContent = `Running… super step ${fmt(st.s)}`;
+        setTimeout(chunk, 0);
+      };
+      chunk();
+    }
+    sel.onchange = () => reset();
+    $("l5-reset").onclick = () => reset();
+    $("l5-step").onclick = () => many(1);
+    $("l5-10").onclick = () => many(10);
+    $("l5-run").onclick = () => runUntil(() => !!st.found, () => {});
+    $("l5-jump").onclick = () => {
+      const from = st.s, B = BB.bottom(st.P, st.k).join(", "), N0 = BB.bigN(st.P), end = st.s + st.found.period;
+      runUntil(() => st.s >= end, () => {
+        if (st.s < end) return;
+        const back = BB.bottom(st.P, st.k).join(", ") === B;
+        st.jump = `From super step ${fmt(from)} to ${fmt(st.s)}: the last ${st.k} blocks are ${back ? "back to" : "NOT back to"} the same values, while the rest of the tape has moved on: N went from ${fmt(N0)} to ${fmt(BB.bigN(st.P))}.`;
+      });
+    };
+    $("l5-stop").onclick = () => { if (running) running.stop = true; };
+    window.addEventListener("resize", drawChart);
+    reset();
+  })();
+  void L5;
 
   // ======================= Figures =======================
   // Block strips for the fixed examples in the text, drawn by the same engine.

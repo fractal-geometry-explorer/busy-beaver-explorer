@@ -103,9 +103,10 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 | `c/blkrun.c` | the wave model in C, for runs far beyond direct simulation |
 | `c/orbitck.c` | the super orbit with `superT`, for the checkpoints of `lean/Orbit/` (not trusted: Lean recomputes them) |
 | `c/superrun.c`, `py/superrun.py` | the super orbit with the cycles of the last blocks tabulated and skipped (C, and the same in Python) |
+| `py/cycles.py` | the cycles of the last 1 to k blocks: least period, where it starts, what they send left, machine steps per period (the table in the reduction page, §6) |
 | `tests/test_machine.py` | the generated files are current, early facts of the run |
 | `tests/test_waves.py` | the block model against `tmrun`, the reference simulator and `runs/` |
-| `tests/test_superrun.py` | `superrun` against `waves.py`, `blkrun.c`, its direct mode and `py/superrun.py` |
+| `tests/test_superrun.py` | `superrun` against `waves.py`, `blkrun.c`, its direct mode and `py/superrun.py`; `py/cycles.py` against its tables |
 | `tests/test_explainer.py` | the engine of `pages/1RB1RA_1RC1LB/explainer.html` against `py/macro.py`, `py/waves.py` and the reference simulator (needs Node) |
 | `runs/` | outputs of long runs |
 | `notes/PRIOR_WORK.md` | what the community and the literature knew about this machine (30 October 2026), with sources |

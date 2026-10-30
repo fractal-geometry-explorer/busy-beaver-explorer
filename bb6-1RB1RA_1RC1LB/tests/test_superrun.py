@@ -15,6 +15,7 @@ sys.path.insert(0, os.path.join(ROOT, "py"))
 
 import waves  # noqa: E402
 import superrun as pysuperrun  # noqa: E402
+import cycles  # noqa: E402
 
 BUILD = tempfile.mkdtemp(prefix="superrun-test-")
 EXE = os.path.join(BUILD, "superrun")
@@ -102,6 +103,18 @@ class TestSuperrun(unittest.TestCase):
                 self.assertEqual([x if x[0] == "halt" else (x[0], x[2], x[3]) for x in direct], want, (a, b))
                 halts += bool(want) and want[-1][0] == "halt"
         self.assertGreater(halts, 5)
+
+    def test_cycles(self):
+        """py/cycles.py finds the periods of the last 1 to 8 blocks that the tables of c/superrun.c have, and the
+        figures of the table on pages/1RB1RA_1RC1LB/reduction.html (§6) for the last 1 to 6."""
+        periods = [int(line.split()[8]) for line in superrun("-S", 20000) if line.startswith("table")][:8]
+        rows = cycles.table(8)
+        self.assertEqual([r[1] for r in rows], periods)
+        page = [(4, 3, 11, 14, 4, 2, 2, 1920), (8, 7, 19, 42, 8, 3, 1, 8285), (32, 11, 27, 48, 13, 7, 5, 57413),
+                (128, 31, 37, 152, 37, 14, 14, 413014), (256, 60, 70, 380, 48, 11, 17, 1624541),
+                (1024, 163, 162, 1042, 98, 21, 23, 14553949)]
+        for (k, period, start, tops, waves_, adds, steps), want in zip(rows, page):
+            self.assertEqual((period, start, min(tops), max(tops), len(set(tops)), waves_, adds, steps), want, k)
 
     def test_accelerated_matches_direct(self):
         """From blank tape, the accelerated run and the direct run agree on every return to the left end in the first
