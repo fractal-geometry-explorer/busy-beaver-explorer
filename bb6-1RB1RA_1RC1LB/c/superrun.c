@@ -1,6 +1,6 @@
 /* superrun: the super orbit of 1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB, accelerated by periodic tables.
  *
- *   superrun [-S MAX_SUPER_STEPS] [-E MAX_TABLE_ENTRIES] [-d] [-q SECONDS] [-c FILE EVERY] [-P p_1,...,p_m]
+ *   superrun [-S MAX_SUPER_STEPS] [-E MAX_TABLE_ENTRIES] [-d] [-r] [-q SECONDS] [-c FILE EVERY] [-P p_1,...,p_m]
  *
  * The super step (py/waves.py `superstep`, proved in lean/Wave.lean) seen from the right end: number the blocks from
  * the right, level 0 = p_m, level 1 = p_{m-1}, ...  Each super step level 0 receives a wave with h = 10.  A level
@@ -142,6 +142,38 @@ static inline void acc2(u64 *a, u128 v) {
 }
 static inline void acc2w(u64 *a, const u64 *b) { acc2(a, (u128)b[1] << 64 | b[0]); }
 
+/* -r: the mod-5 rule for level K (lean/Periods.lean, notes/LAB_NOTES.md).  Each wave acts on a block as p -> 3 (p + h) mod 5 (both
+ * (d + 5)/2 and d/2 are 3d mod 5), each add as p -> p + v, so one pass of the table acts on level K's block as
+ * p -> a p + b mod 5 with a = 3^W (W the waves in the table).  Prints W, a, b, the cycle's residue r = p0 mod 5, the
+ * orbit length of r under that map (the predicted L), the cycle's spread (max - min), and the pass map F on the 11
+ * blocks p0 - 5 .. p0 + 5 as "F - p0" offsets: the rule says F permutes some 5 consecutive blocks around p0. */
+static int rules;
+static u64 pass_map(u64 p) {
+    for (u64 i = 0; i < ntab; i++) {
+        const ent *e = &tab[i];
+        if (e->v & ADDBIT) { p += e->v & ~ADDBIT; continue; }
+        u64 d = p + e->v;
+        p = (d & 1) ? (d + 5) >> 1 : d >> 1;
+    }
+    return p;
+}
+static void rule(u64 p0, int L, u64 nw) {
+    unsigned a = 1, b = 0;
+    for (u64 i = 0; i < ntab; i++) {
+        const ent *e = &tab[i];
+        if (e->v & ADDBIT) b = (unsigned)((b + (e->v & ~ADDBIT)) % 5);
+        else { a = 3 * a % 5; b = (unsigned)(3 * ((b + e->v) % 5) % 5); }
+    }
+    unsigned r = (unsigned)(p0 % 5), x = (a * r + b) % 5, ell = 1;
+    while (x != r) { x = (a * x + b) % 5; ell++; }
+    u64 lo = p0, hi = p0, p = p0;
+    for (int i = 0; i < L; i++) { p = pass_map(p); if (p < lo) lo = p; if (p > hi) hi = p; }
+    printf("rule K %d W %llu a %u b %u r %u L %d predicted %u spread %llu F", K, (unsigned long long)nw, a, b, r, L, ell,
+           (unsigned long long)(hi - lo));
+    for (int k = -5; k <= 5; k++) printf(" %lld", (long long)(pass_map(p0 + k) - p0));
+    printf("\n");
+}
+
 /* the table for K + 1 from the table for K and level K's block p0, over L passes.  Returns 0 (and changes nothing)
  * unless L passes of the table bring level K back to p0: only then is level K periodic from here on. */
 static int build(u64 p0, int L, u64 maxent) {
@@ -176,6 +208,7 @@ static int build(u64 p0, int L, u64 maxent) {
         if (adt >> 62) die("table period overflow");
     }
     if (p != p0) { free(nt); return 0; }     /* not a cycle of the pass map (the history was a false lead) */
+    if (rules) rule(p0, L, nw);
     free(tab);
     tab = nt; ntab = n; tail_dt = adt;
     memcpy(tail_c, ac, sizeof ac);
@@ -277,6 +310,7 @@ int main(int argc, char **argv) {
         else if (!strcmp(argv[i], "-E") && i + 1 < argc) maxent = strtoull(argv[++i], 0, 10);
         else if (!strcmp(argv[i], "-q") && i + 1 < argc) every = atof(argv[++i]);
         else if (!strcmp(argv[i], "-d")) direct = 1;
+        else if (!strcmp(argv[i], "-r")) rules = 1;
         else if (!strcmp(argv[i], "-P") && i + 1 < argc) start = argv[++i];
         else if (!strcmp(argv[i], "-c") && i + 2 < argc) {
             ck = fopen(argv[++i], "w");
@@ -284,7 +318,7 @@ int main(int argc, char **argv) {
             if (!ck || !ckevery) die("-c FILE EVERY");
             direct = 1;
         }
-        else { fprintf(stderr, "usage: superrun [-S MAX_SUPER_STEPS] [-E MAX_TABLE_ENTRIES] [-d] [-q SECONDS] [-c FILE EVERY] [-P p_1,...,p_m]\n"); return 1; }
+        else { fprintf(stderr, "usage: superrun [-S MAX_SUPER_STEPS] [-E MAX_TABLE_ENTRIES] [-d] [-r] [-q SECONDS] [-c FILE EVERY] [-P p_1,...,p_m]\n"); return 1; }
     }
     t_start = now();
     /* the tape [1, 6, 5, 0] at step 136; level 0 receives a wave of 10 every super step, at 210 steps */

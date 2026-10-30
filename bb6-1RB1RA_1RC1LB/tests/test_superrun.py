@@ -72,6 +72,23 @@ class TestSuperrun(unittest.TestCase):
         for line in lines:
             self.assertEqual(line[1:], want[line[0]], line[0])
 
+    def test_period_rule(self):
+        """Each level's period factor is the orbit length of its block mod 5 under r -> 3^W r + b (lean/Periods.lean),
+        so 1, 2, 4 or 5; the cycle spans at most 5 consecutive blocks; and from level 3 on (W >= 7) the pass map
+        depends only on the block mod 5 and permutes 5 consecutive blocks.  Levels 0 to 25, about 2 s."""
+        rules = [line.split() for line in superrun("-r", "-S", "2e13") if line.startswith("rule")]
+        self.assertGreaterEqual(len(rules), 26)  # levels 0 to 25
+        for f in rules:
+            kv = dict(zip(f[1:13:2], map(int, f[2:13:2])))
+            F = list(map(int, f[f.index("F") + 1:]))
+            self.assertEqual(kv["L"], int(f[14]), f)
+            self.assertIn(kv["L"], (1, 2, 4, 5))
+            self.assertEqual({1: 3, 2: 4, 3: 2, 0: 1}[kv["W"] % 4], kv["a"])
+            self.assertLessEqual(int(f[16]), 4)
+            if kv["W"] >= 7:
+                self.assertEqual(F[:5], F[5:10])
+                self.assertEqual(sorted(F[:5]), list(range(min(F), min(F) + 5)))
+
     def test_other_starts(self):
         """From 144 other starts [a, b], direct and accelerated runs return to the left end (and halt) at the same
         super steps with the same d1 as waves.superstep, and both modes agree on the machine steps."""

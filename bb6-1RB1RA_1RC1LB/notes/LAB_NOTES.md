@@ -477,3 +477,78 @@ iteration); `#print axioms` shows propext, Quot.sound and Classical.choice (from
 [12, 27, 36, 37, 93, 184], and these come back after 4, 8, 32, 128, 256, 1024 super steps but not after half of that.
 Since each period is a power of two, it is the least one. So the last six blocks cycle for as long as the machine
 runs. Each further level is still computed only (`c/superrun.c`, up to 44 levels).
+
+## October 30, 2026: why the period factors are 1, 2, 4 or 5
+
+**The question.** Each level added to the bottom multiplies the period by L ∈ {1, 2, 4, 5} (44 levels in
+`runs/superrun_long.txt`; Q₄₄ = 5⁵·2⁵⁹). Is there a rule?
+
+**The rule: mod 5, a wave is affine.** A level with block p that receives a wave h becomes (d + 5)/2 if d = p + h is
+odd and d/2 if it is even. Both are 3d mod 5 (2·3 = 6 ≡ 1, and the +5 vanishes), so mod 5 a wave is p ↦ 3(p + h)
+whichever way it goes, and an add v is p ↦ p + v. Over one period of the bottom, the level's block therefore moves mod
+5 by an affine map r ↦ a·r + b with **a = 3^W mod 5**, W the number of waves the level receives per period, and b the
+image of 0. The level's own period L is the orbit length of its residue under that map, and the orbits of an affine map
+of ℤ/5 have length 1, 2, 4 or 5, never 3:
+
+| W mod 4 | a = 3^W | possible L | which |
+|---:|---:|---|---|
+| 1 or 3 | 3 or 2 | 1 or 4 | 1 iff the residue is the map's fixed point |
+| 2 | 4 | 1 or 2 | 1 iff the residue is the fixed point |
+| 0 | 1 | 1 or 5 | 5 iff b ≠ 0 (then every residue cycles), 1 iff b = 0 |
+
+The 5 in L = 5 is the translation part of the map and the 4 is the order of 3 mod 5; that is why the periods are
+2^a·5^b.
+
+**Proved in Lean, kernel only** (`lean/Periods.lean`, 4 s, on top of `Cycles.lean`'s pass map `topv m C`, the next
+level's block over m super steps of the bottom C):
+
+- `topv_mod`, `topm_aff`: mod 5 the pass map is `r ↦ 3^W r + b`, W = `wc m C` the waves the bottom passes on, b =
+  `topm m C 0`.
+- `cycle_residues`: if the bottom passes on at least one wave per period, two blocks of one cycle of the pass map are
+  never congruent mod 5. Two blocks 5c apart stay 5c′ apart with c′ ≤ c, and c′ < c after a wave if c ≥ 2
+  (`lev_shift`, `topv_shift`). Around a cycle c cannot shrink, so c = 1 for ever; then F^j moves the cycle up by 5 each
+  time, which a cycle cannot do (`no_shift_cycle`).
+- `period_factor`: so if the block has least period L under the pass map, L is the least period of its residue under
+  the affine map: L ∈ {1, 2, 4, 5}, with the table above, and L = 1 exactly when the residue is fixed. `level_period`:
+  the bottom with that level comes back after L·m super steps.
+- `rule₁`–`rule₃`: the rule on the orbit's first three levels (W = 1, 2, 3; L = 4, 2, 4).
+
+A shorter hand proof of `cycle_residues`, not in Lean: a wave maps any 5 consecutive blocks one-to-one onto 5
+consecutive blocks (2q … 2q + 4 ↦ q, q + 3, q + 1, q + 4, q + 2, and 2q + 1 … 2q + 5 ↦ q + 1 … q + 5), with the lowest
+going to ⌈(c + h)/2⌉. So the pass map F sends each window [c, c + 4] onto a window [G(c), G(c) + 4], G is monotone
+and halves, so its iterates settle on a fixed point c*, and every orbit of F ends in an invariant window [c*, c* + 4],
+which F permutes as the affine map permutes ℤ/5.
+
+**Computed** (`c/superrun.c -r`, `runs/periods_rules.txt`, all 44 levels of the long run; `tests/test_superrun.py`
+repeats levels 0 to 25):
+
+- every factor L equals the orbit length the rule predicts, and every cycle spans at most 5 consecutive blocks;
+- from level 3 on (W ≥ 7) the pass map near the cycle depends only on the block mod 5 and permutes 5 consecutive
+  blocks: **a settled level remembers only its residue mod 5** from one period to the next. The whole state of the
+  settled bottom is one residue per level (plus the phase within the period).
+- the factors: L = 4 at 26 levels, 2 at 7, 1 at 6, 5 at 5. W mod 4 is 3 at 19 levels, 1 at 10, 2 at 9, 0 at 6.
+  With W mod 4 and the residue uniform, the rule gives L = 4, 2, 5, 1 with probability 2/5, 1/5, 1/5, 1/5 and
+  1.46 bits of period per level; the run has 1.60 (70.6 bits over 44 levels).
+
+**Deep waves are 28 % more frequent than coin flips** (**computed**). Level k receives W_k waves per period Q_k, so on
+average a wave reaches level k at the rate W_k/Q_k per super step, and 2^k·W_k/Q_k is the factor by which
+"2^k divides N" is more frequent than for a random N. It is 1, 1, 1.5, 1.75 for k = 0 to 3, and then settles:
+
+| k | 10 | 20 | 30 | 35 | 40 | 43 |
+|---:|---:|---:|---:|---:|---:|---:|
+| 2^k W_k/Q_k | 1.2500 | 1.2718 | 1.2777 | 1.2765 | 1.2765 | 1.2764 |
+
+It converges, presumably because a level with W waves per period passes on half of them up to about W^(−1/2)
+(a heuristic), and W_k grows twofold per level. So the time-average chance that the wave passes the last k blocks is 1.2764·2^−k: the low bits of N
+are biased towards 0, by a constant factor and not more.
+
+**What this means for N and halting.** The rule settles the structure of the bottom completely: it is a deterministic
+system in which each settled level carries a residue mod 5, and its period, its pattern of waves, and N mod 2^k for
+k up to the settled depth follow from those residues. It says nothing about the top levels, where the returns to the
+left end happen and halting is decided (d₁ at a return, now 1.9·10²⁷, a power of two or not), and the residue each
+level settles on is set by the top when that level is young. So the rule gives no obstruction to a power of two, and
+the heuristic is unchanged in kind (**heuristic**): d₁ is now 1.9·10²⁷ (91 bits), it has grown by about 2.4 bits per
+return (log₂ d₁ from 3 to 91 over 38 returns), and Σ 1/(d₁ ln 2) over the future returns is about 10⁻²⁷. The one sharpening
+is the factor ρ = 1.2764 for the wave depth: the gaps between returns are shorter than 2^(m−1) super steps (the
+measured gaps over 2^(m−1)/ρ have median 0.43; the top levels, fresh from the left end, are not coin flips either),
+which changes how many returns come per machine step, not the chance per return.

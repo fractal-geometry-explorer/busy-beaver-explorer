@@ -29,7 +29,11 @@ at each level.
   steps (`blank_runs_2e10`, 10⁵ macro steps) and in the first 20,000 step by step;
 - **each level cycles, or the machine never halts** (`cycles_or_never_halts`, `lean/Cycles.lean`): from any state the
   last k blocks either cycle or go silent, and a silent bottom on the orbit means no halt; the cycles of the last 1 to
-  6 blocks are checked on the orbit (`cycle₁`–`cycle₆`). Which case holds for larger k is not decided.
+  6 blocks are checked on the orbit (`cycle₁`–`cycle₆`). Which case holds for larger k is not decided;
+- **each level multiplies the period by 1, 2, 4 or 5** (`period_factor`, `lean/Periods.lean`): mod 5 a wave acts on a
+  block as p ↦ 3(p + h), so over a period the next block moves mod 5 by r ↦ 3^W r + b (W the waves it receives), the
+  blocks of a cycle are distinct mod 5, and the factor is the period of the residue under that affine map: 1 or 4 if W
+  is odd, 1 or 2 if W ≡ 2 mod 4, 1 or 5 if W ≡ 0 mod 4.
 
 **Proved in Lean with `native_decide`**: **no halt in the first 4.4·10³⁷ steps** (`blank_runs_4e37`,
 `lean/CascadeRun.lean`, about 4 minutes), with the tables below, proved sound in Lean (`lean/Cascade.lean`, kernel only:
@@ -53,7 +57,9 @@ head gets there so rarely: the next time after step 2,047,931 is step 26,618,972
 only passes something to the block on its left, so the last k blocks are a closed system, and they fall into exact
 cycles (the last 44 repeat every 1.8·10²¹ super steps). Tabulating those cycles, the orbit runs 6·10²³ super steps
 with no halt: **no halt in the first 2.7·10⁴⁹ steps** (the orbit is proved to decide halting and the step formula is
-proved, `superT`; the run itself is C).
+proved, `superT`; the run itself is C). With `-r` it prints the period rule for each level: all 44 factors are the ones the
+mod-5 rule predicts (`runs/periods_rules.txt`), a settled level remembers only its block mod 5, and a wave passes the
+last k blocks at the rate 1.2764·2^−k per super step (N's low bits lean towards 0 by that constant factor).
 
 **Observed only**: no macro configuration up to 9·10¹³ steps comes near the halting shape (left blocks in the
 hundreds of thousands); see the notes.
