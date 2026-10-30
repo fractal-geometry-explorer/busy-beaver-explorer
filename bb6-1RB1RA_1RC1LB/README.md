@@ -18,6 +18,12 @@ at each level.
   (`halts_iff_pow2'`, `lean/Wave.lean`): every fourth time A stands on the blank right of the tape, the tape is
   p₁ … pₘ then 5, 0, the next such tape is `superstep P` (a wave of halvings going left: `super_run`, for every list),
   and a super step halts iff N is a power of two (`superL_none_iff`); the orbit starts at (1, 6);
+- **the single events** (`ev_sound`, `lean/Events.lean`): each time A stands on the blank right of the tape, the next
+  such tape follows in closed form. With the last block x, the one before it k and q = x/2, an even x gives the blocks
+  … k + q + 1, q + 2, and an odd x starts the wave at k with value k + q + 2 and ends with the last block q. Four events
+  are the super step (`ev4`), the machine halts iff the event orbit from (1, 2) at step 17 halts (`halts_iff_ev`), and
+  this event map is Google DeepMind's `highLevelNext`, copied into `lean/DeepMind.lean` and proved equal to it for
+  every event (`highLevelNext_eq`);
 - **the step count of the super step** (`super_steps`, `lean/WaveTime.lean`): from the tape p₁ … pₘ 5 0 the machine
   reaches the next one in exactly `superT` steps (or halts right after that many): 200, then 2q² + q − 5 for each block
   the wave passes with even d = 2q, then 2q² + 4q + 17 + A where it turns at an odd d = 2q + 1 (A is 3 plus q + 1 per
@@ -54,8 +60,8 @@ configuration of the first 1,000 macro steps); no conserved quantity a·ones + b
 (`tools/py/bbtools/invariants.py`).
 
 **Computed, resting on the wave model** (`py/waves.py`, `c/blkrun.c`, `tests/test_waves.py`; checked against direct
-simulation and against `py/macro.py`): the finer events (each time A is at the right end, four per super step) and
-their step counts; the sum over a super step is the proved `superT`.
+simulation and against `py/macro.py`): the step counts of the single events (the events themselves are proved,
+above); the sum over a super step is the proved `superT`.
 The wave goes v₂(N) + 1 blocks deep and reaches the left end of the tape when 2^(m−1) divides N (which is why the
 head gets there so rarely: the next time after step 2,047,931 is step 26,618,972,322, confirmed by a direct run).
 
@@ -83,7 +89,7 @@ It is an open holdout, unannotated in the community ledger's "Cubic Mess" class,
 DeepMind's [cryptids](https://github.com/google-deepmind/cryptids) repository lists it as an open problem with a Lean
 reduction to a map on stacks of block lengths (27 October 2026): the macro step cut at other moments, and a
 higher-level map that is exactly the event map of `py/waves.py`, one level below the super step (`py/deepmind.py`
-checks both). Nothing found goes as far as the super step's formula or the criterion on N. Its map is not Antihydra's or Hydra's. One machine merged into an equivalence class by
+checks both; `lean/DeepMind.lean` proves the second). Nothing found goes as far as the super step's formula or the criterion on N. Its map is not Antihydra's or Hydra's. One machine merged into an equivalence class by
 bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same tapes. Details and sources:
 [`notes/PRIOR_WORK.md`](notes/PRIOR_WORK.md).
 
@@ -98,6 +104,8 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 | `lean/MacroRun.lean` | bounded runs from blank tape by the macro step |
 | `py/macro.py` | the same macro map in Python (`python3 py/macro.py 50` prints the run) |
 | `lean/Wave.lean` | the super step proved from `next`, and halting iff N is a power of two |
+| `lean/Events.lean` | the single events (`ev`, `ev_sound`), four of them the super step (`ev4`), and halting by events |
+| `lean/DeepMind.lean` | google-deepmind/cryptids' `highLevelNext`, copied into core Lean and proved equal to `ev` |
 | `lean/WaveTime.lean` | the super step's exact step count, and the timed super orbit `orbitT` |
 | `lean/orbit_gen.py` → `lean/Orbit/`, `OrbitKernel.lean`, `OrbitNative.lean` | the orbit checked in chunks between checkpoints from `c/orbitck.c` (generated; do not edit) |
 | `lean/check_orbit.sh` | checks those files in parallel (`kernel` or `all`) |
