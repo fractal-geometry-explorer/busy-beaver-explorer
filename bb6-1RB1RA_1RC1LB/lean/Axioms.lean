@@ -4,6 +4,7 @@ import MacroRun
 import Wave
 import WaveTime
 import Periods
+import Monotone
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
 a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
@@ -42,3 +43,7 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6b.period_factor
 #print axioms BB6b.level_period
 #print axioms BB6b.rule₃
+
+#print axioms BB6b.superL_grows
+#print axioms BB6b.orbit_grows
+#print axioms BB6b.blank_orbit_grows

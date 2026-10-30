@@ -368,7 +368,8 @@ is whether d₁ is a power of two.
 **How close N came to a power of two.** Measured as the relative distance of d₁ (equivalently of N) to the nearest
 power of two, the closest return is the one at super step 7.0·10²¹ (m = 77): d₁ = 9,492,689,577,801,098,865,030 lies 2^−7.6 (0.5 %) above 2⁷³, so N = 2⁷⁶·d₁, just above 2¹⁴⁹, misses it by about 4·10⁴². Over 38 returns a uniformly random mantissa would give a closest
 approach of about 2^−(log₂ 38 + 1); the run is in line with that. In absolute terms the misses are enormous: d₁ is
-now about 1.9·10²⁷ (91 bits), so N is about 2^171 and the nearest power of two is more than 10^49 away.
+now about 1.9·10²⁴ (81 bits), so N = 2⁸⁰·d₁ is about 2^160.6 and the nearest power of two is more than 10^47 away.
+(Corrected on 30 October 2026, see the last entry: this line first said 1.9·10²⁷, 91 bits, 2^171 and 10^49.)
 
 **What this rests on.** That the orbit decides halting is proved (`halts_iff_pow2'`). That the run follows the orbit
 rests on `c/superrun.c` (trusted C, tested as above, with the periodicity of each tabulated level checked by the
@@ -545,10 +546,11 @@ are biased towards 0, by a constant factor and not more.
 **What this means for N and halting.** The rule settles the structure of the bottom completely: it is a deterministic
 system in which each settled level carries a residue mod 5, and its period, its pattern of waves, and N mod 2^k for
 k up to the settled depth follow from those residues. It says nothing about the top levels, where the returns to the
-left end happen and halting is decided (d₁ at a return, now 1.9·10²⁷, a power of two or not), and the residue each
+left end happen and halting is decided (d₁ at a return, now 1.9·10²⁴, a power of two or not), and the residue each
 level settles on is set by the top when that level is young. So the rule gives no obstruction to a power of two, and
-the heuristic is unchanged in kind (**heuristic**): d₁ is now 1.9·10²⁷ (91 bits), it has grown by about 2.4 bits per
-return (log₂ d₁ from 3 to 91 over 38 returns), and Σ 1/(d₁ ln 2) over the future returns is about 10⁻²⁷. The one sharpening
+the heuristic is unchanged in kind (**heuristic**): d₁ is now 1.9·10²⁴ (81 bits), it has grown by about 2.1 bits per
+return (log₂ d₁ from 3.2 to 80.6 over 38 returns), and Σ 1/(d₁ ln 2) over the future returns is about 5·10⁻²⁵ (corrected
+on 30 October 2026: this first said 1.9·10²⁷, 91 bits, 2.4 bits and 10⁻²⁷, from a misread d₁; see the last entry). The one sharpening
 is the factor ρ = 1.2764 for the wave depth: the gaps between returns are shorter than 2^(m−1) super steps (the
 measured gaps over 2^(m−1)/ρ have median 0.43; the top levels, fresh from the left end, are not coin flips either),
 which changes how many returns come per machine step, not the chance per return.
@@ -588,3 +590,77 @@ only after multiples of m).
 (`check_cycles.sh 30 4`). Each level costs about as much as the size of the table below times the passes over it, so
 the cost about doubles per level; 35 levels, the native bound's, would be some 20 times more. CI checks the first 16
 levels and 2 passes (`check_cycles.sh 16 2`, about a minute).
+
+## October 30, 2026: how the top blocks decide halting, N only grows, and the odds corrected
+
+**A correction first.** The entries above (and the reduction page, `status.json`) put d₁ at the last return at
+"1.9·10²⁷ (91 bits)" and the chance of a future halt at about 10⁻²⁷. The value in `runs/superrun_long.txt` is
+d₁ = 1,874,777,618,886,538,568,719,180, which is 1.9·10²⁴ (81 bits, log₂ = 80.63); the digits were miscounted, and the
+growth was 2.1 bits per return, not 2.4. The lines above are corrected in place, with a note.
+
+**Proved in Lean, kernel only** (`lean/Monotone.lean`, standard axioms, under a second): **N strictly increases at
+every super step** (`superL_grows`), so it is strictly increasing along the orbit from blank tape (`orbit_grows`,
+`blank_orbit_grows`). Three inductions over `Wave.lean`'s definitions: at the left end the new blocks satisfy
+3d < 2·S W (`leftEnd_grows`); through the blocks d + 2·S L < S W (`wave_grows`: a turn gains (d + 3)/2, a passing
+level adds d/2 to what the levels above gain). By hand: where the wave turns at block i (j = m − i), N gains
+10 − 2^j + (d_i + 5)·2^(j−1) + Σ_{k>i} d_k·2^(m−k−1) > 2^(j+1); at a return,
+N' = (3 + s)/2·N + 3·2^(m+s−2) + 10 + ½·Σ_{k≥2} d_k·2^(m−k) (checked numerically on the orbit and 300 random starts).
+
+Consequences: each power of two is met at most once. Between returns m is fixed, so the next d₁ = N_then/2^(m−1) is
+larger than N_now/2^(m−1) ≥ p₁ + p₂/2 + p₃/4 + p₄/8. With the top blocks at the end of the long run
+(234347202360817321089897, …089900, 2163436398666026041512949, 2273252587298508113309726) that is 1.18·10²⁴ = 2^79.96:
+**the next return can halt only if 2⁸⁰ divides d₁** (`py/top_stats.py odds`; the blocks rest on `c/superrun.c`).
+
+**What a return writes** (on paper). With d₁ = 2^s·u the top block becomes (u−1)/2, (u+5)/2, u, 2u, …, 2^(s−1)u. Until
+the next return the top block only gains (turns at block 2 add (d₂−1)/2; nothing else reaches it). If all those blocks
+survive to the next return, d₁' = ((s+3)u + 3)/4 + h/2^(s+1), h the wave arriving at the block 2^(s−1)u; this holds at
+all three returns among the first 31 where they survive (super steps 2, 1.6·10⁸, 7.1·10¹⁰). On the orbit
+((s+3)u + 3)/4 has been 0.1 % to 85 % of the next d₁; the rest is carried up from below.
+
+**The odds, redone** (**heuristic**, `py/top_stats.py odds`, `runs/odds.txt`): starting above the floor 2^79.96 and
+resampling the 37 observed increments of log₂ d₁ (from the sixth return on), Σ 1/(d₁ ln 2) over the future has median
+4.4·10⁻²⁵, mean 6.5·10⁻²⁵, 10 % to 90 % 4.7·10⁻²⁶ to 1.4·10⁻²⁴. Counting time instead (N grows like S^2.06 on this
+orbit, density of powers of two 1/(N ln 2)) gives a few times 10⁻²⁵ too. The 2-adic half alone: the next return needs
+v₂(d₁) ≥ 80, chance 2⁻⁸⁰ ≈ 8·10⁻²⁵ if the valuation at a return is geometric.
+
+**N mod 2^k at the right end, exactly** (**computed**, `c/bottom2adic.c`, `runs/bottom2adic_18.txt`, 25 s). N mod 2^k
+depends only on the last k blocks, which run on their own and cycle, so its time average over one period is exact for
+all later times. Over one period of the last 18 blocks (1,048,576,000 super steps from the tape at super step 10⁹; the
+blocks come back): v₂(N) = j occurs 1, 0.5, 1.25, 1.75, 2.125, 1.4375, 1.28, 1.375, 1.41, 1.19, 1.23, 1.25, 1.28, … times
+2^−(j+1) (the factor 1.2764 of the entry on period factors, level by level); the next bit given the lower ones is off
+from 1/2 by 0.10, 0.03, 0.07, 0.04, 0.02, 0.067, 0.032, 0.017, 0.009, 0.036, 0.013, 0.009, 0.013, 0.004, 0.0045, 0.0018
+on average at bits 2 to 17, so the 2-adic law of N tends to one with a density, and no class mod 2^k gets more than 3.5
+times its share. **N is never 3030 or 4054 mod 2¹²** (binary 1?1111010110); no other residue mod 2¹⁸ is missed. Not
+explained; it says nothing about powers of two (0 mod 2¹²).
+
+**At the top of the blank-tape orbit the waves are fair coins** (**computed**, `py/top_stats.py toppass 1e17`,
+`runs/toppass_1e17.txt`, 30 s): after super step 10⁶, a wave that reaches the k-th block from the left has d even there
+in 0.53, 0.59, 0.53, 0.53 of cases for k = 1 to 4 (19 to 114 waves), and 0.4891 to 0.5067 for k = 5 to 12, 0.4998 to
+0.5006 for k = 13 to 24 (over 10⁵ waves each). The valuation s at a return continues those coin flips beyond the left
+end; its 38 values (mean 1.0, largest 7) are too few for the tail.
+
+**The random model on the map** (**computed** counts, **heuristic** reading; `c/ensemble.c`,
+`py/top_stats.py ensemble`, `runs/ensemble_summary.txt`). 60,000 orbits of 2²⁴ super steps from 2 to 4 random blocks of
+1 to 100 (seven runs on four cores, about an hour): 522,749 returns, d₁ up to 2³⁰.
+- Halts: 2,018 against Σ 1/(d₁ ln 2) = 2,023.7 (ratio 0.997 ± 0.022); per bit of d₁ the ratio runs 0.56 to 1.52 (low
+  for d₁ < 2⁶, high for 2⁷ to 2¹⁰), 8 halts against 4.8 for d₁ in [2¹³, 2¹⁶).
+- Near-halts, odd part u < 2^c (expected (2^c/2)/(d₁ ln 2) per return with d₁ ≥ 2^(c+6)), c = 1 to 20: 0.4 to 1.4 of
+  expected in every cell with at least 20 expected; pooled, 1.38 (c = 1), 1.20 (c = 2), 0.76 to 1.09 (c = 3 to 20). The
+  same count on random numbers of the same sizes gives 0.9 to 1.0 for c ≥ 5.
+- v₂(d₁): P(s ≥ t)·2^t within 3 % of 1 for t ≤ 7 in each band; pooled over d₁ ≥ 2¹⁶ it is 0.97, 0.97, 0.89, 0.85, 0.87,
+  0.84, 0.69, 0.40 for t = 6 to 13 (−3.2σ at t = 8, −3.0σ at t = 9), not in every band (none in [2²⁰, 2²⁴)), and not in
+  random numbers of the same sizes. Orbits do not differ: an orbit with a high valuation early is not more likely to
+  have one later (0.95 ± 0.02 against 1.00 ± 0.01 at t = 4), so survivorship does not explain it. Unexplained; it would
+  only lower the odds.
+- Residues: the residues of powers of two mod odd q ≤ 31 get 0.98 to 1.00 of their share. u mod 2⁸ is not uniform:
+  χ² 2.4 to 3.5 times its 127 degrees of freedom even with one return per orbit (so not a correlation artefact), frequencies 0.9 to 1.15, u ≡ 1 mod 2⁸
+  at 0.81 to 1.04 of its share by band. Consecutive returns of an orbit agree mod 2^k only at chance (1.00 to 1.03).
+- Leading bits: frac(log₂ d₁) uniform within 3 %; 2.00 % of returns within 0.01 of a power of two.
+
+**What it means.** Nothing here comes near a proof. It locates the decision (the top blocks at a return), proves that
+N only grows, corrects the odds to about 5·10⁻²⁵, and shows that the random model behind them holds within a factor of
+about 2 wherever it can be tested, with the only systematic departure (fewer high valuations) on the side of no halt.
+Two partial results look reachable: the right-end law for every k (a 2-adic density for N, which needs control of the
+residues the levels settle on), and a deterministic bound on v₂(d₁) at a return from the top blocks. A run of 10⁷
+starts (a few CPU days) would settle whether the shortfall in high valuations is real. Page:
+`pages/1RB1RA_1RC1LB/top-blocks.html`.
