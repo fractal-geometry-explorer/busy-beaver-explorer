@@ -139,6 +139,34 @@ class TestSuperstep(unittest.TestCase):
             P = P2
         self.assertEqual(kinds, {"turn", "left", "F"})
 
+    def test_super_steps(self):
+        """The step count of the super step that lean/WaveTime.lean proves (`superT`, ported as `super_steps`) is the
+        sum of the four macro steps, for 150,000 super steps."""
+        b = [1, 6, 5, 0]
+        for _ in range(150000):
+            P, t = b[:-2], 0
+            for _ in range(4):
+                b, dt = waves.step(b)
+                t += dt
+            self.assertEqual(waves.super_steps(P), t)
+        b, t = [6, 5, 0], 0                    # the halting super step: Halt counts the halting transition too
+        with self.assertRaises(waves.Halt) as e:
+            for _ in range(4):
+                b, dt = waves.step(b)
+                t += dt
+        self.assertEqual(waves.super_steps([6]) + 1, t + e.exception.args[0])
+
+    def test_orbitck(self):
+        """c/orbitck.c, which writes the checkpoints of lean/Orbit/, against superstep and super_steps."""
+        exe = cc(os.path.join(ROOT, "c", "orbitck.c"), "orbitck")
+        out = subprocess.run([exe, "1000", "100"], check=True, capture_output=True, text=True).stdout.splitlines()
+        P, T = [1, 6], 136
+        for k, line in enumerate(out):
+            for _ in range(1000):
+                T += waves.super_steps(P)
+                P = waves.superstep(P)[0]
+            self.assertEqual(line, f"{1000 * (k + 1)} {T} " + " ".join(map(str, P[::-1])))
+
     def test_superstep_halt(self):
         """d_1 a power of two is the halt: P = (6) has d_1 = 6 + 20/2 = 16, and the macro halts on [6, 5, 0]."""
         P2, kind, v = waves.superstep([6])
