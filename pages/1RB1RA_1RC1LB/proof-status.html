@@ -155,6 +155,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Split the list (nearest first) as B ++ U: the super step of B ++ U is B's own step followed by what B passes on (nothing, an add, or a wave) applied to U, and its step count <code>superT</code> splits the same way. A table that is one period of B can stand in for B: running U on it follows the timed orbit over whole periods. A table for one more level, built over L passes, is a period as soon as the level comes back to its block, which the builder checks. Every list, every k.</p>
         <p class="where"><code>superL_split</code>, <code>superT_split</code>, <code>pass_sound</code>, <code>build_rep</code>, <code>drive_sound</code>, <code>runs_of_drive</code>, <code>lean/Cascade.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Each level cycles, or the machine never halts</h3>
+        <p>From any state, the last k blocks on their own either come back to themselves after some point (and then have a table of one period) or never again pass anything to the left. The proof is by induction on k: a level fed by a cycle that sends it a wave each period stays below a bound (a wave halves it), so it repeats; fed by one that sends no wave, it passes nothing on. A silent bottom on the orbit from blank tape means the wave never reaches the left end again, so the machine never halts. So once the orbit has k blocks, either it halts soon after, or the last k blocks cycle, or it never halts. Which case holds is not decided. The cycles of the last 1 to 6 blocks (periods 4, 8, 32, 128, 256, 1024, each the least) are checked on the orbit by <code>decide</code>.</p>
+        <p class="where"><code>cycles_or_silent</code>, <code>rep_of_cycles</code>, <code>never_halts_of_silent</code>, <code>cycles_or_never_halts</code>, <code>cycle₁</code>&ndash;<code>cycle₆</code>, <code>lean/Cycles.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -198,7 +203,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>The last blocks are periodic</h3>
-        <p>Numbering the blocks from the right, block k only receives an add or a wave from block k&minus;1 and passes one on, so the last k blocks are a closed system. Each wave halves a block, and they fall into exact cycles: the last block 11 &rarr; 13 &rarr; 14 &rarr; 12, the last two with period 8, the last 20 with period 1.7&middot;10<sup>10</sup>, the last 44 with period 1.8&middot;10<sup>21</sup> super steps (each a 2<sup>a</sup>&middot;5<sup>b</sup>). The search checks each cycle before using it. For every k, either the last k blocks become periodic or the wave stops reaching the left end (by hand, not in Lean).</p>
+        <p>Numbering the blocks from the right, block k only receives an add or a wave from block k&minus;1 and passes one on, so the last k blocks are a closed system. Each wave halves a block, and they fall into exact cycles: the last block 11 &rarr; 13 &rarr; 14 &rarr; 12, the last two with period 8, the last 20 with period 1.7&middot;10<sup>10</sup>, the last 44 with period 1.8&middot;10<sup>21</sup> super steps (each a 2<sup>a</sup>&middot;5<sup>b</sup>). The search checks each cycle before using it. That every level either cycles or goes silent is now proved in Lean (above); these particular periods beyond the last six blocks are computed.</p>
         <p class="where"><code>c/superrun.c</code> (lines <code>table</code> of <code>runs/superrun_long.txt</code>), <code>notes/LAB_NOTES.md</code></p>
       </div>
     </div>
@@ -237,7 +242,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>bash scripts/setup-lean.sh                  # Lean 4.34.0, core only
 . /etc/profile.d/lean.sh
-bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave, WaveTime, Cascade, CascadeRun (about 6 min)
+bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave, WaveTime, Cascade, CascadeRun, Cycles (about 6 min)
 bb6-1RB1RA_1RC1LB/lean/check_orbit.sh all   # the long runs in parallel (about 3 CPU hours kernel, 6 native)
 python3 tools/tests/test_tools.py           # the shared tools
 python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py
