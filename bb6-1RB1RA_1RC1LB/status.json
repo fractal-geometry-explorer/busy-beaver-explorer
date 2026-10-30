@@ -83,6 +83,12 @@
       "where": "<code>cycles_or_silent</code>, <code>rep_of_cycles</code>, <code>never_halts_of_silent</code>, <code>cycles_or_never_halts</code>, <code>cycle₁</code>&ndash;<code>cycle₆</code>, <code>lean/Cycles.lean</code>"
     },
     {
+      "level": "kernel",
+      "title": "The period factors are 1, 2, 4 or 5",
+      "text": "Each block added to the cycling bottom multiplies its period by a factor L. Mod 5 a wave acts on a block as p &rarr; 3(p + h), whether the wave turns there or passes ((d + 5)/2 and d/2 are both 3d mod 5), and an add as p &rarr; p + v. So over a period the next block moves mod 5 by r &rarr; 3<sup>W</sup>r + b, W the waves it receives per period. Lean proves that the blocks of a cycle are distinct mod 5, so L is the period of the residue under that affine map: <b>L is 1, 2, 4 or 5, never 3</b>; 1 or 4 if W is odd, 1 or 2 if W &equiv; 2 mod 4, and if W &equiv; 0 mod 4, 5 when b &ne; 0 and 1 when b = 0. This is why every period is 2<sup>a</sup>&middot;5<sup>b</sup>.",
+      "where": "<code>cycle_residues</code>, <code>period_factor</code>, <code>level_period</code>, <code>rule₁</code>&ndash;<code>rule₃</code>, <code>lean/Periods.lean</code>"
+    },
+    {
       "level": "native",
       "title": "No halt in 4.4&middot;10<sup>37</sup> steps, by the tables",
       "text": "The tables for the last 1 to 35 blocks, each built and checked inside the evaluation, and then 6 passes of the last (8.8&middot;10<sup>16</sup> super steps each): 6.75&middot;10<sup>17</sup> super steps, to machine step 44,405,698,359,075,157,430,295,693,458,238,990,120, without a halt. About 4 minutes; the plan (<code>py/superrun.py plan 35 6</code>) is only a hint.",
@@ -127,8 +133,8 @@
     {
       "level": "trusted",
       "title": "The last blocks are periodic",
-      "text": "Numbering the blocks from the right, block k only receives an add or a wave from block k&minus;1 and passes one on, so the last k blocks are a closed system. Each wave halves a block, and they fall into exact cycles: the last block 11 &rarr; 13 &rarr; 14 &rarr; 12, the last two with period 8, the last 20 with period 1.7&middot;10<sup>10</sup>, the last 44 with period 1.8&middot;10<sup>21</sup> super steps (each a 2<sup>a</sup>&middot;5<sup>b</sup>). The search checks each cycle before using it. That every level either cycles or goes silent is now proved in Lean (above); these particular periods beyond the last six blocks are computed.",
-      "where": "<code>c/superrun.c</code> (lines <code>table</code> of <code>runs/superrun_long.txt</code>), <code>notes/LAB_NOTES.md</code>"
+      "text": "Numbering the blocks from the right, block k only receives an add or a wave from block k&minus;1 and passes one on, so the last k blocks are a closed system. Each wave halves a block, and they fall into exact cycles: the last block 11 &rarr; 13 &rarr; 14 &rarr; 12, the last two with period 8, the last 20 with period 1.7&middot;10<sup>10</sup>, the last 44 with period 1.8&middot;10<sup>21</sup> super steps (each a 2<sup>a</sup>&middot;5<sup>b</sup>). The search checks each cycle before using it. That every level either cycles or goes silent is now proved in Lean (above), and so is the rule for the factors; these particular periods beyond the last six blocks are computed. Every one of the 44 factors is the one the mod-5 rule predicts, and from the fourth block on a settled block remembers only its residue mod 5 from one period to the next.",
+      "where": "<code>c/superrun.c</code> (lines <code>table</code> of <code>runs/superrun_long.txt</code>; <code>-r</code> and <code>runs/periods_rules.txt</code> for the rule), <code>notes/LAB_NOTES.md</code>"
     },
     {
       "level": "heuristic",
@@ -139,13 +145,13 @@
     {
       "level": "heuristic",
       "title": "Why the returns to the left end are rare",
-      "text": "The wave is a binary carry: reaching the left end needs v<sub>2</sub>(N) &ge; m &minus; 1, about once in 2<sup>m&minus;1</sup> super steps if N's low bits behave like coin flips, and each return adds blocks. The observed gaps fit that estimate to within a factor of two. The returns do not stop; they thin out.",
+      "text": "The wave is a binary carry: reaching the left end needs v<sub>2</sub>(N) &ge; m &minus; 1, about once in 2<sup>m&minus;1</sup> super steps if N's low bits behave like coin flips, and each return adds blocks. They do not quite: from the periodic tables, a wave passes the last k blocks at the rate 1.2764&middot;2<sup>&minus;k</sup> per super step (computed, converged to four digits by k = 40), so the low bits of N lean towards 0 by a constant factor. The observed gaps are somewhat shorter still. The returns do not stop; they thin out.",
       "where": "<code>notes/LAB_NOTES.md</code>"
     },
     {
       "level": "heuristic",
       "title": "Almost certainly no halt",
-      "text": "At a return the deciding number is now about 10<sup>27</sup> and grows; if it behaved like a random integer, the chance of ever hitting a power of two would be far below 10<sup>&minus;6</sup>. N shows no modular obstruction (see below).",
+      "text": "At a return the deciding number d<sub>1</sub> is now about 1.9&middot;10<sup>27</sup> and has grown by about 2.4 bits per return; if it behaved like a random integer, the chance of ever hitting a power of two from here would be about 10<sup>&minus;27</sup>. The rule for the periods explains the last blocks completely but gives no obstruction: halting is decided at the top, where the blocks are young. N shows no modular obstruction (see below).",
       "where": "<code>notes/LAB_NOTES.md</code>"
     },
     {
@@ -164,7 +170,7 @@
   "check": [
     "bash scripts/setup-lean.sh                  # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave, WaveTime, Cascade, CascadeRun, Cycles (about 6 min)",
+    "bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave, WaveTime, Cascade, CascadeRun, Cycles, Periods (about 6 min)",
     "bb6-1RB1RA_1RC1LB/lean/check_orbit.sh all   # the long runs in parallel (about 3 CPU hours kernel, 6 native)",
     "python3 tools/tests/test_tools.py           # the shared tools",
     "python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py",
