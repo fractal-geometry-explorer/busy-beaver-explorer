@@ -448,3 +448,32 @@ its chunks with `orbitT_trans`, so `lean/check_orbit.sh` checks the files in par
 The search thread built a faster route on top of `WaveTime.lean` (tabulating the periodic bottom blocks, PR #124: no
 halt in 4.4·10³⁷ steps with `native_decide`); the direct check here is the simple independent one, resting only on
 `orbitT`.
+
+## October 30, 2026: each level cycles, or the machine never halts (Lean)
+
+**Result** (**proved**, `lean/Cycles.lean`, kernel only, 3 s): for every k and every state B of the last k blocks
+(nearest first), there is an n after which the bottom on its own (`bs`, the iterated `bstep` of `Cascade.lean`)
+either **cycles**, coming back after some m > 0 super steps, or is **silent**, never passing an add or a wave to the
+left again (`cycles_or_silent`). A cycling bottom has a table of one period (`rep_of_cycles`). A silent bottom on the
+orbit from blank tape, with blocks to its left, means the machine never halts (`never_halts_of_silent`): the wave
+never reaches the left end again. On the orbit (`cycles_or_never_halts`): once the orbit has the last k blocks B at
+super step j, either the machine halts within n more super steps, or at super step j + n the bottom is `bs n B` and
+cycles, or the machine never halts.
+
+This corrects the hand version in the first entry of today, "periodic or the wave stops reaching the left end". The
+bottom can also halt the machine before it settles, so the correct statement has three cases. It decides nothing by itself, since
+any of the three could hold for the real orbit.
+
+**The proof**, by induction on k. If the bottom is silent, one more level only ever receives nothing, so it is silent
+too. If the bottom cycles with period m and passes on at least one wave per period, the next level's block goes from
+q to F(q) per period with 2·F(q) ≤ q + 2W, where W bounds what one period adds (a wave h turns q into at most
+(q + h + 5)/2). So the block stays at most q₀ + 2W, takes at most q₀ + 2W + 1 values, and repeats by pigeonhole: the
+bottom with one more level cycles with period a multiple of m. If the bottom passes no wave in a period, it never does,
+and the next level only receives adds, which it keeps: silent. Everything is in core Lean (own pigeonhole and
+iteration); `#print axioms` shows propext, Quot.sound and Classical.choice (from `by_cases`).
+
+**The first six levels, checked** (`cycle₁`–`cycle₆`, `decide`, no axioms): the orbit from blank tape at super step
+3, 7, 11, 31, 60, 163 has last blocks [12], [12, 26], [12, 27, 39], [12, 26, 27, 38], [11, 19, 28, 47, 111],
+[12, 27, 36, 37, 93, 184], and these come back after 4, 8, 32, 128, 256, 1024 super steps but not after half of that.
+Since each period is a power of two, it is the least one. So the last six blocks cycle for as long as the machine
+runs. Each further level is still computed only (`c/superrun.c`, up to 44 levels).

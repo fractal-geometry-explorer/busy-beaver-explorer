@@ -26,7 +26,10 @@ at each level.
   `b_sweep`, for every block length;
 - **no halt in the first 1.4·10¹⁶ steps** (`blank_runs_1_4e16`, `lean/OrbitKernel.lean`: the first 10⁷ super steps,
   checked in 1,000 chunks by `check_orbit.sh`, about three CPU hours); within `check.sh`, no halt in the first 2·10¹⁰
-  steps (`blank_runs_2e10`, 10⁵ macro steps) and in the first 20,000 step by step.
+  steps (`blank_runs_2e10`, 10⁵ macro steps) and in the first 20,000 step by step;
+- **each level cycles, or the machine never halts** (`cycles_or_never_halts`, `lean/Cycles.lean`): from any state the
+  last k blocks either cycle or go silent, and a silent bottom on the orbit means no halt; the cycles of the last 1 to
+  6 blocks are checked on the orbit (`cycle₁`–`cycle₆`). Which case holds for larger k is not decided.
 
 **Proved in Lean with `native_decide`**: **no halt in the first 4.4·10³⁷ steps** (`blank_runs_4e37`,
 `lean/CascadeRun.lean`, about 4 minutes), with the tables below, proved sound in Lean (`lean/Cascade.lean`, kernel only:
@@ -86,6 +89,7 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 | `lean/check_orbit.sh` | checks those files in parallel (`kernel` or `all`) |
 | `lean/Cascade.lean` | the last blocks run on their own (`superL_split`, `superT_split`), and the tables are sound (`build_rep`, `runs_of_drive`) |
 | `lean/CascadeRun.lean` | no halt in the first 4.4·10³⁷ steps, by 35 levels of tables (`native_decide`) |
+| `lean/Cycles.lean` | every level cycles or goes silent, and silent means no halt (`cycles_or_never_halts`); the last six blocks' cycles |
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `py/waves.py` | the wave model: the run in another cut, and the super step with N, exact step counts |
 | `py/n_search.py` | the search for an invariant that keeps N off the powers of two |
