@@ -1,7 +1,7 @@
 # Pages
 
-Eight self-contained HTML pages. Open any of them in a browser; they need no server. They load two fonts from Google
-Fonts and fall back to system fonts offline. `index.html` is a landing page that links to the eight, and
+Nine self-contained HTML pages. Open any of them in a browser; they need no server. They load two fonts from Google
+Fonts and fall back to system fonts offline. `index.html` is a landing page that links to the nine, and
 `.github/workflows/pages.yml` publishes this folder to GitHub Pages on every push to main.
 
 | page | machine | what it shows |
@@ -12,6 +12,7 @@ Fonts and fall back to system fonts offline. `index.html` is a landing page that
 | [`1RB1RA_1RC1LB/proof-status.html`](1RB1RA_1RC1LB/proof-status.html) | the machine `1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB` | its proof status: what is proved in Lean, computed, or only observed, from [`../bb6-1RB1RA_1RC1LB`](../bb6-1RB1RA_1RC1LB) |
 | [`1RB1RA_1RC1LB/reduction.html`](1RB1RA_1RC1LB/reduction.html) | the same machine | the reduction from the machine to "is N = 10 + Σ p_l·2^(m−l) ever a power of two?", link by link, with what each link rests on and a section to update as the open work lands |
 | [`1RB1RA_1RC1LB/explainer.html`](1RB1RA_1RC1LB/explainer.html) | the same machine | runs the machine at six levels (raw steps, block rules, the macro step, the halving wave, the number N, and the cycles of the last blocks), each checked against the bare machine or the models where the step is small enough |
+| [`1RB1RA_1LC1LD/proof-status.html`](1RB1RA_1LC1LD/proof-status.html) | the machine `1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB` | its proof status, from [`../bb6-1RB1RA_1LC1LD`](../bb6-1RB1RA_1LC1LD) |
 | [`champion-rule-map.html`](champion-rule-map.html) | the BB(6) champion `1RB1RA_1RC1RZ_1LD0RF_1RA0LE_0LD1RC_1RA0RE` (mxdys, 2025) | what each of the champion's twelve rules does, sorted into routines |
 | [`champion-explorer.html`](champion-explorer.html) | the BB(6) champion | runs the champion step by step and decodes its tape into a countdown, a phase, a middle counter and a pile |
 
@@ -41,7 +42,8 @@ here, and at the move both builders reproduced the committed pages byte for byte
   `warm.js` prints the warm-up of the run from blank tape that `warm_tapes.json` records.
 
 `1RB1RA_1RC1LB/proof-status.html` is built by `../tools/pages/build_status.py` from
-`../bb6-1RB1RA_1RC1LB/status.json`; edit the JSON and rebuild.
+`../bb6-1RB1RA_1RC1LB/status.json`; `1RB1RA_1LC1LD/proof-status.html` the same way from
+`../bb6-1RB1RA_1LC1LD/status.json`. Edit the JSON and rebuild.
 
 `1RB1RA_1RC1LB/reduction.html` and `1RB1RA_1RC1LB/explainer.html` are written by hand. The reduction's section "What is
 proved, what is trusted, what is heuristic" (marked `STATUS` in the HTML) is the part to update when a result changes,
