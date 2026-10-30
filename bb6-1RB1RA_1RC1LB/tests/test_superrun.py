@@ -116,6 +116,23 @@ class TestSuperrun(unittest.TestCase):
         for (k, period, start, tops, waves_, adds, steps), want in zip(rows, page):
             self.assertEqual((period, start, min(tops), max(tops), len(set(tops)), waves_, adds, steps), want, k)
 
+    def test_cycle_gen(self):
+        """lean/cycle_gen.py, which writes the kernel check of the tables in pieces, mirrors the Lean definitions: its
+        run of the plan for 16 levels and 2 passes ends at the machine step of py/superrun.py, its periods are those
+        of the tables of c/superrun.c."""
+        sys.path.insert(0, os.path.join(ROOT, "lean"))
+        import cycle_gen
+        out = tempfile.mkdtemp(prefix="cycle-gen-test-")
+        levels = cycle_gen.generate(16, 2, out, verbose=False)
+        _, _, T = pysuperrun.lean_plan(16, 2)
+        self.assertEqual(levels[-1]["t"], T)
+        periods = [int(line.split()[8]) for line in superrun("-S", 10 ** 8) if line.startswith("table")][:16]
+        self.assertEqual([lv["period"] for lv in levels[:-1]], periods)
+        with open(os.path.join(out, "CycleRun.lean")) as f:
+            run = f.read()
+        self.assertIn(f"theorem blank_runs_cycles : ∃ c, steps {T} init = some c", run)
+        self.assertIn("theorem cycle16 :", run)
+
     def test_accelerated_matches_direct(self):
         """From blank tape, the accelerated run and the direct run agree on every return to the left end in the first
         3·10^8 super steps (S, machine step, d1, m), and the tables do get built."""
