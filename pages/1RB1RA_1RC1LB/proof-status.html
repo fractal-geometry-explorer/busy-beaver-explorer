@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="verdict">
       <p><b>The question is open, and it is now a question about a list map.</b> Lean proves that one macro step of the machine (a phase of transfers, then a sweep to the right or a carry to the left) is an explicit function <code>next</code> on the lists of block lengths, step counts included, and that <b>the machine halts from blank tape iff the macro run reaches a halt</b>. A macro step halts exactly when the head's block is odd and, after the transfers, every block to the left of the head is 2.</p>
       <p>Running that map, Lean's kernel proves no halt in the first 2·10<sup>10</sup> steps, and with <code>native_decide</code> in the first 9·10<sup>13</sup>. In those runs the left list holds blocks in the hundreds of thousands, far from all 2s. What is missing is an argument that the map never produces that shape.</p>
-      <p><b>The halting condition in one number, proved.</b> Every fourth time A stands on the blank right of the tape, the tape is blocks p<sub>1</sub>, &hellip;, p<sub>m</sub> followed by 5, 0, and the next such tape follows from an explicit formula: with d<sub>m+1</sub> = 20 and d<sub>l</sub> = p<sub>l</sub> + d<sub>l+1</sub>/2, a wave of halvings runs left while d is even and turns at the first odd d. Lean proves this super step from the macro map for every list, and proves that <b>the machine halts from blank tape iff N = 10 + &Sigma; p<sub>l</sub>&middot;2<sup>m&minus;l</sup> (the blocks read as binary digits) is a power of two at some super step</b> of the orbit from (1, 6). The wave reaches the left end when 2<sup>m&minus;1</sup> divides N, which explains why the head gets there so rarely (computed, not part of the proof). Read from the right end, the super step is a cascade in which each block only passes something to the block on its left, so the last k blocks evolve on their own and fall into exact cycles (the last 44 repeat every 1.8&middot;10<sup>21</sup> super steps). A search that tabulates those cycles and skips over them finds <b>no halt in the first 6&middot;10<sup>23</sup> super steps, 2.7&middot;10<sup>49</sup> machine steps</b> (computed, not proved).</p>
+      <p><b>The halting condition in one number, proved.</b> Every fourth time A stands on the blank right of the tape, the tape is blocks p<sub>1</sub>, &hellip;, p<sub>m</sub> followed by 5, 0, and the next such tape follows from an explicit formula: with d<sub>m+1</sub> = 20 and d<sub>l</sub> = p<sub>l</sub> + d<sub>l+1</sub>/2, a wave of halvings runs left while d is even and turns at the first odd d. Lean proves this super step from the macro map for every list, and proves that <b>the machine halts from blank tape iff N = 10 + &Sigma; p<sub>l</sub>&middot;2<sup>m&minus;l</sup> (the blocks read as binary digits) is a power of two at some super step</b> of the orbit from (1, 6). The wave reaches the left end when 2<sup>m&minus;1</sup> divides N, which explains why the head gets there so rarely (computed, not part of the proof). Read from the right end, the super step is a cascade in which each block only passes something to the block on its left, so the last k blocks evolve on their own and fall into exact cycles (the last 44 repeat every 1.8&middot;10<sup>21</sup> super steps). A search that tabulates those cycles and skips over them finds <b>no halt in the first 6&middot;10<sup>23</sup> super steps, 2.7&middot;10<sup>49</sup> machine steps</b> (computed, not proved). Lean proves that the last blocks run on their own and that the tables are sound, and with <code>native_decide</code> the same tables give <b>no halt in the first 4.4&middot;10<sup>37</sup> steps</b>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -137,6 +137,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>State A runs right over a block of n ones in n steps; state B runs left over a block of n ones to the 0 before it in n + 1 steps; for every n and any surrounding tape.</p>
         <p class="where"><code>a_sweep</code>, <code>b_sweep</code>, <code>lean/Rules.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The last blocks run on their own; the skip tables are sound</h3>
+        <p>Split the list (nearest first) as B ++ U: the super step of B ++ U is B's own step followed by what B passes on (nothing, an add, or a wave) applied to U, and its step count <code>superT</code> splits the same way. A table that is one period of B can stand in for B: running U on it follows the timed orbit over whole periods. A table for one more level, built over L passes, is a period as soon as the level comes back to its block, which the builder checks. Every list, every k.</p>
+        <p class="where"><code>superL_split</code>, <code>superT_split</code>, <code>pass_sound</code>, <code>build_rep</code>, <code>drive_sound</code>, <code>runs_of_drive</code>, <code>lean/Cascade.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -144,6 +149,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in 9·10<sup>13</sup> steps</h3>
         <p>10<sup>7</sup> macro steps, by compiled evaluation: more than 9·10<sup>13</sup> machine steps without a halt. (Step by step: 10,000,000.)</p>
         <p class="where"><code>blank_runs_9e13</code>, <code>lean/MacroRun.lean</code>; <code>blank_runs_10M</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 4.4&middot;10<sup>37</sup> steps, by the tables</h3>
+        <p>The tables for the last 1 to 35 blocks, each built and checked inside the evaluation, and then 6 passes of the last (8.8&middot;10<sup>16</sup> super steps each): 6.75&middot;10<sup>17</sup> super steps, to machine step 44,405,698,359,075,157,430,295,693,458,238,990,120, without a halt. About 4 minutes; the plan (<code>py/superrun.py plan 35 6</code>) is only a hint.</p>
+        <p class="where"><code>blank_runs_4e37</code>, <code>lean/CascadeRun.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>

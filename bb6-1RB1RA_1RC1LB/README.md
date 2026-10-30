@@ -24,6 +24,9 @@ at each level.
 
 **Proved in Lean with `native_decide`**: no halt in the first 9·10¹³ steps (`blank_runs_9e13`, 10⁷ macro steps);
 10,000,000 step by step (`blank_runs_10M`).
+With the tables below, proved sound in Lean (`lean/Cascade.lean`, kernel only: the last blocks run on their own, and a
+table built for one more level is checked to be a period): **no halt in the first 4.4·10³⁷ steps**
+(`blank_runs_4e37`, `lean/CascadeRun.lean`, about 4 minutes).
 
 **Computed** (trusted C/Python, tested): the macro model `py/macro.py` (matches direct simulation at every macro
 configuration of the first 1,000 macro steps); no conserved quantity a·ones + b·pos + W[state] modulo 2 to 12
@@ -61,6 +64,8 @@ something special about the blank-tape orbit.
 | `lean/MacroRun.lean` | bounded runs from blank tape by the macro step |
 | `py/macro.py` | the same macro map in Python (`python3 py/macro.py 50` prints the run) |
 | `lean/Wave.lean` | the super step proved from `next`, and halting iff N is a power of two |
+| `lean/Cascade.lean` | the last blocks run on their own (`superL_split`, `superT_split`), and the tables are sound (`build_rep`, `runs_of_drive`) |
+| `lean/CascadeRun.lean` | no halt in the first 4.4·10³⁷ steps, by 35 levels of tables (`native_decide`) |
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `py/waves.py` | the wave model: the run in another cut, and the super step with N, exact step counts |
 | `py/n_search.py` | the search for an invariant that keeps N off the powers of two |
@@ -76,7 +81,7 @@ something special about the blank-tape orbit.
 
 ```sh
 bash scripts/setup-lean.sh && . /etc/profile.d/lean.sh
-bb6-1RB1RA_1RC1LB/lean/check.sh                 # about 2 min
+bb6-1RB1RA_1RC1LB/lean/check.sh                 # about 6 min (CascadeRun about 4)
 python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py     # about 20 s
 python3 bb6-1RB1RA_1RC1LB/tests/test_superrun.py  # about 20 s

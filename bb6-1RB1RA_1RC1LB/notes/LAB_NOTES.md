@@ -382,3 +382,31 @@ argument of the form "periodic or no halt": if the bottom k levels are periodic 
 per period, level k stays bounded (each wave halves it, the adds per period are bounded) and so cycles; if they
 eventually send none, the wave never passes level k again, never reaches the left end, and the machine never halts.
 Neither says anything about whether some d₁ at a return is a power of two.
+
+## October 30, 2026: the tables in Lean, and no halt in the first 4.4·10³⁷ steps (native_decide)
+
+**Proved in Lean, kernel only** (`lean/Cascade.lean`, on top of `WaveTime.lean`'s `superT` and `orbitT`):
+
+- `superL_split`, `superT_split`: with the list nearest first split as B ++ U (U not empty), the super step of B ++ U is
+  B's own step (`bstep`, what the cascade of the entry above does to B) followed by what B passes on (`Ev`: nothing, an
+  add, or a wave) applied to U; and `superT` splits the same way, each level accounting for its share of the steps
+  (`lev`: `oddT d 0` where the wave turns, `evenT d + d/2 + 1` where it passes). So **the last k blocks run on their
+  own**, for every k and every list.
+- A table is a list of entries (super steps, event, steps of the bottom) with a tail; `Rep B T tl` says it is one
+  period of the bottom B (the chain of quiet stretches and events comes back to B). `pass_sound`, `passes_sound`:
+  running only U on the table follows `orbitT` of B ++ U over whole periods, steps included.
+- `build_rep`: if the first level of U, with block p, comes back to p after L passes of a period of B, the table that
+  `build` computes is a period of B ++ [p]. Nothing about periodicity is assumed: `build` returns the level's block at
+  the end, and `drive` refuses to go on unless it is p again.
+- `drive_sound`, `runs_of_drive`: a plan (passes, then a level to add, …) that `drive` runs from [6, 1] at step 136
+  to machine step t gives `∃ c, steps t init = some c`.
+
+**Proved with `native_decide`** (`lean/CascadeRun.lean`, about 4 minutes): `blank_runs_4e37`, **no halt in the first
+44,405,698,359,075,157,430,295,693,458,238,990,120 steps** (6.75·10¹⁷ super steps; past the return to the left end
+at super step 4.2·10¹⁷). The plan is `python3 py/superrun.py plan 35 6`: tables for the last 1 to 35 blocks, then 6
+passes of the last table (8.8·10¹⁶ super steps each). The plan is only a hint: every table it asks for is computed and
+checked inside the evaluation. 30 levels give 1.2·10³² steps in 38 seconds; each further level roughly doubles the
+time and the reach. (The C run's 2.7·10⁴⁹ used 44 levels and 8 GB, beyond what Lean's lists hold comfortably.)
+
+Before this the Lean bounds were 2·10¹⁰ (kernel) and 9·10¹³ (`native_decide`); the step-count thread's chunked
+`orbitT` check, which uses none of the cascade, goes to about 10²⁴.
