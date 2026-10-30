@@ -28,10 +28,12 @@ at each level.
   checked in 1,000 chunks by `check_orbit.sh`, about three CPU hours); within `check.sh`, no halt in the first 2·10¹⁰
   steps (`blank_runs_2e10`, 10⁵ macro steps) and in the first 20,000 step by step.
 
-**Proved in Lean with `native_decide`**: **no halt in the first 10²⁴ steps** (`blank_runs_1e24`,
-`lean/OrbitNative.lean`: the first 9.9·10¹⁰ super steps, the kernel's 10⁷ and then 99 chunks of compiled evaluation,
-`check_orbit.sh all`); within `check.sh`, 9·10¹³ steps (`blank_runs_9e13`, 10⁷ macro steps) and 10,000,000 step by step
-(`blank_runs_10M`).
+**Proved in Lean with `native_decide`**: **no halt in the first 4.4·10³⁷ steps** (`blank_runs_4e37`,
+`lean/CascadeRun.lean`, about 4 minutes), with the tables below, proved sound in Lean (`lean/Cascade.lean`, kernel only:
+the last blocks run on their own, and a table built for one more level is checked to be a period). Independently, by
+the plain orbit: no halt in the first 10²⁴ steps (`blank_runs_1e24`, `lean/OrbitNative.lean`: the first 9.9·10¹⁰
+super steps, the kernel's 10⁷ and then 99 chunks, `check_orbit.sh all`). Within `check.sh` also 9·10¹³ steps
+(`blank_runs_9e13`, 10⁷ macro steps) and 10,000,000 step by step (`blank_runs_10M`).
 
 **Computed** (trusted C/Python, tested): the macro model `py/macro.py` (matches direct simulation at every macro
 configuration of the first 1,000 macro steps); no conserved quantity a·ones + b·pos + W[state] modulo 2 to 12
@@ -41,8 +43,14 @@ configuration of the first 1,000 macro steps); no conserved quantity a·ones + b
 simulation and against `py/macro.py`): the finer events (each time A is at the right end, four per super step) and
 their step counts; the sum over a super step is the proved `superT`.
 The wave goes v₂(N) + 1 blocks deep and reaches the left end of the tape when 2^(m−1) divides N (which is why the
-head gets there so rarely: the next time after step 2,047,931 is step 26,618,972,322, confirmed by a direct run). The
-C run of the model to 3.7·10²² steps is now inside the `native_decide` bound above.
+head gets there so rarely: the next time after step 2,047,931 is step 26,618,972,322, confirmed by a direct run).
+
+**Computed, by skipping over cycles** (`c/superrun.c`, `py/superrun.py`, `tests/test_superrun.py`; checked against
+`c/blkrun.c`, a direct run and `py/waves.py`): read from the right end, the super step is a cascade in which each block
+only passes something to the block on its left, so the last k blocks are a closed system, and they fall into exact
+cycles (the last 44 repeat every 1.8·10²¹ super steps). Tabulating those cycles, the orbit runs 6·10²³ super steps
+with no halt: **no halt in the first 2.7·10⁴⁹ steps** (the orbit is proved to decide halting and the step formula is
+proved, `superT`; the run itself is C).
 
 **Observed only**: no macro configuration up to 9·10¹³ steps comes near the halting shape (left blocks in the
 hundreds of thousands); see the notes.
@@ -67,13 +75,17 @@ something special about the blank-tape orbit.
 | `lean/WaveTime.lean` | the super step's exact step count, and the timed super orbit `orbitT` |
 | `lean/orbit_gen.py` → `lean/Orbit/`, `OrbitKernel.lean`, `OrbitNative.lean` | the orbit checked in chunks between checkpoints from `c/orbitck.c` (generated; do not edit) |
 | `lean/check_orbit.sh` | checks those files in parallel (`kernel` or `all`) |
+| `lean/Cascade.lean` | the last blocks run on their own (`superL_split`, `superT_split`), and the tables are sound (`build_rep`, `runs_of_drive`) |
+| `lean/CascadeRun.lean` | no halt in the first 4.4·10³⁷ steps, by 35 levels of tables (`native_decide`) |
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `py/waves.py` | the wave model: the run in another cut, and the super step with N, exact step counts |
 | `py/n_search.py` | the search for an invariant that keeps N off the powers of two |
 | `c/blkrun.c` | the wave model in C, for runs far beyond direct simulation |
 | `c/orbitck.c` | the super orbit with `superT`, for the checkpoints of `lean/Orbit/` (not trusted: Lean recomputes them) |
+| `c/superrun.c`, `py/superrun.py` | the super orbit with the cycles of the last blocks tabulated and skipped (C, and the same in Python) |
 | `tests/test_machine.py` | the generated files are current, early facts of the run |
 | `tests/test_waves.py` | the block model against `tmrun`, the reference simulator and `runs/` |
+| `tests/test_superrun.py` | `superrun` against `waves.py`, `blkrun.c`, its direct mode and `py/superrun.py` |
 | `tests/test_explainer.py` | the engine of `pages/1RB1RA_1RC1LB/explainer.html` against `py/macro.py`, `py/waves.py` and the reference simulator (needs Node) |
 | `runs/` | outputs of long runs |
 
@@ -81,9 +93,10 @@ something special about the blank-tape orbit.
 
 ```sh
 bash scripts/setup-lean.sh && . /etc/profile.d/lean.sh
-bb6-1RB1RA_1RC1LB/lean/check.sh                 # about 2 min
-bb6-1RB1RA_1RC1LB/lean/check_orbit.sh all       # the long runs, in parallel: about 9 CPU hours
+bb6-1RB1RA_1RC1LB/lean/check.sh                 # about 6 min (CascadeRun about 4)
+bb6-1RB1RA_1RC1LB/lean/check_orbit.sh all       # the plain orbit in chunks, in parallel: about 9 CPU hours
 python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py     # about 20 s
+python3 bb6-1RB1RA_1RC1LB/tests/test_superrun.py  # about 20 s
 python3 bb6-1RB1RA_1RC1LB/tests/test_explainer.py # the explainer page's engine (Node), a few seconds
 ```
