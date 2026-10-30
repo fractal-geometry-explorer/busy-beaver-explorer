@@ -91,14 +91,15 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
     <p class="machine">1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page follows its run from single steps down to a question about one number, link by link, and says for each link what it rests on: a proof checked by Lean, a program in the repository that has been tested but not proved, or only evidence.</p>
     <p>The interactive <a href="explainer.html">level-by-level explainer</a> runs each level in the browser. The <a href="proof-status.html">proof status page</a> lists every result about the machine.</p>
-    <p class="asof">As of 29 October 2026. The reduction is from pull requests <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/116">#116</a> (the macro step, proved), <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/117">#117</a> (the wave and the number N, computed), <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/119">#119</a> (the super step and the N criterion, proved) and <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/118">#118</a> (a search for an invariant, none found).</p>
+    <p class="asof">As of 30 October 2026. The reduction is from pull requests <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/116">#116</a> (the macro step, proved), <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/117">#117</a> (the wave and the number N, computed), <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/119">#119</a> (the super step and the N criterion, proved) and <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/118">#118</a> (a search for an invariant, none found); the cycles of the last blocks (§6) from <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/pull/126">#126</a>.</p>
   </header>
 
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>Proved in Lean (kernel only):</b> the machine is an explicit map <code>next</code> on lists of block lengths, step counts included, and it halts from blank tape iff that map's run reaches one shape: the head's block is odd and, after its transfers, every block to the left of the head is 2. Read every fourth time the head stands on the blank right end of the tape, the run is a <i>super step</i> on a list P = (p<sub>1</sub>, …, p<sub>m</sub>), and with <b>N = 10 + Σ p<sub>l</sub>·2<sup>m−l</sup></b>, <b>the machine halts from blank tape iff N is ever a power of two</b> along the super orbit from P = (1, 6) (<code>halts_iff_pow2'</code>).</p>
-      <p><b>Computed, not proved:</b> the step counts of the wave model and its finer cut into single events, and the long runs: the last blocks of the list fall into exact cycles, and a search that skips over them finds no halt in the first 2.7·10<sup>49</sup> steps.</p>
+      <p><b>Proved, kernel only:</b> information in the super step only flows left, so the last k blocks run on their own, and for every k they eventually cycle or go silent, and silent means the machine never halts. The last 1 to 6 blocks are checked to cycle (§6).</p>
+      <p><b>Computed, not proved:</b> the step counts of the wave model and its finer cut into single events, and the long runs: the last 44 blocks of the list fall into exact cycles, and a search that skips over them finds no halt in the first 2.7·10<sup>49</sup> steps.</p>
       <p><b>Open:</b> whether N is ever a power of two. A search for an invariant that rules it out found none; nothing suggests it will be: no halt in the first 2·10<sup>10</sup> steps (kernel), 4.4·10<sup>37</sup> (Lean with <code>native_decide</code>, by tables of the last blocks) or 2.7·10<sup>49</sup> (computed), and a heuristic puts the chance of a halt far below 10<sup>−6</sup>. But no proof rules it out.</p>
     </div>
   </section>
@@ -120,7 +121,8 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
       <li><span class="lv">3</span><div><b>The halting shape.</b> The machine halts from blank tape iff the macro run halts, and a macro step halts iff <code>n</code> is odd and every left block, after the transfers, is 2. <span class="tag t-kernel">kernel</span> <span class="where"><a href="#halt">§3</a>, <code>halts_iff</code>, <code>next_halt_iff</code></span></div></li>
       <li><span class="lv">4</span><div><b>The halving wave.</b> Cut at the moments A stands right of the last block, a run of macro steps is one wave of halvings running left; every fourth such moment the tape is <code>[P, 5, 0]</code> and the next <code>P</code> follows by the super step. <span class="tag t-kernel">kernel</span> for the super step; <span class="tag t-comp">computed</span> for the step counts and single events. <span class="where"><a href="#wave">§4</a>, <code>super_run</code> in <code>lean/Wave.lean</code>; <code>py/waves.py</code>, <code>tests/test_waves.py</code></span></div></li>
       <li><span class="lv">5</span><div><b>The number N.</b> The wave goes v<sub>2</sub>(N) + 1 blocks deep, reaches the left end iff 2<sup>m−1</sup> divides N, and the machine halts iff N is a power of two. <span class="tag t-kernel">kernel</span> <span class="where"><a href="#n">§5</a>, <code>superL_none_iff</code>, <code>halts_iff_pow2'</code></span></div></li>
-      <li><span class="lv">?</span><div><b>Is N ever a power of two?</b> <span class="tag t-open">open</span> <span class="tag t-heur">heuristic</span> almost certainly not. No invariant found. <span class="where"><a href="#why">§6</a>, <code>py/n_search.py</code></span></div></li>
+      <li><span class="lv">↻</span><div><b>The last blocks cycle.</b> Information only flows left, so the last k blocks run on their own; each level cycles or goes silent, and silent means no halt. <span class="tag t-kernel">kernel</span> for that and the last 6 levels; <span class="tag t-comp">computed</span> up to 44. <span class="where"><a href="#cyc">§6</a>, <code>lean/Cycles.lean</code>, <code>py/cycles.py</code></span></div></li>
+      <li><span class="lv">?</span><div><b>Is N ever a power of two?</b> <span class="tag t-open">open</span> <span class="tag t-heur">heuristic</span> almost certainly not. No invariant found. <span class="where"><a href="#why">§7</a>, <code>py/n_search.py</code></span></div></li>
     </ol>
   </section>
 
@@ -212,6 +214,47 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
     </div>
   </section>
 
+  <section aria-labelledby="cyc">
+    <h2 id="cyc">6. Why the last blocks cycle <span class="tag t-kernel">kernel</span> <span class="tag t-comp">computed</span></h2>
+    <div class="prose">
+      <p>The head sweeps back and forth, but information in the super step only flows one way: leftward. Read §4 one block at a time, numbering the blocks from the right (level 1 is <code>p_m</code>, the last block). A wave starts at the right end with the same value every super step, <code>h = 10</code> (that is, <code>d_(m+1)/2</code>). At a block with value <code>p</code>, let <code>d = p + h</code>:</p>
+      <ul>
+        <li>if <code>d</code> is even, the block becomes <code>d/2</code> and the wave goes on left with <code>h = d/2</code>;</li>
+        <li>if <code>d</code> is odd, the block becomes <code>(d + 5)/2</code>, the block on its left gains <code>(d − 1)/2</code>, and the super step ends.</li>
+      </ul>
+      <p>Nothing is ever passed to the right. So a block's next value depends only on its own value and on what arrives from its right, and <b>the last k blocks are a closed system</b>: they evolve by a map of their own (<code>bstep</code>), and all they do to the rest of the tape is send one wave or one add to the left, or nothing. Lean proves this split for every list (<code>superL_split</code>, with the step counts <code>superT_split</code>, <code>lean/Cascade.lean</code>). What keeps changing is the left part of the tape; its changes just never travel back.</p>
+      <p><b>The induction from the right.</b></p>
+      <ol>
+        <li><b>The last block</b> gets the same input every super step. From <code>p</code> it goes to <code>(p + 10)/2</code> or <code>(p + 15)/2</code>, so it soon stays below 16, and a deterministic system with finitely many states repeats: 12 → 11 → 13 → 14 → 12.</li>
+        <li><b>The next block</b> gets a periodic input, the output of that cycle. The adds push it up by a bounded amount per period, and each wave roughly halves it (a wave <code>h</code> takes <code>q</code> to at most <code>(q + h + 5)/2</code>). So it stays bounded, and once the last block cycles the pair is again a finite deterministic system. It repeats too, with period 8.</li>
+        <li><b>Each further level</b> works the same way: if the levels below cycle with period <code>m</code> and send at least one wave per period, the next block, read once per period, goes from <code>q</code> to <code>F(q)</code> with <code>2F(q) ≤ q + 2W</code> (W bounds what one period adds), so it stays below <code>q_0 + 2W</code> and repeats by pigeonhole. The new period is <code>m</code> times a whole number.</li>
+      </ol>
+      <p>There is one way this can fail: a cycle that sends no wave to the left, only adds. The next level then only grows, never cycles, and never sends anything further. But then the wave never reaches the left end again, so the machine never halts.</p>
+    </div>
+    <div class="claim"><b><code>cycles_or_silent</code>:</b> for every k and every state of the last k blocks, after some number of super steps the last k blocks on their own either <b>cycle</b> or are <b>silent</b> (never send anything left again). A cycling bottom has a table of one period (<code>rep_of_cycles</code>).<br><b><code>never_halts_of_silent</code>:</b> a silent bottom on the orbit from blank tape, with blocks to its left, means the machine never halts.<br><b><code>cycles_or_never_halts</code>:</b> so once the orbit has k blocks, either the machine halts soon after, or the last k blocks cycle, or the machine never halts. All three kernel-checked (<code>lean/Cycles.lean</code>).</div>
+    <div class="prose">
+      <p><b>The bottom levels, one by one.</b> On the orbit from (1, 6), every level so far cycles. The period and the super step it starts at are checked by Lean's kernel for the last 1 to 6 blocks (<code>cycle₁</code> to <code>cycle₆</code>, by <code>decide</code>; each period comes back and half of it does not, so it is the least one). The other columns are computed, by <code>py/cycles.py</code>, and agree with the tables of <code>c/superrun.c</code> (<code>tests/test_superrun.py</code>).</p>
+    </div>
+    <div class="scroller">
+      <table class="t">
+        <thead><tr><th>last blocks</th><th>least period (super steps)</th><th>periodic from super step</th><th>top block's values</th><th>waves / adds sent left per period</th><th>machine steps per period in these blocks</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>4 <span class="tag t-kernel">kernel</span></td><td>3 <span class="tag t-kernel">kernel</span></td><td>11–14, cycling 12 → 11 → 13 → 14</td><td>2 / 2</td><td>1,920</td></tr>
+          <tr><td>2</td><td>8 <span class="tag t-kernel">kernel</span></td><td>7 <span class="tag t-kernel">kernel</span></td><td>19–42, cycling 26, 21, 31, 42, 27, 19, 29, 40</td><td>3 / 1</td><td>8,285</td></tr>
+          <tr><td>3</td><td>32 <span class="tag t-kernel">kernel</span></td><td>11 <span class="tag t-kernel">kernel</span></td><td>27–48 (13 values)</td><td>7 / 5</td><td>57,413</td></tr>
+          <tr><td>4</td><td>128 <span class="tag t-kernel">kernel</span></td><td>31 <span class="tag t-kernel">kernel</span></td><td>37–152 (37 values)</td><td>14 / 14</td><td>413,014</td></tr>
+          <tr><td>5</td><td>256 <span class="tag t-kernel">kernel</span></td><td>60 <span class="tag t-kernel">kernel</span></td><td>70–380 (48 values)</td><td>11 / 17</td><td>1,624,541</td></tr>
+          <tr><td>6</td><td>1,024 <span class="tag t-kernel">kernel</span></td><td>163 <span class="tag t-kernel">kernel</span></td><td>162–1,042 (98 values)</td><td>21 / 23</td><td>14,553,949</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Values, waves, adds and steps <span class="tag t-comp">computed</span>. The machine steps count 210 per super step, the wave's cost at each of these levels that it reaches, and 17 for each add received among them (the convention of <code>c/superrun.c</code>).</p>
+    <div class="prose">
+      <p><b>Further up</b> <span class="tag t-comp">computed</span>. Each further level multiplies the period by 1, 2, 4 or 5. From the 7th to the 44th last block the factors are ×4, ×1, ×4, ×4, ×5, ×1, ×4, ×4, ×2, ×5, ×4, ×5, ×4, ×4, ×4, ×4, ×5, ×1, ×1, ×4, ×4, ×4, ×2, ×1, ×2, ×4, ×4, ×4, ×4, ×4, ×4, ×2, ×4, ×1, ×2, ×4, ×5, ×4, so the last 44 blocks repeat every 1.8·10<sup>21</sup> super steps (<code>c/superrun.c</code>, <code>runs/superrun_long.txt</code>, which checks each cycle before using it). Of the 43 factors after the first, 25 are 4, 7 are 2, 6 are 1 and 5 are 5. No rule for them is known. Every level so far sends waves on, so the silent case has not occurred.</p>
+      <p><b>What this gives, and what it does not.</b> The cycles are what make the long searches fast: <code>c/superrun.c</code> and <code>lean/CascadeRun.lean</code> replace the bottom levels by a table of one period and skip over it. They say nothing about the left end, where the wave arrives with <code>d_1</code> and N's fate is decided: the list keeps growing there, each new level brings a longer period, and the orbit as a whole never repeats. Lean does not decide which of the three cases of <code>cycles_or_never_halts</code> holds, and even cycles at every level would not by themselves rule out a halt. The interactive <a href="explainer.html#l5">explainer, level 5</a>, finds these cycles in the browser.</p>
+    </div>
+  </section>
+
   <section aria-labelledby="status">
     <h2 id="status">What is proved, what is trusted, what is heuristic</h2>
     <!-- STATUS: update this table with bb6-1RB1RA_1RC1LB/status.json (which builds proof-status.html) when a result changes. -->
@@ -230,11 +273,13 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
           <tr id="st-wave"><td>The wave's single events and step counts</td><td><span class="tag t-comp">computed</span></td><td><code>py/waves.py</code>, <code>tests/test_waves.py</code>; Python and the C simulator <code>tools/c/tmrun</code></td></tr>
           <tr><td>The last k blocks run on their own, step counts included; a table built for one more level is checked to be a period</td><td><span class="tag t-kernel">kernel</span></td><td><code>superL_split</code>, <code>superT_split</code>, <code>build_rep</code>, <code>lean/Cascade.lean</code></td></tr>
           <tr><td>No halt in the first 4.4·10<sup>37</sup> steps, by those tables</td><td><span class="tag t-native">native</span></td><td><code>blank_runs_4e37</code>, <code>lean/CascadeRun.lean</code></td></tr>
-          <tr><td>The last k blocks are a closed system and fall into exact cycles (the last 44 every 1.8·10<sup>21</sup> super steps)</td><td><span class="tag t-comp">computed</span></td><td><code>c/superrun.c</code>, which checks each cycle before it uses it; <code>notes/LAB_NOTES.md</code></td></tr>
+          <tr id="st-cyc"><td>For every k, the last k blocks eventually cycle or go silent, and a silent bottom means no halt</td><td><span class="tag t-kernel">kernel</span></td><td><code>cycles_or_silent</code>, <code>never_halts_of_silent</code>, <code>cycles_or_never_halts</code>, <code>lean/Cycles.lean</code>; §6</td></tr>
+          <tr><td>The last 1 to 6 blocks cycle on the orbit, with least periods 4, 8, 32, 128, 256, 1,024 from super steps 3, 7, 11, 31, 60, 163</td><td><span class="tag t-kernel">kernel</span></td><td><code>cycle₁</code>–<code>cycle₆</code> (<code>decide</code>), <code>lean/Cycles.lean</code>; §6</td></tr>
+          <tr><td>The last 7 to 44 blocks cycle too (the last 44 every 1.8·10<sup>21</sup> super steps), each level multiplying the period by 1, 2, 4 or 5</td><td><span class="tag t-comp">computed</span></td><td><code>c/superrun.c</code>, which checks each cycle before it uses it; <code>py/cycles.py</code>; §6</td></tr>
           <tr><td>No halt in the first 2.7·10<sup>49</sup> steps (6·10<sup>23</sup> super steps)</td><td><span class="tag t-comp">computed</span></td><td><code>c/superrun.c</code>, skipping over those cycles; checked against <code>c/blkrun.c</code> (the old bound, 3.7·10<sup>22</sup>), <code>py/superrun.py</code> and <code>py/waves.py</code>; the orbit is proved, the run is C</td></tr>
           <tr><td>The last block cycles 11 → 13 → 14 → 12, so N runs odd, odd, even, even</td><td><span class="tag t-hand">on paper</span></td><td>from the super-step formula (<code>notes/LAB_NOTES.md</code>); the only exact pattern found</td></tr>
-          <tr><td>No invariant in the families tried (residues, binary digits, growth bounds)</td><td><span class="tag t-comp">computed</span></td><td><code>py/n_search.py</code>, §6</td></tr>
-          <tr><td>The machine almost certainly never halts</td><td><span class="tag t-heur">heuristic</span></td><td>§6</td></tr>
+          <tr><td>No invariant in the families tried (residues, binary digits, growth bounds)</td><td><span class="tag t-comp">computed</span></td><td><code>py/n_search.py</code>, §7</td></tr>
+          <tr><td>The machine almost certainly never halts</td><td><span class="tag t-heur">heuristic</span></td><td>§7</td></tr>
           <tr id="st-open"><td>Whether N is ever a power of two</td><td><span class="tag t-open">open</span></td><td></td></tr>
         </tbody>
       </table>
@@ -246,7 +291,7 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
   </section>
 
   <section aria-labelledby="why">
-    <h2 id="why">6. Why it almost certainly never halts <span class="tag t-heur">heuristic</span></h2>
+    <h2 id="why">7. Why it almost certainly never halts <span class="tag t-heur">heuristic</span></h2>
     <div class="prose">
       <p>The wave is a binary carry. To reach the left end it needs <code>v_2(N) ≥ m − 1</code>, which happens about once every <code>2^(m−1)</code> super steps if N's low bits behave like coin flips, and each visit adds at least one block. The observed gaps fit that estimate within a factor of two, so the visits do not stop; they thin out. The head reaches new tape on the left at steps 2,047,931, then 26,618,972,322, then 6.4·10<sup>10</sup>, and so on: 38 returns in the first 2.7·10<sup>49</sup> steps (<code>runs/superrun_long.txt</code>).</p>
       <p><b>No invariant in sight.</b> Along the orbit (super steps 10<sup>3</sup> to 4·10<sup>6</sup>), N takes every residue modulo each odd q ≤ 127 that a power of two can take, also jointly with its bit length. Its binary digits look random: the lowest digit count at each length matches random numbers, and the leading bits come within 15 zeros of a power of two. Bounds on growth cannot help on their own, since halting depends only on the sum N. The only exact pattern is at the right end: the last block cycles 11 → 13 → 14 → 12, so N is odd, odd, even, even, which says nothing about powers of two (<code>py/n_search.py</code>, PR #118).</p>
@@ -267,15 +312,16 @@ ol.chain .where { display: block; font-size: 0.84rem; color: var(--muted); margi
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>bash scripts/setup-lean.sh                       # Lean 4.34.0, core only
 . /etc/profile.d/lean.sh
-bb6-1RB1RA_1RC1LB/lean/check.sh                  # Rules, Macro, MacroRun, Wave (about 2 min)
+bb6-1RB1RA_1RC1LB/lean/check.sh                  # Rules, Macro, …, Cascade, Cycles (about 6 min)
 python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py  # py/macro.py against direct simulation
 python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py    # the wave model and the super step (about 25 s)
 python3 bb6-1RB1RA_1RC1LB/py/waves.py super 20   # the super steps, with N
-python3 bb6-1RB1RA_1RC1LB/py/waves.py left 100000  # the wave's visits to the left end</code></pre>
+python3 bb6-1RB1RA_1RC1LB/py/waves.py left 100000  # the wave's visits to the left end
+python3 bb6-1RB1RA_1RC1LB/py/cycles.py 8         # the cycles of the last 1 to 8 blocks (§6)</code></pre>
   </section>
 
   <footer>
-    <p>Written by hand from <code>bb6-1RB1RA_1RC1LB/notes/LAB_NOTES.md</code>, <code>lean/Macro.lean</code> and <code>lean/Wave.lean</code>. When a result changes, update this page with <code>bb6-1RB1RA_1RC1LB/status.json</code> (which builds <a href="proof-status.html">proof-status.html</a>).</p>
+    <p>Written by hand from <code>bb6-1RB1RA_1RC1LB/notes/LAB_NOTES.md</code>, <code>lean/Macro.lean</code>, <code>lean/Wave.lean</code> and <code>lean/Cycles.lean</code>. When a result changes, update this page with <code>bb6-1RB1RA_1RC1LB/status.json</code> (which builds <a href="proof-status.html">proof-status.html</a>).</p>
     <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
   </footer>
 </main>
