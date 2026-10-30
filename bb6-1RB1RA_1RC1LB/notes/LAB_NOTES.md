@@ -267,3 +267,184 @@ The proofs follow the macro run without step counts (`Res`), so the step counts 
 still computed, not proved. `superstep` is checked by `decide` against the examples in `waves.py`.
 
 **Open, now exactly**: whether N is ever a power of two along the orbit from (1, 6).
+
+## October 30, 2026: the right end is periodic, and no halt in the first 2.7·10⁴⁹ steps
+
+**Result** (**computed**, `c/superrun.c`, resting on the proved criterion): the super orbit from (1, 6) runs
+599,258,349,609,526,266,612,571 (6.0·10²³) super steps without N becoming a power of two, so **the machine does not halt in its first 2.7·10⁴⁹ steps**
+(27,264,770,338,578,141,293,580,742,812,737,757,101,373,338,361,002 exactly). The previous bound was 3.7·10²² (7·10¹⁰ macro steps, 1.75·10¹⁰ super steps). The run took 40 minutes on
+one core and 8 GB, and stopped there when it ran out of memory (a Lean build started beside it); the last exact
+point it printed is the bound. The method below is what made the difference, not the hardware.
+
+**The levels only talk upward.** Number the blocks from the right end: level 0 is p_m, level 1 is p_{m−1}, and so on.
+Read from the right, `superstep` is a cascade. Every super step level 0 receives a wave with h = 10. A level with block
+p that receives a wave h computes d = p + h; if d is odd the block becomes (d + 5)/2 and the level above receives an
+*add* of (d − 1)/2 (its block grows by that and the super step ends); if d is even the block becomes d/2 and the level
+above receives a wave with h = d/2. The top level always passes the wave on to the left end, where the left-end rule
+of `superstep` replaces it by new levels. (This is the formula of `superstep` with d_{l} = p_l + d_{l+1}/2; the turn
+is at the first odd d from the right.) Nothing ever flows down: **the bottom k levels are an autonomous system**, the
+same whatever happens above them, and the left end only ever touches the top.
+
+**The bottom levels become periodic** (**computed**, exact). A wave halves a level's block, so a level driven by a
+periodic input forgets its start and falls into a cycle. Level 0 is the known cycle 11 → 13 → 14 → 12 (period 4).
+Levels 0 and 1 together have period 8, levels 0 to 2 period 32, and so on: the bottom k levels repeat with period
+Q_k = 2^a·5^b super steps, where each level multiplies the period by L ∈ {1, 2, 4, 5}. In the run:
+
+| levels | period (super steps) | events per period into the next level |
+|---:|---:|---:|
+| 1 | 4 | 4 |
+| 10 | 65,536 | 156 |
+| 20 | 1.7·10¹⁰ | 40,412 |
+| 30 | 1.7·10¹⁴ | 409,010 |
+| 40 | 1.1·10¹⁹ | 26,141,759 |
+| 44 | 1.8·10²¹ (5⁵·2⁵⁹) | 261,414,036 |
+
+(The full list is in `runs/superrun_long.txt`, lines `table`.) So the earlier note that the blocks "further left are
+no longer finite-state" was only true of short windows: each level is finite-state once the levels below it have
+settled, with a period that grows about fourfold per level.
+
+**The search.** `c/superrun.c` keeps, for the bottom K levels, one period of what they send to level K: a table of
+(super steps since the last event, add or wave, its value, the machine steps spent below level K). It runs levels
+K, K + 1, … explicitly from the table. Whenever level K's block is the same at two passes through the table, L passes
+later it is periodic for good (its input is periodic and its state recurred); the program then checks that L passes
+bring it back, builds the table for K + 1 from those L passes, and drops level K from the explicit part. Each level
+halves the work per super step and roughly doubles the table, so memory sets the limit: 44 levels, 2.6·10⁸ entries of
+32 bytes. A pass through that table is 1.8·10²¹ super steps and takes about 7 seconds. Multiple threads would only
+split that sweep (at most the core count, about 4×, against the factor 2 per level from the tables), so the other
+cores ran the independent checks below instead.
+
+**Machine steps per super step** (**computed**, exact): from [P, 5, 0] to the next [P′, 5, 0] the machine takes
+210 + Σ g(d) over the levels that receive a wave, + 17 for the level that receives the add, with
+g(d) = (d + 1) + cyc(d − 4) + 3 + ⌊(d − 4)/2⌋ and cyc(c) = j(2c + 7) − 2j², j = ⌊c/2⌋. At the left end the wave goes
+on through virtual levels with p = 0 (d → d/2): each costs g, an odd end 17, and d = 3 (the visit in state F) 16. This
+is a per-level split of the step counts of four `waves.step`s; the parallel Lean thread proves the same count
+(`super_steps`, `lean/WaveTime.lean`) in another closed form and checked that the two agree.
+
+**Checks** (`tests/test_superrun.py`, about 20 s, and runs made for this entry):
+
+- the tape and machine step after each of the first 4,000 super steps (direct mode) equal every fourth event of
+  `waves.step`;
+- the tabulated run and the direct run (no tables) agree on every return to the left end (super step, machine step,
+  d₁, number of blocks) to 3·10⁸ super steps in the test, and to 2·10¹⁰ super steps in a separate run (16 returns,
+  9 minutes);
+- the returns up to 1.75·10¹⁰ super steps are exactly the 15 of `runs/left_arrivals_macro.txt` (`c/blkrun.c`), at
+  macro step 4S + 2 with c = d₁ − 4; and `blkrun` run to macro step 4S + 3 ends at the same machine step as the
+  tabulated run, for S = 867,796,127 (`SUPERRUN_LONG=1`) and S = 3,582,299,143 (step 1,418,025,594,627,195,513,086);
+- `py/superrun.py`, the same method written again in Python with big integers, agrees on every return to 10¹⁴ super
+  steps in the test (and to 2.2·10¹⁶, 28 returns, in a separate run);
+- from 144 other starts [a, b] (a, b ≤ 12), direct and tabulated runs return to the left end and halt where
+  `waves.superstep` says.
+
+**The returns to the left end** (`runs/superrun_long.txt`): 38 in all, 23 of them beyond the old bound. N is a power of two
+only at a return (N = 2^a > p₁·2^(m−1) forces 2^(m−1) | N), and there N = 2^(m−1)·d₁, so the question at each return
+is whether d₁ is a power of two.
+
+| super step | ends at machine step | blocks m | d₁ | s (d₁ = 2^s·u) | distance to a power of two |
+|---:|---:|---:|---:|---:|---:|
+| 1.8·10¹⁰ | 5.4·10²² | 36 | 136,109,454,645 | 0 | 2^−6.7 |
+| 6.9·10¹⁰ | 4.8·10²³ | 39 | 362,386,972,244 | 2 | 2^−2.0 |
+| 7.1·10¹⁰ | 6.7·10²³ | 40 | 133,415,690,549 | 0 | 2^−5.0 |
+| 5.1·10¹¹ | 3.3·10²⁵ | 42 | 1,833,747,547,526 | 1 | 2^−2.3 |
+| 1.2·10¹² | 1.6·10²⁶ | 45 | 4,249,040,973,972 | 2 | 2^−4.8 |
+| 6.1·10¹² | 4.1·10²⁷ | 47 | 10,664,595,800,010 | 1 | 2^−2.5 |
+| 3.0·10¹³ | 9.8·10²⁸ | 49 | 54,199,241,040,550 | 1 | 2^−1.7 |
+| 7.7·10¹³ | 5.7·10²⁹ | 50 | 105,513,857,879,651 | 0 | 2^−1.6 |
+| 4.6·10¹⁴ | 3.4·10³¹ | 52 | 1,771,795,407,360,090 | 1 | 2^−1.9 |
+| 3.2·10¹⁵ | 1.3·10³³ | 53 | 21,867,971,409,200,949 | 0 | 2^−2.5 |
+| 7.3·10¹⁵ | 6.0·10³³ | 54 | 45,318,386,059,614,339 | 0 | 2^−2.3 |
+| 7.9·10¹⁵ | 9.6·10³³ | 55 | 47,464,895,168,271,501 | 0 | 2^−2.0 |
+| 2.2·10¹⁶ | 6.5·10³⁴ | 58 | 89,820,924,989,445,148 | 2 | 2^−2.3 |
+| 4.2·10¹⁷ | 2.2·10³⁷ | 66 | 3,313,553,021,126,728,576 | 7 | 2^−1.7 |
+| 7.2·10¹⁸ | 5.9·10³⁹ | 68 | 11,010,273,142,654,137,366 | 1 | 2^−2.6 |
+| 1.1·10¹⁹ | 1.2·10⁴⁰ | 69 | 11,975,792,871,741,497,919 | 0 | 2^−2.1 |
+| 2.2·10²⁰ | 4.7·10⁴² | 71 | 300,313,912,483,936,881,826 | 1 | 2^−5.9 |
+| 1.4·10²¹ | 2.2·10⁴⁴ | 72 | 4,887,045,305,511,716,897,389 | 0 | 2^−4.9 |
+| 1.4·10²¹ | 3.1·10⁴⁴ | 73 | 5,573,632,706,148,772,833,103 | 0 | 2^−2.7 |
+| 2.4·10²¹ | 6.8·10⁴⁴ | 75 | 7,368,707,619,864,359,689,538 | 1 | 2^−1.8 |
+| 7.0·10²¹ | 4.6·10⁴⁵ | 77 | 9,492,689,577,801,098,865,030 | 1 | 2^−7.6 |
+| 2.7·10²² | 8.9·10⁴⁶ | 78 | 104,112,580,301,255,728,770,643 | 0 | 2^−1.9 |
+| 3.1·10²³ | 1.2·10⁴⁹ | 81 | 1,874,777,618,886,538,568,719,180 | 2 | 2^−1.8 |
+
+**How close N came to a power of two.** Measured as the relative distance of d₁ (equivalently of N) to the nearest
+power of two, the closest return is the one at super step 7.0·10²¹ (m = 77): d₁ = 9,492,689,577,801,098,865,030 lies 2^−7.6 (0.5 %) above 2⁷³, so N = 2⁷⁶·d₁, just above 2¹⁴⁹, misses it by about 4·10⁴². Over 38 returns a uniformly random mantissa would give a closest
+approach of about 2^−(log₂ 38 + 1); the run is in line with that. In absolute terms the misses are enormous: d₁ is
+now about 1.9·10²⁷ (91 bits), so N is about 2^171 and the nearest power of two is more than 10^49 away.
+
+**What this rests on.** That the orbit decides halting is proved (`halts_iff_pow2'`). That the run follows the orbit
+rests on `c/superrun.c` (trusted C, tested as above, with the periodicity of each tabulated level checked by the
+program before it is used). The step count rests on the per-level formula (computed and tested; the Lean
+step-count proof is in progress separately). This is a computation, not a proof of anything beyond the bound.
+
+**Can the cycles be proved?** For each fixed k, yes by computation: autonomy is a short lemma about `superstep`, and
+a cycle is a state that comes back, which the tables certify level by level (the program checks exactly this before
+it uses a table). That is the route for carrying the tables into Lean, next. For every k at once there is a hand
+argument of the form "periodic or no halt": if the bottom k levels are periodic and send level k at least one wave
+per period, level k stays bounded (each wave halves it, the adds per period are bounded) and so cycles; if they
+eventually send none, the wave never passes level k again, never reaches the left end, and the machine never halts.
+Neither says anything about whether some d₁ at a return is a power of two.
+
+## October 30, 2026: the tables in Lean, and no halt in the first 4.4·10³⁷ steps (native_decide)
+
+**Proved in Lean, kernel only** (`lean/Cascade.lean`, on top of `WaveTime.lean`'s `superT` and `orbitT`):
+
+- `superL_split`, `superT_split`: with the list nearest first split as B ++ U (U not empty), the super step of B ++ U is
+  B's own step (`bstep`, what the cascade of the entry above does to B) followed by what B passes on (`Ev`: nothing, an
+  add, or a wave) applied to U; and `superT` splits the same way, each level accounting for its share of the steps
+  (`lev`: `oddT d 0` where the wave turns, `evenT d + d/2 + 1` where it passes). So **the last k blocks run on their
+  own**, for every k and every list.
+- A table is a list of entries (super steps, event, steps of the bottom) with a tail; `Rep B T tl` says it is one
+  period of the bottom B (the chain of quiet stretches and events comes back to B). `pass_sound`, `passes_sound`:
+  running only U on the table follows `orbitT` of B ++ U over whole periods, steps included.
+- `build_rep`: if the first level of U, with block p, comes back to p after L passes of a period of B, the table that
+  `build` computes is a period of B ++ [p]. Nothing about periodicity is assumed: `build` returns the level's block at
+  the end, and `drive` refuses to go on unless it is p again.
+- `drive_sound`, `runs_of_drive`: a plan (passes, then a level to add, …) that `drive` runs from [6, 1] at step 136
+  to machine step t gives `∃ c, steps t init = some c`.
+
+**Proved with `native_decide`** (`lean/CascadeRun.lean`, about 4 minutes): `blank_runs_4e37`, **no halt in the first
+44,405,698,359,075,157,430,295,693,458,238,990,120 steps** (6.75·10¹⁷ super steps; past the return to the left end
+at super step 4.2·10¹⁷). The plan is `python3 py/superrun.py plan 35 6`: tables for the last 1 to 35 blocks, then 6
+passes of the last table (8.8·10¹⁶ super steps each). The plan is only a hint: every table it asks for is computed and
+checked inside the evaluation. 30 levels give 1.2·10³² steps in 38 seconds; each further level roughly doubles the
+time and the reach. (The C run's 2.7·10⁴⁹ used 44 levels and 8 GB, beyond what Lean's lists hold comfortably.)
+
+Before this the Lean bounds were 2·10¹⁰ (kernel) and 9·10¹³ (`native_decide`); the step-count thread's chunked
+`orbitT` check, which uses none of the cascade, goes to about 10²⁴.
+
+## October 30, 2026: the step count of the super step, proved, and the orbit checked to 10²⁴ steps
+
+**Proved in Lean, kernel only** (`lean/WaveTime.lean`, standard axioms): `super_steps`. From the tape [P, 5, 0] the
+machine reaches [P', 5, 0] in exactly `superT` steps, or, if the super step halts, makes exactly that many steps and
+then the halting transition. In the cut of `Macro.lean` (L = [p_m, …, p_1]):
+
+    superT = 200 + Σ_{blocks passed, d = 2q even} (2q² + q − 5) + (2q² + 4q + 17 + A)   at the turn, d = 2q + 1,
+
+with A = 3 + Σ (q + 1) over the blocks passed (the sweep back over the blocks the wave left on the right). At the left
+end the wave goes on with p = 0, and the halt (d = 4 there, the last block of 2) costs 11. The first 200 steps are five
+macro steps (164) and the transfers before the first carry (36). The proof follows `carry_wave` again, now with
+`runFrom` and its times (`Reach`, `carry_wave_t`, `carry_left_t`); the only new fact is the sweep's time
+(`sweep_pre_t`: m + 6 + c0 + 3e + Σ (r + 2)). The formula equals the sum of `waves.py`'s four macro steps on 300,000
+super steps, and the search thread's independent closed form (210 + Σ g(d) …) on the same steps (**computed**).
+
+`orbitT` runs the super orbit with the time, tail recursive. `orbitT_steps`: if the machine is at [L, 5, 0] after t
+steps, it is at the end of `orbitT j L t` after the step it gives. `runs_of_orbitT` makes that a no-halt bound from the
+tape [1, 6, 5, 0] at step 136 (`orbit_start`).
+
+**The orbit, checked in chunks.** `lean/orbit_gen.py` cuts the orbit at checkpoints computed by `c/orbitck.c` (the same
+super step and step count in C, about 50 million super steps a second) and writes one theorem per chunk,
+`orbitT n P T = some (P', T')`, so Lean recomputes everything and the checkpoints are not trusted. Each file chains
+its chunks with `orbitT_trans`, so `lean/check_orbit.sh` checks the files in parallel.
+
+- **Lean, kernel only**: `blank_runs_1_4e16`, no halt in the first 1.4·10¹⁶ steps: 10⁷ super steps in 1,000 chunks of
+  10⁴, `decide +kernel`, 3,030 s on three cores. The kernel needs about 1 ms per super step; chunks much longer than
+  2·10⁴ slow down sharply (10⁵ did not finish in 10 minutes), hence the many short ones.
+- **Lean, `native_decide`**: `blank_runs_1e24`, no halt in the first 10²⁴ steps: 9.9·10¹⁰ super steps, the kernel's
+  10⁷ then 99 chunks of up to 10⁹, ending at step 1,020,655,748,109,356,278,914,592. `check_orbit.sh` compiles the
+  modules the chunks call to C with the same `lean -c` and links them with `leanc` (what Lake's `precompileModules`
+  does), and loads the library with `--load-dynlib`: about 250 ns per super step against several µs interpreted;
+  the 99 chunks take about 6 CPU hours (`set_option maxHeartbeats 0`: compiled evaluation counts against the limit). This
+  covers the C run of the wave model to 3.7·10²² steps, whose step count was the unproved part.
+
+The search thread built a faster route on top of `WaveTime.lean` (tabulating the periodic bottom blocks, PR #124: no
+halt in 4.4·10³⁷ steps with `native_decide`); the direct check here is the simple independent one, resting only on
+`orbitT`.

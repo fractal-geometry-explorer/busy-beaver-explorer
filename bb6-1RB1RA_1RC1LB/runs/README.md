@@ -7,3 +7,9 @@ Outputs of long runs (see ../notes/LAB_NOTES.md for how each was made).
 - `left_arrivals_macro.txt`: the arrivals of the wave at new tape on the left, from the block model in C, up to
   7·10¹⁰ macro steps (3.7·10²² machine steps): `gcc -O2 -o blkrun c/blkrun.c && ./blkrun 200000000000 10000000000`
   (stopped after 7·10¹⁰; about 25 minutes).
+- `superrun_long.txt`: the super orbit with the last 44 blocks tabulated, to 6·10²³ super steps (2.7·10⁴⁹ machine
+  steps): every return to the left end, every level added to the table, and exact status lines:
+  `gcc -O3 -march=native -o superrun c/superrun.c -lm && ./superrun -E 270000000 -q 300` (one core, 8 GB; stopped
+  after 40 minutes when it ran out of memory).
+- `superrun_checkpoints.txt`: the whole tape every 10⁷ super steps up to 10⁹, with its machine step:
+  `./superrun -S 1000000000 -c FILE 10000000` (about 30 s); for checking the orbit in chunks.
