@@ -345,7 +345,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <li><b>Even last block</b> y<sub>k</sub> = 2m: the block goes (&minus;2m) and two blocks gain m+2 each (+2m+4). Net +4.</li>
         <li><b>Odd last block</b>, stop at y<sub>j</sub> &gt; 1: the crossed blocks y<sub>j+1</sub>, &hellip;, y<sub>k</sub> and y<sub>j</sub> itself are replaced by sums of halves; adding the formula up gives the same +4 (the page checks it on every pass it runs).</li>
       </ul>
-      <p>So, <b>if the closed form holds</b>, the count of ones is 0 mod 4 at every pass start of the orbit. This is not a conserved quantity of the machine step by step: inside a pass the count wanders (watch the simulator), and a search finds no conserved combination a&middot;ones + b&middot;position + W[state] modulo 2 to 12 <span class="tag t-comp">computed</span>. It is a statement about pass starts only, and it rests on the closed form, which is tested but not proved <span class="tag t-heur">heuristic</span>.</p>
+      <p>So the count of ones is 0 mod 4 at every pass start of the orbit: Lean proves that a pass adds exactly 4 ones and that pass n from blank tape starts with 4n ones, counting blank tape as pass 0 (<code>next_sum</code>, <code>orbit_ok</code>) <span class="tag t-kernel">Lean, kernel</span>. This is not a conserved quantity of the machine step by step: inside a pass the count wanders (watch the simulator), and a search finds no conserved combination a&middot;ones + b&middot;position + W[state] modulo 2 to 12 <span class="tag t-comp">computed</span>. It is a statement about pass starts only, and it rests on the closed form, which Lean proves for every block list (<code>pass</code>, <code>lean/Pass.lean</code>) <span class="tag t-kernel">Lean, kernel</span>.</p>
     </div>
     <div class="bench">
       <div class="controls"><span class="note" id="m-msg">Run part 4 to fill this in.</span></div>
@@ -367,7 +367,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <div>halt &rArr; some pass start with an odd count of ones &rArr; an earlier pass whose sweep stops at y<sub>j</sub> = 1</div>
     </div>
     <div class="prose">
-      <p>This rests on the closed form (tested, not proved). Nothing in the orbit seen so far comes close: every block the form makes is at least 2 except a new first block, so a stop block of 1 would have to be a first block that halved down about log<sub>2</sub>(ones) times in a row. Try the examples to see the event and what follows it.</p>
+      <p>This chain is a theorem: <code>halts_only_by_one</code> in <code>lean/Pass.lean</code> proves that if the machine halts from blank tape, some pass of the orbit stops at a block of a single 1 <span class="tag t-kernel">Lean, kernel</span>. Whether that ever happens is open. Nothing in the orbit seen so far comes close: every block the form makes is at least 2 except a new first block, so a stop block of 1 would have to be a first block that halved down about log<sub>2</sub>(ones) times in a row. Try the examples to see the event and what follows it.</p>
     </div>
     <div class="bench">
       <div class="controls">
@@ -422,7 +422,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
    "level": "kernel",
    "title": "The pieces of a pass, for every length",
    "text": "Each phase of a pass as a theorem about any tape around it and any block length: the start, the D/E sweep over an odd or even stretch, the crossing into the next block, the end of the sweep, one round of the zigzag, and the A and B sweeps. Proved along symbolic runs (single steps by <code>rfl<\/code>, repeats by the shared crossing lemmas).",
-   "where": "<code>start<\/code>, <code>de_sweep<\/code>, <code>de_sweep_odd<\/code>, <code>e_cross<\/code>, <code>d_stop<\/code>, <code>zig<\/code>, <code>a_sweep<\/code>, <code>b_sweep<\/code>, <code>lean/Rules.lean<\/code>"
+   "where": "<code>start<\/code>, <code>de_sweep<\/code>, <code>de_sweep_odd<\/code>, <code>e_cross<\/code>, <code>d_stop<\/code>, <code>zig<\/code>, <code>a_sweep<\/code>, <code>b_sweep<\/code>, <code>d_stop_empty<\/code>, <code>zig_empty<\/code>, <code>turn<\/code>, <code>lean/Rules.lean<\/code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The closed form of a pass, for every block list",
+   "text": "The pass map is defined in Lean (<code>next<\/code>, with the sweep, the stop and the zigzag as <code>sweep<\/code>, <code>bump<\/code> and <code>zag<\/code>), and the machine follows it: from the pass start of any block list it reaches the pass start of <code>next<\/code> of it, and it halts whenever <code>next<\/code> says halt. Every block list, every length; the zigzag and the sweep are inductions on top of the pieces. The only case left out is a sweep that stops at a block of a single 1.",
+   "where": "<code>pass<\/code>, <code>pass_halt<\/code>, <code>lean/Pass.lean<\/code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The reduction to a stop block of 1",
+   "text": "A pass adds exactly four ones and keeps every block nonempty (<code>next_sum<\/code>); a halting pass needs an odd count of ones (<code>next_halt_odd<\/code>). So pass n from blank tape starts with 4n ones and no pass halts (<code>orbit_ok<\/code>, <code>orbit_ne_halt<\/code>), and if the machine halts from blank tape then some pass of the orbit stops at a block of a single 1 (<code>halts_only_by_one<\/code>). Kernel only; the standard axioms (<code>propext<\/code>, <code>Quot.sound<\/code>, <code>Classical.choice<\/code>), no <code>native_decide<\/code>.",
+   "where": "<code>halts_only_by_one<\/code>, <code>never_halts_of_no_one<\/code>, <code>lean/Pass.lean<\/code>"
   },
   {
    "level": "native",
@@ -450,8 +462,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   },
   {
    "level": "trusted",
+   "title": "The Lean pass map is the closed form of <code>py/passmap.py<\/code>",
+   "text": "The Lean definition <code>next<\/code> gives the same result as <code>passmap.py<\/code> on 3,000 random block lists and on the halting and stop-block-1 examples, and its orbit is the Python orbit for the first 400 passes; the Python form in turn matches every pass start of the first 10<sup>9<\/sup> steps of the machine. The Lean theorems are about <code>next<\/code> itself, so this only ties the two write-ups together.",
+   "where": "<code>tests/test_machine.py<\/code> (<code>TestLeanPassMap<\/code>)"
+  },
+  {
+   "level": "trusted",
    "title": "The short chains between two-block states",
-   "text": "On the closed form, from <code>[a, 2a+d]<\/code>: d = 0 goes to &minus;2, &minus;2 to &minus;1, 2 to &minus;3 (one pass each), &minus;1 to 1 and 3 to 2 (two passes), &minus;3 to 0 (three passes), with a growing by 2, 1, 3, 2, 3, 3. So every two-block state reaches one with d = 1. Algebra from the closed form, checked on each whole residue class mod 4 by running the closed form on values p + q&middot;u.",
+   "text": "From <code>[a, 2a+d]<\/code>: d = 0 goes to &minus;2, &minus;2 to &minus;1, 2 to &minus;3 (one pass each), &minus;1 to 1 and 3 to 2 (two passes), &minus;3 to 0 (three passes), with a growing by 2, 1, 3, 2, 3, 3. So every two-block state reaches one with d = 1. Algebra from the closed form, checked on each whole residue class mod 4 by running <code>py/passmap.py<\/code> on values p + q&middot;u.",
    "where": "<code>python3 py/returnmap.py chains<\/code>, <code>tests/test_returnmap.py<\/code>"
   },
   {
@@ -462,15 +480,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   },
   {
    "level": "trusted",
-   "title": "If the closed form holds: no halt in the first 3.4&middot;10<sup>18<\/sup> passes",
-   "text": "The orbit is <code>[5, 11]<\/code> at pass 3, and the states <code>[a, 2a+1]<\/code> follow each other by G with a = 5 mod 12 (checked against the orbit for 30,000 passes). With the line above, the orbit has no halt and no stop block of 1 until a reaches 2<sup>62<\/sup>, about pass 3.4&middot;10<sup>18<\/sup> (pass n has 3a + 1 = 4(n+1) ones). Conditional on the closed form, which is tested, not proved.",
+   "title": "No halt in the first 3.4&middot;10<sup>18<\/sup> passes",
+   "text": "The orbit is <code>[5, 11]<\/code> at pass 3, and the states <code>[a, 2a+1]<\/code> follow each other by G with a = 5 mod 12 (checked against the orbit for 30,000 passes). With the line above, the orbit of the pass map has no halt and no stop block of 1 until a reaches 2<sup>62<\/sup>, about pass 3.4&middot;10<sup>18<\/sup> (pass n has 3a + 1 = 4(n+1) ones), and by <code>halts_only_by_one<\/code> the machine does not halt before. Rests on the Lean pass map and on the Python computation, whose <code>passmap<\/code> is tested against Lean's <code>next<\/code>.",
    "where": "<code>python3 py/returnmap.py orbit 200000<\/code>, <code>notes/LAB_NOTES.md<\/code>"
-  },
-  {
-   "level": "heuristic",
-   "title": "The closed form of a pass, for every block list",
-   "text": "The closed form agrees with the machine on about 3,100 random block lists of up to 10 blocks of 1 to 12 ones each, every case except a stop block of 1. Not proved: the zigzag is a loop whose rounds grow, so it needs an induction in Lean on top of <code>zig<\/code>.",
-   "where": "<code>python3 py/passmap.py check 3000 6<\/code>"
   },
   {
    "level": "heuristic",
@@ -481,13 +493,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   {
    "level": "heuristic",
    "title": "Stop blocks stay above a fixed fraction of a",
-   "text": "On every route down to mod 2<sup>62<\/sup>, each stop block is at least about a/64; the worst fraction shrinks like 2<sup>&minus;m/10<\/sup> with the depth m of the residue class (a = 2<sup>r<\/sup> + 1: about a&middot;2<sup>&minus;r/10<\/sup>). A stop block of 1 would need the fraction to shrink like 2<sup>&minus;m<\/sup>. The route list is infinite: the tail left by the first pass lives v<sub>2<\/sub>(a&minus;1) passes, so k is unbounded, and the front runs nested excursions inside it; for each k the routes are finite (k = 1 to 5 need a mod 2<sup>8<\/sup>, 2<sup>17<\/sup>, 2<sup>26<\/sup>, 2<sup>35<\/sup>, 2<sup>44<\/sup>).",
+   "text": "On every route down to mod 2<sup>62<\/sup>, each stop block is at least about a/64; the worst fraction shrinks like 2<sup>&minus;m/10<\/sup> with the depth m of the residue class (a = 2<sup>r<\/sup> + 1: about a&middot;2<sup>&minus;r/10<\/sup>). A stop block of 1 would need it to shrink like 2<sup>&minus;m<\/sup>. The route list is infinite: the tail left by the first pass lives v<sub>2<\/sub>(a&minus;1) passes, so k is unbounded, and the front runs nested excursions inside it; for each k the routes are finite (k = 1 to 5 need a mod 2<sup>8<\/sup>, 2<sup>17<\/sup>, 2<sup>26<\/sup>, 2<sup>35<\/sup>, 2<sup>44<\/sup>).",
    "where": "<code>python3 py/returnmap.py classes 60<\/code>, <code>notes/LAB_NOTES.md<\/code>"
   },
   {
    "level": "open",
-   "title": "A proof of the pass map, and an induction for the excursion",
-   "text": "Prove the closed form in Lean (an induction for the zigzag, then the cases of the sweep). Then the excursion from <code>[a, 2a+1]<\/code> for every a: the route list is infinite because of the halving tail and the loops it nests, so this needs an induction on the tail length showing that stop blocks stay above a fraction of a that shrinks slower than 1/a.",
+   "title": "An induction for the excursion",
+   "text": "The excursion from <code>[a, 2a+1]<\/code> for every a. The route list is infinite because of the halving tail and the loops it nests, so this needs an induction on the tail length showing that stop blocks stay above a fraction of a that shrinks slower than 1/a. That, with the reduction, would prove the machine never halts.",
    "where": "<code>notes/LAB_NOTES.md<\/code>"
   },
   {

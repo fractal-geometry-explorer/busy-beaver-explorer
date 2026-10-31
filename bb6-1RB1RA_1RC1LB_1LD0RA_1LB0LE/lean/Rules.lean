@@ -77,4 +77,22 @@ theorem zig (p : Nat) (L R : Tape) :
   have h4 : steps 1 ⟨rep (p + 1) [true] (cons false (cons true (L))), cons true (R), .A⟩ = some ⟨cons true (rep (p + 1) [true] (cons false (cons true (L)))), R, .A⟩ := rfl
   exact steps_congr trans (a := 2 + ((p + 1) * 1 + (3 + ((p + 1) * 1 + (1))))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (h4)))))
 
+/-- `d_stop` with an empty block on the left (`a + 1 = 0`). -/
+theorem d_stop_empty (L R : Tape) :
+    steps (3) ⟨cons false (L), cons false (R), .D⟩ = some ⟨cons false (cons true (L)), R, .A⟩ := by
+  have h0 : steps 3 ⟨cons false (L), cons false (R), .D⟩ = some ⟨cons false (cons true (L)), R, .A⟩ := rfl
+  exact steps_congr trans (a := 3) (by omega) (h0)
+
+/-- `zig` with an empty block on the left (`p + 1 = 0`). -/
+theorem zig_empty (L R : Tape) :
+    steps (6) ⟨cons false (L), cons false (cons true (R)), .A⟩ = some ⟨cons true (cons false (cons true (L))), R, .A⟩ := by
+  have h0 : steps 6 ⟨cons false (L), cons false (cons true (R)), .A⟩ = some ⟨cons true (cons false (cons true (L))), R, .A⟩ := rfl
+  exact steps_congr trans (a := 6) (by omega) (h0)
+
+/-- A at a `0 0 1` left by a crossed block: the block it is in gains two ones and a new, empty block starts. -/
+theorem turn (L R : Tape) :
+    steps (3) ⟨L, cons false (cons false (cons true (R))), .A⟩ = some ⟨cons false (cons true (cons true (L))), R, .A⟩ := by
+  have h0 : steps 3 ⟨L, cons false (cons false (cons true (R))), .A⟩ = some ⟨cons false (cons true (cons true (L))), R, .A⟩ := rfl
+  exact steps_congr trans (a := 3) (by omega) (h0)
+
 end BB6d

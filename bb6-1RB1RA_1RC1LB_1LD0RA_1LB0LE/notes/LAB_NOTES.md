@@ -86,9 +86,41 @@ the only road to a stop block of 1, and it would need about log₂ of the count 
 (2) The return map on two-block states `[a, 2a+d]`: which d follows which, and what decides the tail length (likely
 2-adic, as for the `1RB1RA_1RC1LB` machine). (3) From that, whether a first block can halve all the way down.
 
+## 31 October 2026: the closed form in Lean, and the reduction
+
+`lean/Pass.lean`, kernel only (axioms `propext`, `Quot.sound`, and `Classical.choice` for the last three theorems;
+no `native_decide`).
+
+**Encoding.** Block lists nearest first, `zs = [yk, ..., y1]`, so that `enc zs` (blocks `rep y [true]` separated by
+`cons false`, blank at the end) is the left stream and the pass start is `⟨enc zs, blank, A⟩`. Blank tape is `enc []`,
+and blank on the left reads as empty blocks (`enc [0, 0] = enc []`), so no padding cases are needed in the runs.
+
+**The map, recursively.** `next (y :: ys)`: y = 2m even gives `bump (m+2) ys` (the two nearest blocks of `ys` gain
+m+2). y odd starts `sweep [(y+3)/2] ys`, which records g = y/2 − 1 for each even block it crosses, halts at an empty
+block or the left end, gives `.one` at a block of 1, and at y = 2n+3 stops with `zag q ms gs` where `(q, ms) =
+bump (n+1) rest`; `zag q ms (g :: gs) = zag g ((q+g+2) :: ms) gs`. In terms of the notes above, g_i = h_i − 1.
+
+**The proof.** What the sweep leaves on the right is `U gs` (each g as `0 0 1 (01)^g`). Three new generated pieces:
+`d_stop_empty` and `zig_empty` (the pieces with an empty block on the left, which `symtm` cannot state with a count
+that may be 0) and `turn` (`A> 0 0 1` to `1 1 0 A>`). Then inductions: `zigs` (r rounds of the zigzag), `zag_run` (the
+zigzag through `U gs`), `cross_even` and `sweep_run` (the sweep), `stop` (d_stop, a_sweep and the rounds), and `pass`.
+`pass_halt` covers the halting outcomes.
+
+**Counting.** `next_sum`: a pass adds 4 ones and keeps blocks nonempty (the last g is (yk+3)/2 ≥ 2, so `zag` never
+leaves an empty block). `next_halt_odd`: with nonempty blocks, a halting pass has an odd count. So `orbit n` (pass n
+from blank, `orbit 1 = [2, 2]`) has 4n ones and never halts, and
+
+    theorem halts_only_by_one (h : HaltsFromBlank) : ∃ n, orbit n = .one
+
+**Tests.** `TestLeanPassMap` evaluates `next` on 3,000 random lists and the orbit for 400 passes with `#eval` and
+compares with `py/passmap.py`.
+
+**Next.** The return map on two-block states `[a, 2a+d]`, and whether the first block can halve down to 1.
 ## 31 October 2026: the return map on two-block states (`py/returnmap.py`)
 
-Everything here is about the closed form of the pass map (`py/passmap.py`), which is tested but not proved.
+Everything here is computed on the closed form of the pass map (`py/passmap.py`). Lean now proves that closed form
+(`pass`, `lean/Pass.lean`) and `passmap` is tested against Lean's `next`, so these results rest on Lean plus this
+Python computation.
 
 **Six short chains, all ending at d = 1** (`python3 py/returnmap.py chains`; algebra from the closed form, checked
 on each whole class mod 4 by the symbolic run below). A reachable two-block state `[a, 2a+d]` has 3a + d = 0 mod 4.
@@ -123,7 +155,7 @@ be ≤ 1 for some u ≥ 0 where it matters sets the one value u = 0 aside. Down 
 
 So **for every a = 1 mod 4 with 5 ≤ a < 2^62 the excursion from `[a, 2a+1]` returns to `[a+12k, …]`, k ≤ 11,
 without a halt or a stop block of 1** (trusted computation on the closed form). With the orbit chain above:
-**if the closed form holds, no halt in the first 3.4·10¹⁸ passes** (until a passes 2^62; pass n has 4(n+1) = 3a + 1
+**with `halts_only_by_one`, no halt in the first 3.4·10¹⁸ passes** (until a passes 2^62; pass n has 4(n+1) = 3a + 1
 ones). In steps that is far beyond 10¹⁸ (each pass is at least one step; the run so far takes about 0.016·S³ steps
 for S ones, which would be about 10⁵⁵).
 
@@ -142,7 +174,7 @@ a/64 (`classes` prints the worst ratio per modulus 2^m: 2^-x with x = 1 up to m 
 m = 62). For a = 2^r + 1 the smallest stop block is about a·2^(−r/10) (1/16 at r = 20, 1/64 at r = 60). A stop block
 of 1 needs x close to m; the observed x grows like m/10. For a ≤ 1.2·10⁶ the smallest ratio is 0.042 (a = 985,345).
 
-**What a proof would need.** (1) The closed form in Lean. (2) The six chains (one pass each in the closed form:
+**What a proof would need.** (1) The closed form in Lean (done, `pass`). (2) The six chains (one pass each in the closed form:
 routine). (3) An induction for the excursion: the front with a halving tail of length L behaves like the front with
 a shorter one, so that a stop block stays above a fixed fraction of a; the margins above say the fraction is about
 2^(−v/10) where v is the depth of the 2-adic structure, so the statement to prove is likely "every stop block is at

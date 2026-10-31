@@ -29,6 +29,10 @@ RULES = [
      "D at a 0: the sweep ends, the 0 before the block on the left moves one cell right, and A starts the zigzag."),
     ("zig", "L 0 1^p+1 A> 0 1 R", "L 1 0 1^p+2 A> R",
      "One round of the zigzag: a `0 1` on the right is absorbed and the 0 on the left moves one cell right."),
+    ("d_stop_empty", "L 0 D> 0 R", "L 1 0 A> R", "`d_stop` with an empty block on the left (`a + 1 = 0`)."),
+    ("zig_empty", "L 0 A> 0 1 R", "L 1 0 1 A> R", "`zig` with an empty block on the left (`p + 1 = 0`)."),
+    ("turn", "L A> 0 0 1 R", "L 1 1 0 A> R",
+     "A at a `0 0 1` left by a crossed block: the block it is in gains two ones and a new, empty block starts."),
 ]
 
 
