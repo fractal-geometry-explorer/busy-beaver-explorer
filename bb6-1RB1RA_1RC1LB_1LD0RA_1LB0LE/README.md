@@ -33,8 +33,17 @@ no excursion halts or meets a stop block of 1 for 5 ≤ a < 2^62, so with `halts
 3.4·10¹⁸ passes** (resting on the Lean pass map and on this Python computation, whose `passmap` is tested against
 Lean's `next`).
 
-**Observed only**: iterated 2·10⁷ passes from `[2, 2]`, the closed form never meets the one case that can lead to a
-halt (a sweep stopping at a block of a single 1).
+**Computed, by plain iteration** (`c/passorbit.c`, the closed form in C, checked against `py/passmap.py`; resting on
+the Lean pass map): the first 10¹¹ passes from `[2, 2]` one by one, with no residue classes, never meet a stop block
+of 1, an independent check of the start of the return-map result; after pass 50 no sweep stops at a block below 59 or
+below 1.4% of the ones.
+
+**Searched** (heuristic for the general question; `notes/LAB_NOTES.md`, 31 October): which starts meet a stop block
+of 1. Of all 268 million lists of up to 28 ones, every one with an odd count meets it or halts, and every event comes
+by pass 59; every two-block start `[a, b]` with a ≥ 2, a, b ≤ 10⁴ and 4 | a + b runs 1,000 passes without it; random
+lists with large blocks never meet it. The event needs a sweep to stop at a block of 3 in the first two places one pass
+before (`[x, 3, z]`, x ≡ 2, z ≡ 3 mod 4, meets it on its second pass and then halts on the machine).
+
 
 **Observed only**: on every route down to mod 2^62 the stop blocks stay above about a/64, shrinking like 2^(−m/10)
 with the depth m of the class. The route list is infinite (the tail of the first pass lives v₂(a−1) passes), finite
@@ -58,6 +67,10 @@ of 1), and so the question itself.
 | `tests/test_returnmap.py` | the chains, the classes down to mod 2^38, the classes against concrete runs, the orbit chain |
 | `py/explainer_status.py` | writes the explainer's status panel from `status.json` |
 | `tests/test_explainer.py` | the explainer's engine against `py/passmap.py` and the reference simulator; its status panel current |
+| `c/passorbit.c` | the closed form in C: the blank orbit with checkpoints (`orbit`), and searches over starts (`comps`, `grid`, `random`) split into parts for `tools/c/run_parts.sh` |
+| `py/passorbit.py` | checks `passorbit` against `passmap` (checkpoints and hashes, counts), and runs the machine after the event (`after`) |
+| `runs/` | outputs of the long runs (`runs/README.md`) |
+| `tests/test_passorbit.py` | `passorbit` against `passmap` and the machine, and the two-pass family |
 | `tests/test_machine.py` | generated files current, the page current, C against Python, the closed form against the machine and the C run |
 | `status.json` | the source of the proof-status page (`tools/pages/build_status.py`) |
 
@@ -67,6 +80,8 @@ of 1), and so the question itself.
 bash scripts/setup-lean.sh && . /etc/profile.d/lean.sh
 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py
+gcc -O3 -o passorbit bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/c/passorbit.c && ./passorbit orbit 100000000000   # about 35 min
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py stats 2000000
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_returnmap.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 60    # 24 s

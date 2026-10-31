@@ -179,3 +179,96 @@ routine). (3) An induction for the excursion: the front with a halving tail of l
 a shorter one, so that a stop block stays above a fixed fraction of a; the margins above say the fraction is about
 2^(−v/10) where v is the depth of the 2-adic structure, so the statement to prove is likely "every stop block is at
 least a·2^(−c·log₂ a) with c < 1", which is enough.
+## 31 October 2026: a wider search for the stop block of 1
+
+All of this iterates the closed form, which is now the Lean pass map (`pass`, above), so the runs are trusted
+computation about the machine; what they suggest beyond the starts tried is heuristic. The tool is `c/passorbit.c`, the closed form in C with 64-bit blocks (a pass
+adds 4 ones, so they cannot overflow in any run here); it agrees with `py/passmap.py` at every checkpoint and on every
+count below that Python can redo (`tests/test_passorbit.py`, `py/passorbit.py`).
+
+### The blank-tape orbit, 10¹¹ passes
+
+`passorbit orbit N` iterates from `[2, 2]` and prints the list and a hash of every list so far at 10^m passes and
+every 10⁹ (`runs/orbit.txt`). `py/passorbit.py check 10000000` recomputes the first 10⁷ passes with `passmap` and
+agrees at every checkpoint, hashes included. About 5·10⁷ passes a second on one core.
+
+**10¹¹ passes (35 CPU minutes): no halt and no stop block of 1.** At the end the tape has 4·10¹¹ ones in
+`[133333333334, 266666666666]`. After pass 50 no sweep stops at a block below 59 (pass 51, 208 ones), and the
+smallest stop block relative to the tape is 0.0141 of the ones (751,555 at pass 13,321,949), unchanged from 1.3·10⁷
+to 10¹¹. Block counts 2 to 6 (2: 38.6%, 3: 50.5%, 4: 10.7%, 5: 0.26%, 6: 381,469 passes); two-block states
+`[a, 2a + d]` with |d| ≤ 3 except 5,298 times; the sweep stops at the last block in 45.4% of passes, at the first in
+30.5%, between in 24.1%. These fractions agree with the 10⁸-pass run to six or seven digits (block counts
+38,616,643 against 38,616,640,226 for 1,000 times as many passes): the orbit looks self-similar under scaling, and
+nothing in it drifts towards small blocks. A second run reached 1.5·10¹¹ passes with the same checkpoints up to
+10¹¹ and was stopped: the return map (above) covers the first 3.4·10¹⁸ passes, so the value of this run is only as
+a plain pass-by-pass check of the first 10¹¹ of them, with no residue classes involved.
+
+### Every short list (`passorbit comps 1 28 1000`, `runs/comps28.txt`)
+
+All 268,435,455 block lists with 1 to 28 ones, 1,000 passes each (48 parts, 9 CPU minutes, merged by
+`tools/py/merge_parts.py`):
+
+| sum mod 4 | stop block 1 | halt | neither in 1,000 passes |
+|---|---|---|---|
+| 0 | 125,533,990 | 0 | 17,631,586 |
+| 1 | 14,507,806 | 3,387,891 | 0 |
+| 2 | 32,967,333 | 0 | 2,824,061 |
+| 3 | 59,567,636 | 12,015,152 | 0 |
+
+* **Every event comes early.** The latest stop block of 1 is at pass 59 (`[2,1,1,1,1,3,1,3,1,3,1,5,3]`), the latest
+  halt at pass 26. A list that survives 60 passes survives all 1,000 (and, in the smaller runs at 10⁴ and 10⁵ passes,
+  all of those too).
+* **An odd number of ones never survives**: every one of the 134 million odd-sum lists meets the event or halts.
+  The sum mod 4 is kept by the closed form, and a halt needs an odd sum, so for the blank orbit (sum 0 mod 4) the
+  only door is the stop block of 1.
+* **With 0 mod 4 ones, the event comes from blocks of 1 or near it.** Up to 20 ones, of the 168,735 + 598 starts that
+  meet it after pass 0, all but 598 contain a block of 1, and only 47 have every block at least 3, all short lists
+  of small blocks: `[6, 3, 7]`, `[10, 3, 3]`, `[3, 4, 5]`, `[9, 4, 7]`, ….
+
+### Two blocks (`passorbit grid 10000 10000 1000`, `runs/grid10k.txt`)
+
+Every `[a, b]` with a, b ≤ 10⁴ (10⁸ starts, 13 CPU minutes). With 0 mod 4 ones the only starts that meet a stop
+block of 1 are the 2,500 lists `[1, b]`, b ≡ 3 mod 4, which stop at their first block on pass 0 (confirmed by printing
+every event of a 64-pass rerun). **Every `[a, b]` with a ≥ 2 and 4 | a + b runs 1,000 passes without the event.** With
+2 mod 4 ones, 20,697 starts meet it, the latest at pass 54 (`[11, 3]`); with an odd sum all 5·10⁷ halt by pass 15.
+
+### Random lists (`passorbit random 10⁷ 12 B 1000 B`, `runs/rnd_*.txt`)
+
+10⁷ lists of 1 to 12 blocks, each block uniform in 1..B, 1,000 passes each:
+
+| B | sum 0 mod 4: stop block 1 | sum 0 mod 4: neither | sum 2 mod 4: stop block 1 | odd sums |
+|---|---|---|---|---|
+| 4 | 1,161,229 | 1,340,274 | 2,190,263 | all events |
+| 16 | 339,180 | 2,161,710 | 1,461,971 | all events |
+| 1,000 | 5,568 | 2,494,231 | 33,324 | all events |
+| 10⁹ | 0 | 2,502,700 | 0 | all halt, by pass 28 |
+
+The rate falls with the block size, and with blocks of size about 10⁹ it is zero: 5·10⁶ even-sum starts, no stop
+block of 1 in 1,000 passes. Odd sums always end, by pass 28 at most.
+
+### Why: the stop block of 1 needs a stop at a 3 one pass earlier
+
+From the closed form, a block of 1 can only be a new first block `(y_j − 1)/2` with `y_j = 3` and `j ≤ 2` (every other
+new block is at least 2: `h_i + h_(i+1)` with crossed even blocks, `h_k − 1 ≥ 2`, and sums with old blocks). It stays
+the first block until a sweep stops at or left of position 3, and it is the event exactly when a sweep crosses
+everything right of it. The simplest family that does it in two passes, exactly (`tests/test_passorbit.py`, all x, z <
+120, and it follows from the formulas for every x, z):
+
+    [x, 3, z], x ≡ 2 and z ≡ 3 mod 4  →  [1, x + 2 + (z + 5)/2, (z + 3)/2]  →  stop block 1
+
+(the other residues of `[x, 3, z]` with 4 | x + 3 + z never meet it in 300 passes). **On the machine itself these
+halt a few passes later**: `[2,3,3]`, `[6,3,7]`, `[10,3,11]`, `[30,3,15]`, `[62,3,63]` all halt within 7 passes of
+`run_pass`. More widely (`py/passorbit.py after 12`, 90 s): of the 1,502 lists of 4, 8 or 12 ones whose closed-form orbit
+meets a stop block of 1, the machine run on from there halts in 1,431 cases within 200 passes, and every pass of those
+runs is clean (blocks separated by single 0s). So the event is, in practice, the road to a halt.
+
+So the question for the blank orbit is whether a sweep ever stops at a block of 3 in the first two positions. In the
+10¹¹ passes it never stops at any block below 59 after pass 50, and every stop block is at least 1.4% of the ones on
+the tape (the smallest ratio, 0.0141, at pass 13,321,949, has not moved since): the stop blocks grow with the tape,
+while the event needs one of size 3. The small-block searches above say the same thing from the other side: lists
+that meet the event are lists with small blocks, and they meet it within 60 passes or not at all.
+
+**What this does not show.** None of it is a proof. The searches cover short lists, two-block lists to 10⁴ and
+random lists; the blank orbit is one specific list, and its two-block states `[a, 2a + d]` are far outside the
+ranges searched. A proof would show that a stop block stays above a fixed fraction of the tape along the excursions
+of the return map, which is what the bound "about a/64" of the return-map entry suggests on every route checked.
