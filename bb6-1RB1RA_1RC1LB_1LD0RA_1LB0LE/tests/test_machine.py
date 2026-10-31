@@ -5,7 +5,9 @@ usage: python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py
 """
 import json
 import os
+import random
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -129,6 +131,60 @@ class TestPassMap(unittest.TestCase):
             self.assertEqual(sum(y), 4 * (i + 1))
             j = passmap.stop_index(y)
             self.assertTrue(j >= 1 and (j == len(y) or y[j - 1] > 1), y)
+
+
+def lean_env():
+    lean = os.environ.get("LEAN") or shutil.which("lean")
+    lib = os.environ.get("LEANLIB") or os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(lean))), "lib",
+                                                    "lean")
+    return lean, lib
+
+
+@unittest.skipUnless(shutil.which("lean") or os.environ.get("LEAN"), "no Lean installed")
+class TestLeanPassMap(unittest.TestCase):
+    """`next` in lean/Pass.lean (the map the Lean theorems are about) is the closed form of py/passmap.py."""
+
+    @classmethod
+    def setUpClass(cls):
+        lean, lib = lean_env()
+        out = os.path.join(ROOT, "lean", "out")
+        if not os.path.exists(os.path.join(out, "Pass.olean")):
+            subprocess.run([os.path.join(ROOT, "lean", "check.sh")], check=True, capture_output=True,
+                           env=dict(os.environ, LEAN=lean, LEANLIB=lib))
+        cls.lean = lean
+        cls.env = dict(os.environ, LEAN_PATH=f"{lib}:{os.path.join(TOOLS, 'lean', 'out')}:{out}")
+
+    def eval_lean(self, body):
+        d = tempfile.mkdtemp()
+        src = ("import Pass\nopen BB6d\n"
+               "def show' : Next → String\n  | .ok zs => toString zs.reverse\n  | .halt => \"HALT\"\n"
+               "  | .one => \"ONE\"\n" + body)
+        with open(os.path.join(d, "T.lean"), "w") as f:
+            f.write(src)
+        r = subprocess.run([self.lean, "T.lean"], cwd=d, env=self.env, capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        return r.stdout.splitlines()
+
+    @staticmethod
+    def py(y):
+        got = passmap.passmap(y)
+        return "ONE" if got is None else got if got == passmap.HALT else str(got)
+
+    def test_random_lists(self):
+        rnd = random.Random(11)
+        ys = [[rnd.randint(1, 14) for _ in range(rnd.randint(1, 7))] for _ in range(3000)]
+        ys += [[2, 1], [4, 2, 3], [2, 2, 2, 5], [5, 7, 1, 1], [2, 1, 1], [1], [3], [2]]
+        chunks = [ys[i:i + 100] for i in range(0, len(ys), 100)]
+        lines = self.eval_lean("".join(
+            f"#eval for y in ({[list(reversed(y)) for y in c]} : List (List Nat)) do IO.println (show' (next y))\n"
+            for c in chunks))
+        self.assertEqual(lines, [self.py(y) for y in ys])
+
+    def test_orbit(self):
+        """The orbit of `next` from blank tape: pass n of the Lean orbit is pass n - 1 of passmap.orbit."""
+        n = 400
+        lines = self.eval_lean(f"#eval do\n  for i in [1:{n + 1}] do\n    IO.println (show' (orbit i))\n")
+        self.assertEqual(lines, [str(y) for y in passmap.orbit(n)])
 
 
 if __name__ == "__main__":
