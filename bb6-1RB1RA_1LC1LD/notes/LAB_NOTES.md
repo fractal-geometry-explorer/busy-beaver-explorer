@@ -222,3 +222,38 @@ recursive pass from `…, x, 3j` ends with last block `2j + c`, `c` local for `x
 `astep` means following the converter through the blocks to the left, by induction on `j` for the words `0 1 1` it
 leaves behind.
 
+
+## 31 October 2026: does the recursive pass always finish?
+
+**Proved in Lean** (`lean/Finish.lean`, kernel only).  The block machine has a quantity that goes down at every step.
+Take the cells from the head to the right end of the tape (the ones under the head, then the words `0 1^k`) and read
+them from the right end: `key`.  Order such lists like a dictionary, with a 1 before a 0 and a list before its
+extensions (`Below`).  Every step of `astep` that does not end the pass makes `key` smaller (`astep_key`): either the
+head moves right past the ones under it and the next word (A, D, E, F, the C and B steps that leave with a `B` or `F`),
+so `key` loses cells at its end, or the first word that changes, counting from the right end, gets longer (C moving a
+block into the word after `0 1`, and every converter step of `bstep`), so a 0 of `key` becomes a 1 with nothing before
+it changed.  In particular the block machine never comes back to a configuration.
+
+That is not yet termination: dictionary order on lists of any length has infinite descending chains (`0`, `10`,
+`110`, …), which here would be the head drifting left for ever.  It is termination as soon as the length of `key`
+is bounded.  `arun_finishes`: if every configuration the block machine reaches has its head within `N` cells of the
+right end and is a case `astep` covers, then `arun` ends the pass (next pass start or halt) within `3^N` steps;
+`pass_finishes` is the same for `pass` from `K ls n`.  (The proof sends `key` to a number below `3^N`, `val`, which
+the order makes strictly decreasing, `val_mono`.)
+
+**What is open.** Two hypotheses remain, and neither has a short proof that I can see.
+* *No uncovered case.* From a tape with a block 0 or 1 the block machine can get stuck (e.g. `ls = [1]`, `j = 0`
+  ends in B on a block 1 with a block 8 to its left and no words to its right).  From good tapes it never did; ruling it out needs facts about the
+  last word and the blocks next to the head when the words run out.
+* *No drift to the left.* The head goes left only as the converter, through blocks 1 mod 3 and one block more, and
+  it turns at the left end of the tape, but each visit there can leave the tape one cell longer
+  (a C step moves the leftmost block into the words and F starts a block 2 one cell further left).  Bounding the
+  number of such visits is the real content.  Linear potentials (cells plus nonnegative multiples of counts of words
+  and blocks by value and residue) do not work: a linear program over 500 kinds of step from random runs is
+  infeasible.
+
+**Computed** (`py/macro.py reach`, `test_key_goes_down`; `key` is checked at every step).  Over 1,000 random good
+contexts (0 to 8 blocks of 2 to 40) with `j` from 0 to 40, every recursive pass finishes, and how far left of the
+original tape the head gets depends only on the blocks, never on `j` (at most 8 cells there; 14 in a wider search).
+So the words `0 1 1` of the last block are handled without touching the left end, as `2j + c` with `c` independent of
+`j` suggests.

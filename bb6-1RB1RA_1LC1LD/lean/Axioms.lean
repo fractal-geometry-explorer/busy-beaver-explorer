@@ -2,6 +2,7 @@ import Blank
 import Macro
 import Edge
 import Recur
+import Finish
 import Blocks
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
@@ -39,3 +40,8 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6c.pass_sound
 #print axioms BB6c.passes_sound
 #print axioms BB6c.blank_passes_104
+
+-- Finish.lean: every step of the block machine lowers `key`; bounded, the recursive pass finishes (kernel only)
+#print axioms BB6c.astep_key
+#print axioms BB6c.arun_finishes
+#print axioms BB6c.pass_finishes
