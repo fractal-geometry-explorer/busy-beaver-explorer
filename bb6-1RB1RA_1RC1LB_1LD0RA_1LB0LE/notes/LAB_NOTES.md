@@ -272,3 +272,81 @@ that meet the event are lists with small blocks, and they meet it within 60 pass
 random lists; the blank orbit is one specific list, and its two-block states `[a, 2a + d]` are far outside the
 ranges searched. A proof would show that a stop block stays above a fixed fraction of the tape along the excursions
 of the return map, which is what the bound "about a/64" of the return-map entry suggests on every route checked.
+
+## 31 October 2026: looking for an invariant that rules out the stop block of 1 (`lean/Front.lean`, `py/front.py`)
+
+The aim was an invariant of the blank-tape orbit that excludes a sweep stopping at a block of 1, proved in Lean, which
+with `halts_only_by_one` would prove non-halting. **No such invariant was found, and none of the simple kinds can
+work** (below). Two invariants that do hold for every list were found and proved, and they narrow the event to one
+place: the first block has to fall to 1.
+
+### Proved (kernel, `lean/Front.lean`)
+
+* **Blocks after the first stay at least 2** (`Good`, `next_good`, `orbit_good`). From the closed form: a new block
+  is a sum `h_i + h_(i+1)` of halves of crossed even blocks, `h_k − 1 = (y_k + 3)/2`, a bumped old block, or an old
+  block untouched, all at least 2, except the new first block `(y_j − 1)/2` when the sweep stops at `j ≤ 2`. So
+  **a sweep can stop at a block of 1 only at the first block, after crossing all the others** (`one_front`).
+* **With 4 | ones, two passes in a row never both stop at the first block** (`FrontStop`, `front_twice`,
+  `orbit_front_twice`). A front stop of `[f, e_2, …, e_(k−1), b]` gives `[(f−1)/2, (f+1)/2 + e_2/2, e_2/2 + e_3/2, …,
+  e_(k−1)/2 + (b+5)/2, (b+3)/2]`; for that to be a front stop again the new first and last blocks must be odd and
+  the ones between even, which forces `f ≡ 3`, every `e ≡ 0` and `b ≡ 3 mod 4`, so 2 mod 4 ones. The orbit has 4n
+  at pass n.
+* Together, **`halts_only_at_front`**: if the machine halts from blank tape, some pass start of the orbit is
+  `1 0 1^e 0 … 0 1^b A>0` with every `e` even and `b` odd, and the pass before it did not stop at its first block.
+
+All kernel, no `native_decide` (`Axioms.lean`); `tests/test_front.py` checks the same statements on the Python closed
+form (every list of up to 5 blocks of size up to 7 or 12, and random ones).
+
+### So the question is how far the first block falls
+
+From the closed form, the first block f changes only when the sweep stops at one of the first three blocks or the
+list is short: a stop at the first block halves it (`f → (f−1)/2`), a stop at the second replaces it with
+`(y_2 − 1)/2`, a last block that is even on a list of two replaces it with `y_2/2 + 2`, and every other pass keeps
+it or makes it larger. Reaching 1 from f takes about log₂ f falls.
+
+`python3 py/front.py stats N` measures the *descents* of the first block along the orbit: maximal stretches of
+passes over which it never grows, with their depth, the number of front stops (halvings) in them.
+
+    passes 1..10⁸ (3 min 20 s): Good on every list, no two front stops in a row
+    descents by depth: 1: 30,512,034   2: 11,718   3: 86   4: 6   5: 5
+    deepest: 5 front stops, first block 12,024,895 at pass 13,321,940 down to 375,777 at pass 13,321,952 (/32)
+    smallest first block / ones after pass 50: 0.0071 at pass 13,321,952 (375,777 of 53,287,808)
+
+(In the first 3·10⁶ passes the deepest descent has 3 front stops, a factor 8, and the smallest ratio is 0.0275.)
+
+So in 10⁸ passes the first block never loses more than a factor 32 before it grows again, and it stays above 0.7%
+of the ones, while the event needs it to fall to 1: even from its lowest point, 375,777, that is about 18 more
+halvings in one descent. The deep descents are rare (11 of depth 4 or 5 in 3·10⁷ descents), and the deepest is
+at the same place as the smallest stop block of the 10¹¹-pass run (0.0141 of the ones at pass 13,321,949).
+
+### Why the suggested invariants are not invariants
+
+* **"No stop block below 59 after pass 50"** holds on the orbit (10¹¹ passes) but is not kept by the pass map:
+  nothing about block sizes alone is. The small starts that meet the event do it by a **halving loop**: a front
+  stop on three blocks, then an even last block on four, repeated, halves the first block every two passes while the
+  other two blocks stay about the same size. `py/front.py loop`:
+
+      [110, 63, 23] → [31, 156, 13] → [15, 94, 87, 8] → [15, 100, 93] → [7, 58, 99, 48] → [7, 84, 125]
+        → [3, 46, 107, 64] → [3, 80, 141] → [1, 42, 113, 72] → [1, 80, 151]   (stop block 1)
+
+  Every block but the last is at least 23 here, and random lists with every block but the last in [T, 4T] meet the
+  event for T = 40 (2 of 10,048 with 4 | ones, 300 passes); for T = 59, none of about 37,000 did in 200 passes. What
+  keeps the orbit out of the loop is the parities of its blocks, that is the 2-adic digits, not their sizes.
+* **"The shape `[a, 2a+d]`, |d| ≤ 3, is kept"** is not a statement about single passes: the excursions between
+  two-block states go through 3 to 6 blocks, and 5,298 of the two-block states of the first 10¹¹ passes are outside
+  it. Its real form is the return map: every excursion from `[a, 2a+1]` comes back without a stop block of 1.
+* **No invariant made of inequalities and residues mod a fixed 2^m can work.** Each pass halves blocks, so the
+  route of the next passes depends on ever higher bits: a route of 9k passes needs a mod about 2^(9k+2), and the
+  open classes of the return map keep splitting with no two alike (the dynamics thread, to mod 2^74). Any set closed
+  under the map that excludes the event has to carry unboundedly many bits, which is the Collatz-like part.
+
+### What a proof would need
+
+With `halts_only_at_front`, non-halting follows from a lower bound on the first block along the orbit: for instance
+"the first block is at least c times the ones" for any fixed c > 0, or anything above 1. The data say c = 0.007
+holds through 10⁸ passes. Proving it means bounding the descents, that is showing the halving loop cannot run for
+long on the orbit, and that is a statement about 2-adic digits again. The universal form is the one the return-map
+thread is after: on every excursion from `[a, 2a+1]`, every stop block (and so the first block) is at least
+`a·2^(−f)` with f well below log₂ a, by induction on the tail length v₂(a − 1). The two facts proved here are the
+pieces of that induction that hold for every list: the event is at the first block, and front stops never come two
+in a row.

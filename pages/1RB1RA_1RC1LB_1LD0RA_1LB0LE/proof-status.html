@@ -128,6 +128,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>A pass adds exactly four ones and keeps every block nonempty (<code>next_sum</code>); a halting pass needs an odd count of ones (<code>next_halt_odd</code>). So pass n from blank tape starts with 4n ones and no pass halts (<code>orbit_ok</code>, <code>orbit_ne_halt</code>), and if the machine halts from blank tape then some pass of the orbit stops at a block of a single 1 (<code>halts_only_by_one</code>). Kernel only; the standard axioms (<code>propext</code>, <code>Quot.sound</code>, <code>Classical.choice</code>), no <code>native_decide</code>.</p>
         <p class="where"><code>halts_only_by_one</code>, <code>never_halts_of_no_one</code>, <code>lean/Pass.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The stop block of 1 can only be the first block</h3>
+        <p>Every block after the first stays at least 2 (<code>next_good</code>, <code>orbit_good</code>), so a sweep stops at a block of 1 only at the first block, after crossing every other one (<code>one_front</code>). With a count of ones divisible by 4, two passes in a row never both stop at the first block (<code>front_twice</code>): both would force 2 mod 4 ones. So if the machine halts, some pass start is <code>1 0 1^e 0 &hellip; 0 1^b A&gt;0</code> with every e even and b odd, and the pass before did not stop at its first block (<code>halts_only_at_front</code>). Kernel only, no <code>native_decide</code>. No invariant was found that excludes the first block falling to 1.</p>
+        <p class="where"><code>halts_only_at_front</code>, <code>lean/Front.lean</code>, <code>tests/test_front.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -179,6 +184,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The pass map iterated in C from <code>[2, 2]</code> for 10<sup>11</sup> passes (35 CPU minutes), with no residue classes: no halt and no stop block of 1, a plain check of the start of the line above. After pass 50 no sweep stops at a block below 59, or below 1.4% of the ones on the tape; 2 to 6 blocks; two-block states <code>[a, 2a+d]</code> with |d| &le; 3 except 5,298 times. The C program agrees with <code>py/passmap.py</code> at every checkpoint (list and hash of the whole run) up to 10<sup>7</sup> passes.</p>
         <p class="where"><code>c/passorbit.c</code>, <code>runs/orbit_1e11.txt</code>, <code>py/passorbit.py</code>, <code>tests/test_passorbit.py</code></p>
       </div>
+      <div class="card">
+        <h3>The first block along the first 10<sup>8</sup> passes</h3>
+        <p>Iterated in Python on the closed form: every list keeps blocks after the first at least 2 and no two passes in a row stop at the first block, as proved. The first block falls only at stops at the first or second block; over 10<sup>8</sup> passes a descent (a stretch over which it never grows) contains at most 5 halvings and loses at most a factor 32 (12,024,895 to 375,777 near pass 1.3&middot;10<sup>7</sup>), and after pass 50 the first block stays above 0.7% of the ones. The event needs it to fall to 1: about 18 more halvings in one descent even from its lowest point.</p>
+        <p class="where"><code>python3 py/front.py stats 100000000</code>, <code>tests/test_front.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -192,12 +202,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The pass map from other starts. Of all 268 million lists of 1 to 28 ones, every one with an odd count meets a stop block of 1 or halts, and every such event comes by pass 59; the survivors of 60 passes survive 1,000. Every two-block start <code>[a, b]</code> with a &ge; 2, a, b &le; 10<sup>4</sup> and 4 | a+b (the blank orbit's class) runs 1,000 passes without the event, and 5&middot;10<sup>6</sup> random lists with an even count and blocks near 10<sup>9</sup> never meet it. The event needs a sweep to stop at a block of 3 in the first two places one pass earlier: <code>[x, 3, z]</code> with x &equiv; 2, z &equiv; 3 mod 4 meets it on its second pass, and on the machine itself such lists halt a few passes later. So the event belongs to small blocks, and the blank orbit's stop blocks grow with the tape.</p>
         <p class="where"><code>c/passorbit.c</code>, <code>runs/</code>, <code>notes/LAB_NOTES.md</code> (31 October, the wider search)</p>
       </div>
+      <div class="card">
+        <h3>No invariant of sizes or fixed residues</h3>
+        <p>Small starts reach the stop block of 1 by a halving loop: a stop at the first of three blocks, then an even last block on four, repeated, halves the first block every two passes (<code>[110, 63, 23]</code> reaches it in 9 passes, every block but the last at least 23). So no lower bound on block sizes is kept by the pass map, and since each pass halves blocks, the route depends on ever higher bits: no set described by inequalities and residues modulo a fixed power of 2 is closed under the map and excludes the event. What keeps the orbit out of the loop is the 2-adic digits of its blocks.</p>
+        <p class="where"><code>python3 py/front.py loop</code>, <code>notes/LAB_NOTES.md</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>An induction for the excursion</h3>
-        <p>The excursion from <code>[a, 2a+1]</code> for every a. The route list is infinite because of the halving tail and the loops it nests, so this needs an induction on the tail length showing that stop blocks stay above a fraction of a that shrinks slower than 1/a. That, with the reduction, would prove the machine never halts.</p>
+        <p>The excursion from <code>[a, 2a+1]</code> for every a. The route list is infinite because of the halving tail and the loops it nests, so this needs an induction on the tail length showing that stop blocks stay above a fraction of a that shrinks slower than 1/a. That, with the reduction, would prove the machine never halts. Equivalently (<code>halts_only_at_front</code>), a lower bound above 1 on the first block along the orbit.</p>
         <p class="where"><code>notes/LAB_NOTES.md</code></p>
       </div>
       <div class="card open">
@@ -210,12 +225,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>bash scripts/setup-lean.sh                    # Lean 4.34.0, core only
 . /etc/profile.d/lean.sh
-bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Axioms (under a minute)
+bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Axioms (under a minute)
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py orbit 40
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py check 3000 6
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_returnmap.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_front.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 60   # 24 s
 gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD 100000000000</code></pre>
   </section>
