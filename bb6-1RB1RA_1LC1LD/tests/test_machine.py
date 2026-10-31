@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.join(ROOT, "py"))
 
 import blank  # noqa: E402
 import build_status  # noqa: E402
+from bbtools import ctl  # noqa: E402
 from bbtools.invariants import conserved  # noqa: E402
 from bbtools.leangen import machine_lean  # noqa: E402
 from bbtools.machine import Machine, Run, Tape, records  # noqa: E402
@@ -39,6 +40,48 @@ class TestGenerated(unittest.TestCase):
         spec.setdefault("source", "bb6-1RB1RA_1LC1LD/status.json")
         with open(os.path.join(REPO, "pages", "1RB1RA_1LC1LD", "proof-status.html")) as f:
             self.assertEqual(f.read(), build_status.build(spec, spec.get("home", "../index.html")))
+
+
+    def test_edge_cert_current(self):
+        with open(os.path.join(ROOT, "lean", "EdgeCert.lean")) as f:
+            self.assertEqual(f.read(), ctl.lean_file(M, 3, "BB6c"))
+
+
+class TestEdge(unittest.TestCase):
+    """The closed tape language of lean/EdgeCert.lean and what lean/Edge.lean draws from it."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.AL, cls.AR, cls.S = ctl.search(M, 3)
+
+    def test_closed(self):
+        self.assertTrue(ctl.check(M, self.AL, self.AR, self.S))
+        self.assertTrue(ctl.no_double_zero(self.AR, self.S))
+        B = set(self.AR.blank_only())
+        halts = ctl.halting(M, self.AR, self.S)
+        self.assertTrue(halts)
+        for (s, ql, qr, x, qr2) in halts:
+            self.assertEqual((s, x, ctl.show(self.AL.windows[ql])), (4, 0, "111"))
+            self.assertIn(qr2, B)
+
+    def test_covers_run(self):
+        """Every configuration of the first 20,000 steps is in the set."""
+        r = Run(blank.MACHINE)
+        while r.steps < 20000:
+            t, h = r.tape, r.head
+            left = [t.get(p) for p in range(h - 1, t.lo - 1, -1)]
+            right = [t.get(p) for p in range(h, t.hi + 1)]
+            self.assertIn(ctl.abstract(self.AL, self.AR, r.state, left, right), self.S, r.steps)
+            r.step()
+
+    def test_right_no_double_zero(self):
+        """`right_no_double_zero` on the run: past the head cell, no 0 0 before the blank region (sampled)."""
+        r = Run(blank.MACHINE)
+        while r.steps < 10 ** 6:
+            for _ in range(997):
+                r.step()
+            right = "".join(str(r.tape.get(p)) for p in range(r.head + 1, r.tape.hi + 2)).rstrip("0")
+            self.assertNotIn("00", right, r.steps)
 
 
 class TestRun(unittest.TestCase):
