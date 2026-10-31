@@ -3,7 +3,9 @@
 Whether this machine halts from blank tape is open. This folder holds its work; the shared tools are in
 [`../tools`](../tools), the proof-status page is
 [`../pages/1RB1RA_1RC1LB_1LD0RA_1LB0LE/proof-status.html`](../pages/1RB1RA_1RC1LB_1LD0RA_1LB0LE/proof-status.html)
-(built from [`status.json`](status.json)), and the log is [`notes/LAB_NOTES.md`](notes/LAB_NOTES.md).
+(built from [`status.json`](status.json)), the explainer
+[`../pages/1RB1RA_1RC1LB_1LD0RA_1LB0LE/explainer.html`](../pages/1RB1RA_1RC1LB_1LD0RA_1LB0LE/explainer.html) runs the
+machine, its passes and the closed form in the browser, and the log is [`notes/LAB_NOTES.md`](notes/LAB_NOTES.md).
 
 Not to be confused with [`../bb6-1RB1RA_1RC1LB`](../bb6-1RB1RA_1RC1LB), the machine
 `1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB`: the two share their first three states, so this folder is named by four.
@@ -46,6 +48,8 @@ for each k.
 | `py/passmap.py` | the pass map: closed form, a pass run on the machine, the orbit, statistics, a random check |
 | `py/returnmap.py` | the return map on two-block states: the short chains, G(a), the run on residue classes |
 | `tests/test_returnmap.py` | the chains, the classes down to mod 2^38, the classes against concrete runs, the orbit chain |
+| `py/explainer_status.py` | writes the explainer's status panel from `status.json` |
+| `tests/test_explainer.py` | the explainer's engine against `py/passmap.py` and the reference simulator; its status panel current |
 | `tests/test_machine.py` | generated files current, the page current, C against Python, the closed form against the machine and the C run |
 | `status.json` | the source of the proof-status page (`tools/pages/build_status.py`) |
 
@@ -59,4 +63,6 @@ python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py stats 2000000
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_returnmap.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 60    # 24 s
 python3 tools/pages/build_status.py bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/status.json pages/1RB1RA_1RC1LB_1LD0RA_1LB0LE/proof-status.html   # after editing status.json
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/explainer_status.py                                                                       # the same, for the explainer
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_explainer.py
 ```
