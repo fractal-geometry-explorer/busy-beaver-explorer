@@ -467,15 +467,39 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
    "where": "<code>tests/test_machine.py<\/code> (<code>TestLeanPassMap<\/code>)"
   },
   {
+   "level": "trusted",
+   "title": "The short chains between two-block states",
+   "text": "From <code>[a, 2a+d]<\/code>: d = 0 goes to &minus;2, &minus;2 to &minus;1, 2 to &minus;3 (one pass each), &minus;1 to 1 and 3 to 2 (two passes), &minus;3 to 0 (three passes), with a growing by 2, 1, 3, 2, 3, 3. So every two-block state reaches one with d = 1. Algebra from the closed form, checked on each whole residue class mod 4 by running <code>py/passmap.py<\/code> on values p + q&middot;u.",
+   "where": "<code>python3 py/returnmap.py chains<\/code>, <code>tests/test_returnmap.py<\/code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The return map G(a) = a + 12k, for every a below 2<sup>62<\/sup>",
+   "text": "Run on residue classes a = p + q&middot;u (parities known while q is even, classes split otherwise) down to a mod 2<sup>62<\/sup>: 19,231 routes from <code>[a, 2a+1]<\/code> back to <code>[a+12k, 2(a+12k)+1]<\/code> after 9k passes, k = 1 to 10; no class halts or meets a stop block of 1; only a = 1 is set aside (it stops at a block of 1). The members below 2<sup>62<\/sup> of the 2,890 classes still open were run one by one and return too (k up to 11). So for every a = 1 mod 4 with 5 &le; a &lt; 2<sup>62<\/sup> the excursion is safe. 24 seconds.",
+   "where": "<code>python3 py/returnmap.py classes 60<\/code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 3.4&middot;10<sup>18<\/sup> passes",
+   "text": "The orbit is <code>[5, 11]<\/code> at pass 3, and the states <code>[a, 2a+1]<\/code> follow each other by G with a = 5 mod 12 (checked against the orbit for 30,000 passes). With the line above, the orbit of the pass map has no halt and no stop block of 1 until a reaches 2<sup>62<\/sup>, about pass 3.4&middot;10<sup>18<\/sup> (pass n has 3a + 1 = 4(n+1) ones), and by <code>halts_only_by_one<\/code> the machine does not halt before. Rests on the Lean pass map and on the Python computation, whose <code>passmap<\/code> is tested against Lean's <code>next<\/code>.",
+   "where": "<code>python3 py/returnmap.py orbit 200000<\/code>, <code>notes/LAB_NOTES.md<\/code>"
+  },
+  {
    "level": "heuristic",
    "title": "The orbit stays away from a stop block of 1",
    "text": "2&middot;10<sup>7<\/sup> passes of the closed form from <code>[2, 2]<\/code>: no halt, no stop block of 1 (the smallest after pass 50 is 59), 2 to 6 blocks. The two-block states are <code>[a, 2a+d]<\/code> with |d| &le; 3, reached every 1 to 32 passes in the first 2&middot;10<sup>6<\/sup>; in between a tail block halves each pass (1343, 673, 338, &hellip;).",
    "where": "<code>python3 py/passmap.py stats 20000000<\/code>, <code>notes/LAB_NOTES.md<\/code>"
   },
   {
+   "level": "heuristic",
+   "title": "Stop blocks stay above a fixed fraction of a",
+   "text": "On every route down to mod 2<sup>62<\/sup>, each stop block is at least about a/64; the worst fraction shrinks like 2<sup>&minus;m/10<\/sup> with the depth m of the residue class (a = 2<sup>r<\/sup> + 1: about a&middot;2<sup>&minus;r/10<\/sup>). A stop block of 1 would need it to shrink like 2<sup>&minus;m<\/sup>. The route list is infinite: the tail left by the first pass lives v<sub>2<\/sub>(a&minus;1) passes, so k is unbounded, and the front runs nested excursions inside it; for each k the routes are finite (k = 1 to 5 need a mod 2<sup>8<\/sup>, 2<sup>17<\/sup>, 2<sup>26<\/sup>, 2<sup>35<\/sup>, 2<sup>44<\/sup>).",
+   "where": "<code>python3 py/returnmap.py classes 60<\/code>, <code>notes/LAB_NOTES.md<\/code>"
+  },
+  {
    "level": "open",
-   "title": "The return map on two-block states",
-   "text": "Find the map from one two-block state <code>[a, 2a+d]<\/code> to the next and what decides the length of the halving tail. That is where an argument that no sweep ever stops at a block of a single 1 would have to come from; with <code>halts_only_by_one<\/code> it would settle the question.",
+   "title": "An induction for the excursion",
+   "text": "The excursion from <code>[a, 2a+1]<\/code> for every a. The route list is infinite because of the halving tail and the loops it nests, so this needs an induction on the tail length showing that stop blocks stay above a fraction of a that shrinks slower than 1/a. That, with the reduction, would prove the machine never halts.",
    "where": "<code>notes/LAB_NOTES.md<\/code>"
   },
   {
