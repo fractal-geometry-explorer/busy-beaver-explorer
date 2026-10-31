@@ -36,3 +36,99 @@ w = 6,277 (10¹⁰), so a little worse than quadratic time per cell, so a pass o
 **Next.** Find the macro configuration (candidates: `1^a 0 1^b A>0` at the right end; D at the left end), the map
 from one to the next as a function of the block lengths, and check it against direct simulation before stating it in
 Lean.
+
+## 31 October 2026: the pass structure
+
+**The macro configuration.** Every time A reads the blank cell right of the visited tape, the tape is blocks of ones
+separated by single 0s, `1^{b_1} 0 1^{b_2} 0 … 0 1^{b_k} A>0`: all 1,786 such moments in the first 10¹⁰ steps
+(`tools/c/tmrun … at A R`, then `py/macro.py check-file`), with 2 to 8 blocks and no block shorter than 2. Each is a
+new cell, so these *pass starts* are where the width grows. Three steps later the machine is in
+`K = … 1^c 0 1^n B> 1 0 1 0^∞` with `n + 1 = b_k` (`start`).
+
+**One pass.** B converts the last block from the right: `111 B> 1 0` becomes `B> 1 0 101`, 7 steps per three cells
+(`TM.cross_l`). At the left end of the block the residue of `n` mod 3 decides:
+
+* `n = 3m` (last block 3m + 1): the separator and the block to the left absorb 6 cells, and the converted words come
+  back as a new last block. `n = 0` halts: D reads `0 0` at the right end (`K_zero_halts`; this is the right-end halt
+  that the left-end thread's tape language allows).
+* `n = 3m + 1` (last block 3m + 2): a carry crosses the block to the left (C with `010`, 9 steps per cell); the two
+  blocks to the left gain 2 each, and the last block is rebuilt from the converted words.
+* `n = 3m + 2` (last block a multiple of 3): the converter goes on into the next block (below).
+
+On the way back to the right the head alternates between two phases one converted word `011` at a time: A before a
+word, and Y (`0 0 1 B>`) before a word. From Y to A the head bounces to the block two to the left, and the two blocks
+there gain 2 and 4 (`a_two`, `y_two`; iterated in `aphase`, `yphase`). Put together, with `x` the block left of the
+last and `d` the one before it (0 if missing):
+
+| last block | next pass start | Lean |
+|---|---|---|
+| 1 | halts | `K_zero_halts` |
+| 4 | `… x+6, 1` (halts next) | `kA0` |
+| 6t + 10 | `… x+2t+8, 4t+5` | `kA` |
+| 6t + 7 | `… x+2t+6, 4t+3` | `kB` |
+| 6t + 2 | `… d+2t+2, x+4t+3` | `kC` |
+| 6t + 5 | `… d+2t+4, x+4t+5` | `kD` |
+| 3m | recursive | open |
+
+`next` in `lean/Macro.lean` is this table and `next_sound` proves that the machine follows it (kernel only, every
+block length, every tape further left). `blank_passes` uses it from blank tape: `2 2 → 2 5 → 4 7 → 10 3`, and the
+fourth is recursive. `py/macro.py` is the same map; it agrees with all 1,205 non-recursive passes to 10¹⁰ steps and
+with direct runs from random block lists (`tests/test_machine.py`).
+
+**Halting, as far as the map goes.** A pass start halts iff, following the map, a last block 1 appears; a last block 4
+or the ending `1 0 1^2` lead there. The covered cases give last blocks `4t+5`, `4t+3`, `x+4t+3`, `x+4t+5` with
+`x ≥ 2` in every pass start seen, so they never produce 1 or 4 themselves as long as all blocks stay ≥ 2; the
+recursive case is where a small last block could come from.
+
+**The recursive case (last block 3m + 3).** `K(3m + 2)` converts the block and stops at its left end in a second
+mode, `1^c B> 0 0 1 …` (B reading `0 0`), with the converted words to the right. In that mode the next block is
+converted too (`111 B> 0 0` becomes `B> 0 0 110`), and at its left end: residue 1 carries on into the next block in
+the same mode, residue 2 turns back with E, residue 0 turns back with C (a bounce). The symbolic runs
+(`tools/py/bbtools/symtm.py`):
+
+```
+L 0 1^c 0 (111)^j 1 1 B> 1 0 1 V  ->  L 0 1^c B> 0 0 (101)^j 1 0 1 1 V        (first block, n = 3j+2)
+L 0 1^c 0 (111)^j 1 B> 0 0 1 V    ->  L 0 1^c B> 0 0 (101)^j 1 0 1 V          (mode 0, n = 3j+1: carry on)
+L 0 1^c 0 (111)^j 1 1 B> 0 0 1 V  ->  L 0 1^c 1 1 1 E> (101)^j 1 0 1 V        (mode 0, n = 3j+2: turn)
+L 0 1^c 0 (111)^j B> 0 0 1 V      ->  L 0 1^c C> 0 1 (011)^j 0 1 V            (mode 0, n = 3j: turn)
+```
+
+So the route depends on how many blocks to the left of the last are 1 mod 3: the list of routes is infinite, and
+only a parametrised treatment will cover it (the lesson from the first machine). In the first 10¹⁰ steps the
+converter crossed 0, 1, 2, 3 extra blocks in 400, 178, 3, 1 of the 581 recursive passes. On the way back the words
+are a mix of `011` and `01`, and a `01` makes A start another converter run to the left (`L 0 1^x 0 1^y A> 0 1 0 1`
+→ `… 1^y B> 0 0 1 1`), so the way back is recursive as well.
+
+**Next.** The pass map for the recursive case: state the two converter modes and the A/Y phases on general word lists
+(`011`, `01`) in Lean, as `Macro.lean` does for the covered case, and look for the quantity that keeps blocks ≥ 2.
+## 31 October 2026: the left end, and halting only at the right edge
+
+**The left end is one step deep.** D is entered by `E1 = 1RD` (so the cell to D's left is a 1) or by `B1 = 1LD`,
+`C0 = 1LD` (so the cell to D's right is the 1 just written). Hence D with a 0 on its left, and so D at the left end,
+always has a 1 on its right (`d_one_right`, `d_left_end`, kernel). The 1,382 left-end visits counted in the long run
+are this, not a property of the run.
+
+**A closed tape language.** `tools/py/bbtools/ctl.py` grows windows of K cells (letters 0, 1, `#` = blank from
+here on) on each side of the head and abstract configurations (state, left window, right window) from the blank
+start until nothing new appears. With K = 3: 12 left windows, 10 right windows, 245 abstract configurations, and
+the only halting ones are E reading 0 with `111` on its left and `###` on its right. With K = 2 halts in the
+middle of the tape are not excluded; K = 4 gives the same answer as K = 3 with 666 configurations. The right
+automaton has no window with `00` past its first cell except in `#`, so past the head cell the written tape has no
+`0 0`; the left automaton allows any word.
+
+The same set as Lean data (`lean/EdgeCert.lean`) is checked by `decide +kernel` against the generic closure test of
+`tools/lean/TM/CTL.lean`, whose soundness is proved there once for any machine. So, kernel only: every configuration
+of the run from blank tape is covered (`reach_inv`); past the head two 0s in a row occur only in the blank region
+(`right_no_double_zero`); `D>0 0` only with blank tape from D on (`d_zero_zero`); and the machine halts iff at some
+step it is in E with blank tape from the head on (`halts_iff_edge`).
+
+**What a halt would look like.** (Reasoning on the table, not in Lean.) A D entered from the right with blank tape
+from D on came from `D>0 1` one step earlier, two cells to the left; following that back, the last D entered by a
+left move (from B1 or C0) landed on a 0 with `1 (0 1)^k` and then blank tape to its right, k ≥ 0. So a halt needs a
+left move to drop D two cells or more from the right edge onto `0 1 0 1 ... 0 1 |blank`. In the first 3·10⁷ steps
+every left entry of D followed by at least one `0 1` pair stops on a 1 inside the tape; the closest to the edge was
+2 cells, at step 5 (Python, not in the tests).
+
+**Next.** The right edge is now the only place to watch: describe the configurations in which a left-moving B or C
+reaches the last few cells, as part of the macro structure, and show that the tape there never ends in `0 1 0 1`
+under a landing D.

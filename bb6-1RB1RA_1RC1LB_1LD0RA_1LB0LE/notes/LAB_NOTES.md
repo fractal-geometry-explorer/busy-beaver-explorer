@@ -86,10 +86,103 @@ the only road to a stop block of 1, and it would need about log₂ of the count 
 (2) The return map on two-block states `[a, 2a+d]`: which d follows which, and what decides the tail length (likely
 2-adic, as for the `1RB1RA_1RC1LB` machine). (3) From that, whether a first block can halve all the way down.
 
+## 31 October 2026: the closed form in Lean, and the reduction
+
+`lean/Pass.lean`, kernel only (axioms `propext`, `Quot.sound`, and `Classical.choice` for the last three theorems;
+no `native_decide`).
+
+**Encoding.** Block lists nearest first, `zs = [yk, ..., y1]`, so that `enc zs` (blocks `rep y [true]` separated by
+`cons false`, blank at the end) is the left stream and the pass start is `⟨enc zs, blank, A⟩`. Blank tape is `enc []`,
+and blank on the left reads as empty blocks (`enc [0, 0] = enc []`), so no padding cases are needed in the runs.
+
+**The map, recursively.** `next (y :: ys)`: y = 2m even gives `bump (m+2) ys` (the two nearest blocks of `ys` gain
+m+2). y odd starts `sweep [(y+3)/2] ys`, which records g = y/2 − 1 for each even block it crosses, halts at an empty
+block or the left end, gives `.one` at a block of 1, and at y = 2n+3 stops with `zag q ms gs` where `(q, ms) =
+bump (n+1) rest`; `zag q ms (g :: gs) = zag g ((q+g+2) :: ms) gs`. In terms of the notes above, g_i = h_i − 1.
+
+**The proof.** What the sweep leaves on the right is `U gs` (each g as `0 0 1 (01)^g`). Three new generated pieces:
+`d_stop_empty` and `zig_empty` (the pieces with an empty block on the left, which `symtm` cannot state with a count
+that may be 0) and `turn` (`A> 0 0 1` to `1 1 0 A>`). Then inductions: `zigs` (r rounds of the zigzag), `zag_run` (the
+zigzag through `U gs`), `cross_even` and `sweep_run` (the sweep), `stop` (d_stop, a_sweep and the rounds), and `pass`.
+`pass_halt` covers the halting outcomes.
+
+**Counting.** `next_sum`: a pass adds 4 ones and keeps blocks nonempty (the last g is (yk+3)/2 ≥ 2, so `zag` never
+leaves an empty block). `next_halt_odd`: with nonempty blocks, a halting pass has an odd count. So `orbit n` (pass n
+from blank, `orbit 1 = [2, 2]`) has 4n ones and never halts, and
+
+    theorem halts_only_by_one (h : HaltsFromBlank) : ∃ n, orbit n = .one
+
+**Tests.** `TestLeanPassMap` evaluates `next` on 3,000 random lists and the orbit for 400 passes with `#eval` and
+compares with `py/passmap.py`.
+
+**Next.** The return map on two-block states `[a, 2a+d]`, and whether the first block can halve down to 1.
+## 31 October 2026: the return map on two-block states (`py/returnmap.py`)
+
+Everything here is computed on the closed form of the pass map (`py/passmap.py`). Lean now proves that closed form
+(`pass`, `lean/Pass.lean`) and `passmap` is tested against Lean's `next`, so these results rest on Lean plus this
+Python computation.
+
+**Six short chains, all ending at d = 1** (`python3 py/returnmap.py chains`; algebra from the closed form, checked
+on each whole class mod 4 by the symbolic run below). A reachable two-block state `[a, 2a+d]` has 3a + d = 0 mod 4.
+
+| from | a mod 4 | to | passes |
+|---|---|---|---|
+| `[a, 2a]` | 0 | `[a+2, 2(a+2)−2]` | 1 |
+| `[a, 2a−2]` | 2 | `[a+1, 2(a+1)−1]` | 1 |
+| `[a, 2a+2]` | 2 | `[a+3, 2(a+3)−3]` | 1 |
+| `[a, 2a−1]` | 3 | `[a+2, 2(a+2)+1]` | 2 |
+| `[a, 2a+3]` | 3 | `[a+3, 2(a+3)+2]` | 2 |
+| `[a, 2a−3]` | 1 | `[a+3, 2(a+3)+0]` | 3 |
+
+So d = 2 → −3 → 0 → −2 → −1 → 1 and 3 → 2, and the return map is the map G on the states `[a, 2a+1]`, a = 1 mod 4:
+the excursion from one such state to the next.
+
+**G(a) = a + 12k after exactly 9k passes**, k ≥ 1. The orbit from blank tape is `[5, 11]` at pass 3, and from there
+it is a chain of states `[a, 2a+1]` with **a = 5 mod 12**: write a = 12s + 5, then each excursion moves s to s + k.
+In the first 2·10⁵ passes k = 1 (20,119 times), 2 (1,024), 3 (18): the orbit visits almost every s. So whether the
+machine halts is a question about the excursion from `[12s+5, 24s+11]` for (nearly) every s, not about one
+irregular orbit.
+
+**The excursion, symbolically** (`python3 py/returnmap.py classes D`). The same `passmap` code runs on values
+p + q·u (u ≥ 0 free) that know their parity while q is even; unknown parities split the class, and a block that could
+be ≤ 1 for some u ≥ 0 where it matters sets the one value u = 0 aside. Down to a mod 2^62 (24 s):
+
+* 19,231 routes, by k: 5, 20, 36, 130, 448, 1,680, 4,032, 9,747, 3,131, 2 for k = 1 … 10 (the counts for k ≤ 6
+  are the same at mod 2^54: complete);
+* **no class halts or meets a stop block of 1**; the only value set aside is a = 1 (`[1, 3]` stops at the block 1);
+* 2,890 classes are still open (measure 2,890·2⁻⁶⁰ of a = 1 mod 4); their members below 2^62 were run one by one,
+  and all return (k = 8 to 11).
+
+So **for every a = 1 mod 4 with 5 ≤ a < 2^62 the excursion from `[a, 2a+1]` returns to `[a+12k, …]`, k ≤ 11,
+without a halt or a stop block of 1** (trusted computation on the closed form). With the orbit chain above:
+**with `halts_only_by_one`, no halt in the first 3.4·10¹⁸ passes** (until a passes 2^62; pass n has 4(n+1) = 3a + 1
+ones). In steps that is far beyond 10¹⁸ (each pass is at least one step; the run so far takes about 0.016·S³ steps
+for S ones, which would be about 10⁵⁵).
+
+**The inner loop: the route list is infinite, but finite for each k.** After the first pass of an excursion the
+last block is a + 2, and an odd last block is always crossed and becomes (z+3)/2, i.e. z − 3 halves. So that tail
+lives exactly v₂(a − 1) passes, and the excursion is at least that long: k ≥ (v₂(a−1)+1)/9, unbounded
+(a = 2^r + 1: k = 1, 2, 2, 2, 3, 4, 4, 4, 5, 5, 6, 6, 6, 7, 7 for r = 4, 8, …, 60). Inside it the front blocks run
+their own excursions with their own halving tails (see a = 2²⁴ + 1), so the loops nest. On the other side, each pass
+halves the u-coefficients at most once, so a route of 9k passes depends only on a mod 2^(9k+2) or so: in the data,
+the routes with k = 1 … 5 need a mod 2^8, 2^17, 2^26, 2^35, 2^44 at most. So for each k the routes are finitely
+many, and a proof has to handle the tail loop (and the loops it nests) by an induction on its length, not by a
+finite table.
+
+**How far from a stop block of 1** (heuristic). On every route down to mod 2^62, every stop block is at least about
+a/64 (`classes` prints the worst ratio per modulus 2^m: 2^-x with x = 1 up to m = 10, 4 up to m = 45, 6 up to
+m = 62). For a = 2^r + 1 the smallest stop block is about a·2^(−r/10) (1/16 at r = 20, 1/64 at r = 60). A stop block
+of 1 needs x close to m; the observed x grows like m/10. For a ≤ 1.2·10⁶ the smallest ratio is 0.042 (a = 985,345).
+
+**What a proof would need.** (1) The closed form in Lean (done, `pass`). (2) The six chains (one pass each in the closed form:
+routine). (3) An induction for the excursion: the front with a halving tail of length L behaves like the front with
+a shorter one, so that a stop block stays above a fixed fraction of a; the margins above say the fraction is about
+2^(−v/10) where v is the depth of the 2-adic structure, so the statement to prove is likely "every stop block is at
+least a·2^(−c·log₂ a) with c < 1", which is enough.
 ## 31 October 2026: a wider search for the stop block of 1
 
-All of this rests on the closed form (tested, not proved), so it is trusted computation about the pass map and, as
-evidence about the machine, heuristic. The tool is `c/passorbit.c`, the closed form in C with 64-bit blocks (a pass
+All of this iterates the closed form, which is now the Lean pass map (`pass`, above), so the runs are trusted
+computation about the machine; what they suggest beyond the starts tried is heuristic. The tool is `c/passorbit.c`, the closed form in C with 64-bit blocks (a pass
 adds 4 ones, so they cannot overflow in any run here); it agrees with `py/passmap.py` at every checkpoint and on every
 count below that Python can redo (`tests/test_passorbit.py`, `py/passorbit.py`).
 
@@ -106,8 +199,9 @@ to 10¹¹. Block counts 2 to 6 (2: 38.6%, 3: 50.5%, 4: 10.7%, 5: 0.26%, 6: 381,4
 `[a, 2a + d]` with |d| ≤ 3 except 5,298 times; the sweep stops at the last block in 45.4% of passes, at the first in
 30.5%, between in 24.1%. These fractions agree with the 10⁸-pass run to six or seven digits (block counts
 38,616,643 against 38,616,640,226 for 1,000 times as many passes): the orbit looks self-similar under scaling, and
-nothing in it drifts towards small blocks. A second run to 10¹² passes is under way; its checkpoints agree with this
-one up to 10¹¹.
+nothing in it drifts towards small blocks. A second run reached 1.5·10¹¹ passes with the same checkpoints up to
+10¹¹ and was stopped: the return map (above) covers the first 3.4·10¹⁸ passes, so the value of this run is only as
+a plain pass-by-pass check of the first 10¹¹ of them, with no residue classes involved.
 
 ### Every short list (`passorbit comps 1 28 1000`, `runs/comps28.txt`)
 
@@ -174,7 +268,7 @@ the tape (the smallest ratio, 0.0141, at pass 13,321,949, has not moved since): 
 while the event needs one of size 3. The small-block searches above say the same thing from the other side: lists
 that meet the event are lists with small blocks, and they meet it within 60 passes or not at all.
 
-**What this does not show.** None of it is a proof, and it all rests on the closed form. The searches cover short
-lists, two-block lists to 10⁴ and random lists; the blank orbit is one specific list, and its two-block states
-`[a, 2a + d]` are far outside the ranges searched. A proof would show that a stop block stays above a fixed fraction
-of the tape, which is the return map on two-block states (next step 2 of the first entry).
+**What this does not show.** None of it is a proof. The searches cover short lists, two-block lists to 10⁴ and
+random lists; the blank orbit is one specific list, and its two-block states `[a, 2a + d]` are far outside the
+ranges searched. A proof would show that a stop block stays above a fixed fraction of the tape along the excursions
+of the return map, which is what the bound "about a/64" of the return-map entry suggests on every route checked.

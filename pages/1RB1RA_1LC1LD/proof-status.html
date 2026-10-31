@@ -74,14 +74,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1RA_1LC1LD, and what is open</h1>
     <p class="machine">1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.</p>
-    <p>The work has just started: the machine is set up in Lean on the shared library, and the run from blank tape is simulated in Python, C and Lean. The macro structure of the run is not found yet.</p>
-    <p class="asof">Status as of 30 October 2026.</p>
+    <p>The machine is set up in Lean on the shared library, and the run from blank tape is simulated in Python, C and Lean. A closed tape language proved in Lean confines any halt to the right edge of the written tape. The macro structure of the run is not found yet. The run is a sequence of passes, each starting with A on the blank cell right of blocks of ones separated by single 0s; Lean proves the map from one pass start to the next whenever the last block is not a multiple of 3, and the remaining case is recursive.</p>
+    <p class="asof">Status as of 31 October 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>11</sup> steps. These are floors, not the way to an answer.</p>
-      <p><b>Where a halt would come from.</b> The only halting transition is E0, and E is entered only from D reading a 0, which writes a 1 and moves right. So the machine halts exactly when D reads a 0 with a 0 to its right (proved in Lean). At the left end of the tape D keeps arriving on a 0, but in the first 3&middot;10<sup>9</sup> steps (1,382 visits, C simulator) always with a 1 to its right.</p>
+      <p><b>Where a halt would come from.</b> The only halting transition is E0, and E is entered only from D reading a 0, so the machine halts exactly when D reads a 0 with a 0 to its right. Lean proves that in the run from blank tape this can happen only at the right edge: past the head, two 0s in a row occur only in the blank region beyond everything written, so the machine halts if and only if E steps onto that blank region. At the left end D always has a 1 to its right, but that is forced by the step that brings D there, not a property of the run.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -101,9 +101,34 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>step_none_iff</code>, <code>halt_shape</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
+        <h3>D at the left end has a 1 to its right</h3>
+        <p>D is entered either from E reading 1, which leaves a 1 to D's left, or by a left move from B reading 1 or C reading 0, which writes a 1 to D's right. So D with a 0 on its left, in particular at the left end of the tape, always has a 1 on its right. This explains the observation from the long runs; it holds one step after any configuration, from any tape.</p>
+        <p class="where"><code>d_one_right</code>, <code>d_left_end</code>, <code>lean/Edge.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A halt can only happen at the right edge</h3>
+        <p>A closed tape language with windows of three cells (an automaton on each side of the head and 245 abstract configurations, found by <code>tools/py/bbtools/ctl.py</code> and checked by <code>decide</code> in the kernel) covers every configuration of the run from blank tape. From it: to the right of the head cell, two 0s in a row occur only in the blank region beyond everything written; the halting shape <code>D&gt;0 0</code> occurs only with blank tape from D onward; and the machine halts from blank tape if and only if, at some step, it is in state E with blank tape from the head onward. The language does not constrain the left side, which may hold runs of 0s.</p>
+        <p class="where"><code>right_no_double_zero</code>, <code>d_zero_zero</code>, <code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code>, <code>tools/lean/TM/CTL.lean</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 20,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 20,000 steps from blank tape without a halt, evaluated by Lean's kernel. At step 46 the tape is <code>1^2 0 1^5 A&gt;0</code> (<code>blank_at_46</code>).</p>
         <p class="where"><code>blank_runs_20000</code>, <code>blank_at_46</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The pass map, when the last block is not a multiple of 3</h3>
+        <p>Write a pass start as <code>&hellip; 1^d 0 1^c 0 1^b A&gt;0</code>. Then the next pass start is <code>&hellip; 1^d 0 1^(c + 6 + 2&lfloor;(m&minus;1)/2&rfloor;) 0 1^(2m&minus;1) A&gt;0</code> when b = 3m + 1 (m &ge; 1), and <code>&hellip; 1^(d + 2 + 2&lceil;m/2&rceil;) 0 1^(c + 2m + 3) A&gt;0</code> when b = 3m + 2, for every block length and every tape further left (a missing block counts as 0). B converts the last block from the right, 111 into 101; at its left end the residue mod 3 decides where the cells go, and on the way back two blocks grow by 2 and 4 for every two converted words.</p>
+        <p class="where"><code>next</code>, <code>next_sound</code>, <code>lean/Macro.lean</code>; the rules in <code>lean/Rules.lean</code> (generated by <code>lean/rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>A last block of 1 halts, and 4 halts one pass later</h3>
+        <p>A pass start whose last block is 1 halts during that pass (D reads a 0 with a 0 to its right at the right end); a last block 4 gives a last block 1. So a pass start ending in <code>1^1 0 1^2</code> also halts, two passes later. No pass start in the first 10<sup>10</sup> steps ends in 1 or 4.</p>
+        <p class="where"><code>K_zero_halts</code>, <code>kA0</code>, <code>halts_of_reaches</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The first passes from blank tape</h3>
+        <p>The run reaches the pass starts <code>1^2 0 1^2</code>, <code>1^2 0 1^5</code>, <code>1^4 0 1^7</code> and <code>1^10 0 1^3</code>, the last three by the pass map; the fourth ends in a multiple of 3.</p>
+        <p class="where"><code>blank_passes</code>, <code>lean/Macro.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -126,6 +151,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>No a&middot;ones + b&middot;pos + W[state] is conserved modulo 2 to 12, so the mod-3 argument of the first holdout has no counterpart of this linear kind here.</p>
         <p class="where"><code>tools/py/bbtools/invariants.py</code></p>
       </div>
+      <div class="card">
+        <h3>The pass map agrees with the run to 10<sup>10</sup> steps</h3>
+        <p>In the first 10<sup>10</sup> steps there are 1,786 pass starts, all of them blocks separated by single 0s, with at most 8 blocks and no block shorter than 2. The pass map agrees with the run on all 1,205 whose last block is not a multiple of 3; the other 581 are the recursive case. The map also agrees with direct runs from 300 random block lists that the run need not reach (a test).</p>
+        <p class="where"><code>py/macro.py</code>, <code>tools/c/tmrun.c</code>, <code>tests/test_machine.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -134,12 +164,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The visited width grows roughly like the square root of the step count (about 6,300 cells after 10<sup>10</sup> steps). The left part of the tape fills with blocks <code>1^2 0</code>, with an occasional <code>1 0</code>, and the head sweeps over it; the right part holds a few long blocks of 1s. The head reaches new cells mostly on the right.</p>
         <p class="where"><code>py/blank.py records</code>, <code>notes/LAB_NOTES.md</code></p>
       </div>
+      <div class="card">
+        <h3>The recursive case: a last block that is a multiple of 3</h3>
+        <p>Then the converter does not stop at the left end of the last block: it carries on into the next block in a second mode (B reading <code>0 0</code>), and that block's residue mod 3 decides again: 1 carries on further left, 0 and 2 turn back. So the routes form an infinite family, one for each run of blocks that are 1 mod 3, and a route census over small cases would not be complete. In the first 10<sup>10</sup> steps the converter crosses 0, 1, 2 and 3 extra blocks of 1 mod 3 in 400, 178, 3 and 1 of the 581 recursive passes. The rules for these steps are worked out symbolically but not yet put together in Lean.</p>
+        <p class="where"><code>notes/LAB_NOTES.md</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>The macro structure</h3>
-        <p>Which configurations recur (a pass start with a growing width, a counter, a carry), and a Lean theorem that maps one to the next. This is the next step.</p>
+        <h3>The pass map in the recursive case</h3>
+        <p>A closed form for the next pass start when the last block is a multiple of 3, proved in Lean, and then the question whether a last block 1 or 4 is ever reached.</p>
         <p class="where"><code>notes/LAB_NOTES.md</code></p>
       </div>
       <div class="card open">
@@ -152,11 +187,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>bash scripts/setup-lean.sh                    # Lean 4.34.0, core only
 . /etc/profile.d/lean.sh
-bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, Axioms (under a minute)
+bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Axioms
 python3 bb6-1RB1RA_1LC1LD/tests/test_machine.py
 python3 bb6-1RB1RA_1LC1LD/py/blank.py records 100000 60
 gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 10000000000
-cd tools/py &amp;&amp; python3 -m bbtools.invariants 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 12</code></pre>
+python3 bb6-1RB1RA_1LC1LD/py/macro.py check 3000000   # the pass map against the run
+cd tools/py &amp;&amp; python3 -m bbtools.invariants 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 12
+cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 3</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>bb6-1RB1RA_1LC1LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>
