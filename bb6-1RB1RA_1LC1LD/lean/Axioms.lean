@@ -5,6 +5,7 @@ import Recur
 import Finish
 import Blocks
 import Formula
+import Count
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
 a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
@@ -55,3 +56,9 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6c.recur_two_three_halts
 #print axioms BB6c.recur_two_good
 #print axioms BB6c.recur_small
+-- Count.lean: the pass map with step counts (kernel only), and the run to 10¹² steps (native_decide)
+#print axioms BB6c.passesC_sound
+#print axioms BB6c.blank_passesC
+#print axioms BB6c.blank_reaches_1e12
+#print axioms BB6c.blank_runs_1e12
+#print axioms BB6c.blank_runs_1e10

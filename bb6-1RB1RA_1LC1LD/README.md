@@ -15,7 +15,10 @@ so past the head two 0s in a row occur only in the blank region (`right_no_doubl
 blank tape from D on (`d_zero_zero`), and the machine halts if and only if E reaches the blank region at the right
 (`halt_at_edge`, `halts_iff_edge`).
 
-**Proved in Lean with `native_decide`**: no halt in the first 10,000,000 steps (`blank_runs_10M`).
+**Proved in Lean with `native_decide`**: no halt in the first 10¹² steps (`blank_runs_1e12`, `lean/Count.lean`): the
+pass map with step counts, run for 8,257 passes from `1^10 0 1^3`, reaches a pass start at step 1,000,110,302,407.
+Only that evaluation trusts the compiler; each pass and its step count is kernel-checked (`passesC_sound`).  Also a
+plain run of 10,000,000 steps (`blank_runs_10M`).
 
 **Computed** (trusted C/Python, tested): no halt in the first 10¹¹ steps (`tools/c/tmrun.c`); no conserved
 a·ones + b·pos + W[state] modulo 2 to 12 (`tools/py/bbtools/invariants.py`).
@@ -34,6 +37,7 @@ machine on lists of numbers (`astep`: blocks to the left, words `0 1^k` to the r
 sound (`astep_sound`); with `next` this gives the pass map `pass` for every last block, and whatever it returns, the next
 pass start or a halt, the machine does (`pass_sound`, `passes_sound`; that it always finishes is not proved).  From
 blank tape, 100 more passes by `pass`, evaluated by the kernel, reach `1^162 0 1^206 A>0` (`blank_passes_104`).
+In `lean/Count.lean` the same map carries the exact number of machine steps of each pass (`passC`, `passesC_sound`).
 
 **Proved in Lean, kernel only** (`lean/Finish.lean`): the cells from the head to the right end, read from the right
 end, go down in dictionary order at every step of the block machine (`astep_key`), so it never repeats a

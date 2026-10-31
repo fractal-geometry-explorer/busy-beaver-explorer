@@ -297,3 +297,25 @@ every list tried; for `x ≡ 0, 1 (mod 3)`, and for some `x = 6r + 2` such as 14
 further left.
 That `pre` always stops is not proved either (the same question as for `arun`).
 
+
+## 31 October 2026: the pass map with step counts, to 10¹²
+
+**Why counts.** `passes_sound` gives `Reaches init (K ls n)`, which bounds the run in passes but says nothing about
+the step at which the pass start comes.  Every rule in `lean/Rules.lean` already states its exact length, so
+`lean/Count.lean` carries the lengths along: `nextC`, `astepC`, `arunC`, `passC`, `passesC` are the maps of
+`Macro.lean` and `Recur.lean` case for case, each returning the exact number of machine steps beside its outcome, and
+`passesC_sound` (kernel only) says the machine gets there in exactly that many.  The two-word phases cost
+`aph t y` (`10y + 18` per double word, `y` growing by 4); a sweep of a block of `c` into the next word costs `9c`.
+The counted copy does not have to agree with the uncounted one for anything proved here; it does, on every pass run.
+
+**The run.** `blank_passesC`: blank tape to `K [10] 2` in 186 steps (the pass start `1^10 0 1^3 A>0` at step 183).
+`blank_reaches_1e12`: then 8,257 passes, 2,654 of them recursive, evaluated by `native_decide` in about 2.5 minutes,
+reach the pass start `1^11866 0 1^17246 A>0` at step 1,000,110,302,407.  So `blank_runs_1e12`: no halt in the first
+10¹² steps, trusting the compiler for that one evaluation and the kernel for everything else (`Axioms.lean`).
+`blank_runs_1e10`, `blank_runs_1e11` follow.  The 10¹⁰ range alone is 1,784 passes (5 s), 10¹¹ is 3,842 (13 s).
+
+**Cross-check.** The pass starts from `passC`, step numbers and blocks, agree exactly with all 3,843 pass starts of
+`tools/c/tmrun … 1.001·10¹¹ at A R` from step 183 on (8 minutes of C), so the step counts are right as well as proved.
+
+**What this gives.** A Lean-checked floor of 10¹² steps, ten times the C simulation, in a few minutes; the floor is
+cheap to raise (the cost per pass grows with the tape width, about √(t/250)).  It is still only a floor.
