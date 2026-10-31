@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What is known about 1RB1RA_1RC1LB_1LD0RA_1LB0LE, and what is open</title>
+<meta name="description" content="Proof status of the six-state machine 1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD: what is proved in Lean, what is computed, what is only observed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 36px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; overflow-x: auto; font-family: var(--font-display); font-size: 0.74rem; line-height: 1.6; }
+.top { display: grid; gap: 12px; max-width: 70ch; }
+.crumb { font-size: 0.9rem; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.asof { font-size: 0.88rem; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 70ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 0.88rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.card p { font-size: 0.94rem; }
+.card .where { font-size: 0.84rem; color: var(--muted); }
+.card.open { border-left: 4px solid var(--open); }
+.empty { color: var(--muted); font-size: 0.94rem; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / 1RB1RA_1RC1LB_1LD0RA_1LB0LE</p>
+    <h1>What is known about 1RB1RA_1RC1LB_1LD0RA_1LB0LE, and what is open</h1>
+    <p class="machine">1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on. (It shares its first three states with <code>1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</code>, which has its own page; the two are different machines.)</p>
+    <p>The work has just started. The run is made of passes, and a pass is a map on the lengths of the blocks of ones; a closed form of that map is found and tested, and its pieces are proved in Lean one by one.</p>
+    <p class="asof">Status as of 30 October 2026.</p>
+  </header>
+  <section aria-labelledby="h-short">
+    <h2 id="h-short">In short</h2>
+    <div class="verdict">
+      <p><b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>11</sup> steps.</p>
+      <p><b>Where it stands.</b> At the start of each pass the tape is <code>1^y1 0 1^y2 0 &hellip; 0 1^yk A&gt;0</code>. If the closed form of the pass map holds (tested, not proved), a pass adds exactly four ones, a halt needs the last block odd and all others even (so an odd number of ones), and the only way out of the even counts is a pass whose sweep stops at a block of a single 1. So the machine halts only if the orbit of block lists ever meets such a block. In 2&middot;10<sup>7</sup> passes it never does: after pass 50 the smallest such block is 59, and the lists have 2 to 6 blocks, all of them a fixed fraction of the tape except a tail that halves each pass.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-s0">
+    <h2 id="h-s0">The pass</h2>
+    <div class="prose">
+      <p>A pass starts with A on the blank cell right of the tape. A, B and C write three ones and D turns back (<code>start</code>). D and E then run left writing 0 and 1 in turn (<code>de_sweep</code>), halving the last block into <code>(10)^m</code>. Where E reaches a 0 between blocks it crosses into the next block on the left (<code>e_cross</code>), unless that block is empty: then F reads a 0 and the machine halts. Where D reaches one, the sweep ends (<code>d_stop</code>), and A, B and C zigzag back to the right end, each round absorbing a <code>0 1</code> and moving a 0 one cell right (<code>zig</code>), until C meets a 0 at the right end and the next pass begins.</p>
+      <p>So the last block is crossed if it is odd, the blocks before it are crossed while they are even, and the sweep stops at the first odd one, y<sub>j</sub>. The closed form (<code>py/passmap.py</code>): if y<sub>k</sub> = 2m is even, the last block goes and the two before it each gain m+2; if y<sub>k</sub> is odd, y<sub>j-2</sub> gains (y<sub>j</sub>&minus;1)/2, y<sub>j-1</sub> gains (y<sub>j</sub>+1)/2 + h<sub>j+1</sub>, and the blocks from y<sub>j</sub> on become h<sub>j+1</sub>+h<sub>j+2</sub>, &hellip;, h<sub>k-1</sub>+h<sub>k</sub>, h<sub>k</sub>&minus;1, with h<sub>i</sub> = y<sub>i</sub>/2 and h<sub>k</sub> = (y<sub>k</sub>+5)/2. The blank on the left counts as empty blocks. A stop block y<sub>j</sub> = 1 is the one case outside the form, and there the count of ones changes by an odd number.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-claims">
+    <h2 id="h-claims">What each result rests on</h2>
+    <div class="legend" aria-label="Legend">
+      <span><span class="tag t-kernel">kernel</span> checked by Lean's kernel alone</span>
+      <span><span class="tag t-native">native</span> evaluated by compiled code</span>
+      <span><span class="tag t-comp">trusted</span> C or Python in the repository, exhaustive</span>
+      <span><span class="tag t-heur">heuristic</span> sampling, extrapolation, patterns</span>
+      <span><span class="tag t-open">open</span> not known</span>
+    </div>
+    <h3><span class="tag t-kernel">kernel</span> Proved in Lean, kernel-checked</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>The halting configurations</h3>
+        <p>The machine stops exactly in state F reading a 0, and <code>0 E&gt;0</code> halts after one more ordinary step, whatever the rest of the tape.</p>
+        <p class="where"><code>step_none_iff</code>, <code>halt_shape</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 20,000 steps</h3>
+        <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 20,000 steps from blank tape without a halt, evaluated by Lean's kernel. At step 17 the tape is <code>1^2 0 1^2 A&gt;0</code>, the first pass start (<code>blank_at_17</code>).</p>
+        <p class="where"><code>blank_runs_20000</code>, <code>blank_at_17</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The pieces of a pass, for every length</h3>
+        <p>Each phase of a pass as a theorem about any tape around it and any block length: the start, the D/E sweep over an odd or even stretch, the crossing into the next block, the end of the sweep, one round of the zigzag, and the A and B sweeps. Proved along symbolic runs (single steps by <code>rfl</code>, repeats by the shared crossing lemmas).</p>
+        <p class="where"><code>start</code>, <code>de_sweep</code>, <code>de_sweep_odd</code>, <code>e_cross</code>, <code>d_stop</code>, <code>zig</code>, <code>a_sweep</code>, <code>b_sweep</code>, <code>lean/Rules.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10,000,000 steps</h3>
+        <p>The same run for 10<sup>7</sup> steps, evaluated by compiled code.</p>
+        <p class="where"><code>blank_runs_10M</code>, <code>lean/Blank.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>The shared C simulator runs 10<sup>11</sup> steps from blank tape without a halt (15,234 ones at the end; 3,641 at 10<sup>9</sup> steps). It agrees with the Python reference simulator on the first 80 records of the run (a test).</p>
+        <p class="where"><code>tools/c/tmrun.c</code>, <code>tests/test_machine.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The closed form matches every pass of the first 10<sup>9</sup> steps</h3>
+        <p>Every time the head is in A on a new cell at the right end in the first 10<sup>9</sup> steps (1,005 times), the tape is blocks of ones separated by single 0s, and the block lists are exactly the orbit of the closed form from <code>[2, 2]</code>. Pass n starts with 4(n+1) ones. The test checks the first 10<sup>8</sup> steps.</p>
+        <p class="where"><code>py/passmap.py</code>, <code>tests/test_machine.py</code> (<code>test_orbit_against_c</code>)</p>
+      </div>
+      <div class="card">
+        <h3>No simple conserved quantity</h3>
+        <p>No a&middot;ones + b&middot;pos + W[state] is conserved modulo 2 to 12. The count of ones is 0 mod 4 at pass starts, but not between them.</p>
+        <p class="where"><code>tools/py/bbtools/invariants.py</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>The closed form of a pass, for every block list</h3>
+        <p>The closed form agrees with the machine on about 3,100 random block lists of up to 10 blocks of 1 to 12 ones each, every case except a stop block of 1. Not proved: the zigzag is a loop whose rounds grow, so it needs an induction in Lean on top of <code>zig</code>.</p>
+        <p class="where"><code>python3 py/passmap.py check 3000 6</code></p>
+      </div>
+      <div class="card">
+        <h3>The orbit stays away from a stop block of 1</h3>
+        <p>2&middot;10<sup>7</sup> passes of the closed form from <code>[2, 2]</code>: no halt, no stop block of 1 (the smallest after pass 50 is 59), 2 to 6 blocks. The two-block states are <code>[a, 2a+d]</code> with |d| &le; 3, reached every 1 to 32 passes in the first 2&middot;10<sup>6</sup>; in between a tail block halves each pass (1343, 673, 338, &hellip;).</p>
+        <p class="where"><code>python3 py/passmap.py stats 20000000</code>, <code>notes/LAB_NOTES.md</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-open">open</span> Open</h3>
+    <div class="cards">
+      <div class="card open">
+        <h3>A proof of the pass map, and the return map on two-block states</h3>
+        <p>Prove the closed form in Lean (an induction for the zigzag, then the cases of the sweep), then find the map from one two-block state <code>[a, 2a+d]</code> to the next and what decides the length of the halving tail. That is where an argument that no stop block is ever 1 would have to come from.</p>
+        <p class="where"><code>notes/LAB_NOTES.md</code></p>
+      </div>
+      <div class="card open">
+        <h3>Does it halt from blank tape?</h3>
+        <p>Not known.</p>
+      </div>
+    </div>
+  </section>
+  <section aria-labelledby="h-check">
+    <h2 id="h-check">Check it yourself</h2>
+    <pre><code>bash scripts/setup-lean.sh                    # Lean 4.34.0, core only
+. /etc/profile.d/lean.sh
+bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Axioms (under a minute)
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py orbit 40
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py check 3000 6
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD 100000000000</code></pre>
+  </section>
+  <footer>
+    <p>Built by <code>tools/pages/build_status.py</code> from <code>bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>
+    <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+  </footer>
+</main>
+</body>
+</html>

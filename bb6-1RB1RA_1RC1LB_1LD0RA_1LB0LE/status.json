@@ -1,0 +1,102 @@
+{
+  "title": "What is known about 1RB1RA_1RC1LB_1LD0RA_1LB0LE, and what is open",
+  "description": "Proof status of the six-state machine 1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD: what is proved in Lean, what is computed, what is only observed.",
+  "machine": "1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD",
+  "crumb": "1RB1RA_1RC1LB_1LD0RA_1LB0LE",
+  "home": "../index.html",
+  "intro": [
+    "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on. (It shares its first three states with <code>1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</code>, which has its own page; the two are different machines.)",
+    "The work has just started. The run is made of passes, and a pass is a map on the lengths of the blocks of ones; a closed form of that map is found and tested, and its pieces are proved in Lean one by one."
+  ],
+  "asof": "Status as of 30 October 2026.",
+  "verdict": [
+    "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>11</sup> steps.",
+    "<b>Where it stands.</b> At the start of each pass the tape is <code>1^y1 0 1^y2 0 &hellip; 0 1^yk A&gt;0</code>. If the closed form of the pass map holds (tested, not proved), a pass adds exactly four ones, a halt needs the last block odd and all others even (so an odd number of ones), and the only way out of the even counts is a pass whose sweep stops at a block of a single 1. So the machine halts only if the orbit of block lists ever meets such a block. In 2&middot;10<sup>7</sup> passes it never does: after pass 50 the smallest such block is 59, and the lists have 2 to 6 blocks, all of them a fixed fraction of the tape except a tail that halves each pass."
+  ],
+  "sections": [
+    {
+      "heading": "The pass",
+      "paragraphs": [
+        "A pass starts with A on the blank cell right of the tape. A, B and C write three ones and D turns back (<code>start</code>). D and E then run left writing 0 and 1 in turn (<code>de_sweep</code>), halving the last block into <code>(10)^m</code>. Where E reaches a 0 between blocks it crosses into the next block on the left (<code>e_cross</code>), unless that block is empty: then F reads a 0 and the machine halts. Where D reaches one, the sweep ends (<code>d_stop</code>), and A, B and C zigzag back to the right end, each round absorbing a <code>0 1</code> and moving a 0 one cell right (<code>zig</code>), until C meets a 0 at the right end and the next pass begins.",
+        "So the last block is crossed if it is odd, the blocks before it are crossed while they are even, and the sweep stops at the first odd one, y<sub>j</sub>. The closed form (<code>py/passmap.py</code>): if y<sub>k</sub> = 2m is even, the last block goes and the two before it each gain m+2; if y<sub>k</sub> is odd, y<sub>j-2</sub> gains (y<sub>j</sub>&minus;1)/2, y<sub>j-1</sub> gains (y<sub>j</sub>+1)/2 + h<sub>j+1</sub>, and the blocks from y<sub>j</sub> on become h<sub>j+1</sub>+h<sub>j+2</sub>, &hellip;, h<sub>k-1</sub>+h<sub>k</sub>, h<sub>k</sub>&minus;1, with h<sub>i</sub> = y<sub>i</sub>/2 and h<sub>k</sub> = (y<sub>k</sub>+5)/2. The blank on the left counts as empty blocks. A stop block y<sub>j</sub> = 1 is the one case outside the form, and there the count of ones changes by an odd number."
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "level": "kernel",
+      "title": "The halting configurations",
+      "text": "The machine stops exactly in state F reading a 0, and <code>0 E&gt;0</code> halts after one more ordinary step, whatever the rest of the tape.",
+      "where": "<code>step_none_iff</code>, <code>halt_shape</code>, <code>lean/Blank.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "No halt in the first 20,000 steps",
+      "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 20,000 steps from blank tape without a halt, evaluated by Lean's kernel. At step 17 the tape is <code>1^2 0 1^2 A&gt;0</code>, the first pass start (<code>blank_at_17</code>).",
+      "where": "<code>blank_runs_20000</code>, <code>blank_at_17</code>, <code>lean/Blank.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "The pieces of a pass, for every length",
+      "text": "Each phase of a pass as a theorem about any tape around it and any block length: the start, the D/E sweep over an odd or even stretch, the crossing into the next block, the end of the sweep, one round of the zigzag, and the A and B sweeps. Proved along symbolic runs (single steps by <code>rfl</code>, repeats by the shared crossing lemmas).",
+      "where": "<code>start</code>, <code>de_sweep</code>, <code>de_sweep_odd</code>, <code>e_cross</code>, <code>d_stop</code>, <code>zig</code>, <code>a_sweep</code>, <code>b_sweep</code>, <code>lean/Rules.lean</code>"
+    },
+    {
+      "level": "native",
+      "title": "No halt in the first 10,000,000 steps",
+      "text": "The same run for 10<sup>7</sup> steps, evaluated by compiled code.",
+      "where": "<code>blank_runs_10M</code>, <code>lean/Blank.lean</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "No halt in the first 10<sup>11</sup> steps",
+      "text": "The shared C simulator runs 10<sup>11</sup> steps from blank tape without a halt (15,234 ones at the end; 3,641 at 10<sup>9</sup> steps). It agrees with the Python reference simulator on the first 80 records of the run (a test).",
+      "where": "<code>tools/c/tmrun.c</code>, <code>tests/test_machine.py</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "The closed form matches every pass of the first 10<sup>9</sup> steps",
+      "text": "Every time the head is in A on a new cell at the right end in the first 10<sup>9</sup> steps (1,005 times), the tape is blocks of ones separated by single 0s, and the block lists are exactly the orbit of the closed form from <code>[2, 2]</code>. Pass n starts with 4(n+1) ones. The test checks the first 10<sup>8</sup> steps.",
+      "where": "<code>py/passmap.py</code>, <code>tests/test_machine.py</code> (<code>test_orbit_against_c</code>)"
+    },
+    {
+      "level": "trusted",
+      "title": "No simple conserved quantity",
+      "text": "No a&middot;ones + b&middot;pos + W[state] is conserved modulo 2 to 12. The count of ones is 0 mod 4 at pass starts, but not between them.",
+      "where": "<code>tools/py/bbtools/invariants.py</code>"
+    },
+    {
+      "level": "heuristic",
+      "title": "The closed form of a pass, for every block list",
+      "text": "The closed form agrees with the machine on about 3,100 random block lists of up to 10 blocks of 1 to 12 ones each, every case except a stop block of 1. Not proved: the zigzag is a loop whose rounds grow, so it needs an induction in Lean on top of <code>zig</code>.",
+      "where": "<code>python3 py/passmap.py check 3000 6</code>"
+    },
+    {
+      "level": "heuristic",
+      "title": "The orbit stays away from a stop block of 1",
+      "text": "2&middot;10<sup>7</sup> passes of the closed form from <code>[2, 2]</code>: no halt, no stop block of 1 (the smallest after pass 50 is 59), 2 to 6 blocks. The two-block states are <code>[a, 2a+d]</code> with |d| &le; 3, reached every 1 to 32 passes in the first 2&middot;10<sup>6</sup>; in between a tail block halves each pass (1343, 673, 338, &hellip;).",
+      "where": "<code>python3 py/passmap.py stats 20000000</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "open",
+      "title": "A proof of the pass map, and the return map on two-block states",
+      "text": "Prove the closed form in Lean (an induction for the zigzag, then the cases of the sweep), then find the map from one two-block state <code>[a, 2a+d]</code> to the next and what decides the length of the halving tail. That is where an argument that no stop block is ever 1 would have to come from.",
+      "where": "<code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "open",
+      "title": "Does it halt from blank tape?",
+      "text": "Not known.",
+      "where": ""
+    }
+  ],
+  "check": [
+    "bash scripts/setup-lean.sh                    # Lean 4.34.0, core only",
+    ". /etc/profile.d/lean.sh",
+    "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Axioms (under a minute)",
+    "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py",
+    "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py orbit 40",
+    "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py check 3000 6",
+    "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD 100000000000"
+  ]
+}
