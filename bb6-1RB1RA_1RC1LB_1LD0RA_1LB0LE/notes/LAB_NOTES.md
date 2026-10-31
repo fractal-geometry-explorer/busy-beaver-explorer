@@ -272,3 +272,80 @@ that meet the event are lists with small blocks, and they meet it within 60 pass
 random lists; the blank orbit is one specific list, and its two-block states `[a, 2a + d]` are far outside the
 ranges searched. A proof would show that a stop block stays above a fixed fraction of the tape along the excursions
 of the return map, which is what the bound "about a/64" of the return-map entry suggests on every route checked.
+
+## 31 October 2026: the long-run dynamics of the return map — is it Collatz-like?
+
+The question: does G(a) = a + 12k(a) (above) behave like a Collatz map, with pseudo-random digit-driven steps whose
+long-run fate a proof cannot reach, or does it have structure a non-halting proof can use? The tool is
+`py/dynamics.py` (tests in `tests/test_dynamics.py`, outputs in `runs/dyn_orbit.txt`, `runs/tree72.txt`,
+`runs/classes72.txt`). Everything below iterates the closed form, which is the Lean pass map, so it is trusted
+computation about the machine. What it suggests beyond the cases run is heuristic. Labels: **proof**, **computed**,
+**heuristic**.
+
+**Verdict.** The return map is not Collatz-like. G is a counter, so there is no orbit to follow. Whether the machine
+halts is, in practice, the statement that every excursion from `[a, 2a+1]` is safe, for all a. The excursions
+themselves *are* Collatz-like, but only on a thin 2-adic set, and there they have a wide margin. So a finite case analysis
+or an automaton will not prove non-halting. An inequality on the stop blocks, proved by induction on the tail length,
+looks possible, and it would need slack of a/64 against the 1/a a halt requires.
+
+**1. G is a counter (proof, given the return; computed for the orbit).** `[a', 2a'+1]` has 3a'+1 ones, four more per
+pass than `[a, 2a+1]` (`next_sum`), so a' = a + 12k with k ≥ 1 and G strictly increases. Nothing goes up and down.
+From a = 5, the first 300,000 returns (to a = 3,780,401):
+
+* k = 1, 2, 3, 4 occur 285,232, 14,510, 251 and 7 times;
+* the orbit visits every a = 5 mod 12 in order except the 4.77% inside a jump (a + 12j, 0 < j < k(a)), exactly those
+  (`skipped_are_jumps`);
+* v₂(a−1) on the orbit falls off as 2^(−r), as for uniform a, and the deep values are visited: every a = 2^r + 1
+  with r even in range (`test_deep_values_visited`), every a = 1 mod 2^14 that is 5 mod 12. The skipped values have
+  v₂(a−1) = 2 or 3 here. In general they are a + 12j with v₂(a+12j−1) = 2 + v₂(j), small, because a long jump
+  starts at an a with a long tail (`k ≥ (v₂(a−1)+1)/9`).
+
+So an argument about *the* orbit buys almost nothing over one about every a = 5 mod 12. A bad excursion at any value
+the counter reaches would be met. This is the opposite of Antihydra-style machines, where the fate of one orbit of a
+mixing map is the question.
+
+**2. An excursion reads only the low bits of a (computed).** `excursion(a)` runs `[a, 2a+1]` beside a + 2^4096 and
+records the largest 2-adic denominator of a block coefficient: the number m of low bits the route reads. For 1,000
+random a = 5 mod 12 of 64 bits, and of 1,024 bits: m is 5 on average, at most 14 and 16; k is 1 for 95%; the margin
+x = log₂(a / smallest stop block) is 0.28 on average, at most 1.89. Nothing depends on the size of a. The classes
+needing more than m bits have measure about 2^(−0.81m).
+
+**3. The exceptional set is thin (computed).** `returnmap.explore` down to mod 2^74 (`dynamics.py tree 72`, 4 min):
+
+| depth D (mod 2^(D+2)) | 16 | 24 | 32 | 40 | 48 | 56 | 64 | 72 |
+|---|---|---|---|---|---|---|---|---|
+| routes | 36 | 100 | 326 | 1,088 | 3,725 | 10,509 | 31,172 | 82,363 |
+| open classes | 5 | 20 | 67 | 261 | 584 | 2,061 | 4,332 | 15,828 |
+| log₂(open)/D | .145 | .180 | .190 | .201 | .191 | .197 | .189 | .194 |
+| worst margin x | 3 | 4 | 4 | 4 | 6 | 6 | 6 | 6 |
+
+No class halts or meets a stop block of 1 at any depth, and only a = 1 is set aside. Every member of a leaf class is safe,
+so every a not yet covered lies in the open classes: a 2-adic Cantor set of dimension about 0.19 (it contains
+a = 1, whose excursion is the stop block of 1). There are about 2^(0.19b) such a of b bits, infinitely many, so no
+finite check closes the question.
+
+**New bound (computed).** `returnmap.py classes 72` (2.5 min, `runs/classes72.txt`) runs the 15,828 open members below
+2^74 one by one: all return, k = 9 to 12. So **every excursion with 5 ≤ a < 2^74 is safe**, and with the orbit
+chain and `halts_only_by_one`: **no halt in the first 1.4·10²² passes** (pass n has 3a+1 = 4(n+1) ones), up from
+3.4·10¹⁸.
+
+**4. Inside the thin set the bits mix (computed; the reading is heuristic).** `dynamics.py mixing D` takes each open
+class at the pass where a parity became unknown and looks at the u-coefficients of its blocks (block = c·a + e, c
+dyadic). At depth 48 the 584 open classes have 584 different coefficient vectors even up to scale, and the odd
+numerators reach 51 bits, about the modulus. At depth 40 it is 261 of 261. The trace of a = 2^24 + 1 shows why: the
+halving tail feeds the front, so the front's own two-block state has parameter ((2^n−1)a + c)/2^n. That is an affine
+map with an odd multiplier and a power-of-two divisor, which is the Collatz shape. The parity that splits a class
+always sits in a front block, never in the tail: (3 blocks, front two) 155, (4, blocks 1 and 3) 274, … So the
+deep excursions are not a finite automaton in these coordinates, and a proof cannot be a table of routes or shapes.
+
+**5. But the margin is wide (heuristic).** A stop block of 1 at a needs a stop block about a·2^(−log₂ a). Every
+route to mod 2^74 keeps each stop block at least about a/64: x ≤ 6, and x has not moved from depth 48 to 74. The
+deep routes would have to shrink a stop block about ten times faster, in the exponent, than any of them does.
+Collatz-type questions are hard because they ask for exact long-run behaviour of a mixing orbit. Here the need is a
+one-sided bound with a great deal of slack on a statement for all a.
+
+**What this means for a proof.** (a) Prove the excursion is safe for all a = 1 mod 4, a ≥ 5, rather than anything
+about the orbit. (b) Do not aim for a finite closed set of configurations: the coefficients never repeat. (c) Aim for
+an inequality, every stop block ≥ a·2^(−f) − C with f well below log₂ a, by induction on the tail length v₂(a−1) and
+the nested front excursions. The data say f = 6 holds to depth 74; any f(m) = o(m) with the constants controlled
+would do. Whether such an induction closes is the open question, and it is where the work should go.
