@@ -316,7 +316,7 @@ def level_passes(lv, prev, tl):
     U0, t0 = lv["U0"], lv["t0"]
     U, t = U0, t0
     for rho, (names, U2, t2) in enumerate(lv["pass_steps"]):
-        out.append(f"theorem pass{k}_{rho} : pass T{prev} {pair(tl)} {lst(U)} {t} = some ({lst(U2)}, {t2}) := by\n"
+        out.append(f"set_option maxRecDepth 100000 in\ntheorem pass{k}_{rho} : pass T{prev} {pair(tl)} {lst(U)} {t} = some ({lst(U2)}, {t2}) := by\n"
                    f"  rw [T{prev}_eq]; exact pass_of_pseg _ _ _ _ _ _ {chain_pseg(names)}\n")
         U, t = U2, t2
     # passes r = pass₀ then passes (r - 1) …
@@ -343,7 +343,7 @@ def write_levels(levels):
         if not lv.get("last"):
             steps = []
             for j, (names, outn, start, acc, q) in enumerate(lv["build_steps"]):
-                body.append(f"theorem build{k}_{j} : lvSeg T{prev} {start[0]} {pair(start[1])} = ({nest(outn)}, "
+                body.append(f"set_option maxRecDepth 100000 in\ntheorem build{k}_{j} : lvSeg T{prev} {start[0]} {pair(start[1])} = ({nest(outn)}, "
                             f"{pair(acc)}, {q}) := by\n  rw [T{prev}_eq]; exact {chain_lvseg(names)}\n")
                 steps.append(f"build{k}_{j}")
             s = f"(lvSegs_zero T{prev} {pair(tl)} _ _)"

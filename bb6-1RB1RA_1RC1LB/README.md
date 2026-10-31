@@ -24,17 +24,18 @@ at each level.
   block passed; at the left end the wave goes on with p = 0, and a halt there costs 11);
 - the block rules behind it (`transfer`, `empty_start`, `sweep_step`, `carry_*`) and the shift rules `a_sweep`,
   `b_sweep`, for every block length;
-- **no halt in the first 1.2·10³² steps** (`blank_runs_cycles`, `lean/CycleRun.lean`): the tables of the last 1 to 30
-  blocks, built level by level and checked in 5,920 pieces by `check_cycles.sh 30 4` (about 4 CPU hours), then 4
-  passes of the last, 1.4·10¹⁵ super steps in all. By the plain orbit, no halt in the first 1.4·10¹⁶ steps
+- **no halt in the first 4.4·10³⁷ steps** (`blank_runs_cycles`, `lean/CycleRun.lean`): the tables of the last 1 to 35
+  blocks, built level by level and checked in 33,760 pieces by `check_cycles.sh 35 6` (about 21 CPU hours), then 6
+  passes of the last, 6.75·10¹⁷ super steps in all (30 levels and 4 passes, 1.2·10³² steps, take 5,920 pieces and
+  4 CPU hours). By the plain orbit, no halt in the first 1.4·10¹⁶ steps
   (`blank_runs_1_4e16`, `lean/OrbitKernel.lean`: the first 10⁷ super steps, checked in 1,000 chunks by
   `check_orbit.sh`, about three CPU hours); within `check.sh`, no halt in the first 2·10¹⁰ steps (`blank_runs_2e10`,
   10⁵ macro steps) and in the first 20,000 step by step;
 - **each level cycles, or the machine never halts** (`cycles_or_never_halts`, `lean/Cycles.lean`): from any state the
   last k blocks either cycle or go silent, and a silent bottom on the orbit means no halt. Which case holds for every
   k is not decided;
-- **the last 1 to 30 blocks cycle** on the orbit from blank tape, with least periods 4, 8, 32, …, 1.7·10¹⁴ super steps
-  (`cycle1`–`cycle30`, `lean/CycleRun.lean`; the last six also by `decide`, `cycle₁`–`cycle₆`): each level's table is
+- **the last 1 to 35 blocks cycle** on the orbit from blank tape, with least periods 4, 8, 32, …, 8.8·10¹⁶ super steps
+  (`cycle1`–`cycle35`, `lean/CycleRun.lean`; the last six also by `decide`, `cycle₁`–`cycle₆`): each level's table is
   written out and checked in pieces of 3,000 entries (`lean/CycleCert.lean`), the block of the next level comes back
   after L passes and not before, so L times the least period is the least period (`least_append`);
 - **each level multiplies the period by 1, 2, 4 or 5** (`period_factor`, `lean/Periods.lean`): mod 5 a wave acts on a
@@ -42,8 +43,8 @@ at each level.
   blocks of a cycle are distinct mod 5, and the factor is the period of the residue under that affine map: 1 or 4 if W
   is odd, 1 or 2 if W ≡ 2 mod 4, 1 or 5 if W ≡ 0 mod 4.
 
-**Proved in Lean with `native_decide`**: **no halt in the first 4.4·10³⁷ steps** (`blank_runs_4e37`,
-`lean/CascadeRun.lean`, about 4 minutes), with the tables below, proved sound in Lean (`lean/Cascade.lean`, kernel only:
+**Proved in Lean with `native_decide`**: the same 4.4·10³⁷ steps in one evaluation (`blank_runs_4e37`,
+`lean/CascadeRun.lean`, about 4 minutes, a cross-check of the kernel's pieces), with the tables below, proved sound in Lean (`lean/Cascade.lean`, kernel only:
 the last blocks run on their own, and a table built for one more level is checked to be a period). Independently, by
 the plain orbit: no halt in the first 10²⁴ steps (`blank_runs_1e24`, `lean/OrbitNative.lean`: the first 9.9·10¹⁰
 super steps, the kernel's 10⁷ and then 99 chunks, `check_orbit.sh all`). Within `check.sh` also 9·10¹³ steps
@@ -102,12 +103,12 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 | `lean/orbit_gen.py` → `lean/Orbit/`, `OrbitKernel.lean`, `OrbitNative.lean` | the orbit checked in chunks between checkpoints from `c/orbitck.c` (generated; do not edit) |
 | `lean/check_orbit.sh` | checks those files in parallel (`kernel` or `all`) |
 | `lean/Cascade.lean` | the last blocks run on their own (`superL_split`, `superT_split`), and the tables are sound (`build_rep`, `runs_of_drive`) |
-| `lean/CascadeRun.lean` | no halt in the first 4.4·10³⁷ steps, by 35 levels of tables (`native_decide`) |
+| `lean/CascadeRun.lean` | no halt in the first 4.4·10³⁷ steps, by 35 levels of tables in one evaluation (`native_decide`) |
 | `lean/Cycles.lean` | every level cycles or goes silent, and silent means no halt (`cycles_or_never_halts`); the last six blocks' cycles |
 | `lean/CycleCert.lean` | the tables in pieces the kernel can check (`lvSeg`, `pseg`, `step_sound`), and least periods (`least_append`) |
 | `lean/TableLit.lean` | `tbl%`, which reads a written table into a term (the kernel checks what it makes) |
-| `lean/cycle_gen.py` → `lean/CycleRun.lean` | writes the pieces (`CycleData/`, `CyclePieces/`, `CycleLevels/`, not in git) and the chain: `cycle1`–`cycle30`, `blank_runs_cycles` (generated; do not edit) |
-| `lean/check_cycles.sh` | generates and checks those files in parallel (`check_cycles.sh 30 4`) |
+| `lean/cycle_gen.py` → `lean/CycleRun.lean` | writes the pieces (`CycleData/`, `CyclePieces/`, `CycleLevels/`, not in git) and the chain: `cycle1`–`cycle35`, `blank_runs_cycles` (generated; do not edit) |
+| `lean/check_cycles.sh` | generates and checks those files in parallel (`check_cycles.sh 35 6`) |
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `py/waves.py` | the wave model: the run in another cut, and the super step with N, exact step counts |
 | `py/n_search.py` | the search for an invariant that keeps N off the powers of two |
@@ -130,7 +131,7 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 bash scripts/setup-lean.sh && . /etc/profile.d/lean.sh
 bb6-1RB1RA_1RC1LB/lean/check.sh                 # about 6 min (CascadeRun about 4)
 bb6-1RB1RA_1RC1LB/lean/check_orbit.sh all       # the plain orbit in chunks, in parallel: about 9 CPU hours
-bb6-1RB1RA_1RC1LB/lean/check_cycles.sh 30 4     # the tables of 30 levels in pieces, kernel only: about 4 CPU hours
+bb6-1RB1RA_1RC1LB/lean/check_cycles.sh 35 6     # the tables of 35 levels in pieces, kernel only: about 21 CPU hours
 python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py     # about 20 s
 python3 bb6-1RB1RA_1RC1LB/tests/test_superrun.py  # about 20 s
