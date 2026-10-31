@@ -257,7 +257,7 @@ original tape the head gets depends only on the blocks, never on `j` (at most 8 
 So the words `0 1 1` of the last block are handled without touching the left end, as `2j + c` with `c` independent of
 `j` suggests.  On the run itself (`tmrun … 10^10 at A R`, then `py/macro.py reach`, 14 minutes): the 582 recursive passes in
 the first 10¹⁰ steps all finish, `key` going down at every step, in at most 11,419 steps of the block machine, and
-the head gets at most 6 cells past the left end of the tape (in 434 of them it stays within 1 cell).
+the head gets at most 6 cells past the left end of the tape (in 559 of them at most 1 cell).
 
 ## 31 October 2026: the last block after a recursive pass, `2j + c`, in Lean
 
