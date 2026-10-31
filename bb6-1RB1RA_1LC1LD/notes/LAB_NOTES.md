@@ -174,3 +174,51 @@ below 10 (passes 370, 885 to 891 and 2,392 to 2,396 in the first 10¹¹ steps), 
 
 **Next.** With the recursive pass map in Lean (the other open item), `next_good` extends to all passes with last block
 other than 3 and 6, and what is left is the arithmetic of the shrinking chains.
+
+## 31 October 2026: the recursive pass in Lean
+
+**Proved in Lean** (`lean/Recur.lean`, kernel only).  When the last block is `3j + 3`, `k_start` takes the pass
+configuration to `L 0 1^c B> 0 0 1 0 1 1 (0 1 1)^j 0^∞`: the converter is now in front of the words `0`, `0 1` and
+`j + 1` words `0 1 1`.  From there the pass is followed by a machine on
+
+  `enc ⟨q, h, L, W⟩  =  … 0 1^{L_1} 0 1^{L_0} q> 1^h 0 1^{W_0} 0 1^{W_1} … 0^∞`
+
+(blocks of length 0 allowed on the left, words `0 1^k` with `k ≥ 0` on the right).  Its steps, `astep`, are the rules
+found earlier (the 31 October entry on the pass structure), with the converter at a block `n = 3j + r` before a word
+`0 1^k` in `bstep`:
+
+| state, head | what it reads | next |
+|---|---|---|
+| A, `1^h` | | A after the block, which gains `h` |
+| A | `0 1^(k+1)` | B, with blocks `1`, `0`×k pushed |
+| A | blank | the pass start, `K` |
+| D | `0 1`, `0 1 1`, `0 1^(k+3)` | the block gains 2: D; F (with a block 0); B (with `1`, `0`×k) |
+| E, `1` | `0 1`, `0 1 1`, `0 1^(k+3)` | the same with 3 |
+| D, E | blank | halt |
+| F | `0 1^k`; blank | A, the block gains `k + 1`; the pass start |
+| C after `1^(c+1)` | `0 1`, `0 1^k` | the block moves into the word after (`s_c_move`, by induction); else B with `1`, `0`×k, `c` |
+| C after `0` | `0 1`, `0 1^(k+2)` | the block before gains 2: F; B |
+| B, `n = 3j + 1` | `0 1^k` | B one block further left, words `0`, `0 1`, `(0 1 1)`×j, the last `k` longer |
+| B, `n = 3j + 2` | `0 1^k` | E with the block to the left `+3` |
+| B, `n = 3j` | `0` | C, words `0 1`, `(0 1 1)`×j |
+| B, `n = 3j + 3` | `0 1^(k+1)` | A, the two blocks to the left `+2` each |
+| B, `n = 0` | `0 1^(k+1)` | C, the word one longer |
+| B after `1 0 1^y 0 1^x` | blank | the pass start, `K` (`y_end`) |
+
+Each line is a theorem `s_…` from the 19 new rules of `lean/Rules.lean`, and `astep_sound` puts them together; `arun`
+iterates `astep` with fuel, `pass` is `next` or `arun` from `k_start`, and `pass_sound`, `passes_sound` say that
+whatever they return (a next pass start, or a halt) the machine does.  Nothing says `arun` always finishes: where it
+meets a case it does not cover (A reading `0 0`, E with more than one 1 under the head, …) it returns `none`.
+
+**Computed.** Run by Lean (`#eval`, 5 s) from `1^10 0 1^3`, `passes` gives all 1,782 later pass starts of the first
+10¹⁰ steps exactly; its Python transcription `next_full` gives all 1,786 (581 recursive, `py/macro.py check-full`, 6 s),
+and agrees with direct runs from 300 random block lists with a last block that is a multiple of 3 (a test).  The kernel
+evaluates 100 passes in about 10 s (`blank_passes_104`, to step 2,065,482) and 400 in about 2.5 minutes, so the
+kernel-checked floor stays at 100 passes; with `native_decide` the whole 10¹⁰ steps would be a few seconds.
+
+**What this gives and what not.** The pass map is now proved for every pass, but in the recursive case only as an
+algorithm.  The block-length thread's offsets (`2j + c`, `py/blocks.py offsets`) are the closed form to aim for: a
+recursive pass from `…, x, 3j` ends with last block `2j + c`, `c` local for `x ≡ 0, 4, 5 (mod 6)`.  Proving that from
+`astep` means following the converter through the blocks to the left, by induction on `j` for the words `0 1 1` it
+leaves behind.
+

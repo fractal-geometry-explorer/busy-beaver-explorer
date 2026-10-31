@@ -209,6 +209,27 @@ class TestMacro(unittest.TestCase):
         self.assertEqual(got, [(2, 2), (2, 5), (4, 7), (10, 3)])
         self.assertEqual([macro.next_pass(b) for b in got], [(2, 5), (4, 7), (10, 3), None])
 
+    def test_full_any_tape(self):
+        """next_full (the `pass` of lean/Recur.lean) on random tapes with every last block, multiples of 3 included,
+        against direct runs."""
+        import random
+        rnd = random.Random(2)
+        covered = 0
+        for _ in range(300):
+            blocks = tuple(rnd.randint(1, 12) for _ in range(rnd.randint(1, 4))) + (3 * rnd.randint(1, 20),)
+            p = macro.next_full(blocks)
+            if p is not None:
+                covered += 1
+                self.assertEqual(p, one_pass(blocks), blocks)
+        self.assertGreater(covered, 250)
+
+    def test_full_run(self):
+        """next_full gives every pass of the first 3*10^6 steps, the 36 recursive ones included."""
+        seq = [bl for _, bl in macro.pass_starts(3 * 10 ** 6)]
+        self.assertEqual(len(seq), 118)
+        for a, b in zip(seq, seq[1:]):
+            self.assertEqual(macro.next_full(a), b, a)
+
 
 class TestBlocks(unittest.TestCase):
     def test_simulator(self):
