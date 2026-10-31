@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.join(TOOLS, "pages"))
 sys.path.insert(0, os.path.join(ROOT, "py"))
 
 import blank  # noqa: E402
+import blocks  # noqa: E402
 import macro  # noqa: E402
 import build_status  # noqa: E402
 from bbtools import ctl  # noqa: E402
@@ -207,6 +208,35 @@ class TestMacro(unittest.TestCase):
         got = [bl for _, bl in macro.pass_starts(200)]
         self.assertEqual(got, [(2, 2), (2, 5), (4, 7), (10, 3)])
         self.assertEqual([macro.next_pass(b) for b in got], [(2, 5), (4, 7), (10, 3), None])
+
+
+class TestBlocks(unittest.TestCase):
+    def test_simulator(self):
+        """blocks.one_pass (the fast loop) agrees with the reference simulator and with next_pass."""
+        import random
+        rnd = random.Random(2)
+        for _ in range(100):
+            bl = tuple(rnd.randint(1, 12) for _ in range(rnd.randint(1, 4))) + (rnd.randint(1, 30),)
+            self.assertEqual(blocks.one_pass(bl), one_pass(bl), bl)
+
+    def test_run(self):
+        """Every pass start of the first 3*10^6 steps is good."""
+        seq = [bl for _, bl in macro.pass_starts(3 * 10 ** 6)]
+        self.assertEqual(len(seq), 118)
+        self.assertTrue(all(blocks.good(bl) for bl in seq))
+
+    def test_only_3_and_6(self):
+        """A good list whose next pass start is not good has last block 3 or 6 (lists of up to 3 blocks of 2..14)."""
+        bad = blocks.exhaustive(14, 3)
+        self.assertEqual({bl[-1] for bl, _ in bad}, {3, 6})
+        self.assertIn(((2, 3), (8, 1)), bad)
+        self.assertEqual(blocks.random_check(3, 300), [])
+
+    def test_offsets(self):
+        """The recursive pass (..., x, 3j) ends with last block 2j + c, c independent of j, c >= -1, -1 iff x = 2."""
+        out = blocks.offsets(20, prefixes=((), (21,), (20, 22)), js=range(1, 8))
+        self.assertTrue(all(len(v) == 1 for v in out.values()))
+        self.assertTrue(all((min(v) == -1) == (x == 2) and min(v) >= -1 and not v & {1, 4} for (_, x), v in out.items()))
 
 
 if __name__ == "__main__":

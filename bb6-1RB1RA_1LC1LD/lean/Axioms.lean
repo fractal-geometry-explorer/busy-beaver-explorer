@@ -1,6 +1,7 @@
 import Blank
 import Macro
 import Edge
+import Blocks
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
 a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
@@ -23,3 +24,10 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6c.halt_at_edge
 #print axioms BB6c.d_zero_zero
 #print axioms BB6c.halts_iff_edge
+
+-- Blocks.lean: the covered passes keep every block at least 2 and the last block off 1 and 4 (kernel only)
+#print axioms BB6c.next_good
+#print axioms BB6c.next_isSome
+#print axioms BB6c.next_shrink
+#print axioms BB6c.nextIter_good
+#print axioms BB6c.nextIter_sound
