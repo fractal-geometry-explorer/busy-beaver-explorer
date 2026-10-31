@@ -4,6 +4,7 @@ usage: python3 bb6-1RB1RA_1LC1LD/tests/test_machine.py
 """
 import json
 import os
+import random
 import subprocess
 import sys
 import tempfile
@@ -230,6 +231,21 @@ class TestMacro(unittest.TestCase):
         for a, b in zip(seq, seq[1:]):
             self.assertEqual(macro.next_full(a), b, a)
 
+    def test_key_goes_down(self):
+        """`astep_key` in lean/Finish.lean, along recursive passes from random tapes (blocks 0 and 1 allowed): the key
+        goes down at every step; from tapes with every block at least 2 each pass finishes, and how far left of the
+        original tape the head gets does not depend on j."""
+        import random
+        rnd = random.Random(5)
+        for _ in range(150):
+            ls = [rnd.randint(0, 20) for _ in range(rnd.randint(0, 5))]
+            macro.reach(ls, 3 * rnd.randint(0, 12) + 2)
+        for _ in range(60):
+            ls = [rnd.randint(2, 30) for _ in range(rnd.randint(0, 6))]
+            out = [macro.reach(ls, 3 * j + 2) for j in (0, 3, 10, 25)]
+            self.assertTrue(all(r is not None and r != macro.HALT for r, _, _ in out), ls)
+            self.assertEqual(len({e for _, _, e in out}), 1, ls)
+
 
 class TestBlocks(unittest.TestCase):
     def test_simulator(self):
@@ -259,6 +275,25 @@ class TestBlocks(unittest.TestCase):
         self.assertTrue(all(len(v) == 1 for v in out.values()))
         self.assertTrue(all((min(v) == -1) == (x == 2) and min(v) >= -1 and not v & {1, 4} for (_, x), v in out.items()))
 
+
+    def test_formula(self):
+        """lean/Formula.lean: `pre` once per list gives the next pass start of the recursive pass for every j >= u
+        (blocks b + 2 ceil((p + j - u)/2), M; last block a + 2(p + j - u)), u <= 2, and for j = 1 < u the same last block."""
+        rnd = random.Random(11)
+        for _ in range(300):
+            ls = [rnd.choice([rnd.randint(2, 12), rnd.randint(2, 60)]) for _ in range(rnd.randint(1, 5))]
+            (a, b, *M), p, u = macro.pre(ls)
+            self.assertLessEqual(u, 2)
+            c = a + 2 * p - 2 * u
+            self.assertGreaterEqual(c, -1)
+            self.assertEqual(c == -1, ls[0] == 2)
+            for j in range(1, 7):
+                r = macro.pass_full(ls, 3 * j - 1)
+                self.assertEqual(r[2] + 1, 2 * j + c, (ls, j))
+                if j >= u:
+                    m = p + j - u
+                    strip = lambda l: list(l[:max([i + 1 for i, v in enumerate(l) if v] or [0])])
+                    self.assertEqual(strip(r[1]), strip([b + 2 * ((m + 1) // 2)] + M), (ls, j))
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
