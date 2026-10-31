@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(TOOLS, "py"))
 sys.path.insert(0, os.path.join(TOOLS, "pages"))
 
 from bbtools.machine import Machine, Run, run_blank, records, STATES  # noqa: E402
-from bbtools import symtm, leangen, invariants  # noqa: E402
+from bbtools import symtm, leangen, invariants, ctl  # noqa: E402
 from bbtools.explore import blocks  # noqa: E402
 import merge_parts  # noqa: E402
 import build_status  # noqa: E402
@@ -31,6 +31,7 @@ CHAMPIONS = {   # machine: steps to halt from blank tape, bbchallenge count
     "1RB1LB_1LA0LC_1RZ1LD_1RD0RA": 107,
 }
 BB5 = "1RB1LC_1RC1RB_1RD0LE_1LA1LD_1RZ0LA"
+LOOP2 = "1RB0LB_0LA---"     # never halts from blank tape, which tools/lean/Test/Examples.lean proves with a CTL
 
 BUILD = tempfile.mkdtemp(prefix="bbtools-test-")
 
@@ -267,9 +268,47 @@ class TestLeanGen(unittest.TestCase):
             self.assertEqual(leangen.parse_lean_table(leangen.machine_lean(text, "X")), norm(text))
 
     def test_committed_files_current(self):
-        for name, text in [("BB2", "1RB1LB_1LA1RZ"), ("BB4", "1RB1LB_1LA0LC_1RZ1LD_1RD0RA")]:
+        for name, text in [("BB2", "1RB1LB_1LA1RZ"), ("BB4", "1RB1LB_1LA0LC_1RZ1LD_1RD0RA"), ("Loop2", LOOP2)]:
             with open(os.path.join(TOOLS, "lean", "Test", name + ".lean")) as f:
                 self.assertEqual(f.read(), leangen.machine_lean(text, "Test." + name))
+
+
+class TestCTL(unittest.TestCase):
+    def test_random_against_runs(self):
+        """The set found for random machines passes the closure check, holds every configuration of the run, and
+        lists every halt that happens."""
+        rng = random.Random(7)
+        done = 0
+        for _ in range(200):
+            text = random_machine(rng, rng.choice([2, 3, 4]))
+            try:
+                AL, AR, S = ctl.search(text, 2, max_rounds=30)
+            except RuntimeError:
+                continue
+            self.assertTrue(ctl.check(text, AL, AR, S), text)
+            halts = {(s, ql, qr) for (s, ql, qr, _, _) in ctl.halting(text, AR, S)}
+            m = Machine.parse(text)
+            r = Run(m)
+            for _ in range(300):
+                t, h = r.tape, r.head
+                left = [t.get(p) for p in range(h - 1, t.lo - 1, -1)]
+                right = [t.get(p) for p in range(h, t.hi + 1)]
+                a = ctl.abstract(AL, AR, r.state, left, right)
+                self.assertIn(a, S, text)
+                if not r.step():
+                    self.assertIn(a, halts, text)
+                    break
+            done += 1
+        self.assertGreater(done, 50)
+
+    def test_loop2_no_halt(self):
+        AL, AR, S = ctl.search(LOOP2, 2)
+        self.assertTrue(ctl.check(LOOP2, AL, AR, S))
+        self.assertEqual(ctl.halting(LOOP2, AR, S), [])
+
+    def test_committed_cert_current(self):
+        with open(os.path.join(TOOLS, "lean", "Test", "Loop2Cert.lean")) as f:
+            self.assertEqual(f.read(), ctl.lean_file(LOOP2, 2, "Test.Loop2", "Test.Loop2"))
 
 
 class TestStatusPage(unittest.TestCase):

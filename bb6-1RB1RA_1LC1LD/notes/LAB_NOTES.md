@@ -101,3 +101,34 @@ are a mix of `011` and `01`, and a `01` makes A start another converter run to t
 
 **Next.** The pass map for the recursive case: state the two converter modes and the A/Y phases on general word lists
 (`011`, `01`) in Lean, as `Macro.lean` does for the covered case, and look for the quantity that keeps blocks ≥ 2.
+## 31 October 2026: the left end, and halting only at the right edge
+
+**The left end is one step deep.** D is entered by `E1 = 1RD` (so the cell to D's left is a 1) or by `B1 = 1LD`,
+`C0 = 1LD` (so the cell to D's right is the 1 just written). Hence D with a 0 on its left, and so D at the left end,
+always has a 1 on its right (`d_one_right`, `d_left_end`, kernel). The 1,382 left-end visits counted in the long run
+are this, not a property of the run.
+
+**A closed tape language.** `tools/py/bbtools/ctl.py` grows windows of K cells (letters 0, 1, `#` = blank from
+here on) on each side of the head and abstract configurations (state, left window, right window) from the blank
+start until nothing new appears. With K = 3: 12 left windows, 10 right windows, 245 abstract configurations, and
+the only halting ones are E reading 0 with `111` on its left and `###` on its right. With K = 2 halts in the
+middle of the tape are not excluded; K = 4 gives the same answer as K = 3 with 666 configurations. The right
+automaton has no window with `00` past its first cell except in `#`, so past the head cell the written tape has no
+`0 0`; the left automaton allows any word.
+
+The same set as Lean data (`lean/EdgeCert.lean`) is checked by `decide +kernel` against the generic closure test of
+`tools/lean/TM/CTL.lean`, whose soundness is proved there once for any machine. So, kernel only: every configuration
+of the run from blank tape is covered (`reach_inv`); past the head two 0s in a row occur only in the blank region
+(`right_no_double_zero`); `D>0 0` only with blank tape from D on (`d_zero_zero`); and the machine halts iff at some
+step it is in E with blank tape from the head on (`halts_iff_edge`).
+
+**What a halt would look like.** (Reasoning on the table, not in Lean.) A D entered from the right with blank tape
+from D on came from `D>0 1` one step earlier, two cells to the left; following that back, the last D entered by a
+left move (from B1 or C0) landed on a 0 with `1 (0 1)^k` and then blank tape to its right, k ≥ 0. So a halt needs a
+left move to drop D two cells or more from the right edge onto `0 1 0 1 ... 0 1 |blank`. In the first 3·10⁷ steps
+every left entry of D followed by at least one `0 1` pair stops on a 1 inside the tape; the closest to the edge was
+2 cells, at step 5 (Python, not in the tests).
+
+**Next.** The right edge is now the only place to watch: describe the configurations in which a left-moving B or C
+reaches the last few cells, as part of the macro structure, and show that the tape there never ends in `0 1 0 1`
+under a landing D.

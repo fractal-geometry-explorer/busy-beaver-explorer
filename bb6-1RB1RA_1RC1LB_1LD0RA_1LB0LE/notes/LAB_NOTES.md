@@ -85,3 +85,34 @@ the only road to a stop block of 1, and it would need about log₂ of the count 
 **Next.** (1) Prove the closed form in Lean: an induction on top of `zig` for the zigzag, then the sweep cases.
 (2) The return map on two-block states `[a, 2a+d]`: which d follows which, and what decides the tail length (likely
 2-adic, as for the `1RB1RA_1RC1LB` machine). (3) From that, whether a first block can halve all the way down.
+
+## 31 October 2026: the closed form in Lean, and the reduction
+
+`lean/Pass.lean`, kernel only (axioms `propext`, `Quot.sound`, and `Classical.choice` for the last three theorems;
+no `native_decide`).
+
+**Encoding.** Block lists nearest first, `zs = [yk, ..., y1]`, so that `enc zs` (blocks `rep y [true]` separated by
+`cons false`, blank at the end) is the left stream and the pass start is `⟨enc zs, blank, A⟩`. Blank tape is `enc []`,
+and blank on the left reads as empty blocks (`enc [0, 0] = enc []`), so no padding cases are needed in the runs.
+
+**The map, recursively.** `next (y :: ys)`: y = 2m even gives `bump (m+2) ys` (the two nearest blocks of `ys` gain
+m+2). y odd starts `sweep [(y+3)/2] ys`, which records g = y/2 − 1 for each even block it crosses, halts at an empty
+block or the left end, gives `.one` at a block of 1, and at y = 2n+3 stops with `zag q ms gs` where `(q, ms) =
+bump (n+1) rest`; `zag q ms (g :: gs) = zag g ((q+g+2) :: ms) gs`. In terms of the notes above, g_i = h_i − 1.
+
+**The proof.** What the sweep leaves on the right is `U gs` (each g as `0 0 1 (01)^g`). Three new generated pieces:
+`d_stop_empty` and `zig_empty` (the pieces with an empty block on the left, which `symtm` cannot state with a count
+that may be 0) and `turn` (`A> 0 0 1` to `1 1 0 A>`). Then inductions: `zigs` (r rounds of the zigzag), `zag_run` (the
+zigzag through `U gs`), `cross_even` and `sweep_run` (the sweep), `stop` (d_stop, a_sweep and the rounds), and `pass`.
+`pass_halt` covers the halting outcomes.
+
+**Counting.** `next_sum`: a pass adds 4 ones and keeps blocks nonempty (the last g is (yk+3)/2 ≥ 2, so `zag` never
+leaves an empty block). `next_halt_odd`: with nonempty blocks, a halting pass has an odd count. So `orbit n` (pass n
+from blank, `orbit 1 = [2, 2]`) has 4n ones and never halts, and
+
+    theorem halts_only_by_one (h : HaltsFromBlank) : ∃ n, orbit n = .one
+
+**Tests.** `TestLeanPassMap` evaluates `next` on 3,000 random lists and the orbit for 400 passes with `#eval` and
+compares with `py/passmap.py`.
+
+**Next.** The return map on two-block states `[a, 2a+d]`, and whether the first block can halve down to 1.
