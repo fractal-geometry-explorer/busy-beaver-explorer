@@ -345,7 +345,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <li><b>Even last block</b> y<sub>k</sub> = 2m: the block goes (&minus;2m) and two blocks gain m+2 each (+2m+4). Net +4.</li>
         <li><b>Odd last block</b>, stop at y<sub>j</sub> &gt; 1: the crossed blocks y<sub>j+1</sub>, &hellip;, y<sub>k</sub> and y<sub>j</sub> itself are replaced by sums of halves; adding the formula up gives the same +4 (the page checks it on every pass it runs).</li>
       </ul>
-      <p>So, <b>if the closed form holds</b>, the count of ones is 0 mod 4 at every pass start of the orbit. This is not a conserved quantity of the machine step by step: inside a pass the count wanders (watch the simulator), and a search finds no conserved combination a&middot;ones + b&middot;position + W[state] modulo 2 to 12 <span class="tag t-comp">computed</span>. It is a statement about pass starts only, and it rests on the closed form, which is tested but not proved <span class="tag t-heur">heuristic</span>.</p>
+      <p>So the count of ones is 0 mod 4 at every pass start of the orbit: Lean proves that a pass adds exactly 4 ones and that pass n from blank tape starts with 4n ones, counting blank tape as pass 0 (<code>next_sum</code>, <code>orbit_ok</code>) <span class="tag t-kernel">Lean, kernel</span>. This is not a conserved quantity of the machine step by step: inside a pass the count wanders (watch the simulator), and a search finds no conserved combination a&middot;ones + b&middot;position + W[state] modulo 2 to 12 <span class="tag t-comp">computed</span>. It is a statement about pass starts only, and it rests on the closed form, which Lean proves for every block list (<code>pass</code>, <code>lean/Pass.lean</code>) <span class="tag t-kernel">Lean, kernel</span>.</p>
     </div>
     <div class="bench">
       <div class="controls"><span class="note" id="m-msg">Run part 4 to fill this in.</span></div>
@@ -367,7 +367,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <div>halt &rArr; some pass start with an odd count of ones &rArr; an earlier pass whose sweep stops at y<sub>j</sub> = 1</div>
     </div>
     <div class="prose">
-      <p>This rests on the closed form (tested, not proved). Nothing in the orbit seen so far comes close: every block the form makes is at least 2 except a new first block, so a stop block of 1 would have to be a first block that halved down about log<sub>2</sub>(ones) times in a row. Try the examples to see the event and what follows it.</p>
+      <p>This chain is a theorem: <code>halts_only_by_one</code> in <code>lean/Pass.lean</code> proves that if the machine halts from blank tape, some pass of the orbit stops at a block of a single 1 <span class="tag t-kernel">Lean, kernel</span>. Whether that ever happens is open. Nothing in the orbit seen so far comes close: every block the form makes is at least 2 except a new first block, so a stop block of 1 would have to be a first block that halved down about log<sub>2</sub>(ones) times in a row. Try the examples to see the event and what follows it.</p>
     </div>
     <div class="bench">
       <div class="controls">
@@ -404,7 +404,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 <!-- Built from status.json by bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/explainer_status.py; do not edit by hand. -->
 <script type="application/json" id="status-data">
 {
- "asof": "Status as of 30 October 2026.",
+ "asof": "Status as of 31 October 2026.",
  "claims": [
   {
    "level": "kernel",
@@ -422,7 +422,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
    "level": "kernel",
    "title": "The pieces of a pass, for every length",
    "text": "Each phase of a pass as a theorem about any tape around it and any block length: the start, the D/E sweep over an odd or even stretch, the crossing into the next block, the end of the sweep, one round of the zigzag, and the A and B sweeps. Proved along symbolic runs (single steps by <code>rfl<\/code>, repeats by the shared crossing lemmas).",
-   "where": "<code>start<\/code>, <code>de_sweep<\/code>, <code>de_sweep_odd<\/code>, <code>e_cross<\/code>, <code>d_stop<\/code>, <code>zig<\/code>, <code>a_sweep<\/code>, <code>b_sweep<\/code>, <code>lean/Rules.lean<\/code>"
+   "where": "<code>start<\/code>, <code>de_sweep<\/code>, <code>de_sweep_odd<\/code>, <code>e_cross<\/code>, <code>d_stop<\/code>, <code>zig<\/code>, <code>a_sweep<\/code>, <code>b_sweep<\/code>, <code>d_stop_empty<\/code>, <code>zig_empty<\/code>, <code>turn<\/code>, <code>lean/Rules.lean<\/code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The closed form of a pass, for every block list",
+   "text": "The pass map is defined in Lean (<code>next<\/code>, with the sweep, the stop and the zigzag as <code>sweep<\/code>, <code>bump<\/code> and <code>zag<\/code>), and the machine follows it: from the pass start of any block list it reaches the pass start of <code>next<\/code> of it, and it halts whenever <code>next<\/code> says halt. Every block list, every length; the zigzag and the sweep are inductions on top of the pieces. The only case left out is a sweep that stops at a block of a single 1.",
+   "where": "<code>pass<\/code>, <code>pass_halt<\/code>, <code>lean/Pass.lean<\/code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The reduction to a stop block of 1",
+   "text": "A pass adds exactly four ones and keeps every block nonempty (<code>next_sum<\/code>); a halting pass needs an odd count of ones (<code>next_halt_odd<\/code>). So pass n from blank tape starts with 4n ones and no pass halts (<code>orbit_ok<\/code>, <code>orbit_ne_halt<\/code>), and if the machine halts from blank tape then some pass of the orbit stops at a block of a single 1 (<code>halts_only_by_one<\/code>). Kernel only; the standard axioms (<code>propext<\/code>, <code>Quot.sound<\/code>, <code>Classical.choice<\/code>), no <code>native_decide<\/code>.",
+   "where": "<code>halts_only_by_one<\/code>, <code>never_halts_of_no_one<\/code>, <code>lean/Pass.lean<\/code>"
   },
   {
    "level": "native",
@@ -449,10 +461,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
    "where": "<code>tools/py/bbtools/invariants.py<\/code>"
   },
   {
-   "level": "heuristic",
-   "title": "The closed form of a pass, for every block list",
-   "text": "The closed form agrees with the machine on about 3,100 random block lists of up to 10 blocks of 1 to 12 ones each, every case except a stop block of 1. Not proved: the zigzag is a loop whose rounds grow, so it needs an induction in Lean on top of <code>zig<\/code>.",
-   "where": "<code>python3 py/passmap.py check 3000 6<\/code>"
+   "level": "trusted",
+   "title": "The Lean pass map is the closed form of <code>py/passmap.py<\/code>",
+   "text": "The Lean definition <code>next<\/code> gives the same result as <code>passmap.py<\/code> on 3,000 random block lists and on the halting and stop-block-1 examples, and its orbit is the Python orbit for the first 400 passes; the Python form in turn matches every pass start of the first 10<sup>9<\/sup> steps of the machine. The Lean theorems are about <code>next<\/code> itself, so this only ties the two write-ups together.",
+   "where": "<code>tests/test_machine.py<\/code> (<code>TestLeanPassMap<\/code>)"
   },
   {
    "level": "heuristic",
@@ -462,8 +474,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   },
   {
    "level": "open",
-   "title": "A proof of the pass map, and the return map on two-block states",
-   "text": "Prove the closed form in Lean (an induction for the zigzag, then the cases of the sweep), then find the map from one two-block state <code>[a, 2a+d]<\/code> to the next and what decides the length of the halving tail. That is where an argument that no stop block is ever 1 would have to come from.",
+   "title": "The return map on two-block states",
+   "text": "Find the map from one two-block state <code>[a, 2a+d]<\/code> to the next and what decides the length of the halving tail. That is where an argument that no sweep ever stops at a block of a single 1 would have to come from; with <code>halts_only_by_one<\/code> it would settle the question.",
    "where": "<code>notes/LAB_NOTES.md<\/code>"
   },
   {
