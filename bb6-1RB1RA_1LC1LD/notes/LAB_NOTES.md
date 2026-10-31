@@ -132,3 +132,45 @@ every left entry of D followed by at least one `0 1` pair stops on a 1 inside th
 **Next.** The right edge is now the only place to watch: describe the configurations in which a left-moving B or C
 reaches the last few cells, as part of the macro structure, and show that the tape there never ends in `0 1 0 1`
 under a landing D.
+
+## 31 October 2026: do blocks ever shrink below 2?
+
+A pass start is *good* if every block is at least 2 and the last block is neither 1 nor 4 (1 halts on this pass,
+`K_zero_halts`; 4 on the next, `kA0`).  The question is whether a good invariant holds for the whole run.
+
+**Proved in Lean** (`lean/Blocks.lean`, kernel only): every covered pass keeps a pass start good (`next_good`), and so
+does any run of covered passes (`nextIter_good`, with `nextIter_sound` tying it to the machine).  On a covered pass the
+last block `b` either shrinks, `b + 5` becoming exactly `2(b + 5)/3` (`b ≡ 1 mod 3`: the output `2m - 1` is odd, so
+never 4, and it is 1 only from 4), or becomes at least the block to its left plus 3 (`b ≡ 2 mod 3`) (`next_shrink`).
+So from a good pass start, a halt needs a recursive pass (last block a multiple of 3) that breaks goodness.
+
+**Computed** (`py/blocks.py`, a fast loop checked against the reference simulator):
+
+* `run` on `tmrun … 10^11 at A R` output: all 3,845 pass starts in the first 10¹¹ steps are good.  Blocks shorter than 10
+  are only first blocks (2, 4, 6, 8; the first block is always even) and last blocks of the first dozen passes; after
+  pass 156 (about 6·10⁶ steps) the last block is always at least 22, and a last block 6 never occurs.
+* `offsets`: a recursive pass from `…, x, 3j` ends with last block `2j + c`, where `c` depends on the blocks to the
+  left but not on `j`; `c ≥ -1`, `c = -1` exactly when `x = 2`, and `c` is never 1 or 4 (3,000 random contexts).  For
+  `x ≡ 0, 4, 5 (mod 6)` it is local: `(2x + 6)/3`, `(2x + 7)/3`, `(2x - 4)/3` plus what the blocks further left add
+  for the first two; for `x ≡ 1, 2, 3 (mod 6)` the converter goes on and `c` is often 0.
+* `exhaustive`, `random`: every good list whose next pass start is not good has last block 3 or 6 (all lists of up to 3
+  blocks of 2..30 and up to 5 blocks of 2..12; 20,000 random lists with blocks up to 200 and last block not 3 or 6
+  stay good).  Examples: `2 3 → 8 1`, `5 3 → 8 4`, `3 6 → 2 7 4`, `8 6 → 2 11 4`.  A last block 3 with a block of 6
+  or more to its left was always safe, and a covered pass makes a last block 3 only as `…, x, 7 → …, x + 6, 3`.
+
+**Why there is no finite invariant (heuristic).** The dangerous pass starts are last block 6 with offset 0 (→ 4 → 1),
+and `…, 2, 3` or `…, 5, 3`.  A last block 6 comes from 9 with offset 0, 9 from 15 or 16, and so on: each shrinking pass
+takes the last block to about two thirds, so the pass starts that can reach a halt are chains of residues of any
+length, not cut out by a condition on a bounded number of blocks.  Whether the run halts is whether such a chain lines
+up.  In the run the last block stays large: after the first 300 pass starts the fraction with last block below ε times
+the width is 0.33, 0.047, 0.0085, 0.0006 for ε = 0.5, 0.2, 0.1, 0.05, and the smallest ratio is 0.036 (`298 1119 53`).
+That falls faster than ε, so if it continues the expected number of last blocks of 9 or less over the whole run is
+finite: evidence, not proof, that it never halts.
+
+**Small blocks at the left end.** New blocks appear when the converter reaches the left end: the tape there becomes a
+ladder `2 11 10 30 90 270 810 …` (each block three times the last from 30 on; e.g. `734 2409` → `2 11 10 30 90 270
+1128 1606` at step 1.23·10⁹), which the following passes absorb from the right.  After pass 35 its leading 2 is the only block
+below 10 (passes 370, 885 to 891 and 2,392 to 2,396 in the first 10¹¹ steps), and it is never the last block.
+
+**Next.** With the recursive pass map in Lean (the other open item), `next_good` extends to all passes with last block
+other than 3 and 6, and what is left is the arithmetic of the shrinking chains.

@@ -130,6 +130,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The run reaches the pass starts <code>1^2 0 1^2</code>, <code>1^2 0 1^5</code>, <code>1^4 0 1^7</code> and <code>1^10 0 1^3</code>, the last three by the pass map; the fourth ends in a multiple of 3.</p>
         <p class="where"><code>blank_passes</code>, <code>lean/Macro.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The covered passes keep every block at least 2</h3>
+        <p>Call a pass start good if every block is at least 2 and the last block is neither 1 nor 4 (1 halts on this pass, 4 on the next). Every pass the map above covers takes a good pass start to a good one, and so does any run of covered passes. So from a good pass start a halt needs a pass whose last block is a multiple of 3. On a covered pass the last block either shrinks, with the last block plus 5 becoming exactly two thirds of what it was (last block 1 mod 3), or becomes at least the block to its left plus 3 (last block 2 mod 3).</p>
+        <p class="where"><code>Good</code>, <code>next_good</code>, <code>nextIter_good</code>, <code>next_shrink</code>, <code>lean/Blocks.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -156,6 +161,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>In the first 10<sup>10</sup> steps there are 1,786 pass starts, all of them blocks separated by single 0s, with at most 8 blocks and no block shorter than 2. The pass map agrees with the run on all 1,205 whose last block is not a multiple of 3; the other 581 are the recursive case. The map also agrees with direct runs from 300 random block lists that the run need not reach (a test).</p>
         <p class="where"><code>py/macro.py</code>, <code>tools/c/tmrun.c</code>, <code>tests/test_machine.py</code></p>
       </div>
+      <div class="card">
+        <h3>Every pass start to 10<sup>11</sup> steps is good</h3>
+        <p>All 3,845 pass starts in the first 10<sup>11</sup> steps have every block at least 2 and a last block other than 1 and 4. Blocks shorter than 10 occur only as the first block (2, 4, 6 or 8) or as the last block in the first dozen passes; after pass 156 (about 6&middot;10<sup>6</sup> steps) the last block is always at least 22.</p>
+        <p class="where"><code>py/blocks.py run</code> on <code>tools/c/tmrun &hellip; at A R</code> output</p>
+      </div>
+      <div class="card">
+        <h3>Only a last block of 3 or 6 can break goodness</h3>
+        <p>For a recursive pass from <code>&hellip; x, 3j</code> the new last block is 2j + c, where the offset c depends on the blocks to the left but not on j, and is never below &minus;1 (exactly &minus;1 when x = 2) and never 1 or 4. So with a last block of 9 or more the recursive pass also gives a good pass start, and every good list on which the next pass start is not good has last block 3 or 6: exhaustive over all lists of up to 3 blocks of 2 to 30 and up to 5 blocks of 2 to 12, and 20,000 random lists with blocks up to 200. Examples: <code>2 3 &rarr; 8 1</code>, <code>5 3 &rarr; 8 4</code>, <code>8 6 &rarr; 2 11 4</code>. A last block 3 with a block of 6 or more to its left was always safe; a last block 3 from a covered pass always has one.</p>
+        <p class="where"><code>py/blocks.py exhaustive</code>, <code>random</code>, <code>offsets</code>; <code>tests/test_machine.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -169,12 +184,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Then the converter does not stop at the left end of the last block: it carries on into the next block in a second mode (B reading <code>0 0</code>), and that block's residue mod 3 decides again: 1 carries on further left, 0 and 2 turn back. So the routes form an infinite family, one for each run of blocks that are 1 mod 3, and a route census over small cases would not be complete. In the first 10<sup>10</sup> steps the converter crosses 0, 1, 2 and 3 extra blocks of 1 mod 3 in 400, 178, 3 and 1 of the 581 recursive passes. The rules for these steps are worked out symbolically but not yet put together in Lean.</p>
         <p class="where"><code>notes/LAB_NOTES.md</code></p>
       </div>
+      <div class="card">
+        <h3>No finite invariant: the danger is a shrinking chain</h3>
+        <p>Both shrinking routes take the last block to about two thirds (covered: exactly, recursive: 2j + c). A last block 6 arises from a last block 9 with offset 0, which is common, and 9 from 15 or 16, and so on, so the pass starts that can reach a halt are not cut out by any condition on a bounded number of blocks: whether the run halts is a question about how these chains of residues line up. In the run the last block stays large: the fraction of pass starts after the first 300 with a last block below &epsilon; times the width is 0.33, 0.047, 0.0085 and 0.0006 for &epsilon; = 0.5, 0.2, 0.1, 0.05, and none below 0.036, falling faster than &epsilon;. If that continues, the expected number of last blocks of 9 or less is finite, which is evidence (not proof) that the run never halts.</p>
+        <p class="where"><code>notes/LAB_NOTES.md</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>The pass map in the recursive case</h3>
-        <p>A closed form for the next pass start when the last block is a multiple of 3, proved in Lean, and then the question whether a last block 1 or 4 is ever reached.</p>
+        <p>A closed form for the next pass start when the last block is a multiple of 3, proved in Lean, and then the question whether a last block 3 or 6 in a bad position (and from it 1 or 4) is ever reached. Goodness is preserved on every other pass (proved for the covered passes, computed for the recursive ones).</p>
         <p class="where"><code>notes/LAB_NOTES.md</code></p>
       </div>
       <div class="card open">
@@ -187,11 +207,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>bash scripts/setup-lean.sh                    # Lean 4.34.0, core only
 . /etc/profile.d/lean.sh
-bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Axioms
+bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Blocks, Axioms
 python3 bb6-1RB1RA_1LC1LD/tests/test_machine.py
 python3 bb6-1RB1RA_1LC1LD/py/blank.py records 100000 60
 gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 10000000000
 python3 bb6-1RB1RA_1LC1LD/py/macro.py check 3000000   # the pass map against the run
+python3 bb6-1RB1RA_1LC1LD/py/blocks.py exhaustive 30 3   # good lists whose next pass start is not good: last block 3 or 6
 cd tools/py &amp;&amp; python3 -m bbtools.invariants 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 12
 cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 3</code></pre>
   </section>

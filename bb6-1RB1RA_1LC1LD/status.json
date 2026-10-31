@@ -63,6 +63,12 @@
       "where": "<code>blank_passes</code>, <code>lean/Macro.lean</code>"
     },
     {
+      "level": "kernel",
+      "title": "The covered passes keep every block at least 2",
+      "text": "Call a pass start good if every block is at least 2 and the last block is neither 1 nor 4 (1 halts on this pass, 4 on the next). Every pass the map above covers takes a good pass start to a good one, and so does any run of covered passes. So from a good pass start a halt needs a pass whose last block is a multiple of 3. On a covered pass the last block either shrinks, with the last block plus 5 becoming exactly two thirds of what it was (last block 1 mod 3), or becomes at least the block to its left plus 3 (last block 2 mod 3).",
+      "where": "<code>Good</code>, <code>next_good</code>, <code>nextIter_good</code>, <code>next_shrink</code>, <code>lean/Blocks.lean</code>"
+    },
+    {
       "level": "trusted",
       "title": "No halt in the first 10<sup>11</sup> steps",
       "text": "The shared C simulator runs 10<sup>11</sup> steps from blank tape without a halt (12,410 ones at the end; at 10<sup>10</sup> steps 5,580 ones and 6,278 cells visited). The C simulator agrees with the Python reference simulator on the first 80 records of the run (a test).",
@@ -81,10 +87,22 @@
       "where": "<code>py/macro.py</code>, <code>tools/c/tmrun.c</code>, <code>tests/test_machine.py</code>"
     },
     {
+      "level": "trusted",
+      "title": "Every pass start to 10<sup>11</sup> steps is good",
+      "text": "All 3,845 pass starts in the first 10<sup>11</sup> steps have every block at least 2 and a last block other than 1 and 4. Blocks shorter than 10 occur only as the first block (2, 4, 6 or 8) or as the last block in the first dozen passes; after pass 156 (about 6&middot;10<sup>6</sup> steps) the last block is always at least 22.",
+      "where": "<code>py/blocks.py run</code> on <code>tools/c/tmrun &hellip; at A R</code> output"
+    },
+    {
       "level": "heuristic",
       "title": "The tape grows slowly and splits into two regions",
       "text": "The visited width grows roughly like the square root of the step count (about 6,300 cells after 10<sup>10</sup> steps). The left part of the tape fills with blocks <code>1^2 0</code>, with an occasional <code>1 0</code>, and the head sweeps over it; the right part holds a few long blocks of 1s. The head reaches new cells mostly on the right.",
       "where": "<code>py/blank.py records</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "Only a last block of 3 or 6 can break goodness",
+      "text": "For a recursive pass from <code>&hellip; x, 3j</code> the new last block is 2j + c, where the offset c depends on the blocks to the left but not on j, and is never below &minus;1 (exactly &minus;1 when x = 2) and never 1 or 4. So with a last block of 9 or more the recursive pass also gives a good pass start, and every good list on which the next pass start is not good has last block 3 or 6: exhaustive over all lists of up to 3 blocks of 2 to 30 and up to 5 blocks of 2 to 12, and 20,000 random lists with blocks up to 200. Examples: <code>2 3 &rarr; 8 1</code>, <code>5 3 &rarr; 8 4</code>, <code>8 6 &rarr; 2 11 4</code>. A last block 3 with a block of 6 or more to its left was always safe; a last block 3 from a covered pass always has one.",
+      "where": "<code>py/blocks.py exhaustive</code>, <code>random</code>, <code>offsets</code>; <code>tests/test_machine.py</code>"
     },
     {
       "level": "heuristic",
@@ -93,9 +111,15 @@
       "where": "<code>notes/LAB_NOTES.md</code>"
     },
     {
+      "level": "heuristic",
+      "title": "No finite invariant: the danger is a shrinking chain",
+      "text": "Both shrinking routes take the last block to about two thirds (covered: exactly, recursive: 2j + c). A last block 6 arises from a last block 9 with offset 0, which is common, and 9 from 15 or 16, and so on, so the pass starts that can reach a halt are not cut out by any condition on a bounded number of blocks: whether the run halts is a question about how these chains of residues line up. In the run the last block stays large: the fraction of pass starts after the first 300 with a last block below &epsilon; times the width is 0.33, 0.047, 0.0085 and 0.0006 for &epsilon; = 0.5, 0.2, 0.1, 0.05, and none below 0.036, falling faster than &epsilon;. If that continues, the expected number of last blocks of 9 or less is finite, which is evidence (not proof) that the run never halts.",
+      "where": "<code>notes/LAB_NOTES.md</code>"
+    },
+    {
       "level": "open",
       "title": "The pass map in the recursive case",
-      "text": "A closed form for the next pass start when the last block is a multiple of 3, proved in Lean, and then the question whether a last block 1 or 4 is ever reached.",
+      "text": "A closed form for the next pass start when the last block is a multiple of 3, proved in Lean, and then the question whether a last block 3 or 6 in a bad position (and from it 1 or 4) is ever reached. Goodness is preserved on every other pass (proved for the covered passes, computed for the recursive ones).",
       "where": "<code>notes/LAB_NOTES.md</code>"
     },
     {
@@ -108,11 +132,12 @@
   "check": [
     "bash scripts/setup-lean.sh                    # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Axioms",
+    "bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Blocks, Axioms",
     "python3 bb6-1RB1RA_1LC1LD/tests/test_machine.py",
     "python3 bb6-1RB1RA_1LC1LD/py/blank.py records 100000 60",
     "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 10000000000",
     "python3 bb6-1RB1RA_1LC1LD/py/macro.py check 3000000   # the pass map against the run",
+    "python3 bb6-1RB1RA_1LC1LD/py/blocks.py exhaustive 30 3   # good lists whose next pass start is not good: last block 3 or 6",
     "cd tools/py && python3 -m bbtools.invariants 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 12",
     "cd tools/py && python3 -m bbtools.ctl 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 3"
   ]
