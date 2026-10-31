@@ -12,14 +12,14 @@ LEAN=${LEAN:-lean}
 if [ -z "$LEANLIB" ]; then LEANLIB="$(dirname "$(command -v "$LEAN")")/../lib/lean"; fi
 mkdir -p "$HERE/out/TM"
 export LEAN_PATH="$LEANLIB:$HERE/out"
-for f in Basic Fin; do
+for f in Basic Fin CTL; do
   echo "== tools/lean/TM/$f.lean"
   (cd "$HERE" && $LEAN TM/$f.lean -o out/TM/$f.olean)
 done
 (cd "$HERE" && $LEAN TM.lean -o out/TM.olean)
 if [ $# -eq 0 ]; then
   mkdir -p "$HERE/out/Test"
-  for f in BB2 BB4 Examples; do
+  for f in BB2 BB4 Loop2 Loop2Cert Examples; do
     echo "== tools/lean/Test/$f.lean"
     (cd "$HERE" && $LEAN Test/$f.lean -o out/Test/$f.olean)
   done
