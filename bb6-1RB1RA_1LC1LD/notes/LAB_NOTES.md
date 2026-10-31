@@ -222,7 +222,6 @@ recursive pass from `…, x, 3j` ends with last block `2j + c`, `c` local for `x
 `astep` means following the converter through the blocks to the left, by induction on `j` for the words `0 1 1` it
 leaves behind.
 
-
 ## 31 October 2026: does the recursive pass always finish?
 
 **Proved in Lean** (`lean/Finish.lean`, kernel only).  The block machine has a quantity that goes down at every step.
@@ -256,4 +255,45 @@ the order makes strictly decreasing, `val_mono`.)
 contexts (0 to 8 blocks of 2 to 40) with `j` from 0 to 40, every recursive pass finishes, and how far left of the
 original tape the head gets depends only on the blocks, never on `j` (at most 8 cells there; 14 in a wider search).
 So the words `0 1 1` of the last block are handled without touching the left end, as `2j + c` with `c` independent of
-`j` suggests.
+`j` suggests.  On the run itself (`tmrun … 10^10 at A R`, then `py/macro.py reach`, 14 minutes): the 582 recursive passes in
+the first 10¹⁰ steps all finish, `key` going down at every step, in at most 11,419 steps of the block machine, and
+the head gets at most 6 cells past the left end of the tape (in 434 of them it stays within 1 cell).
+
+## 31 October 2026: the last block after a recursive pass, `2j + c`, in Lean
+
+`lean/Formula.lean`, kernel only.  From `K ls (3j - 1)` the block machine starts at B before the words `0`, `0 1` and
+`j` words `0 1 1`.  Following the run over many lists shows two things.  First, the words `0 1 1` that `k_start` leaves
+are never touched until the machine comes back to them, and it always does so at A after an `F` step (`F` reading a
+word, the block gains the word plus 1), with only words `0 1 1` ahead.  Second, from there it is one loop:
+
+| from | to |
+|---|---|
+| A, blocks `a, b`, words `0 1 1`, `0 1 1`, … | A, blocks `a + 4, b + 2` (`tail_two`: A token, B at 1, B at 0, C, the block `a` swept into the next word, C after 0, F) |
+| A, blocks `a, b`, no words | the pass start, last block `a` |
+| A, blocks `a, b`, one word `0 1 1` | the pass start, last block `a + 2`, `b + 2` left of it (`y_end`) |
+
+so from A before `a` with `m` words left the last block is `a + 2m` (`tail_end`, every `a`, `m`, tape to the left).
+
+The machine only reads the words in front of it: one step of `astep` is the same whatever follows the first two words
+(the first one, except for C before `0 1`), `astep_app`, by cases.  So `pre` runs the block machine once from `0, 0 1`,
+taking words `0 1 1` from an unbounded supply when there are too few (`u` counts them), and stops at A with only words
+`0 1 1` ahead (`p` of them), returning the blocks `a, b, M`.  `pre_sound`: for every supply of `u + m` words the real run
+gets to A before `a` with `p + m` words.  With `tail_end`, `recur_sound`: for every `j ≥ u` the next pass start has the
+blocks `b + 2⌈(p + j - u)/2⌉, M` and last block `a + 2(p + j - u) = 2j + c`, `c = a + 2p - 2u`.  In the 7,000 lists tried,
+`u ≤ 2`, and for `u = 2` the formula also holds at `j = 1` (`p = 0` there).
+
+**x = 2, closed form.** B at 2 before `0` gives E with one 1, which reads `0 1` (D, block `+3` twice), D reads `0 1 1`
+(F), F reads `0 1 1` (A with block 3), then the loop with `j - 2` words: last block `2j - 1`, the block left of the 2
+gains `8 + 2⌈(j-2)/2⌉` (`recur_two`).  So `…, d, 2, 3` reaches `…, d + 8, 1`, which halts (`recur_two_three_halts`), and
+for `j ≥ 2` the new last block is odd and at least 3, so a good pass start stays good (`recur_two_good`).
+
+**Small lists.** `recur_small`: on all 819 lists of 1 to 3 blocks of 2 to 10 the kernel runs `pre` (and for `u = 2` the
+pass map at `j = 1`) and finds `c ≥ -1`, `-1` exactly for `x = 2` (`decide +kernel`, 35 s).  The Python mirror
+`macro.pre` agrees with `next_full` on random lists (`test_formula`).
+
+**What is not proved.** That `c ≥ -1` for every list: before the loop the converter can carry on through any number of
+blocks that are 1 mod 3, and `pre` follows it only list by list.  Observed: for `x = 6r + 5` the offset is `4r + 2` for
+every list tried; for `x ≡ 0, 1 (mod 3)`, and for some `x = 6r + 2` such as 14 and 32, it depends on the blocks
+further left.
+That `pre` always stops is not proved either (the same question as for `arun`).
+

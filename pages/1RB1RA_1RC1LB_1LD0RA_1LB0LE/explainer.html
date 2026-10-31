@@ -437,6 +437,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
    "where": "<code>halts_only_by_one<\/code>, <code>never_halts_of_no_one<\/code>, <code>lean/Pass.lean<\/code>"
   },
   {
+   "level": "kernel",
+   "title": "The stop block of 1 can only be the first block",
+   "text": "Every block after the first stays at least 2 (<code>next_good<\/code>, <code>orbit_good<\/code>), so a sweep stops at a block of 1 only at the first block, after crossing every other one (<code>one_front<\/code>). With a count of ones divisible by 4, two passes in a row never both stop at the first block (<code>front_twice<\/code>): both would force 2 mod 4 ones. So if the machine halts, some pass start is <code>1 0 1^e 0 &hellip; 0 1^b A&gt;0<\/code> with every e even and b odd, and the pass before did not stop at its first block (<code>halts_only_at_front<\/code>). Kernel only, no <code>native_decide<\/code>. No invariant was found that excludes the first block falling to 1.",
+   "where": "<code>halts_only_at_front<\/code>, <code>lean/Front.lean<\/code>, <code>tests/test_front.py<\/code>"
+  },
+  {
    "level": "native",
    "title": "No halt in the first 10,000,000 steps",
    "text": "The same run for 10<sup>7<\/sup> steps, evaluated by compiled code.",
@@ -474,14 +480,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   },
   {
    "level": "trusted",
-   "title": "The return map G(a) = a + 12k, for every a below 2<sup>62<\/sup>",
-   "text": "Run on residue classes a = p + q&middot;u (parities known while q is even, classes split otherwise) down to a mod 2<sup>62<\/sup>: 19,231 routes from <code>[a, 2a+1]<\/code> back to <code>[a+12k, 2(a+12k)+1]<\/code> after 9k passes, k = 1 to 10; no class halts or meets a stop block of 1; only a = 1 is set aside (it stops at a block of 1). The members below 2<sup>62<\/sup> of the 2,890 classes still open were run one by one and return too (k up to 11). So for every a = 1 mod 4 with 5 &le; a &lt; 2<sup>62<\/sup> the excursion is safe. 24 seconds.",
-   "where": "<code>python3 py/returnmap.py classes 60<\/code>"
+   "title": "The return map G(a) = a + 12k, for every a below 2<sup>74<\/sup>",
+   "text": "Run on residue classes a = p + q&middot;u (parities known while q is even, classes split otherwise) down to a mod 2<sup>74<\/sup>: 82,363 routes from <code>[a, 2a+1]<\/code> back to <code>[a+12k, 2(a+12k)+1]<\/code> after 9k passes, k = 1 to 11; no class halts or meets a stop block of 1; only a = 1 is set aside (it stops at a block of 1). The members below 2<sup>74<\/sup> of the 15,828 classes still open were run one by one and return too (k = 9 to 12). So for every a = 1 mod 4 with 5 &le; a &lt; 2<sup>74<\/sup> the excursion is safe. 2.5 minutes (mod 2<sup>62<\/sup>: 24 seconds).",
+   "where": "<code>python3 py/returnmap.py classes 72<\/code>, <code>runs/classes72.txt<\/code>"
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 3.4&middot;10<sup>18<\/sup> passes",
-   "text": "The orbit is <code>[5, 11]<\/code> at pass 3, and the states <code>[a, 2a+1]<\/code> follow each other by G with a = 5 mod 12 (checked against the orbit for 30,000 passes). With the line above, the orbit of the pass map has no halt and no stop block of 1 until a reaches 2<sup>62<\/sup>, about pass 3.4&middot;10<sup>18<\/sup> (pass n has 3a + 1 = 4(n+1) ones), and by <code>halts_only_by_one<\/code> the machine does not halt before. Rests on the Lean pass map and on the Python computation, whose <code>passmap<\/code> is tested against Lean's <code>next<\/code>.",
+   "title": "No halt in the first 1.4&middot;10<sup>22<\/sup> passes",
+   "text": "The orbit is <code>[5, 11]<\/code> at pass 3, and the states <code>[a, 2a+1]<\/code> follow each other by G with a = 5 mod 12 (checked against the orbit for 30,000 passes). With the line above, the orbit of the pass map has no halt and no stop block of 1 until a reaches 2<sup>74<\/sup>, about pass 1.4&middot;10<sup>22<\/sup> (pass n has 3a + 1 = 4(n+1) ones), and by <code>halts_only_by_one<\/code> the machine does not halt before. Rests on the Lean pass map and on the Python computation, whose <code>passmap<\/code> is tested against Lean's <code>next<\/code>.",
    "where": "<code>python3 py/returnmap.py orbit 200000<\/code>, <code>notes/LAB_NOTES.md<\/code>"
   },
   {
@@ -491,10 +497,34 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
    "where": "<code>c/passorbit.c<\/code>, <code>runs/orbit_1e11.txt<\/code>, <code>py/passorbit.py<\/code>, <code>tests/test_passorbit.py<\/code>"
   },
   {
+   "level": "trusted",
+   "title": "The first block along the first 10<sup>8<\/sup> passes",
+   "text": "Iterated in Python on the closed form: every list keeps blocks after the first at least 2 and no two passes in a row stop at the first block, as proved. The first block falls only at stops at the first or second block; over 10<sup>8<\/sup> passes a descent (a stretch over which it never grows) contains at most 5 halvings and loses at most a factor 32 (12,024,895 to 375,777 near pass 1.3&middot;10<sup>7<\/sup>), and after pass 50 the first block stays above 0.7% of the ones. The event needs it to fall to 1: about 18 more halvings in one descent even from its lowest point.",
+   "where": "<code>python3 py/front.py stats 100000000<\/code>, <code>tests/test_front.py<\/code>"
+  },
+  {
    "level": "heuristic",
    "title": "Stop blocks stay above a fixed fraction of a",
-   "text": "On every route down to mod 2<sup>62<\/sup>, each stop block is at least about a/64; the worst fraction shrinks like 2<sup>&minus;m/10<\/sup> with the depth m of the residue class (a = 2<sup>r<\/sup> + 1: about a&middot;2<sup>&minus;r/10<\/sup>). A stop block of 1 would need it to shrink like 2<sup>&minus;m<\/sup>. The route list is infinite: the tail left by the first pass lives v<sub>2<\/sub>(a&minus;1) passes, so k is unbounded, and the front runs nested excursions inside it; for each k the routes are finite (k = 1 to 5 need a mod 2<sup>8<\/sup>, 2<sup>17<\/sup>, 2<sup>26<\/sup>, 2<sup>35<\/sup>, 2<sup>44<\/sup>).",
-   "where": "<code>python3 py/returnmap.py classes 60<\/code>, <code>notes/LAB_NOTES.md<\/code>"
+   "text": "On every route down to mod 2<sup>74<\/sup>, each stop block is at least about a/64 (2<sup>&minus;6<\/sup> from depth 48 to 74, 2<sup>&minus;4<\/sup> from 19 to 45): the worst fraction shrinks with the depth m of the residue class, about as 2<sup>&minus;m/10<\/sup> or slower (a = 2<sup>r<\/sup> + 1: about a&middot;2<sup>&minus;r/10<\/sup>). A stop block of 1 would need it to shrink like 2<sup>&minus;m<\/sup>. The route list is infinite: the tail left by the first pass lives v<sub>2<\/sub>(a&minus;1) passes, so k is unbounded, and the front runs nested excursions inside it; for each k the routes are finite (k = 1 to 5 need a mod 2<sup>8<\/sup>, 2<sup>17<\/sup>, 2<sup>26<\/sup>, 2<sup>35<\/sup>, 2<sup>44<\/sup>).",
+   "where": "<code>python3 py/returnmap.py classes 72<\/code>, <code>notes/LAB_NOTES.md<\/code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The orbit of G is a counter",
+   "text": "G never goes down: the state <code>[a', 2a'+1]<\/code> has 3a'+1 ones, four more per pass than <code>[a, 2a+1]<\/code> (<code>next_sum<\/code>), so a' = a + 12k with k &ge; 1. From a = 5 the orbit steps through the values a = 5 mod 12 in order and skips exactly those inside a jump, a + 12j with 0 &lt; j &lt; k(a): 4.8% of them in the first 300,000 returns (up to a = 3,780,401), where k = 1, 2, 3, 4 occur 285,232, 14,510, 251 and 7 times. The deep values are on it: every a = 2<sup>r<\/sup> + 1 with r even in that range, and the values with v<sub>2<\/sub>(a&minus;1) = r occur about 2<sup>&minus;r<\/sup> as often as for a uniform a. So there is no orbit to follow: in practice the machine halts if and only if some excursion from <code>[a, 2a+1]<\/code> is unsafe.",
+   "where": "<code>python3 py/dynamics.py orbit 300000<\/code>, <code>runs/dyn_orbit.txt<\/code>, <code>tests/test_dynamics.py<\/code>"
+  },
+  {
+   "level": "trusted",
+   "title": "An excursion reads only the low bits of a",
+   "text": "The route of the excursion from <code>[a, 2a+1]<\/code>, and so k and the stop blocks as fractions of a, depends only on a mod 2<sup>m<\/sup> for some m: for random a of 64 or of 1,024 bits, m is 5 on average and at most 16, and k and the margin have the same distribution at both sizes. The classes that need more than m bits have measure about 2<sup>&minus;0.81m<\/sup> (15,828&middot;2<sup>&minus;72<\/sup> of a = 1 mod 4 at m = 74).",
+   "where": "<code>python3 py/dynamics.py random 1024 1000<\/code>, <code>python3 py/dynamics.py tree 72<\/code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Collatz-like mixing, but only on a thin set",
+   "text": "The classes still open at depth D (members whose route needs more than D+2 bits) number 5, 20, 67, 261, 584, 2,061, 4,332, 15,828 at D = 16, 24, &hellip;, 72: about 2<sup>0.19D<\/sup>, a 2-adic Cantor set of dimension about 0.19 that holds every a not yet proved safe (and a = 1, whose excursion is the stop block of 1). On it the blocks are a&middot;c + e with c a dyadic fraction whose odd numerator is about as long as the modulus (51 bits at depth 48), and no two open classes share their coefficients even up to scale (584 of 584 at depth 48): the deep excursions mix the bits of a like an affine map with odd multipliers, as Collatz does, and are not a finite automaton in these coordinates. What separates this from Collatz is the margin: a halt needs a stop block of 1, a fraction about 1/a, and every route checked keeps it above 1/64.",
+   "where": "<code>python3 py/dynamics.py tree 72<\/code>, <code>python3 py/dynamics.py mixing 48<\/code>, <code>notes/LAB_NOTES.md<\/code>"
   },
   {
    "level": "heuristic",
@@ -503,9 +533,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
    "where": "<code>c/passorbit.c<\/code>, <code>runs/<\/code>, <code>notes/LAB_NOTES.md<\/code> (31 October, the wider search)"
   },
   {
+   "level": "heuristic",
+   "title": "No invariant of sizes or fixed residues",
+   "text": "Small starts reach the stop block of 1 by a halving loop: a stop at the first of three blocks, then an even last block on four, repeated, halves the first block every two passes (<code>[110, 63, 23]<\/code> reaches it in 9 passes, every block but the last at least 23). So no lower bound on block sizes is kept by the pass map, and since each pass halves blocks, the route depends on ever higher bits: no set described by inequalities and residues modulo a fixed power of 2 is closed under the map and excludes the event. What keeps the orbit out of the loop is the 2-adic digits of its blocks.",
+   "where": "<code>python3 py/front.py loop<\/code>, <code>notes/LAB_NOTES.md<\/code>"
+  },
+  {
    "level": "open",
    "title": "An induction for the excursion",
-   "text": "The excursion from <code>[a, 2a+1]<\/code> for every a. The route list is infinite because of the halving tail and the loops it nests, so this needs an induction on the tail length showing that stop blocks stay above a fraction of a that shrinks slower than 1/a. That, with the reduction, would prove the machine never halts.",
+   "text": "The excursion from <code>[a, 2a+1]<\/code> for every a (the orbit of G is a counter, so a statement for all a is what is needed). The route list is infinite because of the halving tail and the loops it nests, and the deep routes mix the bits of a, so a finite table or automaton will not do: this needs an inequality proved by induction on the tail length, that stop blocks stay above a fraction of a that shrinks slower than 1/a (observed: a/64 on every route to mod 2<sup>74<\/sup>). That, with the reduction, would prove the machine never halts. Equivalently (<code>halts_only_at_front<\/code>), a lower bound above 1 on the first block along the orbit.",
    "where": "<code>notes/LAB_NOTES.md<\/code>"
   },
   {

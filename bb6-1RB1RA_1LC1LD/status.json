@@ -81,6 +81,12 @@
       "where": "<code>astep_key</code>, <code>arun_finishes</code>, <code>pass_finishes</code>, <code>lean/Finish.lean</code>; <code>py/macro.py reach</code>"
     },
     {
+      "level": "kernel",
+      "title": "The last block after a recursive pass: 2j + c",
+      "text": "A recursive pass from <code>&hellip; x, 3j</code> turns the last block into the words <code>0</code>, <code>0 1</code> and j words <code>0 1 1</code>. Its end is a loop: from A before a block a with m words <code>0 1 1</code> ahead, every two words add 4 to a and 2 to the block left of it, and the next pass start has last block a + 2m, for every a, m and tape to the left. The block machine never reads past the words in front of it, so what comes before the loop is the same for every j: it is run once, with words <code>0 1 1</code> taken from an unbounded supply as needed (<code>pre</code>, u words taken, p still ahead when it stops), and then for every j &ge; u the next pass start has last block 2j + c with c = a + 2p &minus; 2u, which depends only on the blocks to the left. For x = 2 this is closed form for every list to the left and every j: c = &minus;1, so a last block 3 after a 2 becomes 1 and halts, and a last block of 6 or more after a 2 keeps a good pass start good. For every list of one to three blocks of 2 to 10 (819 lists) the kernel checks c &ge; &minus;1, with &minus;1 exactly when x = 2, for every j. That c &ge; &minus;1 for every list is not proved, and nor is it proved that <code>pre</code> always stops.",
+      "where": "<code>tail_end</code>, <code>pre_sound</code>, <code>recur_sound</code>, <code>recur_two</code>, <code>recur_two_three_halts</code>, <code>recur_two_good</code>, <code>recur_small</code>, <code>lean/Formula.lean</code>"
+    },
+    {
       "level": "trusted",
       "title": "No halt in the first 10<sup>11</sup> steps",
       "text": "The shared C simulator runs 10<sup>11</sup> steps from blank tape without a halt (12,410 ones at the end; at 10<sup>10</sup> steps 5,580 ones and 6,278 cells visited). The C simulator agrees with the Python reference simulator on the first 80 records of the run (a test).",
@@ -113,7 +119,7 @@
     {
       "level": "trusted",
       "title": "Only a last block of 3 or 6 can break goodness",
-      "text": "For a recursive pass from <code>&hellip; x, 3j</code> the new last block is 2j + c, where the offset c depends on the blocks to the left but not on j, and is never below &minus;1 (exactly &minus;1 when x = 2) and never 1 or 4. So with a last block of 9 or more the recursive pass also gives a good pass start, and every good list on which the next pass start is not good has last block 3 or 6: exhaustive over all lists of up to 3 blocks of 2 to 30 and up to 5 blocks of 2 to 12, and 20,000 random lists with blocks up to 200. Examples: <code>2 3 &rarr; 8 1</code>, <code>5 3 &rarr; 8 4</code>, <code>8 6 &rarr; 2 11 4</code>. A last block 3 with a block of 6 or more to its left was always safe; a last block 3 from a covered pass always has one.",
+      "text": "For a recursive pass from <code>&hellip; x, 3j</code> the new last block is 2j + c, where the offset c depends on the blocks to the left but not on j (proved, <code>recur_sound</code>), and is never below &minus;1 (exactly &minus;1 when x = 2; proved for x = 2 and for lists of up to 3 blocks of 2 to 10) and never 1 or 4. So with a last block of 9 or more the recursive pass also gives a good pass start, and every good list on which the next pass start is not good has last block 3 or 6: exhaustive over all lists of up to 3 blocks of 2 to 30 and up to 5 blocks of 2 to 12, and 20,000 random lists with blocks up to 200. Examples: <code>2 3 &rarr; 8 1</code>, <code>5 3 &rarr; 8 4</code>, <code>8 6 &rarr; 2 11 4</code>. A last block 3 with a block of 6 or more to its left was always safe; a last block 3 from a covered pass always has one.",
       "where": "<code>py/blocks.py exhaustive</code>, <code>random</code>, <code>offsets</code>; <code>tests/test_machine.py</code>"
     },
     {
@@ -130,8 +136,8 @@
     },
     {
       "level": "open",
-      "title": "A closed form in the recursive case, and the bad last blocks",
-      "text": "The recursive pass is proved in Lean as an algorithm, not as a formula: a closed form for the new last block (2j + c, with c from the blocks to the left) is computed but not proved. Then the question is whether a last block 3 or 6 in a bad position (and from it 1 or 4) is ever reached. Goodness is preserved on every other pass (proved for the covered passes, computed for the recursive ones).",
+      "title": "c &ge; &minus;1 for every list, and the bad last blocks",
+      "text": "The new last block after a recursive pass is proved to be 2j + c with c depending only on the blocks to the left, and c = &minus;1 when x = 2 (<code>lean/Formula.lean</code>). Open: that c &ge; &minus;1 for every list (the part before the final loop can carry on through any number of blocks to the left, so this needs an induction over them), that this part always stops, and whether a last block 3 or 6 in a bad position (and from it 1 or 4) is ever reached. Goodness is preserved on every other pass (proved for the covered passes and for x = 2, computed for the other recursive ones).",
       "where": "<code>notes/LAB_NOTES.md</code>"
     },
     {
@@ -144,7 +150,7 @@
   "check": [
     "bash scripts/setup-lean.sh                    # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Blocks, Recur, Finish, Axioms",
+    "bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Blocks, Recur, Finish, Formula, Axioms",
     "python3 bb6-1RB1RA_1LC1LD/tests/test_machine.py",
     "python3 bb6-1RB1RA_1LC1LD/py/blank.py records 100000 60",
     "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 10000000000",

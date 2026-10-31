@@ -129,6 +129,31 @@ def pass_full(ls, n, fuel=10**9):
     return None
 
 
+def pre(ls, fuel=10**6):
+    """`pre` in lean/Formula.lean: the recursive pass from `K ls (3j - 1)` before its final loop, the same for every j.
+    The block machine runs from B before the words 0, 0 1, taking words 0 1 1 from an unbounded supply when it needs
+    them (u counts them), until A has only words 0 1 1 ahead.  Returns (blocks to the left, two explicit, p words
+    0 1 1 in front, u); the next pass start then has last block a + 2(p + j - u) = 2j + c, c = a + 2p - 2u."""
+    q, h, L, W, u = "B", 0, list(ls[:1] or [0]) + list(ls[1:]), [0, 1], 0
+    for _ in range(fuel):
+        if q == "A" and h == 0 and all(w == 2 for w in W):
+            return (L + [0, 0])[:max(2, len(L))], len(W), u
+        if not W or (q == "C" and W == [1]):
+            W, u = W + [2], u + 1
+            continue
+        r = astep(q, h, L, W)
+        if r is None or r == HALT or r[0] == "pass":
+            return None
+        q, h, L, W = r
+    return None
+
+
+def offset(ls):
+    """The offset c of `recur_sound` in lean/Formula.lean for the blocks `ls` (nearest first), and u."""
+    L, p, u = pre(ls)
+    return L[0] + 2 * p - 2 * u, u
+
+
 def next_full(blocks):
     """The next pass start for every last block, as a tuple of blocks (left to right), from `pass_full`; HALT, or
     None if not covered.  Leading blocks of length 0 are dropped."""
