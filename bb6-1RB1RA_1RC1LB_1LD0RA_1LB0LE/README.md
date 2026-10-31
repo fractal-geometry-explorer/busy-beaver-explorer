@@ -32,9 +32,9 @@ pass map (`py/passmap.py`) gives every pass start of the first 10⁹ steps (1,00
 on 3,000 random lists and the first 400 passes; no conserved a·ones + b·pos + W[state] modulo 2 to 12. **The return
 map** (`py/returnmap.py`, computed on the pass map that `pass` proves): every two-block state `[a, 2a+d]` reaches one
 with d = 1 in at most three passes, and from `[a, 2a+1]` the orbit returns to `[a+12k, 2(a+12k)+1]` after 9k passes;
-from pass 3 (`[5, 11]`) the orbit is a chain of these with a = 5 mod 12. Run on residue classes of a down to mod 2^62,
-no excursion halts or meets a stop block of 1 for 5 ≤ a < 2^62, so with `halts_only_by_one`, **no halt in the first
-3.4·10¹⁸ passes** (resting on the Lean pass map and on this Python computation, whose `passmap` is tested against
+from pass 3 (`[5, 11]`) the orbit is a chain of these with a = 5 mod 12. Run on residue classes of a down to mod 2^74,
+no excursion halts or meets a stop block of 1 for 5 ≤ a < 2^74, so with `halts_only_by_one`, **no halt in the first
+1.4·10²² passes** (resting on the Lean pass map and on this Python computation, whose `passmap` is tested against
 Lean's `next`).
 
 **Computed, by plain iteration** (`c/passorbit.c`, the closed form in C, checked against `py/passmap.py`; resting on
@@ -55,9 +55,16 @@ above 0.7% of the ones, while a stop block of 1 needs it to fall to 1. No invari
 modulo a fixed power of 2 can exclude the event (`notes/LAB_NOTES.md`, 31 October: small starts reach it by a halving
 loop of the first block, and what keeps the orbit out of it is the 2-adic digits).
 
-**Observed only**: on every route down to mod 2^62 the stop blocks stay above about a/64, shrinking like 2^(−m/10)
+**Observed only**: on every route down to mod 2^74 the stop blocks stay above about a/64, shrinking like 2^(−m/10) or slower
 with the depth m of the class. The route list is infinite (the tail of the first pass lives v₂(a−1) passes), finite
 for each k.
+
+**The return map's dynamics** (`py/dynamics.py`, `notes/LAB_NOTES.md`, 31 October): G is a counter (a' = a + 12k,
+k ≥ 1, by `next_sum`), and its orbit runs through 95% of all a = 5 mod 12 in order, so what matters is whether
+*every* excursion is safe, not where one orbit goes (computed). An excursion reads a few low bits of a. The a not yet
+covered form a 2-adic set of dimension about 0.19, and on it the bits of a mix as in Collatz, so the coefficients never
+repeat (computed). Every route keeps a margin of a/64 against the 1/a a halt needs (heuristic). Verdict: not
+Collatz-like at the level of G. A proof needs an inequality by induction, not a finite table.
 
 **Open**: an induction for the excursion from `[a, 2a+1]` over the tail length (whether a sweep ever stops at a block
 of 1), and so the question itself.
@@ -77,6 +84,8 @@ of 1), and so the question itself.
 | `py/returnmap.py` | the return map on two-block states: the short chains, G(a), the run on residue classes |
 | `py/front.py` | the first block along the orbit: descents, the halving loop |
 | `tests/test_front.py` | the statements of `lean/Front.lean` on the Python closed form, and the orbit measurements |
+| `py/dynamics.py` | the long-run dynamics of G: the orbit as a counter, the bits an excursion reads, the class tree and its open set, the mixing |
+| `tests/test_dynamics.py` | the counter, the bits read, the tree to mod 2^26, the mixing at depth 32 |
 | `tests/test_returnmap.py` | the chains, the classes down to mod 2^38, the classes against concrete runs, the orbit chain |
 | `py/explainer_status.py` | writes the explainer's status panel from `status.json` |
 | `tests/test_explainer.py` | the explainer's engine against `py/passmap.py` and the reference simulator; its status panel current |
@@ -99,7 +108,9 @@ python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py stats 2000000
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_returnmap.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_front.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/front.py stats 100000000   # about 4 min
-python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 60    # 24 s
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 60    # 24 s (classes 72: 2.5 min)
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_dynamics.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/dynamics.py orbit 300000; python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/dynamics.py tree 72   # 4 min
 python3 tools/pages/build_status.py bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/status.json pages/1RB1RA_1RC1LB_1LD0RA_1LB0LE/proof-status.html   # after editing status.json
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/explainer_status.py                                                                       # the same, for the explainer
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_explainer.py
