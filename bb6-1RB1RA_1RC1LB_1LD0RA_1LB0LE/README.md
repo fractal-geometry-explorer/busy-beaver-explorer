@@ -19,12 +19,20 @@ first 20,000 steps (`blank_runs_20000`), all in `lean/Blank.lean`. The pieces of
 
 **Computed** (trusted C/Python, tested): no halt in the first 10¹¹ steps (`tools/c/tmrun.c`); the closed form of the
 pass map (`py/passmap.py`) gives every pass start of the first 10⁹ steps (1,005 passes); no conserved
-a·ones + b·pos + W[state] modulo 2 to 12.
+a·ones + b·pos + W[state] modulo 2 to 12. **The return map** (`py/returnmap.py`, on the closed form): every
+two-block state `[a, 2a+d]` reaches one with d = 1 in at most three passes, and from `[a, 2a+1]` the orbit returns to
+`[a+12k, 2(a+12k)+1]` after 9k passes; from pass 3 (`[5, 11]`) the orbit is a chain of these with a = 5 mod 12. Run on
+residue classes of a down to mod 2^62, no excursion halts or meets a stop block of 1 for 5 ≤ a < 2^62, so **if the
+closed form holds, no halt in the first 3.4·10¹⁸ passes**.
 
 **Observed only**: the closed form agrees with the machine on about 3,100 random block lists; iterated 2·10⁷ passes
 from `[2, 2]` it never meets the one case that can lead to a halt (a sweep stopping at a block of a single 1).
 
-**Open**: a Lean proof of the pass map, the return map on two-block states `[a, 2a+d]`, and the question itself.
+**Observed only**: on every route down to mod 2^62 the stop blocks stay above about a/64, shrinking like 2^(−m/10)
+with the depth m of the class. The route list is infinite (the tail of the first pass lives v₂(a−1) passes), finite
+for each k.
+
+**Open**: a Lean proof of the pass map, an induction for the excursion over the tail length, and the question itself.
 
 ## Layout
 
@@ -36,6 +44,8 @@ from `[2, 2]` it never meets the one case that can lead to a halt (a sweep stopp
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `lean/check.sh` | compiles the shared library, then the files above |
 | `py/passmap.py` | the pass map: closed form, a pass run on the machine, the orbit, statistics, a random check |
+| `py/returnmap.py` | the return map on two-block states: the short chains, G(a), the run on residue classes |
+| `tests/test_returnmap.py` | the chains, the classes down to mod 2^38, the classes against concrete runs, the orbit chain |
 | `tests/test_machine.py` | generated files current, the page current, C against Python, the closed form against the machine and the C run |
 | `status.json` | the source of the proof-status page (`tools/pages/build_status.py`) |
 
@@ -46,5 +56,7 @@ bash scripts/setup-lean.sh && . /etc/profile.d/lean.sh
 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py stats 2000000
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_returnmap.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 60    # 24 s
 python3 tools/pages/build_status.py bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/status.json pages/1RB1RA_1RC1LB_1LD0RA_1LB0LE/proof-status.html   # after editing status.json
 ```

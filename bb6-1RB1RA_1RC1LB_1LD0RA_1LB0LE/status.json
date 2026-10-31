@@ -8,10 +8,11 @@
     "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on. (It shares its first three states with <code>1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</code>, which has its own page; the two are different machines.)",
     "The work has just started. The run is made of passes, and a pass is a map on the lengths of the blocks of ones; a closed form of that map is found and tested, and its pieces are proved in Lean one by one."
   ],
-  "asof": "Status as of 30 October 2026.",
+  "asof": "Status as of 31 October 2026.",
   "verdict": [
     "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>11</sup> steps.",
-    "<b>Where it stands.</b> At the start of each pass the tape is <code>1^y1 0 1^y2 0 &hellip; 0 1^yk A&gt;0</code>. If the closed form of the pass map holds (tested, not proved), a pass adds exactly four ones, a halt needs the last block odd and all others even (so an odd number of ones), and the only way out of the even counts is a pass whose sweep stops at a block of a single 1. So the machine halts only if the orbit of block lists ever meets such a block. In 2&middot;10<sup>7</sup> passes it never does: after pass 50 the smallest such block is 59, and the lists have 2 to 6 blocks, all of them a fixed fraction of the tape except a tail that halves each pass."
+    "<b>Where it stands.</b> At the start of each pass the tape is <code>1^y1 0 1^y2 0 &hellip; 0 1^yk A&gt;0</code>. If the closed form of the pass map holds (tested, not proved), a pass adds exactly four ones, a halt needs the last block odd and all others even (so an odd number of ones), and the only way out of the even counts is a pass whose sweep stops at a block of a single 1. So the machine halts only if the orbit of block lists ever meets such a block. In 2&middot;10<sup>7</sup> passes it never does: after pass 50 the smallest such block is 59, and the lists have 2 to 6 blocks, all of them a fixed fraction of the tape except a tail that halves each pass.",
+    "<b>The return map.</b> On the closed form, every two-block state <code>[a, 2a+d]</code> leads in at most three passes to one with d = 1, and from <code>[a, 2a+1]</code> the orbit comes back to <code>[a+12k, 2(a+12k)+1]</code> after 9k passes. From pass 3 (<code>[5, 11]</code>) the orbit is a chain of such states with a = 5 mod 12, so whether the machine halts is a question about the excursion from <code>[a, 2a+1]</code> for almost every a. Run on residue classes of a down to mod 2<sup>62</sup>, no excursion meets a stop block of 1 for 5 &le; a &lt; 2<sup>62</sup>: if the closed form holds, no halt in the first 3.4&middot;10<sup>18</sup> passes."
   ],
   "sections": [
     {
@@ -66,6 +67,24 @@
       "where": "<code>tools/py/bbtools/invariants.py</code>"
     },
     {
+      "level": "trusted",
+      "title": "The short chains between two-block states",
+      "text": "On the closed form, from <code>[a, 2a+d]</code>: d = 0 goes to &minus;2, &minus;2 to &minus;1, 2 to &minus;3 (one pass each), &minus;1 to 1 and 3 to 2 (two passes), &minus;3 to 0 (three passes), with a growing by 2, 1, 3, 2, 3, 3. So every two-block state reaches one with d = 1. Algebra from the closed form, checked on each whole residue class mod 4 by running the closed form on values p + q&middot;u.",
+      "where": "<code>python3 py/returnmap.py chains</code>, <code>tests/test_returnmap.py</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "The return map G(a) = a + 12k, for every a below 2<sup>62</sup>",
+      "text": "Run on residue classes a = p + q&middot;u (parities known while q is even, classes split otherwise) down to a mod 2<sup>62</sup>: 19,231 routes from <code>[a, 2a+1]</code> back to <code>[a+12k, 2(a+12k)+1]</code> after 9k passes, k = 1 to 10; no class halts or meets a stop block of 1; only a = 1 is set aside (it stops at a block of 1). The members below 2<sup>62</sup> of the 2,890 classes still open were run one by one and return too (k up to 11). So for every a = 1 mod 4 with 5 &le; a &lt; 2<sup>62</sup> the excursion is safe. 24 seconds.",
+      "where": "<code>python3 py/returnmap.py classes 60</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "If the closed form holds: no halt in the first 3.4&middot;10<sup>18</sup> passes",
+      "text": "The orbit is <code>[5, 11]</code> at pass 3, and the states <code>[a, 2a+1]</code> follow each other by G with a = 5 mod 12 (checked against the orbit for 30,000 passes). With the line above, the orbit has no halt and no stop block of 1 until a reaches 2<sup>62</sup>, about pass 3.4&middot;10<sup>18</sup> (pass n has 3a + 1 = 4(n+1) ones). Conditional on the closed form, which is tested, not proved.",
+      "where": "<code>python3 py/returnmap.py orbit 200000</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
       "level": "heuristic",
       "title": "The closed form of a pass, for every block list",
       "text": "The closed form agrees with the machine on about 3,100 random block lists of up to 10 blocks of 1 to 12 ones each, every case except a stop block of 1. Not proved: the zigzag is a loop whose rounds grow, so it needs an induction in Lean on top of <code>zig</code>.",
@@ -78,9 +97,15 @@
       "where": "<code>python3 py/passmap.py stats 20000000</code>, <code>notes/LAB_NOTES.md</code>"
     },
     {
+      "level": "heuristic",
+      "title": "Stop blocks stay above a fixed fraction of a",
+      "text": "On every route down to mod 2<sup>62</sup>, each stop block is at least about a/64; the worst fraction shrinks like 2<sup>&minus;m/10</sup> with the depth m of the residue class (a = 2<sup>r</sup> + 1: about a&middot;2<sup>&minus;r/10</sup>). A stop block of 1 would need the fraction to shrink like 2<sup>&minus;m</sup>. The route list is infinite: the tail left by the first pass lives v<sub>2</sub>(a&minus;1) passes, so k is unbounded, and the front runs nested excursions inside it; for each k the routes are finite (k = 1 to 5 need a mod 2<sup>8</sup>, 2<sup>17</sup>, 2<sup>26</sup>, 2<sup>35</sup>, 2<sup>44</sup>).",
+      "where": "<code>python3 py/returnmap.py classes 60</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
       "level": "open",
-      "title": "A proof of the pass map, and the return map on two-block states",
-      "text": "Prove the closed form in Lean (an induction for the zigzag, then the cases of the sweep), then find the map from one two-block state <code>[a, 2a+d]</code> to the next and what decides the length of the halving tail. That is where an argument that no stop block is ever 1 would have to come from.",
+      "title": "A proof of the pass map, and an induction for the excursion",
+      "text": "Prove the closed form in Lean (an induction for the zigzag, then the cases of the sweep). Then the excursion from <code>[a, 2a+1]</code> for every a: the route list is infinite because of the halving tail and the loops it nests, so this needs an induction on the tail length showing that stop blocks stay above a fraction of a that shrinks slower than 1/a.",
       "where": "<code>notes/LAB_NOTES.md</code>"
     },
     {
@@ -97,6 +122,8 @@
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py orbit 40",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py check 3000 6",
+    "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_returnmap.py",
+    "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 60   # 24 s",
     "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD 100000000000"
   ]
 }
