@@ -12,3 +12,11 @@ iterate the closed form of the pass map, which is tested and not proved. See `no
 
 The searches ran as 48 parts, 3 at a time (`tools/c/run_parts.sh 48 3 DIR ./passorbit ...`), merged by
 `tools/py/merge_parts.py`, which refuses a missing or unfinished part. Only the first 40 `event` lines are kept here.
+
+Outputs of the Python return-map tools (31 October 2026, the long-run dynamics):
+
+| file | command | CPU time |
+|---|---|---|
+| `classes72.txt` | `py/returnmap.py classes 72`: the excursions on classes down to mod 2^74, open members run concretely | 2.5 min |
+| `tree72.txt` | `py/dynamics.py tree 40 48 56 64 72`: routes, open classes, worst margin by depth | 6 min |
+| `dyn_orbit.txt` | `py/dynamics.py orbit 300000` and `py/dynamics.py mixing 48` | 1 min |
