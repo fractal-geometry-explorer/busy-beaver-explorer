@@ -231,6 +231,21 @@ class TestMacro(unittest.TestCase):
         for a, b in zip(seq, seq[1:]):
             self.assertEqual(macro.next_full(a), b, a)
 
+    def test_key_goes_down(self):
+        """`astep_key` in lean/Finish.lean, along recursive passes from random tapes (blocks 0 and 1 allowed): the key
+        goes down at every step; from tapes with every block at least 2 each pass finishes, and how far left of the
+        original tape the head gets does not depend on j."""
+        import random
+        rnd = random.Random(5)
+        for _ in range(150):
+            ls = [rnd.randint(0, 20) for _ in range(rnd.randint(0, 5))]
+            macro.reach(ls, 3 * rnd.randint(0, 12) + 2)
+        for _ in range(60):
+            ls = [rnd.randint(2, 30) for _ in range(rnd.randint(0, 6))]
+            out = [macro.reach(ls, 3 * j + 2) for j in (0, 3, 10, 25)]
+            self.assertTrue(all(r is not None and r != macro.HALT for r, _, _ in out), ls)
+            self.assertEqual(len({e for _, _, e in out}), 1, ls)
+
 
 class TestBlocks(unittest.TestCase):
     def test_simulator(self):

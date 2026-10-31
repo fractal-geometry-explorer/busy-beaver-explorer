@@ -11,6 +11,7 @@ usage:
   python3 py/macro.py check STEPS          compare next_pass with the run: every non-recursive pass, and a census
   python3 py/macro.py check-file FILE      the same for `tools/c/tmrun MACHINE STEPS at A R N` output (grep 'A>0$')
   python3 py/macro.py check-full FILE      compare next_full (every pass, the recursive ones too) with such a file
+  python3 py/macro.py reach FILE           the recursive passes in such a file: steps of the block machine, how far left
 """
 import os
 import sys
@@ -167,6 +168,41 @@ def next_full(blocks):
     return tuple(out)
 
 
+def key(c):
+    """`key` in lean/Finish.lean: the cells from the head to the right end of the tape, read from the right end, a 1 as
+    False and a 0 as True.  `astep_key`: every step of the block machine that does not end the pass makes it smaller
+    in dictionary order (False before True, a proper prefix first)."""
+    q, h, L, W = c
+    cells = [False] * h
+    for k in W:
+        cells += [True] + [False] * k
+    return cells[::-1]
+
+
+def below(a, b):
+    """`Below` in lean/Finish.lean: a before b in that order."""
+    for x, y in zip(a, b):
+        if x != y:
+            return y
+    return len(a) < len(b)
+
+
+def reach(ls, n, fuel=10**9):
+    """The recursive pass from `K ls n` (n = 3j + 2) through the block machine: (result as pass_full gives it, number
+    of steps, how many cells left of the original tape the head gets at most).  Checks `astep_key` on the way."""
+    c = ("B", 0, list(ls[:1] or [0]) + list(ls[1:]), [0, 1] + tw(2, n // 3, 0))
+    tape = len(key(c)) + sum(b + 1 for b in ls)
+    far = len(key(c))
+    for t in range(fuel):
+        c2 = astep(*c)
+        if c2 is None or c2 == HALT or c2[0] == "pass":
+            return c2, t + 1, far - tape
+        assert below(key(c2), key(c)), (c, c2)
+        far = max(far, len(key(c2)))
+        c = c2
+    return None, fuel, far - tape
+
+
 def blocks_of(cells):
     s = "".join(map(str, cells)).strip("0")
     return tuple(len(p) for p in s.split("0"))
@@ -241,6 +277,17 @@ def main(argv):
             if next_full(a) != b:
                 raise AssertionError(f"next_full{a} = {next_full(a)}, the run gives {b}")
         print(f"passes: {len(seq) - 1}; next_full agrees with the run on all of them, {rec} recursive")
+    elif cmd == "reach":
+        seq = [parse_tmrun(l)[1] for l in open(argv[1]) if l.strip()]
+        rec, steps, far = 0, 0, Counter()
+        for a in seq:
+            if a[-1] % 3 == 0:
+                r, t, e = reach(list(reversed(a[:-1])), a[-1] - 1)
+                assert r is not None and r != HALT, a
+                rec, steps = rec + 1, max(steps, t)
+                far[e] += 1
+        print(f"recursive passes: {rec}; each finishes, key going down at every step; at most {steps} steps of the "
+              f"block machine; cells left of the original tape reached (count): {dict(sorted(far.items()))}")
     else:
         print(__doc__)
 
