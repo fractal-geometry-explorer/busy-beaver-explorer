@@ -1,7 +1,7 @@
 # Pages
 
-Nine self-contained HTML pages. Open any of them in a browser; they need no server. They load two fonts from Google
-Fonts and fall back to system fonts offline. `index.html` is a landing page that links to the nine, and
+Ten self-contained HTML pages. Open any of them in a browser; they need no server. They load two fonts from Google
+Fonts and fall back to system fonts offline. `index.html` is a landing page that links to the ten, and
 `.github/workflows/pages.yml` publishes this folder to GitHub Pages on every push to main.
 
 | page | machine | what it shows |
@@ -14,6 +14,7 @@ Fonts and fall back to system fonts offline. `index.html` is a landing page that
 | [`1RB1RA_1RC1LB/top-blocks.html`](1RB1RA_1RC1LB/top-blocks.html) | the same machine | where halting is decided: the number d1 at each return to the left end, the theorem that N only grows, the corrected odds of a halt, the law of N mod 2^k, and tests of the random model from 60,000 starts |
 | [`1RB1RA_1RC1LB/explainer.html`](1RB1RA_1RC1LB/explainer.html) | the same machine | runs the machine at six levels (raw steps, block rules, the macro step, the halving wave, the number N, and the cycles of the last blocks), each checked against the bare machine or the models where the step is small enough |
 | [`1RB1RA_1LC1LD/proof-status.html`](1RB1RA_1LC1LD/proof-status.html) | the machine `1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB` | its proof status, from [`../bb6-1RB1RA_1LC1LD`](../bb6-1RB1RA_1LC1LD) |
+| [`1RB1RA_1RC1LB_1LD0RA_1LB0LE/proof-status.html`](1RB1RA_1RC1LB_1LD0RA_1LB0LE/proof-status.html) | the machine `1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD` | its proof status, from [`../bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE`](../bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE) |
 | [`champion-rule-map.html`](champion-rule-map.html) | the BB(6) champion `1RB1RA_1RC1RZ_1LD0RF_1RA0LE_0LD1RC_1RA0RE` (mxdys, 2025) | what each of the champion's twelve rules does, sorted into routines |
 | [`champion-explorer.html`](champion-explorer.html) | the BB(6) champion | runs the champion step by step and decodes its tape into a countdown, a phase, a middle counter and a pile |
 
@@ -44,7 +45,8 @@ here, and at the move both builders reproduced the committed pages byte for byte
 
 `1RB1RA_1RC1LB/proof-status.html` is built by `../tools/pages/build_status.py` from
 `../bb6-1RB1RA_1RC1LB/status.json`; `1RB1RA_1LC1LD/proof-status.html` the same way from
-`../bb6-1RB1RA_1LC1LD/status.json`. Edit the JSON and rebuild.
+`../bb6-1RB1RA_1LC1LD/status.json`, and `1RB1RA_1RC1LB_1LD0RA_1LB0LE/proof-status.html` from
+`../bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/status.json`. Edit the JSON and rebuild.
 
 `1RB1RA_1RC1LB/reduction.html`, `1RB1RA_1RC1LB/top-blocks.html` and `1RB1RA_1RC1LB/explainer.html` are written by hand. The reduction's section "What is
 proved, what is trusted, what is heuristic" (marked `STATUS` in the HTML) is the part to update when a result changes,
