@@ -4,6 +4,7 @@ usage: python3 bb6-1RB1RA_1LC1LD/tests/test_machine.py
 """
 import json
 import os
+import random
 import subprocess
 import sys
 import tempfile
@@ -259,6 +260,25 @@ class TestBlocks(unittest.TestCase):
         self.assertTrue(all(len(v) == 1 for v in out.values()))
         self.assertTrue(all((min(v) == -1) == (x == 2) and min(v) >= -1 and not v & {1, 4} for (_, x), v in out.items()))
 
+
+    def test_formula(self):
+        """lean/Formula.lean: `pre` once per list gives the next pass start of the recursive pass for every j >= u
+        (blocks b + 2 ceil((p + j - u)/2), M; last block a + 2(p + j - u)), u <= 2, and for j = 1 < u the same last block."""
+        rnd = random.Random(11)
+        for _ in range(300):
+            ls = [rnd.choice([rnd.randint(2, 12), rnd.randint(2, 60)]) for _ in range(rnd.randint(1, 5))]
+            (a, b, *M), p, u = macro.pre(ls)
+            self.assertLessEqual(u, 2)
+            c = a + 2 * p - 2 * u
+            self.assertGreaterEqual(c, -1)
+            self.assertEqual(c == -1, ls[0] == 2)
+            for j in range(1, 7):
+                r = macro.pass_full(ls, 3 * j - 1)
+                self.assertEqual(r[2] + 1, 2 * j + c, (ls, j))
+                if j >= u:
+                    m = p + j - u
+                    strip = lambda l: list(l[:max([i + 1 for i, v in enumerate(l) if v] or [0])])
+                    self.assertEqual(strip(r[1]), strip([b + 2 * ((m + 1) // 2)] + M), (ls, j))
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
