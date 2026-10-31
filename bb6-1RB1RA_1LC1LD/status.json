@@ -10,7 +10,7 @@
   ],
   "asof": "Status as of 31 October 2026.",
   "verdict": [
-    "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>11</sup> steps. These are floors, not the way to an answer.",
+    "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>12</sup> steps with <code>native_decide</code>, by the pass map with step counts; the C simulator finds no halt in the first 10<sup>11</sup> steps. These are floors, not the way to an answer.",
     "<b>Where a halt would come from.</b> The only halting transition is E0, and E is entered only from D reading a 0, so the machine halts exactly when D reads a 0 with a 0 to its right. Lean proves that in the run from blank tape this can happen only at the right edge: past the head, two 0s in a row occur only in the blank region beyond everything written, so the machine halts if and only if E steps onto that blank region. At the left end D always has a 1 to its right, but that is forced by the step that brings D there, not a property of the run."
   ],
   "claims": [
@@ -41,7 +41,7 @@
     {
       "level": "native",
       "title": "No halt in the first 10,000,000 steps",
-      "text": "The same run for 10<sup>7</sup> steps, evaluated by compiled code.",
+      "text": "The same run for 10<sup>7</sup> steps, evaluated by compiled code. Superseded by the pass map below, which goes to 10<sup>12</sup>.",
       "where": "<code>blank_runs_10M</code>, <code>lean/Blank.lean</code>"
     },
     {
@@ -75,9 +75,21 @@
       "where": "<code>astep</code>, <code>astep_sound</code>, <code>pass</code>, <code>pass_sound</code>, <code>passes_sound</code>, <code>lean/Recur.lean</code>"
     },
     {
+      "level": "kernel",
+      "title": "The pass map with step counts",
+      "text": "Every rule of <code>lean/Rules.lean</code> states its exact number of steps, so the pass map can carry them: <code>passC</code> is <code>pass</code> returning, beside the next pass start (or a halt), the exact number of machine steps the pass takes, and <code>passesC</code> iterates it. Whatever they return, the machine does, in exactly that many steps. From blank tape the fourth pass start <code>1^10 0 1^3 A&gt;0</code> is reached at step 183.",
+      "where": "<code>passC</code>, <code>passC_sound</code>, <code>passesC_sound</code>, <code>blank_passesC</code>, <code>lean/Count.lean</code>"
+    },
+    {
+      "level": "native",
+      "title": "No halt in the first 10<sup>12</sup> steps",
+      "text": "The counted pass map, run from <code>1^10 0 1^3</code> for 8,257 passes and evaluated by compiled code (about 2.5 minutes), reaches the pass start <code>1^11866 0 1^17246 A&gt;0</code> at step 1,000,110,302,407, so the run from blank tape does not halt in its first 10<sup>12</sup> steps (and so not in the first 10<sup>10</sup> or 10<sup>11</sup>). Only the evaluation trusts the compiler; that each pass is what the machine does, step count included, is kernel-checked. Every pass start on the way to 10<sup>11</sup> steps (3,843 of them) agrees in step number and blocks with the C simulator.",
+      "where": "<code>blank_reaches_1e12</code>, <code>blank_runs_1e12</code>, <code>blank_runs_1e10</code>, <code>lean/Count.lean</code>"
+    },
+    {
       "level": "trusted",
       "title": "No halt in the first 10<sup>11</sup> steps",
-      "text": "The shared C simulator runs 10<sup>11</sup> steps from blank tape without a halt (12,410 ones at the end; at 10<sup>10</sup> steps 5,580 ones and 6,278 cells visited). The C simulator agrees with the Python reference simulator on the first 80 records of the run (a test).",
+      "text": "The shared C simulator runs 10<sup>11</sup> steps from blank tape without a halt (12,410 ones at the end; at 10<sup>10</sup> steps 5,580 ones and 6,278 cells visited). The C simulator agrees with the Python reference simulator on the first 80 records of the run (a test). The Lean pass map now goes further (10<sup>12</sup>, above).",
       "where": "<code>tools/c/tmrun.c</code>, <code>tests/test_machine.py</code>"
     },
     {
@@ -138,7 +150,7 @@
   "check": [
     "bash scripts/setup-lean.sh                    # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Blocks, Recur, Axioms",
+    "bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Blocks, Recur, Count, Axioms",
     "python3 bb6-1RB1RA_1LC1LD/tests/test_machine.py",
     "python3 bb6-1RB1RA_1LC1LD/py/blank.py records 100000 60",
     "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 10000000000",
