@@ -8,10 +8,10 @@
     "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on. (It shares its first three states with <code>1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</code>, which has its own page; the two are different machines.)",
     "The work has just started. The run is made of passes, and a pass is a map on the lengths of the blocks of ones; a closed form of that map is found and tested, and its pieces are proved in Lean one by one."
   ],
-  "asof": "Status as of 30 October 2026.",
+  "asof": "Status as of 31 October 2026.",
   "verdict": [
     "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>11</sup> steps.",
-    "<b>Where it stands.</b> At the start of each pass the tape is <code>1^y1 0 1^y2 0 &hellip; 0 1^yk A&gt;0</code>. If the closed form of the pass map holds (tested, not proved), a pass adds exactly four ones, a halt needs the last block odd and all others even (so an odd number of ones), and the only way out of the even counts is a pass whose sweep stops at a block of a single 1. So the machine halts only if the orbit of block lists ever meets such a block. In 2&middot;10<sup>7</sup> passes it never does: after pass 50 the smallest such block is 59, and the lists have 2 to 6 blocks, all of them a fixed fraction of the tape except a tail that halves each pass."
+    "<b>Where it stands.</b> At the start of each pass the tape is <code>1^y1 0 1^y2 0 &hellip; 0 1^yk A&gt;0</code>. If the closed form of the pass map holds (tested, not proved), a pass adds exactly four ones, a halt needs the last block odd and all others even (so an odd number of ones), and the only way out of the even counts is a pass whose sweep stops at a block of a single 1. So the machine halts only if the orbit of block lists ever meets such a block. In 10<sup>11</sup> passes it never does: after pass 50 no sweep stops at a block below 59, and the lists have 2 to 6 blocks, all of them a fixed fraction of the tape except a tail that halves each pass."
   ],
   "sections": [
     {
@@ -74,8 +74,14 @@
     {
       "level": "heuristic",
       "title": "The orbit stays away from a stop block of 1",
-      "text": "2&middot;10<sup>7</sup> passes of the closed form from <code>[2, 2]</code>: no halt, no stop block of 1 (the smallest after pass 50 is 59), 2 to 6 blocks. The two-block states are <code>[a, 2a+d]</code> with |d| &le; 3, reached every 1 to 32 passes in the first 2&middot;10<sup>6</sup>; in between a tail block halves each pass (1343, 673, 338, &hellip;).",
-      "where": "<code>python3 py/passmap.py stats 20000000</code>, <code>notes/LAB_NOTES.md</code>"
+      "text": "10<sup>11</sup> passes of the closed form from <code>[2, 2]</code> (C, checked against the Python form at every checkpoint up to 10<sup>7</sup>): no halt, no stop block of 1; after pass 50 no sweep stops at a block below 59, or below 1.4% of the ones on the tape. The two-block states are <code>[a, 2a+d]</code> with |d| &le; 3 nearly always; in between a tail block halves each pass (1343, 673, 338, &hellip;). As a statement about the pass map this is trusted computation; about the machine it rests on the unproved closed form.",
+      "where": "<code>c/passorbit.c</code>, <code>runs/orbit_1e11.txt</code>, <code>tests/test_passorbit.py</code>"
+    },
+    {
+      "level": "heuristic",
+      "title": "Where the stop block of 1 comes from",
+      "text": "A wider search on the closed form. Of all 268 million lists of 1 to 28 ones, every one with an odd count meets a stop block of 1 or halts, and every such event comes by pass 59; the survivors of 60 passes survive 1,000. Every two-block start <code>[a, b]</code> with a &ge; 2, a, b &le; 10<sup>4</sup> and 4 | a+b (the blank orbit's class) runs 1,000 passes without the event, and 5&middot;10<sup>6</sup> random lists with an even count and blocks near 10<sup>9</sup> never meet it. The event needs a sweep to stop at a block of 3 in the first two places one pass earlier: <code>[x, 3, z]</code> with x &equiv; 2, z &equiv; 3 mod 4 meets it on its second pass, and on the machine itself such lists halt a few passes later.",
+      "where": "<code>c/passorbit.c</code>, <code>runs/</code>, <code>notes/LAB_NOTES.md</code> (31 October)"
     },
     {
       "level": "open",
@@ -95,6 +101,7 @@
     ". /etc/profile.d/lean.sh",
     "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Axioms (under a minute)",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py",
+    "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py orbit 40",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py check 3000 6",
     "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD 100000000000"

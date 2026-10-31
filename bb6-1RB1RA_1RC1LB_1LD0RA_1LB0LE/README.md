@@ -21,8 +21,16 @@ first 20,000 steps (`blank_runs_20000`), all in `lean/Blank.lean`. The pieces of
 pass map (`py/passmap.py`) gives every pass start of the first 10⁹ steps (1,005 passes); no conserved
 a·ones + b·pos + W[state] modulo 2 to 12.
 
-**Observed only**: the closed form agrees with the machine on about 3,100 random block lists; iterated 2·10⁷ passes
-from `[2, 2]` it never meets the one case that can lead to a halt (a sweep stopping at a block of a single 1).
+**Computed on the closed form** (`c/passorbit.c`, checked against `py/passmap.py`; about the machine this is
+heuristic until the form is proved): iterated 10¹¹ passes from `[2, 2]` it never meets the one case that can lead to a
+halt, a sweep stopping at a block of a single 1; after pass 50 no sweep stops at a block below 59 or below 1.4% of the
+ones. The wider search (`notes/LAB_NOTES.md`, 31 October): of all 268 million lists of up to 28 ones, every one with an
+odd count meets the event or halts, and every event comes by pass 59; every two-block start `[a, b]` with a ≥ 2,
+a, b ≤ 10⁴ and 4 | a + b runs 1,000 passes without it; random lists with large blocks never meet it. The event needs
+a sweep to stop at a block of 3 in the first two places one pass before (`[x, 3, z]`, x ≡ 2, z ≡ 3 mod 4, meets it on
+its second pass and then halts on the machine).
+
+**Observed only**: the closed form agrees with the machine on about 3,100 random block lists.
 
 **Open**: a Lean proof of the pass map, the return map on two-block states `[a, 2a+d]`, and the question itself.
 
@@ -36,6 +44,10 @@ from `[2, 2]` it never meets the one case that can lead to a halt (a sweep stopp
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `lean/check.sh` | compiles the shared library, then the files above |
 | `py/passmap.py` | the pass map: closed form, a pass run on the machine, the orbit, statistics, a random check |
+| `c/passorbit.c` | the closed form in C: the blank orbit with checkpoints (`orbit`), and searches over starts (`comps`, `grid`, `random`) split into parts for `tools/c/run_parts.sh` |
+| `py/passorbit.py` | checks `passorbit` against `passmap` (checkpoints and hashes, counts), and runs the machine after the event (`after`) |
+| `runs/` | outputs of the long runs (`runs/README.md`) |
+| `tests/test_passorbit.py` | `passorbit` against `passmap` and the machine, and the two-pass family |
 | `tests/test_machine.py` | generated files current, the page current, C against Python, the closed form against the machine and the C run |
 | `status.json` | the source of the proof-status page (`tools/pages/build_status.py`) |
 
@@ -45,6 +57,8 @@ from `[2, 2]` it never meets the one case that can lead to a halt (a sweep stopp
 bash scripts/setup-lean.sh && . /etc/profile.d/lean.sh
 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py
+gcc -O3 -o passorbit bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/c/passorbit.c && ./passorbit orbit 100000000000   # about 35 min
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py stats 2000000
 python3 tools/pages/build_status.py bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/status.json pages/1RB1RA_1RC1LB_1LD0RA_1LB0LE/proof-status.html   # after editing status.json
 ```
