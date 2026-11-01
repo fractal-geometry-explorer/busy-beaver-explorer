@@ -134,6 +134,16 @@ every a = 1 mod 4, a ≥ 5, returns unless a mod 2^34 is one of 67 residues, a f
 (`returns_off_open34`). `thin` is `explore` without the concrete runs at
 the depth limit, and `thin_ok` proves that a non-returning a has its residue in the list it gives.
 
+**The orbit meets the first failure** (`lean/Visit.lean`, kernel only; `py/ancestry.py`; `notes/LAB_NOTES.md`,
+1 November). The search for structure that holds only along the blank orbit finds none beyond a mod 3. For every a,
+unless a mod 2^34 is one of the 67 open residues, the excursion returns and its jump a → a + 12k skips no value
+= 1 mod 32 (`skip_off_open34`); every open residue is 1 mod 256 (`open34_mod256`); so the counter cannot step around
+a value = 5 mod 12, = 1 mod 32 (`visit`), and if some a = 5 mod 12 fails, the blank orbit reaches the least such a
+(`orbit_meets_first_failure`), while if none fails no pass stops at a block of 1 (`no_one_of_all`). Backward
+ancestry is no constraint either: every list has many preimages (1,333 for pass 1,000, 159 for `w7`; computed). So
+the question for the orbit is the question for every a = 5 mod 12, a statement about all digit patterns of a
+positive-dimension 2-adic set, and the problem looks Collatz-hard (heuristic).
+
 **A second exact quantity** (`lean/Psi.lean`, kernel only, found by the thread on the provable first-block bound):
 ψ = y_k − 2y_(k−1) + 4y_(k−2) − … moves by 2ψ' = −ψ + 3(−2)^n − 7 in every pass, n ≤ k the number of blocks the
 sweep crosses (`psi_next`). On `[a, 2a+d]` it is d.
@@ -158,6 +168,7 @@ of 1), and so the question itself.
 | `lean/Front.lean` | blocks after the first stay at least 2, no two front stops in a row, and the narrowed reduction |
 | `lean/Return.lean` | the return map: the pass map on residue classes (`snext`, sound), `explore`, the short chains, the orbit up to a bound |
 | `lean/Thin.lean` | for every a: a non-returning a has its residue among the open classes (`thin_ok`), 67 residues mod 2^34 |
+| `lean/Visit.lean` | the jumps of the return map skip no value = 1 mod 32 off the open residues (`skip_off_open34`); the orbit meets the first failure (`orbit_meets_first_failure`) |
 | `lean/Psi.lean` | the alternating sum ψ and its exact rule under a pass (`psi_next`) |
 | `lean/Plan.lean`, `lean/return62.py` | the cut of the class a = 5 + 4u into pieces for the kernel; writes `lean/R62/` and `lean/Return62.lean` |
 | `lean/R62/Shard*.lean`, `lean/Return62.lean` | generated: the pieces, each by `decide +kernel`, and the theorem below 2^62 |
@@ -186,6 +197,8 @@ of 1), and so the question itself.
 | `tests/test_runbound.py` | the table, the cycles, the witness against Lean's lists, `front_second` on random lists |
 | `py/blockcount.py` | the 7-block witness, the sentinel orbit's block counts, the scan of a = 2^r + 1, the window below the witness, the values the blank orbit visits |
 | `tests/test_blockcount.py` | the witness, its (k, psi) route, the sentinel orbit at pass 203, the scan |
+| `py/ancestry.py` | the exact inverse of the pass map (`preimages`); the valuations of the values the return map skips and of the open classes |
+| `tests/test_ancestry.py` | the inverse, the preimage counts, the skips to mod 2^28, the open residues, the orbit's visits to a = 1 mod 32 |
 | `py/explainer_status.py` | writes the explainer's status panel from `status.json` |
 | `tests/test_explainer.py` | the explainer's engine against `py/passmap.py` and the reference simulator; its status panel current |
 | `c/passorbit.c` | the closed form in C: the blank orbit with checkpoints (`orbit`), and searches over starts (`comps`, `grid`, `random`) split into parts for `tools/c/run_parts.sh`; the sentinel orbit (`loose`) |
@@ -212,6 +225,8 @@ python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_runbound.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_largeblocks.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/largeblocks.py orbit 20000000   # about 3 min
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_bigfront.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_ancestry.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/ancestry.py skips 32
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/bigfront.py orbit 100000000     # about 4 min
 FIRST=1 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/bigfront.py search 9 7 5 21   # 7·10⁶ nodes, a few minutes
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/front.py stats 100000000   # about 4 min
