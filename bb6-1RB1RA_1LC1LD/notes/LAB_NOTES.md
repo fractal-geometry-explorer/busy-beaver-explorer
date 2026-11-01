@@ -406,3 +406,51 @@ gone.  The measure `(3 − u) · 3^N + val N (key c)` goes down at every step of
 
 **Still open.**  The bound itself: that the head does not drift left without bound.  It is now the only gap between
 the kernel results and "every recursive pass from a good list finishes, with last block at least `2j − 1`".
+
+## 1 November 2026: a ranking function for `pre`? What the A states show
+
+**Aim.**  A measure that goes down along `pre` from every good list, so that `pre` stops with no assumption
+(`pre_stops` needs only a bound on the cells).  Not found; what was found narrows the question.
+
+**Two words at a time** (`py/tokens.py check`, 3,000 random good lists, no exception; `test_tokens`).  Look at `pre`
+only at A with no ones under the head.  Between two such states it eats exactly the first two words.  Call a word
+other than 2 *irregular*.  Only the pair `1 2` writes new words: the converter runs left through the blocks that are
+1 mod 3 (each becomes a word 1 followed by 2s), stops at the first block that is not, and A comes back; what it
+writes ends in a word 3 where the 2 was (rarely, nothing).  So the irregular word in front moves exactly one word to
+the right and every new irregular word is to its left.  The other pairs write nothing: `2 2` is the loop of
+`tail_two` (blocks `a, b` gain 4 and 2), `2 1` and `2 3` remove the irregular word, `3 2` removes the 3 and pushes a
+new block 4, `3 1` and `3 3` are rare.  In closed form, with the blocks `a_1, …, a_k` (nearest first) 1 mod 3,
+`a_i = 3 j_i + 1`, then a block `b`, then `c, d`:
+
+| `b` | blocks after | words written in place of `1 2` |
+|---|---|---|
+| `3m`, `m ≥ 1` | `c + 3, d + 2, …` | `2^{m-1} 1 2^{j_k} 1 … 1 2^{j_1} 3` |
+| none (all blocks 1 mod 3) | `2, 2` | `2^{j_k} 1 2^{j_{k-1}} 1 … 1 2^{j_1} 3` |
+| `3m + 2` | `3, c + 6, …` (roughly; small cases differ) | `… 2^{m-2} 3` |
+
+**Tokens.**  Count irregular words plus nonzero blocks.  Over the same lists this count never goes up, except by
+exactly 1 on a step where the tape grows at the left end (`+2` or `+6` added to a block past the leftmost one starts
+a new block).  Growth steps are few (at most 4 in random lists of up to 10 blocks; a hill climb, `py/tokens.py climb`,
+finds about one per block: 5 with 2 blocks, 9 with 8, 12 with 12), and they can come one after another: from `[4, 3,
+19]` three in a row while one word 1 walks right through the 2s, the count going 3, 4, 5.
+
+**No count works.**  The row "none" above shows why no potential linear in counts of words and blocks (weights by
+kind, any residue) can go down: with weight `β` per block, `α₁`, `α₃` per word 1 and 3, it changes by
+`(k - 2)(α₁ - β) + α₃`, which is `α₃ > 0` for `k = 2`; and `k = 0, 1` with the row `3m` force `α₁ ≤ β`.  An LP over
+1,357 kinds of step from random runs (counts by position, kind and residue; and again with a free constant for each
+of 1,736 abstract states: the first two blocks, the last two, the first two words) is infeasible, both for "cells +
+potential does not grow" and for the weaker "potential drops on every growth step".
+
+**Orders that fail.**  Dictionary order on the tokens read from the right end is what `astep_key` already gives at
+word level, and has the same infinite chains (`1`, `3 1`, `3 3 1`, …: new irregular words on the left).  Multisets of
+token positions (Dershowitz–Manna), measured from the right end or from the current left end, blocks by either end,
+words by any of their cells, every ranking of the kinds: 2 to 13 % of steps go up, always at the growth steps or right
+after them.  Dictionary order on the tokens read from the left: at least 108 of 498 kinds of step go up.  The position
+of the head at successive growth steps does not move monotonically either.
+
+**What a proof needs.**  Termination is equivalent to finitely many growth steps (between them the cells are bounded
+and `pre_stops` applies).  Growth needs every block between the head and the left end to be 1 mod 3 (or the carry to
+end one or two blocks from it), and leaves fresh blocks `2, 2`, `3, 2`, `3, 6`.  A proof will have to use what the
+fresh blocks and the words written with them look like, for example that from the fresh blocks the next carry
+cannot reach the left end until a word of the stream to the right has been used up; the reduction to two words per A
+state above is the place to start.

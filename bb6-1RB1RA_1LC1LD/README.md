@@ -96,6 +96,7 @@ reached, and the question itself.
 | `py/blank.py` | the run from blank tape on the shared simulator: summary, records, D at the left end |
 | `py/macro.py` | pass starts of the run, the pass maps (`next_pass`, and `next_full` mirroring `lean/Recur.lean`, `pre` mirroring `lean/Formula.lean`), and their comparison |
 | `py/blocks.py` | which pass starts can lead to a halt: the run, exhaustive and random checks, recursive offsets |
+| `py/tokens.py` | `pre` at its A states: two words eaten each time, the token count, growth steps (`notes/LAB_NOTES.md`, 1 November, ranking function) |
 | `tests/test_machine.py` | generated files current, the page current, C against Python, the facts in the notes |
 | `status.json` | the source of the proof-status page (`tools/pages/build_status.py`) |
 
