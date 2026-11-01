@@ -406,3 +406,34 @@ gone.  The measure `(3 − u) · 3^N + val N (key c)` goes down at every step of
 
 **Still open.**  The bound itself: that the head does not drift left without bound.  It is now the only gap between
 the kernel results and "every recursive pass from a good list finishes, with last block at least `2j − 1`".
+
+
+## 1 November 2026: does goodness rule out the shrinking chain?
+
+**Question.**  With `recur_next` (a good list with last block `3j`, `j ≥ 2`, passes to blocks of at least 2 and last
+block at least `2j − 1`, if `pre` stops) and `next_good`, do good pass starts stay good, so that no halt is possible
+once `pre` is known to stop?
+
+**No.**  `Good` is not an invariant, with or without termination: `2 2 3 → 10 1` halts (`recur_two_three_halts`), and
+`3 6 → 2 7 4 → 2 13 1` halts (`three_six_halts`, `lean/Chain.lean`, three passes evaluated by the kernel).  The bound
+`2j − 1` settles every `j ≥ 3` (last block at least 5), but for `j = 2` it allows 3 and 4, and for `j = 1` it says
+nothing (`recur_next` needs `j ≥ 2`; with `j = 1` `pre` may take `u = 2 > j` supply words, outside `recur_sound`).
+
+**What does follow** (`lean/Chain.lean`, kernel only, with `pre` stopping as the only assumption).  Strengthen good
+to *safe*: at least two blocks, and a last block 3 only after a block of at least 6.  Then
+* `safe_pass`: a safe pass start with last block other than 3 and 6 is followed by a safe one.  The covered passes make
+  a last block 3 only from 7 (`… x, 7 → … x + 6, 3`; from the lone block `2` they would give `2 3`, hence two blocks),
+  and the recursive ones with `j ≥ 3` give at least 5.
+* `six_after_two`: `… d, 2, 6 → … d + 8, 3`, safe.
+* `six_pass`: `… x, 6` with `x ≠ 2` gives last block `4 + c`, `c ≥ 0`: a halt if `c = 0`, safe otherwise.
+* `blank_safe`: the run reaches `10 3`.
+
+**The two open cases.**  **A**: a last block 3 after a block `x ≥ 6`.  Computed (`py/blocks.py chain 14 4 1 20000`:
+all 55,700 lists, every list of up to 4 blocks with `x` up to 20 and the rest 2..14, and 20,000 random ones): the next
+pass start is always safe; `(c, u)` is `(0, 2)` (14,936 lists, next last block 2), or `c ≥ 3` with `u ≤ 1`; never
+`c ∈ {1, 2, 4}`.  A proof would need the abstraction of `Offset.lean` to keep `x ≥ 6` and to separate `c = 0` from
+`c ≥ 3`; it tracks numbers above 3 only by residue mod 3, so as it stands it cannot.  **B**: a last block 6 with
+`c = 0`.  This is a real halting route from good, even safe, lists (`8 6 → 2 11 4`, `4 3 6 → 8 5 4`), so it cannot be
+excluded by a condition on the pass start alone; it needs to know which last blocks 6 the run reaches.  A last block 6
+comes from `… d, 3, 2 → … d + 2, 6` (covered), from 9 with `c = 0`, or from 6 with `c = 2`; that is the chain
+`… → 9 → 6 → 4 → 1` of the heuristic entry above, now with every other route closed (given termination and case A).
