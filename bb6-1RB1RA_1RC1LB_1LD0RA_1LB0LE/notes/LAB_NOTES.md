@@ -939,3 +939,64 @@ block, and the other passes of a run cost little (they only must not stop at the
 doubling f at a fixed share doubles every block and so gives k − 1 bits of room. The two balance, so lists with a
 fixed share are expected for every run length (heuristic, consistent with the table). A useful bound would have to
 use more of the orbit than the share of the first block: where its runs start, not only how large they start.
+
+## 1 November 2026: structure that holds only along the orbit? (`lean/Visit.lean`, `py/ancestry.py`)
+
+The local routes are closed: block count, a second invariant, large blocks and the first block's share were each
+beaten by lists that keep psi and every other known invariant. The question here is whether the blank orbit has
+something those lists lack: an ancestry, a 2-adic description of its states, or a residue set closed under the map.
+**Answer: along the return map the orbit has nothing beyond a mod 3. The counter passes through the first value
+that could fail, so the question for the orbit is the question for every a = 5 mod 12.** Labels: **proof** (Lean,
+kernel), **computed**, **heuristic**.
+
+### Ancestry (computed)
+
+`preimages(z)` inverts the closed form exactly (tested on random lists). A pass that stops at block j ≥ 3 leaves
+y_j = 2s + 1 free, so every list has many preimages: 1,333 for the orbit's pass 1,000 (about a third of its ones),
+159 for `w7`, 37 for `wF`, 125 for `wH`; two levels back `w7` has 26,294 and three levels 2.9 million. So "has a
+long ancestry" separates nothing; what is special is only the root `[2, 2]`, and following that root forward is the
+orbit itself. The ones grow by exactly 4 per pass, so the orbit meets each count of ones once, and "reachable from
+blank tape" is decidable list by list, but there is no finite description of it to induct on.
+
+### Residue sets closed under the return map (proof, computed)
+
+The return map is a counter, a → a + 12k with k ≥ 1, starting at 5. A residue set mod 2^r closed under it and
+avoiding the open classes of `Thin.lean` would prove the machine runs forever. None exists for any r that has been
+run: the open classes are where the route reads more than r bits, and the residue 1 among them holds every
+a = 2^r + 1, r ≥ 34, and the orbit visits every 2^r + 1 with r even in the range run (`tests/test_dynamics.py`).
+What remains is whether the orbit could *skip* the bad values. It cannot:
+
+* **The jumps never skip a value = 1 mod 32** (proof, `skip_off_open34`, for every a with no upper bound): unless
+  a mod 2^34 is one of the 67 open residues, the excursion returns and none of a + 12j, 0 < j < k, is 1 mod 32.
+  `thinS` is `thin` with the check added to each route (`noSkip`), and `thinS_ok` proves it sound. The skipped
+  values have v₂(a + 12j − 1) ≤ 4 (computed: 588, 301 and 136 classes for 2, 3, 4 at mod 2^34).
+* **Every open residue is 1 mod 256** (proof, `open34_mod256`; v₂(a − 1) is 8 to 34, computed). So a failing
+  excursion has a = 1 mod 256.
+* **The orbit cannot step around such a value** (proof, `visit`): if every a = 5 mod 12 below b makes a jump that
+  skips no value = 1 mod 32, the orbit reaches `[b, 2b+1]` for every b = 5 mod 12, b = 1 mod 32.
+* **So the orbit meets the first failure** (proof, `orbit_meets_first_failure`): if some a = 5 mod 12 fails (its
+  excursion halts, meets a stop block of 1, never comes back, or jumps over a value = 1 mod 32), the least such a has
+  its residue among the 67 and the blank orbit reaches `[a, 2a+1]`. Conversely (`no_one_of_all`), if none fails, no
+  pass of the orbit stops at a block of 1, so with `halts_only_by_one` the machine never halts.
+
+The only gap between the two directions is the jump condition, which the open classes could break only by a jump of
+k ≥ 9 (from a = 1 mod 256, a + 12j − 1 = 12j mod 256 is 0 mod 32 only for 8 | j); sampled members of the open
+classes jump by k = 4 to 8 and never skip a value = 1 mod 32 (computed, `open_jumps`).
+
+### What this says about the problem (heuristic)
+
+The blank orbit knows a = 5 mod 12, and nothing else that the excursions read: the routes depend on the 2-adic digits
+of a, and every open class mod 2^m contains values of each residue mod 3. So a proof of non-halting is a proof that
+every excursion from `[a, 2a+1]`, a = 5 mod 12, comes back, and a halt is a single a in the open set whose excursion
+fails. That universal statement is where the earlier work already pointed (`dynamics.py`: the open set has
+dimension about 0.19 and its coefficients never repeat, so no finite automaton describes it; the routes near
+a = 1 + 2^m u are the same map one level down). Heuristically it holds with room to spare: the stop blocks of a route
+that reads m bits stay above about a·2^(−m/10)/64, and a route reads at most the bits of a, so a stop block of 1
+would need a margin of about a^0.9 to vanish. But that is a probabilistic statement about digit patterns, of the same
+kind as "no Collatz orbit diverges", and no method is known that turns such a margin into a proof for every a.
+
+**Verdict: this looks Collatz-hard.** Every route that does not use the 2-adic digits of a has a counterexample
+list, the orbit's own structure reduces to the universal excursion question, and that question is a statement about
+all digit patterns of a positive-dimension 2-adic set with no finite description. The Lean results stand as
+reductions: no halt in the first 3.46·10¹⁸ passes (kernel), failures confined to 67 residues mod 2^34 for every a,
+and now that the orbit meets the first failure of residue 5 mod 12 if there is one.
