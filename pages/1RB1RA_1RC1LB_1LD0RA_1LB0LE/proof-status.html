@@ -75,7 +75,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on. (It shares its first three states with <code>1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</code>, which has its own page; the two are different machines.)</p>
     <p>The run is made of passes, and a pass is a map on the lengths of the blocks of ones. The closed form of that map is proved in Lean for every block list, and with it the reduction: the machine halts only if some pass's sweep stops at a block of a single 1. <a href="explainer.html">The explainer</a> runs the machine, its passes and the closed form in the browser.</p>
-    <p class="asof">Status as of 31 October 2026.</p>
+    <p class="asof">Status as of 1 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -200,6 +200,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The route of the excursion from <code>[a, 2a+1]</code>, and so k and the stop blocks as fractions of a, depends only on a mod 2<sup>m</sup> for some m: for random a of 64 or of 1,024 bits, m is 5 on average and at most 16, and k and the margin have the same distribution at both sizes. The classes that need more than m bits have measure about 2<sup>&minus;0.81m</sup> (15,828&middot;2<sup>&minus;72</sup> of a = 1 mod 4 at m = 74).</p>
         <p class="where"><code>python3 py/dynamics.py random 1024 1000</code>, <code>python3 py/dynamics.py tree 72</code></p>
       </div>
+      <div class="card">
+        <h3>A second invariant: psi</h3>
+        <p>psi = y<sub>k</sub> &minus; 2y<sub>k&minus;1</sub> + 4y<sub>k&minus;2</sub> &minus; &hellip; obeys 2&middot;psi(next) = &minus;psi + 3(&minus;2)<sup>n</sup> &minus; 7 exactly, where n is the number of blocks the sweep crosses past the last. On <code>[a, 2a+d]</code> it is d, so the six d-chains of the return map are this recurrence. The last block's parity is psi mod 2. It ends the halving loop of <code>[110, 63, 23]</code>: that loop maps psi to (psi &minus; 13)/4 and needs psi = 1 mod 4 every round, so it runs about log<sub>4</sub>|psi| rounds. The free-parity game, which drives the first block to 0, ignores it.</p>
+        <p class="where"><code>psi_step</code>, <code>psi_symbolic</code> in <code>py/invsearch.py</code> (sympy identity for k &le; 12; brute force in <code>tests/test_invsearch.py</code>); a kernel proof <code>psi_next</code> is in the Lean thread's branch</p>
+      </div>
+      <div class="card">
+        <h3>psi and the block count on the orbit</h3>
+        <p>Over passes 31 to 10<sup>8</sup> of the blank orbit, (block count, psi, stop index) takes 65 values, and over every excursion class a = 1 mod 4 down to mod 2<sup>66</sup> it takes 82: never more than 6 blocks, psi between &minus;21 and 24.</p>
+        <p class="where"><code>runs/psi_triples_orbit.txt</code>, <code>runs/psi_triples_classes.txt</code>, <code>py/invsearch.py</code></p>
+      </div>
+      <div class="card">
+        <h3>A conditional reduction to the block count</h3>
+        <p>The (block count, psi) graph, with every stop index psi allows and no two front stops in a row, is exact for every list. With at most 6 blocks it has 158 states, and on its paths at most 9 front stops come between two other changes of the first block. A front stop halves the first block, so with at most 6 blocks a first block of 1 needs one of those changes to leave it at most 511.</p>
+        <p class="where"><code>parity_graph</code>, <code>run_bound</code> in <code>py/invsearch.py</code>; <code>notes/LAB_NOTES.md</code>, 1 November</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -223,9 +238,18 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Small starts reach the stop block of 1 by a halving loop: a stop at the first of three blocks, then an even last block on four, repeated, halves the first block every two passes (<code>[110, 63, 23]</code> reaches it in 9 passes, every block but the last at least 23). So no lower bound on block sizes is kept by the pass map, and since each pass halves blocks, the route depends on ever higher bits: no set described by inequalities and residues modulo a fixed power of 2 is closed under the map and excludes the event. What keeps the orbit out of the loop is the 2-adic digits of its blocks.</p>
         <p class="where"><code>python3 py/front.py loop</code>, <code>notes/LAB_NOTES.md</code></p>
       </div>
+      <div class="card">
+        <h3>The first block on the bounded graph</h3>
+        <p>Constants dropped, the shapes of lists moved along every path of the 6-block graph keep the first block above about 1.1&middot;10<sup>&minus;5</sup> of the ones (0.0024 with 5 blocks, 0.083 with 4). This is a converged game on a grid, not a certificate. With a bound on the block count and a certified version of it, the event would be ruled out.</p>
+        <p class="where"><code>shape_game</code> in <code>py/invsearch.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
+      <div class="card open">
+        <h3>A bound on the block count</h3>
+        <p>Whether every pass start of the orbit has at most 6 blocks (or at most any fixed number for which the game above keeps the first block away from 0). This is a statement about parities only. Residue abstractions with free higher bits do not prove it: they let the block count grow.</p>
+      </div>
       <div class="card open">
         <h3>An induction for the excursion</h3>
         <p>The excursion from <code>[a, 2a+1]</code> for every a (the orbit of G is a counter, so a statement for all a is what is needed). The route list is infinite because of the halving tail and the loops it nests, and the deep routes mix the bits of a, so a finite table or automaton will not do: this needs an inequality proved by induction on the tail length, that stop blocks stay above a fraction of a that shrinks slower than 1/a (observed: a/64 on every route to mod 2<sup>74</sup>). That, with the reduction, would prove the machine never halts. Equivalently (<code>halts_only_at_front</code>), a lower bound above 1 on the first block along the orbit.</p>
@@ -248,6 +272,7 @@ python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py orbit 40
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py check 3000 6
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_returnmap.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_front.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_invsearch.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 72   # 2.5 min
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_dynamics.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/dynamics.py orbit 300000

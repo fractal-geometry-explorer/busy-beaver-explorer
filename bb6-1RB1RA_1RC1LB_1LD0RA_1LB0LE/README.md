@@ -55,6 +55,15 @@ above 0.7% of the ones, while a stop block of 1 needs it to fall to 1. No invari
 modulo a fixed power of 2 can exclude the event (`notes/LAB_NOTES.md`, 31 October: small starts reach it by a halving
 loop of the first block, and what keeps the orbit out of it is the 2-adic digits).
 
+**A second invariant, psi** (`py/invsearch.py`, `notes/LAB_NOTES.md`, 1 November): psi = y_k − 2y_(k−1) + 4y_(k−2) − …
+obeys 2·psi(next) = −psi + 3(−2)^n − 7 exactly, n the blocks the sweep crosses past the last (a polynomial identity
+checked by sympy for k ≤ 12; the Lean thread has it as `psi_next`). On `[a, 2a+d]` it is d; it ends the halving loop
+above within about log₄|psi| rounds; on the orbit (10⁸ passes, computed) and on every excursion class to mod 2^66 it
+stays in −21..24 with at most 6 blocks. **Conditional reduction**: with at most 6 blocks, psi, `front_twice` and a
+finite graph give at most 9 front stops between other changes of the first block, so a first block of 1 needs one of
+those changes to leave it at most 511 (exact). A game on that graph keeps it above about 10⁻⁵ of the ones (numeric,
+not certified). Open: a bound on the block count.
+
 **Observed only**: on every route down to mod 2^74 the stop blocks stay above about a/64, shrinking like 2^(−m/10) or slower
 with the depth m of the class. The route list is infinite (the tail of the first pass lives v₂(a−1) passes), finite
 for each k.
