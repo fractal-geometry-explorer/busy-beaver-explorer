@@ -88,6 +88,17 @@ it has 7 at about pass 2^221.6, unless an excursion below 2^222 lasts 1,800 pass
 proved). No fixed cap is expected either: the sentinel orbit from `[1, 3]` first has 3..7 blocks at passes 2, 4, 8,
 202, 269,206 (`passorbit loose`; `notes/LAB_NOTES.md`, 1 November).
 
+**Beside psi, no second invariant yet** (`lean/Run7.lean`, kernel; `py/runbound.py`; `notes/LAB_NOTES.md`, 1 November).
+Between two changes of the first block the block count stays at most one above its value after the change (hand
+proof), so the (k, psi) graph bounds the front stops there by 17 for at most 6 blocks after the change and |psi| ≤ 60
+(computed), with no cap along the run. From 7 blocks on it gives no bound: the graph has a front-stop cycle on 7 and 8
+blocks, and the list `[31, 96, 64, 32, 88, 162, 235]` (psi = −57, 4 | ones, `Good`, y2 ≥ y1 + 2) follows it,
+halving its first block 31 → 1 and stopping at a block of 1 on its ninth pass; a second list does the same from 255
+in 15 passes (kernel). So a second invariant has to be false on these lists. No fixed weighting of the blocks works
+(only z = 1 and z = −2 give parity-free rules). `front_second` (kernel): each front stop adds exactly 1 to
+y2/(y1 + 1), but on the orbit that ratio reaches 48 by pass 1.3·10⁷ (computed), so it bounds the halvings only by
+about 48.
+
 **Observed only**: on every route down to mod 2^74 the stop blocks stay above about a/64, shrinking like 2^(−m/10) or slower
 with the depth m of the class. The route list is infinite (the tail of the first pass lives v₂(a−1) passes), finite
 for each k.
@@ -133,6 +144,7 @@ of 1), and so the question itself.
 | `lean/R62/Shard*.lean`, `lean/Return62.lean` | generated: the pieces, each by `decide +kernel`, and the theorem below 2^62 |
 | `lean/check_return62.sh` | checks the pieces in parallel (`JOBS`), then `Return62.lean`, and that it rests on no `native_decide` |
 | `lean/Seven.lean` | an excursion with 7 blocks: `run`, `run_reach`, `seven_blocks` |
+| `lean/Run7.lean` | lists with 7 blocks and small psi that reach a first block of 1 by halvings alone; `front_second` |
 | `lean/Window.lean` | the 200 returns below it lead to it: `orbit_run`, `window_seven`, `six_blocks_long_excursion` |
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `lean/check.sh` | compiles the shared library, then the files above |
@@ -145,6 +157,8 @@ of 1), and so the question itself.
 | `tests/test_induction.py` | the free-parity minima, the loose map against the closed form, the sentinel orbit for a = 1 + 2^m u |
 | `tests/test_dynamics.py` | the counter, the bits read, the tree to mod 2^26, the mixing at depth 32 |
 | `tests/test_returnmap.py` | the chains, the classes down to mod 2^38, the classes against concrete runs, the orbit chain |
+| `py/runbound.py` | front stops between changes of the first block: the bound by block count, the cycles from 7 blocks on, the witness, y2/(y1+1) |
+| `tests/test_runbound.py` | the table, the cycles, the witness against Lean's lists, `front_second` on random lists |
 | `py/blockcount.py` | the 7-block witness, the sentinel orbit's block counts, the scan of a = 2^r + 1, the window below the witness, the values the blank orbit visits |
 | `tests/test_blockcount.py` | the witness, its (k, psi) route, the sentinel orbit at pass 203, the scan |
 | `py/explainer_status.py` | writes the explainer's status panel from `status.json` |
@@ -169,6 +183,7 @@ python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py stats 2000000
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_returnmap.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_front.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_blockcount.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_runbound.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/front.py stats 100000000   # about 4 min
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 60    # 24 s (classes 72: 2.5 min)
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_dynamics.py

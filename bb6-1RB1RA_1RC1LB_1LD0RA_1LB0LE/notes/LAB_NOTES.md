@@ -737,3 +737,80 @@ No fixed cap K is expected to hold either. The sentinel orbit from `[1, 3]` (the
 allowed, `loose_step`, which deep excursions a = 1 + 2^m u follow for about m passes) has its first 3, 4, 5, 6, 7
 blocks at passes 2, 4, 8, 202, 269,206 (`passorbit`-style C run of the loose map, checked against
 `py/blockcount.py loose` to 3·10⁵).
+
+## 1 November 2026: a second invariant beside psi? (`lean/Run7.lean`, `py/runbound.py`)
+
+The aim: a second exact or weighted quantity that, with psi, rules out a first block falling to 511 or below (or to 1),
+without assuming a bound on the block count (the block-count thread expects the orbit to reach 7 blocks and more).
+**None was found.** What was found is where psi stops working, a Lean-checked list that shows it, and one more exact
+rule. Labels: **proof** (Lean, kernel), **hand proof** (from the closed form), **computed**, **heuristic**.
+
+### No third linear or polynomial-evaluation invariant (hand proof)
+
+Write the list as F(z) = sum x_r z^r, r the distance from the right end. In every case a pass is
+F' = F/z + ((z−1)(z+2)/(2z))·(the swept part) + constants, so the quantities F(z) that move by a rule independent of
+the parities are exactly those with (z−1)(z+2) = 0: z = 1 (the sum) and z = −2 (psi). Over Z/3^m there are more
+approximate roots (z = 4, 7 mod 9, …), but F at those is fixed by F(1) and F(−2) modulo the same power (for example
+F(4) = 2F(1) − F(−2) mod 9). Over Z/2^m the halvings need parities, which is where the case split comes from. So a
+second invariant has to depend on the parities: it cannot be a fixed weighting of the blocks.
+
+### Runs between changes of the first block need no block cap (hand proof; computed table)
+
+A pass changes the first block (other than halving it) only if it stops at the second block, at the third of a longer
+list, or has an even last block on 2 or 3 blocks. Every other pass is a front stop, which adds one block, or removes
+one block (an even last block on k ≥ 4, or a stop at j ≥ 4). Front stops never come two in a row (`front_twice`), so
+in a run from a change with k0 blocks, **the block count stays at most k0 + 1**. So the (k, psi, f) graph bounds the
+number R of front stops in a run from the state after the change alone (`python3 py/runbound.py table 2000`):
+
+| k0 after the change | 2 | 3 | 4 | 5 | 6 |
+|---|---|---|---|---|---|
+| most front stops, abs(psi) ≤ 60 | 1 | 4 | 6 | 10 | 17 |
+| most front stops, abs(psi) ≤ 2000 | 1 | 6 | 9 | 13 | 20 |
+
+(grows like log |psi|: the halving loop needs |psi| large). With the Mersenne lemma: if every change leaves at most 6
+blocks and |psi| ≤ 60, a stop at a first block of 1 needs a change to leave the first block at most 2^17 − 1. That is
+weaker than the 511 of the 6-block reduction, but needs the cap only at the changes, not along the whole orbit.
+
+### From 7 blocks on, psi gives no bound at all (computed; proof for one list)
+
+For every k ≥ 7 the run graph has a cycle that alternates a front stop on k blocks and a pass that removes a block
+from k + 1 (`python3 py/runbound.py cycles 300`: one cyclic part on 7 and 8 blocks, psi −77..131, 22 states; one on 8
+and 9, one on 9 and 10). On 7 and 8 blocks it is
+
+    (7, −57) → (8, 121) → (7, −67) → (8, 126) → (7, −65) → … → (8, 110) → (7, −57),   j = 1, 7, 1, 8, 1, 7, 1, 6, 1, 5, 1, 4, 1, 4, 1, 4, 1, 8
+
+and real lists follow it. `lean/Run7.lean` (kernel, axioms `propext` only):
+
+* `w7 = [31, 96, 64, 32, 88, 162, 235]` (first block first) has psi = −57, 4 | ones, every block after the first at
+  least 2, y2 ≥ y1 + 2, and first block 31 = 2^5 − 1. Its first blocks run 31, 15, 15, 7, 7, 3, 3, 1, 1 and the
+  block counts 7, 8, 7, 8, …, and the ninth pass stops at a first block of 1 (`w7_psi`, `w7_trace`, `w7_one`).
+* `w7b = [255, 1280, 2304, 2432, 5464, 10594, 6507]`, same psi and same cycle, has 8 front stops and stops at a
+  first block of 1 after 15 passes (`w7b_firsts`, `w7b_one`).
+
+So psi, `front_twice`, `Good`, y2 ≥ y1 + 2 and 4 | ones together do not exclude the event once a change leaves 7
+blocks: any second invariant has to be false on these lists. Searching along the cycle on residue classes (psi
+fixed at −57, first block 2^R − 1) the number of classes that follow it doubles every pass, so lists for every R are
+expected (computed to R = 8; heuristic beyond). The lists are not on the orbit: they have all seven blocks of
+comparable size, while the orbit's 7-block lists (`Seven.lean`) have three large blocks and a tail that halves each
+pass.
+
+### An exact rule for y2 / (y1 + 1) (proof), and why it is not enough (computed)
+
+`front_second`: on a front stop of at least 3 blocks the first block f becomes (f − 1)/2 and the second e becomes
+(f + 1)/2 + e/2, so **rho = y2 / (y1 + 1) goes up by exactly 1** on every front stop. Inside a run the other passes
+leave y1 alone and y2 alone or larger (a stop at j = 4 or an even last block on 4 blocks adds to y2), so a run of R
+front stops raises rho by at least R, with no assumption on the block count. If rho were bounded by C on the
+orbit, a first block of 1 would need a change to leave it at most 2^C − 1. But rho is not small: over the first
+3·10^7 passes of the orbit it reaches 48.3 (pass 13,321,951, the deepest descent of `front.py`), and 11.4 on the
+excursion from a = 2^19 + 1 (a = 9 mod 12, so not an orbit value; `python3 py/runbound.py ratio 30000000`). The
+jumps come from passes that stop at the fourth block or have an even last block on 4 blocks (passes 13,321,945 to
+13,321,950: rho 5.4, 11.6, 12.6, 24.0, 24.6, 25.6, 48.3), not from front stops. So rho bounds R only by about 48 there, far from 511.
+
+### What a second invariant needs
+
+It must (i) depend on the parities, not be a weighting of the blocks; (ii) be false on `w7` and `w7b`, which satisfy
+every invariant known so far; (iii) hold on the orbit's lists, where beyond three or four blocks the extra blocks are
+a halving tail. The natural candidate is a statement about the shape, not the count: the number of blocks of size at
+least c·(ones) stays at most 3 or 4, with the rest a tail whose sizes fall geometrically to the right. The tail has
+small weight in psi/(−2)^(k−1) = y1 − y2/2 + y3/4 − …, so this would keep the (k, psi) graph on the bulk small. Not
+tested beyond the witness excursion; it is again a statement about 2-adic digits, as every route here has been.
