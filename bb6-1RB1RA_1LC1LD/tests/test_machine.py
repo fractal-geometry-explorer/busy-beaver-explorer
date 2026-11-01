@@ -285,6 +285,18 @@ class TestBlocks(unittest.TestCase):
         self.assertEqual(macro.next_full((2, 7, 4)), (2, 13, 1))
         self.assertEqual(macro.next_full((2, 2, 3)), (10, 1))
 
+    def test_caseb(self):
+        """lean/CaseB.lean: offset 0 exactly with two supply words; safe even starts that halt do so by case B, after a
+        descent that safe_pass_shrink allows; the run keeps an even leftmost block and does not reach case B."""
+        out = blocks.caseb(8, 60, 60, 10, 200)
+        self.assertTrue(out["c0_iff_u2"] and out["shrink_ok"] and out["even"])
+        self.assertEqual(out["via_b"], out["halts"])
+        self.assertGreater(out["halts"], 0)
+        self.assertEqual(out["case_b"], 0)
+        self.assertEqual(blocks.path_of((16, 16), 10), [(16, 16), (26, 9), (6, 27, 6), (14, 27, 4), (14, 33, 1), blocks.HALT])
+        self.assertTrue(blocks.is_case_b((6, 27, 6)))
+        self.assertEqual(blocks.path_of((314, 54), 10)[-1], blocks.HALT)
+
     def test_formula(self):
         """lean/Formula.lean: `pre` once per list gives the next pass start of the recursive pass for every j >= u
         (blocks b + 2 ceil((p + j - u)/2), M; last block a + 2(p + j - u)), u <= 2, and for j = 1 < u the same last block."""

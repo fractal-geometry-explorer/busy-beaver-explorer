@@ -9,6 +9,7 @@ import OffsetData
 import Stops
 import Count
 import Chain
+import CaseB
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
 a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
@@ -79,6 +80,10 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6c.six_after_two
 #print axioms BB6c.six_pass
 #print axioms BB6c.blank_safe
+-- CaseB.lean: safe even starts that halt by case B, and how fast the last block can come down (kernel only)
+#print axioms BB6c.sixteen_halts
+#print axioms BB6c.chain_54_halts
+#print axioms BB6c.safe_pass_shrink
 -- Count.lean: the pass map with step counts (kernel only), and the run to 10¹² steps (native_decide)
 #print axioms BB6c.passesC_sound
 #print axioms BB6c.blank_passesC

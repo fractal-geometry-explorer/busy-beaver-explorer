@@ -13,6 +13,9 @@ usage:
   python3 py/blocks.py chain N K SEED COUNT the open case A of lean/Chain.lean: a last block 3 after a block x >= 6,
                                             over all lists of at most K blocks (x up to 6 + N, the rest 2..N) and
                                             COUNT random ones: is the next pass start safe, and what are the offsets?
+  python3 py/blocks.py caseb N X B K P      case B of lean/Chain.lean (lean/CaseB.lean): c = 0 against u = 2 on all
+                                            lists of 1 to 3 blocks of 2..N; the safe starts `x b` (x even, x < X,
+                                            b < B) that halt within K passes and how; and the first P passes of the run
 """
 import itertools
 import os
@@ -154,6 +157,77 @@ def chain(n, k, seed, count):
     return bad, cu
 
 
+def is_case_b(bl):
+    """Case B of lean/Chain.lean: last block 6 after a block other than 2, recursive offset 0 (halts two passes on)."""
+    return len(bl) >= 2 and bl[-1] == 6 and bl[-2] != 2 and macro.offset(list(reversed(bl[:-1])))[0] == 0
+
+
+def path_of(bl, k):
+    """The pass starts from `bl` for at most k passes; ends with HALT if the machine halts."""
+    out = [bl]
+    for _ in range(k):
+        bl = macro.next_full(bl)
+        out.append(bl)
+        if bl == HALT or bl is None:
+            break
+    return out
+
+
+def caseb(n, xmax, bmax, k, passes):
+    """Case B (lean/CaseB.lean).  Returns a dict of the counts printed."""
+    out = {}
+    # 1. the offset c is 0 exactly when pre takes two supply words (block left of the last not 2)
+    cu = Counter()
+    for size in range(1, 4):
+        for ls in itertools.product(range(2, n + 1), repeat=size):
+            if ls[0] != 2:
+                c, u = macro.offset(list(ls))
+                cu[(c == 0, u == 2)] += 1
+    out["c0_iff_u2"] = cu[(True, False)] == 0 and cu[(False, True)] == 0
+    print(f"lists of 1 to 3 blocks of 2..{n}, nearest block not 2: c = 0 exactly when u = 2: {out['c0_iff_u2']} "
+          f"({dict(cu)})")
+    # 2. safe two-block starts with an even left block that halt within k passes
+    halts, via_b, lasts, shrink_ok = [], 0, Counter(), True
+    for x in range(2, xmax, 2):
+        for b in range(2, bmax):
+            if not safe((x, b)):
+                continue
+            pth = path_of((x, b), k)
+            for a, c in zip(pth, pth[1:]):
+                if c not in (HALT, None) and a[-1] not in (3, 6) and safe(a):
+                    shrink_ok &= 2 * (a[-1] - 1) <= 3 * (c[-1] - 1) + 6
+                    shrink_ok &= c[-1] != 6 or a[-1] == 9 or (a[-1] == 2 and a[-2] == 3)
+            if pth[-1] == HALT:
+                halts.append(pth)
+                via_b += any(is_case_b(q) for q in pth[:-1])
+                lasts[b] += 1
+    out.update(halts=len(halts), via_b=via_b, lasts=dict(sorted(lasts.items())), shrink_ok=shrink_ok)
+    print(f"safe starts x b, x even below {xmax}, b below {bmax}, halting within {k} passes: {len(halts)}, all by "
+          f"case B: {via_b == len(halts)}; their last blocks: {out['lasts']}")
+    print(f"safe_pass_shrink on every pass of these paths (2n <= 3n' + 6, a 6 only from 9 or 3 2): {shrink_ok}")
+    for pth in sorted(halts, key=len)[-3:]:
+        print("  ", " -> ".join(" ".join(map(str, q)) if q != HALT else q for q in pth))
+    # 3. the run from 10 3 (blank_safe)
+    seq = path_of((10, 3), passes)
+    assert seq[-1] not in (HALT, None)
+    even = all(q[0] % 2 == 0 for q in seq)
+    zero, streak, best = 0, 0, 0
+    for q in seq:
+        if q[-1] % 3 == 0 and q[-2] != 2:
+            if macro.offset(list(reversed(q[:-1])))[0] == 0:
+                zero, streak = zero + 1, streak + 1
+                best = max(best, streak)
+                continue
+        streak = 0
+    rec = sum(q[-1] % 3 == 0 for q in seq)
+    lows = {t: min(q[-1] for q in seq[t:]) for t in (0, 32, 156, 1000, 2000) if t < len(seq)}
+    out.update(even=even, zero=zero, rec=rec, streak=best, lows=lows, case_b=sum(map(is_case_b, seq)))
+    print(f"run, {len(seq) - 1} passes from 10 3: leftmost block always even: {even}; recursive passes {rec}, offset 0 "
+          f"in {zero}, at most {best} in a row; case B reached: {out['case_b']}; smallest last block from pass t on: "
+          f"{lows}")
+    return out
+
+
 def next_full_of(ls, b):
     """The next pass start from the blocks `ls` (nearest first) and a last block `b`, left to right."""
     return macro.next_full(tuple(reversed(ls)) + (b,))
@@ -177,6 +251,8 @@ def main(argv):
             print(" ", pre, [(x, *v) for (p, x), v in sorted(out.items()) if p == pre])
     elif argv[0] == "chain":
         chain(*map(int, argv[1:5]))
+    elif argv[0] == "caseb":
+        caseb(*map(int, argv[1:6]))
     else:
         print(__doc__)
 
