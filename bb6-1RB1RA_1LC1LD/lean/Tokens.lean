@@ -173,6 +173,96 @@ theorem three_two (a : Nat) (M R : List Nat) :
   have h₅ := s_f_tok 3 0 ((a + 2) :: M) R
   exact h₁.trans (h₂.trans (h₃.trans (h₄.trans h₅)))
 
+/-! ## The rest of the cases -/
+
+/-- `3, 1`: a new block 3 in front of the block `a`, which gains 2. -/
+theorem three_one (a : Nat) (M R : List Nat) :
+    Reaches (enc ⟨.A, 0, a :: M, 3 :: 1 :: R⟩) (enc ⟨.A, 0, 3 :: (a + 2) :: M, R⟩) := by
+  have h₁ := s_a_tok 2 (a :: M) (1 :: R)
+  have h₂ := s_b_one 0 0 1 (0 :: a :: M) R
+  have h₃ := s_b_zero 0 0 (a :: M) (tw 1 0 1 ++ R)
+  have h₄ := s_c_one a M (tw 1 0 1 ++ R)
+  have h₅ := s_f_tok 2 0 ((a + 2) :: M) R
+  exact h₁.trans (h₂.trans (h₃.trans (h₄.trans h₅)))
+
+/-- `3, 3`: a new block 5 in front of the block `a`, which gains 2. -/
+theorem three_three (a : Nat) (M R : List Nat) :
+    Reaches (enc ⟨.A, 0, a :: M, 3 :: 3 :: R⟩) (enc ⟨.A, 0, 5 :: (a + 2) :: M, R⟩) := by
+  have h₁ := s_a_tok 2 (a :: M) (3 :: R)
+  have h₂ := s_b_one 0 0 3 (0 :: a :: M) R
+  have h₃ := s_b_zero 0 0 (a :: M) (tw 1 0 3 ++ R)
+  have h₄ := s_c_one a M (tw 1 0 3 ++ R)
+  have h₅ := s_f_tok 4 0 ((a + 2) :: M) R
+  exact h₁.trans (h₂.trans (h₃.trans (h₄.trans h₅)))
+
+/-- A before `1, 2`, carried down to the first block `b` that is not `1 mod 3`. -/
+theorem carry_start (js : List Nat) (b : Nat) (L R : List Nat) :
+    Reaches (enc ⟨.A, 0, ones1 js ++ b :: L, 1 :: 2 :: R⟩) (enc ⟨.B, 0, b :: L, 0 :: (carryW js ++ 3 :: R)⟩) := by
+  obtain ⟨a, M₀, hr⟩ : ∃ a M₀, ones1 js ++ b :: L = a :: M₀ := by
+    cases js with
+    | nil => exact ⟨_, _, rfl⟩
+    | cons j js => exact ⟨_, _, rfl⟩
+  have h₁ := a_one_two a M₀ R
+  rw [← hr] at h₁
+  exact h₁.trans (carry b L js (3 :: R))
+
+theorem carryW_snoc (js : List Nat) (j : Nat) : carryW (js ++ [j]) = cw j ++ carryW js := by
+  induction js with
+  | nil => simp [carryW]
+  | cons j' js ih => simp [carryW, ih, List.append_assoc]
+
+theorem cw_eq (j : Nat) : cw j = 1 :: twos j := by
+  cases j with
+  | zero => rfl
+  | succ j => show tw 1 (j + 1) 0 = _; rw [tw_one_succ]; rfl
+
+/-- **The carry stops at a block 5, nothing carried** (kernel only): blocks `4, c + 6`. -/
+theorem row_five_nil (c : Nat) (M R : List Nat) :
+    Reaches (enc ⟨.A, 0, 5 :: c :: M, 1 :: 2 :: R⟩) (enc ⟨.A, 0, 4 :: (c + 6) :: M, R⟩) := by
+  have h₁ := carry_start [] 5 (c :: M) R
+  have h₂ := s_b_two c 0 0 M (carryW [] ++ 3 :: R)
+  have h₃ := s_e_two (c + 3) M (3 :: R)
+  have h₄ := s_f_tok 3 0 ((c + 3 + 3) :: M) R
+  rw [show c + 3 + 3 = c + 6 by omega] at h₃ h₄
+  exact h₁.trans (h₂.trans (h₃.trans h₄))
+
+/-- **The carry stops at a block 5 after carrying** (kernel only): blocks `2, c + 6`, the farthest carried block's
+words `1` gone. -/
+theorem row_five (js : List Nat) (j c : Nat) (M R : List Nat) :
+    Reaches (enc ⟨.A, 0, ones1 (js ++ [j]) ++ 5 :: c :: M, 1 :: 2 :: R⟩)
+      (enc ⟨.A, 0, 2 :: (c + 6) :: M, twos j ++ carryW js ++ 3 :: R⟩) := by
+  have h₁ := carry_start (js ++ [j]) 5 (c :: M) R
+  rw [carryW_snoc, cw_eq] at h₁
+  have h₂ := s_b_two c 0 0 M ((1 :: twos j ++ carryW js) ++ 3 :: R)
+  have h₃ := s_e_two (c + 3) M ((1 :: twos j ++ carryW js) ++ 3 :: R)
+  have h₄ := s_f_tok 1 0 ((c + 3 + 3) :: M) (twos j ++ carryW js ++ 3 :: R)
+  rw [show c + 3 + 3 = c + 6 by omega] at h₃ h₄
+  have := h₁.trans (h₂.trans (h₃.trans h₄))
+  simpa [List.append_assoc] using this
+
+/-- **The carry stops at a block 2, nothing carried** (kernel only): B is back at a block 1, now in front of the
+block `c + 6`, before the old words; the next step is a carry again. -/
+theorem row_small_nil (c : Nat) (M R : List Nat) :
+    Reaches (enc ⟨.A, 0, 2 :: c :: M, 1 :: 2 :: R⟩) (enc ⟨.B, 0, 1 :: (c + 6) :: M, R⟩) := by
+  have h₁ := carry_start [] 2 (c :: M) R
+  have h₂ := s_b_two0 c 0 M (carryW [] ++ 3 :: R)
+  have h₃ := s_e_tok 0 (c + 3) M R
+  rw [show c + 3 + 3 = c + 6 by omega] at h₃
+  exact h₁.trans (h₂.trans h₃)
+
+/-- **The carry stops at a block 2 after carrying** (kernel only): D after the block `c + 6`, before the farthest
+carried block's words `2^j` and the rest. -/
+theorem row_small (js : List Nat) (j c : Nat) (M R : List Nat) :
+    Reaches (enc ⟨.A, 0, ones1 (js ++ [j]) ++ 2 :: c :: M, 1 :: 2 :: R⟩)
+      (enc ⟨.D, 0, (c + 6) :: M, twos j ++ carryW js ++ 3 :: R⟩) := by
+  have h₁ := carry_start (js ++ [j]) 2 (c :: M) R
+  rw [carryW_snoc, cw_eq] at h₁
+  have h₂ := s_b_two0 c 0 M ((1 :: twos j ++ carryW js) ++ 3 :: R)
+  have h₃ := s_e_one (c + 3) M (twos j ++ carryW js ++ 3 :: R)
+  rw [show c + 3 + 3 = c + 6 by omega] at h₃
+  have := h₁.trans (h₂.trans h₃)
+  simpa [List.append_assoc] using this
+
 /-! ## Tokens -/
 
 /-- Words other than 2. -/
@@ -225,6 +315,18 @@ theorem row_two_tokens (js : List Nat) (m c : Nat) (M R : List Nat) :
     nzL (3 :: (c + 6) :: M) + irrW (twos m ++ carryW js ++ 3 :: R) + (if c = 0 then 0 else 1) =
       nzL (ones1 js ++ (3 * m + 8) :: c :: M) + irrW (1 :: 2 :: R) + 1 := by
   rw [nzL_ones1_append, irrW_append, irrW_append, irrW_twos, irrW_carryW]
+  by_cases hc : c = 0 <;> simp [nzL, irrW, hc] <;> omega
+
+/-- **Tokens at `row_five`** (kernel only): one fewer when `c ≠ 0`, the same when `c = 0` (the tape grows). -/
+theorem row_five_tokens (js : List Nat) (j c : Nat) (M R : List Nat) :
+    nzL (2 :: (c + 6) :: M) + irrW (twos j ++ carryW js ++ 3 :: R) + (if c = 0 then 0 else 1) =
+      nzL (ones1 (js ++ [j]) ++ 5 :: c :: M) + irrW (1 :: 2 :: R) := by
+  rw [nzL_ones1_append, irrW_append, irrW_append, irrW_twos, irrW_carryW]
+  by_cases hc : c = 0 <;> simp [nzL, irrW, hc] <;> omega
+
+/-- **Tokens at `row_five_nil`** (kernel only): the same rule. -/
+theorem row_five_nil_tokens (c : Nat) (M R : List Nat) :
+    nzL (4 :: (c + 6) :: M) + irrW R + (if c = 0 then 0 else 1) = nzL (5 :: c :: M) + irrW (1 :: 2 :: R) := by
   by_cases hc : c = 0 <;> simp [nzL, irrW, hc] <;> omega
 
 end BB6c
