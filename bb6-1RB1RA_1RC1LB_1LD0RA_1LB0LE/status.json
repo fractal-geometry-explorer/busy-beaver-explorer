@@ -218,10 +218,16 @@
       "where": "<code>shape_game</code> in <code>py/invsearch.py</code>"
     },
     {
+      "level": "kernel",
+      "title": "The block count is not bounded by 6 on excursions",
+      "text": "From the two-block pass start <code>[a, 2a+1]</code> with a = 2<sup>203</sup> + 2<sup>221</sup> + 1 (a = 5 mod 12, like every two-block state of the blank orbit) the machine reaches a pass start with 7 blocks after 204 passes, and is back at <code>[a+288, 2(a+288)+1]</code> after 216. The route, in (block count, psi), is exactly the escape the graph allows; the classes to mod 2<sup>66</sup> missed it because it needs a mod 2<sup>222</sup>. So the 6-block reduction rests on a statement that fails for some excursions.",
+      "where": "<code>seven_blocks</code>, <code>blocks7_204</code>, <code>return7</code>, <code>lean/Seven.lean</code>; <code>py/blockcount.py</code>"
+    },
+    {
       "level": "open",
-      "title": "A bound on the block count",
-      "text": "Whether every pass start of the orbit has at most 6 blocks (or at most any fixed number for which the game above keeps the first block away from 0). This is a statement about parities only. Residue abstractions with free higher bits do not prove it: they let the block count grow.",
-      "where": ""
+      "title": "Any bound on the block count",
+      "text": "Whether the blank orbit itself ever has 7 blocks is not proved: it would need its counter to land in one of the classes above, which have density about 2<sup>&minus;220</sup> and are expected to be met near pass 2<sup>220</sup> (heuristic). Whether any fixed bound holds is open; the sentinel orbit from <code>[1, 3]</code>, which deep excursions follow, nests excursions of its own, which suggests the count grows with the nesting depth (heuristic).",
+      "where": "<code>notes/LAB_NOTES.md</code>, 1 November"
     },
     {
       "level": "open",
@@ -239,7 +245,7 @@
   "check": [
     "bash scripts/setup-lean.sh                    # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Return, Thin, Psi, Plan, Axioms (about 2 minutes)",
+    "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Seven, Return, Thin, Psi, Plan, Axioms (about 2 minutes)",
     "JOBS=4 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return62.sh   # the return map below 2^62, kernel only (17 minutes with 4 jobs, under 2 GB each)",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py",
@@ -250,6 +256,7 @@
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_induction.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/induction.py free 12   # 5 s",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_invsearch.py",
+    "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_blockcount.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 72   # 2.5 min",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_dynamics.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/dynamics.py orbit 300000",

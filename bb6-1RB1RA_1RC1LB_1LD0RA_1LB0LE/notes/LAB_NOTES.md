@@ -636,3 +636,55 @@ the bits of x. Whether the other open classes reduce the same way, to a loose or
 checked (heuristic). What is missing in any case is the step that controls the real parts (the multiples of 2^m)
 while the inner orbit runs, that is a lower bound on their first-block coefficient along the inner route; in the
 trace of a = 2^120 + 1 it stays at least 0.36·a over the first 100 passes. Whether that closes is still open.
+## 1 November 2026: the block count is not bounded by 6 (`lean/Seven.lean`, `py/blockcount.py`)
+
+The aim was to prove that every list along the blank-tape orbit has at most 6 blocks (or any fixed number), which
+with psi, `front_twice` and the (k, psi) graph would give the conditional reduction above. **The 6-block bound is
+false for excursions in general**, and the classes to mod 2^66 did not show it only because the first failure needs
+a mod 2^222. Labels: **proof** (Lean, kernel), **computed**, **heuristic**.
+
+### A 7-block excursion (proof)
+
+From the two-block pass start `[a, 2a+1]` with **a = 2^203 + 2^221 + 1** (a = 5 mod 12, the residue of the blank
+orbit's states `[a, 2a+1]`) the machine reaches, after 204 passes, a pass start with 7 blocks, and after 216 passes
+it is back at `[a + 288, 2(a + 288) + 1]`, an ordinary excursion with no stop at a block of 1 (`seven_blocks`,
+`blocks7_204`, `return7`; `run_reach` turns the kernel's `decide` on `run` into a run of the machine with `pass`).
+Axioms: `propext`, `Quot.sound`; no `native_decide`. The route is exactly the escape the (k, psi, f) graph allows:
+
+    (k, psi, j):  (4, 3, 1) (5, -17, 3) (4, 11, 1) (5, -21, 2) (5, -5, 1) (6, 23, 2) (6, 9, 1) (7, -56, 7)
+
+so (4, 11), (5, -21) with j = 2, (5, -5) and (6, odd) all occur; at mod 2^66 only (6, 24) did. Every a that agrees
+with this one mod 2^222 has the same first 216 passes (computed: the excursion reads fewer bits than that), so the
+7-block a = 5 mod 12 have density about 2^-220 among them.
+
+**Not proved: that the blank orbit meets one.** Its states `[a, 2a+1]` move a up by 12k (k ≥ 1, mostly 1) and
+cover about 95% of the a = 5 mod 12 in order (computed, 31 October). Skipping every one of these classes forever
+would be a coincidence of the kind the whole problem is about, so the 6-block bound is expected to fail on the orbit
+too, at a pass near 2^220 (heuristic). Either way a proof of "at most 6 blocks" cannot work by an induction over
+excursions, since it is false for some of them.
+
+### How it was found (computed)
+
+* Finite abstractions do not bound the count. Blocks as residues mod 2^p with free higher bits, with psi exact and
+  the ones mod 2^Q tracked (so `front_twice` and the parity of the last block are used), reach 11 blocks for every
+  p, Q ≤ 8; the escaping abstract route is the one above. Any sound abstraction that forgets how the bits of a are
+  shared between blocks lets the count grow, and the exact form (the class tree) is infinite.
+* The class tree split to depth 130 (a mod 2^130, parities only, a depth-first split carrying the symbolic list) has no 7 blocks.
+* The **sentinel orbit** (the first-block thread, `py/induction.py`): for a = 1 + 2^m u the excursion agrees, mod a
+  power of two that loses a bit per pass, with the closed form from `[1, 3]` with a stop at 1 allowed (`loose_step`).
+  That orbit has 6 blocks with odd psi at pass 202 (psi = 9 at pass 203) and 7 blocks (psi = -55) first at pass
+  269,206 (`python3 py/blockcount.py loose N`). So a = 2^m + 1 shows the same as soon as m is a little above the pass:
+  a = 2^269266 + 1 has 7 blocks at pass 269,206 (checked on the closed form, 90 s), and a = 2^203 + 1 at pass 204
+  (`powers`: the only r < 210). A random search below the sentinel (a = 1 + 2^200 u, random bits of u) found the
+  pattern u = 8 mod 16, i.e. a = 2^203 + 1 mod 2^204, and 2^221 fixes a mod 3.
+
+### What it means
+
+The 6-block reduction is conditional on a statement that fails on excursions, so it does not lead to a proof as it
+stands. It can be kept with a larger cap, since the graph is finite for every K, but the cap would itself need a
+proof, and the nesting suggests none exists: the sentinel orbit is an orbit of the same map, its inner counter has
+deep excursions of its own, and each level of nesting adds room for blocks (heuristic; 8 blocks were not looked for
+beyond the 3·10⁵ passes of the sentinel orbit, where the count stays at most 7). What a proof needs is a statement
+self-similar in the nesting depth, as the first-block thread concluded; a bound on the block count by a slowly growing
+function of a (for instance the nesting depth) together with the graph bound 2^R(K) - 1 on the first block would be
+one form of it, untested.

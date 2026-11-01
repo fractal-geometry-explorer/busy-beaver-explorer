@@ -382,3 +382,27 @@ regenerates the file and compares.
 in the B step was allowed to be 0, which let `u` grow without bound.  Restricting it per code (`jsA`) fixed that; the
 first-block bound also had to allow 0s after the blocks of at least 2 (`gzB`, `tailB`).
 
+
+## 1 November 2026: `pre` never gets stuck
+
+**Question.**  Can the abstraction of `lean/Offset.lean` show that `pre` always stops from a good list (blocks of at
+least 2)?
+
+**Acyclicity fails.**  Dumping the 4,463 reachable descriptions and their abstract steps: the graph has two strongly
+connected parts of 1,838 descriptions each, so there is no simple proof that the abstract run is finite.  This is
+expected from the drift question: a description forgets how far left the head is, and the conversion of a word and its
+consumption undo each other in the description.  `u` stays at most 2 throughout (0: 2,191 descriptions, 1: 2,182,
+2: 90).
+
+**What does follow** (`lean/Stops.lean`, kernel only).  At every description the block machine has a next step unless
+`pre` stops or takes a supply word there (`progA`; `prog_ok` checks it with `decide +kernel` on the tree in a few
+seconds, `progA_sound` transfers it to every described configuration).  So the run of `pre` from a good list never
+meets a case the block machine does not cover; the hypothesis "meets no case it does not cover" of `Finish.lean` is
+gone.  The measure `(3 − u) · 3^N + val N (key c)` goes down at every step of `pre`: an ordinary step lowers the key
+(`astep_key`, `val_mono`), and taking a supply word raises `u` by one, which pays for any change of the key since
+`val N _ < 3^N`.  Hence if every configuration of the run keeps at most `N` cells (head offset plus cells of the words),
+`pre` stops within `4 · 3^N` steps (`pre_stops`), and `recur_next` holds with that bound in place of "if `pre` stops"
+(`recur_next_bounded`).
+
+**Still open.**  The bound itself: that the head does not drift left without bound.  It is now the only gap between
+the kernel results and "every recursive pass from a good list finishes, with last block at least `2j − 1`".

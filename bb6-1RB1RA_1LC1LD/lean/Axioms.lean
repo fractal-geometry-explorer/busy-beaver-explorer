@@ -6,6 +6,7 @@ import Finish
 import Blocks
 import Formula
 import OffsetData
+import Stops
 import Count
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
@@ -64,6 +65,11 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6c.check_ok
 #print axioms BB6c.offset_bound
 #print axioms BB6c.recur_next
+-- Stops.lean: pre never gets stuck, so it stops when the cells stay bounded (kernel only)
+#print axioms BB6c.prog_ok
+#print axioms BB6c.preR_inv
+#print axioms BB6c.pre_stops
+#print axioms BB6c.recur_next_bounded
 -- Count.lean: the pass map with step counts (kernel only), and the run to 10¹² steps (native_decide)
 #print axioms BB6c.passesC_sound
 #print axioms BB6c.blank_passesC
