@@ -230,6 +230,12 @@
       "where": "<code>window_seven</code>, <code>six_blocks_long_excursion</code>, <code>window_reach</code>, <code>allOK_W</code>, <code>lean/Window.lean</code>; <code>window</code> in <code>py/blockcount.py</code>"
     },
     {
+      "level": "kernel",
+      "title": "Few large blocks do not exclude a first block of 1",
+      "text": "Along the orbit at most 5 blocks are at least ones/32 (computed), the rest a small tail behind a bulk of about <code>[1, 3.4, 3.3, 1]</code>. Lists of that shape still reach a first block of 1: <code>[31, 254304, 870464, 844832, 256088, 32930, 8427]</code> (and one from 255) keep &psi; = &minus;57, 4 | ones and every block after the first at least 2, have at most 5 blocks of at least ones/32 at every pass start, and halve their first block down to 1, where the next pass stops. So a bound on the number of large blocks, with &psi;, does not rule out the event; what these lists lack is a large first block (1.4&middot;10<sup>&minus;5</sup> of the ones, where the orbit keeps it above 0.7%).",
+      "where": "<code>lean/Large.lean</code> (<code>wL_one</code>, <code>wL_large</code>, <code>wLb_one</code>, <code>wLb_large</code>); <code>py/largeblocks.py</code>; <code>notes/LAB_NOTES.md</code>, 1 November"
+    },
+    {
       "level": "heuristic",
       "title": "So the blank orbit is expected to reach 7 blocks",
       "text": "Along 10<sup>6</sup> returns of the blank orbit (a up to 1.26&middot;10<sup>7</sup>) excursions last at most 36 passes and every a = 5 mod 12 with v<sub>2</sub>(a&minus;1) &ge; 4 is visited; only values with v<sub>2</sub>(a&minus;1) = 2 or 3 are skipped. The witness has v<sub>2</sub>(a<sub>7</sub>&minus;1) = 203, and the jumps grow only slowly with v<sub>2</sub> (k = 24 at 203). So unless some excursion below 2<sup>222</sup> lasts 1,800 passes, about ten times the longest expected, the blank orbit does <b>not</b> stay at 6 blocks: it has 7 at about pass 2<sup>221.6</sup>. That step rests on the observed jump sizes, not on a proof.",
@@ -257,7 +263,7 @@
   "check": [
     "bash scripts/setup-lean.sh                    # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Seven, Window, Return, Thin, Psi, Plan, Axioms (about 2 minutes)",
+    "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Seven, Window, Return, Thin, Psi, Plan, Run7, Large, Axioms (about 2 minutes)",
     "JOBS=4 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return62.sh   # the return map below 2^62, kernel only (17 minutes with 4 jobs, under 2 GB each)",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py",
@@ -269,6 +275,7 @@
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/induction.py free 12   # 5 s",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_invsearch.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_blockcount.py",
+    "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_largeblocks.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 72   # 2.5 min",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_dynamics.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/dynamics.py orbit 300000",
