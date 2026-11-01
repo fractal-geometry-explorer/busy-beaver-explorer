@@ -30,7 +30,7 @@ def alt : List Nat → Int
   | [] => 0
   | y :: ys => (y : Int) - 2 * alt ys
 
-/-- `[31, 96, 64, 32, 88, 162, 235]`, nearest block first. -/
+/-- `[31, 96, 64, 32, 88, 162, 235]` (first block first), written here nearest block first. -/
 def w7 : List Nat := [235, 162, 88, 32, 64, 96, 31]
 
 theorem w7_alt : alt w7 = -57 := by decide
@@ -54,7 +54,7 @@ theorem w7_trace : trace7 =
 /-- The ninth pass stops at a first block of 1. -/
 theorem w7_one : run 9 w7 = .one := by decide
 
-/-- A longer run, 8 front stops: `[255, 1280, 2304, 2432, 5464, 10594, 6507]`, nearest block first. Same ψ, same
+/-- A longer run, 8 front stops: `[255, 1280, 2304, 2432, 5464, 10594, 6507]` (first block first). Same ψ, same
 cycle of the (k, ψ) graph, first block 255 = 2^8 − 1. -/
 def w7b : List Nat := [6507, 10594, 5464, 2432, 2304, 1280, 255]
 
