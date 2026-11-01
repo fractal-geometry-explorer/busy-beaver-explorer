@@ -236,6 +236,12 @@
       "where": "<code>lean/Large.lean</code> (<code>wL_one</code>, <code>wL_large</code>, <code>wLb_one</code>, <code>wLb_large</code>); <code>py/largeblocks.py</code>; <code>notes/LAB_NOTES.md</code>, 1 November"
     },
     {
+      "level": "kernel",
+      "title": "A large first block does not bound the halvings",
+      "text": "At every change of the first block after pass 50 the orbit leaves it at least 7.6% of the ones, and the runs between changes have at most 5 front stops (10<sup>8</sup> passes, computed). But a large first block does not stop the halving: <code>[255, 512, 32, 60, 32, 64, 9]</code> (&psi; = &minus;23, first block 26% of the ones) and <code>[255, 528, 48, 24, 8, 32, 64, 128, 129]</code> (&psi; = 1, 21%) keep 4 | ones and every block after the first at least 2, halve their first block 255 down to 1 with no other change, and then stop at a block of 1. An exact search finds such lists, first block at least 1/5 of the ones and |&psi;| &le; 21, for every run length tried (4 to 8 halvings, computed). So the first block's share of the ones, with &psi;, does not exclude the event at these sizes; whether the share must shrink for very long runs is open, and a count of parity bits suggests it need not (heuristic).",
+      "where": "<code>lean/BigFront.lean</code> (<code>wF_one</code>, <code>wF_firsts</code>, <code>wH_one</code>, <code>wH_firsts</code>); <code>py/bigfront.py</code>; <code>notes/LAB_NOTES.md</code>, 1 November"
+    },
+    {
       "level": "heuristic",
       "title": "So the blank orbit is expected to reach 7 blocks",
       "text": "Along 10<sup>6</sup> returns of the blank orbit (a up to 1.26&middot;10<sup>7</sup>) excursions last at most 36 passes and every a = 5 mod 12 with v<sub>2</sub>(a&minus;1) &ge; 4 is visited; only values with v<sub>2</sub>(a&minus;1) = 2 or 3 are skipped. The witness has v<sub>2</sub>(a<sub>7</sub>&minus;1) = 203, and the jumps grow only slowly with v<sub>2</sub> (k = 24 at 203). So unless some excursion below 2<sup>222</sup> lasts 1,800 passes, about ten times the longest expected, the blank orbit does <b>not</b> stay at 6 blocks: it has 7 at about pass 2<sup>221.6</sup>. That step rests on the observed jump sizes, not on a proof.",
@@ -263,7 +269,7 @@
   "check": [
     "bash scripts/setup-lean.sh                    # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Seven, Window, Return, Thin, Psi, Plan, Run7, Large, Axioms (about 2 minutes)",
+    "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Seven, Window, Return, Thin, Psi, Plan, Run7, Large, BigFront, Axioms (about 2 minutes)",
     "JOBS=4 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return62.sh   # the return map below 2^62, kernel only (17 minutes with 4 jobs, under 2 GB each)",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py",
@@ -276,6 +282,7 @@
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_invsearch.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_blockcount.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_largeblocks.py",
+    "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_bigfront.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 72   # 2.5 min",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_dynamics.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/dynamics.py orbit 300000",
