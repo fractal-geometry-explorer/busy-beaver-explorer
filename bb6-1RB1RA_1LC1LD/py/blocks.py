@@ -19,6 +19,8 @@ usage:
   python3 py/blocks.py descents P           lean/Bound.lean: the descents of the last block over the first P passes
                                             of the run (maximal runs of passes that shrink it), and the last block
                                             against the square root of the total
+  python3 py/blocks.py residues P M...      the pairs (block left of the last, last block) mod M over passes 156..P of
+                                            the run, and which halting two-block starts share a pair with the run
 """
 import itertools
 import os
@@ -251,6 +253,24 @@ def descents(passes, seq=None):
     return lengths, deep, ratio
 
 
+HALTING_STARTS = ((16, 16), (314, 54), (224, 24), (386, 24), (26, 9), (8, 6), (4, 16), (62, 24), (170, 24))
+
+
+def residues(passes, moduli, seq=None):
+    """For each M: how many pairs (x mod M, b mod M) of the block x left of the last and the last block b occur over
+    passes 156.. of the run, out of M², and which of HALTING_STARTS (safe, even, halting by case B)
+    have a pair that occurs.  Returns {M: (seen, possible, [halting starts matched])}."""
+    seq = seq or path_of((10, 3), passes)
+    out = {}
+    for m in moduli:
+        seen = {(q[-2] % m, q[-1] % m) for q in seq[156:]}
+        possible = m * m
+        out[m] = (len(seen), possible, [h for h in HALTING_STARTS if (h[0] % m, h[1] % m) in seen])
+        print(f"mod {m}: {out[m][0]} of {possible} pairs on passes 156..{len(seq) - 1}; halting starts with a "
+              f"pair on the run: {out[m][2]}")
+    return out
+
+
 def next_full_of(ls, b):
     """The next pass start from the blocks `ls` (nearest first) and a last block `b`, left to right."""
     return macro.next_full(tuple(reversed(ls)) + (b,))
@@ -274,6 +294,8 @@ def main(argv):
             print(" ", pre, [(x, *v) for (p, x), v in sorted(out.items()) if p == pre])
     elif argv[0] == "chain":
         chain(*map(int, argv[1:5]))
+    elif argv[0] == "residues":
+        residues(int(argv[1]), [int(a) for a in argv[2:]])
     elif argv[0] == "descents":
         descents(int(argv[1]))
     elif argv[0] == "caseb":

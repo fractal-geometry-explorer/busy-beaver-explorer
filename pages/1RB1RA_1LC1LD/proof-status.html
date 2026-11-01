@@ -226,6 +226,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>With the block left of the last other than 2, the offset c is 0 exactly when <code>pre</code> takes two supply words, on all 2,743 lists of 1 to 3 blocks of 2..15. All 63 safe starts <code>x b</code> with x even below 400 and b below 300 that halt within 12 passes halt by case B, with b in {6, 9, 16, 24, 54}. Over the 8,257 pass starts to 10<sup>12</sup> steps: the leftmost block is always even; offset 0 in 631 of 2,654 recursive passes, never more than 3 in a row; case B never reached; the smallest last block from pass 156 on is 53, from pass 2,000 on 375, and from pass 156 on the last block is at least 1.38 times the square root of the total number of ones.</p>
         <p class="where"><code>py/blocks.py caseb</code>, <code>tests/test_machine.py</code></p>
       </div>
+      <div class="card">
+        <h3>No residue invariant on the last two blocks separates the run from the halting starts</h3>
+        <p>Over passes 156 to 8,256 of the run, the pairs (x mod M, b mod M) of the last block b and the block x left of it fill 728 of the 729 pairs mod 27, and the nine known safe even starts that halt by case B all share their pair with some pass start of the run for every M dividing 54 (seven of them mod 81, five mod 162). So no condition on these residues, with or without parity, holds on the run and fails on the halting starts: they differ from the run only in size and in the higher 3-adic digits.</p>
+        <p class="where"><code>py/blocks.py residues</code>, <code>notes/LAB_NOTES.md</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -277,6 +282,7 @@ python3 bb6-1RB1RA_1LC1LD/py/blocks.py exhaustive 30 3   # good lists whose next
 python3 bb6-1RB1RA_1LC1LD/py/blocks.py chain 14 4 1 20000   # case A of lean/Chain.lean: a last block 3 after a block of at least 6
 python3 bb6-1RB1RA_1LC1LD/py/blocks.py caseb 15 400 300 12 3000   # case B: offset 0 and two supply words, halting starts, the run
 python3 bb6-1RB1RA_1LC1LD/py/blocks.py descents 8256   # the descents of the last block on the run to 10^12 steps (minutes)
+python3 bb6-1RB1RA_1LC1LD/py/blocks.py residues 8256 18 27 54 81 162   # residues of the last two blocks on the run against the halting starts (minutes)
 cd tools/py &amp;&amp; python3 -m bbtools.invariants 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 12
 cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 3</code></pre>
   </section>

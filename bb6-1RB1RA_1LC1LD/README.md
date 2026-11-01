@@ -79,7 +79,9 @@ thirds of the old one less 5/3, and is 6 only if the old one was 9, or 2 after a
 halt by case B needs the last block to come down to 9 first, by at most 3/2 a pass.  No lower bound on the last
 block by the size of the tape is kept by every pass (`lean/Bound.lean`, `no_total_bound`): a covered pass from a last
 block 1 mod 3 shrinks it while every other block stays or grows.  On the run the descents get rarer fast enough that
-the chances of reaching 9 sum to a finite number (heuristic, `py/blocks.py descents`, `notes/LAB_NOTES.md`).
+the chances of reaching 9 sum to a finite number (heuristic, `py/blocks.py descents`, `notes/LAB_NOTES.md`).  Nor do residues
+separate them: mod 27 the run's last two blocks take 728 of the 729 pairs, and every known halting start shares its
+pair with the run mod 54 (`py/blocks.py residues`).
 **Proved in Lean, kernel only** (`lean/Tokens.lean`): `pre` at A before the words `1, 2` starts a carry over the blocks
 that are 1 mod 3 (`carry`), and how it ends when it stops at a block `3m + 3`, at a block `3m + 8`, or past the leftmost
 block (`row_zero`, `row_two`, `row_end`), with the pairs `2 1`, `2 3`, `3 2` that write no words; counting words
@@ -125,7 +127,7 @@ question itself.
 | `lean/check.sh` | compiles the shared library, then the files above |
 | `py/blank.py` | the run from blank tape on the shared simulator: summary, records, D at the left end |
 | `py/macro.py` | pass starts of the run, the pass maps (`next_pass`, and `next_full` mirroring `lean/Recur.lean`, `pre` mirroring `lean/Formula.lean`), and their comparison |
-| `py/blocks.py` | which pass starts can lead to a halt: the run, exhaustive and random checks, recursive offsets, case A of `lean/Chain.lean`, case B (`caseb`), descents of the last block (`descents`) |
+| `py/blocks.py` | which pass starts can lead to a halt: the run, exhaustive and random checks, recursive offsets, case A of `lean/Chain.lean`, case B (`caseb`), descents of the last block (`descents`), their residues (`residues`) |
 | `py/blocks.py` | which pass starts can lead to a halt: the run, exhaustive and random checks, recursive offsets, case A of `lean/Chain.lean` |
 | `py/tokens.py` | `pre` at its A states: two words eaten each time, the token count, growth steps (`notes/LAB_NOTES.md`, 1 November, ranking function) |
 | `tests/test_machine.py` | generated files current, the page current, C against Python, the facts in the notes |

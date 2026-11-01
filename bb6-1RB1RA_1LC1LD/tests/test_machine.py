@@ -305,6 +305,15 @@ class TestBlocks(unittest.TestCase):
         self.assertEqual(deep[0][1:], (7, 238, 12))
         self.assertGreater(ratio, 3)
 
+    def test_residues(self):
+        """notes, residues: by pass 2000 the run's (x, b) mod 18 and mod 27 already contain the residue class of every
+        halting start found."""
+        out = blocks.residues(2000, [18, 27])
+        self.assertEqual(len(out[27][2]), len(blocks.HALTING_STARTS))
+        self.assertEqual(len(out[18][2]), len(blocks.HALTING_STARTS))
+        for h in blocks.HALTING_STARTS:
+            self.assertEqual(blocks.path_of(h, 12)[-1], blocks.HALT)
+
     def test_formula(self):
         """lean/Formula.lean: `pre` once per list gives the next pass start of the recursive pass for every j >= u
         (blocks b + 2 ceil((p + j - u)/2), M; last block a + 2(p + j - u)), u <= 2, and for j = 1 < u the same last block."""
