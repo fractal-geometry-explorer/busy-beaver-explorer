@@ -11,6 +11,9 @@ usage:
   python3 py/blockcount.py witness          the passes of the witness excursion, with (k, psi, j)
   python3 py/blockcount.py powers R         a = 2^r + 1 for r < R: the excursions with 7 or more blocks
   python3 py/blockcount.py loose N          the loose orbit from [1, 3]: first pass with each block count, to N passes
+  python3 py/blockcount.py window W         the jumps k of the return map at a = WITNESS - 12j, j <= W, and whether
+                                            every entry into the window is carried to the witness (lean/Window.lean)
+  python3 py/blockcount.py visits N         N returns of the blank orbit: the a = 5 mod 12 it skips, by v2(a - 1)
 """
 import os
 import sys
@@ -83,6 +86,40 @@ def powers(r_max):
     return out
 
 
+def k_of(a):
+    """The jump k of the return map at a: [a, 2a+1] returns to [a + 12k, ...] after 9k passes."""
+    ex = excursion(a)
+    assert isinstance(ex[-1], list) and len(ex) - 1 == 9 * ((ex[-1][0] - a) // 12), a
+    return (ex[-1][0] - a) // 12
+
+
+def window(w, target=WITNESS):
+    """k at target - 12j for 1 <= j <= w, and the j from which the counter a -> a + 12k jumps over the target."""
+    ks = {j: k_of(target - 12 * j) for j in range(1, w + 1)}
+    over = []
+    for j in ks:
+        i = j
+        while i > 0:
+            i -= ks[i]
+        if i < 0:
+            over.append(j)
+    return ks, over
+
+
+def visits(n):
+    """{v2(a-1): (count of a = 5 mod 12 below the orbit's reach, count skipped)} over n returns from a = 5."""
+    import dynamics
+    seq, top = dynamics.orbit(n)
+    seen = {a for a, _ in seq}
+    out = {}
+    for b in range(5, top, 12):
+        v = dynamics.v2(b - 1)
+        c = out.setdefault(v, [0, 0])
+        c[0] += 1
+        c[1] += b not in seen
+    return out, top
+
+
 def main(argv):
     if not argv:
         print(__doc__)
@@ -97,6 +134,15 @@ def main(argv):
     elif argv[0] == "loose":
         for k, (t, y) in sorted(loose_firsts(int(argv[1])).items()):
             print(k, "blocks first at pass", t, "psi", psi(y), y)
+    elif argv[0] == "window":
+        ks, over = window(int(argv[1]))
+        print("k > 1 at j =", {j: k for j, k in ks.items() if k > 1}, "(all others 1)")
+        print("entries that jump over the witness:", over or "none")
+    elif argv[0] == "visits":
+        out, top = visits(int(argv[1]))
+        print("a = 5 mod 12 below", top, "- v2(a-1): (values, skipped)")
+        for v, c in sorted(out.items()):
+            print(v, tuple(c))
     else:
         print(__doc__)
 

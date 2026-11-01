@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.join(ROOT, "py"))
 import blank  # noqa: E402
 import blocks  # noqa: E402
 import macro  # noqa: E402
+import tokens  # noqa: E402
 import build_status  # noqa: E402
 from bbtools import ctl  # noqa: E402
 from bbtools.invariants import conserved  # noqa: E402
@@ -322,6 +323,15 @@ class TestBlocks(unittest.TestCase):
                     m = p + j - u
                     strip = lambda l: list(l[:max([i + 1 for i, v in enumerate(l) if v] or [0])])
                     self.assertEqual(strip(r[1]), strip([b + 2 * ((m + 1) // 2)] + M), (ls, j))
+
+    def test_tokens(self):
+        """py/tokens.py: between A states `pre` eats two words, only `1 2` writes words (ending in 3 where the 2 was),
+        and the count of irregular words plus blocks goes up only when the tape grows, by 1."""
+        pairs, moves, bad = tokens.check(5, 800)
+        self.assertEqual(bad, [])
+        self.assertTrue(all(dt <= 0 for dt, grew in moves if not grew))
+        self.assertIn((1, True), moves)
+        self.assertEqual(set(pairs), {(2, 2), (2, 1), (2, 3), (1, 2), (3, 2), (3, 1), (3, 3)})
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

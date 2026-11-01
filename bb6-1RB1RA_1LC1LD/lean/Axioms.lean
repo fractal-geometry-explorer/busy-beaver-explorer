@@ -11,6 +11,7 @@ import Count
 import Chain
 import CaseB
 import Bound
+import Tokens
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
 a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
@@ -94,3 +95,22 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6c.blank_reaches_1e12
 #print axioms BB6c.blank_runs_1e12
 #print axioms BB6c.blank_runs_1e10
+-- Tokens.lean: pre at its A states, the carry and the three ways it stops (kernel only)
+#print axioms BB6c.carry
+#print axioms BB6c.row_zero
+#print axioms BB6c.row_two
+#print axioms BB6c.row_end
+#print axioms BB6c.two_one
+#print axioms BB6c.two_three
+#print axioms BB6c.three_two
+#print axioms BB6c.row_zero_tokens
+#print axioms BB6c.row_two_tokens
+#print axioms BB6c.row_end_tokens
+#print axioms BB6c.three_one
+#print axioms BB6c.three_three
+#print axioms BB6c.row_five_nil
+#print axioms BB6c.row_five
+#print axioms BB6c.row_small_nil
+#print axioms BB6c.row_small
+#print axioms BB6c.row_five_tokens
+#print axioms BB6c.row_five_nil_tokens

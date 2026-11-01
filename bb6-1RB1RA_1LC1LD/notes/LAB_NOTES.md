@@ -505,3 +505,101 @@ grows linearly in the passes (1,787, 3,547, 7,059, 14,041, 28,193 ones at passes
 median last block around pass `t` is about 0.65 of the total (1019, 2153, 4583, 9152, 18515), so the chance of a
 descent to 9 at pass `t` falls like `t^−2.26`, and the sum over all passes converges: evidence, not proof, that the run
 never reaches case B.
+## 1 November 2026: a ranking function for `pre`? What the A states show
+
+**Aim.**  A measure that goes down along `pre` from every good list, so that `pre` stops with no assumption
+(`pre_stops` needs only a bound on the cells).  Not found; what was found narrows the question.
+
+**Two words at a time** (`py/tokens.py check`, 3,000 random good lists, no exception; `test_tokens`).  Look at `pre`
+only at A with no ones under the head.  Between two such states it eats exactly the first two words.  Call a word
+other than 2 *irregular*.  Only the pair `1 2` writes new words: the converter runs left through the blocks that are
+1 mod 3 (each becomes a word 1 followed by 2s), stops at the first block that is not, and A comes back; what it
+writes ends in a word 3 where the 2 was (rarely, nothing).  So the irregular word in front moves exactly one word to
+the right and every new irregular word is to its left.  The other pairs write nothing: `2 2` is the loop of
+`tail_two` (blocks `a, b` gain 4 and 2), `2 1` and `2 3` remove the irregular word, `3 2` removes the 3 and pushes a
+new block 4, `3 1` and `3 3` are rare.  In closed form, with the blocks `a_1, …, a_k` (nearest first) 1 mod 3,
+`a_i = 3 j_i + 1`, then a block `b`, then `c, d`:
+
+| `b` | blocks after | words written in place of `1 2` |
+|---|---|---|
+| `3m`, `m ≥ 1` | `c + 3, d + 2, …` | `2^{m-1} 1 2^{j_k} 1 … 1 2^{j_1} 3` |
+| none (all blocks 1 mod 3) | `2, 2` | `2^{j_k} 1 2^{j_{k-1}} 1 … 1 2^{j_1} 3` |
+| `3m + 2` | `3, c + 6, …` (roughly; small cases differ) | `… 2^{m-2} 3` |
+
+**Tokens.**  Count irregular words plus nonzero blocks.  Over the same lists this count never goes up, except by
+exactly 1 on a step where the tape grows at the left end (`+2` or `+6` added to a block past the leftmost one starts
+a new block).  Growth steps are few (at most 4 in random lists of up to 10 blocks; a hill climb, `py/tokens.py climb`,
+finds about one per block: 5 with 2 blocks, 9 with 8, 12 with 12), and they can come one after another: from `[4, 3,
+19]` three in a row while one word 1 walks right through the 2s, the count going 3, 4, 5.
+
+**No count works.**  The row "none" above shows why no potential linear in counts of words and blocks (weights by
+kind, any residue) can go down: with weight `β` per block, `α₁`, `α₃` per word 1 and 3, it changes by
+`(k - 2)(α₁ - β) + α₃`, which is `α₃ > 0` for `k = 2`; and `k = 0, 1` with the row `3m` force `α₁ ≤ β`.  An LP over
+1,357 kinds of step from random runs (counts by position, kind and residue; and again with a free constant for each
+of 1,736 abstract states: the first two blocks, the last two, the first two words) is infeasible, both for "cells +
+potential does not grow" and for the weaker "potential drops on every growth step".
+
+**Orders that fail.**  Dictionary order on the tokens read from the right end is what `astep_key` already gives at
+word level, and has the same infinite chains (`1`, `3 1`, `3 3 1`, …: new irregular words on the left).  Multisets of
+token positions (Dershowitz–Manna), measured from the right end or from the current left end, blocks by either end,
+words by any of their cells, every ranking of the kinds: 2 to 13 % of steps go up, always at the growth steps or right
+after them.  Dictionary order on the tokens read from the left: at least 108 of 498 kinds of step go up.  The position
+of the head at successive growth steps does not move monotonically either.
+
+**What a proof needs.**  Termination is equivalent to finitely many growth steps (between them the cells are bounded
+and `pre_stops` applies).  Growth needs every block between the head and the left end to be 1 mod 3 (or the carry to
+end one or two blocks from it), and leaves fresh blocks `2, 2`, `3, 2`, `3, 6`.  A proof will have to use what the
+fresh blocks and the words written with them look like, for example that from the fresh blocks the next carry
+cannot reach the left end until a word of the stream to the right has been used up; the reduction to two words per A
+state above is the place to start.
+
+## 1 November 2026: the A-state rules in Lean, and the growth steps
+
+**Proved in Lean** (`lean/Tokens.lean`, kernel only).  The rules of the section above, for every block and word
+length: `carry` (B before a word `0` goes left over blocks `3 j_i + 1`, each becoming the words `1, 2^{j_i}`);
+`a_one_two` (A before `1, 2` is B before `0, 3`); the three ways a carry started by `1, 2` can stop, `row_zero` (at
+a block `3m + 3`: blocks `c + 3, d + 2`, words `2^m`, the carried words, `3`), `row_two` (at a block `3m + 8`: blocks
+`3, c + 6`, words `2^m`, the carried words, `3`) and `row_end` (past the leftmost block: blocks `2, 2`, words `2^j`,
+the carried words, `3`); and the pairs that write no words, `two_one`, `two_three`, `three_two` (with `tail_two` for
+`2 2`).  For each row the token count after it, exactly (`row_zero_tokens`, `row_two_tokens`, `row_end_tokens`): one
+more in `row_end`; in `row_zero` one more less one for each of `c`, `d` that is not 0; in `row_two` one more less one
+if `c ≠ 0`.  So the count goes up exactly at the rows where a block 0 past the leftmost one is written, which is
+where the tape grows.  (Rows not covered: the stopping blocks 2 and 5, and `3 1`, `3 3`; all rare.)
+
+**Computed** (`py/tokens.py`, random good lists and hill climbs).
+* After every growth step exactly two blocks are left; the carry has turned all the others into words 1.
+* The number of growth steps is at most the token count at the first A state plus 2 (20,000 random lists of up to
+  10 blocks: plus 1 at most; three hill climbs maximising the excess: plus 2, from `[46, 50, 41, 31, 46, 22, 7]`).
+  So each growth step seems to use up one of the tokens the pass started with, but the count itself is no measure:
+  it can go up with each of several growth steps in a row and only come down later (`tokens + growth steps so far`
+  exceeds the starting count by up to 7).
+* The LP of the section above becomes feasible once the abstract state keeps block lengths exactly up to 15, the
+  two nearest blocks, the depth up to 3 and the first six words; its earlier infeasibility came from an abstract
+  cycle (`[7, 8]` before `1 2 2 3`, growth, `[3, 6]`, `2 2`, back) that the exact lengths break.  With 1,188 states
+  for 1,113 kinds of step from 400 runs this fits the sample rather than proves anything, but it says a finite
+  description of the bottom of the stack and the front words may carry a ranking.
+
+**Next.**  A proof of "growth steps ≤ starting tokens + 2" by following one growth to the next: both start from two
+blocks, so the state between is the two blocks, the stack built by `three_two` from words 3, and the words; the rows
+above give each step exactly.
+
+## 1 November 2026: the remaining carry cases, and a bounded credit that does not exist
+
+**Proved in Lean** (`lean/Tokens.lean`, kernel only).  The cases left out above: `three_one` (`3 1`: a new block
+3, the block behind gains 2) and `three_three` (`3 3`: a new block 5); the carry stopping at a block 5, with nothing
+carried (`row_five_nil`: blocks `4, c + 6`) or after carrying (`row_five`: blocks `2, c + 6`, the farthest carried
+word 1 used up), with their token counts (one fewer unless `c = 0`, where the tape grows and the count stays); and
+at a block 2, where the pass does not come back to A at once: with nothing carried B is again at a block 1, in front
+of `c + 6`, before the old words, so a new carry starts (`row_small_nil`), and after carrying it is D after `c + 6`
+before the farthest carried block's `2^j` (`row_small`).  With `carry_start` every first block of the carry is now
+covered: `3m + 3`, 2, 5, `3m + 8`, or none left.
+
+**A bounded credit does not exist for small descriptions.**  The bound "growth steps ≤ starting tokens + 2" would
+follow from `tokens + h` never going up and dropping at every growth step, for some `h` between 0 and a constant
+depending only on a description of the state.  An LP over the A steps of 1,000 random runs is infeasible for every
+description tried (the nearest one or two blocks and the farthest two by length up to 7 or 10 and residue, the depth
+up to 5, the first two or three words), for any bound on `h`.  The obstruction is always a cycle of two-block states
+`[x, y]` with long runs of 2s and single words 1, in which a growth step returns to the same description; in the
+real runs the lengths of the runs of 2s break the cycle.  So a proof has to follow those lengths: for two blocks and
+a word 1 after `t` pairs of 2s, the blocks are `x + 4t, y + 2t`, and which row the next carry takes depends on
+`x + t` and `y - t` mod 3.
