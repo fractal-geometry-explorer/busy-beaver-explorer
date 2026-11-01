@@ -272,3 +272,46 @@ that meet the event are lists with small blocks, and they meet it within 60 pass
 random lists; the blank orbit is one specific list, and its two-block states `[a, 2a + d]` are far outside the
 ranges searched. A proof would show that a stop block stays above a fixed fraction of the tape along the excursions
 of the return map, which is what the bound "about a/64" of the return-map entry suggests on every route checked.
+
+## 1 November 2026: the return map in Lean (`lean/Return.lean`, `lean/Return62.lean`)
+
+The return-map computation of 31 October, which rested on Python, is now a Lean theorem, kernel only.
+
+**The pass map on residue classes.** `Aff` is a value p + q·u (u ≥ 0 free, p, q naturals). `snext` is `next` written
+on lists of them, step for step (`sbump`, `szag`, `ssweep`), and it fails instead of guessing: `split` when a parity
+is not known (q odd), `small` when a comparison with 0 or 1 holds at u = 0 only, `bad` when it fails on the whole
+class. `snext_ok`: when `snext l = .ok l'`, `next` of `l` at u is `l'` at u, for every u. The only arithmetic in it is
+`(p + q u) / 2 = p/2 + (q/2) u` and the same mod 2 for even q, and `- 1` where p ≥ 1. `srun` iterates until a
+two-block state `[2a'+1, a']` on the whole class (`srun_ok`).
+
+**`explore`** is the class search of `py/returnmap.py` in Lean: run the class `p + q u` from `[2a+1, a]`; accept if it
+returns along one route with a' = a + 12k after 9k passes; on `split` cut it into u even and u odd (at most d more
+times); on `small` run u = 0 concretely (`crun`, `cgood`) and go on with u ≥ 1; at the depth limit (q ≥ B) run the
+single member below B concretely. `explore_ok` (an induction on the fuel): if it says `true`, every member below B
+returns. Starting from the class 5 + 4u (a = 1 is the only value Python set aside, and it does stop at a block of 1).
+
+**From the return map to the orbit** (`orbit_ok_upto`). Pass 4 (Lean counts blank tape as pass 0, so pass n has 4n
+ones; Python's pass 3) is `[5, 11]`. A pass start `[a, 2a+1]` has 3a + 1 = 4n ones, so a = 1 mod 4, a ≥ 5 from pass
+4 on, and a < B while 4n ≤ 3B. Then a later pass start has the same shape, and since `.halt` and `.one` are final, a
+later block list means every pass before it was one. So: if every a = 1 mod 4, 5 ≤ a < B returns, every pass
+n ≤ (3B + 4)/4 is a block list, and the machine reaches its pass start (`reach_upto`). No need to track k or to show a
+grows; the count of ones does it.
+
+**The six short chains** (`chain_0` … `chain_m3`): `srunN` on the class p + 4u, kernel `decide`, for every a ≥ 5.
+
+**Checking it.** `explore (2^62) 200 60 5 4` takes seconds compiled (`returns_2_62`, `native_decide`). In the kernel
+(`decide +kernel`; plain `decide` stops at the elaborator's heartbeat limit) a < 2^32 takes 30 s and 2.7 GB, a < 2^40
+150 s and 10 GB, and the whole range is killed at 13.6 GB: the kernel keeps what it has reduced for the whole
+declaration, about 0.1 MB and 1.3 ms per symbolic pass. The work is very uneven: the classes a = 2^m + 1 mod 2^(m+1)
+for m = 8, 9, 10, 19, 26–28, 36, 37 hold nearly all of it (m = 8 alone: 6,419 routes), the rest is a second or less.
+So `lean/Plan.lean` counts the passes `explore` makes in each subclass (3,387,223 in all, concrete ones counted
+double) and `lean/return62.py` halves classes until each piece costs at most 12,000: 1,575 pieces, each a theorem
+`Cov (2^62) p q` by `explore` and `decide +kernel`, spread over 8 files of equal cost, joined by 1,574 uses of
+`Cov.split` in `Return62.lean`. The cut only decides the pieces; each is checked by the kernel, and `Cov.split` is a
+theorem, so a bad cut can only fail. `lean/check_return62.sh` checks the shards in parallel and fails if
+`no_one_3e18_kernel` rests on anything but `propext`, `Quot.sound` and `Classical.choice`. The plan takes 8 minutes
+(interpreted `#eval`); the check 55 CPU minutes, 17 minutes with 4 jobs, peak under 2 GB per job.
+
+**What this settles and what not.** The 3.4·10¹⁸ figure is now a theorem about the machine: it reaches each of the
+first 3·2^60 + 1 pass starts. The route list beyond 2^62 is infinite (31 October), so the same method cannot reach
+all a; the open part is unchanged: an induction for the excursion.

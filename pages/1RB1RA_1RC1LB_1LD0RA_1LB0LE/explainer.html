@@ -404,7 +404,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 <!-- Built from status.json by bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/explainer_status.py; do not edit by hand. -->
 <script type="application/json" id="status-data">
 {
- "asof": "Status as of 31 October 2026.",
+ "asof": "Status as of 1 November 2026.",
  "claims": [
   {
    "level": "kernel",
@@ -443,6 +443,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
    "where": "<code>blank_runs_10M<\/code>, <code>lean/Blank.lean<\/code>"
   },
   {
+   "level": "native",
+   "title": "The return map below 2<sup>62<\/sup>, in seconds",
+   "text": "The same <code>explore<\/code> run on the whole class in one <code>native_decide<\/code>, so the regular check covers it too: <code>returns_2_62<\/code> and <code>no_one_3e18<\/code> trust Lean's compiler for this one evaluation. Everything that says what <code>explore<\/code> means is the kernel's.",
+   "where": "<code>returns_2_62<\/code>, <code>no_one_3e18<\/code>, <code>lean/Return.lean<\/code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 10<sup>11<\/sup> steps",
    "text": "The shared C simulator runs 10<sup>11<\/sup> steps from blank tape without a halt (15,234 ones at the end; 3,641 at 10<sup>9<\/sup> steps). It agrees with the Python reference simulator on the first 80 records of the run (a test).",
@@ -467,22 +473,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
    "where": "<code>tests/test_machine.py<\/code> (<code>TestLeanPassMap<\/code>)"
   },
   {
-   "level": "trusted",
-   "title": "The short chains between two-block states",
-   "text": "From <code>[a, 2a+d]<\/code>: d = 0 goes to &minus;2, &minus;2 to &minus;1, 2 to &minus;3 (one pass each), &minus;1 to 1 and 3 to 2 (two passes), &minus;3 to 0 (three passes), with a growing by 2, 1, 3, 2, 3, 3. So every two-block state reaches one with d = 1. Algebra from the closed form, checked on each whole residue class mod 4 by running <code>py/passmap.py<\/code> on values p + q&middot;u.",
-   "where": "<code>python3 py/returnmap.py chains<\/code>, <code>tests/test_returnmap.py<\/code>"
+   "level": "kernel",
+   "title": "The short chains between two-block states, for every a",
+   "text": "From <code>[a, 2a+d]<\/code> with a &ge; 5 in the right class mod 4: d = 0 goes to &minus;2, &minus;2 to &minus;1, 2 to &minus;3 (one pass each), &minus;1 to 1 and 3 to 2 (two passes), &minus;3 to 0 (three passes), with a growing by 2, 1, 3, 2, 3, 3. So every two-block state reaches one with d = 1. Proved for every a by running Lean's pass map on the class a = p + 4u symbolically (<code>srunN<\/code>, proved sound by <code>srunN_ok<\/code>).",
+   "where": "<code>chain_0<\/code>, <code>chain_m2<\/code>, <code>chain_2<\/code>, <code>chain_m1<\/code>, <code>chain_3<\/code>, <code>chain_m3<\/code>, <code>lean/Return.lean<\/code>"
   },
   {
-   "level": "trusted",
+   "level": "kernel",
    "title": "The return map G(a) = a + 12k, for every a below 2<sup>62<\/sup>",
-   "text": "Run on residue classes a = p + q&middot;u (parities known while q is even, classes split otherwise) down to a mod 2<sup>62<\/sup>: 19,231 routes from <code>[a, 2a+1]<\/code> back to <code>[a+12k, 2(a+12k)+1]<\/code> after 9k passes, k = 1 to 10; no class halts or meets a stop block of 1; only a = 1 is set aside (it stops at a block of 1). The members below 2<sup>62<\/sup> of the 2,890 classes still open were run one by one and return too (k up to 11). So for every a = 1 mod 4 with 5 &le; a &lt; 2<sup>62<\/sup> the excursion is safe. 24 seconds.",
-   "where": "<code>python3 py/returnmap.py classes 60<\/code>"
+   "text": "For every a = 1 mod 4 with 5 &le; a &lt; 2<sup>62<\/sup>, Lean's pass map takes <code>[a, 2a+1]<\/code> to <code>[a+12k, 2(a+12k)+1]<\/code> in exactly 9k passes, k &ge; 1 (<code>Returns<\/code>). How: <code>snext<\/code> is the pass map on values p + q&middot;u, failing wherever a parity or a comparison is not the same on the whole class, and <code>snext_ok<\/code> proves it agrees with <code>next<\/code> at every u. <code>explore<\/code> runs a class, splits it by the parity of u, sets the single value u = 0 aside to run concretely, and runs the one member below 2<sup>62<\/sup> of each class left at mod 2<sup>62<\/sup>; <code>explore_ok<\/code> proves that when it says yes, every member returns. One kernel <code>decide<\/code> on the whole class runs out of memory, so <code>lean/return62.py<\/code> cuts it into 1,575 subclasses, each checked by <code>decide +kernel<\/code> in its own theorem (8 files, <code>lean/R62/<\/code>), and <code>Cov.split<\/code> puts them together. About an hour of CPU (17 minutes on 4 cores); <code>lean/check_return62.sh<\/code>, its own CI workflow. The same computation by <code>native_decide<\/code> (<code>returns_2_62<\/code>) takes seconds and is in the regular check, and the kernel alone does a &lt; 2<sup>16<\/sup> there (<code>returns_2_16<\/code>). The Python run (<code>py/returnmap.py classes 60<\/code>: 19,231 routes, k = 1 to 11) agrees.",
+   "where": "<code>returns_2_62_kernel<\/code>, <code>lean/Return62.lean<\/code>; <code>explore_ok<\/code>, <code>snext_ok<\/code>, <code>lean/Return.lean<\/code>"
   },
   {
-   "level": "trusted",
-   "title": "No halt in the first 3.4&middot;10<sup>18<\/sup> passes",
-   "text": "The orbit is <code>[5, 11]<\/code> at pass 3, and the states <code>[a, 2a+1]<\/code> follow each other by G with a = 5 mod 12 (checked against the orbit for 30,000 passes). With the line above, the orbit of the pass map has no halt and no stop block of 1 until a reaches 2<sup>62<\/sup>, about pass 3.4&middot;10<sup>18<\/sup> (pass n has 3a + 1 = 4(n+1) ones), and by <code>halts_only_by_one<\/code> the machine does not halt before. Rests on the Lean pass map and on the Python computation, whose <code>passmap<\/code> is tested against Lean's <code>next<\/code>.",
-   "where": "<code>python3 py/returnmap.py orbit 200000<\/code>, <code>notes/LAB_NOTES.md<\/code>"
+   "level": "kernel",
+   "title": "No stop block of 1, and no halt, in the first 3.46&middot;10<sup>18<\/sup> passes",
+   "text": "Pass 4 from blank tape (counting blank tape as pass 0, so pass n has 4n ones) is <code>[5, 11]<\/code>. A pass start <code>[a, 2a+1]<\/code> has 3a + 1 = 4n ones, so a = 1 mod 4 and a &lt; 2<sup>62<\/sup> while 4n &le; 3&middot;2<sup>62<\/sup>; the return map then gives a later pass start of the same shape, and a later block list means every earlier pass was a block list too (<code>orbit_ok_upto<\/code>). So every pass n &le; 3&middot;2<sup>60<\/sup> + 1 is a block list with 4n ones, never a stop block of 1, and the machine reaches its pass start (<code>reach_upto<\/code>, from <code>pass<\/code>). Kernel only: <code>propext<\/code>, <code>Quot.sound<\/code>, <code>Classical.choice<\/code>.",
+   "where": "<code>no_one_3e18_kernel<\/code>, <code>lean/Return62.lean<\/code>; <code>orbit_ok_upto<\/code>, <code>reach_upto<\/code>, <code>lean/Return.lean<\/code>"
   },
   {
    "level": "trusted",
@@ -505,7 +511,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   {
    "level": "open",
    "title": "An induction for the excursion",
-   "text": "The excursion from <code>[a, 2a+1]<\/code> for every a. The route list is infinite because of the halving tail and the loops it nests, so this needs an induction on the tail length showing that stop blocks stay above a fraction of a that shrinks slower than 1/a. That, with the reduction, would prove the machine never halts.",
+   "text": "The excursion from <code>[a, 2a+1]<\/code> for every a, not just a &lt; 2<sup>62<\/sup>. The route list is infinite because of the halving tail and the loops it nests, so no finite table of residue classes covers it: this needs an induction on the tail length showing that stop blocks stay above a fraction of a that shrinks slower than 1/a. With <code>orbit_ok_upto<\/code> (Lean: if every a below B returns, the first (3B+4)/4 passes are safe) and the reduction, that would prove the machine never halts.",
    "where": "<code>notes/LAB_NOTES.md<\/code>"
   },
   {
