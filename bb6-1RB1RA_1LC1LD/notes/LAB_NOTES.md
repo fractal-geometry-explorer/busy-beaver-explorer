@@ -603,3 +603,26 @@ up to 5, the first two or three words), for any bound on `h`.  The obstruction i
 real runs the lengths of the runs of 2s break the cycle.  So a proof has to follow those lengths: for two blocks and
 a word 1 after `t` pairs of 2s, the blocks are `x + 4t, y + 2t`, and which row the next carry takes depends on
 `x + t` and `y - t` mod 3.
+
+
+## 1 November 2026: a residue invariant against the descent to 9?
+
+**Question.**  `lean/Bound.lean` shows that sizes alone cannot keep the last block from coming down to 9; the length of
+a descent is decided by residues (`k` covered descents need `3^k` to divide the last block plus 5).  Is there an
+invariant of the run on the residues of the last block `b` and the block `x` left of it that excludes the starts that
+come down to case B?
+
+**Not with a small modulus** (computed, `py/blocks.py residues 8256 18 27 54 81 162`, passes 156 to 8,256 of the run to
+10¹² steps).  The pairs `(x mod M, b mod M)` seen on the run: 316 of 324 for `M = 18`, 728 of 729 for `M = 27`, 1,651 of
+2,916 for 54, 3,786 of 6,561 for 81, 4,544 of 26,244 for 162, about what 8,100 independent samples would fill.  The
+nine safe even starts known to halt by case B (`16 16`, `314 54`, `224 24`, `386 24`, `26 9`, `8 6`, `4 16`, `62 24`,
+`170 24`, `HALTING_STARTS`) all share their pair with some pass start of the run for `M` up to 54, seven of them for
+81 and five for 162.  Since every one of those halts, no condition on `(x mod M, b mod M)`, with or without the parity
+of the leftmost block, can hold on the run and fail on them, for any `M` dividing 54; by the counts, likely for none of
+moderate size.  The residues of the run look equidistributed, and the starts that come down to case B differ from the
+run's only in size (they are small) and in the higher 3-adic digits.
+
+**So** the descent to 9 is not excluded by any finite residue information on the last two blocks, nor (`Bound.lean`) by
+sizes alone.  What decides it is the combination: a small last block with the right digits.  That is the Collatz-like
+core of this machine; the heuristic of the previous entries (the chances of a descent to 9 sum to a finite number) is
+the strongest statement the evidence supports.  Nothing new to prove in Lean here.

@@ -177,6 +177,12 @@
       "where": "<code>py/blocks.py descents</code>, <code>notes/LAB_NOTES.md</code>"
     },
     {
+      "level": "trusted",
+      "title": "No residue invariant on the last two blocks separates the run from the halting starts",
+      "text": "Over passes 156 to 8,256 of the run, the pairs (x mod M, b mod M) of the last block b and the block x left of it fill 728 of the 729 pairs mod 27, and the nine known safe even starts that halt by case B all share their pair with some pass start of the run for every M dividing 54 (seven of them mod 81, five mod 162). So no condition on these residues, with or without parity, holds on the run and fails on the halting starts: they differ from the run only in size and in the higher 3-adic digits.",
+      "where": "<code>py/blocks.py residues</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
       "level": "heuristic",
       "title": "The recursive case: a last block that is a multiple of 3",
       "text": "Then the converter does not stop at the left end of the last block: it carries on into the next block in a second mode (B reading <code>0 0</code>), and that block's residue mod 3 decides again: 1 carries on further left, 0 and 2 turn back. So the routes form an infinite family (which the block machine of <code>lean/Recur.lean</code> follows one word at a time), one for each run of blocks that are 1 mod 3, and a route census over small cases would not be complete. In the first 10<sup>10</sup> steps the converter crosses 0, 1, 2 and 3 extra blocks of 1 mod 3 in 400, 178, 3 and 1 of the 581 recursive passes. The rules for these steps are worked out symbolically but not yet put together in Lean.",
@@ -214,6 +220,7 @@
     "python3 bb6-1RB1RA_1LC1LD/py/blocks.py chain 14 4 1 20000   # case A of lean/Chain.lean: a last block 3 after a block of at least 6",
     "python3 bb6-1RB1RA_1LC1LD/py/blocks.py caseb 15 400 300 12 3000   # case B: offset 0 and two supply words, halting starts, the run",
     "python3 bb6-1RB1RA_1LC1LD/py/blocks.py descents 8256   # the descents of the last block on the run to 10^12 steps (minutes)",
+    "python3 bb6-1RB1RA_1LC1LD/py/blocks.py residues 8256 18 27 54 81 162   # residues of the last two blocks on the run against the halting starts (minutes)",
     "cd tools/py && python3 -m bbtools.invariants 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 12",
     "cd tools/py && python3 -m bbtools.ctl 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 3"
   ]
