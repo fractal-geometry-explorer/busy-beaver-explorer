@@ -319,3 +319,34 @@ reach the pass start `1^11866 0 1^17246 A>0` at step 1,000,110,302,407.  So `bla
 
 **What this gives.** A Lean-checked floor of 10¹² steps, ten times the C simulation, in a few minutes; the floor is
 cheap to raise (the cost per pass grows with the tape width, about √(t/250)).  It is still only a floor.
+
+## 1 November 2026: bounding the drift to the left
+
+The aim was a proof that from a good start the head of a recursive pass gets at most a few cells past the left end of
+the tape, which with `astep_key` (`lean/Finish.lean`) would make every pass finish.  Not done; what was found:
+
+**A bound on the drift is the whole problem.**  Every step moves the cells right of the head towards the left end
+(`astep_key` in cell terms: whole words are consumed, or a word's separator moves left).  Any measure built from the
+words alone, a multiset of separator positions or a dictionary order with longer words first, needs a bound on how far
+left things go to be well founded, so a bound on the drift is equivalent to termination, not a step towards it.
+The tape grows only when the converter runs off the left end, after every block left of the head has been turned into
+words; then a C step moves the leftmost block into the words and F starts a block 2 one cell further left.
+
+**No constant bound.**  The 582 recursive passes of the first 10¹⁰ steps go at most 6 cells past the left end, but
+over all good lists the drift grows with the number of blocks: a hill climb (`j = 1`) finds 6 with 4 blocks, 9 with 8,
+11 with 12 and 13 with 24 (`[25, 14, 14, 7, 7, 25, 8, 29, 5, 4, 28, 5, 14, 10, 3, 16, 11, 5, 2, 10, 21, 4, 11, 19]`).
+So a theorem would have to bound the drift by something like the number of blocks, and that needs the structure of
+the pass.
+
+**`pre` (`lean/Formula.lean`) reaches arbitrarily deep.**  How many blocks of the original list `pre` touches is not
+set by the first block that stops the converter (a block not 1 mod 3): over 20,000 random lists of 1 to 8 blocks,
+lists whose first block already stops it are still dug into to depth 8.  The way back sweeps right, two words `0 1 1`
+at a time, over blocks `x, y`, and every word `0 1` or `0 1 1 1` on the way converts `y` back into words, sometimes
+`x` and further blocks too, so the left part is rebuilt many times (11 times for `[7, 10, 40, 25, 21]`).  An
+induction over the blocks, as for `c ≥ -1`, has to follow these rebuilds.
+
+Linear potentials (cells plus nonnegative multiples of counts of words and blocks by value and residue) were ruled
+out before; the same holds with counts of the run of blocks 1 mod 3 next to the head.  The next idea to try is a
+description of the A states of `pre`: blocks `x, y` (sometimes a third) left of the head, and words in `{1, 2, 3}` with
+at most two larger ones in front, and a measure on the sequence of irregular words `1` and `3` between the runs of
+`0 1 1`.
