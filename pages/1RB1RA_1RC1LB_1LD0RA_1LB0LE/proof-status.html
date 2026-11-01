@@ -149,6 +149,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Pass 4 from blank tape (counting blank tape as pass 0, so pass n has 4n ones) is <code>[5, 11]</code>. A pass start <code>[a, 2a+1]</code> has 3a + 1 = 4n ones, so a = 1 mod 4 and a &lt; 2<sup>62</sup> while 4n &le; 3&middot;2<sup>62</sup>; the return map then gives a later pass start of the same shape, and a later block list means every earlier pass was a block list too (<code>orbit_ok_upto</code>). So every pass n &le; 3&middot;2<sup>60</sup> + 1 is a block list with 4n ones, never a stop block of 1, and the machine reaches its pass start (<code>reach_upto</code>, from <code>pass</code>). Kernel only: <code>propext</code>, <code>Quot.sound</code>, <code>Classical.choice</code>.</p>
         <p class="where"><code>no_one_3e18_kernel</code>, <code>lean/Return62.lean</code>; <code>orbit_ok_upto</code>, <code>reach_upto</code>, <code>lean/Return.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The block count is not bounded by 6 on excursions</h3>
+        <p>From the two-block pass start <code>[a, 2a+1]</code> with a = 2<sup>203</sup> + 2<sup>221</sup> + 1 (a = 5 mod 12, like every two-block state of the blank orbit) the machine reaches a pass start with 7 blocks after 204 passes, and is back at <code>[a+288, 2(a+288)+1]</code> after 216. The route, in (block count, psi), is exactly the escape the graph allows; the classes to mod 2<sup>66</sup> missed it because it needs a mod 2<sup>222</sup>. So the 6-block reduction rests on a statement that fails for some excursions.</p>
+        <p class="where"><code>seven_blocks</code>, <code>blocks7_204</code>, <code>return7</code>, <code>lean/Seven.lean</code>; <code>py/blockcount.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -262,8 +267,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>A bound on the block count</h3>
-        <p>Whether every pass start of the orbit has at most 6 blocks (or at most any fixed number for which the game above keeps the first block away from 0). This is a statement about parities only. Residue abstractions with free higher bits do not prove it: they let the block count grow.</p>
+        <h3>Any bound on the block count</h3>
+        <p>Whether the blank orbit itself ever has 7 blocks is not proved: it would need its counter to land in one of the classes above, which have density about 2<sup>&minus;220</sup> and are expected to be met near pass 2<sup>220</sup> (heuristic). Whether any fixed bound holds is open; the sentinel orbit from <code>[1, 3]</code>, which deep excursions follow, nests excursions of its own, which suggests the count grows with the nesting depth (heuristic).</p>
+        <p class="where"><code>notes/LAB_NOTES.md</code>, 1 November</p>
       </div>
       <div class="card open">
         <h3>An induction for the excursion</h3>
@@ -280,7 +286,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>bash scripts/setup-lean.sh                    # Lean 4.34.0, core only
 . /etc/profile.d/lean.sh
-bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Return, Plan, Axioms (about a minute)
+bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Seven, Return, Plan, Axioms (about a minute)
 JOBS=4 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return62.sh   # the return map below 2^62, kernel only (17 minutes with 4 jobs, under 2 GB each)
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py
@@ -289,6 +295,7 @@ python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py check 3000 6
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_returnmap.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_front.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_invsearch.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_blockcount.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 72   # 2.5 min
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_dynamics.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/dynamics.py orbit 300000

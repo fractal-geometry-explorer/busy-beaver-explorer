@@ -3,6 +3,7 @@ import Rules
 import Pass
 import Return
 import Front
+import Seven
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
 a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
@@ -53,3 +54,7 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6d.front_twice
 #print axioms BB6d.orbit_front_twice
 #print axioms BB6d.halts_only_at_front
+#print axioms BB6d.run_reach
+#print axioms BB6d.blocks7_204
+#print axioms BB6d.return7
+#print axioms BB6d.seven_blocks
