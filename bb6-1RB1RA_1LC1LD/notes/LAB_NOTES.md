@@ -347,6 +347,6 @@ induction over the blocks, as for `c ≥ -1`, has to follow these rebuilds.
 
 Linear potentials (cells plus nonnegative multiples of counts of words and blocks by value and residue) were ruled
 out before; the same holds with counts of the run of blocks 1 mod 3 next to the head.  The next idea to try is a
-description of the A states of `pre`: blocks `x, y` (sometimes a third) left of the head, and words in `{1, 2, 3}` with
-at most two larger ones in front, and a measure on the sequence of irregular words `1` and `3` between the runs of
+description of the A states of `pre`: the blocks left of the head (up to 8 in the samples), and the words, which
+beyond the first two are always 1, 2 or 3 (5,000 random lists, every A state), and a measure on the sequence of irregular words `1` and `3` between the runs of
 `0 1 1`.
