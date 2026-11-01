@@ -25,17 +25,30 @@ a pass whose sweep stops at a block of a single 1 (`halts_only_by_one`). Narrowe
 start is `1 0 1^e 0 … 0 1^b A>0` with every `e` even and `b` odd, and the pass before did not stop at its first block
 (`halts_only_at_front`).
 
-**Proved in Lean with `native_decide`**: no halt in the first 10,000,000 steps (`blank_runs_10M`).
+**Proved in Lean, kernel only: the return map below 2^62** (`lean/Return.lean`, `lean/Return62.lean`). Every
+two-block state `[a, 2a+d]`, |d| ≤ 3, a ≥ 5, reaches one with d = 1 in at most three passes (`chain_0` … `chain_m3`,
+for every a). For every a = 1 mod 4 with 5 ≤ a < 2^62 the pass map takes `[a, 2a+1]` to `[a+12k, 2(a+12k)+1]` in
+exactly 9k passes (`returns_2_62_kernel`): `snext` is the pass map on residue classes p + q·u, proved to agree with
+`next` at every u (`snext_ok`), and `explore` (proved sound, `explore_ok`) runs the classes, splits them by parity,
+and runs single values concretely where a class is not uniform. With `orbit_ok_upto` (if every a below B returns,
+the first (3B+4)/4 passes are block lists) and the reduction: **the first 3·2^60 + 1 ≈ 3.46·10¹⁸ passes never stop at a
+block of 1, and the machine reaches each of their pass starts** (`no_one_3e18_kernel`; pass n has 4n ones, pass 4
+is `[5, 11]`). One `decide` on the whole class needs more memory than a machine has, so `lean/return62.py` cuts it
+into 1,575 subclasses checked by `decide +kernel` one theorem each (`lean/R62/`, 8 files) and joined by `Cov.split`;
+about an hour of CPU, 17 minutes on 4 cores (`lean/check_return62.sh`, its own CI workflow). The regular check has the kernel for a < 2^16
+(`returns_2_16`).
+
+**Proved in Lean with `native_decide`**: no halt in the first 10,000,000 steps (`blank_runs_10M`); the return map
+below 2^62 in one evaluation of `explore` (`returns_2_62`, `no_one_3e18`, seconds), the same statement as above.
 
 **Computed** (trusted C/Python, tested): no halt in the first 10¹¹ steps (`tools/c/tmrun.c`); the closed form of the
 pass map (`py/passmap.py`) gives every pass start of the first 10⁹ steps (1,005 passes), and Lean's `next` agrees with it
 on 3,000 random lists and the first 400 passes; no conserved a·ones + b·pos + W[state] modulo 2 to 12. **The return
-map** (`py/returnmap.py`, computed on the pass map that `pass` proves): every two-block state `[a, 2a+d]` reaches one
-with d = 1 in at most three passes, and from `[a, 2a+1]` the orbit returns to `[a+12k, 2(a+12k)+1]` after 9k passes;
-from pass 3 (`[5, 11]`) the orbit is a chain of these with a = 5 mod 12. Run on residue classes of a down to mod 2^74,
-no excursion halts or meets a stop block of 1 for 5 ≤ a < 2^74, so with `halts_only_by_one`, **no halt in the first
-1.4·10²² passes** (resting on the Lean pass map and on this Python computation, whose `passmap` is tested against
-Lean's `next`).
+map** (`py/returnmap.py`, the computation the Lean one follows, on the pass map that `pass` proves): run on
+residue classes of a down to mod 2^74, no excursion halts or meets a stop block of 1 for 5 ≤ a < 2^74, so with
+`halts_only_by_one`, **no halt in the first 1.4·10²² passes** (resting on the Lean pass map and on this Python
+computation, whose `passmap` is tested against Lean's `next`); down to mod 2^62 it gives the 19,231 routes, k = 1
+to 11, of the Lean theorem above.
 
 **Computed, by plain iteration** (`c/passorbit.c`, the closed form in C, checked against `py/passmap.py`; resting on
 the Lean pass map): the first 10¹¹ passes from `[2, 2]` one by one, with no residue classes, never meet a stop block
@@ -86,7 +99,22 @@ covered form a 2-adic set of dimension about 0.19, and on it the bits of a mix a
 repeat (computed). Every route keeps a margin of a/64 against the 1/a a halt needs (heuristic). Verdict: not
 Collatz-like at the level of G. A proof needs an inequality by induction, not a finite table.
 
-**Open**: an induction for the excursion from `[a, 2a+1]` over the tail length (whether a sweep ever stops at a block
+**For every a, a failure is confined to a thin set** (`lean/Thin.lean`, kernel only): with no upper bound on a,
+every a = 1 mod 4, a ≥ 5, returns unless a mod 2^34 is one of 67 residues, a fraction 1.6·10⁻⁸
+(`returns_off_open34`). `thin` is `explore` without the concrete runs at
+the depth limit, and `thin_ok` proves that a non-returning a has its residue in the list it gives.
+
+**A second exact quantity** (`lean/Psi.lean`, kernel only, found by the thread on the provable first-block bound):
+ψ = y_k − 2y_(k−1) + 4y_(k−2) − … moves by 2ψ' = −ψ + 3(−2)^n − 7 in every pass, n ≤ k the number of blocks the
+sweep crosses (`psi_next`). On `[a, 2a+d]` it is d.
+
+**No induction on sizes alone** (`py/induction.py`, `notes/LAB_NOTES.md`, 1 November): with every parity free and the
+constants of the closed form dropped, the first block of the lists reachable from `[1, 2]` halves every two passes, so
+an inductive lower bound must say which parities occur. Near a = 1 the excursion agrees, modulo a power of 2 losing
+a bit per pass, with the orbit from `[1, 3]` of the closed form, whose last block is a fixed 3 feeding an inner
+counter `[x, 2x+6, 3]`: the deepest routes are the same map one level down (computed).
+
+**Open**: an induction for the excursion from `[a, 2a+1]` over the tail length, for a ≥ 2^62 (whether a sweep ever stops at a block
 of 1), and so the question itself.
 
 ## Layout
@@ -98,6 +126,12 @@ of 1), and so the question itself.
 | `lean/Blank.lean` | bounded runs from blank tape and the halting configurations |
 | `lean/Pass.lean` | the pass map in closed form, proved for every block list, and the reduction to a stop block of 1 |
 | `lean/Front.lean` | blocks after the first stay at least 2, no two front stops in a row, and the narrowed reduction |
+| `lean/Return.lean` | the return map: the pass map on residue classes (`snext`, sound), `explore`, the short chains, the orbit up to a bound |
+| `lean/Thin.lean` | for every a: a non-returning a has its residue among the open classes (`thin_ok`), 67 residues mod 2^34 |
+| `lean/Psi.lean` | the alternating sum ψ and its exact rule under a pass (`psi_next`) |
+| `lean/Plan.lean`, `lean/return62.py` | the cut of the class a = 5 + 4u into pieces for the kernel; writes `lean/R62/` and `lean/Return62.lean` |
+| `lean/R62/Shard*.lean`, `lean/Return62.lean` | generated: the pieces, each by `decide +kernel`, and the theorem below 2^62 |
+| `lean/check_return62.sh` | checks the pieces in parallel (`JOBS`), then `Return62.lean`, and that it rests on no `native_decide` |
 | `lean/Seven.lean` | an excursion with 7 blocks: `run`, `run_reach`, `seven_blocks` |
 | `lean/Window.lean` | the 200 returns below it lead to it: `orbit_run`, `window_seven`, `six_blocks_long_excursion` |
 | `lean/Axioms.lean` | prints what each theorem rests on |
@@ -107,6 +141,8 @@ of 1), and so the question itself.
 | `py/front.py` | the first block along the orbit: descents, the halving loop |
 | `tests/test_front.py` | the statements of `lean/Front.lean` on the Python closed form, and the orbit measurements |
 | `py/dynamics.py` | the long-run dynamics of G: the orbit as a counter, the bits an excursion reads, the class tree and its open set, the mixing |
+| `py/induction.py` | the free-parity pass map (no induction on sizes alone) and the sentinel orbit near a = 1 |
+| `tests/test_induction.py` | the free-parity minima, the loose map against the closed form, the sentinel orbit for a = 1 + 2^m u |
 | `tests/test_dynamics.py` | the counter, the bits read, the tree to mod 2^26, the mixing at depth 32 |
 | `tests/test_returnmap.py` | the chains, the classes down to mod 2^38, the classes against concrete runs, the orbit chain |
 | `py/blockcount.py` | the 7-block witness, the sentinel orbit's block counts, the scan of a = 2^r + 1, the window below the witness, the values the blank orbit visits |
@@ -125,6 +161,7 @@ of 1), and so the question itself.
 ```sh
 bash scripts/setup-lean.sh && . /etc/profile.d/lean.sh
 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh
+JOBS=4 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return62.sh                                        # 17 min on 4 cores
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py
 gcc -O3 -o passorbit bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/c/passorbit.c && ./passorbit orbit 100000000000   # about 35 min
@@ -135,6 +172,7 @@ python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_blockcount.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/front.py stats 100000000   # about 4 min
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 60    # 24 s (classes 72: 2.5 min)
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_dynamics.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_induction.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/dynamics.py orbit 300000; python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/dynamics.py tree 72   # 4 min
 python3 tools/pages/build_status.py bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/status.json pages/1RB1RA_1RC1LB_1LD0RA_1LB0LE/proof-status.html   # after editing status.json
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/explainer_status.py                                                                       # the same, for the explainer
