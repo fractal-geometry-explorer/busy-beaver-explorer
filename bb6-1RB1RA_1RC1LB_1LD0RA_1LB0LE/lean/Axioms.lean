@@ -8,6 +8,7 @@ import Front
 import Seven
 import Run7
 import Large
+import BigFront
 import Window
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
@@ -81,3 +82,7 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6d.wL_large
 #print axioms BB6d.wLb_one
 #print axioms BB6d.wLb_large
+#print axioms BB6d.wF_firsts
+#print axioms BB6d.wF_one
+#print axioms BB6d.wH_firsts
+#print axioms BB6d.wH_one

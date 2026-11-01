@@ -879,3 +879,63 @@ for a given R were not searched). If that could be proved, as "a run of R front 
 α > 1", the event would need a change of the first block to leave it below ones^(1/α), a statement about the changes
 (stops at the second or third block, even last blocks on 2 or 3 blocks) and not about the block count. That is the
 next step this points to; it is untested.
+
+## 1 November 2026: bound the halvings by the first block at a change? (`lean/BigFront.lean`, `py/bigfront.py`)
+
+The idea (from the large-blocks thread): the lists of `Run7.lean` and `Large.lean` that halve their first block down
+to 1 have a tiny first block, while the orbit keeps it large. A run between two changes of the first block that ends
+in the event needs the change to leave the first block at f = 2^R − 1 and then R − 1 front stops (the Mersenne
+lemma). If the orbit keeps f ≥ c·ones at every change, and a run of R halvings needed ones ≥ 2^(αR) with α > 1, then
+f ≥ c·ones would bound R, and the event could happen only below a fixed size, which Lean already covers. **The
+second half fails at every size tested: lists with a first block of a fifth or more of the ones halve it to 1.**
+Labels: **proof** (Lean, kernel), **computed**, **heuristic**.
+
+### The orbit (computed)
+
+`python3 py/bigfront.py orbit 100000000` (4 min) splits the first 10⁸ passes into runs, each starting right after a
+change of the first block:
+
+| front stops in the run | 0 | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|---|
+| runs | 32,086,866 | 30,512,034 | 11,718 | 86 | 6 | 5 |
+
+After pass 50 the first block at a change is at least **7.6% of the ones** (pass 1,525,467: 466,427 of 6,101,868),
+the longest run is 5 front stops (pass 13,321,940, first block 12,024,895), and log₂(f + 1) − R, the halvings
+missing for the event, is at least 4.9 (pass 52) and grows with the ones. So on the orbit the share of the first block
+at a change is large, and the runs are short.
+
+### Halving lists with a large first block (computed; proof for two)
+
+`search(k0, H, bound, W)` finds, exactly, the smallest list with k0 blocks, first block 2^(H+1) − 1, `Good`,
+4 | ones and |psi| ≤ W whose run makes H front stops with no change of the first block and then stops at a first
+block of 1. It runs on lattice classes: each start block is p + 2^m·u, every later block an affine form in the u's,
+and each parity a pass reads splits one u in two, so each leaf is one route, and its smallest list is found by a
+bounded search on the u's (the LP bound, at most one coordinate off its least value, prunes). Every list it returns is
+run on the closed form (`trace`). Results (f/ones of the smallest list, or of the first found with `FIRST=1`):
+
+| halvings to 1 (H + 1) | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|
+| \|psi\| ≤ 60, smallest for that block count | 0.27 (6 blocks) | 0.30 (6) | 0.29 (8) | 0.30 (8) | 0.26 (7, first found) |
+| \|psi\| ≤ 21, first found with ones ≤ 5f | 0.25 (7) | 0.28 (7) | 0.20 (7) | 0.21 (9) | 0.21 (9) |
+
+The smallest lists have the shape `[2^(H+1) − 1, 2^(H+2) + small, tail]`: a second block about twice the first
+and a tail of about 20% of the ones, so the share does not fall as the run grows, from 4 to 8 halvings.
+`lean/BigFront.lean` checks two of them by the kernel (axioms `propext` only):
+
+    wF = [255, 512, 32, 60, 32, 64, 9]               psi −23, ones 964    first block 26% of the ones
+    wH = [255, 528, 48, 24, 8, 32, 64, 128, 129]     psi 1,   ones 1216   first block 21% of the ones
+
+Both keep 4 | ones and `Good`, their first block runs 255, 127, …, 1 with no other change (`wF_firsts`,
+`wH_firsts`), and the 19th and 21st passes stop at a first block of 1 (`wF_one`, `wH_one`). psi stays in the range of
+the orbit (−21..24) for `wH`. The orbit's bound of 7.6% is far below their 21%, so **the first block's share, with
+psi, `Good`, 4 | ones and `front_twice`, does not exclude the event**, at least for runs of up to 8 halvings.
+
+### What the reduction would need, and why it is not expected (heuristic)
+
+The Lean range covers the first 3·2^60 passes, so beyond it ones ≥ 1.4·10¹⁹, and with f ≥ 0.076·ones a run to 1
+would need about 56 halvings. The search reaches 8 (each halving costs about 10 times the nodes). A count of parity
+bits gives no reason to expect the share to shrink: a front stop on k blocks fixes the k − 1 parities after the first
+block, and the other passes of a run cost little (they only must not stop at the second or third block), while
+doubling f at a fixed share doubles every block and so gives k − 1 bits of room. The two balance, so lists with a
+fixed share are expected for every run length (heuristic, consistent with the table). A useful bound would have to
+use more of the orbit than the share of the first block: where its runs start, not only how large they start.

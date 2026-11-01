@@ -106,8 +106,17 @@ two lists above gives lists of that shape, `[31, 254304, 870464, 844832, 256088,
 keep psi = −57, 4 | ones and `Good`, have at most 5 blocks of at least ones/32 (or ones/16) at every pass start, and
 still halve their first block to 1 and stop there (`wL_one`, `wL_large`, `wLb_one`, `wLb_large`). So a bound on the
 large blocks, with psi, does not exclude the event. What these lists lack is a large first block (1.4·10⁻⁵ of the
-ones, where the orbit keeps it above 0.7%); the next statement to try bounds the halvings by log₂(ones) from the
-size of the first block at a change (heuristic, untested).
+ones, where the orbit keeps it above 0.7%).
+
+**A large first block does not bound the halvings either** (`lean/BigFront.lean`, kernel; `py/bigfront.py`;
+`notes/LAB_NOTES.md`, 1 November). At every change of the first block after pass 50 the orbit leaves it at least 7.6%
+of the ones, and a run between changes has at most 5 front stops (10⁸ passes, computed). But `[255, 512, 32, 60, 32,
+64, 9]` (psi = −23, first block 26% of the ones) and `[255, 528, 48, 24, 8, 32, 64, 128, 129]` (psi = 1, 21%) keep
+4 | ones and `Good`, halve their first block 255 → 1 with no other change, and stop at a block of 1 (`wF_one`,
+`wH_one`). An exact search on lattice classes finds such lists, first block at least 1/5 of the ones and |psi| ≤ 21,
+for every run of 4 to 8 halvings (computed). So the first block's share, with psi, does not exclude the event at these
+sizes; whether it must shrink for runs of about 56 halvings, which is what the orbit beyond the Lean range would need,
+is open, and a count of parity bits suggests it need not (heuristic).
 
 **Observed only**: on every route down to mod 2^74 the stop blocks stay above about a/64, shrinking like 2^(−m/10) or slower
 with the depth m of the class. The route list is infinite (the tail of the first pass lives v₂(a−1) passes), finite
@@ -156,6 +165,7 @@ of 1), and so the question itself.
 | `lean/Seven.lean` | an excursion with 7 blocks: `run`, `run_reach`, `seven_blocks` |
 | `lean/Run7.lean` | lists with 7 blocks and small psi that reach a first block of 1 by halvings alone; `front_second` |
 | `lean/Large.lean` | the same lists in the orbit's shape, at most 5 blocks of at least ones/32 at every pass, still reaching a first block of 1 |
+| `lean/BigFront.lean` | lists whose first block is a fifth or more of the ones, small psi, that still halve it to 1 |
 | `lean/Window.lean` | the 200 returns below it lead to it: `orbit_run`, `window_seven`, `six_blocks_long_excursion` |
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `lean/check.sh` | compiles the shared library, then the files above |
@@ -171,6 +181,8 @@ of 1), and so the question itself.
 | `py/runbound.py` | front stops between changes of the first block: the bound by block count, the cycles from 7 blocks on, the witness, y2/(y1+1) |
 | `py/largeblocks.py` | the most blocks of at least ones/2^c along the orbit and the sentinel orbit; the lists of `lean/Large.lean` |
 | `tests/test_largeblocks.py` | the lists of `lean/Large.lean`, the construction for every M from 6 to 40, the orbit's count to pass 3·10⁵ |
+| `py/bigfront.py` | the first block at each change along the orbit and the runs after it; the exact search for halving lists with a large first block |
+| `tests/test_bigfront.py` | the lists of `lean/BigFront.lean`, the search's minimum for 7 blocks, the orbit's runs to pass 3·10⁵ |
 | `tests/test_runbound.py` | the table, the cycles, the witness against Lean's lists, `front_second` on random lists |
 | `py/blockcount.py` | the 7-block witness, the sentinel orbit's block counts, the scan of a = 2^r + 1, the window below the witness, the values the blank orbit visits |
 | `tests/test_blockcount.py` | the witness, its (k, psi) route, the sentinel orbit at pass 203, the scan |
@@ -199,6 +211,9 @@ python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_blockcount.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_runbound.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_largeblocks.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/largeblocks.py orbit 20000000   # about 3 min
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_bigfront.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/bigfront.py orbit 100000000     # about 4 min
+FIRST=1 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/bigfront.py search 9 7 5 21   # 7·10⁶ nodes, a few minutes
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/front.py stats 100000000   # about 4 min
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 60    # 24 s (classes 72: 2.5 min)
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_dynamics.py
