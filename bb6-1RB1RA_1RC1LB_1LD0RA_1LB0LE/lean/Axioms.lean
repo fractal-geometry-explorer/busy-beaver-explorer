@@ -1,8 +1,14 @@
 import Blank
 import Rules
 import Pass
+import Return
+import Thin
+import Psi
 import Front
 import Seven
+import Run7
+import Large
+import Window
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
 a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
@@ -30,13 +36,48 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6d.halts_only_by_one
 #print axioms BB6d.never_halts_of_no_one
 #print axioms BB6d.orbit_12
+#print axioms BB6d.orbit_add
+#print axioms BB6d.snext_ok
+#print axioms BB6d.srun_ok
+#print axioms BB6d.explore_ok
+#print axioms BB6d.returns_of_explore
+#print axioms BB6d.orbit_ok_upto
+#print axioms BB6d.reach_upto
+#print axioms BB6d.chain_0
+#print axioms BB6d.chain_m2
+#print axioms BB6d.chain_2
+#print axioms BB6d.chain_m1
+#print axioms BB6d.chain_3
+#print axioms BB6d.chain_m3
+#print axioms BB6d.returns_2_16
+#print axioms BB6d.no_one_49153
+#print axioms BB6d.returns_2_62
+#print axioms BB6d.no_one_3e18
 #print axioms BB6d.next_good
 #print axioms BB6d.orbit_good
 #print axioms BB6d.one_front
 #print axioms BB6d.front_twice
 #print axioms BB6d.orbit_front_twice
 #print axioms BB6d.halts_only_at_front
+#print axioms BB6d.thin_ok
+#print axioms BB6d.returns_off_open34
+#print axioms BB6d.psi_next
 #print axioms BB6d.run_reach
 #print axioms BB6d.blocks7_204
 #print axioms BB6d.return7
 #print axioms BB6d.seven_blocks
+#print axioms BB6d.w7_psi
+#print axioms BB6d.w7_trace
+#print axioms BB6d.w7_one
+#print axioms BB6d.front_second
+#print axioms BB6d.w7b_one
+#print axioms BB6d.w7b_firsts
+#print axioms BB6d.orbit_run
+#print axioms BB6d.allOK_W
+#print axioms BB6d.window_reach
+#print axioms BB6d.window_seven
+#print axioms BB6d.six_blocks_long_excursion
+#print axioms BB6d.wL_one
+#print axioms BB6d.wL_large
+#print axioms BB6d.wLb_one
+#print axioms BB6d.wLb_large

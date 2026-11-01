@@ -82,7 +82,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="verdict">
       <p><b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>11</sup> steps.</p>
       <p><b>Where it stands.</b> At the start of each pass the tape is <code>1^y1 0 1^y2 0 &hellip; 0 1^yk A&gt;0</code>. Lean's kernel proves the closed form of the pass map for every block list, that a pass adds exactly four ones, that a halt needs the last block odd and all others even (so an odd number of ones), and from these the reduction: <b>if the machine halts from blank tape, the orbit of block lists reaches a pass whose sweep stops at a block of a single 1</b> (<code>halts_only_by_one</code>). Iterated one pass at a time for 10<sup>11</sup> passes it never does: after pass 50 no sweep stops at a block below 59, and the lists have 2 to 6 blocks, all of them a fixed fraction of the tape except a tail that halves each pass.</p>
-      <p><b>The return map.</b> On the pass map Lean proves, every two-block state <code>[a, 2a+d]</code> leads in at most three passes to one with d = 1, and from <code>[a, 2a+1]</code> the orbit comes back to <code>[a+12k, 2(a+12k)+1]</code> after 9k passes. From pass 3 (<code>[5, 11]</code>) the orbit is a chain of such states with a = 5 mod 12, so whether the machine halts is a question about the excursion from <code>[a, 2a+1]</code> for almost every a. Run on residue classes of a down to mod 2<sup>74</sup>, no excursion meets a stop block of 1 for 5 &le; a &lt; 2<sup>74</sup>, so with the reduction: no halt in the first 1.4&middot;10<sup>22</sup> passes (Lean plus a trusted Python computation).</p>
+      <p><b>The return map, now a theorem.</b> Every two-block state <code>[a, 2a+d]</code> with |d| &le; 3 leads in at most three passes to one with d = 1 (Lean, every a &ge; 5), and from <code>[a, 2a+1]</code> the orbit comes back to <code>[a+12k, 2(a+12k)+1]</code> after 9k passes. Lean's kernel checks this return for every a = 1 mod 4 with 5 &le; a &lt; 2<sup>62</sup>, by running the pass map on residue classes of a with a symbolic evaluator that is itself proved to agree with the pass map. With the reduction: <b>the first 3&middot;2<sup>60</sup> &asymp; 3.46&middot;10<sup>18</sup> passes never stop at a block of 1, and the machine reaches every one of their pass starts</b> (<code>no_one_3e18_kernel</code>, kernel only). Whether the machine halts is now a question about the excursion from <code>[a, 2a+1]</code> for a &ge; 2<sup>62</sup>, and the route list there is infinite, so this way of checking cannot settle it. The same computation in Python reaches 2<sup>74</sup> (1.4&middot;10<sup>22</sup> passes, trusted).</p>
       <p><b>Is it Collatz-like?</b> Not at the level of the return map: G only adds 12k (k &ge; 1), so its orbit is a counter that runs through about 95% of all a = 5 mod 12 in order, and the question is not where one orbit goes but whether every excursion is safe, a statement for all a. Inside the excursions there is Collatz-style mixing, but only on a thin 2-adic set (dimension about 0.19), and with a wide margin: on every route checked a stop block is at least about a/64, where a stop block of 1 needs about 1/a. So a proof looks possible, as an inequality on the stop blocks proved by induction, but not as a finite case analysis.</p>
     </div>
   </section>
@@ -135,9 +135,44 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>halts_only_at_front</code>, <code>lean/Front.lean</code>, <code>tests/test_front.py</code></p>
       </div>
       <div class="card">
+        <h3>The short chains between two-block states, for every a</h3>
+        <p>From <code>[a, 2a+d]</code> with a &ge; 5 in the right class mod 4: d = 0 goes to &minus;2, &minus;2 to &minus;1, 2 to &minus;3 (one pass each), &minus;1 to 1 and 3 to 2 (two passes), &minus;3 to 0 (three passes), with a growing by 2, 1, 3, 2, 3, 3. So every two-block state reaches one with d = 1. Proved for every a by running Lean's pass map on the class a = p + 4u symbolically (<code>srunN</code>, proved sound by <code>srunN_ok</code>).</p>
+        <p class="where"><code>chain_0</code>, <code>chain_m2</code>, <code>chain_2</code>, <code>chain_m1</code>, <code>chain_3</code>, <code>chain_m3</code>, <code>lean/Return.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The return map G(a) = a + 12k, for every a below 2<sup>62</sup></h3>
+        <p>For every a = 1 mod 4 with 5 &le; a &lt; 2<sup>62</sup>, Lean's pass map takes <code>[a, 2a+1]</code> to <code>[a+12k, 2(a+12k)+1]</code> in exactly 9k passes, k &ge; 1 (<code>Returns</code>). How: <code>snext</code> is the pass map on values p + q&middot;u, failing wherever a parity or a comparison is not the same on the whole class, and <code>snext_ok</code> proves it agrees with <code>next</code> at every u. <code>explore</code> runs a class, splits it by the parity of u, sets the single value u = 0 aside to run concretely, and runs the one member below 2<sup>62</sup> of each class left at mod 2<sup>62</sup>; <code>explore_ok</code> proves that when it says yes, every member returns. One kernel <code>decide</code> on the whole class runs out of memory, so <code>lean/return62.py</code> cuts it into 1,575 subclasses, each checked by <code>decide +kernel</code> in its own theorem (8 files, <code>lean/R62/</code>), and <code>Cov.split</code> puts them together. About an hour of CPU (17 minutes on 4 cores); <code>lean/check_return62.sh</code>, its own CI workflow. The same computation by <code>native_decide</code> (<code>returns_2_62</code>) takes seconds and is in the regular check, and the kernel alone does a &lt; 2<sup>16</sup> there (<code>returns_2_16</code>). The Python run (<code>py/returnmap.py classes 60</code>: 19,231 routes, k = 1 to 11) agrees.</p>
+        <p class="where"><code>returns_2_62_kernel</code>, <code>lean/Return62.lean</code>; <code>explore_ok</code>, <code>snext_ok</code>, <code>lean/Return.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No stop block of 1, and no halt, in the first 3.46&middot;10<sup>18</sup> passes</h3>
+        <p>Pass 4 from blank tape (counting blank tape as pass 0, so pass n has 4n ones) is <code>[5, 11]</code>. A pass start <code>[a, 2a+1]</code> has 3a + 1 = 4n ones, so a = 1 mod 4 and a &lt; 2<sup>62</sup> while 4n &le; 3&middot;2<sup>62</sup>; the return map then gives a later pass start of the same shape, and a later block list means every earlier pass was a block list too (<code>orbit_ok_upto</code>). So every pass n &le; 3&middot;2<sup>60</sup> + 1 is a block list with 4n ones, never a stop block of 1, and the machine reaches its pass start (<code>reach_upto</code>, from <code>pass</code>). Kernel only: <code>propext</code>, <code>Quot.sound</code>, <code>Classical.choice</code>.</p>
+        <p class="where"><code>no_one_3e18_kernel</code>, <code>lean/Return62.lean</code>; <code>orbit_ok_upto</code>, <code>reach_upto</code>, <code>lean/Return.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>For every a: a failing excursion lies in a thin 2-adic set</h3>
+        <p>With no upper bound on a: the class search of <code>Return.lean</code>, stopped at a depth limit without running the members of the open classes, returns their residues (<code>thin</code>), and <code>thin_ok</code> proves that an a whose excursion from <code>[a, 2a+1]</code> does not come back to <code>[a+12k, 2(a+12k)+1]</code> has its residue among them. So every a = 1 mod 4, a &ge; 5, returns unless a mod 2<sup>34</sup> is one of 67 residues, a fraction 1.6&middot;10<sup>&minus;8</sup> of them. Kernel only (40 s). It does not settle the machine: the open set is infinite at every depth and contains a = 1.</p>
+        <p class="where"><code>returns_off_open34</code>, <code>thin_ok</code>, <code>lean/Thin.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A second exact quantity, &psi;</h3>
+        <p>For every block list, the alternating sum &psi; = y<sub>k</sub> &minus; 2y<sub>k&minus;1</sub> + 4y<sub>k&minus;2</sub> &minus; &hellip; moves by 2&psi;&prime; = &minus;&psi; + 3(&minus;2)<sup>n</sup> &minus; 7 in a pass, where n &le; k is the number of blocks the sweep crosses. On a two-block state <code>[a, 2a+d]</code>, &psi; = d. It carries the parity information a bound on sizes alone lacks: the halving loop that takes small starts to a stop block of 1 needs |&psi;| large, while along the orbit &psi; stays in [&minus;19, 24] (computed, first 3&middot;10<sup>6</sup> passes). Kernel only.</p>
+        <p class="where"><code>psi_next</code>, <code>lean/Psi.lean</code>, <code>tests/test_induction.py</code></p>
+      </div>
+      <div class="card">
         <h3>The block count is not bounded by 6 on excursions</h3>
         <p>From the two-block pass start <code>[a, 2a+1]</code> with a = 2<sup>203</sup> + 2<sup>221</sup> + 1 (a = 5 mod 12, like every two-block state of the blank orbit) the machine reaches a pass start with 7 blocks after 204 passes, and is back at <code>[a+288, 2(a+288)+1]</code> after 216. The route, in (block count, psi), is exactly the escape the graph allows; the classes to mod 2<sup>66</sup> missed it because it needs a mod 2<sup>222</sup>. So the 6-block reduction rests on a statement that fails for some excursions.</p>
         <p class="where"><code>seven_blocks</code>, <code>blocks7_204</code>, <code>return7</code>, <code>lean/Seven.lean</code>; <code>py/blockcount.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The blank orbit cannot step around the 7-block witness</h3>
+        <p>If the blank orbit is ever at <code>[a, 2a+1]</code> with a = a<sub>7</sub> &minus; 12j for some j &le; 200 (a<sub>7</sub> = 2<sup>203</sup> + 2<sup>221</sup> + 1), it walks up to a<sub>7</sub> itself, one or two returns at a time, and then reaches a pass start with 7 blocks. Read the other way: if every pass start of the orbit has at most 6 blocks, the orbit goes 1,800 passes in a row near pass 2<sup>221.6</sup> without a two-block state <code>[a, 2a+1]</code> at a = 5 mod 12. The 200 steps are checked by the kernel (1,881 passes on 223-bit numbers).</p>
+        <p class="where"><code>window_seven</code>, <code>six_blocks_long_excursion</code>, <code>window_reach</code>, <code>allOK_W</code>, <code>lean/Window.lean</code>; <code>window</code> in <code>py/blockcount.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Few large blocks do not exclude a first block of 1</h3>
+        <p>Along the orbit at most 5 blocks are at least ones/32 (computed), the rest a small tail behind a bulk of about <code>[1, 3.4, 3.3, 1]</code>. Lists of that shape still reach a first block of 1: <code>[31, 254304, 870464, 844832, 256088, 32930, 8427]</code> (and one from 255) keep &psi; = &minus;57, 4 | ones and every block after the first at least 2, have at most 5 blocks of at least ones/32 at every pass start, and halve their first block down to 1, where the next pass stops. So a bound on the number of large blocks, with &psi;, does not rule out the event; what these lists lack is a large first block (1.4&middot;10<sup>&minus;5</sup> of the ones, where the orbit keeps it above 0.7%).</p>
+        <p class="where"><code>lean/Large.lean</code> (<code>wL_one</code>, <code>wL_large</code>, <code>wLb_one</code>, <code>wLb_large</code>); <code>py/largeblocks.py</code>; <code>notes/LAB_NOTES.md</code>, 1 November</p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -146,6 +181,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10,000,000 steps</h3>
         <p>The same run for 10<sup>7</sup> steps, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_10M</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The return map below 2<sup>62</sup>, in seconds</h3>
+        <p>The same <code>explore</code> run on the whole class in one <code>native_decide</code>, so the regular check covers it too: <code>returns_2_62</code> and <code>no_one_3e18</code> trust Lean's compiler for this one evaluation. Everything that says what <code>explore</code> means is the kernel's.</p>
+        <p class="where"><code>returns_2_62</code>, <code>no_one_3e18</code>, <code>lean/Return.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -169,11 +209,6 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The Lean pass map is the closed form of <code>py/passmap.py</code></h3>
         <p>The Lean definition <code>next</code> gives the same result as <code>passmap.py</code> on 3,000 random block lists and on the halting and stop-block-1 examples, and its orbit is the Python orbit for the first 400 passes; the Python form in turn matches every pass start of the first 10<sup>9</sup> steps of the machine. The Lean theorems are about <code>next</code> itself, so this only ties the two write-ups together.</p>
         <p class="where"><code>tests/test_machine.py</code> (<code>TestLeanPassMap</code>)</p>
-      </div>
-      <div class="card">
-        <h3>The short chains between two-block states</h3>
-        <p>From <code>[a, 2a+d]</code>: d = 0 goes to &minus;2, &minus;2 to &minus;1, 2 to &minus;3 (one pass each), &minus;1 to 1 and 3 to 2 (two passes), &minus;3 to 0 (three passes), with a growing by 2, 1, 3, 2, 3, 3. So every two-block state reaches one with d = 1. Algebra from the closed form, checked on each whole residue class mod 4 by running <code>py/passmap.py</code> on values p + q&middot;u.</p>
-        <p class="where"><code>python3 py/returnmap.py chains</code>, <code>tests/test_returnmap.py</code></p>
       </div>
       <div class="card">
         <h3>The return map G(a) = a + 12k, for every a below 2<sup>74</sup></h3>
@@ -206,9 +241,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>python3 py/dynamics.py random 1024 1000</code>, <code>python3 py/dynamics.py tree 72</code></p>
       </div>
       <div class="card">
+        <h3>No induction on block sizes alone, even from the excursion's own shape</h3>
+        <p>With the constants of the closed form dropped and every parity chosen freely (all that a statement made only of inequalities between blocks can see), the lists reachable from <code>[1, 2]</code>, the shape <code>[a, 2a+1]</code> divided by a, have smallest first block 1/6, 1/12, 1/24, 1/48, 1/48, 1/96, &hellip; of the ones after 1, 2, 3, &hellip; passes: it halves every two passes. So an inductive lower bound on the first block or the stop blocks has to say which parities occur. Near a = 1 (a = 1 + 2<sup>m</sup>u) the excursion agrees, modulo a power of 2 that loses one bit per pass, with the orbit of the closed form from <code>[1, 3]</code>, whose last block is a fixed 3 feeding an inner counter <code>[x, 2x+6, 3]</code>: the deepest routes are orbits of the same map one level down, so the induction would have to be self-similar.</p>
+        <p class="where"><code>python3 py/induction.py free 12</code>, <code>py/induction.py sentinel</code>, <code>tests/test_induction.py</code>, <code>notes/LAB_NOTES.md</code> (1 November)</p>
+      </div>
+      <div class="card">
         <h3>A second invariant: psi</h3>
         <p>psi = y<sub>k</sub> &minus; 2y<sub>k&minus;1</sub> + 4y<sub>k&minus;2</sub> &minus; &hellip; obeys 2&middot;psi(next) = &minus;psi + 3(&minus;2)<sup>n</sup> &minus; 7 exactly, where n is the number of blocks the sweep crosses past the last. On <code>[a, 2a+d]</code> it is d, so the six d-chains of the return map are this recurrence. The last block's parity is psi mod 2. It ends the halving loop of <code>[110, 63, 23]</code>: that loop maps psi to (psi &minus; 13)/4 and needs psi = 1 mod 4 every round, so it runs about log<sub>4</sub>|psi| rounds. The free-parity game, which drives the first block to 0, ignores it.</p>
-        <p class="where"><code>psi_step</code>, <code>psi_symbolic</code> in <code>py/invsearch.py</code> (sympy identity for k &le; 12; brute force in <code>tests/test_invsearch.py</code>); a kernel proof <code>psi_next</code> is in the Lean thread's branch</p>
+        <p class="where"><code>psi_step</code>, <code>psi_symbolic</code> in <code>py/invsearch.py</code> (sympy identity for k &le; 12; brute force in <code>tests/test_invsearch.py</code>); kernel proof: <code>psi_next</code>, <code>lean/Psi.lean</code></p>
       </div>
       <div class="card">
         <h3>psi and the block count on the orbit</h3>
@@ -248,17 +288,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Constants dropped, the shapes of lists moved along every path of the 6-block graph keep the first block above about 1.1&middot;10<sup>&minus;5</sup> of the ones (0.0024 with 5 blocks, 0.083 with 4). This is a converged game on a grid, not a certificate. With a bound on the block count and a certified version of it, the event would be ruled out.</p>
         <p class="where"><code>shape_game</code> in <code>py/invsearch.py</code></p>
       </div>
+      <div class="card">
+        <h3>So the blank orbit is expected to reach 7 blocks</h3>
+        <p>Along 10<sup>6</sup> returns of the blank orbit (a up to 1.26&middot;10<sup>7</sup>) excursions last at most 36 passes and every a = 5 mod 12 with v<sub>2</sub>(a&minus;1) &ge; 4 is visited; only values with v<sub>2</sub>(a&minus;1) = 2 or 3 are skipped. The witness has v<sub>2</sub>(a<sub>7</sub>&minus;1) = 203, and the jumps grow only slowly with v<sub>2</sub> (k = 24 at 203). So unless some excursion below 2<sup>222</sup> lasts 1,800 passes, about ten times the longest expected, the blank orbit does <b>not</b> stay at 6 blocks: it has 7 at about pass 2<sup>221.6</sup>. That step rests on the observed jump sizes, not on a proof.</p>
+        <p class="where"><code>visits</code>, <code>window</code> in <code>py/blockcount.py</code>; <code>tests/test_blockcount.py</code>; <code>notes/LAB_NOTES.md</code>, 1 November</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Any bound on the block count</h3>
-        <p>Whether the blank orbit itself ever has 7 blocks is not proved: it would need its counter to land in one of the classes above, which have density about 2<sup>&minus;220</sup> and are expected to be met near pass 2<sup>220</sup> (heuristic). Whether any fixed bound holds is open; the sentinel orbit from <code>[1, 3]</code>, which deep excursions follow, nests excursions of its own, which suggests the count grows with the nesting depth (heuristic).</p>
-        <p class="where"><code>notes/LAB_NOTES.md</code>, 1 November</p>
+        <p>No fixed cap K is expected to hold. The sentinel orbit from <code>[1, 3]</code>, which deep excursions a = 1 + 2<sup>m</sup>u follow for about m passes, has its first 3, 4, 5, 6 and 7 blocks at passes 2, 4, 8, 202 and 269,206, and the nesting of its own excursions suggests the count keeps growing, slowly, with the depth (heuristic). With the window argument, every cap the sentinel orbit breaks would also be broken by the blank orbit.</p>
+        <p class="where"><code>passorbit loose</code> in <code>c/passorbit.c</code>; <code>notes/LAB_NOTES.md</code>, 1 November</p>
       </div>
       <div class="card open">
         <h3>An induction for the excursion</h3>
-        <p>The excursion from <code>[a, 2a+1]</code> for every a (the orbit of G is a counter, so a statement for all a is what is needed). The route list is infinite because of the halving tail and the loops it nests, and the deep routes mix the bits of a, so a finite table or automaton will not do: this needs an inequality proved by induction on the tail length, that stop blocks stay above a fraction of a that shrinks slower than 1/a (observed: a/64 on every route to mod 2<sup>74</sup>). That, with the reduction, would prove the machine never halts. Equivalently (<code>halts_only_at_front</code>), a lower bound above 1 on the first block along the orbit.</p>
+        <p>The excursion from <code>[a, 2a+1]</code> for every a (the orbit of G is a counter, so a statement for all a is what is needed). The route list is infinite because of the halving tail and the loops it nests, and the deep routes mix the bits of a, so a finite table or automaton will not do: this needs an inequality proved by induction on the tail length, that stop blocks stay above a fraction of a that shrinks slower than 1/a (observed: a/64 on every route to mod 2<sup>74</sup>). With <code>orbit_ok_upto</code> (Lean: if every a below B returns, the first (3B+4)/4 passes are safe) and the reduction, that would prove the machine never halts; Lean's kernel now covers a &lt; 2<sup>62</sup>, and for every a it confines a failure to 67 residues mod 2<sup>34</sup>. A first attempt (1 November) found no such induction: bounds on sizes alone are not kept (free parities halve the first block every two passes), so the statement must carry parities, and the deep routes reproduce the problem one level down. Equivalently (<code>halts_only_at_front</code>), a lower bound above 1 on the first block along the orbit.</p>
         <p class="where"><code>notes/LAB_NOTES.md</code></p>
       </div>
       <div class="card open">
@@ -271,15 +316,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>bash scripts/setup-lean.sh                    # Lean 4.34.0, core only
 . /etc/profile.d/lean.sh
-bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Seven, Axioms (under a minute)
+bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Seven, Window, Return, Thin, Psi, Plan, Run7, Large, Axioms (about 2 minutes)
+JOBS=4 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return62.sh   # the return map below 2^62, kernel only (17 minutes with 4 jobs, under 2 GB each)
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py orbit 40
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py check 3000 6
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_returnmap.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_front.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_induction.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/induction.py free 12   # 5 s
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_invsearch.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_blockcount.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_largeblocks.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 72   # 2.5 min
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_dynamics.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/dynamics.py orbit 300000
