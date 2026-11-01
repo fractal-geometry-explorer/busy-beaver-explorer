@@ -1,5 +1,6 @@
 import Seven
 import Front
+import Psi
 
 /-!
 # With seven blocks, ψ does not bound the halvings of the first block
@@ -7,7 +8,7 @@ import Front
 The first block changes only at a few kinds of pass (a stop at the second block, a stop at the third block of a
 longer list, an even last block on two or three blocks). Between two such passes it is only halved, by front stops,
 and a stop at a first block of 1 at the end of R halvings needs the first block to have been 2^R − 1 (the Mersenne
-lemma, `notes/LAB_NOTES.md`). On lists of at most 6 blocks, ψ (`psi_next`, PR "the ψ rule") together with
+lemma, `notes/LAB_NOTES.md`). On lists of at most 6 blocks, ψ (`psi_next`, `Psi.lean`) together with
 `front_twice` bounds R by a finite graph. This file shows that the same bound fails as soon as a run of such passes
 starts on 7 blocks, for a list that also satisfies every other known invariant of the orbit:
 
@@ -25,15 +26,10 @@ which repeats for ever in the graph, so the graph gives no bound at all on R onc
 
 namespace BB6d
 
-/-- The alternating sum, nearest block first: the same fold as `psi` in `Psi.lean`. -/
-def alt : List Nat → Int
-  | [] => 0
-  | y :: ys => (y : Int) - 2 * alt ys
-
 /-- `[31, 96, 64, 32, 88, 162, 235]` (first block first), written here nearest block first. -/
 def w7 : List Nat := [235, 162, 88, 32, 64, 96, 31]
 
-theorem w7_alt : alt w7 = -57 := by decide
+theorem w7_psi : psi w7 = -57 := by decide
 theorem w7_sum : w7.sum % 4 = 0 := by decide
 theorem w7_first : w7.getLast? = some (2 ^ 5 - 1) := by decide
 theorem w7_second : w7[5]! ≥ w7[6]! + 2 := by decide
@@ -58,7 +54,7 @@ theorem w7_one : run 9 w7 = .one := by decide
 cycle of the (k, ψ) graph, first block 255 = 2^8 − 1. -/
 def w7b : List Nat := [6507, 10594, 5464, 2432, 2304, 1280, 255]
 
-theorem w7b_alt : alt w7b = -57 := by decide
+theorem w7b_psi : psi w7b = -57 := by decide
 theorem w7b_sum : w7b.sum % 4 = 0 := by decide
 theorem w7b_good : Good w7b := by
   simp only [w7b, Good]; decide
