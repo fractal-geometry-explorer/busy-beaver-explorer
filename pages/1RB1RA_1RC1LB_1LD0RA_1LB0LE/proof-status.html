@@ -154,6 +154,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>With no upper bound on a: the class search of <code>Return.lean</code>, stopped at a depth limit without running the members of the open classes, returns their residues (<code>thin</code>), and <code>thin_ok</code> proves that an a whose excursion from <code>[a, 2a+1]</code> does not come back to <code>[a+12k, 2(a+12k)+1]</code> has its residue among them. So every a = 1 mod 4, a &ge; 5, returns unless a mod 2<sup>34</sup> is one of 67 residues, a fraction 1.6&middot;10<sup>&minus;8</sup> of them. Kernel only (40 s). It does not settle the machine: the open set is infinite at every depth and contains a = 1.</p>
         <p class="where"><code>returns_off_open34</code>, <code>thin_ok</code>, <code>lean/Thin.lean</code></p>
       </div>
+      <div class="card">
+        <h3>A second exact quantity, &psi;</h3>
+        <p>For every block list, the alternating sum &psi; = y<sub>k</sub> &minus; 2y<sub>k&minus;1</sub> + 4y<sub>k&minus;2</sub> &minus; &hellip; moves by 2&psi;&prime; = &minus;&psi; + 3(&minus;2)<sup>n</sup> &minus; 7 in a pass, where n &le; k is the number of blocks the sweep crosses. On a two-block state <code>[a, 2a+d]</code>, &psi; = d. It carries the parity information a bound on sizes alone lacks: the halving loop that takes small starts to a stop block of 1 needs |&psi;| large, while along the orbit &psi; stays in [&minus;19, 24] (computed, first 3&middot;10<sup>6</sup> passes). Kernel only.</p>
+        <p class="where"><code>psi_next</code>, <code>lean/Psi.lean</code>, <code>tests/test_induction.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -266,7 +271,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>bash scripts/setup-lean.sh                    # Lean 4.34.0, core only
 . /etc/profile.d/lean.sh
-bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Return, Thin, Plan, Axioms (about 2 minutes)
+bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Return, Thin, Psi, Plan, Axioms (about 2 minutes)
 JOBS=4 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return62.sh   # the return map below 2^62, kernel only (17 minutes with 4 jobs, under 2 GB each)
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py

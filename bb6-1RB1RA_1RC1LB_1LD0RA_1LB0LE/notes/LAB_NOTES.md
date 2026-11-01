@@ -524,6 +524,19 @@ shrinks by about 2^(−0.81) per extra bit. It does not settle the machine: the 
 depth, contains a = 1 (whose excursion is the stop block of 1), and the counter of the blank orbit visits it
 (computed: every a = 2^r + 1 with r even, in the range run).
 
+### A second exact quantity: ψ (proof)
+
+The thread "Find the provable first-block bound" found, and `lean/Psi.lean` proves for every block list (kernel),
+an exact rule for the alternating sum ψ = y_k − 2y_(k−1) + 4y_(k−2) − … (`psi_next`):
+
+    2ψ' = −ψ + 3(−2)^n − 7,   n ≤ k the number of blocks the sweep crosses (0 for an even last block)
+
+On a two-block state `[a, 2a+d]`, ψ = d, so the six short chains are this rule. It is exactly the parity information
+the free-parity model lacks: the halving loop of the small starts needs |ψ| large (`[110, 63, 23]` has ψ = 337), and
+the rule pulls ψ towards a bounded range as long as n is bounded (computed there: ψ ∈ [−19, 24] along the first
+3·10⁶ passes of the orbit). A bound on ψ pins the first block to y₂/2 − y₃/4 + … up to a constant, which is where a
+first-block induction would now start.
+
 ### Where this leaves the proof
 
 A proof needs a statement that is (i) kept by the pass map, (ii) false for the free-parity routes above, so it

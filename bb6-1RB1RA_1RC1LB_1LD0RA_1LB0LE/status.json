@@ -122,6 +122,12 @@
       "where": "<code>returns_off_open34</code>, <code>thin_ok</code>, <code>lean/Thin.lean</code>"
     },
     {
+      "level": "kernel",
+      "title": "A second exact quantity, &psi;",
+      "text": "For every block list, the alternating sum &psi; = y<sub>k</sub> &minus; 2y<sub>k&minus;1</sub> + 4y<sub>k&minus;2</sub> &minus; &hellip; moves by 2&psi;&prime; = &minus;&psi; + 3(&minus;2)<sup>n</sup> &minus; 7 in a pass, where n &le; k is the number of blocks the sweep crosses. On a two-block state <code>[a, 2a+d]</code>, &psi; = d. It carries the parity information a bound on sizes alone lacks: the halving loop that takes small starts to a stop block of 1 needs |&psi;| large, while along the orbit &psi; stays in [&minus;19, 24] (computed, first 3&middot;10<sup>6</sup> passes). Kernel only.",
+      "where": "<code>psi_next</code>, <code>lean/Psi.lean</code>, <code>tests/test_induction.py</code>"
+    },
+    {
       "level": "trusted",
       "title": "The return map G(a) = a + 12k, for every a below 2<sup>74</sup>",
       "text": "Run on residue classes a = p + q&middot;u (parities known while q is even, classes split otherwise) down to a mod 2<sup>74</sup>: 82,363 routes from <code>[a, 2a+1]</code> back to <code>[a+12k, 2(a+12k)+1]</code> after 9k passes, k = 1 to 11; no class halts or meets a stop block of 1; only a = 1 is set aside (it stops at a block of 1). The members below 2<sup>74</sup> of the 15,828 classes still open were run one by one and return too (k = 9 to 12). So for every a = 1 mod 4 with 5 &le; a &lt; 2<sup>74</sup> the excursion is safe. 2.5 minutes (mod 2<sup>62</sup>: 24 seconds).",
@@ -203,7 +209,7 @@
   "check": [
     "bash scripts/setup-lean.sh                    # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Return, Thin, Plan, Axioms (about 2 minutes)",
+    "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Return, Thin, Psi, Plan, Axioms (about 2 minutes)",
     "JOBS=4 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return62.sh   # the return map below 2^62, kernel only (17 minutes with 4 jobs, under 2 GB each)",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py",

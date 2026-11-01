@@ -84,6 +84,10 @@ every a = 1 mod 4, a ≥ 5, returns unless a mod 2^34 is one of 67 residues, a f
 (`returns_off_open34`). `thin` is `explore` without the concrete runs at
 the depth limit, and `thin_ok` proves that a non-returning a has its residue in the list it gives.
 
+**A second exact quantity** (`lean/Psi.lean`, kernel only, found by the thread on the provable first-block bound):
+ψ = y_k − 2y_(k−1) + 4y_(k−2) − … moves by 2ψ' = −ψ + 3(−2)^n − 7 in every pass, n ≤ k the number of blocks the
+sweep crosses (`psi_next`). On `[a, 2a+d]` it is d.
+
 **No induction on sizes alone** (`py/induction.py`, `notes/LAB_NOTES.md`, 1 November): with every parity free and the
 constants of the closed form dropped, the first block of the lists reachable from `[1, 2]` halves every two passes, so
 an inductive lower bound must say which parities occur. Near a = 1 the excursion agrees, modulo a power of 2 losing
@@ -104,6 +108,7 @@ of 1), and so the question itself.
 | `lean/Front.lean` | blocks after the first stay at least 2, no two front stops in a row, and the narrowed reduction |
 | `lean/Return.lean` | the return map: the pass map on residue classes (`snext`, sound), `explore`, the short chains, the orbit up to a bound |
 | `lean/Thin.lean` | for every a: a non-returning a has its residue among the open classes (`thin_ok`), 67 residues mod 2^34 |
+| `lean/Psi.lean` | the alternating sum ψ and its exact rule under a pass (`psi_next`) |
 | `lean/Plan.lean`, `lean/return62.py` | the cut of the class a = 5 + 4u into pieces for the kernel; writes `lean/R62/` and `lean/Return62.lean` |
 | `lean/R62/Shard*.lean`, `lean/Return62.lean` | generated: the pieces, each by `decide +kernel`, and the theorem below 2^62 |
 | `lean/check_return62.sh` | checks the pieces in parallel (`JOBS`), then `Return62.lean`, and that it rests on no `native_decide` |

@@ -69,6 +69,22 @@ class TestInduction(unittest.TestCase):
                 mod = 2 ** (m - t - slack)
                 self.assertTrue(all((v - w) % mod == 0 for v, w in zip(y, e)), (a, t))
 
+    def test_psi_rule(self):
+        """lean/Psi.lean, `psi_next`: with psi = y_k - 2 y_(k-1) + 4 y_(k-2) - ..., a pass gives
+        2 psi' = -psi + 3 (-2)^n - 7, n the number of blocks crossed (k - j, 0 for an even last block)."""
+        def psi(y):
+            s = 0
+            for v in y:
+                s = v - 2 * s
+            return s
+        rnd = random.Random(4)
+        for _ in range(20000):
+            y = [rnd.randrange(1, 60) for _ in range(rnd.randrange(1, 8))]
+            out = passmap.passmap(y)
+            if isinstance(out, list):
+                n = len(y) - passmap.stop_index(y)
+                self.assertEqual(2 * psi(out), -psi(y) + 3 * (-2) ** n - 7, y)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

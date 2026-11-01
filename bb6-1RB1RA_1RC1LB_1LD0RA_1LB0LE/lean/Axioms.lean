@@ -3,6 +3,7 @@ import Rules
 import Pass
 import Return
 import Thin
+import Psi
 import Front
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
@@ -56,3 +57,4 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6d.halts_only_at_front
 #print axioms BB6d.thin_ok
 #print axioms BB6d.returns_off_open34
+#print axioms BB6d.psi_next
