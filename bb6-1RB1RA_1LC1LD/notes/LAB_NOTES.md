@@ -454,3 +454,33 @@ end one or two blocks from it), and leaves fresh blocks `2, 2`, `3, 2`, `3, 6`. 
 fresh blocks and the words written with them look like, for example that from the fresh blocks the next carry
 cannot reach the left end until a word of the stream to the right has been used up; the reduction to two words per A
 state above is the place to start.
+
+## 1 November 2026: the A-state rules in Lean, and the growth steps
+
+**Proved in Lean** (`lean/Tokens.lean`, kernel only).  The rules of the section above, for every block and word
+length: `carry` (B before a word `0` goes left over blocks `3 j_i + 1`, each becoming the words `1, 2^{j_i}`);
+`a_one_two` (A before `1, 2` is B before `0, 3`); the three ways a carry started by `1, 2` can stop, `row_zero` (at
+a block `3m + 3`: blocks `c + 3, d + 2`, words `2^m`, the carried words, `3`), `row_two` (at a block `3m + 8`: blocks
+`3, c + 6`, words `2^m`, the carried words, `3`) and `row_end` (past the leftmost block: blocks `2, 2`, words `2^j`,
+the carried words, `3`); and the pairs that write no words, `two_one`, `two_three`, `three_two` (with `tail_two` for
+`2 2`).  For each row the token count after it, exactly (`row_zero_tokens`, `row_two_tokens`, `row_end_tokens`): one
+more in `row_end`; in `row_zero` one more less one for each of `c`, `d` that is not 0; in `row_two` one more less one
+if `c ≠ 0`.  So the count goes up exactly at the rows where a block 0 past the leftmost one is written, which is
+where the tape grows.  (Rows not covered: the stopping blocks 2 and 5, and `3 1`, `3 3`; all rare.)
+
+**Computed** (`py/tokens.py`, random good lists and hill climbs).
+* After every growth step exactly two blocks are left; the carry has turned all the others into words 1.
+* The number of growth steps is at most the token count at the first A state plus 2 (20,000 random lists of up to
+  10 blocks: plus 1 at most; three hill climbs maximising the excess: plus 2, from `[46, 50, 41, 31, 46, 22, 7]`).
+  So each growth step seems to use up one of the tokens the pass started with, but the count itself is no measure:
+  it can go up with each of several growth steps in a row and only come down later (`tokens + growth steps so far`
+  exceeds the starting count by up to 7).
+* The LP of the section above becomes feasible once the abstract state keeps block lengths exactly up to 15, the
+  two nearest blocks, the depth up to 3 and the first six words; its earlier infeasibility came from an abstract
+  cycle (`[7, 8]` before `1 2 2 3`, growth, `[3, 6]`, `2 2`, back) that the exact lengths break.  With 1,188 states
+  for 1,113 kinds of step from 400 runs this fits the sample rather than proves anything, but it says a finite
+  description of the bottom of the stack and the front words may carry a ranking.
+
+**Next.**  A proof of "growth steps ≤ starting tokens + 2" by following one growth to the next: both start from two
+blocks, so the state between is the two blocks, the stack built by `three_two` from words 3, and the words; the rows
+above give each step exactly.
