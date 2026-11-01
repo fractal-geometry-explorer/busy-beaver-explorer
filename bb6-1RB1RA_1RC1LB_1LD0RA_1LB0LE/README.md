@@ -99,6 +99,16 @@ in 15 passes (kernel). So a second invariant has to be false on these lists. No 
 y2/(y1 + 1), but on the orbit that ratio reaches 48 by pass 1.3·10⁷ (computed), so it bounds the halvings only by
 about 48.
 
+**Few large blocks do not help either** (`lean/Large.lean`, kernel; `py/largeblocks.py`; `notes/LAB_NOTES.md`,
+1 November). Along the orbit at most 5 blocks are at least ones/32 (2·10⁷ passes, and the sentinel orbit to 2·10⁶;
+computed), the rest a small tail behind a bulk of about `[1, 3.4, 3.3, 1]`. But adding 2^8·v with psi(v) = 0 to the
+two lists above gives lists of that shape, `[31, 254304, 870464, 844832, 256088, 32930, 8427]` and one from 255, that
+keep psi = −57, 4 | ones and `Good`, have at most 5 blocks of at least ones/32 (or ones/16) at every pass start, and
+still halve their first block to 1 and stop there (`wL_one`, `wL_large`, `wLb_one`, `wLb_large`). So a bound on the
+large blocks, with psi, does not exclude the event. What these lists lack is a large first block (1.4·10⁻⁵ of the
+ones, where the orbit keeps it above 0.7%); the next statement to try bounds the halvings by log₂(ones) from the
+size of the first block at a change (heuristic, untested).
+
 **Observed only**: on every route down to mod 2^74 the stop blocks stay above about a/64, shrinking like 2^(−m/10) or slower
 with the depth m of the class. The route list is infinite (the tail of the first pass lives v₂(a−1) passes), finite
 for each k.
@@ -145,6 +155,7 @@ of 1), and so the question itself.
 | `lean/check_return62.sh` | checks the pieces in parallel (`JOBS`), then `Return62.lean`, and that it rests on no `native_decide` |
 | `lean/Seven.lean` | an excursion with 7 blocks: `run`, `run_reach`, `seven_blocks` |
 | `lean/Run7.lean` | lists with 7 blocks and small psi that reach a first block of 1 by halvings alone; `front_second` |
+| `lean/Large.lean` | the same lists in the orbit's shape, at most 5 blocks of at least ones/32 at every pass, still reaching a first block of 1 |
 | `lean/Window.lean` | the 200 returns below it lead to it: `orbit_run`, `window_seven`, `six_blocks_long_excursion` |
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `lean/check.sh` | compiles the shared library, then the files above |
@@ -158,6 +169,8 @@ of 1), and so the question itself.
 | `tests/test_dynamics.py` | the counter, the bits read, the tree to mod 2^26, the mixing at depth 32 |
 | `tests/test_returnmap.py` | the chains, the classes down to mod 2^38, the classes against concrete runs, the orbit chain |
 | `py/runbound.py` | front stops between changes of the first block: the bound by block count, the cycles from 7 blocks on, the witness, y2/(y1+1) |
+| `py/largeblocks.py` | the most blocks of at least ones/2^c along the orbit and the sentinel orbit; the lists of `lean/Large.lean` |
+| `tests/test_largeblocks.py` | the lists of `lean/Large.lean`, the construction for every M from 6 to 40, the orbit's count to pass 3·10⁵ |
 | `tests/test_runbound.py` | the table, the cycles, the witness against Lean's lists, `front_second` on random lists |
 | `py/blockcount.py` | the 7-block witness, the sentinel orbit's block counts, the scan of a = 2^r + 1, the window below the witness, the values the blank orbit visits |
 | `tests/test_blockcount.py` | the witness, its (k, psi) route, the sentinel orbit at pass 203, the scan |
@@ -184,6 +197,8 @@ python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_returnmap.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_front.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_blockcount.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_runbound.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_largeblocks.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/largeblocks.py orbit 20000000   # about 3 min
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/front.py stats 100000000   # about 4 min
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 60    # 24 s (classes 72: 2.5 min)
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_dynamics.py

@@ -814,3 +814,68 @@ a halving tail. The natural candidate is a statement about the shape, not the co
 least c·(ones) stays at most 3 or 4, with the rest a tail whose sizes fall geometrically to the right. The tail has
 small weight in psi/(−2)^(k−1) = y1 − y2/2 + y3/4 − …, so this would keep the (k, psi) graph on the bulk small. Not
 tested beyond the witness excursion; it is again a statement about 2-adic digits, as every route here has been.
+
+## 1 November 2026: bound the number of large blocks? (`lean/Large.lean`, `py/largeblocks.py`)
+
+The idea: along the orbit, beyond three or four blocks the extra blocks are a small tail, while the lists of
+`Run7.lean` that halve their first block down to 1 have seven blocks of comparable size. So a bound on the number of
+*large* blocks, together with psi, might rule out a first block of 1 where a cap on all blocks cannot hold.
+**It does not: the bound holds on the orbit, but lists that satisfy it reach a first block of 1.** Labels: **proof**
+(Lean, kernel), **computed**, **heuristic**.
+
+### The threshold, and the orbit (computed)
+
+Call a block large if it is at least ones/2^c. The count can never exceed 2^c, so the question is only whether a
+small count, with psi, does something. Along the blank orbit (`python3 py/largeblocks.py orbit N`, after pass 50):
+
+| c | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| most large blocks, 2·10⁷ passes | 1 | 3 | 4 | 5 | 5 | 5 | 5 | 5 | 5 | 6 | 6 | 6 |
+
+The counts are the same at 2·10⁶ and at 2·10⁷ passes (2.7 min), and the sentinel orbit from `[1, 3]`
+(`python3 py/largeblocks.py loose 2000000`) gives the same row except 6 from c = 9 on (pass 202).
+
+The chosen threshold is ones/32: at most 5 large blocks (first at pass 269,207, `[60912, 269112, 413131, 269305,
+64372]`), the same on the sentinel orbit (pass 269,209), and the typical shape is a bulk of about
+`[1, 3.4, 3.3, 1]` (times a) with the rest a tail of a few per cent or less. At ones/16 the most is also 5
+(pass 1,525,466).
+
+### Lists of the orbit's shape that reach a first block of 1 (proof)
+
+psi is linear, so adding `2^M · v` with psi(v) = 0 and v₁ = 0 keeps psi and the first block, and for M large enough
+keeps every stop block of a run of passes. With
+
+    v = [0, 993, 3400, 3300, 1000, 128, 32]          (first block first; psi v = −32·993 + 16·3400 − 8·3300 + 4·1000 − 2·128 + 32 = 0)
+
+and M = 8 the two lists of `Run7.lean` become
+
+    wL  = [31, 254304, 870464, 844832, 256088, 32930, 8427]          ones 2,267,076
+    wLb = [255, 255488, 872704, 847232, 261464, 43362, 14699]        ones 2,295,204
+
+a bulk `[1, 3.4, 3.3, 1]` and a tail of 1.5% and 0.4%, which is the orbit's shape. Both keep psi = −57, 4 | ones,
+`Good` and y₂ ≥ y₁ + 2; `wL` halves its first block 31 → 1 in 9 passes on 7 and 8 blocks (the same route as `w7`),
+`wLb` halves 255 → 1 in 19 passes (on 7 and 8 blocks for 13 passes, then down to 3 blocks, a different route from
+`w7b`'s), and both then stop at a first block of 1 (`wL_one`, `wLb_one`). At every pass start on the way at most 5
+blocks are at least ones/32 and at most 5 at least ones/16 (`wL_large`, `wLb_large`, which give the whole profile:
+first block, block count, the two counts). Axioms: `propext` only.
+
+So a bound on the number of large blocks that the orbit satisfies does not exclude the event, with psi, `Good`,
+4 | ones and `front_twice` added; nor does the shape "bulk of four plus a small tail". Size does not help either:
+the same construction reaches a first block of 1 with at most 5 large blocks for every M from 6 to 59 (from `w7`)
+and every M from 12 to 59 (from `w7b`), so there are such lists with as many ones as wanted (computed,
+`tests/test_largeblocks.py` runs M up to 40).
+
+### What separates these lists from the orbit (computed, heuristic)
+
+The first block. On `wL` it is 1.4·10⁻⁵ of the ones at the start of the run and its second block is 7,947 times
+larger (y₂/(y₁ + 1), which `front_second` raises by exactly 1 per front stop); the orbit keeps its first block above
+0.7% of the ones after pass 50 (`py/front.py`) and y₂/(y₁ + 1) below 49 (3·10⁷ passes). A run of R front stops needs
+the first block to be 2^R − 1 when it starts (the Mersenne lemma), so a first block of 1 on the orbit needs a pass that
+changes the first block to leave it at most 2^R − 1, and a large first block (≥ ones/2^c) makes R about log₂(ones) − c.
+In the four halving lists (`w7`, `w7b`, `wL`, `wLb`) R is at most 0.54·log₂(ones), and a count of parities
+suggests why: a run of R front stops on 7 or more blocks has to fix about 2R bits of each block, so a run with R close
+to log₂(ones) should need blocks of about 2^(2R), more than the ones (heuristic, counting only; the smallest lists
+for a given R were not searched). If that could be proved, as "a run of R front stops from a list with |psi| ≤ W needs ones ≥ 2^(αR),
+α > 1", the event would need a change of the first block to leave it below ones^(1/α), a statement about the changes
+(stops at the second or third block, even last blocks on 2 or 3 blocks) and not about the block count. That is the
+next step this points to; it is untested.
