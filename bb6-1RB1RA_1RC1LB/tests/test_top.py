@@ -1,5 +1,5 @@
-"""Checks of the tools behind the study of the top blocks: c/ensemble.c and c/bottom2adic.c against py/waves.py, and
-py/top_stats.py.
+"""Checks of the tools behind the study of the top blocks: c/ensemble.c and c/bottom2adic.c against py/waves.py,
+c/ensemble_fast.c against c/ensemble.c, and py/top_stats.py.
 
 usage: python3 bb6-1RB1RA_1RC1LB/tests/test_top.py        (a few seconds)
 """
@@ -21,7 +21,7 @@ BUILD = tempfile.mkdtemp(prefix="top-test-")
 
 
 def setUpModule():
-    for name, extra in (("ensemble", []), ("bottom2adic", ["-lm"])):
+    for name, extra in (("ensemble", []), ("ensemble_fast", []), ("bottom2adic", ["-lm"])):
         subprocess.run(["gcc", "-O2", "-Wall", "-Wextra", "-Werror", "-o", os.path.join(BUILD, name),
                         os.path.join(ROOT, "c", name + ".c"), *extra], check=True)
 
@@ -115,6 +115,44 @@ class TopStats(unittest.TestCase):
                 N2 = waves.big_n(P)
                 self.assertGreater(N2, N)
                 N = N2
+
+
+class EnsembleFast(unittest.TestCase):
+    def test_same_returns(self):
+        """c/ensemble_fast.c -v prints exactly what c/ensemble.c prints (narrow and wide starts, long enough for the
+        tables to reach a dozen levels, and the silent bottoms that stop an orbit early)."""
+        for args in ((150, 1 << 20, 7, 2, 4, 100, 0), (150, 1 << 18, 303, 1, 8, 1000, 40)):
+            self.assertEqual(run("ensemble_fast", "-v", *args), run("ensemble", *args), args)
+
+    def test_totals(self):
+        """The totals agree with the returns that -v prints."""
+        args = (300, 1 << 18, 11, 2, 6, 5000, 0)
+        rets = [line.split() for line in run("ensemble_fast", "-v", *args) if line.startswith("R ")]
+        path = os.path.join(BUILD, "fast.txt")
+        with open(path, "w") as f:
+            f.write("\n".join(run("ensemble_fast", *args)) + "\n")
+        tot, cell, inv, pair, rcell = top_stats.read_fast([path])
+        self.assertEqual((tot["orbits"], tot["returns"], tot["halts"]),
+                         (300, len(rets), sum(int(r[5]) for r in rets)))
+        want, kk, k = {}, {}, {}
+        for r in rets:
+            d = int(r[4])
+            b, sv = d.bit_length(), top_stats.v2(d)
+            want[b, sv] = want.get((b, sv), 0) + 1
+            k[r[1]] = min(k.get(r[1], 0) + 1, 64)
+            kk[k[r[1]], b, sv] = kk.get((k[r[1]], b, sv), 0) + 1
+        self.assertEqual(dict(cell), want)
+        self.assertEqual(dict(rcell), kk)
+        for b in {b for b, _ in want}:
+            x = sum(1 / int(r[4]) for r in rets if int(r[4]).bit_length() == b)
+            self.assertAlmostEqual(inv[b] / x, 1, places=9)
+
+    def test_p_div(self):
+        """p_div is 2^-t far from the top of the range, and a log-uniform d1 of b bits is 2^(b-1) with chance
+        1/(2^(b-1) ln 2)."""
+        self.assertAlmostEqual(top_stats.p_div(40, 8) * 2 ** 8, 1, places=6)
+        self.assertAlmostEqual(top_stats.p_div(30, 29), 1 / (2 ** 29 * top_stats.LN2))
+        self.assertEqual(top_stats.p_div(10, 10), 0)
 
 
 if __name__ == "__main__":

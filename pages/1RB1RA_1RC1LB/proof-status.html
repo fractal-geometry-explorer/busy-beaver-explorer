@@ -76,7 +76,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.</p>
     <p>The run's structure is now proved in two layers. Lean has the machine as an explicit map on lists of block lengths, and a theorem that the machine halts exactly when that map's run reaches one specific shape. Read four macro steps at a time, that map is a carry wave running left through the blocks, and Lean now also proves that the halting shape is one arithmetic event: a single number built from the blocks being a power of two. What is open is whether it ever is.</p>
     <p><a href="reduction.html">The reduction</a> walks through this link by link; <a href="explainer.html">level by level</a> runs the machine in the browser at each level.</p>
-    <p class="asof">Status as of 30 October 2026.</p>
+    <p class="asof">Status as of 1 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -250,9 +250,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/top_stats.py odds</code>, <code>runs/odds.txt</code>, <code>pages/1RB1RA_1RC1LB/top-blocks.html</code></p>
       </div>
       <div class="card">
-        <h3>The random model holds on the map within a factor of about 2</h3>
-        <p>From 60,000 random starts (522,749 returns, d<sub>1</sub> up to 2<sup>30</sup>) the super step halts 2,018 times against 2,023.7 predicted by 1/(d<sub>1</sub> ln 2). Near-halts (odd part of d<sub>1</sub> below 2<sup>c</sup>, c &le; 20) come at 0.4 to 1.4 times the predicted rate at every scale; v<sub>2</sub>(d<sub>1</sub>) is geometric within 3% up to 7 and about 15% short beyond (about 3&sigma;); d<sub>1</sub>'s residues and leading bits are within a few percent of uniform. On the blank-tape orbit, waves pass each of the top 24 blocks half the time (0.4998 to 0.5006 where over 10<sup>5</sup> waves reach them).</p>
-        <p class="where"><code>c/ensemble.c</code>, <code>py/top_stats.py</code>, <code>runs/ensemble_summary.txt</code>, <code>runs/toppass_1e17.txt</code>; <code>pages/1RB1RA_1RC1LB/top-blocks.html</code></p>
+        <h3>The random model holds on the map within a factor of about 2, and valuations are geometric</h3>
+        <p>From 60,000 random starts (522,749 returns, d<sub>1</sub> up to 2<sup>30</sup>) the super step halts 2,018 times against 2,023.7 predicted by 1/(d<sub>1</sub> ln 2). Near-halts (odd part of d<sub>1</sub> below 2<sup>c</sup>, c &le; 20) come at 0.4 to 1.4 times the predicted rate at every scale; v<sub>2</sub>(d<sub>1</sub>) is geometric: the shortfall beyond 7 seen in that run (about 15%, 3&sigma;) is an artefact of its starts, which repeat and merge (2 blocks of 1 to 100 have only 10<sup>4</sup> tapes). Over 10<sup>7</sup> starts (<code>c/ensemble_fast.c</code>) the old design shows it again (0.90 of the geometric rate at t = 8), but with each return counted once (74 of its 87 million returns repeat an earlier one) it is 1.00 &plusmn; 0.01 at t = 8 and within 4% to t = 12; from 10<sup>7</sup> starts of 2 to 8 blocks up to 10<sup>6</sup>, P(v<sub>2</sub> &ge; t)&middot;2<sup>t</sup> is 1.000 &plusmn; 0.002 at t = 8 and within 1% of 1 to t = 12 and within its errors beyond, with 92 halts against 91 expected; orbits of 10<sup>14</sup> super steps (d<sub>1</sub> past 2<sup>40</sup>) agree. d<sub>1</sub>'s residues and leading bits are within a few percent of uniform. On the blank-tape orbit, waves pass each of the top 24 blocks half the time (0.4998 to 0.5006 where over 10<sup>5</sup> waves reach them).</p>
+        <p class="where"><code>c/ensemble.c</code>, <code>c/ensemble_fast.c</code>, <code>py/top_stats.py</code>, <code>runs/ensemble_summary.txt</code>, <code>runs/valuation_test.txt</code>, <code>runs/toppass_1e17.txt</code>; <code>pages/1RB1RA_1RC1LB/top-blocks.html</code></p>
       </div>
       <div class="card">
         <h3>No invariant keeps N off the powers of two</h3>
