@@ -516,6 +516,126 @@ is left is which parity patterns occur, and specifically whether the block count
 noted on 31 October ("no invariant of inequalities and residues mod a fixed 2^m") still stands for invariants
 without psi. With psi, the parity part becomes a finite graph once the block count is bounded.
 
+## 1 November 2026: the return map in Lean (`lean/Return.lean`, `lean/Return62.lean`)
+
+The return-map computation of 31 October, which rested on Python, is now a Lean theorem, kernel only.
+
+**The pass map on residue classes.** `Aff` is a value p + q·u (u ≥ 0 free, p, q naturals). `snext` is `next` written
+on lists of them, step for step (`sbump`, `szag`, `ssweep`), and it fails instead of guessing: `split` when a parity
+is not known (q odd), `small` when a comparison with 0 or 1 holds at u = 0 only, `bad` when it fails on the whole
+class. `snext_ok`: when `snext l = .ok l'`, `next` of `l` at u is `l'` at u, for every u. The only arithmetic in it is
+`(p + q u) / 2 = p/2 + (q/2) u` and the same mod 2 for even q, and `- 1` where p ≥ 1. `srun` iterates until a
+two-block state `[2a'+1, a']` on the whole class (`srun_ok`).
+
+**`explore`** is the class search of `py/returnmap.py` in Lean: run the class `p + q u` from `[2a+1, a]`; accept if it
+returns along one route with a' = a + 12k after 9k passes; on `split` cut it into u even and u odd (at most d more
+times); on `small` run u = 0 concretely (`crun`, `cgood`) and go on with u ≥ 1; at the depth limit (q ≥ B) run the
+single member below B concretely. `explore_ok` (an induction on the fuel): if it says `true`, every member below B
+returns. Starting from the class 5 + 4u (a = 1 is the only value Python set aside, and it does stop at a block of 1).
+
+**From the return map to the orbit** (`orbit_ok_upto`). Pass 4 (Lean counts blank tape as pass 0, so pass n has 4n
+ones; Python's pass 3) is `[5, 11]`. A pass start `[a, 2a+1]` has 3a + 1 = 4n ones, so a = 1 mod 4, a ≥ 5 from pass
+4 on, and a < B while 4n ≤ 3B. Then a later pass start has the same shape, and since `.halt` and `.one` are final, a
+later block list means every pass before it was one. So: if every a = 1 mod 4, 5 ≤ a < B returns, every pass
+n ≤ (3B + 4)/4 is a block list, and the machine reaches its pass start (`reach_upto`). No need to track k or to show a
+grows; the count of ones does it.
+
+**The six short chains** (`chain_0` … `chain_m3`): `srunN` on the class p + 4u, kernel `decide`, for every a ≥ 5.
+
+**Checking it.** `explore (2^62) 200 60 5 4` takes seconds compiled (`returns_2_62`, `native_decide`). In the kernel
+(`decide +kernel`; plain `decide` stops at the elaborator's heartbeat limit) a < 2^32 takes 30 s and 2.7 GB, a < 2^40
+150 s and 10 GB, and the whole range is killed at 13.6 GB: the kernel keeps what it has reduced for the whole
+declaration, about 0.1 MB and 1.3 ms per symbolic pass. The work is very uneven: the classes a = 2^m + 1 mod 2^(m+1)
+for m = 8, 9, 10, 19, 26–28, 36, 37 hold nearly all of it (m = 8 alone: 6,419 routes), the rest is a second or less.
+So `lean/Plan.lean` counts the passes `explore` makes in each subclass (3,387,223 in all, concrete ones counted
+double) and `lean/return62.py` halves classes until each piece costs at most 12,000: 1,575 pieces, each a theorem
+`Cov (2^62) p q` by `explore` and `decide +kernel`, spread over 8 files of equal cost, joined by 1,574 uses of
+`Cov.split` in `Return62.lean`. The cut only decides the pieces; each is checked by the kernel, and `Cov.split` is a
+theorem, so a bad cut can only fail. `lean/check_return62.sh` checks the shards in parallel and fails if
+`no_one_3e18_kernel` rests on anything but `propext`, `Quot.sound` and `Classical.choice`. The plan takes 8 minutes
+(interpreted `#eval`); the check 55 CPU minutes, 17 minutes with 4 jobs, peak under 2 GB per job.
+
+**What this settles and what not.** The 3.4·10¹⁸ figure is now a theorem about the machine: it reaches each of the
+first 3·2^60 + 1 pass starts. The route list beyond 2^62 is infinite (31 October), so the same method cannot reach
+all a; the open part is unchanged: an induction for the excursion.
+
+## 1 November 2026: a first-block lower bound by induction? (`lean/Thin.lean`, `py/induction.py`)
+
+The aim was to prove in Lean, for every a, a lower bound on the first block (or the stop blocks) along the excursion
+from `[a, 2a+1]`, by induction, which with `halts_only_at_front` would prove that the machine never halts. **It was
+not found.** Two results say why a simple induction cannot close, and one Lean theorem holds for every a. Labels:
+**proof** (Lean, kernel), **computed**, **heuristic**.
+
+### No induction on block sizes alone (computed, exact)
+
+`py/induction.py free D` runs the pass map with every block a real number and every parity chosen freely: the
+closed form with its constants (±1, ±3, ±5) dropped. That is what an inductive statement made only of inequalities
+between block sizes sees. From `[1, 2]` (the shape `[a, 2a+1]` divided by a), the smallest first block, as a fraction
+of the ones, after d passes:
+
+| d | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| min first / ones | 1/6 | 1/12 | 1/24 | 1/48 | 1/48 | 1/96 | 1/96 | 1/192 | 1/192 | 1/384 | 1/384 | 1/768 |
+
+So with free parities the first block halves every two passes, the halving loop of 31 October run from the very
+shape of the excursion, and ratio bounds such as "first block ≥ c·ones" or "stop block ≥ a/64" are not preserved by
+any set of lists defined by inequalities. The routes that do this need parities the integers do not give (on the
+real excursions the margin stays at a/64 to mod 2^74), so an inductive statement has to say which parities occur:
+it must carry 2-adic digits. Front stops never come two in a row (`front_twice`) is such a parity fact, but it is
+already respected by the halving above, which alternates a front stop with a pass that leaves the first block alone.
+
+### The deepest excursions are the same problem one level down (computed)
+
+Near a = 1 (a = 1 + 2^m u, u odd, the classes where the open set of the return map accumulates), the blocks of the
+excursion agree, modulo 2^(m − t − 12) after pass t, with the orbit of the closed form from `[1, 3]` in which a
+block of 1 is not an event (`induction.loose`; checked for a = 2^200 + 1 over 180 passes and for random u,
+`tests/test_induction.py`). In that orbit the last block is a **sentinel** 3 for ever ((3 + 3)/2 = 3) that adds 4 to
+the block before it every pass, and the rest runs an inner counter `[x, 2x+6, 3]`, x = 5, 17, 29, 41, … in steps of
+12 every 9 passes, with its own excursions whenever x has a long tail. (Run on its own for 3·10⁵ passes, this
+sentinel orbit never stops at a block of 1, and its first block stays above 5.6% of the ones after pass 100.) The
+congruence explains why these classes are safe early: the first block is the sentinel orbit's first block (≥ 2) plus
+a multiple of a large power of two, so it cannot be 1. It also shows the shape of any proof: the route of a deep
+excursion is the route of an orbit of the same map, so an induction would have to be over the nesting depth of such
+inner counters, with a statement that is self-similar, not a closed set of shapes.
+
+### For every a: the excursions that could fail are a thin 2-adic set (proof)
+
+`lean/Thin.lean`: `thin` is the class search of `Return.lean` without the concrete runs at the depth limit; it
+returns the residues of the open classes, and `thin_ok` proves that an a whose excursion from `[a, 2a+1]` does not
+return (halts, meets a stop block of 1, or never comes back) has its residue among them. No upper bound on a.
+
+`returns_off_open34`: every a = 1 mod 4, a ≥ 5, returns unless a mod 2^34 is one of 67 residues, a fraction
+1.6·10⁻⁸ of the a = 1 mod 4 (kernel, 40 s, 3.6 GB). The same search to mod 2^42 leaves 261 residues, but one kernel
+`decide` on it needs 13.6 GB, so it is not in the check.
+
+This is the base of an induction over the tail length, proved for every a: whatever fails must sit in a set whose density
+shrinks by about 2^(−0.81) per extra bit. It does not settle the machine: the open set is infinite at every
+depth, contains a = 1 (whose excursion is the stop block of 1), and the counter of the blank orbit visits it
+(computed: every a = 2^r + 1 with r even, in the range run).
+
+### A second exact quantity: ψ (proof)
+
+The thread "Find the provable first-block bound" found, and `lean/Psi.lean` proves for every block list (kernel),
+an exact rule for the alternating sum ψ = y_k − 2y_(k−1) + 4y_(k−2) − … (`psi_next`):
+
+    2ψ' = −ψ + 3(−2)^n − 7,   n ≤ k the number of blocks the sweep crosses (0 for an even last block)
+
+On a two-block state `[a, 2a+d]`, ψ = d, so the six short chains are this rule. It is exactly the parity information
+the free-parity model lacks: the halving loop of the small starts needs |ψ| large (`[110, 63, 23]` has ψ = 337), and
+the rule pulls ψ towards a bounded range as long as n is bounded (computed there: ψ ∈ [−19, 24] along the first
+3·10⁶ passes of the orbit). A bound on ψ pins the first block to y₂/2 − y₃/4 + … up to a constant, which is where a
+first-block induction would now start.
+
+### Where this leaves the proof
+
+A proof needs a statement that is (i) kept by the pass map, (ii) false for the free-parity routes above, so it
+names parities, and (iii) true at every depth of the open set, whose routes near a = 1 are orbits of the same map one
+level down. A natural candidate is an induction on the nesting depth: near a = 1 the route is the loose orbit from
+`[1, 3]` for about v₂(a − 1) passes, and inside it the inner counter has excursions of its own, with tails set by
+the bits of x. Whether the other open classes reduce the same way, to a loose orbit from some other start, was not
+checked (heuristic). What is missing in any case is the step that controls the real parts (the multiples of 2^m)
+while the inner orbit runs, that is a lower bound on their first-block coefficient along the inner route; in the
+trace of a = 2^120 + 1 it stays at least 0.36·a over the first 100 passes. Whether that closes is still open.
 ## 1 November 2026: the block count is not bounded by 6 (`lean/Seven.lean`, `py/blockcount.py`)
 
 The aim was to prove that every list along the blank-tape orbit has at most 6 blocks (or any fixed number), which
@@ -568,3 +688,129 @@ beyond the 3·10⁵ passes of the sentinel orbit, where the count stays at most 
 self-similar in the nesting depth, as the first-block thread concluded; a bound on the block count by a slowly growing
 function of a (for instance the nesting depth) together with the graph bound 2^R(K) - 1 on the first block would be
 one form of it, untested.
+
+## 1 November 2026: the blank orbit cannot step around the 7-block witness (`lean/Window.lean`)
+
+The question: does the orbit from blank tape stay at 6 blocks or fewer? The 7-block excursion above starts at
+a7 = 2^203 + 2^221 + 1, and the open point was whether the orbit's counter (a -> a + 12k at the states `[a, 2a+1]`)
+ever lands on it or on another member of its class. **It lands on a7 itself, as soon as it gets within 200 returns
+below it.** Labels: **proof** (Lean, kernel), **computed**, **heuristic**.
+
+### The window (proof)
+
+For j = 1..200 the excursion from `[a7 - 12j, ...]` returns to `[a7 - 12(j-1), ...]` after 9 passes, or (at j = 16,
+48, 64, 80, 112, 128, 144, 176, 192) to `[a7 - 12(j-2), ...]` after 18. So from every state of the window the
+counter walks up to a7 without jumping over it, and 204 passes later the pass start has 7 blocks:
+
+    theorem window_seven (j n : Nat) (hj : j ≤ 200) (h : orbit n = .ok (two (aw j))) :
+        ∃ m zs, orbit m = .ok zs ∧ zs.length = 7          -- aw j = a7 - 12j, two a = [2a+1, a]
+
+`allOK_W` checks the 200 steps by `decide` (1,881 passes on numbers of 223 bits, 3 s), `orbit_run` carries runs of
+`next` into `orbit`, and `window_reach` is the induction. Axioms `propext`, `Quot.sound`; no `native_decide`.
+
+Read the other way (`six_blocks_long_excursion`): **if every pass start of the blank orbit has at most 6 blocks,
+then none of the 201 states `[a, 2a+1]` with a = 5 mod 12 and a7 - 2400 <= a <= a7 is on the orbit.** A state
+`[a, 2a+1]` can only be pass (3a+1)/4 (`two_pass`, from `orbit_ok`), so these are the passes n with n = 4 mod 9 in
+a stretch of 1,800 passes, and the orbit would go 1,800 passes in a row without a return of the return map at
+a = 5 mod 12 (and its returns are at a = 5 mod 12, computed on 10⁶ returns and implied by G(a) = a + 12k).
+
+### Why that is expected to happen (computed, heuristic)
+
+* Along 10⁶ returns of the blank orbit (a up to 1.26·10⁷) the jumps are k <= 4, so excursions last at most 36
+  passes, and **every a = 5 mod 12 with v2(a - 1) >= 4 is visited**; the 5% skipped all have v2(a-1) = 2 or 3
+  (`python3 py/blockcount.py visits 1000000`, 20 s; the test runs 10⁵). The 7-block witness has v2(a7 - 1) = 203.
+* Jumps are short because they grow with v2(a - 1): the largest k seen is 4 for v2 <= 22, and the witness's own
+  excursion (v2 = 203) has k = 24. Below a7, within 2^200 of it, v2(a - 1) = 2 + v2((a7 - a)/12), so a jump of 200
+  returns would need an a with an excursion of 1,800 passes, about ten times the one at v2 = 203, at some a < 2^222.
+* The same window holds below other deep targets: for a = 1 + 2^m u (a = 5 mod 12), m = 12, 20, 30, 40, 80, 160 and
+  random u, every entry from 60 returns below reaches a exactly (`window(60, a)`, `test_window_deep`).
+
+So the answer to "does the blank orbit stay at 6 blocks?" is **no, unless the orbit first makes a jump over 200
+returns at some a < 2^222** (or stops at a block of 1 before then, which is the halting question itself); the first
+7-block pass is then at most pass (3·a7 + 1)/4 + 204, about 2^221.6. That last step rests on the observed size of the
+jumps, not on a proof. A proof that every excursion with a < 2^222 returns within 1,800 passes would make it a
+theorem, but that is a statement about all excursions, of the kind that is open.
+
+### Larger caps
+
+No fixed cap K is expected to hold either. The sentinel orbit from `[1, 3]` (the closed form with a stop at 1
+allowed, `loose_step`, which deep excursions a = 1 + 2^m u follow for about m passes) has its first 3, 4, 5, 6, 7
+blocks at passes 2, 4, 8, 202, 269,206 (`passorbit`-style C run of the loose map, checked against
+`py/blockcount.py loose` to 3·10⁵).
+
+## 1 November 2026: a second invariant beside psi? (`lean/Run7.lean`, `py/runbound.py`)
+
+The aim: a second exact or weighted quantity that, with psi, rules out a first block falling to 511 or below (or to 1),
+without assuming a bound on the block count (the block-count thread expects the orbit to reach 7 blocks and more).
+**None was found.** What was found is where psi stops working, a Lean-checked list that shows it, and one more exact
+rule. Labels: **proof** (Lean, kernel), **hand proof** (from the closed form), **computed**, **heuristic**.
+
+### No third linear or polynomial-evaluation invariant (hand proof)
+
+Write the list as F(z) = sum x_r z^r, r the distance from the right end. In every case a pass is
+F' = F/z + ((z−1)(z+2)/(2z))·(the swept part) + constants, so the quantities F(z) that move by a rule independent of
+the parities are exactly those with (z−1)(z+2) = 0: z = 1 (the sum) and z = −2 (psi). Over Z/3^m there are more
+approximate roots (z = 4, 7 mod 9, …), but F at those is fixed by F(1) and F(−2) modulo the same power (for example
+F(4) = 2F(1) − F(−2) mod 9). Over Z/2^m the halvings need parities, which is where the case split comes from. So a
+second invariant has to depend on the parities: it cannot be a fixed weighting of the blocks.
+
+### Runs between changes of the first block need no block cap (hand proof; computed table)
+
+A pass changes the first block (other than halving it) only if it stops at the second block, at the third of a longer
+list, or has an even last block on 2 or 3 blocks. Every other pass is a front stop, which adds one block, or removes
+one block (an even last block on k ≥ 4, or a stop at j ≥ 4). Front stops never come two in a row (`front_twice`), so
+in a run from a change with k0 blocks, **the block count stays at most k0 + 1**. So the (k, psi, f) graph bounds the
+number R of front stops in a run from the state after the change alone (`python3 py/runbound.py table 2000`):
+
+| k0 after the change | 2 | 3 | 4 | 5 | 6 |
+|---|---|---|---|---|---|
+| most front stops, abs(psi) ≤ 60 | 1 | 4 | 6 | 10 | 17 |
+| most front stops, abs(psi) ≤ 2000 | 1 | 6 | 9 | 13 | 20 |
+
+(grows like log |psi|: the halving loop needs |psi| large). With the Mersenne lemma: if every change leaves at most 6
+blocks and |psi| ≤ 60, a stop at a first block of 1 needs a change to leave the first block at most 2^17 − 1. That is
+weaker than the 511 of the 6-block reduction, but needs the cap only at the changes, not along the whole orbit.
+
+### From 7 blocks on, psi gives no bound at all (computed; proof for one list)
+
+For every k ≥ 7 the run graph has a cycle that alternates a front stop on k blocks and a pass that removes a block
+from k + 1 (`python3 py/runbound.py cycles 300`: one cyclic part on 7 and 8 blocks, psi −77..131, 22 states; one on 8
+and 9, one on 9 and 10). On 7 and 8 blocks it is
+
+    (7, −57) → (8, 121) → (7, −67) → (8, 126) → (7, −65) → … → (8, 110) → (7, −57),   j = 1, 7, 1, 8, 1, 7, 1, 6, 1, 5, 1, 4, 1, 4, 1, 4, 1, 8
+
+and real lists follow it. `lean/Run7.lean` (kernel, axioms `propext` only):
+
+* `w7 = [31, 96, 64, 32, 88, 162, 235]` (first block first) has psi = −57, 4 | ones, every block after the first at
+  least 2, y2 ≥ y1 + 2, and first block 31 = 2^5 − 1. Its first blocks run 31, 15, 15, 7, 7, 3, 3, 1, 1 and the
+  block counts 7, 8, 7, 8, …, and the ninth pass stops at a first block of 1 (`w7_psi`, `w7_trace`, `w7_one`).
+* `w7b = [255, 1280, 2304, 2432, 5464, 10594, 6507]`, same psi and same cycle, has 8 front stops and stops at a
+  first block of 1 after 15 passes (`w7b_firsts`, `w7b_one`).
+
+So psi, `front_twice`, `Good`, y2 ≥ y1 + 2 and 4 | ones together do not exclude the event once a change leaves 7
+blocks: any second invariant has to be false on these lists. Searching along the cycle on residue classes (psi
+fixed at −57, first block 2^R − 1) the number of classes that follow it doubles every pass, so lists for every R are
+expected (computed to R = 8; heuristic beyond). The lists are not on the orbit: they have all seven blocks of
+comparable size, while the orbit's 7-block lists (`Seven.lean`) have three large blocks and a tail that halves each
+pass.
+
+### An exact rule for y2 / (y1 + 1) (proof), and why it is not enough (computed)
+
+`front_second`: on a front stop of at least 3 blocks the first block f becomes (f − 1)/2 and the second e becomes
+(f + 1)/2 + e/2, so **rho = y2 / (y1 + 1) goes up by exactly 1** on every front stop. Inside a run the other passes
+leave y1 alone and y2 alone or larger (a stop at j = 4 or an even last block on 4 blocks adds to y2), so a run of R
+front stops raises rho by at least R, with no assumption on the block count. If rho were bounded by C on the
+orbit, a first block of 1 would need a change to leave it at most 2^C − 1. But rho is not small: over the first
+3·10^7 passes of the orbit it reaches 48.3 (pass 13,321,951, the deepest descent of `front.py`), and 11.4 on the
+excursion from a = 2^19 + 1 (a = 9 mod 12, so not an orbit value; `python3 py/runbound.py ratio 30000000`). The
+jumps come from passes that stop at the fourth block or have an even last block on 4 blocks (passes 13,321,945 to
+13,321,950: rho 5.4, 11.6, 12.6, 24.0, 24.6, 25.6, 48.3), not from front stops. So rho bounds R only by about 48 there, far from 511.
+
+### What a second invariant needs
+
+It must (i) depend on the parities, not be a weighting of the blocks; (ii) be false on `w7` and `w7b`, which satisfy
+every invariant known so far; (iii) hold on the orbit's lists, where beyond three or four blocks the extra blocks are
+a halving tail. The natural candidate is a statement about the shape, not the count: the number of blocks of size at
+least c·(ones) stays at most 3 or 4, with the rest a tail whose sizes fall geometrically to the right. The tail has
+small weight in psi/(−2)^(k−1) = y1 − y2/2 + y3/4 − …, so this would keep the (k, psi) graph on the bulk small. Not
+tested beyond the witness excursion; it is again a statement about 2-adic digits, as every route here has been.

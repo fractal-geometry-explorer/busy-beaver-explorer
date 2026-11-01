@@ -50,6 +50,34 @@ class TestBlockCount(unittest.TestCase):
         """Among a = 2^r + 1, r < 210, only r = 203 (a = 9 mod 12) reaches 7 blocks, at pass 204."""
         self.assertEqual(B.powers(210), [(203, 9, 204, 7)])
 
+    def test_window(self):
+        """lean/Window.lean: below the witness, k is 1 or 2 for j <= 200 (2 exactly at the j listed), and no entry
+        into the window jumps over the witness."""
+        ks, over = B.window(200)
+        self.assertEqual(over, [])
+        self.assertEqual(sorted(j for j, k in ks.items() if k == 2), [16, 48, 64, 80, 112, 128, 144, 176, 192])
+        self.assertEqual(set(ks.values()), {1, 2})
+
+    def test_window_deep(self):
+        """The same below other deep targets a = 1 + 2^m u (a = 5 mod 12), m = 40, 80, 160: the counter cannot step
+        around them from 60 returns below."""
+        import random
+        rnd = random.Random(7)
+        for m in (40, 80, 160):
+            u = rnd.getrandbits(30)
+            while (1 + (u << m)) % 12 != 5:
+                u += 1
+            ks, over = B.window(60, 1 + (u << m))
+            self.assertEqual(over, [], m)
+            self.assertLessEqual(max(ks.values()), 2)
+
+    def test_visits(self):
+        """Along 10^5 returns of the blank orbit every a = 5 mod 12 with v2(a-1) >= 4 is visited."""
+        out, top = B.visits(100000)
+        self.assertGreater(top, 10 ** 6)
+        self.assertTrue(all(c[1] == 0 for v, c in out.items() if v >= 4))
+        self.assertGreater(out[2][1], 0)
+
 
 if __name__ == "__main__":
     unittest.main()
