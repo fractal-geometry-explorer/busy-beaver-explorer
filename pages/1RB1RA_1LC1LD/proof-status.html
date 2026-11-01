@@ -166,6 +166,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>Safe</code>, <code>safe_pass</code>, <code>six_after_two</code>, <code>six_pass</code>, <code>three_six_halts</code>, <code>blank_safe</code>, <code>lean/Chain.lean</code></p>
       </div>
       <div class="card">
+        <h3>Case B needs the history: safe even starts that halt, and how fast the last block can fall</h3>
+        <p>No condition on the pass start alone that safety and parity can express rules case B out: <code>16 16</code> and <code>314 54</code> are safe, every block even (as the leftmost block always is on the run), and both halt by case B (<code>16 16 &rarr; 26 9 &rarr; 6 27 6 &rarr; 14 27 4 &rarr; 14 33 1</code>, evaluated by the kernel). What a halt by case B needs, if <code>pre</code> stops: from a safe start with last block other than 3 and 6 the next start is safe, its last block is at least two thirds of the old one less 5/3, and it is 6 only if the old last block was 9, or 2 after a block 3. So the last block must come down to 9 first, by at most a factor 3/2 a pass.</p>
+        <p class="where"><code>sixteen_halts</code>, <code>chain_54_halts</code>, <code>safe_pass_shrink</code>, <code>lean/CaseB.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No lower bound on the last block by the size of the tape is kept</h3>
+        <p>A covered pass from a last block 1 mod 3 (at least 7) shrinks it to two thirds of it plus 5, less 5, while the block next to it grows and the rest stays, so the total grows by at least 2. Hence for any nondecreasing f, a good start whose last block is f(total) and 1 mod 3 passes to a good start below the bound. Ruling out a descent to 9 needs the residues that decide how long a descent lasts, not only sizes.</p>
+        <p class="where"><code>descent_step</code>, <code>no_total_bound</code>, <code>lean/Bound.lean</code></p>
+      </div>
+      <div class="card">
         <h3>The pass map with step counts</h3>
         <p>Every rule of <code>lean/Rules.lean</code> states its exact number of steps, so the pass map can carry them: <code>passC</code> is <code>pass</code> returning, beside the next pass start (or a halt), the exact number of machine steps the pass takes, and <code>passesC</code> iterates it. Whatever they return, the machine does, in exactly that many steps. From blank tape the fourth pass start <code>1^10 0 1^3 A&gt;0</code> is reached at step 183.</p>
         <p class="where"><code>passC</code>, <code>passC_sound</code>, <code>passesC_sound</code>, <code>blank_passesC</code>, <code>lean/Count.lean</code></p>
@@ -211,6 +221,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>For a recursive pass from <code>&hellip; x, 3j</code> the new last block is 2j + c, where the offset c depends on the blocks to the left but not on j (proved, <code>recur_sound</code>), and is never below &minus;1 (exactly &minus;1 when x = 2; proved for x = 2 and for lists of up to 3 blocks of 2 to 10) and never 1 or 4. So with a last block of 9 or more the recursive pass also gives a good pass start, and every good list on which the next pass start is not good has last block 3 or 6: exhaustive over all lists of up to 3 blocks of 2 to 30 and up to 5 blocks of 2 to 12, and 20,000 random lists with blocks up to 200. Examples: <code>2 3 &rarr; 8 1</code>, <code>5 3 &rarr; 8 4</code>, <code>8 6 &rarr; 2 11 4</code>. A last block 3 with a block of 6 or more to its left was always safe; a last block 3 from a covered pass always has one.</p>
         <p class="where"><code>py/blocks.py exhaustive</code>, <code>random</code>, <code>offsets</code>; <code>tests/test_machine.py</code></p>
       </div>
+      <div class="card">
+        <h3>Case B: offset 0 means two supply words, and the run stays far from it</h3>
+        <p>With the block left of the last other than 2, the offset c is 0 exactly when <code>pre</code> takes two supply words, on all 2,743 lists of 1 to 3 blocks of 2..15. All 63 safe starts <code>x b</code> with x even below 400 and b below 300 that halt within 12 passes halt by case B, with b in {6, 9, 16, 24, 54}. Over the 8,257 pass starts to 10<sup>12</sup> steps: the leftmost block is always even; offset 0 in 631 of 2,654 recursive passes, never more than 3 in a row; case B never reached; the smallest last block from pass 156 on is 53, from pass 2,000 on 375, and from pass 156 on the last block is at least 1.38 times the square root of the total number of ones.</p>
+        <p class="where"><code>py/blocks.py caseb</code>, <code>tests/test_machine.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -218,6 +233,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The tape grows slowly and splits into two regions</h3>
         <p>The visited width grows roughly like the square root of the step count (about 6,300 cells after 10<sup>10</sup> steps). The left part of the tape fills with blocks <code>1^2 0</code>, with an occasional <code>1 0</code>, and the head sweeps over it; the right part holds a few long blocks of 1s. The head reaches new cells mostly on the right.</p>
         <p class="where"><code>py/blank.py records</code>, <code>notes/LAB_NOTES.md</code></p>
+      </div>
+      <div class="card">
+        <h3>Descents to 9 get rarer: the sum of their chances converges</h3>
+        <p>On the run to 10<sup>12</sup> steps there are 2,709 descents of the last block (maximal runs of passes each shrinking it), 1,454, 631, 416, 111, 59, 26, 9 and 3 of lengths 1 to 8: each further step about 0.4 likely, each shrinking the last block by about 2/3. Coming down from b to 9 then has chance about (b/9)<sup>&minus;2.26</sup>; the total grows linearly in the passes and the median last block is about 0.65 of it, so this falls like t<sup>&minus;2.26</sup> in the pass number t, and the sum converges. Evidence, not proof, that case B is never reached.</p>
+        <p class="where"><code>py/blocks.py descents</code>, <code>notes/LAB_NOTES.md</code></p>
       </div>
       <div class="card">
         <h3>The recursive case: a last block that is a multiple of 3</h3>
@@ -234,7 +254,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>That <code>pre</code> stops, and the bad last blocks</h3>
-        <p>The new last block after a recursive pass is proved to be 2j + c with c depending only on the blocks to the left, c = &minus;1 when x = 2, and c &ge; &minus;1 for every list of blocks of at least 2 provided the part before the final loop (<code>pre</code>) stops (<code>lean/Formula.lean</code>, <code>lean/Offset.lean</code>). Open: that the head does not drift left without bound (proved equivalent to <code>pre</code> always stopping, since <code>pre</code> never gets stuck); case A of <code>lean/Chain.lean</code>, a last block 3 after a block of at least 6 (computed: always followed by a safe start, with c = 0 or c &ge; 3, over 55,700 lists, <code>py/blocks.py chain</code>); and case B, whether the run ever reaches a last block 6 with c = 0 (which does halt: <code>8 6 &rarr; 2 11 4</code>). Every other pass from a safe start is proved to give a safe start, given that <code>pre</code> stops.</p>
+        <p>The new last block after a recursive pass is proved to be 2j + c with c depending only on the blocks to the left, c = &minus;1 when x = 2, and c &ge; &minus;1 for every list of blocks of at least 2 provided the part before the final loop (<code>pre</code>) stops (<code>lean/Formula.lean</code>, <code>lean/Offset.lean</code>). Open: that the head does not drift left without bound (proved equivalent to <code>pre</code> always stopping, since <code>pre</code> never gets stuck); case A of <code>lean/Chain.lean</code>, a last block 3 after a block of at least 6 (computed: always followed by a safe start, with c = 0 or c &ge; 3, over 55,700 lists, <code>py/blocks.py chain</code>); and case B, whether the run ever reaches a last block 6 with c = 0 (which does halt: <code>8 6 &rarr; 2 11 4</code>; it is entered only through a last block 9 or <code>3 2</code>, after a descent of the last block by at most 3/2 a pass, <code>lean/CaseB.lean</code>). Every other pass from a safe start is proved to give a safe start, given that <code>pre</code> stops.</p>
         <p class="where"><code>notes/LAB_NOTES.md</code></p>
       </div>
       <div class="card open">
@@ -247,7 +267,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>bash scripts/setup-lean.sh                    # Lean 4.34.0, core only
 . /etc/profile.d/lean.sh
-bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Blocks, Recur, Finish, Formula, Offset, OffsetData, Stops, Chain, Count, Axioms
+bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Blocks, Recur, Finish, Formula, Offset, OffsetData, Stops, Chain, CaseB, Bound, Count, Tokens, Axioms
 python3 bb6-1RB1RA_1LC1LD/tests/test_machine.py
 python3 bb6-1RB1RA_1LC1LD/py/blank.py records 100000 60
 gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 10000000000
@@ -255,6 +275,8 @@ python3 bb6-1RB1RA_1LC1LD/py/macro.py check 3000000   # the pass map against the
 ./tmrun 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 10000000000 at A R 100000 | grep &#x27;A&gt;0$&#x27; &gt; passes.txt &amp;&amp; python3 bb6-1RB1RA_1LC1LD/py/macro.py check-full passes.txt
 python3 bb6-1RB1RA_1LC1LD/py/blocks.py exhaustive 30 3   # good lists whose next pass start is not good: last block 3 or 6
 python3 bb6-1RB1RA_1LC1LD/py/blocks.py chain 14 4 1 20000   # case A of lean/Chain.lean: a last block 3 after a block of at least 6
+python3 bb6-1RB1RA_1LC1LD/py/blocks.py caseb 15 400 300 12 3000   # case B: offset 0 and two supply words, halting starts, the run
+python3 bb6-1RB1RA_1LC1LD/py/blocks.py descents 8256   # the descents of the last block on the run to 10^12 steps (minutes)
 cd tools/py &amp;&amp; python3 -m bbtools.invariants 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 12
 cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 3</code></pre>
   </section>

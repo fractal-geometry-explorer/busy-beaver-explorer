@@ -438,6 +438,73 @@ excluded by a condition on the pass start alone; it needs to know which last blo
 comes from `… d, 3, 2 → … d + 2, 6` (covered), from 9 with `c = 0`, or from 6 with `c = 2`; that is the chain
 `… → 9 → 6 → 4 → 1` of the heuristic entry above, now with every other route closed (given termination and case A).
 
+
+## 1 November 2026: case B, a last block 6 with offset 0
+
+**Question.**  Case B of `lean/Chain.lean` is a pass start `…, x, 6` with `x ≠ 2` and offset `c = 0`; it really halts
+(`8 6 → 2 11 4 → 2 17 1`).  Is there an invariant of the run, on the offset or on the blocks to the left, that keeps
+the run out of it?
+
+**Not one on the pass start alone** (`lean/CaseB.lean`, kernel only).  The leftmost block is always even on the run
+(all 8,257 passes to 10¹² steps; kept by every pass of 10,019 random safe lists with an even leftmost block), so parity
+was the first candidate.  It does not suffice: `16 16` is safe, all its blocks are even, and it halts by case B,
+`16 16 → 26 9 → 6 27 6 → 14 27 4 → 14 33 1` (`sixteen_halts`).  `314 54` too, after a longer descent:
+`314 54 → 70 265 36 → 76 277 24 → 80 287 16 → 80 297 9 → 94 291 6 → 22 175 194 4 → 22 175 200 1` (`chain_54_halts`),
+three recursive passes with offset 0, the covered `16 → 9`, and `9 → 6` with offset 0.  And `c = 0` itself is not a
+residue condition on `x`: on the lists `[x]` it holds for `x` = 3, 8, 9, 14, 19, 21, 26, 27, 32, 37, 39, 44, 45, 55, …,
+every residue mod 6 except 0, 4 and 5 among them, and on longer lists for most `x`.
+
+**What the offset is.**  Computed (`py/blocks.py caseb`): with the block left of the last other than 2, `c = 0` exactly
+when `pre` takes two supply words (`u = 2`), on all 2,743 lists of 1 to 3 blocks of 2..15.  (`c = a + 2p − 2u`, so the
+two extra words are what cancels the gain.)
+
+**What the history must contain** (`safe_pass_shrink`, kernel only, `pre` stopping the only assumption).  From a safe
+start with last block `n + 1` other than 3 and 6, the next pass start `K ls' n'` is safe, `2n ≤ 3n' + 6`, and
+`n' = 5` (last block 6) only if `n = 8` (last block 9) or `n = 1` with a block 3 left of the last (`… d, 3, 2 → … d + 2,
+6`).  So the last block falls by at most a factor about 3/2 a pass, and case B is entered only through a last block 9
+or `3 2`.  Every halting start found sits at the end of such a descent: all 63 safe starts `x b` with `x` even below
+400 and `b` below 300 that halt within 12 passes halt by case B, with `b` in {6, 9, 16, 24, 54} only.
+
+**On the run** (`py/blocks.py caseb 15 400 300 12 3000` for the first 3,000 passes from `10 3`; the same counts over
+all 8,257 passes to 10¹² steps took about 7 minutes): offset 0 in 631 of 2,654 recursive passes, never more than 3 in a
+row; case B never reached; the smallest last block from pass `t` on is 3, 12, 53, 338, 375, 762 for `t` = 0, 32, 156,
+1000, 2000, 6000, and from pass 156 on the last block is always at least 1.38 times the square root of the total
+number of ones.  Since a pass divides the last block by at most about 3/2, coming down to 9 from a last block `L` takes
+at least `log(L/9) / log(3/2)` passes in a row, each a 1-mod-3 covered pass or a recursive one with small offset; from
+pass 2000 on that is at least 9.
+
+**Still open.**  That such a descent never happens.  It is a question about how the offsets of successive recursive
+passes line up along the run, which no condition on a bounded number of blocks decides (the examples above are of two
+blocks).  A proof would have to tie the last block to the size of the tape, for instance a lower bound such as "last block at
+least the square root of the total" that the passes keep; the run suggests one (above, and the heuristic entry
+earlier), none is proved, and a single pass can break it (`safe_pass_shrink` allows the last block to fall by 3/2 while
+the total grows).
+
+
+## 1 November 2026: a lower bound on the last block by the size of the tape?
+
+**Question.**  `lean/CaseB.lean` leaves a halt needing a descent of the last block to 9.  On the run the last block is
+at least 1.38 times the square root of the total from pass 156 on.  Is there a bound of this kind that every pass keeps?
+
+**No, not of the form "last block at least f(tape)"** (`lean/Bound.lean`, kernel only).  A covered pass from a last
+block 1 mod 3 (at least 7) shrinks it to two thirds of it plus 5, less 5, grows the block next to it and leaves the
+rest, so the total grows by at least 2 (`descent_step`).  So for any nondecreasing `f` a good start whose last block is
+`f(total)` and 1 mod 3 passes to a good start below the bound (`no_total_bound`); the same goes for any bound
+nondecreasing in the blocks.  A proof along these lines has to use more than sizes: the residues that decide how long
+a descent lasts (`k` covered descents in a row need `3^k` to divide the last block plus 5, `next_shrink`).
+
+**The descents on the run** (`py/blocks.py descents 8256`, all 8,257 passes to 10¹² steps): 2,709 descents (maximal runs
+of passes that each shrink the last block), by length 1454, 631, 416, 111, 59, 26, 9, 3 for lengths 1 to 8, so each
+further step happens with probability about 0.4.  Each step shrinks the last block by about 2/3 (the deepest,
+`9715 → 375` in 8 passes from pass 4151, is 0.039 ≈ (2/3)^8).  The smallest last block / √total from pass 156 on is 1.38
+(pass 414).
+
+**Heuristic.**  Coming down from a last block `b` to 9 takes about `log(b/9) / log(3/2)` steps of descent, which with a
+step probability of 0.4 happens with probability about `(b/9)^(log 0.4 / log 1.5) = (b/9)^−2.26`.  On the run the total
+grows linearly in the passes (1,787, 3,547, 7,059, 14,041, 28,193 ones at passes 500, 1000, 2000, 4000, 8000) and the
+median last block around pass `t` is about 0.65 of the total (1019, 2153, 4583, 9152, 18515), so the chance of a
+descent to 9 at pass `t` falls like `t^−2.26`, and the sum over all passes converges: evidence, not proof, that the run
+never reaches case B.
 ## 1 November 2026: a ranking function for `pre`? What the A states show
 
 **Aim.**  A measure that goes down along `pre` from every good list, so that `pre` stops with no assumption
