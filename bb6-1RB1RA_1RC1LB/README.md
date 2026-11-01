@@ -83,7 +83,10 @@ halting is decided by d₁ = N/2^(m−1) at the returns to the left end, now 1.9
 10²⁷ by a miscount). The random model gives about 5·10⁻²⁵ for a future halt (heuristic). Exact over a period of the
 last 18 blocks, N mod 2^k has a valuation profile tending to 1.28, ever fairer next bits, and never 3030 or 4054 mod
 2¹²; at the top of the orbit the waves pass each block half the time; from 60,000 random starts the map halts 2,018
-times against 2,024 predicted, and near-halts follow the model within a factor of about 2 up to d₁ ≈ 2³⁰.
+times against 2,024 predicted, and near-halts follow the model within a factor of about 2 up to d₁ ≈ 2³⁰. On 10⁷
+starts (`c/ensemble_fast.c`, the same orbits on periodic tables) v₂(d₁) at a return is geometric: the shortfall in
+high valuations that the 60,000 starts showed comes from their repeated and merging starting tapes, and is gone when
+each return is counted once or the starts are wider (`runs/valuation_test.txt`).
 
 **Observed only**: no macro configuration up to 9·10¹³ steps comes near the halting shape (left blocks in the
 hundreds of thousands); see the notes.
@@ -131,8 +134,9 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `py/waves.py` | the wave model: the run in another cut, and the super step with N, exact step counts |
 | `py/n_search.py` | the search for an invariant that keeps N off the powers of two |
-| `py/top_stats.py` | the top blocks: the next return's floor and the odds (`odds`), pass rates at the top of the orbit (`toppass`), the random model tested on `c/ensemble.c` runs (`ensemble`) |
+| `py/top_stats.py` | the top blocks: the next return's floor and the odds (`odds`), pass rates at the top of the orbit (`toppass`), the random model tested on `c/ensemble.c` runs (`ensemble`) and on `c/ensemble_fast.c` totals (`fast`) |
 | `c/ensemble.c` | the super step from many random starts, every return and halt |
+| `c/ensemble_fast.c` | the same orbits on periodic tables (about 100 times faster), with the totals of the returns kept in C; `-u` counts each return once |
 | `c/bottom2adic.c` | N mod 2^k over one exact period of the last k blocks |
 | `py/deepmind.py` | lines up google-deepmind/cryptids' stack map and its high-level map with `py/macro.py` and `py/waves.py` |
 | `py/sibling.py` | checks that `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, merged by bbchallenge into an equivalence class, runs as this machine does |
@@ -143,7 +147,7 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 | `tests/test_machine.py` | the generated files are current, early facts of the run |
 | `tests/test_waves.py` | the block model against `tmrun`, the reference simulator and `runs/` |
 | `tests/test_superrun.py` | `superrun` against `waves.py`, `blkrun.c`, its direct mode and `py/superrun.py`; `py/cycles.py` against its tables |
-| `tests/test_top.py` | `c/ensemble.c` and `c/bottom2adic.c` against `py/waves.py`; `py/top_stats.py`; N grows on random starts |
+| `tests/test_top.py` | `c/ensemble.c` and `c/bottom2adic.c` against `py/waves.py`; `c/ensemble_fast.c` against `c/ensemble.c`; `py/top_stats.py`; N grows on random starts |
 | `tests/test_explainer.py` | the engine of `pages/1RB1RA_1RC1LB/explainer.html` against `py/macro.py`, `py/waves.py` and the reference simulator (needs Node) |
 | `runs/` | outputs of long runs |
 | `notes/PRIOR_WORK.md` | what the community and the literature knew about this machine (30 October 2026), with sources |

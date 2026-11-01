@@ -22,3 +22,8 @@ Outputs of long runs (see ../notes/LAB_NOTES.md for how each was made).
 - `ensemble_summary.txt`: `python3 py/top_stats.py ensemble` on 60,000 orbits of `c/ensemble.c`
   (`./ensemble 10000 16777216 SEED 2 4 100 ID` for seeds 100 to 102, and 60000 per seed for 200 to 203, stopped after
   about 7,500 each; the raw output, 20 MB, is not kept).
+- `valuation_test.txt`: `python3 py/top_stats.py fast` on the totals of `c/ensemble_fast.c` for ten runs (10⁷ starts
+  of 2²⁴ super steps from four kinds of start, with and without `-u`, and 10⁵ to 2·10⁵ starts of 10¹⁴ super steps);
+  each section names its commands (`gcc -O3 -march=native -o ensemble_fast c/ensemble_fast.c`). On four cores the
+  2²⁴ runs take about 25 minutes each, the `-u` runs (one process each) about 95, the 10¹⁴ runs about an hour; the
+  raw totals (about 2 MB a run) are not kept.
