@@ -479,3 +479,29 @@ blocks).  A proof would have to tie the last block to the size of the tape, for 
 least the square root of the total" that the passes keep; the run suggests one (above, and the heuristic entry
 earlier), none is proved, and a single pass can break it (`safe_pass_shrink` allows the last block to fall by 3/2 while
 the total grows).
+
+
+## 1 November 2026: a lower bound on the last block by the size of the tape?
+
+**Question.**  `lean/CaseB.lean` leaves a halt needing a descent of the last block to 9.  On the run the last block is
+at least 1.38 times the square root of the total from pass 156 on.  Is there a bound of this kind that every pass keeps?
+
+**No, not of the form "last block at least f(tape)"** (`lean/Bound.lean`, kernel only).  A covered pass from a last
+block 1 mod 3 (at least 7) shrinks it to two thirds of it plus 5, less 5, grows the block next to it and leaves the
+rest, so the total grows by at least 2 (`descent_step`).  So for any nondecreasing `f` a good start whose last block is
+`f(total)` and 1 mod 3 passes to a good start below the bound (`no_total_bound`); the same goes for any bound
+nondecreasing in the blocks.  A proof along these lines has to use more than sizes: the residues that decide how long
+a descent lasts (`k` covered descents in a row need `3^k` to divide the last block plus 5, `next_shrink`).
+
+**The descents on the run** (`py/blocks.py descents 8256`, all 8,257 passes to 10¹² steps): 2,709 descents (maximal runs
+of passes that each shrink the last block), by length 1454, 631, 416, 111, 59, 26, 9, 3 for lengths 1 to 8, so each
+further step happens with probability about 0.4.  Each step shrinks the last block by about 2/3 (the deepest,
+`9715 → 375` in 8 passes from pass 4151, is 0.039 ≈ (2/3)^8).  The smallest last block / √total from pass 156 on is 1.38
+(pass 414).
+
+**Heuristic.**  Coming down from a last block `b` to 9 takes about `log(b/9) / log(3/2)` steps of descent, which with a
+step probability of 0.4 happens with probability about `(b/9)^(log 0.4 / log 1.5) = (b/9)^−2.26`.  On the run the total
+grows linearly in the passes (1,787, 3,547, 7,059, 14,041, 28,193 ones at passes 500, 1000, 2000, 4000, 8000) and the
+median last block around pass `t` is about 0.65 of the total (1019, 2153, 4583, 9152, 18515), so the chance of a
+descent to 9 at pass `t` falls like `t^−2.26`, and the sum over all passes converges: evidence, not proof, that the run
+never reaches case B.

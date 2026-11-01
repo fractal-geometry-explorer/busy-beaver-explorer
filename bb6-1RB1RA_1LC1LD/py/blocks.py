@@ -16,6 +16,9 @@ usage:
   python3 py/blocks.py caseb N X B K P      case B of lean/Chain.lean (lean/CaseB.lean): c = 0 against u = 2 on all
                                             lists of 1 to 3 blocks of 2..N; the safe starts `x b` (x even, x < X,
                                             b < B) that halt within K passes and how; and the first P passes of the run
+  python3 py/blocks.py descents P           lean/Bound.lean: the descents of the last block over the first P passes
+                                            of the run (maximal runs of passes that shrink it), and the last block
+                                            against the square root of the total
 """
 import itertools
 import os
@@ -228,6 +231,26 @@ def caseb(n, xmax, bmax, k, passes):
     return out
 
 
+def descents(passes, seq=None):
+    """The descents of the last block along the run from `10 3`: maximal runs of passes each shrinking it.  Returns
+    {length: count}, the deepest (start pass, length, from, to) by ratio, and min last / sqrt(total) from pass 156."""
+    seq = seq or path_of((10, 3), passes)
+    out, i = [], 0
+    while i < len(seq) - 1:
+        j = i
+        while j < len(seq) - 1 and seq[j + 1][-1] < seq[j][-1]:
+            j += 1
+        if j > i:
+            out.append((i, j - i, seq[i][-1], seq[j][-1]))
+        i = j + 1
+    lengths = dict(sorted(Counter(d[1] for d in out).items()))
+    deep = sorted(out, key=lambda d: d[3] / d[2])[:5]
+    ratio = min(q[-1] / sum(q) ** 0.5 for q in seq[156:]) if len(seq) > 156 else None
+    print(f"run, {len(seq) - 1} passes from 10 3: descents of the last block by length {lengths}; deepest "
+          f"(pass, length, from, to): {deep}; smallest last / sqrt(total) from pass 156 on: {ratio}")
+    return lengths, deep, ratio
+
+
 def next_full_of(ls, b):
     """The next pass start from the blocks `ls` (nearest first) and a last block `b`, left to right."""
     return macro.next_full(tuple(reversed(ls)) + (b,))
@@ -251,6 +274,8 @@ def main(argv):
             print(" ", pre, [(x, *v) for (p, x), v in sorted(out.items()) if p == pre])
     elif argv[0] == "chain":
         chain(*map(int, argv[1:5]))
+    elif argv[0] == "descents":
+        descents(int(argv[1]))
     elif argv[0] == "caseb":
         caseb(*map(int, argv[1:6]))
     else:

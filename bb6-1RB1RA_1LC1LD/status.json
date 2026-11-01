@@ -112,6 +112,12 @@
     },
     {
       "level": "kernel",
+      "title": "No lower bound on the last block by the size of the tape is kept",
+      "text": "A covered pass from a last block 1 mod 3 (at least 7) shrinks it to two thirds of it plus 5, less 5, while the block next to it grows and the rest stays, so the total grows by at least 2. Hence for any nondecreasing f, a good start whose last block is f(total) and 1 mod 3 passes to a good start below the bound. Ruling out a descent to 9 needs the residues that decide how long a descent lasts, not only sizes.",
+      "where": "<code>descent_step</code>, <code>no_total_bound</code>, <code>lean/Bound.lean</code>"
+    },
+    {
+      "level": "kernel",
       "title": "The pass map with step counts",
       "text": "Every rule of <code>lean/Rules.lean</code> states its exact number of steps, so the pass map can carry them: <code>passC</code> is <code>pass</code> returning, beside the next pass start (or a halt), the exact number of machine steps the pass takes, and <code>passesC</code> iterates it. Whatever they return, the machine does, in exactly that many steps. From blank tape the fourth pass start <code>1^10 0 1^3 A&gt;0</code> is reached at step 183.",
       "where": "<code>passC</code>, <code>passC_sound</code>, <code>passesC_sound</code>, <code>blank_passesC</code>, <code>lean/Count.lean</code>"
@@ -166,6 +172,12 @@
     },
     {
       "level": "heuristic",
+      "title": "Descents to 9 get rarer: the sum of their chances converges",
+      "text": "On the run to 10<sup>12</sup> steps there are 2,709 descents of the last block (maximal runs of passes each shrinking it), 1,454, 631, 416, 111, 59, 26, 9 and 3 of lengths 1 to 8: each further step about 0.4 likely, each shrinking the last block by about 2/3. Coming down from b to 9 then has chance about (b/9)<sup>&minus;2.26</sup>; the total grows linearly in the passes and the median last block is about 0.65 of it, so this falls like t<sup>&minus;2.26</sup> in the pass number t, and the sum converges. Evidence, not proof, that case B is never reached.",
+      "where": "<code>py/blocks.py descents</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "heuristic",
       "title": "The recursive case: a last block that is a multiple of 3",
       "text": "Then the converter does not stop at the left end of the last block: it carries on into the next block in a second mode (B reading <code>0 0</code>), and that block's residue mod 3 decides again: 1 carries on further left, 0 and 2 turn back. So the routes form an infinite family (which the block machine of <code>lean/Recur.lean</code> follows one word at a time), one for each run of blocks that are 1 mod 3, and a route census over small cases would not be complete. In the first 10<sup>10</sup> steps the converter crosses 0, 1, 2 and 3 extra blocks of 1 mod 3 in 400, 178, 3 and 1 of the 581 recursive passes. The rules for these steps are worked out symbolically but not yet put together in Lean.",
       "where": "<code>notes/LAB_NOTES.md</code>"
@@ -192,7 +204,7 @@
   "check": [
     "bash scripts/setup-lean.sh                    # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Blocks, Recur, Finish, Formula, Offset, OffsetData, Stops, Chain, CaseB, Count, Axioms",
+    "bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Blocks, Recur, Finish, Formula, Offset, OffsetData, Stops, Chain, CaseB, Bound, Count, Axioms",
     "python3 bb6-1RB1RA_1LC1LD/tests/test_machine.py",
     "python3 bb6-1RB1RA_1LC1LD/py/blank.py records 100000 60",
     "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 10000000000",
@@ -201,6 +213,7 @@
     "python3 bb6-1RB1RA_1LC1LD/py/blocks.py exhaustive 30 3   # good lists whose next pass start is not good: last block 3 or 6",
     "python3 bb6-1RB1RA_1LC1LD/py/blocks.py chain 14 4 1 20000   # case A of lean/Chain.lean: a last block 3 after a block of at least 6",
     "python3 bb6-1RB1RA_1LC1LD/py/blocks.py caseb 15 400 300 12 3000   # case B: offset 0 and two supply words, halting starts, the run",
+    "python3 bb6-1RB1RA_1LC1LD/py/blocks.py descents 8256   # the descents of the last block on the run to 10^12 steps (minutes)",
     "cd tools/py && python3 -m bbtools.invariants 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 12",
     "cd tools/py && python3 -m bbtools.ctl 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 3"
   ]

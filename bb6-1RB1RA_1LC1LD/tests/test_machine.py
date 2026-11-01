@@ -297,6 +297,13 @@ class TestBlocks(unittest.TestCase):
         self.assertTrue(blocks.is_case_b((6, 27, 6)))
         self.assertEqual(blocks.path_of((314, 54), 10)[-1], blocks.HALT)
 
+    def test_descents(self):
+        """lean/Bound.lean: the descents of the last block on the run shrink it by about 2/3 a pass."""
+        lengths, deep, ratio = blocks.descents(300)
+        self.assertEqual(max(lengths), 7)
+        self.assertEqual(deep[0][1:], (7, 238, 12))
+        self.assertGreater(ratio, 3)
+
     def test_formula(self):
         """lean/Formula.lean: `pre` once per list gives the next pass start of the recursive pass for every j >= u
         (blocks b + 2 ceil((p + j - u)/2), M; last block a + 2(p + j - u)), u <= 2, and for j = 1 < u the same last block."""
