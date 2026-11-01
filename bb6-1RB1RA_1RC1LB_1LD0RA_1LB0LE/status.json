@@ -116,6 +116,12 @@
       "where": "<code>no_one_3e18_kernel</code>, <code>lean/Return62.lean</code>; <code>orbit_ok_upto</code>, <code>reach_upto</code>, <code>lean/Return.lean</code>"
     },
     {
+      "level": "kernel",
+      "title": "For every a: a failing excursion lies in a thin 2-adic set",
+      "text": "With no upper bound on a: the class search of <code>Return.lean</code>, stopped at a depth limit without running the members of the open classes, returns their residues (<code>thin</code>), and <code>thin_ok</code> proves that an a whose excursion from <code>[a, 2a+1]</code> does not come back to <code>[a+12k, 2(a+12k)+1]</code> has its residue among them. So every a = 1 mod 4, a &ge; 5, returns unless a mod 2<sup>34</sup> is one of 67 residues, a fraction 1.6&middot;10<sup>&minus;8</sup> of them. Kernel only (40 s). It does not settle the machine: the open set is infinite at every depth and contains a = 1.",
+      "where": "<code>returns_off_open34</code>, <code>thin_ok</code>, <code>lean/Thin.lean</code>"
+    },
+    {
       "level": "trusted",
       "title": "The return map G(a) = a + 12k, for every a below 2<sup>74</sup>",
       "text": "Run on residue classes a = p + q&middot;u (parities known while q is even, classes split otherwise) down to a mod 2<sup>74</sup>: 82,363 routes from <code>[a, 2a+1]</code> back to <code>[a+12k, 2(a+12k)+1]</code> after 9k passes, k = 1 to 11; no class halts or meets a stop block of 1; only a = 1 is set aside (it stops at a block of 1). The members below 2<sup>74</sup> of the 15,828 classes still open were run one by one and return too (k = 9 to 12). So for every a = 1 mod 4 with 5 &le; a &lt; 2<sup>74</sup> the excursion is safe. 2.5 minutes (mod 2<sup>62</sup>: 24 seconds).",
@@ -176,9 +182,15 @@
       "where": "<code>python3 py/front.py loop</code>, <code>notes/LAB_NOTES.md</code>"
     },
     {
+      "level": "trusted",
+      "title": "No induction on block sizes alone, even from the excursion's own shape",
+      "text": "With the constants of the closed form dropped and every parity chosen freely (all that a statement made only of inequalities between blocks can see), the lists reachable from <code>[1, 2]</code>, the shape <code>[a, 2a+1]</code> divided by a, have smallest first block 1/6, 1/12, 1/24, 1/48, 1/48, 1/96, &hellip; of the ones after 1, 2, 3, &hellip; passes: it halves every two passes. So an inductive lower bound on the first block or the stop blocks has to say which parities occur. Near a = 1 (a = 1 + 2<sup>m</sup>u) the excursion agrees, modulo a power of 2 that loses one bit per pass, with the orbit of the closed form from <code>[1, 3]</code>, whose last block is a fixed 3 feeding an inner counter <code>[x, 2x+6, 3]</code>: the deepest routes are orbits of the same map one level down, so the induction would have to be self-similar.",
+      "where": "<code>python3 py/induction.py free 12</code>, <code>py/induction.py sentinel</code>, <code>tests/test_induction.py</code>, <code>notes/LAB_NOTES.md</code> (1 November)"
+    },
+    {
       "level": "open",
       "title": "An induction for the excursion",
-      "text": "The excursion from <code>[a, 2a+1]</code> for every a (the orbit of G is a counter, so a statement for all a is what is needed). The route list is infinite because of the halving tail and the loops it nests, and the deep routes mix the bits of a, so a finite table or automaton will not do: this needs an inequality proved by induction on the tail length, that stop blocks stay above a fraction of a that shrinks slower than 1/a (observed: a/64 on every route to mod 2<sup>74</sup>). With <code>orbit_ok_upto</code> (Lean: if every a below B returns, the first (3B+4)/4 passes are safe) and the reduction, that would prove the machine never halts; Lean's kernel now covers a &lt; 2<sup>62</sup>. Equivalently (<code>halts_only_at_front</code>), a lower bound above 1 on the first block along the orbit.",
+      "text": "The excursion from <code>[a, 2a+1]</code> for every a (the orbit of G is a counter, so a statement for all a is what is needed). The route list is infinite because of the halving tail and the loops it nests, and the deep routes mix the bits of a, so a finite table or automaton will not do: this needs an inequality proved by induction on the tail length, that stop blocks stay above a fraction of a that shrinks slower than 1/a (observed: a/64 on every route to mod 2<sup>74</sup>). With <code>orbit_ok_upto</code> (Lean: if every a below B returns, the first (3B+4)/4 passes are safe) and the reduction, that would prove the machine never halts; Lean's kernel now covers a &lt; 2<sup>62</sup>, and for every a it confines a failure to 67 residues mod 2<sup>34</sup>. A first attempt (1 November) found no such induction: bounds on sizes alone are not kept (free parities halve the first block every two passes), so the statement must carry parities, and the deep routes reproduce the problem one level down. Equivalently (<code>halts_only_at_front</code>), a lower bound above 1 on the first block along the orbit.",
       "where": "<code>notes/LAB_NOTES.md</code>"
     },
     {
@@ -191,7 +203,7 @@
   "check": [
     "bash scripts/setup-lean.sh                    # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Return, Plan, Axioms (about a minute)",
+    "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Return, Thin, Plan, Axioms (about 2 minutes)",
     "JOBS=4 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return62.sh   # the return map below 2^62, kernel only (17 minutes with 4 jobs, under 2 GB each)",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py",
@@ -199,6 +211,8 @@
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/passmap.py check 3000 6",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_returnmap.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_front.py",
+    "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_induction.py",
+    "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/induction.py free 12   # 5 s",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 72   # 2.5 min",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_dynamics.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/dynamics.py orbit 300000",

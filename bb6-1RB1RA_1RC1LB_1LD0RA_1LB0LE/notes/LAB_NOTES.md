@@ -469,3 +469,68 @@ theorem, so a bad cut can only fail. `lean/check_return62.sh` checks the shards 
 **What this settles and what not.** The 3.4·10¹⁸ figure is now a theorem about the machine: it reaches each of the
 first 3·2^60 + 1 pass starts. The route list beyond 2^62 is infinite (31 October), so the same method cannot reach
 all a; the open part is unchanged: an induction for the excursion.
+
+## 1 November 2026: a first-block lower bound by induction? (`lean/Thin.lean`, `py/induction.py`)
+
+The aim was to prove in Lean, for every a, a lower bound on the first block (or the stop blocks) along the excursion
+from `[a, 2a+1]`, by induction, which with `halts_only_at_front` would prove that the machine never halts. **It was
+not found.** Two results say why a simple induction cannot close, and one Lean theorem holds for every a. Labels:
+**proof** (Lean, kernel), **computed**, **heuristic**.
+
+### No induction on block sizes alone (computed, exact)
+
+`py/induction.py free D` runs the pass map with every block a real number and every parity chosen freely: the
+closed form with its constants (±1, ±3, ±5) dropped. That is what an inductive statement made only of inequalities
+between block sizes sees. From `[1, 2]` (the shape `[a, 2a+1]` divided by a), the smallest first block, as a fraction
+of the ones, after d passes:
+
+| d | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| min first / ones | 1/6 | 1/12 | 1/24 | 1/48 | 1/48 | 1/96 | 1/96 | 1/192 | 1/192 | 1/384 | 1/384 | 1/768 |
+
+So with free parities the first block halves every two passes, the halving loop of 31 October run from the very
+shape of the excursion, and ratio bounds such as "first block ≥ c·ones" or "stop block ≥ a/64" are not preserved by
+any set of lists defined by inequalities. The routes that do this need parities the integers do not give (on the
+real excursions the margin stays at a/64 to mod 2^74), so an inductive statement has to say which parities occur:
+it must carry 2-adic digits. Front stops never come two in a row (`front_twice`) is such a parity fact, but it is
+already respected by the halving above, which alternates a front stop with a pass that leaves the first block alone.
+
+### The deepest excursions are the same problem one level down (computed)
+
+Near a = 1 (a = 1 + 2^m u, u odd, the classes where the open set of the return map accumulates), the blocks of the
+excursion agree, modulo 2^(m − t − 12) after pass t, with the orbit of the closed form from `[1, 3]` in which a
+block of 1 is not an event (`induction.loose`; checked for a = 2^200 + 1 over 180 passes and for random u,
+`tests/test_induction.py`). In that orbit the last block is a **sentinel** 3 for ever ((3 + 3)/2 = 3) that adds 4 to
+the block before it every pass, and the rest runs an inner counter `[x, 2x+6, 3]`, x = 5, 17, 29, 41, … in steps of
+12 every 9 passes, with its own excursions whenever x has a long tail. (Run on its own for 3·10⁵ passes, this
+sentinel orbit never stops at a block of 1, and its first block stays above 5.6% of the ones after pass 100.) The
+congruence explains why these classes are safe early: the first block is the sentinel orbit's first block (≥ 2) plus
+a multiple of a large power of two, so it cannot be 1. It also shows the shape of any proof: the route of a deep
+excursion is the route of an orbit of the same map, so an induction would have to be over the nesting depth of such
+inner counters, with a statement that is self-similar, not a closed set of shapes.
+
+### For every a: the excursions that could fail are a thin 2-adic set (proof)
+
+`lean/Thin.lean`: `thin` is the class search of `Return.lean` without the concrete runs at the depth limit; it
+returns the residues of the open classes, and `thin_ok` proves that an a whose excursion from `[a, 2a+1]` does not
+return (halts, meets a stop block of 1, or never comes back) has its residue among them. No upper bound on a.
+
+`returns_off_open34`: every a = 1 mod 4, a ≥ 5, returns unless a mod 2^34 is one of 67 residues, a fraction
+1.6·10⁻⁸ of the a = 1 mod 4 (kernel, 40 s, 3.6 GB). The same search to mod 2^42 leaves 261 residues, but one kernel
+`decide` on it needs 13.6 GB, so it is not in the check.
+
+This is the base of an induction over the tail length, proved for every a: whatever fails must sit in a set whose density
+shrinks by about 2^(−0.81) per extra bit. It does not settle the machine: the open set is infinite at every
+depth, contains a = 1 (whose excursion is the stop block of 1), and the counter of the blank orbit visits it
+(computed: every a = 2^r + 1 with r even, in the range run).
+
+### Where this leaves the proof
+
+A proof needs a statement that is (i) kept by the pass map, (ii) false for the free-parity routes above, so it
+names parities, and (iii) true at every depth of the open set, whose routes near a = 1 are orbits of the same map one
+level down. A natural candidate is an induction on the nesting depth: near a = 1 the route is the loose orbit from
+`[1, 3]` for about v₂(a − 1) passes, and inside it the inner counter has excursions of its own, with tails set by
+the bits of x. Whether the other open classes reduce the same way, to a loose orbit from some other start, was not
+checked (heuristic). What is missing in any case is the step that controls the real parts (the multiples of 2^m)
+while the inner orbit runs, that is a lower bound on their first-block coefficient along the inner route; in the
+trace of a = 2^120 + 1 it stays at least 0.36·a over the first 100 passes. Whether that closes is still open.
