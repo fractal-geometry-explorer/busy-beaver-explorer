@@ -105,3 +105,4 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6c.row_small
 #print axioms BB6c.row_five_tokens
 #print axioms BB6c.row_five_nil_tokens
+#print axioms BB6c.cycle36

@@ -329,4 +329,31 @@ theorem row_five_nil_tokens (c : Nat) (M R : List Nat) :
     nzL (4 :: (c + 6) :: M) + irrW R + (if c = 0 then 0 else 1) = nzL (5 :: c :: M) + irrW (1 :: 2 :: R) := by
   by_cases hc : c = 0 <;> simp [nzL, irrW, hc] <;> omega
 
+/-! ## A cycle of growth steps that shrinks
+
+From two blocks `3, 6` at the left end, `2t` words 2 and then `1, 2`: the blocks become `4t + 3, 2t + 6`; when
+`t = 3s + 1` these are `3(4s + 2) + 1` and `3(2s) + 8`, so the carry takes the first and stops at the second, the
+farthest block, and `row_two` starts the blocks `3, 6` again one cell further left, now before `2s` words 2.  So the
+cycle can go round again only with `t` replaced by `s = (t - 1)/3`: the runs of 2s shrink by a factor 3 at each
+growth step, and the cycle ends after at most `log₃ t + 1` rounds. -/
+
+/-- **The cycle at `3, 6`** (kernel only). -/
+theorem cycle36 (s : Nat) (R : List Nat) :
+    Reaches (enc ⟨.A, 0, [3, 6, 0], twos (2 * (3 * s + 1)) ++ 1 :: 2 :: R⟩)
+      (enc ⟨.A, 0, [3, 6, 0], twos (2 * s) ++ cw (4 * s + 2) ++ 3 :: R⟩) := by
+  have h₁ := tail_iter [0] (1 :: 2 :: R) (3 * s + 1) 3 6
+  have h₂ := row_two [4 * s + 2] (2 * s) 0 [] R
+  have e : ones1 [4 * s + 2] ++ (3 * (2 * s) + 8) :: 0 :: [] = [3 + 4 * (3 * s + 1), 6 + 2 * (3 * s + 1), 0] := by
+    simp [ones1]; constructor <;> omega
+  rw [e] at h₂
+  have h₃ : enc ⟨.A, 0, [3, 0 + 6], twos (2 * s) ++ carryW [4 * s + 2] ++ 3 :: R⟩ =
+      enc ⟨.A, 0, [3, 6, 0], twos (2 * s) ++ cw (4 * s + 2) ++ 3 :: R⟩ := by
+    simp only [enc, lt, rep_zero, cons_false_blank, carryW, List.nil_append]
+  rw [h₃] at h₂
+  exact h₁.trans h₂
+
+/-- The run of 2s shrinks: `s < 3s + 1`, and `2s` words 2 put the blocks back at `3, 6` only if `s` is again
+`1 mod 3`. -/
+theorem cycle36_shrinks (s : Nat) : s < 3 * s + 1 := by omega
+
 end BB6c

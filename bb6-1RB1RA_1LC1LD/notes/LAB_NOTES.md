@@ -536,3 +536,19 @@ up to 5, the first two or three words), for any bound on `h`.  The obstruction i
 real runs the lengths of the runs of 2s break the cycle.  So a proof has to follow those lengths: for two blocks and
 a word 1 after `t` pairs of 2s, the blocks are `x + 4t, y + 2t`, and which row the next carry takes depends on
 `x + t` and `y - t` mod 3.
+
+## 1 November 2026: the two-block cycle shrinks
+
+The obstruction above, a cycle of two-block states with long runs of 2s, made exact (`lean/Tokens.lean`,
+`cycle36`, kernel only).  A growth step through `row_two` at the farthest block leaves the blocks `3, 6` at the left
+end.  If `2t` words 2 and then `1, 2` follow, the A loop makes the blocks `4t + 3, 2t + 6`; for `t = 3s + 1` the
+first is `1 mod 3` and the second is `3(2s) + 8`, so the next carry goes through the first and `row_two` stops at the
+second, the farthest block, which is a growth step again, back at `3, 6`.  What comes next is `2s` words 2, then the
+carried words `1, 2^{4s+2}`, then 3.  So each round replaces `t` by `s = (t - 1)/3`; the cycle ends within
+`log₃ t + 1` rounds.  The runs of 2s are what pay for these growth steps.
+
+Computed (`run` from two blocks `x, y` before one word 1 and then only 2s, every `x, y < 200`): at most 5 growth steps
+before the stack gets a third block or the pass ends, the longest from `4, 86` (the cycle above with `t = 13, 4, 1`,
+then `3, 6` before `1 2` takes `row_zero` to `9, 2`); the count grows like the logarithm of the blocks.  So "growth
+steps ≤ starting tokens + 2" cannot come from the two-block states alone in a single round: the shrinking runs have
+to be followed through, and the bound on all growth steps would combine this shrinking with the token count.
