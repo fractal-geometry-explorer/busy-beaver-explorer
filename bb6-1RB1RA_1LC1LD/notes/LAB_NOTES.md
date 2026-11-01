@@ -484,3 +484,24 @@ where the tape grows.  (Rows not covered: the stopping blocks 2 and 5, and `3 1`
 **Next.**  A proof of "growth steps ≤ starting tokens + 2" by following one growth to the next: both start from two
 blocks, so the state between is the two blocks, the stack built by `three_two` from words 3, and the words; the rows
 above give each step exactly.
+
+## 1 November 2026: the remaining carry cases, and a bounded credit that does not exist
+
+**Proved in Lean** (`lean/Tokens.lean`, kernel only).  The cases left out above: `three_one` (`3 1`: a new block
+3, the block behind gains 2) and `three_three` (`3 3`: a new block 5); the carry stopping at a block 5, with nothing
+carried (`row_five_nil`: blocks `4, c + 6`) or after carrying (`row_five`: blocks `2, c + 6`, the farthest carried
+word 1 used up), with their token counts (one fewer unless `c = 0`, where the tape grows and the count stays); and
+at a block 2, where the pass does not come back to A at once: with nothing carried B is again at a block 1, in front
+of `c + 6`, before the old words, so a new carry starts (`row_small_nil`), and after carrying it is D after `c + 6`
+before the farthest carried block's `2^j` (`row_small`).  With `carry_start` every first block of the carry is now
+covered: `3m + 3`, 2, 5, `3m + 8`, or none left.
+
+**A bounded credit does not exist for small descriptions.**  The bound "growth steps ≤ starting tokens + 2" would
+follow from `tokens + h` never going up and dropping at every growth step, for some `h` between 0 and a constant
+depending only on a description of the state.  An LP over the A steps of 1,000 random runs is infeasible for every
+description tried (the nearest one or two blocks and the farthest two by length up to 7 or 10 and residue, the depth
+up to 5, the first two or three words), for any bound on `h`.  The obstruction is always a cycle of two-block states
+`[x, y]` with long runs of 2s and single words 1, in which a growth step returns to the same description; in the
+real runs the lengths of the runs of 2s break the cycle.  So a proof has to follow those lengths: for two blocks and
+a word 1 after `t` pairs of 2s, the blocks are `x + 4t, y + 2t`, and which row the next carry takes depends on
+`x + t` and `y - t` mod 3.
