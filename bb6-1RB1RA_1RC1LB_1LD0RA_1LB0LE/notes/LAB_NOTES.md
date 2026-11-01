@@ -427,6 +427,95 @@ thread is after: on every excursion from `[a, 2a+1]`, every stop block (and so t
 `a·2^(−f)` with f well below log₂ a, by induction on the tail length v₂(a − 1). The two facts proved here are the
 pieces of that induction that hold for every list: the event is at the first block, and front stops never come two
 in a row.
+
+## 1 November 2026: searching for an inductive first-block bound, and the invariant psi (`py/invsearch.py`)
+
+The aim: a statement about block lists that holds on the orbit, is kept by every pass for every list (not only along
+the orbit), and rules out a front stop at a first block of 1. Labels: **proof** (exact for every list, by hand or Lean),
+**solver** (z3, exact but not Lean), **computed** (trusted computation on the Lean pass map), **numeric** (floating-point
+game, grid-merged, no certificate).
+
+### What is not inductive
+
+* **Linear facts** (solver, lengths 2 to 5). Houdini over 2,880 facts `a·f >= b·g + c` (features y1, y2, y3, the last
+  two blocks, the sum S; a, b <= 4; -8 <= c <= 2): 572 hold on the orbit sample, and the strongest inductive
+  conjunction is only `y2 >= y1 + 2`, `S >= 2·y1 + 2` and their consequences (`python3 py/invsearch.py linear 5`,
+  1 min). Nothing bounds y1 from below.
+* **The free-parity game** (numeric; the Lean thread found the same): constants dropped and every parity chosen
+  freely, from [1/3, 2/3] the first block / ones halves every two passes (0.00016 after 16), and every four with
+  `front_twice` imposed (0.002). So a statement made only of inequalities cannot be inductive.
+* **Residues mod 2 or 4, tracked exactly with free higher bits** (computed, `(k, psi, residues)` below): the block
+  count escapes past 7. The adversary gets one free bit per block per pass, while an excursion class splits at most
+  once per pass, so these abstractions are far too generous.
+
+### psi: a second invariant (proof: sympy for k <= 12; the Lean thread reports a kernel proof for every list)
+
+    psi(y) = y_k - 2·y_(k-1) + 4·y_(k-2) - ... = sum (-2)^(k-i)·y_i,   psi [] = 0, psi (y :: ys) = y - 2·psi ys
+
+on the nearest-first lists of `lean/Pass.lean`. For every pass that neither halts nor meets a stop block of 1,
+
+    2·psi(next y) = -psi(y) + 3·(-2)^n - 7,     n = k - j, the number of blocks crossed past the last
+
+(`psi_step`; sympy identity for every case with k <= 12, `py/invsearch.py psi`; brute force on every list of up to 5
+blocks of size up to 9 in `tests/test_invsearch.py`; the Lean thread reports `psi_next`, kernel only, in its own
+branch `lean/Psi.lean`). It is
+the common left eigenvector, eigenvalue -1/2, of the linear parts of all cases. The sum is the other one, with
+eigenvalue 1. Found by computing the affine hull of the u-coefficient vectors at the 2-adic splits of the return-map
+classes: dimension k - 2, cut out by sum = 3 and psi = 0.
+
+* On a two-block state `[a, 2a+d]`, psi = d. The six d-chains of the return map are this recurrence.
+* The last block's parity is psi mod 2, so psi decides between an even last block (psi even) and a crossing.
+* **It kills the halving loop.** `[110, 63, 23]` meets the event by repeating "front stop on 3 blocks, even last
+  block on 4", which maps psi to (psi - 13)/4 and needs psi = 1 mod 4 every round: psi = -175, -47, -15, -7, -5, and
+  at -5 = 3 mod 4 the loop ends (in fact the event comes first). The map contracts to -13/3, which is not an integer, so from any psi the loop
+  runs at most about log4(|psi|) + 2 rounds (proof; the test checks |psi| <= 10^4). On the orbit psi is small, so
+  this loop is out of reach there. The free-parity game fails exactly because it ignores psi.
+* **On the orbit psi is bounded** (computed): over passes 31 to 10^8 the triple (block count k, psi, stop index j)
+  takes 65 values, with k = 2: psi -4..4, k = 3: -12..-2, k = 4: -3..12, k = 5: -19..-6, k = 6: only 24
+  (`runs/psi_triples_orbit.txt`). Over every excursion class a = 1 mod 4 down to mod 2^66 (`returnmap.explore`, so
+  every a, not only the orbit's), 82 values, the same 65 and 17 more, still at most 6 blocks
+  (`runs/psi_triples_classes.txt`). The left-normalised psi / (-2)^(k-1) = y1 - y2/2 + y3/4 - ... stays in
+  [-2.5, 1.5], so the first block is pinned to y2/2 - y3/4 + ... up to O(1).
+
+### The (k, psi) graph and a conditional reduction
+
+State (k, psi, f), f = "the pass into it was a front stop", from (2, 1, false) = `[a, 2a+1]`. If psi is even the
+pass is the even last block (j = k); if odd, any j < k, but not j = 1 when f holds (`front_twice`). k becomes k + 1,
+k or k - 1 for j = 1, 2, >= 3, and psi follows `psi_step`. Every edge is exact for every list, so the orbit's path is
+a path in this graph. `G_K` is the part with at most K blocks (`parity_graph`).
+
+A pass *changes the first block* if j = 2 (it becomes (y2 - 1)/2), j = 3 < k (it gains (y3 - 1)/2), or the last block
+is even on 2 or 3 blocks. A front stop halves it, (f - 1)/2. Every other pass leaves it alone. **Mersenne lemma**
+(proof): if a front stop meets a first block of 1 at the end of a run of R front stops with no changing pass between,
+then the first block after the last changing pass was 2^R - 1.
+
+| K | states | front stops on a path with no changing pass | shape game: least first block / ones |
+|---|---|---|---|
+| 4 | 29 | 2 | 0.083 |
+| 5 | 70 | 5 | 0.0024 |
+| 6 | 158 | 9 | 1.1·10⁻⁵ (grids 10⁻³ and 3·10⁻⁴) |
+| 7 | 334 | 17 | (not run to convergence) |
+| no cap, no `front_twice` | | | -> 0 (the free-parity game) |
+
+The middle column is a finite-graph fact (computed; decidable in Lean). The last column is numeric: the free-parity game
+restricted to the graph's edges, shapes merged on a grid (log scale for the first block). It converges, but it is
+not a certificate. On the orbit's own 65 triples the bound is 7 and the game gives 3.8·10⁻⁴; on the 82 class triples,
+7 and 3.8·10⁻⁴.
+
+**So, conditionally:** if every list of the orbit has at most 6 blocks, then (proof, from psi_next, front_twice and
+the graph) a first block of 1 needs a changing pass to leave a first block of at most 2^9 - 1 = 511. And (numeric) the
+shape game says the first block stays above about 10⁻⁵ of the ones, about 10⁻⁵·4n at pass n. That rules out 511
+once n passes about 10⁷, and the plain run covers the first 10¹¹ passes. A proof along these lines needs (1) a bound
+on the block count, which is still a statement about parities (it holds to mod 2^66 on all classes and for 10⁸ orbit
+passes), and (2) a certified version of the shape bound (polyhedra per graph state instead of the grid).
+
+### What this changes
+
+The Collatz-like part is now separated from the sizes. Sizes are handled by a finite graph and a linear game. What
+is left is which parity patterns occur, and specifically whether the block count stays bounded. The obstruction
+noted on 31 October ("no invariant of inequalities and residues mod a fixed 2^m") still stands for invariants
+without psi. With psi, the parity part becomes a finite graph once the block count is bounded.
+
 ## 1 November 2026: the return map in Lean (`lean/Return.lean`, `lean/Return62.lean`)
 
 The return-map computation of 31 October, which rested on Python, is now a Lean theorem, kernel only.

@@ -291,7 +291,7 @@ for `j ≥ 2` the new last block is odd and at least 3, so a good pass start sta
 pass map at `j = 1`) and finds `c ≥ -1`, `-1` exactly for `x = 2` (`decide +kernel`, 35 s).  The Python mirror
 `macro.pre` agrees with `next_full` on random lists (`test_formula`).
 
-**What is not proved.** That `c ≥ -1` for every list: before the loop the converter can carry on through any number of
+**What is not proved** (as of this section; for every list see "c ≥ -1 for every list of blocks" below). That `c ≥ -1` for every list: before the loop the converter can carry on through any number of
 blocks that are 1 mod 3, and `pre` follows it only list by list.  Observed: for `x = 6r + 5` the offset is `4r + 2` for
 every list tried; for `x ≡ 0, 1 (mod 3)`, and for some `x = 6r + 2` such as 14 and 32, it depends on the blocks
 further left.
@@ -319,3 +319,66 @@ reach the pass start `1^11866 0 1^17246 A>0` at step 1,000,110,302,407.  So `bla
 
 **What this gives.** A Lean-checked floor of 10¹² steps, ten times the C simulation, in a few minutes; the floor is
 cheap to raise (the cost per pass grows with the tape width, about √(t/250)).  It is still only a floor.
+
+## 1 November 2026: bounding the drift to the left
+
+The aim was a proof that from a good start the head of a recursive pass gets at most a few cells past the left end of
+the tape, which with `astep_key` (`lean/Finish.lean`) would make every pass finish.  Not done; what was found:
+
+**A bound on the drift is the whole problem.**  Every step moves the cells right of the head towards the left end
+(`astep_key` in cell terms: whole words are consumed, or a word's separator moves left).  Any measure built from the
+words alone, a multiset of separator positions or a dictionary order with longer words first, needs a bound on how far
+left things go to be well founded, so a bound on the drift is equivalent to termination, not a step towards it.
+The tape grows only when the converter runs off the left end, after every block left of the head has been turned into
+words; then a C step moves the leftmost block into the words and F starts a block 2 one cell further left.
+
+**No constant bound.**  The 582 recursive passes of the first 10¹⁰ steps go at most 6 cells past the left end, but
+over all good lists the drift grows with the number of blocks: a hill climb (`j = 1`) finds 6 with 4 blocks, 9 with 8,
+11 with 12 and 13 with 24 (`[25, 14, 14, 7, 7, 25, 8, 29, 5, 4, 28, 5, 14, 10, 3, 16, 11, 5, 2, 10, 21, 4, 11, 19]`).
+So a theorem would have to bound the drift by something like the number of blocks, and that needs the structure of
+the pass.
+
+**`pre` (`lean/Formula.lean`) reaches arbitrarily deep.**  How many blocks of the original list `pre` touches is not
+set by the first block that stops the converter (a block not 1 mod 3): over 20,000 random lists of 1 to 8 blocks,
+lists whose first block already stops it are still dug into to depth 8.  The way back sweeps right, two words `0 1 1`
+at a time, over blocks `x, y`, and every word `0 1` or `0 1 1 1` on the way converts `y` back into words, sometimes
+`x` and further blocks too, so the left part is rebuilt many times (11 times for `[7, 10, 40, 25, 21]`).  An
+induction over the blocks, as for `c ≥ -1`, has to follow these rebuilds.
+
+Linear potentials (cells plus nonnegative multiples of counts of words and blocks by value and residue) were ruled
+out before; the same holds with counts of the run of blocks 1 mod 3 next to the head.  The next idea to try is a
+description of the A states of `pre`: the blocks left of the head (up to 8 in the samples), and the words, which
+beyond the first two are always 1, 2 or 3 (5,000 random lists, every A state), and a measure on the sequence of irregular words `1` and `3` between the runs of
+`0 1 1`.
+
+## 1 November 2026: `c ≥ -1` for every list of blocks, in Lean
+
+`lean/Offset.lean`, `lean/OffsetData.lean` (kernel only).  For every list `ls` of blocks of at least 2, of any length,
+if `pre` stops then it returns `a, b, M`, `p`, `u` with `2u ≤ a + 2p + 1`, and `2u ≤ a + 2p` unless `ls` starts with 2;
+`u ≤ 2`; `b ≥ 2` and `M` is blocks of at least 2 then 0s (`offset_bound`).  With `recur_sound`, for every `j ≥ 2` the
+pass from a good list with last block `3j` reaches a list of blocks of at least 2 with last block `2j + c ≥ 2j - 1`
+(`recur_next`).  Everything is conditional on `pre` stopping, which is the open drift question above.
+
+**How.**  Instead of an induction over the blocks, an abstract interpretation of the block machine.  A number is a code:
+exactly 0 to 3, or "at least 4" with its residue mod 3 (`gD`).  The blocks to the left keep three codes and, for the
+rest, one of "all 0", "a block of at least 2, then blocks of at least 2, then 0s", "anything" (`gL`).  The words keep
+two codes, and the rest is empty or a run of words 1, 2, 3 in which every 1 is followed by a 2, given by its first and
+last word (`Seq`, `gW`): the notes above saw that beyond the first two the words are always 1, 2 or 3.  `u` is kept
+exactly, with a flag for "the block left of the last is 2".  Each concrete step of `pre` is matched by an abstract one
+(`absAstep_sound`, `absNext_sound`), where a step that cannot be described gives `none`.  From the 11 starts (block 2;
+3 to 6 by code; or none; with "blocks of at least 2" or "all 0" behind) 4,463 descriptions are reachable; none is
+`none`, `u ≤ 2` throughout, and at every one where `pre` may stop (A, no ones under the head, words possibly all 2) the
+bound holds with `p ≥` the number of explicit words and the first block at least its code's least value.
+
+**Getting the kernel through.**  Computing the closure inside `decide +kernel` ran out of 16 GB.  So `OffsetGen.lean`
+evaluates the closure (`reach`, about 9 s in the interpreter), sorts it by an injective key and writes it as a balanced
+search tree, split into 64 named subtrees of about 70 descriptions; `OffsetData.lean` has one `decide +kernel` per
+subtree that each of its descriptions is fine (`okA`: bound where it may stop, every abstract step lands in the tree and
+keeps the flag), and `check_ok` joins them (127 checks, about 70 s, 1.3 GB).  Membership is only ever used in the
+direction "found in the tree, so in its list" (`TS.mem_toList`), so a wrong tree could only fail the check.  `check.sh`
+regenerates the file and compares.
+
+**What was needed.**  A first version lost precision: for a code "at least 4, residue 1" the number of words `0 1 1`
+in the B step was allowed to be 0, which let `u` grow without bound.  Restricting it per code (`jsA`) fixed that; the
+first-block bound also had to allow 0s after the blocks of at least 2 (`gzB`, `tailB`).
+
