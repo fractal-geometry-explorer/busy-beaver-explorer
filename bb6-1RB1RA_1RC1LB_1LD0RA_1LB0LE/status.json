@@ -224,10 +224,22 @@
       "where": "<code>seven_blocks</code>, <code>blocks7_204</code>, <code>return7</code>, <code>lean/Seven.lean</code>; <code>py/blockcount.py</code>"
     },
     {
+      "level": "kernel",
+      "title": "The blank orbit cannot step around the 7-block witness",
+      "text": "If the blank orbit is ever at <code>[a, 2a+1]</code> with a = a<sub>7</sub> &minus; 12j for some j &le; 200 (a<sub>7</sub> = 2<sup>203</sup> + 2<sup>221</sup> + 1), it walks up to a<sub>7</sub> itself, one or two returns at a time, and then reaches a pass start with 7 blocks. Read the other way: if every pass start of the orbit has at most 6 blocks, the orbit goes 1,800 passes in a row near pass 2<sup>221.6</sup> without a two-block state <code>[a, 2a+1]</code> at a = 5 mod 12. The 200 steps are checked by the kernel (1,881 passes on 223-bit numbers).",
+      "where": "<code>window_seven</code>, <code>six_blocks_long_excursion</code>, <code>window_reach</code>, <code>allOK_W</code>, <code>lean/Window.lean</code>; <code>window</code> in <code>py/blockcount.py</code>"
+    },
+    {
+      "level": "heuristic",
+      "title": "So the blank orbit is expected to reach 7 blocks",
+      "text": "Along 10<sup>6</sup> returns of the blank orbit (a up to 1.26&middot;10<sup>7</sup>) excursions last at most 36 passes and every a = 5 mod 12 with v<sub>2</sub>(a&minus;1) &ge; 4 is visited; only values with v<sub>2</sub>(a&minus;1) = 2 or 3 are skipped. The witness has v<sub>2</sub>(a<sub>7</sub>&minus;1) = 203, and the jumps grow only slowly with v<sub>2</sub> (k = 24 at 203). So unless some excursion below 2<sup>222</sup> lasts 1,800 passes, about ten times the longest expected, the blank orbit does <b>not</b> stay at 6 blocks: it has 7 at about pass 2<sup>221.6</sup>. That step rests on the observed jump sizes, not on a proof.",
+      "where": "<code>visits</code>, <code>window</code> in <code>py/blockcount.py</code>; <code>tests/test_blockcount.py</code>; <code>notes/LAB_NOTES.md</code>, 1 November"
+    },
+    {
       "level": "open",
       "title": "Any bound on the block count",
-      "text": "Whether the blank orbit itself ever has 7 blocks is not proved: it would need its counter to land in one of the classes above, which have density about 2<sup>&minus;220</sup> and are expected to be met near pass 2<sup>220</sup> (heuristic). Whether any fixed bound holds is open; the sentinel orbit from <code>[1, 3]</code>, which deep excursions follow, nests excursions of its own, which suggests the count grows with the nesting depth (heuristic).",
-      "where": "<code>notes/LAB_NOTES.md</code>, 1 November"
+      "text": "No fixed cap K is expected to hold. The sentinel orbit from <code>[1, 3]</code>, which deep excursions a = 1 + 2<sup>m</sup>u follow for about m passes, has its first 3, 4, 5, 6 and 7 blocks at passes 2, 4, 8, 202 and 269,206, and the nesting of its own excursions suggests the count keeps growing, slowly, with the depth (heuristic). With the window argument, every cap the sentinel orbit breaks would also be broken by the blank orbit.",
+      "where": "<code>passorbit loose</code> in <code>c/passorbit.c</code>; <code>notes/LAB_NOTES.md</code>, 1 November"
     },
     {
       "level": "open",
@@ -245,7 +257,7 @@
   "check": [
     "bash scripts/setup-lean.sh                    # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Seven, Return, Thin, Psi, Plan, Axioms (about 2 minutes)",
+    "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh   # the library, then Machine, Rules, Blank, Pass, Front, Seven, Window, Return, Thin, Psi, Plan, Axioms (about 2 minutes)",
     "JOBS=4 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return62.sh   # the return map below 2^62, kernel only (17 minutes with 4 jobs, under 2 GB each)",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_machine.py",
     "python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_passorbit.py",

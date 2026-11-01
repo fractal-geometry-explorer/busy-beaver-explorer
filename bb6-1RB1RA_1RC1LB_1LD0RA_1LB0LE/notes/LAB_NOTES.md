@@ -688,3 +688,52 @@ beyond the 3·10⁵ passes of the sentinel orbit, where the count stays at most 
 self-similar in the nesting depth, as the first-block thread concluded; a bound on the block count by a slowly growing
 function of a (for instance the nesting depth) together with the graph bound 2^R(K) - 1 on the first block would be
 one form of it, untested.
+
+## 1 November 2026: the blank orbit cannot step around the 7-block witness (`lean/Window.lean`)
+
+The question: does the orbit from blank tape stay at 6 blocks or fewer? The 7-block excursion above starts at
+a7 = 2^203 + 2^221 + 1, and the open point was whether the orbit's counter (a -> a + 12k at the states `[a, 2a+1]`)
+ever lands on it or on another member of its class. **It lands on a7 itself, as soon as it gets within 200 returns
+below it.** Labels: **proof** (Lean, kernel), **computed**, **heuristic**.
+
+### The window (proof)
+
+For j = 1..200 the excursion from `[a7 - 12j, ...]` returns to `[a7 - 12(j-1), ...]` after 9 passes, or (at j = 16,
+48, 64, 80, 112, 128, 144, 176, 192) to `[a7 - 12(j-2), ...]` after 18. So from every state of the window the
+counter walks up to a7 without jumping over it, and 204 passes later the pass start has 7 blocks:
+
+    theorem window_seven (j n : Nat) (hj : j ≤ 200) (h : orbit n = .ok (two (aw j))) :
+        ∃ m zs, orbit m = .ok zs ∧ zs.length = 7          -- aw j = a7 - 12j, two a = [2a+1, a]
+
+`allOK_W` checks the 200 steps by `decide` (1,881 passes on numbers of 223 bits, 3 s), `orbit_run` carries runs of
+`next` into `orbit`, and `window_reach` is the induction. Axioms `propext`, `Quot.sound`; no `native_decide`.
+
+Read the other way (`six_blocks_long_excursion`): **if every pass start of the blank orbit has at most 6 blocks,
+then none of the 201 states `[a, 2a+1]` with a = 5 mod 12 and a7 - 2400 <= a <= a7 is on the orbit.** A state
+`[a, 2a+1]` can only be pass (3a+1)/4 (`two_pass`, from `orbit_ok`), so these are the passes n with n = 4 mod 9 in
+a stretch of 1,800 passes, and the orbit would go 1,800 passes in a row without a return of the return map at
+a = 5 mod 12 (and its returns are at a = 5 mod 12, computed on 10⁶ returns and implied by G(a) = a + 12k).
+
+### Why that is expected to happen (computed, heuristic)
+
+* Along 10⁶ returns of the blank orbit (a up to 1.26·10⁷) the jumps are k <= 4, so excursions last at most 36
+  passes, and **every a = 5 mod 12 with v2(a - 1) >= 4 is visited**; the 5% skipped all have v2(a-1) = 2 or 3
+  (`python3 py/blockcount.py visits 1000000`, 20 s; the test runs 10⁵). The 7-block witness has v2(a7 - 1) = 203.
+* Jumps are short because they grow with v2(a - 1): the largest k seen is 4 for v2 <= 22, and the witness's own
+  excursion (v2 = 203) has k = 24. Below a7, within 2^200 of it, v2(a - 1) = 2 + v2((a7 - a)/12), so a jump of 200
+  returns would need an a with an excursion of 1,800 passes, about ten times the one at v2 = 203, at some a < 2^222.
+* The same window holds below other deep targets: for a = 1 + 2^m u (a = 5 mod 12), m = 12, 20, 30, 40, 80, 160 and
+  random u, every entry from 60 returns below reaches a exactly (`window(60, a)`, `test_window_deep`).
+
+So the answer to "does the blank orbit stay at 6 blocks?" is **no, unless the orbit first makes a jump over 200
+returns at some a < 2^222** (or stops at a block of 1 before then, which is the halting question itself); the first
+7-block pass is then at most pass (3·a7 + 1)/4 + 204, about 2^221.6. That last step rests on the observed size of the
+jumps, not on a proof. A proof that every excursion with a < 2^222 returns within 1,800 passes would make it a
+theorem, but that is a statement about all excursions, of the kind that is open.
+
+### Larger caps
+
+No fixed cap K is expected to hold either. The sentinel orbit from `[1, 3]` (the closed form with a stop at 1
+allowed, `loose_step`, which deep excursions a = 1 + 2^m u follow for about m passes) has its first 3, 4, 5, 6, 7
+blocks at passes 2, 4, 8, 202, 269,206 (`passorbit`-style C run of the loose map, checked against
+`py/blockcount.py loose` to 3·10⁵).

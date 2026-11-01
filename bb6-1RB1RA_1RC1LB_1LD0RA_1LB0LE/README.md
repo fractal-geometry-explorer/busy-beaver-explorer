@@ -77,9 +77,16 @@ finite graph give at most 9 front stops between other changes of the first block
 those changes to leave it at most 511 (exact). A game on that graph keeps it above about 10⁻⁵ of the ones (numeric,
 not certified). **But the block count is not bounded by 6 on excursions** (`lean/Seven.lean`, kernel): from
 `[a, 2a+1]` with a = 2^203 + 2^221 + 1 (a = 5 mod 12) the machine reaches a pass start with 7 blocks after 204
-passes, then returns normally after 216. The classes to mod 2^66 missed it because it needs a mod 2^222. Whether the
-blank orbit meets such an a is not proved (expected, near pass 2^220; heuristic), and whether any fixed bound holds is
-open; the nesting of sentinel orbits suggests not (`notes/LAB_NOTES.md`, 1 November).
+passes, then returns normally after 216. The classes to mod 2^66 missed it because it needs a mod 2^222.
+
+**The blank orbit cannot step around that witness** (`lean/Window.lean`, kernel): if the orbit is ever at `[a, 2a+1]`
+with a = a7 − 12j, j ≤ 200, it walks up to a7 itself and then has 7 blocks (`window_seven`). Read the other way, if
+every pass start of the orbit has at most 6 blocks, it goes 1,800 passes in a row near pass 2^221.6 without a state
+`[a, 2a+1]` at a = 5 mod 12 (`six_blocks_long_excursion`). Along 10⁶ returns excursions last at most 36 passes and
+every a = 5 mod 12 with v₂(a−1) ≥ 4 is visited (computed), so **the blank orbit is expected not to stay at 6 blocks**:
+it has 7 at about pass 2^221.6, unless an excursion below 2^222 lasts 1,800 passes (heuristic; that step is not
+proved). No fixed cap is expected either: the sentinel orbit from `[1, 3]` first has 3..7 blocks at passes 2, 4, 8,
+202, 269,206 (`passorbit loose`; `notes/LAB_NOTES.md`, 1 November).
 
 **Observed only**: on every route down to mod 2^74 the stop blocks stay above about a/64, shrinking like 2^(−m/10) or slower
 with the depth m of the class. The route list is infinite (the tail of the first pass lives v₂(a−1) passes), finite
@@ -126,6 +133,7 @@ of 1), and so the question itself.
 | `lean/R62/Shard*.lean`, `lean/Return62.lean` | generated: the pieces, each by `decide +kernel`, and the theorem below 2^62 |
 | `lean/check_return62.sh` | checks the pieces in parallel (`JOBS`), then `Return62.lean`, and that it rests on no `native_decide` |
 | `lean/Seven.lean` | an excursion with 7 blocks: `run`, `run_reach`, `seven_blocks` |
+| `lean/Window.lean` | the 200 returns below it lead to it: `orbit_run`, `window_seven`, `six_blocks_long_excursion` |
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `lean/check.sh` | compiles the shared library, then the files above |
 | `py/passmap.py` | the pass map: closed form, a pass run on the machine, the orbit, statistics, a random check |
@@ -137,11 +145,11 @@ of 1), and so the question itself.
 | `tests/test_induction.py` | the free-parity minima, the loose map against the closed form, the sentinel orbit for a = 1 + 2^m u |
 | `tests/test_dynamics.py` | the counter, the bits read, the tree to mod 2^26, the mixing at depth 32 |
 | `tests/test_returnmap.py` | the chains, the classes down to mod 2^38, the classes against concrete runs, the orbit chain |
-| `py/blockcount.py` | the 7-block witness, the sentinel orbit's block counts, the scan of a = 2^r + 1 |
+| `py/blockcount.py` | the 7-block witness, the sentinel orbit's block counts, the scan of a = 2^r + 1, the window below the witness, the values the blank orbit visits |
 | `tests/test_blockcount.py` | the witness, its (k, psi) route, the sentinel orbit at pass 203, the scan |
 | `py/explainer_status.py` | writes the explainer's status panel from `status.json` |
 | `tests/test_explainer.py` | the explainer's engine against `py/passmap.py` and the reference simulator; its status panel current |
-| `c/passorbit.c` | the closed form in C: the blank orbit with checkpoints (`orbit`), and searches over starts (`comps`, `grid`, `random`) split into parts for `tools/c/run_parts.sh` |
+| `c/passorbit.c` | the closed form in C: the blank orbit with checkpoints (`orbit`), and searches over starts (`comps`, `grid`, `random`) split into parts for `tools/c/run_parts.sh`; the sentinel orbit (`loose`) |
 | `py/passorbit.py` | checks `passorbit` against `passmap` (checkpoints and hashes, counts), and runs the machine after the event (`after`) |
 | `runs/` | outputs of the long runs (`runs/README.md`) |
 | `tests/test_passorbit.py` | `passorbit` against `passmap` and the machine, and the two-pass family |
