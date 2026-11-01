@@ -42,6 +42,12 @@
     },
     {
       "level": "kernel",
+      "title": "The step counts of single events",
+      "text": "From each event (A on the blank right of the tape, four per super step) the machine reaches the next one in exactly <code>evT</code> steps, or halts right after that many. With the last block x and q = &lfloor;x/2&rfloor;: 2q<sup>2</sup> + 8q + 17 for even x; for odd x, 2q<sup>2</sup> + 9q + 5 to start the wave, then 2q<sup>2</sup> + q &minus; 5 for each block it passes with even d = 2q and 2q<sup>2</sup> + 4q + 11 + B where it turns at an odd d = 2q + 1, with B = q + 3 for the event's own q plus q + 1 for each block passed (a halt at the left end costs 11). Proved for every tape of the run's shape by following the timed macro steps through the wave with any right part; the four events of a super step add up to <code>superT</code>, and the timed event orbit from [1, 2] at step 17 is the machine's run step for step. Agrees with <code>py/waves.py</code> on the first 200,000 events.",
+      "where": "<code>ev_steps</code>, <code>carry_reachE</code>, <code>ev4_time</code>, <code>evOrbitT_tape</code>, <code>lean/EventTime.lean</code>"
+    },
+    {
+      "level": "kernel",
       "title": "When a super step halts",
       "text": "A super step halts iff N is a power of two. The wave passes a block exactly when d is even, so if it reaches the left end, 2<sup>m&minus;1</sup>&middot;d<sub>1</sub> = N, and it halts there exactly when d<sub>1</sub> is a power of two; if it turns at an odd d<sub>i</sub>, N is an odd number of at least 3 times a power of two.",
       "where": "<code>superL_none_iff</code>, <code>wave_none_iff</code>, <code>lean/Wave.lean</code>"
@@ -126,12 +132,6 @@
     },
     {
       "level": "trusted",
-      "title": "The step counts of single events",
-      "text": "<code>py/waves.py</code>: each time A stands on the blank right of the tape (four times per super step), the next such time follows from the block lengths by a left-going wave, with exact machine step counts. The super step, the single events, the halting criterion and the step count of a whole super step are proved in Lean; the step counts of single events are not. Checked against <code>tmrun</code> at all 12,927 such times of the first 10<sup>9</sup> steps, against every new left cell up to 10<sup>10</sup> steps, and against the first 2,000 configurations of the proved macro map; Lean's <code>superstep</code> and <code>superT</code> agree with <code>waves.py</code> on its examples.",
-      "where": "<code>py/waves.py</code>, <code>tests/test_waves.py</code>, <code>notes/LAB_NOTES.md</code>"
-    },
-    {
-      "level": "trusted",
       "title": "The next return to the left end",
       "text": "After step 2,047,931 the head next reaches new tape on the left at step 26,618,972,322, as the wave model predicted; a direct run to 2.7&middot;10<sup>10</sup> steps confirms it and finds no other new left cell in between.",
       "where": "<code>tests/test_waves.py</code> (<code>WAVES_LONG=1</code>)"
@@ -200,7 +200,7 @@
   "check": [
     "bash scripts/setup-lean.sh                  # Lean 4.34.0, core only",
     ". /etc/profile.d/lean.sh",
-    "bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave, Events, DeepMind, Monotone, WaveTime, Cascade, CascadeRun, Cycles, Periods (about 6 min)",
+    "bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave, Events, DeepMind, Monotone, WaveTime, EventTime, Cascade, CascadeRun, Cycles, Periods (about 6 min)",
     "bb6-1RB1RA_1RC1LB/lean/check_orbit.sh all   # the long runs in parallel (about 3 CPU hours kernel, 6 native)",
     "bb6-1RB1RA_1RC1LB/lean/check_cycles.sh 30 4  # the tables of 30 levels in pieces, kernel only (about 4 CPU hours)",
     "python3 tools/tests/test_tools.py           # the shared tools",
