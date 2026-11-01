@@ -591,6 +591,32 @@ only after multiples of m).
 the cost about doubles per level; 35 levels, the native bound's, would be some 20 times more. CI checks the first 16
 levels and 2 passes (`check_cycles.sh 16 2`, about a minute).
 
+## November 1, 2026: the step count of each single event, proved
+
+**Lean, kernel only** (`lean/EventTime.lean`, in `check.sh`; standard axioms):
+
+- `evT`: the steps of one event. With the event `x :: k :: ls` (blocks nearest first) and q = x/2: 2q² + 8q + 17 for
+  even x (q transfers, the empty start, and A's run over the new last block q + 2); for odd x, 2q² + 9q + 5 up to the
+  carry at `k`, then `waveTimeE (k + q + 2) ls (q + 3)`, the wave priced as in `superT`: `evenT d` = 2r² + r − 5 for
+  each block passed with even d = 2r, and `oddE d B` = 2r² + 4r + 11 + B where it turns at odd d = 2r + 1. `B` is the
+  cost of the sweep back: `cost S` = Σ (s + 2) over the right part S, which starts as [q + 1] and gains a block per
+  block passed. A halt at the left end costs 11.
+- `sweep_reachE`: the sweep over any right part S from head block m, plus A's run over the block it leaves, takes
+  m + Σ (s + 2) steps. That is the identity that lets the right part be anything; `carry_wave_t` needed the super
+  step's `c0 :: R ++ [1]`.
+- `carry_reachE`: `carry_ev` of `Events.lean` with the times, for any right part.
+- `ev_steps`: from `E b` the machine is at `E b'` after exactly `evT b` steps when `ev b = some b'`, and after exactly
+  `evT b` steps reaches a configuration with no transition when `ev b = none`, for every b with positive blocks left
+  of the last.
+- `ev4_time`: the four events of a super step take 17, 27, 101 and 55 + the wave, which is `superT`
+  (`waveTimeE d L (A + 6) = waveTime d L A`). `evOrbitT_tape`: the timed event orbit from [2, 1] at step 17 gives the
+  step of each event on the run from blank tape.
+- Checked: `evT` along the orbit equals the counts of `waves.py` `step` on the first 200,000 events (a one-off
+  comparison, the last at step 216,775,634,245), and the examples in the file.
+
+Still not proved: that no other event lies between `E b` and `E (ev b)` (`tests/test_waves.py` checks it against
+direct simulation).
+
 ## October 30, 2026: the single events in Lean, and DeepMind's high-level map
 
 **Lean, kernel only** (`lean/Events.lean`, `lean/DeepMind.lean`, in `check.sh`):
