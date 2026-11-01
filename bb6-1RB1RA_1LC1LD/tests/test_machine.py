@@ -276,6 +276,15 @@ class TestBlocks(unittest.TestCase):
         self.assertTrue(all(len(v) == 1 for v in out.values()))
         self.assertTrue(all((min(v) == -1) == (x == 2) and min(v) >= -1 and not v & {1, 4} for (_, x), v in out.items()))
 
+    def test_chain(self):
+        """lean/Chain.lean, case A: a last block 3 after a block of at least 6 is followed by a safe pass start, with
+        c = 0 (and u = 2) or c >= 3; the examples of good starts that halt."""
+        bad, cu = blocks.chain(9, 3, 5, 300)
+        self.assertEqual(bad, [])
+        self.assertTrue(all(c == 0 and u == 2 or c >= 3 for c, u in cu))
+        self.assertEqual(macro.next_full((3, 6)), (2, 7, 4))
+        self.assertEqual(macro.next_full((2, 7, 4)), (2, 13, 1))
+        self.assertEqual(macro.next_full((2, 2, 3)), (10, 1))
 
     def test_formula(self):
         """lean/Formula.lean: `pre` once per list gives the next pass start of the recursive pass for every j >= u

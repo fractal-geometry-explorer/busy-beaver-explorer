@@ -10,6 +10,9 @@ usage:
   python3 py/blocks.py exhaustive N K       every good list of at most K blocks of 2..N: which passes are not good
   python3 py/blocks.py random SEED COUNT    random good lists (blocks up to 200, last not 3 or 6): any pass not good?
   python3 py/blocks.py offsets N            for the recursive pass (..., x, 3j): last' - 2j against j, for x <= N
+  python3 py/blocks.py chain N K SEED COUNT the open case A of lean/Chain.lean: a last block 3 after a block x >= 6,
+                                            over all lists of at most K blocks (x up to 6 + N, the rest 2..N) and
+                                            COUNT random ones: is the next pass start safe, and what are the offsets?
 """
 import itertools
 import os
@@ -126,6 +129,36 @@ def offsets(n, prefixes=((), (20,), (21,), (22,), (20, 21), (22, 22)), js=range(
     return out
 
 
+def safe(bl):
+    """`Safe` of lean/Chain.lean: good, at least two blocks, and a last block 3 only after a block of at least 6."""
+    return good(bl) and len(bl) >= 2 and (bl[-1] != 3 or bl[-2] >= 6)
+
+
+def chain(n, k, seed, count):
+    """Case A of lean/Chain.lean: from `..., x, 3` with `x >= 6`, the next pass start, and the offset `c` and supply
+    words `u` of `pre`.  Returns the lists whose next pass start is not safe, and the (c, u) seen."""
+    rnd = random.Random(seed)
+    lists = [(x,) + t for size in range(k) for t in itertools.product(range(2, n + 1), repeat=size)
+             for x in range(6, n + 7)]
+    lists += [tuple([rnd.randint(6, 300)] + [rnd.choice([rnd.randint(2, 12), rnd.randint(2, 300)])
+                                            for _ in range(rnd.randint(0, 6))]) for _ in range(count)]
+    bad, cu = [], Counter()
+    for ls in lists:
+        r = next_full_of(ls, 3)
+        if not (r != HALT and r is not None and safe(r)):
+            bad.append((ls, r))
+        c, u = macro.offset(list(ls))
+        cu[(min(c, 6), u)] += 1
+    print(f"last block 3 after a block of at least 6: {len(lists)} lists, next pass start not safe for {len(bad)} "
+          f"{bad[:5]}; (c, u) with c capped at 6: {dict(sorted(cu.items()))}")
+    return bad, cu
+
+
+def next_full_of(ls, b):
+    """The next pass start from the blocks `ls` (nearest first) and a last block `b`, left to right."""
+    return macro.next_full(tuple(reversed(ls)) + (b,))
+
+
 def main(argv):
     if not argv:
         print(__doc__)
@@ -142,6 +175,8 @@ def main(argv):
               "; -1 exactly for x = 2:", all((min(v) == -1) == (x == 2) for (_, x), v in out.items()))
         for pre in sorted({p for p, _ in out}):
             print(" ", pre, [(x, *v) for (p, x), v in sorted(out.items()) if p == pre])
+    elif argv[0] == "chain":
+        chain(*map(int, argv[1:5]))
     else:
         print(__doc__)
 
