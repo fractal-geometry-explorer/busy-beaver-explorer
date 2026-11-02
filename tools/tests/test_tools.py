@@ -4,6 +4,7 @@ invariant finder, the Lean generator and the status-page builder.
 
 usage: python3 tools/tests/test_tools.py        (from anywhere; builds the C programs into a temporary directory)
 """
+import json
 import os
 import random
 import shutil
@@ -23,6 +24,7 @@ from bbtools.explore import blocks, parse_words, tokenize, token_str, token_even
 import merge_parts  # noqa: E402
 import build_status  # noqa: E402
 import explainer_status  # noqa: E402
+import build_explainer  # noqa: E402
 
 THIS = "1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB"
 HOLDOUT = "1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0LD1RE"
@@ -380,6 +382,53 @@ class TestStatusPage(unittest.TestCase):
         self.assertEqual(explainer_status.build(out, spec), out)
         with self.assertRaises(ValueError):
             explainer_status.build("<p>no block</p>", spec)
+
+
+class TestExplainerPage(unittest.TestCase):
+    """tools/pages/build_explainer.py: the page builds, and its engine, run in Node, agrees with bbtools."""
+
+    def test_build(self):
+        spec = {"title": "T", "machine": THIS, "claims": [{"level": "kernel", "title": "k", "text": "a"}],
+                "explainer": {"sections": [{"id": "x", "heading": "Extra", "html": ["<p>one</p>", "<p>two</p>"]}]}}
+        page = build_explainer.build(spec)
+        self.assertIn('<script id="engine">', page)
+        self.assertIn('<section id="x">', page)
+        self.assertIn("<p>one</p>\n<p>two</p>", page)
+        with self.assertRaises(ValueError):
+            build_explainer.build({"title": "T", "machine": THIS, "claims": [{"level": "proved", "title": "x", "text": ""}]})
+
+    def test_halt_analysis(self):
+        self.assertEqual(build_explainer.halt_analysis(Machine.parse(BB5)),
+                         [("E0", [("C1", 0, "L", "0 C>1")])])
+        self.assertEqual(build_explainer.halt_analysis(Machine.parse("1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA")),
+                         [("E1", [("D0", 1, "R", "D>0 1")])])
+
+    @unittest.skipUnless(shutil.which("node"), "node is not installed")
+    def test_engine_against_python(self):
+        rng = random.Random(7)
+        machines = [BB5, THIS, HOLDOUT, LOOP2] + [random_machine(rng, rng.randint(2, 5)) for _ in range(40)]
+        steps = [0, 1, 2, 7, 50, 333, 2000]
+        path = os.path.join(BUILD, "engine.js")
+        with open(path, "w") as f:
+            f.write(build_explainer.ENGINE)
+            f.write("const MS = %s, ST = %s;\n" % (json.dumps(machines), json.dumps(steps)))
+            f.write("console.log(JSON.stringify(MS.map(t => { const m = BB.parse(t);"
+                    " return { at: ST.map(n => { const r = new BB.Run(m); const h = r.run(n);"
+                    " return [h, r.steps, r.ones(), r.configStr()]; }),"
+                    " recs: BB.records(m, 3000, 60).records }; })));\n")
+        got = json.loads(subprocess.run(["node", path], check=True, capture_output=True, text=True).stdout)
+        for t, g in zip(machines, got):
+            m = Machine.parse(t)
+            for n, x in zip(steps, g["at"]):
+                r = Run(m)
+                h = r.run(n)
+                self.assertEqual(x, [h, r.steps, r.ones(), r.config_str()], (t, n))
+            py = []
+            for k, (s, side, r) in enumerate(records(m, 3000)):
+                if k >= 60:
+                    break
+                py.append([s, side, r.tape.hi - r.tape.lo, r.config_str()])
+            self.assertEqual(g["recs"], py, t)
 
 
 if __name__ == "__main__":

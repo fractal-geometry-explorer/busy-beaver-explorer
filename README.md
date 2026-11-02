@@ -22,14 +22,17 @@ Explorations of six-state Busy Beaver machines.
   started: the run as passes, a tested closed form of the pass map on block lengths, the pieces of a pass in Lean
   ([`README.md`](bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/README.md),
   [`notes/LAB_NOTES.md`](bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/notes/LAB_NOTES.md)).
+- [`bb6-1RB0LF_1RC0LB/`](bb6-1RB0LF_1RC0LB/): work on the open machine `1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA`,
+  just started: the machine in Lean on the shared library, bounded runs, first observations, a generated explainer
+  ([`README.md`](bb6-1RB0LF_1RC0LB/README.md), [`notes/LAB_NOTES.md`](bb6-1RB0LF_1RC0LB/notes/LAB_NOTES.md)).
 - [`bb6-1RB1RF_1LC0LB/`](bb6-1RB1RF_1LC0LB/): work on the open machine `1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---`,
   just started: the halting shape (every halt comes from `E>0 1 1`) and the sweep rules in Lean, bounded runs, and
   first observations of its macro structure, walls in front of which the run from blank tape replays
   ([`README.md`](bb6-1RB1RF_1LC0LB/README.md), [`notes/LAB_NOTES.md`](bb6-1RB1RF_1LC0LB/notes/LAB_NOTES.md)).
 - [`tools/`](tools/): machine-agnostic tooling taken from the holdout's code: a Lean library for any machine (with
   proved bounded-run evaluation), a symbolic prover that writes Lean proofs of shift rules, C and Python simulators,
-  a parallel parts runner with a checked merge, an invariant finder, a word view of the tape, and builders for
-  proof-status pages and explainer status panels
+  a parallel parts runner with a checked merge, an invariant finder, a word view of the tape, and builders for a
+  proof-status page, an interactive explainer and an explainer's status panel
   ([`tools/README.md`](tools/README.md)).
 - [`pages/`](pages/): the explanatory pages (open them in a browser): the holdout's proof status
   ([`proof-status.html`](pages/proof-status.html)), summary page
@@ -47,8 +50,8 @@ cd bb6-holdout/lean && ./check.sh      # all 21 files, under a minute
 ```
 
 The shared library and the other machines: `tools/lean/check.sh`, `bb6-1RB1RA_1RC1LB/lean/check.sh`,
-`bb6-1RB1RA_1LC1LD/lean/check.sh`, `bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh` and
-`bb6-1RB1RF_1LC0LB/lean/check.sh`;
+`bb6-1RB1RA_1LC1LD/lean/check.sh`, `bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh`,
+`bb6-1RB0LF_1RC0LB/lean/check.sh` and `bb6-1RB1RF_1LC0LB/lean/check.sh`;
 `python3 tools/tests/test_tools.py` tests every tool (CI runs it on each pull request, `.github/workflows/tests.yml`).
 
 The two loop theorems in `bb6-holdout/lean/thm/` take 13 and 40 minutes; see `bb6-holdout/README.md`.
