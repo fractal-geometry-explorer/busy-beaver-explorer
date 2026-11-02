@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.join(TOOLS, "pages"))
 
 from bbtools.machine import Machine, Run, run_blank, records, STATES  # noqa: E402
 from bbtools import symtm, leangen, invariants, ctl  # noqa: E402
+from bbtools.macro import MacroRun  # noqa: E402
 from bbtools.explore import blocks, parse_words, tokenize, token_str, token_events, turns  # noqa: E402
 import merge_parts  # noqa: E402
 import build_status  # noqa: E402
@@ -155,6 +156,40 @@ class TestC(unittest.TestCase):
             out = subprocess.run([cc("tokrun"), text, "1000", "a=10"], check=True, capture_output=True,
                                  text=True).stdout.splitlines()
             self.assertEqual(out[-1], f"{steps} HALT")
+
+
+class TestMacro(unittest.TestCase):
+    def test_champions(self):
+        for m, n in CHAMPIONS.items():
+            for k in (1, 2, 3, 5):
+                r = MacroRun(m, k).run(10 ** 6)
+                self.assertTrue(r.halted, (m, k))
+                self.assertEqual(r.steps, n, (m, k))
+
+    def test_bb5(self):
+        r = MacroRun(BB5, 6).run(10 ** 9)
+        self.assertTrue(r.halted)
+        self.assertEqual(r.steps, 47176870)
+
+    def test_against_plain(self):
+        # the tape, head, state and step count after each macro step equal the plain simulator's at that step
+        for m in (THIS, HOLDOUT, "1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---"):
+            for k in (2, 3, 4):
+                r, p = MacroRun(m, k), Run(Machine.parse(m))
+                for _ in range(1500):
+                    if not r.step():
+                        break
+                    while p.steps < r.steps:
+                        p.step()
+                    self.assertEqual((p.steps, p.state, p.head), (r.steps, r.state, r.head()), (m, k))
+                    cells = r.cells()
+                    for i in range(min(cells.keys() | {p.tape.lo}), max(cells.keys() | {p.tape.hi}) + 1):
+                        self.assertEqual(cells.get(i, 0), p.tape.get(i), (m, k, r.steps, i))
+
+    def test_runs_compress(self):
+        # 1RB1RF_1LC0LB's sweeps cross whole runs of pairs: a million steps in about ten thousand macro steps
+        r = MacroRun("1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---", 4).run(10 ** 6)
+        self.assertLess(r.msteps, 20000)
 
 
 class TestParts(unittest.TestCase):

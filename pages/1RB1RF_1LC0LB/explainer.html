@@ -120,6 +120,14 @@ canvas{display:block;max-width:100%}
 .tw table{min-width:600px}
 .strip{width:100%;height:26px;border-radius:4px;background:var(--sunk);margin-top:10px}
 .cap{font-size:.8rem;color:var(--muted);margin-top:6px}
+.ctrow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-top:12px}
+.ctleft{font:400 .8rem/1.4 var(--mono);color:var(--muted);background:var(--sunk);border-radius:8px;padding:8px 10px;max-width:100%;overflow-wrap:anywhere}
+.ctlev{border:1px solid var(--line);border-radius:8px;padding:6px 10px;min-width:92px;background:var(--surface)}
+.ctlev .dg{font:700 1.5rem/1 var(--display)}
+.ctlev .sp{font:400 .75rem/1.3 var(--mono);color:var(--fg2)}
+.ctlev.d2 .dg{color:var(--kernel)} .ctlev.d1 .dg{color:var(--accent)} .ctlev.d0 .dg{color:var(--muted)}
+.ctlev .chg{background:var(--accent-soft);border-radius:3px}
+.ctlev.turn{border-color:var(--accent)}
 .passlog{font-family:var(--mono);font-size:.82rem;max-height:220px;overflow:auto;border-top:1px solid var(--line);margin-top:12px;padding-top:8px}
 .passlog div{display:grid;grid-template-columns:5.5em 7.5em 1fr;gap:10px;padding:2px 0}
 .passlog .t{color:var(--muted);text-align:right}
@@ -307,18 +315,48 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   </div>
 </section>
 
+<section id="counter">
+  <span class="eyebrow">6 · The counter</span>
+  <h2>The right end counts down in base 3</h2>
+  <div class="col">
+    <p>Look at the tape each time the head comes back to the right end. Read from the right, it is a list of <b>levels</b>, each <code>s (10)^g s′ (10)^W</code>: two single cells s, s′ around a block of g pairs, then a block of W pairs. A level's <b>digit</b> is 2 when its cells read <code>1 1</code>, 1 for <code>0 1</code> and 0 for <code>0 0</code>. One trip of the head from the right end and back takes one off the number these digits spell in base 3, last level lowest:</p>
+    <ul>
+      <li><b>2 → 1</b>: s becomes 0, and one pair moves from W into g.</li>
+      <li><b>1 → 0</b>: s′ becomes 0, and the lengths stay as they are.</li>
+      <li><b>0 → 2</b> (a borrow): the trip goes on to the next level to the left; on the way back this one gets <code>1 1</code>, and one pair moves from W into g.</li>
+    </ul>
+    <p>The last level is the exception: its W grows instead of shrinking, so each trip adds two pairs to the tape. A level's W only shrinks, by one pair for every two of its digit's three changes, and lower levels change three times as often as the level to their left. Press the button to step the counter from the tape at step 10<sup>10</sup>.</p>
+  </div>
+  <div class="panel">
+    <div class="controls">
+      <button type="button" class="primary" id="ctNext">Next trip</button>
+      <button type="button" id="ctBorrow">Run to the next borrow past the levels</button>
+      <button type="button" id="ctReset">Reset</button>
+    </div>
+    <div class="readout"><span>trips <b id="ctTrips">0</b></span><span>pairs on the tape <b id="ctPairs">0</b></span><span id="ctNote"></span></div>
+    <div class="ctrow" id="ctRow"></div>
+    <p class="cap">Left: the irregular blocks at the left end of the tape, as tokens (block lengths and single cells). Right of them, the levels; the last level is on the right. A highlighted number changed on the last trip. The levels and the starting tape are from <code>python3 py/counter.py levels 1e10</code>.</p>
+  </div>
+  <div class="col">
+    <div class="claim k"><p><span class="ev k">Kernel</span> Each trip from the right end and back acts on the levels as above, for any block lengths and any number of borrows, with whatever lies to the left of the level where the trip turns: <code>counter_last2</code>, <code>counter_last1</code>, <code>counter_borrow2</code> and <code>counter_borrow1</code>, built from eight symbolic pieces of the run (a walk over a level with digit 0, the turn at a digit 2 or 1, the reset on the way back). The theorems need g and W odd for digit 2 and even for digits 1 and 0, the parities the run keeps.</p>
+      <p class="where"><code>lean/Counter.lean</code>, <code>lean/Rules.lean</code></p></div>
+    <div class="claim c"><p><span class="ev c">Computed</span> Of the 151,240 trips in the first 10<sup>11</sup> steps, 150,680 are covered by these theorems and all of them end as the theorems say. In the other 560 the borrow runs past the levels into the irregular blocks at the left end (321), or meets one of the leftmost levels when it is too short or of the wrong parity (239). Those trips, the top of the counter, are where the walls of section 5 live and where a halt would have to come from.</p>
+      <p class="where"><code>python3 py/counter.py check 1e11</code> (the macro simulator <code>tools/py/bbtools/macro.py</code>)</p></div>
+  </div>
+</section>
+
 <section id="growth">
-  <span class="eyebrow">6 · Growth</span>
+  <span class="eyebrow">7 · Growth</span>
   <h2>The width grows like the square root of time</h2>
   <div class="panel chart" id="growthChart"></div>
   <div class="col"><p class="small">Width (visited cells) at steps 10, 20, 50, … 10<sup>10</sup>, on logarithmic axes, with the line 2.6&radic;t. Half of the cells are 1. From <code>runs/growth_1e10.txt</code> (<code>c/growth.c</code>). <span class="ev c">Computed</span></p></div>
 </section>
 
 <section id="next">
-  <span class="eyebrow">7 · Next</span>
+  <span class="eyebrow">8 · Next</span>
   <h2>What would turn the patterns into proofs</h2>
   <div class="col">
-    <div class="claim o"><p><span class="ev o">Open</span> <b>One excursion as a map.</b> The effect of one excursion from the right end, and of one cycle at the left end, on the list of block lengths, proved from the sweep rules and the cases where B or D reaches a boundary or a mark.</p></div>
+    <div class="claim o"><p><span class="ev o">Open</span> <b>The top of the counter.</b> The trips that run past the levels into the left end, and those that meet a short leftmost level, as maps on the block lengths: how a new level is made, and what the left end does to a level that runs out.</p></div>
     <div class="claim o"><p><span class="ev o">Open</span> <b>The replay.</b> A statement that in front of a long enough wall the left end follows the blank run, the wall losing a fixed amount per moment. This would make the run a recursion on walls.</p></div>
     <div class="claim o"><p><span class="ev o">Open</span> <b>Wall exhaustion.</b> What happens when a wall is used up, and whether any case leaves a mark right after a boundary in E's way.</p></div>
     <div class="claim o"><p><span class="ev o">Open</span> <b>A language over pairs.</b> Closed tape languages on windows of 2 to 7 raw cells all allow a halt; one built on the words <code>10</code>, <code>110</code>, <code>0</code>, keeping the pair alignment, might not.</p></div>
@@ -326,7 +364,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 </section>
 
 <section id="ledger">
-  <span class="eyebrow">8 · Ledger</span>
+  <span class="eyebrow">9 · Ledger</span>
   <h2>Every result, by what it rests on</h2>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
@@ -369,6 +407,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   },
   {
    "level": "kernel",
+   "title": "The right end is a base-3 counter",
+   "text": "When the head is back at the right end (state C reading the <code>0<\/code> of <code>0 10<\/code>, blank beyond), read the tape from the right as levels <code>s (10)^g s&prime; (10)^W<\/code>, with digit 2 for seps <code>1 1<\/code>, 1 for <code>0 1<\/code> and 0 for <code>0 0<\/code>. The machine returns to the right end after subtracting one from the base-3 number the digits spell (last level lowest): a digit 2 becomes 1 (s &rarr; 0, one pair from W to g), a digit 1 becomes 0 (s&prime; &rarr; 0), and each digit 0 passed by the borrow becomes 2 (one pair from W to g), except that the last level's W grows, by 1 or 2. Proved for every block length (g, W odd for digit 2, even otherwise, W at least 1 to 4 pairs), any number of borrows and any tape left of the level where the trip turns, so no such trip halts. The proofs chain eight symbolic pieces of the run, generated by <code>symtm.py<\/code>, by induction on the number of borrows.",
+   "where": "<code>counter_last2<\/code>, <code>counter_last1<\/code>, <code>counter_borrow2<\/code>, <code>counter_borrow1<\/code>, <code>lean/Counter.lean<\/code>; pieces <code>first0<\/code>, <code>walk0<\/code>, <code>turn2<\/code>, <code>turn1<\/code>, <code>sweep0<\/code>, <code>sweepLast<\/code>, <code>last2<\/code>, <code>last1<\/code> in <code>lean/Rules.lean<\/code>"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 20,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 20,000 steps from blank tape without a halt, evaluated by Lean's kernel. At step 18 the tape is <code>1 0 1 0 1 0 1 F&gt;0<\/code> (<code>blank_at_18<\/code>).",
    "where": "<code>blank_runs_20000<\/code>, <code>blank_at_18<\/code>, <code>lean/Blank.lean<\/code>"
@@ -384,6 +428,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
    "title": "No halt in the first 10<sup>10<\/sup> steps",
    "text": "The C simulator <code>tools/c/tmrun.c<\/code> (tested against the Python reference simulator) runs 10<sup>10<\/sup> steps from blank tape without a halt, in under a minute. At that point 258,671 cells are visited and 129,335 of them are 1.",
    "where": "<code>tools/c/tmrun.c<\/code>; <code>c/growth.c<\/code>, <code>runs/growth_1e10.txt<\/code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Almost every trip in the first 10<sup>11<\/sup> steps is a counter step",
+   "text": "Of the 151,240 trips from the right end and back in the first 10<sup>11<\/sup> steps, 150,680 are covered by the counter theorems and all end as they say. The other 560 are the top of the counter: 321 borrow past the levels into the irregular blocks at the left end, and 239 meet one of the leftmost few levels when it is too short or of the wrong parity for the theorems. Run with the macro simulator <code>tools/py/bbtools/macro.py<\/code> (blocks of 4 cells, runs crossed at once; tested cell for cell against the reference simulator), 10<sup>11<\/sup> steps in about two minutes.",
+   "where": "<code>python3 py/counter.py check 1e11<\/code>; <code>tests/test_machine.py<\/code> checks the first 10<sup>8<\/sup> steps"
   },
   {
    "level": "trusted",
@@ -417,8 +467,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   },
   {
    "level": "open",
-   "title": "The macro structure",
-   "text": "A precise description of one excursion and of one left-end cycle as maps on the block lengths, proved from the sweep rules; a statement of the wall replay; and which wall exhaustions could leave a mark after a boundary in E's way.",
+   "title": "The top of the counter",
+   "text": "The trips that the counter theorems do not cover, as maps on the block lengths: a borrow that reaches the left end (how a new level or wall is made), a level that runs short, the wall replay of the blank run, and whether any of them can leave a mark right after a boundary in E's way.",
    "where": "next steps, notes/LAB_NOTES.md"
   }
  ]
@@ -506,6 +556,31 @@ function transitionCounts(n) {
   }
   return c;
 }
+// One excursion from the right end as the base-3 counter of lean/Counter.lean (the same as py/counter.py predict).
+// Tokens: block lengths in pairs (numbers) and single cells ("0"/"1"), ending "0", 1. Returns {t} or {why}.
+function counterStep(t0) {
+  const t = t0.slice(), D = { "11": 2, "01": 1, "00": 0 };
+  const n = t.length;
+  if (n < 5 || t[n - 2] !== "0" || t[n - 1] !== 1) return { why: "tail" };
+  let i = n - 5, last = true;
+  for (;;) {
+    if (i < 1 || typeof t[i] !== "number" || typeof t[i + 2] !== "number") return { why: "left" };
+    const d = D[t[i - 1] + t[i + 1]];
+    if (d === undefined) return { why: "left" };
+    const g = t[i], w = t[i + 2];
+    if (d === 2) {
+      if (!(g % 2 === 1 && w % 2 === 1 && w >= (last ? 1 : 3))) return { why: "short" };
+      t[i - 1] = "0"; t[i] += 1; t[i + 2] += last ? 1 : -1; return { t };
+    }
+    if (d === 1) {
+      if (!(g % 2 === 0 && g >= 2 && w % 2 === 0 && w >= 2)) return { why: "short" };
+      t[i + 1] = "0"; if (last) t[i + 2] += 2; return { t };
+    }
+    if (!(g % 2 === 0 && g >= 2 && w % 2 === 0 && w >= (last ? 2 : 4))) return { why: "short" };
+    t[i - 1] = "1"; t[i + 1] = "1"; t[i] += 1; t[i + 2] += last ? 1 : -1;
+    last = false; i -= 4;
+  }
+}
 </script>
 <script>
 (function () {
@@ -533,6 +608,55 @@ const fmt = n => n.toLocaleString("en-US");
     tr.innerHTML = h;
     body.appendChild(tr);
   }
+})();
+
+// ---------- counter
+(function () {
+  const START = [92, "0", 6, "0", 4, "0", 8, "1", 37, "1", 37, "1", 211, "1", 16721, "0", 1326, "0", 18236, "0", 1948,
+    "0", 41212, "0", 8254, "0", 41236, "0", 1];
+  const DG = { "11": 2, "01": 1, "00": 0 };
+  let cur = START.slice(), prev = null, trips = 0;
+  function split(t) {
+    const levs = [];
+    let i = t.length - 5;
+    while (i >= 1 && typeof t[i] === "number" && typeof t[i + 2] === "number" && DG[t[i - 1] + t[i + 1]] !== undefined) {
+      levs.unshift(i); i -= 4;
+    }
+    return { left: t.slice(0, levs.length ? levs[0] - 1 : t.length - 2), levs };
+  }
+  function pairs(t) { let n = 0; for (const x of t) if (typeof x === "number") n += x; return n; }
+  function render(note) {
+    const { left, levs } = split(cur);
+    let h = '<div class="ctleft">' + left.join(" ") + "</div>";
+    const ch = k => prev && prev.length === cur.length && prev[k] !== cur[k] ? ' class="chg"' : "";
+    for (const i of levs) {
+      const d = DG[cur[i - 1] + cur[i + 1]];
+      h += '<div class="ctlev d' + d + '"><div class="dg">' + d + '</div><div class="sp"><span' + ch(i - 1) + ">" + cur[i - 1] +
+        "</span> g <span" + ch(i) + ">" + fmt(cur[i]) + "</span> <span" + ch(i + 1) + ">" + cur[i + 1] + "</span></div>" +
+        '<div class="sp">W <span' + ch(i + 2) + ">" + fmt(cur[i + 2]) + "</span></div></div>";
+    }
+    $("ctRow").innerHTML = h;
+    $("ctTrips").textContent = fmt(trips);
+    $("ctPairs").textContent = fmt(pairs(cur));
+    $("ctNote").textContent = note || "";
+  }
+  function next() {
+    const r = counterStep(cur);
+    if (!r.t) {
+      render(r.why === "left" ? "The next trip borrows past the levels into the left end: no theorem covers it."
+        : "The next trip meets a level too short or of the wrong parity: no theorem covers it.");
+      return false;
+    }
+    prev = cur; cur = r.t; trips++;
+    return true;
+  }
+  $("ctNext").addEventListener("click", () => { if (next()) render(); });
+  $("ctBorrow").addEventListener("click", () => {
+    let k = 0;
+    while (k < 1000000 && next()) k++;
+  });
+  $("ctReset").addEventListener("click", () => { cur = START.slice(); prev = null; trips = 0; render(); });
+  render();
 })();
 
 // ---------- 2. simulator

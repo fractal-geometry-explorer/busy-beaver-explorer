@@ -22,6 +22,32 @@ RULES = [
     ("b_run", "L 1 (0101)^n B> 0 R", "L 1 B> 0 (0101)^n R",
      "B runs left over pairs, two at a time, shifting each one cell to the right (`B0 → 1LC`, `C1 → 0LD`, "
      "`D0 → 1LB`, `B1 → 0LB`), 4 steps per two pairs; in between, the head is in D."),
+    # pieces of one right-end excursion (Counter.lean chains them); (1010)^n is two pairs, written nearest the head
+    ("first0", "L 1010 0 (1010)^c+1 0 (1010)^d+1 C> 0 1 0^inf",
+     "L C> 1 1 0 0 1 0 1 (0101)^c 0 1 0 0 (1010)^d+1 1 0 1 0 1 0^inf",
+     "The walk starts at a last level with digit 0 (`0 (10)^2c+2 0 (10)^2d+2`): it crosses it and the last two pairs "
+     "of the block before, leaving the level in transit form."),
+    ("walk0", "L 1010 0 (1010)^c+1 0 (1010)^d+1 C> 1 1 0 0 1 R",
+     "L C> 1 1 0 0 1 0 1 (0101)^c 0 1 0 0 (1010)^d+1 1 0 0 1 R",
+     "The walk crosses a level with digit 0 (a borrow) and the last two pairs of the block before."),
+    ("turn2", "L 1 10 (1010)^a 1 10 (1010)^b C> 1 1 0 0 1 0 1 R",
+     "L 0 1 0 1 (0101)^a 0 1 1 (0101)^b 0 1 0 1 1 0 C> R",
+     "The walk turns at a level with digit 2 (seps `1 1`): the left sep becomes 0 and E starts back to the right."),
+    ("turn1", "L 0 (1010)^a+1 1 (1010)^b C> 1 1 0 0 1 0 1 R",
+     "L 0 (1010)^a+1 0 1 (0101)^b 0 1 0 1 1 0 C> R",
+     "The walk turns at a level with digit 1 (seps `0 1`): the right sep becomes 0."),
+    ("sweep0", "L C> (0101)^e 0 1 0 0 (1010)^f+1 1 0 0 1 0 1 R",
+     "L (1010)^e 1 0 1 0 1 1 0 1 (0101)^f 0 1 0 1 1 0 C> R",
+     "On the way back, a level in transit form is reset to digit 2 (seps `1 1`)."),
+    ("sweepLast", "L 0 1 1 0 C> (0101)^e 0 1 0 0 (1010)^f+1 1 0 1 0 1 0^inf",
+     "L 0 1 1 0 (1010)^e 1 0 1 0 1 1 0 1 (0101)^f 0 1 0 C> 0 1 0^inf",
+     "The last level is reset and the head is back at the right end."),
+    ("last2", "L 1 10 (1010)^a 1 10 (1010)^b C> 0 1 0^inf",
+     "L 0 1 0 1 (0101)^a 0 1 1 (0101)^b 0 1 0 C> 0 1 0^inf",
+     "A whole excursion when the last level has digit 2."),
+    ("last1", "L 0 (1010)^a+1 1 (1010)^b+1 C> 0 1 0^inf",
+     "L 0 (1010)^a+1 0 1 (0101)^b+1 0 1 0 C> 0 1 0^inf",
+     "A whole excursion when the last level has digit 1."),
 ]
 
 DOC = """# Sweep rules
