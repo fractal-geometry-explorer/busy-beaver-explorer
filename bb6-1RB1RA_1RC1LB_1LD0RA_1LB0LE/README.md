@@ -199,6 +199,7 @@ of 1), and so the question itself.
 | `tests/test_blockcount.py` | the witness, its (k, psi) route, the sentinel orbit at pass 203, the scan |
 | `py/ancestry.py` | the exact inverse of the pass map (`preimages`); the valuations of the values the return map skips and of the open classes |
 | `tests/test_ancestry.py` | the inverse, the preimage counts, the skips to mod 2^28, the open residues, the orbit's visits to a = 1 mod 32 |
+| `../pages/1RB1RA_1RC1LB_1LD0RA_1LB0LE/known.html` | a readable summary of what is known: the pass map, the range ruled out, psi, the failed routes, the final reduction |
 | `py/explainer_status.py` | writes the explainer's status panel from `status.json` |
 | `tests/test_explainer.py` | the explainer's engine against `py/passmap.py` and the reference simulator; its status panel current |
 | `c/passorbit.c` | the closed form in C: the blank orbit with checkpoints (`orbit`), and searches over starts (`comps`, `grid`, `random`) split into parts for `tools/c/run_parts.sh`; the sentinel orbit (`loose`) |

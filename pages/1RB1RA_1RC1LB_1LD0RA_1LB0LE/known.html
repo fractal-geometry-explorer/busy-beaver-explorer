@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What is known so far</title>
+<meta name="description" content="A summary of what is known about the six-state machine 1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD: the pass map, the return map below 2^62, the invariant psi, the routes that failed, and the final reduction, with what Lean proves, what is computed and what is heuristic kept apart.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --sunk: #E4E9F0; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --hit: #B3261E;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --sunk: #1F2935; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --hit: #FF8A80;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --sunk: #1F2935; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --hit: #FF8A80;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 40px 16px 64px; display: grid; gap: 44px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.4rem, 3.2vw, 2rem); line-height: 1.2; overflow-wrap: anywhere; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+p, ul, ol { margin: 0; }
+ul, ol { padding-left: 1.3em; display: grid; gap: 6px; }
+a { color: var(--link); }
+code, .mono { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+.top { display: grid; gap: 12px; max-width: 72ch; }
+.crumb { font-size: 0.9rem; overflow-wrap: anywhere; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+section.part { display: grid; gap: 16px; scroll-margin-top: 16px; min-width: 0; }
+.prose { display: grid; gap: 10px; max-width: 72ch; }
+.phead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.pnum { font-family: var(--font-display); font-size: 0.72rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.toc { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.toc a { display: grid; gap: 2px; height: 100%; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 9px 12px; color: var(--ink); text-decoration: none; }
+.toc a:hover { border-color: var(--muted); }
+.toc a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.toc b { font-family: var(--font-display); font-size: 0.76rem; }
+.toc span { font-size: 0.84rem; color: var(--muted); }
+.formula { font-family: var(--font-display); font-size: 0.8rem; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 14px; overflow-x: auto; display: grid; gap: 4px; }
+.formula div { white-space: nowrap; }
+
+/* The three-tier summary: one column per kind of evidence. */
+.tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; align-items: start; }
+.tier { background: var(--surface); border: 1px solid var(--rule); border-top-width: 4px; border-radius: var(--r); padding: 12px 14px; display: grid; gap: 10px; min-width: 0; }
+.tier.k { border-top-color: var(--kernel); }
+.tier.c { border-top-color: var(--comp); }
+.tier.h { border-top-color: var(--heur); }
+.tier ul { font-size: 0.9rem; }
+.tier p.sub { font-size: 0.84rem; color: var(--muted); }
+
+/* Claims inside a section, each with its tag. */
+.claims { display: grid; gap: 10px; max-width: 80ch; }
+.claim { background: var(--surface); border: 1px solid var(--rule); border-left-width: 4px; border-radius: var(--r); padding: 10px 14px; display: grid; gap: 4px; font-size: 0.94rem; min-width: 0; }
+.claim.k { border-left-color: var(--kernel); }
+.claim.n { border-left-color: var(--native); }
+.claim.c { border-left-color: var(--comp); }
+.claim.h { border-left-color: var(--heur); }
+.claim.o { border-left-color: var(--open); }
+.claim .src { font-size: 0.8rem; color: var(--muted); overflow-wrap: anywhere; }
+
+/* The failed routes. */
+.routes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 12px; }
+.route { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 8px; align-content: start; min-width: 0; font-size: 0.92rem; }
+.route h3 { color: var(--ink); text-transform: none; letter-spacing: 0; font-size: 0.86rem; }
+.route dl { margin: 0; display: grid; gap: 6px; }
+.route dt { font-family: var(--font-display); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.route dd { margin: 0; }
+.route .src { font-size: 0.8rem; color: var(--muted); overflow-wrap: anywhere; }
+
+/* The final reduction, drawn as a chain. */
+.redux { display: grid; gap: 0; max-width: 80ch; }
+.step { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 14px; display: grid; gap: 4px; font-size: 0.94rem; }
+.step.end { border-color: var(--open); box-shadow: inset 0 0 0 1px var(--open); }
+.arrow { justify-self: start; margin-left: 22px; height: 22px; width: 2px; background: var(--rule); position: relative; }
+.arrow::after { content: ""; position: absolute; bottom: -1px; left: -4px; border: 5px solid transparent; border-top-color: var(--rule); border-bottom: 0; }
+.note { font-size: 0.88rem; color: var(--muted); }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / <a href="explainer.html">1RB1RA_1RC1LB_1LD0RA_1LB0LE</a> / what is known</p>
+    <h1>What is known so far</h1>
+    <p class="machine">1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD</p>
+    <p>Whether this machine halts from blank tape is <b>open</b>. This page sums up where the work stands as of 2 November 2026. The run reduces to a map on block lists, a halt needs one rare event, that event is ruled out for an astronomically long stretch, and every attempt to rule it out for good has hit a counterexample. What is left looks as hard as a Collatz problem.</p>
+    <p>Every claim carries a tag for what it rests on:
+      <span class="tag t-kernel">Lean, kernel</span> checked by Lean's kernel alone,
+      <span class="tag t-native">Lean, native_decide</span> also trusts Lean's compiler,
+      <span class="tag t-comp">computed</span> by C or Python in the repository, exhaustive but not proved,
+      <span class="tag t-heur">heuristic</span> sampling, a pattern seen so far, or an argument that is not a proof.
+      For the mechanics, see the <a href="explainer.html">interactive explainer</a>; for theorem names and file paths, the <a href="proof-status.html">proof-status page</a>.</p>
+    <ol class="toc">
+      <li><a href="#glance"><b>At a glance</b><span>three kinds of evidence</span></a></li>
+      <li><a href="#passmap"><b>1 · The pass map</b><span>why a halt needs a 1</span></a></li>
+      <li><a href="#range"><b>2 · How far</b><span>2^62 proved, 2^74 computed</span></a></li>
+      <li><a href="#psi"><b>3 · The invariant psi</b><span>one exact quantity</span></a></li>
+      <li><a href="#failed"><b>4 · Routes that failed</b><span>and their counterexamples</span></a></li>
+      <li><a href="#final"><b>5 · The final reduction</b><span>every a = 5 mod 12</span></a></li>
+    </ol>
+  </header>
+
+  <!-- At a glance -->
+  <section class="part" id="glance">
+    <div class="phead"><span class="pnum">At a glance</span><h2>Proved, computed, heuristic</h2></div>
+    <div class="tiers">
+      <div class="tier k">
+        <span class="tag t-kernel">Lean, kernel</span>
+        <ul>
+          <li>The run is a sequence of passes, and one pass is a closed-form map on block lists, for every list.</li>
+          <li>A halt needs a sweep that stops at a block of a single 1, and that block can only be the first block.</li>
+          <li>No such stop in the first 3&middot;2<sup>60</sup>+1 &asymp; 3.46&middot;10<sup>18</sup> passes.</li>
+          <li>The exact rule for psi under a pass.</li>
+          <li>Counterexamples to four proof routes.</li>
+          <li>If every a &equiv; 5 (mod 12) returns, the machine never halts; if one fails, the blank orbit reaches the first failure.</li>
+        </ul>
+      </div>
+      <div class="tier c">
+        <span class="tag t-comp">computed</span>
+        <ul>
+          <li>No halt in the first 10<sup>11</sup> machine steps.</li>
+          <li>The return map is safe for every a below 2<sup>74</sup>, so no halt in the first 1.4&middot;10<sup>22</sup> passes.</li>
+          <li>10<sup>11</sup> passes followed one by one never meet a block of 1.</li>
+          <li>On the orbit psi stays in &minus;21..24.</li>
+        </ul>
+      </div>
+      <div class="tier h">
+        <span class="tag t-heur">heuristic</span>
+        <ul>
+          <li>The orbit keeps a wide margin: the first block stays above 0.7% of the ones.</li>
+          <li>The blank orbit is expected to reach 7 blocks near pass 2<sup>221.6</sup>, and no fixed cap on the block count is expected.</li>
+          <li>The remaining question, about all digit patterns of a 2-adic set, looks Collatz-hard.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1. Pass map -->
+  <section class="part" id="passmap">
+    <div class="phead"><span class="pnum">Part 1</span><h2>The pass map, and the one way to halt</h2></div>
+    <div class="prose">
+      <p>From step 17 on, the run is a sequence of <b>passes</b>. At a pass start the tape is a list of blocks of ones [y<sub>1</sub>, &hellip;, y<sub>k</sub>] separated by single zeros. The head sweeps left, halving each block it crosses, stops at the first odd block, then zigzags back to the right end. The result is a closed-form map <code>next</code> on block lists. The <a href="explainer.html#pass">explainer</a> animates one pass.</p>
+    </div>
+    <div class="claims">
+      <div class="claim k"><div><span class="tag t-kernel">Lean, kernel</span> The machine follows the closed form for <b>every</b> block list, and halts exactly where the form says it does.</div><div class="src"><code>pass</code>, <code>pass_halt</code> in <code>lean/Pass.lean</code></div></div>
+      <div class="claim k"><div><span class="tag t-kernel">Lean, kernel</span> A pass adds exactly 4 ones, so pass n from blank tape has 4n ones. A halt needs every block but the last to be even and the last odd, so a halting list has an <b>odd</b> count. The only way the count can stop being a multiple of 4 is a sweep that stops at a block of a <b>single 1</b>, which the form does not cover. So if the machine halts, some pass stops at a block of 1.</div><div class="src"><code>next_sum</code>, <code>next_halt_odd</code>, <code>halts_only_by_one</code></div></div>
+      <div class="claim k"><div><span class="tag t-kernel">Lean, kernel</span> Every block after the first stays at least 2, so the block of 1 can only be the <b>first block</b>, after the sweep has crossed all the others. And two passes in a row never both stop at the first block. So a halt needs the first block to be halved down to 1, about log<sub>2</sub>(ones) halvings, without the rest of the list getting in the way.</div><div class="src"><code>next_good</code>, <code>one_front</code>, <code>front_twice</code>, <code>halts_only_at_front</code> in <code>lean/Front.lean</code></div></div>
+    </div>
+  </section>
+
+  <!-- 2. How far -->
+  <section class="part" id="range">
+    <div class="phead"><span class="pnum">Part 2</span><h2>How far it is ruled out</h2></div>
+    <div class="prose">
+      <p>The orbit keeps coming back to <b>two-block states</b> [a, 2a+1] with a &equiv; 5 (mod 12); pass 4 is [5, 11]. The passes between two such visits are an <b>excursion</b>. An excursion that comes back lands on [a+12k, 2(a+12k)+1] after exactly 9k passes, so the <b>return map</b> a &rarr; a+12k is a counter that only goes up. If every excursion up to some size comes back, every pass up to a matching point is safe.</p>
+    </div>
+    <div class="claims">
+      <div class="claim k"><div><span class="tag t-kernel">Lean, kernel</span> For every a &equiv; 1 (mod 4) with 5 &le; a &lt; 2<sup>62</sup>, the excursion from [a, 2a+1] returns. So the first 3&middot;2<sup>60</sup>+1 &asymp; <b>3.46&middot;10<sup>18</sup> passes</b> never stop at a block of 1, and the machine really reaches each of their pass starts. The proof runs the map on residue classes of a and is split into 1,575 pieces checked by the kernel, about an hour of CPU.</div><div class="src"><code>returns_2_62_kernel</code>, <code>no_one_3e18_kernel</code> in <code>lean/Return62.lean</code>; the same statement with <span class="tag t-native">Lean, native_decide</span> in seconds (<code>no_one_3e18</code>)</div></div>
+      <div class="claim c"><div><span class="tag t-comp">computed</span> The same class computation in Python, run down to residues mod 2<sup>74</sup>, finds every excursion for 5 &le; a &lt; 2<sup>74</sup> safe. With the Lean reduction that gives <b>no halt in the first 1.4&middot;10<sup>22</sup> passes</b>. This rests on trusted Python (tested against Lean's <code>next</code>), not on a proof.</div><div class="src"><code>py/returnmap.py</code></div></div>
+      <div class="claim c"><div><span class="tag t-comp">computed</span> Independently, the machine runs 10<sup>11</sup> steps without halting, and the closed form, iterated one pass at a time in C with no residue classes, runs 10<sup>11</sup> passes without a block of 1. After pass 50 no sweep stops at a block below 59.</div><div class="src"><code>tools/c/tmrun.c</code>, <code>c/passorbit.c</code></div></div>
+      <div class="claim k"><div><span class="tag t-kernel">Lean, kernel</span> With no upper bound on a: every a &equiv; 1 (mod 4) returns unless a mod 2<sup>34</sup> is one of <b>67 residues</b>, a fraction 1.6&middot;10<sup>&minus;8</sup>. A failure, if any, lives in a very thin set.</div><div class="src"><code>returns_off_open34</code> in <code>lean/Thin.lean</code></div></div>
+    </div>
+  </section>
+
+  <!-- 3. psi -->
+  <section class="part" id="psi">
+    <div class="phead"><span class="pnum">Part 3</span><h2>The invariant psi</h2></div>
+    <div class="prose">
+      <p>One exact quantity survives a pass. With the blocks read from the last one back,</p>
+    </div>
+    <div class="formula">
+      <div>&psi; = y<sub>k</sub> &minus; 2y<sub>k&minus;1</sub> + 4y<sub>k&minus;2</sub> &minus; 8y<sub>k&minus;3</sub> + &hellip;</div>
+      <div>2&psi;' = &minus;&psi; + 3(&minus;2)<sup>n</sup> &minus; 7,&nbsp;&nbsp; n &le; k the number of blocks the sweep crosses</div>
+    </div>
+    <div class="claims">
+      <div class="claim k"><div><span class="tag t-kernel">Lean, kernel</span> The rule above holds for every pass of every list. On a two-block state [a, 2a+d] it is just d.</div><div class="src"><code>psi_next</code> in <code>lean/Psi.lean</code></div></div>
+      <div class="claim c"><div><span class="tag t-comp">computed</span> On the first 10<sup>8</sup> passes, and on every excursion class down to mod 2<sup>66</sup>, psi stays in &minus;21..24 with at most 6 blocks.</div><div class="src"><code>py/invsearch.py</code></div></div>
+      <div class="claim h"><div><span class="tag t-heur">heuristic</span> Each pass roughly halves psi and adds a term set by how many blocks the sweep crosses, so psi is pulled back toward a small range. It ends the simple halving loops of the first block within about log<sub>4</sub>|psi| rounds. With at most 6 blocks it bounds the run of halvings, which was the hope of a proof. Part 4 shows why that hope did not hold.</div></div>
+    </div>
+  </section>
+
+  <!-- 4. Failed routes -->
+  <section class="part" id="failed">
+    <div class="phead"><span class="pnum">Part 4</span><h2>Routes that failed, and their counterexamples</h2></div>
+    <div class="prose">
+      <p>Each route below tried to show that the first block cannot be halved down to 1. Each one is refuted by a block list that the kernel checks: the list satisfies everything the route would know about the orbit (4 divides the ones, every block after the first at least 2, small psi), and still reaches a first block of 1. Lists are written first block first.</p>
+    </div>
+    <div class="routes">
+      <div class="route">
+        <h3>Bound the block count by 6</h3>
+        <dl>
+          <dt>The idea</dt><dd>With at most 6 blocks, psi and <code>front_twice</code> give a finite graph that allows at most 9 front stops in a row, so a first block of 1 would need a change that left it at most 511 <span class="tag t-comp">computed</span>.</dd>
+          <dt>Counterexample</dt><dd>From [a, 2a+1] with a = 2<sup>203</sup> + 2<sup>221</sup> + 1 (a &equiv; 5 mod 12) the machine reaches a pass start with <b>7 blocks</b> after 204 passes <span class="tag t-kernel">Lean, kernel</span>. The classes to mod 2<sup>66</sup> missed it because it needs a mod 2<sup>222</sup>. The blank orbit cannot step around it either: if it ever reaches [a, 2a+1] within 200 returns below this a, it walks up to it <span class="tag t-kernel">Lean, kernel</span>, so it is expected to have 7 blocks near pass 2<sup>221.6</sup> <span class="tag t-heur">heuristic</span>.</dd>
+        </dl>
+        <p class="src"><code>seven_blocks</code> in <code>lean/Seven.lean</code>; <code>window_seven</code> in <code>lean/Window.lean</code></p>
+      </div>
+      <div class="route">
+        <h3>A second invariant beside psi</h3>
+        <dl>
+          <dt>The idea</dt><dd>Find a second exact quantity that, with psi, bounds the front stops between changes of the first block. Up to 6 blocks, the (k, psi) graph bounds them by 17 <span class="tag t-comp">computed</span>.</dd>
+          <dt>Counterexample</dt><dd>From 7 blocks the graph has a front-stop cycle. The list <b>[31, 96, 64, 32, 88, 162, 235]</b> (psi = &minus;57) follows it, halving its first block 31 &rarr; 1 and stopping at a block of 1 on its ninth pass; a second list does the same from 255 <span class="tag t-kernel">Lean, kernel</span>. A second invariant would have to be false on these lists, and no fixed weighting of the blocks works.</dd>
+        </dl>
+        <p class="src"><code>lean/Run7.lean</code>; <code>py/runbound.py</code></p>
+      </div>
+      <div class="route">
+        <h3>Only a few large blocks</h3>
+        <dl>
+          <dt>The idea</dt><dd>Along the orbit at most 5 blocks are ever at least ones/32 <span class="tag t-comp">computed</span>, so the counterexamples above, with many medium blocks, might not be the orbit's shape.</dd>
+          <dt>Counterexample</dt><dd>Adding 2<sup>8</sup>&middot;v with psi(v) = 0 to the lists above gives <b>[31, 254304, 870464, 844832, 256088, 32930, 8427]</b> and one from 255. They keep psi = &minus;57, have at most 5 large blocks at every pass start, and still halve the first block to 1 and stop there <span class="tag t-kernel">Lean, kernel</span>.</dd>
+        </dl>
+        <p class="src"><code>wL_one</code>, <code>wL_large</code>, <code>wLb_one</code>, <code>wLb_large</code> in <code>lean/Large.lean</code></p>
+      </div>
+      <div class="route">
+        <h3>A large first block</h3>
+        <dl>
+          <dt>The idea</dt><dd>The lists above have a tiny first block (1.4&middot;10<sup>&minus;5</sup> of the ones), while the orbit leaves it at least 7.6% of the ones at every change and runs at most 5 front stops after <span class="tag t-comp">computed</span>. Maybe a big first block cannot be halved to 1.</dd>
+          <dt>Counterexample</dt><dd><b>[255, 512, 32, 60, 32, 64, 9]</b> (psi = &minus;23, first block 26% of the ones) and [255, 528, 48, 24, 8, 32, 64, 128, 129] (psi = 1, 21%) halve their first block 255 &rarr; 1 with no other change and stop at a block of 1 <span class="tag t-kernel">Lean, kernel</span>. Such lists exist for every run of 4 to 8 halvings <span class="tag t-comp">computed</span>, and a count of parity bits suggests the same for longer runs <span class="tag t-heur">heuristic</span>.</dd>
+        </dl>
+        <p class="src"><code>wF_one</code>, <code>wH_one</code> in <code>lean/BigFront.lean</code></p>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Two broader negative results sit behind these. No invariant of block sizes or of residues modulo a fixed power of 2 can exclude the event, since small starts reach it by a halving loop <span class="tag t-heur">heuristic</span>. And with the parities left free, the reachable lists halve their first block every two passes, so an induction on sizes alone cannot work: a proof has to say which parities occur <span class="tag t-comp">computed</span>.</p>
+    </div>
+  </section>
+
+  <!-- 5. Final reduction -->
+  <section class="part" id="final">
+    <div class="phead"><span class="pnum">Part 5</span><h2>The final reduction</h2></div>
+    <div class="prose">
+      <p>The last hope was structure that holds only along the blank orbit, since it starts from one tape and not from every list. There is none beyond a mod 3: the orbit meets the first failure, whatever it is, so the question for the orbit is the question for every a.</p>
+    </div>
+    <div class="redux">
+      <div class="step"><div><span class="tag t-kernel">Lean, kernel</span> If every a &equiv; 5 (mod 12) has an excursion that returns (with a jump that skips no value &equiv; 1 mod 32), <b>no pass ever stops at a block of 1, so the machine never halts</b>.</div><div class="src note"><code>no_one_of_all</code> in <code>lean/Visit.lean</code></div></div>
+      <div class="arrow" aria-hidden="true"></div>
+      <div class="step"><div><span class="tag t-kernel">Lean, kernel</span> If some a &equiv; 5 (mod 12) fails, the least one has its residue among the 67 open ones mod 2<sup>34</sup>, the counter cannot step over it, and <b>the blank orbit reaches [a, 2a+1] for that a</b>.</div><div class="src note"><code>skip_off_open34</code>, <code>visit</code>, <code>orbit_meets_first_failure</code></div></div>
+      <div class="arrow" aria-hidden="true"></div>
+      <div class="step"><div><span class="tag t-comp">computed</span> Going backward gives nothing either: every list has many preimages (1,333 for pass 1,000), so ancestry from blank tape is no constraint.</div><div class="src note"><code>py/ancestry.py</code></div></div>
+      <div class="arrow" aria-hidden="true"></div>
+      <div class="step end"><div><span class="tag t-open">open</span> So the machine runs forever if <b>every a &equiv; 5 (mod 12) has an excursion that returns</b>, and a halt has to come from the first a whose excursion fails. Any failure sits above 2<sup>62</sup> (proved) and above 2<sup>74</sup> (computed), inside 67 residue classes mod 2<sup>34</sup>.</div></div>
+    </div>
+    <div class="claims">
+      <div class="claim h"><div><span class="tag t-heur">heuristic</span> <b>Why it looks Collatz-hard.</b> An excursion reads only a few low bits of a, but the a not yet covered form a 2-adic set of dimension about 0.19, and on that set the bits of a mix the way they do in the Collatz map, with no repeating pattern. Deciding whether every a returns is a statement about all digit patterns of that set. Near a = 1 the deepest excursions repeat the same map one level down, a counter inside a counter. A finite table cannot settle it; a proof needs an inequality carried by induction over the excursion, and no candidate has survived Part 4.</div><div class="src"><code>py/dynamics.py</code>, <code>py/induction.py</code>; <code>notes/LAB_NOTES.md</code>, 31 October and 1 November</div></div>
+      <div class="claim o"><div><span class="tag t-open">open</span> An induction for the excursion from [a, 2a+1], for a &ge; 2<sup>62</sup>, that shows no sweep ever stops at a block of 1, and so the question itself.</div></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Summarizes the work merged through pull request #168. The details, theorem names and how to check each claim are in <code>bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/README.md</code> and <code>notes/LAB_NOTES.md</code> in the <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE">repository</a>.</p>
+    <p><a href="explainer.html">Explained</a> &middot; <a href="proof-status.html">Proof status</a> &middot; <a href="../index.html">All pages</a></p>
+  </footer>
+</main>
+</body>
+</html>

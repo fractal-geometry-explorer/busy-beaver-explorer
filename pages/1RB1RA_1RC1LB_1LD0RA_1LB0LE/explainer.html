@@ -179,6 +179,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <li><a href="#mod4"><b>5 · Ones mod 4</b><span>what stays fixed</span></a></li>
       <li><a href="#halt"><b>6 · How it could halt</b><span>the block of 1</span></a></li>
       <li><a href="#status"><b>7 · Status</b><span>proved, computed, observed</span></a></li>
+      <li><a href="known.html"><b>What is known</b><span>a summary, as of #168</span></a></li>
     </ol>
   </header>
 
@@ -241,7 +242,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section class="part" id="pass">
     <div class="phead"><span class="pnum">Part 3</span><h2>One pass: sweep left, zigzag back</h2></div>
     <div class="prose">
-      <p>At a pass start the tape is <code>1^y<sub>1</sub> 0 1^y<sub>2</sub> 0 &hellip; 0 1^y<sub>k</sub> A&gt;0</code>, written as the block list [y<sub>1</sub>, &hellip;, y<sub>k</sub>]. A pass has five phases, and each is a Lean theorem about every tape around it and every block length <span class="tag t-kernel">Lean, kernel</span> (<code>lean/Rules.lean</code>). The theorems are not yet chained into one statement about a whole pass.</p>
+      <p>At a pass start the tape is <code>1^y<sub>1</sub> 0 1^y<sub>2</sub> 0 &hellip; 0 1^y<sub>k</sub> A&gt;0</code>, written as the block list [y<sub>1</sub>, &hellip;, y<sub>k</sub>]. A pass has five phases, and each is a Lean theorem about every tape around it and every block length <span class="tag t-kernel">Lean, kernel</span> (<code>lean/Rules.lean</code>). Lean chains them into the closed form below for every block list (<code>pass</code>, <code>lean/Pass.lean</code>).</p>
     </div>
     <ol class="phases" id="phases">
       <li data-ph="start"><b>start</b><span>A, B and C write three ones on the right; C turns D back.</span><span class="rl">start</span></li>
@@ -286,7 +287,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <div>no stop (all of y<sub>1</sub> &hellip; y<sub>k&minus;1</sub> even, y<sub>k</sub> odd):&nbsp; halt</div>
     </div>
     <div class="prose">
-      <p>The page checks the formula against the machine on every pass you load (the line under the tape above). In the repository it agrees with the machine on about 3,100 random block lists <span class="tag t-heur">heuristic</span>, and its orbit from [2, 2] is exactly the 1,005 pass starts of the first 10<sup>9</sup> steps <span class="tag t-comp">computed</span>. It is not yet proved for every list: the zigzag is a loop whose rounds grow, which needs an induction in Lean on top of <code>zig</code>.</p>
+      <p>The page checks the formula against the machine on every pass you load (the line under the tape above). In the repository it agrees with the machine on about 3,100 random block lists <span class="tag t-heur">heuristic</span>, and its orbit from [2, 2] is exactly the 1,005 pass starts of the first 10<sup>9</sup> steps <span class="tag t-comp">computed</span>. Lean proves it for every list (<code>pass</code>, <code>lean/Pass.lean</code>) <span class="tag t-kernel">Lean, kernel</span>.</p>
     </div>
   </section>
 
@@ -391,13 +392,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="prose">
       <p id="st-asof"></p>
       <p>The machine's question is open. The columns keep apart what Lean proves with its kernel alone, what it proves with <code>native_decide</code>, what C or Python in the repository computes, and what is only observed. This panel is built from the same file as the <a href="proof-status.html">proof-status page</a> (<code>bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/status.json</code>), so the two stay in step.</p>
+      <p>For a readable summary of where the work stands, the failed proof routes and the final reduction, see <a href="known.html">what is known so far</a>.</p>
     </div>
     <div class="statgrid" id="st-grid"></div>
   </section>
 
   <footer>
     <p>The page's simulator and closed form are checked against the repository's Python models by <code>bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_explainer.py</code>. Everything runs in your browser; nothing is sent anywhere.</p>
-    <p><a href="proof-status.html">Proof status</a> &middot; <a href="../index.html">All pages</a></p>
+    <p><a href="known.html">What is known</a> &middot; <a href="proof-status.html">Proof status</a> &middot; <a href="../index.html">All pages</a></p>
   </footer>
 </main>
 
