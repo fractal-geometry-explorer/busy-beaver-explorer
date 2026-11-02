@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What is known about 1RB1RF_1LC0LB, and what is open</title>
+<meta name="description" content="Proof status of the six-state machine 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---: what is proved in Lean, what is computed, what is only observed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 36px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; overflow-x: auto; font-family: var(--font-display); font-size: 0.74rem; line-height: 1.6; }
+.top { display: grid; gap: 12px; max-width: 70ch; }
+.crumb { font-size: 0.9rem; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.asof { font-size: 0.88rem; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 70ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 0.88rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.card p { font-size: 0.94rem; }
+.card .where { font-size: 0.84rem; color: var(--muted); }
+.card.open { border-left: 4px solid var(--open); }
+.empty { color: var(--muted); font-size: 0.94rem; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / 1RB1RF_1LC0LB</p>
+    <h1>What is known about 1RB1RF_1LC0LB, and what is open</h1>
+    <p class="machine">1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.</p>
+    <p>The work has just started. The machine is set up in Lean on the shared library and simulated in Python and C. The tape is made of pairs <code>10</code> in blocks separated by single extra 0s; sweeps to the right and to the left shift the pairs by one cell, and a sweep to the right marks each block boundary it crosses. Lean proves the halting shape and the three sweep rules. The macro structure is only observed so far: the run is a nested counter in which, in front of a long block, the left end goes through the same configurations as the run from blank tape. <a href="explainer.html">The explainer</a> runs the machine in the browser.</p>
+    <p class="asof">Status as of 2 November 2026.</p>
+  </header>
+  <section aria-labelledby="h-short">
+    <h2 id="h-short">In short</h2>
+    <div class="verdict">
+      <p><b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps. These are floors, not the way to an answer.</p>
+      <p><b>Where a halt would come from.</b> The only halting transition is F reading 1. Lean proves that in the run from blank tape every halt comes two steps after the head, in state E, reads <code>0 1 1</code>. A sweep to the right in E crosses each block boundary <code>0 10</code> by marking it <code>0 11</code>; so the machine halts exactly if a sweep in E meets a mark that an earlier sweep left and nothing has cleared, in step with E's pairs. Whether that can happen is the question.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-claims">
+    <h2 id="h-claims">What each result rests on</h2>
+    <div class="legend" aria-label="Legend">
+      <span><span class="tag t-kernel">kernel</span> checked by Lean's kernel alone</span>
+      <span><span class="tag t-native">native</span> evaluated by compiled code</span>
+      <span><span class="tag t-comp">trusted</span> C or Python in the repository, exhaustive</span>
+      <span><span class="tag t-heur">heuristic</span> sampling, extrapolation, patterns</span>
+      <span><span class="tag t-open">open</span> not known</span>
+    </div>
+    <h3><span class="tag t-kernel">kernel</span> Proved in Lean, kernel-checked</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>The halting configurations</h3>
+        <p>The machine stops exactly in state F reading a 1, and <code>E&gt;0 1 1</code> halts after two more ordinary steps, whatever the rest of the tape.</p>
+        <p class="where"><code>step_none_iff</code>, <code>halt_shape</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Every halt comes from E reading 0 1 1</h3>
+        <p>F is entered from A or D reading 1 and then reads the cell to their right. D is entered only by <code>C1 &rarr; 0LD</code>, which leaves a 0 to D's right, so the D route never halts (<code>d_right_zero</code>); A is entered only by <code>E0 &rarr; 0RA</code>. So in the run from blank tape every halt happens two ordinary steps after a configuration <code>E&gt;0 1 1</code>, and the machine halts from blank tape only if <code>E&gt;0 1 1</code> occurs.</p>
+        <p class="where"><code>d_right_zero</code>, <code>a_entry</code>, <code>f_entry</code>, <code>halt_from_e011</code>, <code>halts_imp_e011</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The sweep rules</h3>
+        <p>E runs right over any number of pairs <code>10</code>, shifting each one cell to the right, 2 steps a pair (<code>e_run</code>). E at a block boundary <code>0 10</code> turns it into <code>0 11</code> in 3 steps and goes on (<code>e_mark</code>). B runs left over pairs two at a time, shifting each one cell to the right, 4 steps per two pairs, through D in between (<code>b_run</code>). All three hold for every number of pairs and any tape around them; the proofs were written by <code>tools/py/bbtools/symtm.py</code> from symbolic runs.</p>
+        <p class="where"><code>e_run</code>, <code>e_mark</code>, <code>b_run</code>, <code>lean/Rules.lean</code> (generated by <code>lean/rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 20,000 steps</h3>
+        <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 20,000 steps from blank tape without a halt, evaluated by Lean's kernel. At step 18 the tape is <code>1 0 1 0 1 0 1 F&gt;0</code> (<code>blank_at_18</code>).</p>
+        <p class="where"><code>blank_runs_20000</code>, <code>blank_at_18</code>, <code>lean/Blank.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10,000,000 steps</h3>
+        <p>The same run for 10<sup>7</sup> steps, evaluated by compiled code.</p>
+        <p class="where"><code>blank_runs_10M</code>, <code>lean/Blank.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>10</sup> steps</h3>
+        <p>The C simulator <code>tools/c/tmrun.c</code> (tested against the Python reference simulator) runs 10<sup>10</sup> steps from blank tape without a halt, in under a minute. At that point 258,671 cells are visited and 129,335 of them are 1.</p>
+        <p class="where"><code>tools/c/tmrun.c</code>; <code>c/growth.c</code>, <code>runs/growth_1e10.txt</code></p>
+      </div>
+      <div class="card">
+        <h3>No simple conserved quantity</h3>
+        <p>No quantity a&middot;(number of 1s) + b&middot;(head position) + W[state] is conserved modulo m for any m from 2 to 12, so no such count rules out halting candidates, unlike the mod-3 invariant of the holdout.</p>
+        <p class="where"><code>python3 -m bbtools.invariants</code> (<code>tools/py/bbtools/invariants.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Windows of cells do not separate the halt</h3>
+        <p>Closed tape languages built from windows of 2 to 7 cells (<code>tools/py/bbtools/ctl.py</code>) all cover the run and all still allow a halt, so they prove nothing here. The protection seems to be the alignment of the pairs <code>10</code> with E's sweep, which windows of raw cells do not record.</p>
+        <p class="where"><code>python3 -m bbtools.ctl MACHINE K</code>, K = 2..7</p>
+      </div>
+    </div>
+    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>The tape is blocks of pairs, and grows like the square root of time</h3>
+        <p>Each time the head reaches a new cell at the left end, the tape reads <code>0 0 (10)^n1 0 (10)^n2 &hellip; 0 (10)^nk 1</code>, sometimes with a word <code>110</code> right after a block. Through 10<sup>10</sup> steps the width is about 2.6&radic;t at step t and half of the cells are 1. The head goes back and forth between the right end and the block boundaries; each sweep to the right in E marks the boundaries, and each excursion from the right end runs left to a boundary and back.</p>
+        <p class="where"><code>py/blank.py left</code>, <code>py/blank.py turns</code>, <code>tools/c/tokrun.c</code>, <code>runs/left_1e10.txt</code>, <code>runs/growth_1e10.txt</code></p>
+      </div>
+      <div class="card">
+        <h3>A mark never sits after a boundary at the left-end moments</h3>
+        <p>In all 207 left-end moments up to 10<sup>10</sup> steps, the word <code>110</code> occurs 67 times, always right after a block of pairs and never right after a boundary 0. Right after a pair it is out of step with E's sweep (E arrives on its first 1 and turns), so it is harmless; right after a boundary it would be the halting shape.</p>
+        <p class="where"><code>runs/left_1e10.txt</code>; notes/LAB_NOTES.md, 2 November 2026</p>
+      </div>
+      <div class="card">
+        <h3>In front of a long block, the left end replays the run from blank tape</h3>
+        <p>When the tape at a left-end moment starts <code>0 0 (10)^W 0</code> with W large (a wall), the following left-end moments repeat those of the run from blank tape, the blank run's last block replaced by the wall, and the wall shrinks by the same amounts every time: 1, 3, 2, 4, 2, 10, 6, 10, 6, 2, 6, 12, &hellip; whether W is 71, 257, 1,547 or 43,801. The first wall, 257 pairs at step 277,787, is followed by 29 replayed moments. Walls nest (at step 1.8&middot;10<sup>9</sup> the tape starts with walls of 1,768 and 10,762 pairs), so the run looks like a recursive counter. The count of replayed moments is a lower bound: the moments are taken where the head extends the tape on the left after extending it on the right, which the replay need not keep in step.</p>
+        <p class="where"><code>py/replay.py</code> on <code>runs/left_1e10.txt</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-open">open</span> Open</h3>
+    <div class="cards">
+      <div class="card open">
+        <h3>The macro structure</h3>
+        <p>A precise description of one excursion and of one left-end cycle as maps on the block lengths, proved from the sweep rules; a statement of the wall replay; and which wall exhaustions could leave a mark after a boundary in E's way.</p>
+        <p class="where">next steps, notes/LAB_NOTES.md</p>
+      </div>
+    </div>
+  </section>
+  <section aria-labelledby="h-check">
+    <h2 id="h-check">Check it yourself</h2>
+    <pre><code>bash scripts/setup-lean.sh                    # Lean 4.34.0, core only
+. /etc/profile.d/lean.sh
+bb6-1RB1RF_1LC0LB/lean/check.sh               # the library, then Machine, Blank, Rules, Axioms
+python3 bb6-1RB1RF_1LC0LB/tests/test_machine.py
+python3 bb6-1RB1RF_1LC0LB/py/blank.py left 3000000 40
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- 10000000000
+gcc -O2 -o tokrun tools/c/tokrun.c &amp;&amp; ./tokrun 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- 10000000000 a=10,b=110 L 1000 &gt; left.txt &amp;&amp; python3 bb6-1RB1RF_1LC0LB/py/replay.py left.txt
+cd tools/py &amp;&amp; python3 -m bbtools.invariants 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- 12
+cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- 5</code></pre>
+  </section>
+  <footer>
+    <p>Built by <code>tools/pages/build_status.py</code> from <code>bb6-1RB1RF_1LC0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>
+    <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+  </footer>
+</main>
+</body>
+</html>
