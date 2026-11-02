@@ -20,6 +20,7 @@ as they are and keeps only what is about its own machine.
 | `c/parts.h`, `c/run_parts.sh`, `py/merge_parts.py` | a search split into parts: output protocol, resumable parallel runner, checked merge (refuses missing or unfinished parts) | `bb6-holdout/dfs/run_parts.sh`, `merge.py` |
 | `c/windowscan.c` | an example part program: every K-cell word in a state, run T steps | new |
 | `pages/build_status.py` | a proof-status page from JSON, every claim tagged kernel / native / trusted / heuristic / open | the design of `pages/proof-status.html` |
+| `pages/build_explainer.py` | an interactive explainer page from the same JSON for any machine: the table, where it can halt (generated from the table), the machine running in the browser, a space-time diagram, the records, the ledger; hand-written sections go in the JSON | the explainers of the other machines, whose common parts it generalizes |
 | `tests/test_tools.py` | tests of all of the above (C against Python, known champions, symbolic against concrete, generated Lean compiled) | new |
 
 The other machine's C exhaustive search itself (`bb6-holdout/csearch/nrefdfs2*.c`) runs that machine's mark model and
@@ -27,14 +28,14 @@ is not generic; what carries over is its harness: split into parts, run them in 
 
 ## Adding a machine
 
-`bb6-1RB1RA_1LC1LD/` is the smallest complete example. For a new machine `M`:
+`bb6-1RB0LF_1RC0LB/` is the smallest complete example (with a generated explainer). For a new machine `M`:
 
 1. `python3 -m bbtools.leangen M Namespace` (from `tools/py`) writes `lean/Machine.lean`; add `lean/Blank.lean` with
    `blank_runs` goals and a `lean/check.sh` that calls `tools/lean/check.sh . Machine.lean Blank.lean ...`.
 2. Put the machine's own scripts in `py/` (import `bbtools` from `../../tools/py`) and tests in `tests/` that compare
    the generated files and the page with what the tools write now.
-3. Write `status.json` and build `pages/<short name>/proof-status.html` with `pages/build_status.py`; link it from
-   `pages/index.html`.
+3. Write `status.json` and build `pages/<short name>/proof-status.html` with `pages/build_status.py` and
+   `pages/<short name>/explainer.html` with `pages/build_explainer.py`; link them from `pages/index.html`.
 4. Add the machine's Lean check and tests to `.github/workflows/tests.yml`.
 
 ## Use
