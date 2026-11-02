@@ -19,9 +19,10 @@ sys.path.insert(0, os.path.join(TOOLS, "pages"))
 
 from bbtools.machine import Machine, Run, run_blank, records, STATES  # noqa: E402
 from bbtools import symtm, leangen, invariants, ctl  # noqa: E402
-from bbtools.explore import blocks  # noqa: E402
+from bbtools.explore import blocks, parse_words, tokenize, token_str, token_events, turns  # noqa: E402
 import merge_parts  # noqa: E402
 import build_status  # noqa: E402
+import explainer_status  # noqa: E402
 
 THIS = "1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB"
 HOLDOUT = "1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0LD1RE"
@@ -77,6 +78,38 @@ class TestMachine(unittest.TestCase):
         self.assertEqual(blocks([1, 1, 0, 1, 0, 0]), [(2, 1), (1, 2)])
         self.assertEqual(blocks([0, 1]), [(0, 1), (1, 0)])
 
+    def test_tokens(self):
+        words = parse_words("a=10,b=110")
+        self.assertEqual([w[0] for w in words], ["b", "a"])
+        cells = [0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1]
+        self.assertEqual(token_str(tokenize(cells, words)), "0^2 a^2 b 0 a 1")
+        for bad in ("a=12", "0=10", "a="):
+            with self.assertRaises(ValueError):
+                parse_words(bad)
+        # reading the tokens back gives the cells
+        rng = random.Random(3)
+        for _ in range(200):
+            cells = [rng.randrange(2) for _ in range(rng.randrange(30))]
+            back = []
+            for t, k in tokenize(cells, words):
+                back += (list(dict(words)[t]) if t in dict(words) else [int(t)]) * k
+            self.assertEqual(back, cells)
+
+    def test_turns(self):
+        m = Machine.parse(THIS)
+        ts = list(turns(m, 0, 2000))
+        self.assertTrue(ts)
+        r = Run(m)
+        last = None
+        for t, s, pos, d in ts:
+            while r.steps < t - 1:
+                r.step()
+            h, st = r.head, r.state
+            r.step()
+            self.assertEqual((r.steps, st, h - r.tape.lo, ">" if r.head > h else "<"), (t, s, pos, d))
+            self.assertNotEqual(d, last)
+            last = d
+
 
 class TestC(unittest.TestCase):
     def tmrun(self, *args):
@@ -103,6 +136,23 @@ class TestC(unittest.TestCase):
         out = self.tmrun(THIS, 20000, "records", 60).splitlines()[:-1]
         py = [f"{t} {side} {r.tape.hi - r.tape.lo} {r.config_str()}" for t, side, r in records(Machine.parse(THIS), 20000)]
         self.assertEqual(out, py[:60])
+
+
+    def test_tokrun_against_python(self):
+        for text, words in ((THIS, "a=10,b=110"), (HOLDOUT, "x=1110,y=10")):
+            out = subprocess.run([cc("tokrun"), text, "200000", words, "LR", "80"], check=True, capture_output=True,
+                                 text=True).stdout.splitlines()
+            ws, py = parse_words(words), []
+            for r, side in token_events(Machine.parse(text), 200000, ws):
+                if len(py) == 80:
+                    break
+                py.append(f"{r.steps} HALT" if side == "HALT" else
+                          f"{r.steps} {side} {r.tape.hi - r.tape.lo} {STATES[r.state]} {token_str(tokenize(r.tape.word(), ws))}")
+            self.assertEqual(out, py, text)
+        for text, steps in CHAMPIONS.items():
+            out = subprocess.run([cc("tokrun"), text, "1000", "a=10"], check=True, capture_output=True,
+                                 text=True).stdout.splitlines()
+            self.assertEqual(out[-1], f"{steps} HALT")
 
 
 class TestParts(unittest.TestCase):
@@ -320,6 +370,16 @@ class TestStatusPage(unittest.TestCase):
         self.assertIn('class="card open"', page)
         with self.assertRaises(ValueError):
             build_status.build({"title": "T", "machine": THIS, "claims": [{"level": "proved", "title": "x", "text": ""}]})
+
+    def test_explainer_status(self):
+        spec = {"asof": "now", "claims": [{"level": "kernel", "title": "k", "text": "a</b>", "where": "w"}]}
+        page = '<p>x</p>\n<script type="application/json" id="status-data">\nold\n</script>\n'
+        out = explainer_status.build(page, spec)
+        self.assertIn('"title": "k"', out)
+        self.assertNotIn("</b>", out)
+        self.assertEqual(explainer_status.build(out, spec), out)
+        with self.assertRaises(ValueError):
+            explainer_status.build("<p>no block</p>", spec)
 
 
 if __name__ == "__main__":

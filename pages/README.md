@@ -1,7 +1,7 @@
 # Pages
 
-Eleven self-contained HTML pages. Open any of them in a browser; they need no server. They load two fonts from Google
-Fonts and fall back to system fonts offline. `index.html` is a landing page that links to the eleven, and
+Thirteen self-contained HTML pages. Open any of them in a browser; they need no server. They load two fonts from Google
+Fonts and fall back to system fonts offline. `index.html` is a landing page that links to the thirteen, and
 `.github/workflows/pages.yml` publishes this folder to GitHub Pages on every push to main.
 
 | page | machine | what it shows |
@@ -16,6 +16,8 @@ Fonts and fall back to system fonts offline. `index.html` is a landing page that
 | [`1RB1RA_1LC1LD/proof-status.html`](1RB1RA_1LC1LD/proof-status.html) | the machine `1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB` | its proof status, from [`../bb6-1RB1RA_1LC1LD`](../bb6-1RB1RA_1LC1LD) |
 | [`1RB1RA_1RC1LB_1LD0RA_1LB0LE/proof-status.html`](1RB1RA_1RC1LB_1LD0RA_1LB0LE/proof-status.html) | the machine `1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD` | its proof status, from [`../bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE`](../bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE) |
 | [`1RB1RA_1RC1LB_1LD0RA_1LB0LE/explainer.html`](1RB1RA_1RC1LB_1LD0RA_1LB0LE/explainer.html) | the same machine | the table, a tape simulator, one pass phase by phase, the orbit of block lists against the closed form, the ones mod 4, the block-of-1 halting condition, and a status panel built from its `status.json` |
+| [`1RB1RF_1LC0LB/proof-status.html`](1RB1RF_1LC0LB/proof-status.html) | the machine `1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---` | its proof status, from [`../bb6-1RB1RF_1LC0LB`](../bb6-1RB1RF_1LC0LB) |
+| [`1RB1RF_1LC0LB/explainer.html`](1RB1RF_1LC0LB/explainer.html) | the same machine | the table with transition counts, a tape simulator that reads the tape as pairs with one row per turn, the sweep rules and the halting shape, the left-end moments, the walls that replay the blank run, growth, and a status panel built from its `status.json` |
 | [`champion-rule-map.html`](champion-rule-map.html) | the BB(6) champion `1RB1RA_1RC1RZ_1LD0RF_1RA0LE_0LD1RC_1RA0RE` (mxdys, 2025) | what each of the champion's twelve rules does, sorted into routines |
 | [`champion-explorer.html`](champion-explorer.html) | the BB(6) champion | runs the champion step by step and decodes its tape into a countdown, a phase, a middle counter and a pile |
 
@@ -50,6 +52,13 @@ here, and at the move both builders reproduced the committed pages byte for byte
 `../bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/status.json`. Edit the JSON and rebuild. The status panel of
 `1RB1RA_1RC1LB_1LD0RA_1LB0LE/explainer.html` comes from the same JSON: after editing it also run
 `python3 ../bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/explainer_status.py`; the rest of that page is written by hand.
+
+`1RB1RF_1LC0LB/proof-status.html` is built the same way from `../bb6-1RB1RF_1LC0LB/status.json`. In
+`1RB1RF_1LC0LB/explainer.html` the status panel comes from the same JSON (`python3 ../tools/pages/explainer_status.py
+../bb6-1RB1RF_1LC0LB/status.json 1RB1RF_1LC0LB/explainer.html`) and the run data from the files in
+`../bb6-1RB1RF_1LC0LB/runs` (`python3 ../bb6-1RB1RF_1LC0LB/py/explainer_data.py`); the rest is written by hand, and
+`../bb6-1RB1RF_1LC0LB/tests/test_explainer.py` checks both blocks and runs the page's engine against the reference
+simulator.
 
 `1RB1RA_1RC1LB/reduction.html`, `1RB1RA_1RC1LB/top-blocks.html` and `1RB1RA_1RC1LB/explainer.html` are written by hand. The reduction's section "What is
 proved, what is trusted, what is heuristic" (marked `STATUS` in the HTML) is the part to update when a result changes,
