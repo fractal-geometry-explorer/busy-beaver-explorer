@@ -6,12 +6,13 @@
   "home": "../index.html",
   "intro": [
     "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.",
-    "The work has just started: the machine is set up in Lean on the shared library, and the run from blank tape is simulated in Python, C and Lean. The macro structure of the run is not found yet."
+    "The run is a sequence of passes: the head fills a sparse region into solid 1s moving right, and turns solid blocks back into alternating cells moving left. Lean proves which passes halt; a parity invariant, checked but not proved, says none of them does."
   ],
   "asof": "Status as of 2 November 2026.",
   "verdict": [
-    "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps. These are floors, not the way to an answer.",
-    "<b>Where a halt would come from.</b> The only halting transition is E1, and E is entered only from D reading a 0, which writes a 1 and moves right. So the machine halts exactly when D reads a 0 with a 1 to its right (proved in Lean). In the first 3&middot;10<sup>6</sup> steps D reads a 0 about 103,000 times, and the cell to its right is always a 0."
+    "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps.",
+    "<b>Where a halt would come from.</b> Every rightward run is a pass that crosses gaps (runs of 0s between two 1s) of length 1 and 2 and stops at the first other gap. Lean proves that the pass halts exactly when that gap has length 3 (<code>pass_outcome</code>, kernel).",
+    "<b>Why it has not halted.</b> At every pass start in the first 10<sup>10</sup> steps, every run of 0s or 1s of length 3 or more between cells of the other symbol has even length, so no gap of 3 is ever ahead of a pass. Proving that this parity is kept would prove the machine never halts."
   ],
   "claims": [
     {
@@ -25,6 +26,18 @@
       "title": "No halt in the first 20,000 steps",
       "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 20,000 steps from blank tape without a halt, evaluated by Lean's kernel. At step 63 the tape is <code>0 1^2 0 1^4 C&gt;0</code> (<code>blank_at_63</code>).",
       "where": "<code>blank_runs_20000</code>, <code>blank_at_63</code>, <code>lean/Blank.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "Which passes halt",
+      "text": "A pass starts when F or B reads a 0 and moves right; C then crosses every gap of length 1 or 2 (by induction over any list of them). The first gap of another length ends the pass: a gap of 3 halts, a gap of 4 or more turns left at E, two 1s side by side turn left at B or F. So a pass halts exactly when the first gap it meets that is not 1 or 2 has length 3.",
+      "where": "<code>pass</code>, <code>pass_outcome</code>, <code>start_F</code>, <code>start_B</code>, <code>lean/Pass.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "The leftward pieces",
+      "text": "A and F turn <code>1^(2k) A&gt;1</code> into <code>A&gt;1 (1 0)^k</code>; B erases <code>1^k</code>; at the 0 left of a block an odd block starts a pass and an even block starts B erasing the block before it.",
+      "where": "<code>sweep</code>, <code>sweep_end_odd</code>, <code>sweep_end_even</code>, <code>erase</code>, <code>erase_end</code>, <code>lean/Pass.lean</code>"
     },
     {
       "level": "native",
@@ -45,15 +58,27 @@
       "where": "<code>tools/py/bbtools/invariants.py</code>"
     },
     {
+      "level": "trusted",
+      "title": "No pass meets a gap of 3, and runs stay even",
+      "text": "In the first 10<sup>10</sup> steps there are 344,806,676 pass starts. At each one <code>c/passes.c</code> reads the cells ahead and finds the gap that will end the pass: never a gap of 3. And every run of 0s or 1s of length 3 or more between cells of the other symbol (away from the head) has even length: no odd run at any pass start. A Python version also runs each pass and checks the prediction against the machine (no mismatch in 10<sup>6</sup> steps).",
+      "where": "<code>c/passes.c</code>, <code>py/passes.py check</code>, <code>tests/test_passes.py</code>"
+    },
+    {
       "level": "heuristic",
       "title": "The tape grows very slowly",
       "text": "The visited width is 199 cells after 10<sup>6</sup> steps and 642 after 10<sup>10</sup>, so the time per new cell grows fast, far faster than for the other machines studied here. The left part of the tape holds blocks of 1s of even length separated by single 0s; the head reaches new cells on both sides.",
       "where": "<code>py/blank.py records</code>, <code>notes/LAB_NOTES.md</code>"
     },
     {
+      "level": "heuristic",
+      "title": "Pass endings look like a binary counter",
+      "text": "Almost every pass ends at a gap of length 4j + 2, and each j is about half as common as j &minus; 1 (in 10<sup>10</sup> steps: 172,402,771 end at 6, 86,201,001 at 10, 43,096,021 at 14, 21,551,100 at 18, and so on to 62; endings at 0 or a multiple of 4 number about 3,000 in all). Together with a width that grows like the logarithm of the time, this suggests a counter whose digits are gap lengths.",
+      "where": "<code>py/passes.py check</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
       "level": "open",
       "title": "The macro structure",
-      "text": "Which configurations recur (a pass start with a growing width, a counter, a carry), and a Lean theorem that maps one to the next. This is the next step.",
+      "text": "The map from one pass to the next on block and gap lengths, and whether the run is a counter. Then a proof that the parity invariant is kept, by induction over passes or as a closed tape language built for it (window and run-class languages tried so far allow a halt).",
       "where": "<code>notes/LAB_NOTES.md</code>"
     },
     {
@@ -70,7 +95,10 @@
     "python3 bb6-1RB0LF_1RC0LB/tests/test_machine.py",
     "python3 bb6-1RB0LF_1RC0LB/py/blank.py records 100000 60",
     "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA 10000000000",
-    "cd tools/py && python3 -m bbtools.invariants 1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA 12"
+    "cd tools/py && python3 -m bbtools.invariants 1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA 12",
+    "python3 bb6-1RB0LF_1RC0LB/tests/test_passes.py",
+    "python3 bb6-1RB0LF_1RC0LB/py/passes.py check 1000000",
+    "gcc -O2 -o passes bb6-1RB0LF_1RC0LB/c/passes.c && ./passes 10000000000"
   ],
   "explainer": {
     "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for ten billion steps without stopping, and in that time it has visited only 642 cells. This page runs the real machine in your browser and lists what is known, each result marked by what it rests on. It grows as the work does.",
@@ -91,9 +119,14 @@
         "text": "The one way to stop: D reads a 0 with a 1 to its right."
       },
       {
-        "level": "open",
-        "value": "Macro structure",
-        "text": "Not found yet. The records below are where to look."
+        "level": "kernel",
+        "value": "Halts only at a gap of 3",
+        "text": "A pass crosses gaps of 1 and 2; it halts exactly when the next gap has length 3."
+      },
+      {
+        "level": "trusted",
+        "value": "No odd runs",
+        "text": "At every pass start in 10<sup>10</sup> steps, runs of length 3 or more are even, so no gap of 3."
       }
     ],
     "presets": [
@@ -104,6 +137,21 @@
     ],
     "spacetime": {
       "steps": 10000
-    }
+    },
+    "sections": [
+      {
+        "id": "passes",
+        "eyebrow": "Macro structure",
+        "heading": "Passes, and the one way to halt",
+        "html": [
+          "<p>Watch the simulator for a while and the head settles into a rhythm. Moving right, states C and B fill a <em>sparse</em> stretch of tape, single 1s with short runs of 0s between them, into solid 1s: <code>C&gt;1 0 1 0</code> becomes <code>1 1 1 1 C&gt;</code>. Moving left, A and F turn a solid block back into alternating cells, <code>1 1 1 1 A&gt;1</code> into <code>A&gt;1 1 0 1 0</code>, and B erases blocks. Left of the head the tape is solid, right of it sparse.</p>",
+          "<p>Call a run of 0s between two 1s a <em>gap</em>. A rightward run, a <em>pass</em>, starts when F or B reads the first cell of a gap and moves right. C crosses every gap of length 1 or 2, and the first gap of another length ends the pass:</p>",
+          "<ul><li>a gap of <b>3</b>: C and D fill two cells and E reads the 1 that ends the gap, which <b>halts</b>;</li><li>a gap of <b>4 or more</b>: C, D and E fill three cells and E turns the head left;</li><li><b>two 1s side by side</b>: B or F turns left.</li></ul>",
+          "<p>This is proved in Lean, checked by the kernel, for any number of crossed gaps (<code>pass_outcome</code> in <code>lean/Pass.lean</code>). So the machine halts exactly when some pass meets a gap of 3 before any other gap longer than 2.</p>",
+          "<p>It never has. In ten billion steps every run of 0s or of 1s of length 3 or more, between cells of the other symbol, has had <b>even</b> length at every pass start. A pass that ends at a gap of 4 or more uses up 4 of its cells, which keeps the parity; B erases an even block and a few cells beside it, and the pass that follows refills four of them, which again leaves an even run. If that parity can be proved to last forever, the machine never halts. That proof is the open step.</p>",
+          "<p>Most passes end at a gap of 6, half as many at 10, a quarter at 14, and so on: gaps of 4j + 2, each about half as common as the last. That is how the digits of a binary counter behave, and the tape grows about as slowly as a counter does: 199 cells after a million steps, 642 after ten billion.</p>"
+        ]
+      }
+    ]
   }
 }

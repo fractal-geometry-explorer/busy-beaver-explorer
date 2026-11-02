@@ -74,14 +74,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0LF_1RC0LB, and what is open</h1>
     <p class="machine">1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.</p>
-    <p>The work has just started: the machine is set up in Lean on the shared library, and the run from blank tape is simulated in Python, C and Lean. The macro structure of the run is not found yet.</p>
+    <p>The run is a sequence of passes: the head fills a sparse region into solid 1s moving right, and turns solid blocks back into alternating cells moving left. Lean proves which passes halt; a parity invariant, checked but not proved, says none of them does.</p>
     <p class="asof">Status as of 2 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps. These are floors, not the way to an answer.</p>
-      <p><b>Where a halt would come from.</b> The only halting transition is E1, and E is entered only from D reading a 0, which writes a 1 and moves right. So the machine halts exactly when D reads a 0 with a 1 to its right (proved in Lean). In the first 3&middot;10<sup>6</sup> steps D reads a 0 about 103,000 times, and the cell to its right is always a 0.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps.</p>
+      <p><b>Where a halt would come from.</b> Every rightward run is a pass that crosses gaps (runs of 0s between two 1s) of length 1 and 2 and stops at the first other gap. Lean proves that the pass halts exactly when that gap has length 3 (<code>pass_outcome</code>, kernel).</p>
+      <p><b>Why it has not halted.</b> At every pass start in the first 10<sup>10</sup> steps, every run of 0s or 1s of length 3 or more between cells of the other symbol has even length, so no gap of 3 is ever ahead of a pass. Proving that this parity is kept would prove the machine never halts.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -105,6 +106,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 20,000 steps from blank tape without a halt, evaluated by Lean's kernel. At step 63 the tape is <code>0 1^2 0 1^4 C&gt;0</code> (<code>blank_at_63</code>).</p>
         <p class="where"><code>blank_runs_20000</code>, <code>blank_at_63</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Which passes halt</h3>
+        <p>A pass starts when F or B reads a 0 and moves right; C then crosses every gap of length 1 or 2 (by induction over any list of them). The first gap of another length ends the pass: a gap of 3 halts, a gap of 4 or more turns left at E, two 1s side by side turn left at B or F. So a pass halts exactly when the first gap it meets that is not 1 or 2 has length 3.</p>
+        <p class="where"><code>pass</code>, <code>pass_outcome</code>, <code>start_F</code>, <code>start_B</code>, <code>lean/Pass.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The leftward pieces</h3>
+        <p>A and F turn <code>1^(2k) A&gt;1</code> into <code>A&gt;1 (1 0)^k</code>; B erases <code>1^k</code>; at the 0 left of a block an odd block starts a pass and an even block starts B erasing the block before it.</p>
+        <p class="where"><code>sweep</code>, <code>sweep_end_odd</code>, <code>sweep_end_even</code>, <code>erase</code>, <code>erase_end</code>, <code>lean/Pass.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -126,6 +137,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>No a&middot;ones + b&middot;pos + W[state] is conserved modulo 2 to 12, so a linear invariant like the first holdout's mod-3 count does not exist here.</p>
         <p class="where"><code>tools/py/bbtools/invariants.py</code></p>
       </div>
+      <div class="card">
+        <h3>No pass meets a gap of 3, and runs stay even</h3>
+        <p>In the first 10<sup>10</sup> steps there are 344,806,676 pass starts. At each one <code>c/passes.c</code> reads the cells ahead and finds the gap that will end the pass: never a gap of 3. And every run of 0s or 1s of length 3 or more between cells of the other symbol (away from the head) has even length: no odd run at any pass start. A Python version also runs each pass and checks the prediction against the machine (no mismatch in 10<sup>6</sup> steps).</p>
+        <p class="where"><code>c/passes.c</code>, <code>py/passes.py check</code>, <code>tests/test_passes.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -134,12 +150,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The visited width is 199 cells after 10<sup>6</sup> steps and 642 after 10<sup>10</sup>, so the time per new cell grows fast, far faster than for the other machines studied here. The left part of the tape holds blocks of 1s of even length separated by single 0s; the head reaches new cells on both sides.</p>
         <p class="where"><code>py/blank.py records</code>, <code>notes/LAB_NOTES.md</code></p>
       </div>
+      <div class="card">
+        <h3>Pass endings look like a binary counter</h3>
+        <p>Almost every pass ends at a gap of length 4j + 2, and each j is about half as common as j &minus; 1 (in 10<sup>10</sup> steps: 172,402,771 end at 6, 86,201,001 at 10, 43,096,021 at 14, 21,551,100 at 18, and so on to 62; endings at 0 or a multiple of 4 number about 3,000 in all). Together with a width that grows like the logarithm of the time, this suggests a counter whose digits are gap lengths.</p>
+        <p class="where"><code>py/passes.py check</code>, <code>notes/LAB_NOTES.md</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>The macro structure</h3>
-        <p>Which configurations recur (a pass start with a growing width, a counter, a carry), and a Lean theorem that maps one to the next. This is the next step.</p>
+        <p>The map from one pass to the next on block and gap lengths, and whether the run is a counter. Then a proof that the parity invariant is kept, by induction over passes or as a closed tape language built for it (window and run-class languages tried so far allow a halt).</p>
         <p class="where"><code>notes/LAB_NOTES.md</code></p>
       </div>
       <div class="card open">
@@ -156,7 +177,10 @@ bb6-1RB0LF_1RC0LB/lean/check.sh               # the library, then Machine, Blank
 python3 bb6-1RB0LF_1RC0LB/tests/test_machine.py
 python3 bb6-1RB0LF_1RC0LB/py/blank.py records 100000 60
 gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA 10000000000
-cd tools/py &amp;&amp; python3 -m bbtools.invariants 1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA 12</code></pre>
+cd tools/py &amp;&amp; python3 -m bbtools.invariants 1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA 12
+python3 bb6-1RB0LF_1RC0LB/tests/test_passes.py
+python3 bb6-1RB0LF_1RC0LB/py/passes.py check 1000000
+gcc -O2 -o passes bb6-1RB0LF_1RC0LB/c/passes.c &amp;&amp; ./passes 10000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>bb6-1RB0LF_1RC0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

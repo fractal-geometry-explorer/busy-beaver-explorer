@@ -40,3 +40,84 @@ blocks of 1s of even length separated by single 0s.
 
 **Next.** Find the macro configuration and its map, check it against direct simulation, then state it in Lean. The
 blank-tape simulation and macro structure are being worked on in a sibling thread.
+
+## 2 November 2026: passes, which of them halt, and a parity invariant
+
+**The mechanism.** The head bounces. Moving right, C and B fill a *sparse* region (single 1s with runs of 0s between
+them) into solid 1s: C1 = 1RB, B0 = 1RC, so `C>1 0 1 0 …` becomes `1 1 1 1 … C>`. Moving left, A and F turn a solid
+block back into alternating cells: A1 = 0LF, F1 = 1LA, so `1^(2k) A>1` becomes `A>1 (1 0)^k`; B erases 1s
+(B1 = 0LB). At every right turn the tape left of the head is solid (blocks of 1s of even length separated by single
+0s) and the tape right of it is sparse (single 1s, rarely two, separated by runs of 0s).
+
+**The pass (proved, kernel: `lean/Pass.lean`).** Call a *gap* a maximal run of 0s between two 1s. A pass starts when
+the head turns right: F or B, having just moved left, reads a 0, which is the first cell of a gap, and moves right
+(`start_F`, `start_B`); C then stands on the gap's second cell. C crosses gaps of length 1 and 2 (`gap1`, `gap2`, and
+`pass` for any list of them, by induction). The first gap of any other length ends the pass:
+
+| ending gap | what happens | theorem |
+|---|---|---|
+| 3 | C0, D0, then E reads a 1: **halt** | `pass_halt` |
+| 4 or more | C, D, E write three 1s; E0 turns left, A on the middle one | `pass_turn_E` |
+| 0 after a gap of 1 (`1 1`) | B reads the second 1 and erases leftward | `pass_turn_B1` |
+| 0 after a gap of 2 | F reads the second 1 and turns left (A) | `pass_turn_B2` |
+
+So **a pass halts exactly when the first gap it meets that is not 1 or 2 has length 3** (`pass_outcome`). Every
+rightward run of the machine is a pass (A0 = 1RB also moves right, but only at the end of a sweep, and B turns back
+left at once), so the machine halts iff some pass of the run from blank tape meets a gap of 3. The pieces of the
+leftward run are proved too: `sweep` (A/F over `1^(2k)`), `sweep_end_odd` (the 0 left of an odd block: F keeps it and
+a pass starts), `sweep_end_even` (A fills it and B starts erasing the block before), `erase` (B over `1^k`) and
+`erase_end` (B writes a 1 on the 0 it reaches and a pass starts on the erased cells).
+
+**The parity invariant (observed; trusted C up to 10¹⁰ steps).** At every pass start of the run, every run of 0s or of
+1s of length 3 or more that has the other symbol on both sides (and does not touch the head) has *even* length. A gap
+of 3 is an odd run of 0s, so as long as this holds the machine cannot halt. Where the parity comes from: a pass fills
+1 + 2 + … cells and ends at a gap g ≥ 4 by filling 4 of its cells (B or F's cell, then C, D, E), which leaves g − 4,
+the same parity; after an even block's sweep, B erases the block before it (even length n) and the two cells after it,
+which with the 0 the sweep left beside them is a gap of n + 4 counted from B's cell, and the pass that starts there
+fills 4 of it and leaves n; the sweep itself only makes single 0s. An odd block or an odd gap would have to come from one of these steps
+seeing an odd length first. `c/passes.c` checks the invariant and predicts the end of every pass from the cells ahead:
+in the first 10¹⁰ steps there are 344,806,676 pass starts, none
+has a gap of 3 ahead, and none has an odd run anywhere on the tape (width 642 at the end; about 5 minutes). `py/passes.py check` does the same in Python, and also runs each pass to compare the predicted ending
+with the machine (no mismatch in 10⁶ steps; `tests/test_passes.py`).
+
+**Pass endings look like a binary counter (heuristic).** Almost every pass ends at a gap of length 4j + 2, and each j
+is about half as common as j − 1 (in 10¹⁰ steps: 172,402,771 passes end at 6, 86,201,001 at 10, 43,096,021 at 14,
+21,551,100 at 18, 10,779,244 at 22, … 10,370 at 62; the ratio stays 2.00 to three digits). Endings at 0 and at multiples of 4 are rare (about 3,000 of 3.4·10⁸). Consecutive passes tend to end at the same j
+while the head drifts right two cells per pass, then j drops. This ruler-like distribution, together with a width that
+grows like the logarithm of the time (10⁶ steps: 199 cells, 10¹⁰: 642), suggests a counter whose digits are the gap
+lengths; the carry that reaches the end of the tape is what widens it. The exact macro map is not found yet.
+
+**Closed tape languages tried (none decides it).** Window CTLs (`bbtools.ctl`, K = 2 to 6), windows with the length of
+the nearest run modulo 2 or 4 (K ≤ 10), and automata that keep the lengths of the J nearest runs up to C plus parity
+(C ≤ 4, J ≤ 3), with or without the set of farther run classes: all close but allow a halt. The halts they allow come
+from merging tapes that differ far from the head: for example a 1-run of 4 on the sparse side, which the real run never
+has. A first try at a language that encodes "solid left, sparse right" directly (the J nearest runs exact, farther
+runs on the left 1-runs of even length and single 0s, farther runs on the right single or double 1s and 0-runs of 1
+or even length) finds no halt but does not close: with C = 4, J = 3 it needs a run of three 1s on the right, from E
+filling the last cell of a gap of 4 next to a `1 1` (which the run never has). Refining that language is the most
+direct route to a proof.
+
+**The theorem to aim for.** With `OddGap t` meaning: the stream `t` has a run of exactly three 0s with 1s on both sides,
+
+```lean
+/-- F or B on a 0, about to move right: every pass start, and also B crossing a gap of 1 inside a pass (the cells
+    ahead are the same as at the pass's start, so nothing is lost by including them). -/
+def PassStart (c : Config) : Prop := (c.st = .F ∨ c.st = .B) ∧ c.r 0 = false
+
+/-- Halting is decided at pass starts (provable from `pass_outcome`): the run halts iff some pass start of the run
+    has, ahead of it, gaps of 1 and 2 and then a gap of 3. -/
+theorem halts_iff_pass_gap3 :
+    HaltsFromBlank ↔ ∃ n c gs R, steps n init = some c ∧ PassStart c ∧ (∀ g ∈ gs, g = 1 ∨ g = 2) ∧
+      tail c.r = app (word gs) (app [false, false, true] R)
+
+/-- The parity invariant (open): at every pass start, no run of 0s or 1s of odd length ≥ 3 between cells of the
+    other symbol.  It implies that no pass meets a gap of 3, so the machine never halts. -/
+theorem parity_at_pass_starts : ∀ n c, steps n init = some c → PassStart c → ¬ OddRun c.l ∧ ¬ OddRun (tail c.r)
+```
+
+The second is the real question; the first only needs `pass_outcome` and the fact that a halt is the end of the pass
+it belongs to.
+
+**Next.** (1) Find the macro map: how a pass ending at gap 4j + 2 changes the solid blocks and the gaps, and whether
+the run is a counter. (2) Prove the parity invariant, either by induction on passes with the pass and sweep lemmas
+above or with a closed tape language built for it. (3) Prove `halts_iff_pass_gap3`.
