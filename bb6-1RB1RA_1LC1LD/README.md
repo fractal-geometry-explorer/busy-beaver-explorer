@@ -2,7 +2,7 @@
 
 Whether this machine halts from blank tape is open. This folder holds its work; the shared tools are in
 [`../tools`](../tools), the proof-status page is [`../pages/1RB1RA_1LC1LD/proof-status.html`](../pages/1RB1RA_1LC1LD/proof-status.html)
-(built from [`status.json`](status.json)), and the log is [`notes/LAB_NOTES.md`](notes/LAB_NOTES.md).
+(built from [`status.json`](status.json)), the interactive explainer is [`../pages/1RB1RA_1LC1LD/explainer.html`](../pages/1RB1RA_1LC1LD/explainer.html), and the log is [`notes/LAB_NOTES.md`](notes/LAB_NOTES.md).
 
 ## What is established
 
@@ -131,6 +131,7 @@ question itself.
 | `py/blocks.py` | which pass starts can lead to a halt: the run, exhaustive and random checks, recursive offsets, case A of `lean/Chain.lean` |
 | `py/tokens.py` | `pre` at its A states: two words eaten each time, the token count, growth steps (`notes/LAB_NOTES.md`, 1 November, ranking function) |
 | `tests/test_machine.py` | generated files current, the page current, C against Python, the facts in the notes |
+| `tests/test_explainer.py` | the explainer page's engine (simulator, pass map, offsets) and run data against `py/macro.py` and the reference simulator, in Node |
 | `status.json` | the source of the proof-status page (`tools/pages/build_status.py`) |
 
 ## Check
@@ -139,5 +140,6 @@ question itself.
 bash scripts/setup-lean.sh && . /etc/profile.d/lean.sh
 bb6-1RB1RA_1LC1LD/lean/check.sh
 python3 bb6-1RB1RA_1LC1LD/tests/test_machine.py
+python3 bb6-1RB1RA_1LC1LD/tests/test_explainer.py
 python3 tools/pages/build_status.py bb6-1RB1RA_1LC1LD/status.json pages/1RB1RA_1LC1LD/proof-status.html   # after editing status.json
 ```
