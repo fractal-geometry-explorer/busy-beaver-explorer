@@ -152,6 +152,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Run side by side with the machine, the macro machine predicts every one of the 344,806,676 pass starts in the first 10<sup>10</sup> steps, cell for cell over the whole tape, and never gets stuck. Python agrees with C, and with the machine on all small configurations.</p>
         <p class="where"><code>c/macro.c</code>, <code>py/macro.py check</code>, <code>tests/test_macro.py</code></p>
       </div>
+      <div class="card">
+        <h3>No small DFA closes the tape</h3>
+        <p>One side of the tape abstracted by a DFA, the other kept exactly as a pushdown stack, reachability computed exactly by post* saturation: every DFA with at most 7 states, on either side, lets the abstraction reach a halt. Run-window languages on the tape do not close either. Tested sound on random small machines.</p>
+        <p class="where"><code>c/pds.c</code>, <code>py/pds.py</code>, <code>tests/test_pds.py</code>, <code>notes/LAB_NOTES.md</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -199,7 +204,9 @@ python3 bb6-1RB0LF_1RC0LB/py/passes.py check 1000000
 gcc -O2 -o passes bb6-1RB0LF_1RC0LB/c/passes.c &amp;&amp; ./passes 10000000000
 python3 bb6-1RB0LF_1RC0LB/tests/test_macro.py
 python3 bb6-1RB0LF_1RC0LB/py/macro.py show 40
-gcc -O2 -o macro bb6-1RB0LF_1RC0LB/c/macro.c &amp;&amp; ./macro 10000000000</code></pre>
+gcc -O2 -o macro bb6-1RB0LF_1RC0LB/c/macro.c &amp;&amp; ./macro 10000000000
+python3 bb6-1RB0LF_1RC0LB/tests/test_pds.py
+gcc -O2 -o pds bb6-1RB0LF_1RC0LB/c/pds.c &amp;&amp; ./pds 6 L &amp;&amp; ./pds 6 R   # every DFA up to 6 states, about a minute each</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>bb6-1RB0LF_1RC0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>
