@@ -17,9 +17,12 @@ as they are and keeps only what is about its own machine.
 | `py/bbtools/invariants.py` | exhaustive search for conserved a·ones + b·pos + W[state] (mod m) | the holdout's mod-3 invariant, found by hand there |
 | `py/bbtools/ctl.py` | finds the closed tape language from windows of K cells (`search`), runs the same closure test as Lean (`check`), lists the halts it allows, and writes it as a Lean file (`lean_file`) | new |
 | `c/tm.h`, `c/tmrun.c` | fast direct simulator (records, events, snapshots) | `bb6-holdout/stepper`, `blankrun` |
+| `py/bbtools/explore.py` `tokens`, `turns` | the tape read as words (`a=10,b=110`, longest first, run-length coded) at the moments the head extends the tape, and the head's turns | new (for `bb6-1RB1RF_1LC0LB`) |
+| `c/tokrun.c` | the same word view in C, for billions of steps | new |
 | `c/parts.h`, `c/run_parts.sh`, `py/merge_parts.py` | a search split into parts: output protocol, resumable parallel runner, checked merge (refuses missing or unfinished parts) | `bb6-holdout/dfs/run_parts.sh`, `merge.py` |
 | `c/windowscan.c` | an example part program: every K-cell word in a state, run T steps | new |
 | `pages/build_status.py` | a proof-status page from JSON, every claim tagged kernel / native / trusted / heuristic / open | the design of `pages/proof-status.html` |
+| `pages/explainer_status.py` | writes the status panel of an explainer page (a JSON block) from a machine's `status.json`; `check` tells a test whether the page is current | `bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/explainer_status.py` (which keeps its copy) |
 | `pages/build_explainer.py` | an interactive explainer page from the same JSON for any machine: the table, where it can halt (generated from the table), the machine running in the browser, a space-time diagram, the records, the ledger; hand-written sections go in the JSON | the explainers of the other machines, whose common parts it generalizes |
 | `tests/test_tools.py` | tests of all of the above (C against Python, known champions, symbolic against concrete, generated Lean compiled) | new |
 
@@ -28,7 +31,7 @@ is not generic; what carries over is its harness: split into parts, run them in 
 
 ## Adding a machine
 
-`bb6-1RB0LF_1RC0LB/` is the smallest complete example (with a generated explainer). For a new machine `M`:
+`bb6-1RB0LF_1RC0LB/` is the smallest complete example (with a generated explainer); `bb6-1RB1RF_1LC0LB/` has a hand-written one. For a new machine `M`:
 
 1. `python3 -m bbtools.leangen M Namespace` (from `tools/py`) writes `lean/Machine.lean`; add `lean/Blank.lean` with
    `blank_runs` goals and a `lean/check.sh` that calls `tools/lean/check.sh . Machine.lean Blank.lean ...`.
@@ -50,9 +53,12 @@ python3 -m bbtools.leangen MACHINE Namespace > Machine.lean
 python3 -m bbtools.invariants MACHINE
 python3 -m bbtools.ctl MACHINE 3                              # where can it halt?  then: ... 3 lean Namespace > F.lean
 python3 -m bbtools.explore records MACHINE 100000
+python3 -m bbtools.explore tokens MACHINE 3000000 a=10,b=110 L 40     # the tape as words at the left end
+python3 -m bbtools.explore turns MACHINE 1681 2200                    # every turn of the head
 python3 -c 'from bbtools.symtm import prove; print(prove("MACHINE", "rule", "L A> 1^n R", "L 1^n A> R")[0])'
 
 gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun MACHINE 1000000000 at F L
+gcc -O2 -o tokrun tools/c/tokrun.c && ./tokrun MACHINE 10000000000 a=10,b=110 L 1000
 tools/c/run_parts.sh 64 4 out ./windowscan MACHINE A 24 1000 && python3 tools/py/merge_parts.py out/part_*.txt
 ```
 
