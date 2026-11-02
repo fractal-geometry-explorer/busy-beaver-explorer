@@ -74,7 +74,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0LF_1RC0LB, and what is open</h1>
     <p class="machine">1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.</p>
-    <p>The run is a sequence of passes: the head fills a sparse region into solid 1s moving right, and turns solid blocks back into alternating cells moving left. Lean proves which passes halt; a parity invariant, checked but not proved, says none of them does.</p>
+    <p>The run is a sequence of passes: the head fills a sparse region into solid 1s moving right, and turns solid blocks back into alternating cells moving left. Lean proves which passes halt, and that from pass start to pass start the run is a macro machine on a stack and a list of segment and gap lengths; the machine halts only if that macro machine gets stuck.</p>
     <p class="asof">Status as of 2 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
@@ -82,7 +82,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="verdict">
       <p><b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps.</p>
       <p><b>Where a halt would come from.</b> Every rightward run is a pass that crosses gaps (runs of 0s between two 1s) of length 1 and 2 and stops at the first other gap. Lean proves that the pass halts exactly when that gap has length 3 (<code>pass_outcome</code>, kernel).</p>
-      <p><b>Why it has not halted.</b> At every pass start in the first 10<sup>10</sup> steps, every run of 0s or 1s of length 3 or more between cells of the other symbol has even length, so no gap of 3 is ever ahead of a pass. Proving that this parity is kept would prove the machine never halts.</p>
+      <p><b>Why it has not halted.</b> Lean proves that the run is a macro machine on lists of numbers, and that the machine halts only if the macro machine gets stuck. That needs two 1s side by side next to an empty segment, which only odd numbers can bring about; in the run they are rare (at most 4 at a time), and the macro machine has never been stuck in 10<sup>10</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -116,6 +116,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>A and F turn <code>1^(2k) A&gt;1</code> into <code>A&gt;1 (1 0)^k</code>; B erases <code>1^k</code>; at the 0 left of a block an odd block starts a pass and an even block starts B erasing the block before it.</p>
         <p class="where"><code>sweep</code>, <code>sweep_end_odd</code>, <code>sweep_end_even</code>, <code>erase</code>, <code>erase_end</code>, <code>lean/Pass.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The macro machine</h3>
+        <p>At every pass start the tape is a stack of solid blocks <code>1^(2s+2)</code> separated by single 0s, the head on a gap of <code>2h+2</code> cells, and a word of segments <code>(0 1)^m</code> and gaps <code>0^(2g) 1</code>. A function <code>mstep</code> on these numbers gives the next pass start, and Lean proves the machine goes there, for all values of the parameters. <code>mstep</code> fails only at a gap <code>g = 0</code> (two 1s side by side) next to an empty segment. So if the macro machine never gets stuck from the configuration after 12 steps, the machine never halts.</p>
+        <p class="where"><code>mstep_sound</code>, <code>blank_to_M0</code>, <code>no_halt_of_macro</code>, <code>lean/Macro.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -142,6 +147,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>In the first 10<sup>10</sup> steps there are 344,806,676 pass starts. At each one <code>c/passes.c</code> reads the cells ahead and finds the gap that will end the pass: never a gap of 3. And every run of 0s or 1s of length 3 or more between cells of the other symbol (away from the head) has even length: no odd run at any pass start. A Python version also runs each pass and checks the prediction against the machine (no mismatch in 10<sup>6</sup> steps).</p>
         <p class="where"><code>c/passes.c</code>, <code>py/passes.py check</code>, <code>tests/test_passes.py</code></p>
       </div>
+      <div class="card">
+        <h3>The run follows the macro machine</h3>
+        <p>Run side by side with the machine, the macro machine predicts every one of the 344,806,676 pass starts in the first 10<sup>10</sup> steps, cell for cell over the whole tape, and never gets stuck. Python agrees with C, and with the machine on all small configurations.</p>
+        <p class="where"><code>c/macro.c</code>, <code>py/macro.py check</code>, <code>tests/test_macro.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -152,15 +162,20 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Pass endings look like a binary counter</h3>
-        <p>Almost every pass ends at a gap of length 4j + 2, and each j is about half as common as j &minus; 1 (in 10<sup>10</sup> steps: 172,402,771 end at 6, 86,201,001 at 10, 43,096,021 at 14, 21,551,100 at 18, and so on to 62; endings at 0 or a multiple of 4 number about 3,000 in all). Together with a width that grows like the logarithm of the time, this suggests a counter whose digits are gap lengths.</p>
-        <p class="where"><code>py/passes.py check</code>, <code>notes/LAB_NOTES.md</code></p>
+        <p>Almost every pass ends at a gap of length 4j + 2, and each j is about half as common as j &minus; 1. In macro terms half of all passes are B passes, which end at their own head gap h = m + 2, where m is the last segment the F pass before crossed; h = 2, 4, 6, 8, &hellip; occur with frequencies halving exactly. In the macro machine the first nonzero gap is counted down by 2 per round and a segment just before it becomes a gap of its own size: a counter whose digits are the gaps. Not a proved description of the run.</p>
+        <p class="where"><code>py/macro.py stats</code>, <code>notes/LAB_NOTES.md</code></p>
+      </div>
+      <div class="card">
+        <h3>Only a few odd numbers</h3>
+        <p>If every number in a macro configuration is even, every rule gives even numbers again and none can get stuck. Odd numbers enter only at the left end (popping the empty stack gives a segment 1) and at the last segment. In the run there are at most 4 odd numbers at a time, and F meets two 1s side by side only 546 times in 10<sup>10</sup> steps (of 344,806,676 passes).</p>
+        <p class="where"><code>c/macro.c</code>, <code>notes/LAB_NOTES.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>The macro structure</h3>
-        <p>The map from one pass to the next on block and gap lengths, and whether the run is a counter. Then a proof that the parity invariant is kept, by induction over passes or as a closed tape language built for it (window and run-class languages tried so far allow a halt).</p>
+        <h3>The macro machine never gets stuck</h3>
+        <p>A description of where the odd numbers can be that the rules preserve and that excludes the two stuck cases. That would prove the machine never halts. An odd number has over a thousand distinct small neighbourhoods in the run, so the description is not tiny; window and pushdown languages over the macro numbers are the next tries.</p>
         <p class="where"><code>notes/LAB_NOTES.md</code></p>
       </div>
       <div class="card open">
@@ -175,12 +190,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 . /etc/profile.d/lean.sh
 bb6-1RB0LF_1RC0LB/lean/check.sh               # the library, then Machine, Blank, Axioms (under a minute)
 python3 bb6-1RB0LF_1RC0LB/tests/test_machine.py
+bb6-1RB0LF_1RC0LB/lean/check.sh               # also Macro.lean: mstep_sound, no_halt_of_macro
 python3 bb6-1RB0LF_1RC0LB/py/blank.py records 100000 60
 gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA 10000000000
 cd tools/py &amp;&amp; python3 -m bbtools.invariants 1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA 12
 python3 bb6-1RB0LF_1RC0LB/tests/test_passes.py
 python3 bb6-1RB0LF_1RC0LB/py/passes.py check 1000000
-gcc -O2 -o passes bb6-1RB0LF_1RC0LB/c/passes.c &amp;&amp; ./passes 10000000000</code></pre>
+gcc -O2 -o passes bb6-1RB0LF_1RC0LB/c/passes.c &amp;&amp; ./passes 10000000000
+python3 bb6-1RB0LF_1RC0LB/tests/test_macro.py
+python3 bb6-1RB0LF_1RC0LB/py/macro.py show 40
+gcc -O2 -o macro bb6-1RB0LF_1RC0LB/c/macro.c &amp;&amp; ./macro 10000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>bb6-1RB0LF_1RC0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

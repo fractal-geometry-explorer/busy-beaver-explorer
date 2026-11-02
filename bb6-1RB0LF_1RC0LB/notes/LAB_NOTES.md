@@ -121,3 +121,73 @@ it belongs to.
 **Next.** (1) Find the macro map: how a pass ending at gap 4j + 2 changes the solid blocks and the gaps, and whether
 the run is a counter. (2) Prove the parity invariant, either by induction on passes with the pass and sweep lemmas
 above or with a closed tape language built for it. (3) Prove `halts_iff_pass_gap3`.
+
+## 2 November 2026: the macro machine
+
+**The shape at every pass start (checked: C over 10¹⁰ steps).** Write the tape at a pass start as
+
+    0^∞ 1^(2s₁+2) 0 1^(2s₂+2) 0 … 0 1^(2sₚ+2) [head] 0^(2h+1) 1 (0 1)^m₁ 0^(2n₁+2) 1 (0 1)^m₂ 0^(2n₂+2) 1 … (0 1)^mₜ 0^∞
+
+a *stack* of solid blocks of even length (the top, sₚ, next to the head), a *head gap* of 2h + 2 cells counting the
+head's own cell, and a *word* of *segments* (0 1)^m and *gaps* of 2n + 2 cells. A gap with n = −1 is two 1s side by
+side; n = 0 is the gap of 2 cells that a pass crosses; n ≥ 1 ends a pass. (Lean and `py/macro.py` count the gap as
+g = n + 1, so that it is a natural number.) Every pass start of the run has this shape, F always with h = 0 (`F> 0 0
+1`), B with h ≥ 1 or with blank tape ahead, and the states alternate B, F, B, F, …. Below, `B 0 1 | 4 | 2 <0> 6 <-1> 1`
+is a configuration in state B with stack 0, 1 (bottom first), head gap h = 4 and word 2 <0> 6 <−1> 1.
+
+**The rules (proved, kernel: `lean/Macro.lean`).** From one pass start to the next:
+
+* **B**, head gap h ≥ 1: pop the top j of the stack (j = −1 if the stack is empty). B fills four cells of its gap and A
+  sweeps the block back into a segment: F, head 0, word **(j + 2) <h − 2>** m₁ <n₁> …. With blank tape ahead the word
+  is just j + 2.
+* **F**: let i be the first gap with nᵢ ≠ 0 (blank tape counts as a gap n ≥ 1), and m₀ = 0. The pass turns every
+  segment before it into a block.
+  * nᵢ ≥ 1: push 0, m₁, …, m_{i−2}; the block of m_{i−1} is erased and becomes the head gap: B, **h = m_{i−1} + 2**,
+    word mᵢ **<nᵢ − 2>** m_{i+1} ….
+  * nᵢ = −1 (two 1s side by side), with mᵢ ≥ 1 and m_{i+1} ≥ 1: push 0, m₁, …, m_{i−1}; B, **h = mᵢ**, word
+    **(m_{i+1} − 1)** <n_{i+1}> …. If m_{i+1} is the last segment it may be 0, and then the tape ahead of B is blank.
+
+The first pass start, after 12 steps, is `B | 1 | 1` (`B> 0^4 1 0 1`, `blank_to_M0`). In Lean the rules are
+`BB6e.mstep`, and `mstep_sound` proves that the machine goes from each configuration to the next for every value of
+the parameters (pieces: `unit_cross`, `end_big`, `end_double`, `b_pass`, built from the lemmas of `Pass.lean`). The
+rules do not apply in exactly two cases: nᵢ = −1 with mᵢ = 0, and nᵢ = −1 with m_{i+1} = 0 before another gap. The
+second would turn the following gap into one of odd length, which is where a gap of 3 and a halt could come from. So
+(`no_halt_of_macro`, kernel):
+
+> if the macro machine never gets stuck from `B | 1 | 1`, the machine never halts from blank tape.
+
+The question is now about lists of numbers, with no tape left in it.
+
+**Checks.** `c/macro.c` runs the machine and the macro machine side by side and compares the whole tape at every pass
+start: 344,806,676 pass starts in 10¹⁰ steps, no mismatch, no stuck configuration. `py/macro.py check` does the same
+in Python; `tests/test_macro.py` also checks `mstep` against the machine on every small configuration (about 22,000)
+and C against Python.
+
+**The even sea (proved by inspection of the rules; not in Lean yet).** If every number in a configuration is even, F
+never meets n = −1 (gaps go down by 2 from an even value, reach 0 and are crossed), and every rule gives even numbers
+again. Odd numbers enter at two places only: popping the empty stack (j = −1 gives a segment 1, at the left end of the
+tape) and the last segment. An odd segment becomes an odd gap (as m_{i−1} + 2 and then h − 2), an odd gap counts down
+to −1, and only a gap at −1 can get the machine stuck. So everything that could make it halt is carried by a few odd
+numbers in a sea of even ones.
+
+**What the run does (C, 10¹⁰ steps).** Of 344,806,676 pass starts, 172,403,331 are B passes, 172,402,792 are F passes
+that end at a gap n ≥ 1, 7 are B passes with blank tape ahead, and only 546 F passes meet two 1s side by side
+(65 by 10⁶ steps, 124 by 10⁷, 214 by 10⁸, 298 by 10⁹, 546 by 10¹⁰). No pass start in 10¹⁰ steps has had more than 4 odd numbers in its configuration (counting stack, head gap, segments and gaps n). Those
+are the passes that ended at a gap of 0 or a multiple of 4 in the earlier tally: a pass ends at a gap of 2n + 2 cells,
+so odd n is a multiple of 4.
+
+**The "binary counter" (heuristic).** The halving of pass endings is the distribution of the head gap of B, h = m + 2
+for the segment m that F crossed last: in 10⁶ macro steps h = 2, 4, 6, 8, 10, 12 occur 250,030, 125,189, 61,984,
+31,360, 15,687 and 7,792 times. In the even sea, two macro steps from F to F are
+
+    F | 0 | … m_{i−2} <0> m_{i−1} <0> mᵢ <nᵢ> …   →   F | 0 | … (m_{i−2} + 2) <m_{i−1}> mᵢ <nᵢ − 2> …   (i ≥ 3)
+
+(with m₁, …, m_{i−3} and a 0 pushed), and for i = 1 the stack's top t comes back as a segment: `F | 0 | (t + 2) <0>
+m₁ <n₁ − 2> …`. The first nonzero gap is counted down by 2 per round, and a segment that ends up just before the
+stopping gap becomes a gap of its own size: a counter whose digits are the gaps, with the stack as its carry. This is
+not a proved description of the run.
+
+**Next.** A closed description of where the odd numbers can be. In 5·10⁵ macro steps an odd number has 1,152 distinct
+neighbourhoods (two neighbours on each side, values above 5 kept only by parity), so it is not small at that
+resolution, but the macro machine is a much smaller object than the tape: a window language over its numbers (values
+capped, kept by parity), or a pushdown abstraction with the stack exact, are the natural next tries.
