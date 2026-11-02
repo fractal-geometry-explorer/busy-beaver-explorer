@@ -19,6 +19,7 @@ as they are and keeps only what is about its own machine.
 | `c/tm.h`, `c/tmrun.c` | fast direct simulator (records, events, snapshots) | `bb6-holdout/stepper`, `blankrun` |
 | `py/bbtools/explore.py` `tokens`, `turns` | the tape read as words (`a=10,b=110`, longest first, run-length coded) at the moments the head extends the tape, and the head's turns | new (for `bb6-1RB1RF_1LC0LB`) |
 | `c/tokrun.c` | the same word view in C, for billions of steps | new |
+| `py/bbtools/macro.py` | a macro-machine simulator: blocks of k cells, run-length coded, runs of a block crossed at once when the head comes out the far side in the same state; exact (tested cell for cell), and for machines whose sweeps cross long runs it takes about one macro step per run (10¹² steps of 1RB1RF_1LC0LB in 23 s) | new (for `bb6-1RB1RF_1LC0LB`) |
 | `c/parts.h`, `c/run_parts.sh`, `py/merge_parts.py` | a search split into parts: output protocol, resumable parallel runner, checked merge (refuses missing or unfinished parts) | `bb6-holdout/dfs/run_parts.sh`, `merge.py` |
 | `c/windowscan.c` | an example part program: every K-cell word in a state, run T steps | new |
 | `pages/build_status.py` | a proof-status page from JSON, every claim tagged kernel / native / trusted / heuristic / open | the design of `pages/proof-status.html` |
@@ -55,6 +56,7 @@ python3 -m bbtools.ctl MACHINE 3                              # where can it hal
 python3 -m bbtools.explore records MACHINE 100000
 python3 -m bbtools.explore tokens MACHINE 3000000 a=10,b=110 L 40     # the tape as words at the left end
 python3 -m bbtools.explore turns MACHINE 1681 2200                    # every turn of the head
+python3 -m bbtools.macro MACHINE 4 1e12                                # macro machine, blocks of 4 cells
 python3 -c 'from bbtools.symtm import prove; print(prove("MACHINE", "rule", "L A> 1^n R", "L 1^n A> R")[0])'
 
 gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun MACHINE 1000000000 at F L

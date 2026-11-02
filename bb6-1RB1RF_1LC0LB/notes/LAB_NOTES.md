@@ -140,3 +140,78 @@ left-end moment starts with a wall of 1,752) is where the structure changes.
    out `0 11` in front of E, or show where it can arise.
 5. **Search.** Once the excursion map exists, a parts search over block lists (`tools/c/parts.h`) can look for lists
    that halt; until then a raw search has nothing to enumerate.
+
+## 2 November 2026 (later): the right end is a base-3 counter
+
+### A fast simulator
+
+`tools/py/bbtools/macro.py` is a macro machine: the tape in blocks of k cells, run-length coded, the head between
+blocks; a block transition is cached, and when the head leaves a block on the far side in the state it came in with,
+the whole run of equal blocks is crossed at once. With k = 4 this machine's sweeps cross whole blocks of pairs:
+10⁶ steps take 9,792 macro steps, 10¹⁰ take 2.2·10⁶ and 10¹² take 2.2·10⁷ (23 s in Python), with 15 to 35 runs on
+the tape. It is exact (tested cell for cell against `bbtools.machine.Run`, and on the BB(2) to BB(5) champions).
+
+### The levels
+
+At each return of the head to the right end (C reading the `0` of `... 0 10 0^inf`), read the tape as blocks of pairs
+and single cells (`py/counter.py levels`). At step 10¹⁰:
+
+```
+92 0 6 0 4 0 8 1 37 1 37 1 211 1 16721 0 1326 0 18236 0 1948 0 41212 0 8254 0 41236 0 1
+```
+
+Read from the right, the tape is a list of levels `s (10)^g s' (10)^W`; here (211, 16721) with seps `1 1`, then
+(1326, 18236), (1948, 41212), (8254, 41236) with seps `0 0`. The next return borrows through the three digit-0
+levels and turns at (211, 16721); from then on the seven seps right of that block run through
+
+```
+1111111 → 1111101 → 1111100 → 1110111 → 1110101 → 1110100 → 1110011 → 1110010 → 1110000 → 1101111 → ...
+```
+
+which is a base-3 count down with digit 2 = `1 1`, 1 = `0 1`, 0 = `0 0` per level. The lengths follow: when a
+level's digit goes 2 → 1 or 0 → 2 one pair moves from its W to its g (the last level's W gains instead), and 1 → 0
+changes no length (the last level's W gains 2). Every trip adds two pairs. The parities ride along: digit 2 has g and W
+odd, digits 1 and 0 have them even.
+
+### Proved (kernel, `lean/Counter.lean`)
+
+The symbolic runs of `symtm.py` split one trip into eight pieces (`lean/Rules.lean`): `first0` and `walk0`, the walk
+over a level with digit 0 (it leaves the level in a transit form `01 (0101)^c 0100 (1010)^(d+1) 1001` on the right of
+the head and eats two pairs of the block before); `turn2`, `turn1`, the turn at a digit 2 or 1; `sweep0`, the reset of
+a transit level on the way back; `sweepLast`; and `last2`, `last1`, the whole trip when the last digit is not 0. None
+of them looks at the tape left of the turning level. `Counter.lean` chains them by induction on the number of borrows
+(`walkN`, `sweepN`) and proves the tape equalities that bring the result back to the level form (`rep_rotate` and
+friends, about 30 lines). The four theorems:
+
+```
+counter_last2   lv 1 1 (2a+1) (2b+1) L           →  lv 0 1 (2a+2) (2b+2) L
+counter_last1   lv 0 1 (2a+2) (2b+2) L           →  lv 0 0 (2a+2) (2b+4) L
+counter_borrow2 lv 0 0 (2c+2) (2d+2) (Zs zs (lv 1 1 (2a+1) (2b+3) L))
+                                                 →  lv 1 1 (2c+3) (2d+3) (Rs zs (lv 0 1 (2a+2) (2b+2) L))
+counter_borrow1 lv 0 0 (2c+2) (2d+2) (Zs zs (lv 0 1 (2a+2) (2b+2) L))
+                                                 →  lv 1 1 (2c+3) (2d+3) (Rs zs (lv 0 0 (2a+2) (2b+2) L))
+```
+
+each from `⟨_, 0 1 0^inf, C⟩` to `⟨_, 0 1 0^inf, C⟩`, where `lv s s' g W L` is a level in front of the tape L, `Zs`
+a list of digit-0 levels (g = 2c+2, W = 2d+4) and `Rs` the same levels reset (2c+3, 2d+3). Kernel only.
+
+### Checked against the run (computed)
+
+`python3 py/counter.py check 1e11`: 151,240 trips; 150,680 covered by a theorem, all of them ending as the theorem
+says (comparing tapes, since two token lists can spell the same tape: `100 1 0 20` is `121`); 321 whose borrow runs
+past the levels into the irregular left end (`left`); 239 that meet a level too short or of the wrong parity
+(`short`). All 560 change the tape only in its first 24 tokens (the leftmost six levels'
+worth), out of about 30 to 45. So everything the counter does is proved, and
+what is left is its top: the left end, where the walls of the first entry live.
+
+### Leads
+
+1. **The top of the counter.** The `left` and `short` trips as maps on the block lengths: the left end is a short
+   irregular prefix (`92 0 6 0 4 0 8 1 37 1 37` at 10¹⁰) followed by levels; a borrow into it should be one cycle of
+   the blank-run replay of the first entry. `py/counter.py events` lists them.
+2. **The replay, restated.** In front of a wall the left end repeats the blank run; with the counter, the blank run
+   itself is the counter started from nothing, so the replay may be the statement that the counter below a wall runs
+   as if the wall were the tape's end.
+3. **A level running out.** A level's W loses one pair for every two of its digit changes, and the level to its right
+   changes three times as often, so a level with a small W runs out. Catalogue what the run does then (`short`).
+4. **Halting.** A halt needs `E>0 1 1`. The counter trips never halt (proved); a halt has to come from the top.

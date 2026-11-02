@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.join(TOOLS, "pages"))
 sys.path.insert(0, os.path.join(ROOT, "py"))
 
 import blank  # noqa: E402
+import counter  # noqa: E402
 import replay  # noqa: E402
 import build_status  # noqa: E402
 from bbtools.invariants import conserved  # noqa: E402
@@ -117,6 +118,58 @@ class TestObservations(unittest.TestCase):
         # every wall loses the same amounts
         for (t, w), (n, rest) in ws.items():
             self.assertEqual([w - x for x in rest], lost[:n], t)
+
+
+class TestCounter(unittest.TestCase):
+    def test_predict_cases(self):
+        # the four theorems of Counter.lean, on small numbers (last level rightmost; tail `0 10`)
+        tail = ["0", 1]
+        self.assertEqual(counter.predict([9, "1", 5, "1", 7] + tail)[0], [9, "0", 6, "1", 8] + tail)       # last2
+        self.assertEqual(counter.predict([9, "0", 4, "1", 6] + tail)[0], [9, "0", 4, "0", 8] + tail)       # last1
+        self.assertEqual(counter.predict([9, "1", 5, "1", 7, "0", 4, "0", 6, "0", 2, "0", 4] + tail)[0],
+                         [9, "0", 6, "1", 6, "1", 5, "1", 5, "1", 3, "1", 5] + tail)                       # borrow2
+        self.assertEqual(counter.predict([9, "0", 4, "1", 6, "0", 2, "0", 2] + tail)[0],
+                         [9, "0", 4, "0", 6, "1", 3, "1", 3] + tail)                                       # borrow1
+        self.assertEqual(counter.predict([9, "0", 4, "0", 6, "0", 2, "0", 2] + tail), (None, "left"))
+        self.assertEqual(counter.predict([9, "1", 5, "1", 6, "0", 2, "0", 2] + tail), (None, "short"))
+
+    def test_predict_on_machine(self):
+        # each predicted excursion, run on the plain simulator from the predicted start, ends as predicted
+        from bbtools.machine import Machine, Tape
+        m = Machine.parse(M)
+        for t, want in [([9, "1", 5, "1", 7, "0", 4, "0", 6, "0", 2, "0", 4], None),
+                        ([9, "0", 4, "1", 6, "0", 2, "0", 2], None), ([3, "1", 1, "1", 3], None)]:
+            t = t + ["0", 1]
+            p, _ = counter.predict(t)
+            s = counter.tape_str(t)
+            tape = Tape()
+            for i, ch in enumerate(s):
+                tape.set(i, int(ch))
+            r = Run(m, state=counter.C, tape=tape, head=len(s) - 3)
+            while True:
+                self.assertTrue(r.step())
+                if r.state == counter.C and r.steps > 1 and [r.tape.get(r.head + i) for i in range(6)] == [0, 1, 0, 0, 0, 0]:
+                    break
+            got = "".join(map(str, r.tape.word(0, r.head + 1))).lstrip("0") + "0"   # the head reads `0 1`, then blank
+            self.assertEqual(got, counter.tape_str(p))
+
+    def test_blocks(self):
+        import random
+        import re
+        rng = random.Random(1)
+        for _ in range(300):
+            s = "".join(rng.choice(["10", "10", "1", "0"]) for _ in range(rng.randint(1, 30)))
+            want = [len(x) // 2 if len(x) > 1 else x for x in re.findall(r"(?:10)+|.", s)]
+            while want and want[0] == "0":
+                want.pop(0)
+            while want and want[-1] == "0":
+                want.pop()
+            self.assertEqual(counter.blocks([int(c) for c in s]), want, s)
+
+    def test_run_to_1e8(self):
+        tally = counter.check(10 ** 8)
+        self.assertEqual(tally.get("wrong", 0), 0)
+        self.assertEqual(dict(tally), {"proved": 4326, "left": 108, "short": 76})
 
 
 if __name__ == "__main__":
