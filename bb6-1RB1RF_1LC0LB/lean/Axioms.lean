@@ -1,6 +1,7 @@
 import Blank
 import Rules
 import Counter
+import Top
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
 a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
@@ -37,3 +38,9 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6e.counter_last1
 #print axioms BB6e.counter_borrow2
 #print axioms BB6e.counter_borrow1
+#print axioms BB6e.counter_borrow_any
+
+-- Top.lean: the top pieces (kernel only; generated, one pair of theorems per shape in top_shapes.txt)
+#print axioms BB6e.top_0
+#print axioms BB6e.top_1
+#print axioms BB6e.top_10
