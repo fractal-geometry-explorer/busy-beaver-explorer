@@ -124,7 +124,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / 1RB0LF_1RC0LB / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 2 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 3 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA</p>
   <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for ten billion steps without stopping, and in that time it has visited only 642 cells. This page runs the real machine in your browser and lists what is known, each result marked by what it rests on. It grows as the work does.</p></div>
@@ -234,7 +234,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 2 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 3 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -248,6 +248,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>pass</code>, <code>pass_outcome</code>, <code>start_F</code>, <code>start_B</code>, <code>lean/Pass.lean</code></div></div><div><b>Which passes halt</b><p>A pass starts when F or B reads a 0 and moves right; C then crosses every gap of length 1 or 2 (by induction over any list of them). The first gap of another length ends the pass: a gap of 3 halts, a gap of 4 or more turns left at E, two 1s side by side turn left at B or F. So a pass halts exactly when the first gap it meets that is not 1 or 2 has length 3.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep</code>, <code>sweep_end_odd</code>, <code>sweep_end_even</code>, <code>erase</code>, <code>erase_end</code>, <code>lean/Pass.lean</code></div></div><div><b>The leftward pieces</b><p>A and F turn <code>1^(2k) A&gt;1</code> into <code>A&gt;1 (1 0)^k</code>; B erases <code>1^k</code>; at the 0 left of a block an odd block starts a pass and an even block starts B erasing the block before it.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>mstep_sound</code>, <code>blank_to_M0</code>, <code>no_halt_of_macro</code>, <code>lean/Macro.lean</code></div></div><div><b>The macro machine</b><p>At every pass start the tape is a stack of solid blocks <code>1^(2s+2)</code> separated by single 0s, the head on a gap of <code>2h+2</code> cells, and a word of segments <code>(0 1)^m</code> and gaps <code>0^(2g) 1</code>. A function <code>mstep</code> on these numbers gives the next pass start, and Lean proves the machine goes there, for all values of the parameters. <code>mstep</code> fails only at a gap <code>g = 0</code> (two 1s side by side) next to an empty segment. So if the macro machine never gets stuck from the configuration after 12 steps, the machine never halts.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>phi_interior</code>, <code>phi_end</code>, <code>phi_bottom</code>, <code>lean/Counter.lean</code></div></div><div><b>A conserved counter</b><p>Read as a recursive program (the right stack of the two-stack form is a call stack), the macro machine keeps a sum &Phi;: the stack, plus the head gap, plus m + g &minus; 1 for every segment m and gap g of the word. A pass that ends inside the word and a B step with a nonempty stack leave &Phi; unchanged; a pass that runs into the last segment adds 2 or 1; B with an empty stack takes 1 off. So &Phi; counts the passes that reach the right end, up to the rare steps at the left end. It does not by itself rule out getting stuck.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_10M</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000,000 steps</b><p>The same run for 10<sup>7</sup> steps, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code>, <code>tests/test_machine.py</code></div></div><div><b>No halt in the first 10<sup>10</sup> steps</b><p>The shared C simulator runs 10<sup>10</sup> steps from blank tape without a halt; the tape then holds 313 ones and the head has visited 642 cells. The C simulator agrees with the Python reference simulator on the first 80 records of the run (a test).</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/invariants.py</code></div></div><div><b>No simple conserved quantity</b><p>No a&middot;ones + b&middot;pos + W[state] is conserved modulo 2 to 12, so a linear invariant like the first holdout's mod-3 count does not exist here.</p></div></div>
@@ -276,6 +277,7 @@ python3 bb6-1RB0LF_1RC0LB/py/passes.py check 1000000
 gcc -O2 -o passes bb6-1RB0LF_1RC0LB/c/passes.c &amp;&amp; ./passes 10000000000
 python3 bb6-1RB0LF_1RC0LB/tests/test_macro.py
 python3 bb6-1RB0LF_1RC0LB/py/macro.py show 40
+python3 bb6-1RB0LF_1RC0LB/py/callstack.py check 1000000   # how the counter changes, by kind of step
 gcc -O2 -o macro bb6-1RB0LF_1RC0LB/c/macro.c &amp;&amp; ./macro 10000000000
 python3 bb6-1RB0LF_1RC0LB/tests/test_pds.py
 gcc -O2 -o pds bb6-1RB0LF_1RC0LB/c/pds.c &amp;&amp; ./pds 6 L &amp;&amp; ./pds 6 R   # every DFA up to 6 states, about a minute each</code></pre>

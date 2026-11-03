@@ -355,3 +355,58 @@ entries at random times and recorded how many times each would still be flipped.
 count. Of the 707 entries with a future flip, that guess gets 578 wrong at d = 1, 543 at d = 8 and 467 at d = 16. So the
 pending flips of an entry depend on context far to its left, including values and not only parities. An exact
 pending-flip formula would need that far context, which is the same obstacle the local and automaton searches hit.
+
+## 3 November 2026: the two-stack form as a recursive program, and a counter
+
+**The right stack is a call stack (follows from the rules; `py/callstack.py`).** Read a right-stack entry v<n> as a
+*frame*: a loop that still has n/2 turns to run and then pushes v onto L. R1 is one turn of the cursor frame: pop b,
+pop a, push 0, and call the frame (a+2)<b>; a frame with gap 0 returns at once by pushing its value, and when a
+callee returns its value is the top of L. So while every gap is even, one turn is the function
+
+    I(L a b) = I^(b/2)(L 0) (a+2)
+
+and the end entry runs I forever. Everything the macro machine does between two visits to the ends of the tape is
+this one recursion. An odd gap runs down to −1 and R2 ends that frame differently: it takes 1 from the value of its
+caller (the entry below it) and is replaced by the frame (a′+2)<x−2>, a′ the top of L and x its own value. Since
+x − 2 = a minus the flips the frame received itself, an odd-gap callee returns "a instead of a + 2, plus one extra
+turn of I that the caller does not count". Two more consequences of the rules: inside one loop the gap of each turn
+is the value returned by the turn before (b_{j+1} = a_j + 2 − flips), and the first two turns of every loop read
+the entry just below the caller's pair, s, as (s, 0) and then (0, s + 2). So an odd s under a frame with two or more
+turns flips that frame. Which entry ends up as an a and which as a b depends on how many turns every loop below has
+left, which is why parities alone did not predict flips (earlier sections).
+
+**A conserved counter (proved, kernel: `lean/Counter.lean`).** Let Φ be the sum of L plus v + n over the frames,
+the end left out. R1 and R2 both keep Φ, and so does a frame returning; only the ends of the row change it. In
+macro terms Φ(F S ws mt) = ΣS + Σ(m + g − 1) and Φ(B S h ws mt) = ΣS + h + Σ(m + g − 1). Lean proves:
+
+* `phi_interior`: a pass from F that ends inside the word keeps Φ, and so does a B step with a nonempty stack;
+* `phi_end`: a pass from F that runs into the last segment adds 2 (blank tape ahead) or 1 (two 1s side by side
+  next to the last segment);
+* `phi_bottom`: B with an empty stack (the entry −1 below L) takes 1 off.
+
+The only steps not covered are the two from Binf (blank tape ahead of B). In the run (10⁶ steps of the two-stack form,
+`python3 py/callstack.py check 1000000`): 999,659 interior R1 steps and 185 interior R2 steps with ΔΦ = 0, 92 R1
+turns of the end frame with ΔΦ = +2, 37 steps at the bottom of L, and 27 R2 steps whose caller is the end. So Φ/2 is
+the number of turns of the end frame, up to the bottom corrections. Φ is the only conserved quantity of the form
+Σ f(value) + Σ h(value, gap) over the entries: solving the two rules for f and h forces f linear in the value with a
+parity term, and the parity term is conserved only modulo 2 (R2 changes the number of odd numbers by 0 or 2).
+
+**No numeral system with arithmetic digits (heuristic).** In the all-even model with zeros below L (halve every
+value: I(L a b) = I^b(L 0)(a+1)), the sum of L goes up by exactly 1 per I, so the stack is a representation of a
+number N and I is N ↦ N + 1. But the representation is not a positional one: from (1, 0) the orbit is (2), (1 1 1),
+(2 2), (1 1 3), (2 2 2), (1 2 1 3), (3 3 2), (1 1 2 1 4), (1 0 1 2 4 2), (3 2 1 5), …, with no carry pattern I could
+find, and different starting stacks give unrelated orbits.
+
+**Flips at the caller (heuristic, 3·10⁶ steps; `python3 py/callstack.py flips 3000000`).** Recording the caller's
+value and how often it was flipped before, at every R2: a caller other than the end has value 2 at 128 of its first
+flips and 4 to 14 at the other 82 (once 5); it is flipped a second time only 5 times, always at an odd value of 3
+to 9. No caller
+other than the end is ever flipped at value 1, and a frame flipped down to 1 is never flipped again. That is the
+pattern a proof would need ("a frame created with value 2 is flipped at most once"), but it is not proved, and a
+closed family built on it still has to say which future a and b each L entry will be.
+
+**Next.** The recursion makes the macro machine a pushdown system whose stack symbols are frames. A closed family
+could be a *summary* of I^k on an abstract L, as in interprocedural analysis: for each abstract L top, which
+abstract L top I^k returns, and how many flips it can cause its caller. The values matter only through the number
+of turns, so the abstraction needs the values of the top few entries exactly and the parity of the turn count of
+each frame. I have not built it.
