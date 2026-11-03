@@ -329,3 +329,29 @@ entry are flipped by R2, 202 of them once and 6 twice, never more, and none goes
 The end entry is flipped up to 8 times, which is harmless because the end may reach 0. So a pending-flip count per
 entry would be at most 2 in the run; a closed family could try "value ≥ 1 + pending flips", with the pending flips read
 off the parities of the entries to the entry's left.
+
+**Pending flips read off neighbours (random closure test, not closed).** Requiring, for each right-stack entry y below an
+entry v<n> (or below the cursor), y ≥ 1 + [n odd] + [n odd and v odd], holds at every one of 10⁶ steps of the run, but a
+random closure test breaks it about one step in ten. Every break comes from odd entries near the top of the left stack
+becoming a gap; adding the two conditions this suggests still leaves about 14% of tested configurations breaking
+after one step, and one of them fails 38 times in the run itself. Each repair needs more of the left stack.
+
+**Finite automata over two-stack tokens (SAT, `py/ctl_sat.py`, not closed).** I looked for a DFA whose language
+contains the start configuration, is closed under the abstract rules, and contains no stuck window. Words are read in
+this order: −1 entries, then the left stack, then the cursor, then the right stack. Closure is checked with a
+state-inclusion relation. The abstract rules agree with 3·10⁵ micro-steps of the run. Results:
+
+- values exact up to 1 (gaps up to 1): no DFA with up to 6 states;
+- values exact up to 2: none with up to 5 states;
+- values exact up to 3, gaps exact up to 1: none with up to 6 states reading left to right, and none with up to 5
+  reading right to left.
+
+These are complete UNSAT results within those sizes. Seven states (left to right) and six (right to left) did not
+finish in about two hours each, so this search stalls just above where the parity thread's tape automata did.
+
+**Future flips are not a function of nearby parities (heuristic, 10⁶ macro steps).** I sampled 26,823 right-stack
+entries at random times and recorded how many times each would still be flipped. I then grouped them by the parities
+(value, and gap or "left stack") of the d entries to their left. For each group I predicted its most common flip
+count. Of the 707 entries with a future flip, that guess gets 578 wrong at d = 1, 543 at d = 8 and 467 at d = 16. So the
+pending flips of an entry depend on context far to its left, including values and not only parities. An exact
+pending-flip formula would need that far context, which is the same obstacle the local and automaton searches hit.
