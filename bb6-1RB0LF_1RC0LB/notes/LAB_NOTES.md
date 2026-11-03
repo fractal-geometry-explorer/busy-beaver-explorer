@@ -348,3 +348,10 @@ state-inclusion relation. The abstract rules agree with 3·10⁵ micro-steps of 
 
 These are complete UNSAT results within those sizes. Seven states (left to right) and six (right to left) did not
 finish in about two hours each, so this search stalls just above where the parity thread's tape automata did.
+
+**Future flips are not a function of nearby parities (heuristic, 10⁶ macro steps).** I sampled 26,823 right-stack
+entries at random times and recorded how many times each would still be flipped. I then grouped them by the parities
+(value, and gap or "left stack") of the d entries to their left. For each group I predicted its most common flip
+count. Of the 707 entries with a future flip, that guess gets 578 wrong at d = 1, 543 at d = 8 and 467 at d = 16. So the
+pending flips of an entry depend on context far to its left, including values and not only parities. An exact
+pending-flip formula would need that far context, which is the same obstacle the local and automaton searches hit.
