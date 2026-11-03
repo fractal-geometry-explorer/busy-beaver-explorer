@@ -28,7 +28,9 @@ cases (a gap `g = 0` next to an empty segment), so if the macro machine never ge
 every one of the 344,806,676 pass starts in the first 10¹⁰ steps is the macro configuration `mstep` predicts, and
 none is stuck (`c/macro.c`, `py/macro.py`); no conserved a·ones + b·pos + W[state] modulo 2 to 12 (`tools/py/bbtools/invariants.py`). At every pass start in the first
 10¹⁰ steps no pass has a gap of 3 ahead of it, and every run of 0s or 1s of length 3 or more between cells of the
-other symbol has even length: the parity invariant (`c/passes.c`, `py/passes.py`).
+other symbol has even length: the parity invariant (`c/passes.c`, `py/passes.py`). No closed language of the simplest kinds exists: a pushdown
+reduction that keeps one side of the tape exact and abstracts the other by a DFA fails for every DFA with at most
+7 states, on either side (`c/pds.c`, `py/pds.py`).
 
 **Observed only**: the width grows very slowly (199 cells at 10⁶ steps, 642 at 10¹⁰); D reading a 0 has had a 0
 to its right every time so far; pass endings look like a binary counter, a gap of 4j + 2 about half as often as
@@ -53,6 +55,9 @@ have never been more than 4 of them at once.
 | `c/passes.c` | the same checks in C, for billions of steps |
 | `py/macro.py` | the macro machine as in Lean, checked against the run from blank tape; `show`, `stats` |
 | `c/macro.c` | the run and the macro machine side by side, the whole tape compared at every pass start |
+| `py/pds.py` | the pushdown reduction: one side of the tape as a DFA, the other exact, post* saturation |
+| `c/pds.c` | the same in C, enumerating every DFA up to a size |
+| `tests/test_pds.py` | the reduction is sound on random small machines, Python against C |
 | `tests/test_macro.py` | `mstep` against the machine on all small configurations, the run, Python against C |
 | `tests/test_passes.py` | the pass rule against the machine on all short passes, Python against C |
 | `tests/test_machine.py` | generated files and both pages current, C against Python, the facts in the notes |

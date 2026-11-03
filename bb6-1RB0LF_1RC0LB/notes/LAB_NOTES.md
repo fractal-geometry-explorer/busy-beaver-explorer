@@ -192,6 +192,74 @@ neighbourhoods (two neighbours on each side, values above 5 kept only by parity)
 resolution, but the macro machine is a much smaller object than the tape: a window language over its numbers (values
 capped, kept by parity), or a pushdown abstraction with the stack exact, are the natural next tries.
 
+## 2 November 2026: closed tape languages that do not close
+
+These are attempts at a proof of non-halting by a closed set of configurations that the computer finds. None of
+them closed. They are recorded so that the next attempt starts past them.
+
+**Run windows on the tape (Python, scratch).** Write each side of the head as runs of 0s and 1s, with lengths exact
+up to C and by parity above. Take the abstract state to be the k nearest runs on each side, and the far language to
+be the (k+1)-run windows seen in the real run. The real window set saturates early: 191 windows at C = 4, k = 5, the
+same after 10⁷, 10⁸ and 10⁹ steps. The machine run on the abstraction, however, keeps producing windows the real run
+never shows:
+
+| C | k | windows | new windows (fails) |
+|---|---|---|---|
+| 4 | 5 | 191 | 304 |
+| 4 | 6 | 311 | 499 |
+| 4 | 7 | 405 | 1,471 |
+| 6 | 6 | 697 | 1,323 |
+| 8 | 6 | 1,125 | 3,375 |
+
+The fails cluster around a gap of 4 at the end of a pass followed by `1 0 1 0^2j` or `1 1`. The count does not shrink
+as k grows, so the invariant is not local on the tape. Learned-gram variants (the far language grown until closed)
+always reached a halt.
+
+**A pushdown reduction (trusted Python and C: `py/pds.py`, `c/pds.c`, `tests/test_pds.py`).** One side of the tape is
+abstracted by a DFA, read from the far blank end toward the head with δ(0, 0) = 0. The other side is kept exactly, as
+the stack of a pushdown system whose control states are (DFA state, machine state):
+
+* a move toward the exact side pushes the written cell into the DFA and pops the stack;
+* a move toward the DFA side pops the DFA nondeterministically (every (q′, x) with δ(q′, x) = q) and pushes two cells.
+
+Pushdown reachability is regular. Post* saturation (Schwoon) computes exactly which abstract configurations are
+reachable from blank tape, so for a given DFA the only loss is the DFA itself. On 600 random 2- and 3-state machines
+the decider never proves a halting machine non-halting, and C agrees with Python on random 6-state machines.
+
+For this machine, **no DFA with at most 7 states works, on either side** (every canonical DFA: 1, 4, 45, 816, 20,225 and
+632,700 of them for 1 to 6 states, 23,836,540 for 7). The DFAs built by hand fail too:
+
+* run length mod 2, 4 or 8 with zero runs capped;
+* the same with a sink for an odd block closed by a 0;
+* exact run lengths up to 8 and then by parity.
+
+The shortest abstract halting path for the mod-4 DFA explains why. Popping the left side forgets exact short run
+lengths at the left edge of the tape: a run of 1 looks like a run of 5. B then erases a longer block than the tape
+has, which makes a long gap of the wrong length.
+
+**A pushdown on the macro machine (Python, scratch).** I tried the same idea on the configurations of
+`lean/Macro.lean`, with values exact up to K and by parity above.
+
+* *Word exact, stack S kept as its top k values:* gets stuck for K ≤ 2 and k ≤ 2. Popping S yields arbitrary odd
+  values, so odd numbers multiply.
+* *Stack exact, word abstracted as runs of all-even tokens around a few exact "defect" tokens:* bounded search finds a
+  spurious stuck path. The first spurious step pops an even token with a gap n ≥ 2 where the real token has n = 0,
+  which ends a pass the real machine continues.
+
+The tokens that are not (m even, n = 0) are not few. Their number grows with the run (up to 18 in 10⁶ macro steps,
+typically 9 to 13), so no abstraction that keeps a bounded number of them exactly can close. Whatever describes the
+odd numbers has to describe the counter's digits too.
+
+**Defect census (Python, scratch).** I mapped each macro configuration to a skeleton:
+
+* a token (m, n) with m ≥ 2 even and n even becomes ".";
+* every other token is kept as m ∈ {0, odd, even} and n ∈ {−1, odd, even};
+* stack values are kept by parity;
+* runs of "." collapse to "*".
+
+The number of distinct skeletons is 530, 682 and 701 after 10⁵, 10⁶ and 3·10⁶ macro steps, so it saturates. Since the
+"*" runs carry the counter, this is evidence for a regular description, not a description.
+
 ## 2 November 2026: first tries at a closed family for the macro machine
 
 **Stuck configurations exist near the run's own shapes (checked by `py/macro.py`).** `F 0 | 0 | 3 <0> 1 <1> 1` (stack
