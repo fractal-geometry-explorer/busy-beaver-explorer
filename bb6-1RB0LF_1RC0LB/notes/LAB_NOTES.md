@@ -259,3 +259,23 @@ odd numbers has to describe the counter's digits too.
 
 The number of distinct skeletons is 530, 682 and 701 after 10⁵, 10⁶ and 3·10⁶ macro steps, so it saturates. Since the
 "*" runs carry the counter, this is evidence for a regular description, not a description.
+
+## 2 November 2026: first tries at a closed family for the macro machine
+
+**Stuck configurations exist near the run's own shapes (checked by `py/macro.py`).** `F 0 | 0 | 3 <0> 1 <1> 1` (stack
+0; word 3 <0> 1 <1> 1) gets stuck after 11 macro steps: it reaches `F 0 1 | 0 | 4 <0> 0 <−1> 1`, a gap n = −1 with an
+empty segment on its left. Every value in it is small and it has only three odd numbers, so a closed family has to say
+how the odd numbers sit relative to each other, not just how many there are.
+
+**Skeleton languages (abstract search, not closed).** A sibling thread found that, writing a word pair (m, n) with m ≥ 2
+even and n even as `.`, collapsing runs of `.` and of even stack values, and keeping everything else by value class, the
+run shows only about 700 distinct skeletons up to 3·10⁶ macro steps. Taken as a language and closed under an abstract
+`mstep` (values exact up to C, then by parity; each collapsed run expanded to length 1), it does not stay safe: with
+C = 2 the closure reaches a stuck configuration after about 13,000 skeletons, with C = 4 after about 540,000 (the path
+ends in the example above). So the parity skeleton plus small exact values is not an invariant. The next attempt should
+keep a relation between an odd gap and the segment to its right (in the run, the segment right of a gap at −1 is even
+and at least 2 in almost every case), or track the odd numbers as particles with explicit rules.
+
+**Window languages on macro tokens (random closure test, not closed).** Windows of K consecutive macro tokens (values
+exact up to C, then parity) seen in the run, closed by sampling: K = 3, C = 4 reaches stuck configurations; K = 5, C = 6
+keeps adding windows after 30 rounds (74,000 windows, no stuck configuration sampled).
