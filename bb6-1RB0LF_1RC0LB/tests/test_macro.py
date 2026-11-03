@@ -15,6 +15,7 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "py"))
 
 import macro  # noqa: E402
+import twostack  # noqa: E402
 from macro import B, F, MACHINE, encode, mstep  # noqa: E402
 from bbtools.machine import Run, Tape  # noqa: E402
 
@@ -89,6 +90,27 @@ class TestMacro(unittest.TestCase):
         starts, bad, stuck = macro.check(1000000)
         self.assertEqual((int(m.group(1)), int(m.group(2)), int(m.group(3))), (starts, 0, 0))
         self.assertEqual((bad, stuck), (0, 0))
+
+
+class TestTwoStack(unittest.TestCase):
+    def test_same_as_macro_on_small_configurations(self):
+        """zstep is the F pass plus the B pass after it, stuck exactly where mstep is stuck."""
+        n = 0
+        for c in small_configs():
+            if c[0] != "F":
+                continue
+            d = mstep(c)
+            while d is not None and d[0] != "F":
+                d = mstep(d)
+            e = twostack.zstep(twostack.from_macro(c))
+            self.assertEqual(e, None if d is None else twostack.from_macro(d), c)
+            n += 1
+        self.assertGreater(n, 5000)
+
+    def test_run_from_blank(self):
+        n, bad = twostack.check(300000)
+        self.assertGreater(n, 100000)
+        self.assertEqual(bad, 0)
 
 
 if __name__ == "__main__":

@@ -279,3 +279,46 @@ and at least 2 in almost every case), or track the odd numbers as particles with
 **Window languages on macro tokens (random closure test, not closed).** Windows of K consecutive macro tokens (values
 exact up to C, then parity) seen in the run, closed by sampling: K = 3, C = 4 reaches stuck configurations; K = 5, C = 6
 keeps adding windows after 30 rounds (74,000 windows, no stuck configuration sampled).
+
+## 3 November 2026: the macro machine as two stacks and a cursor
+
+**Two-stack form (checked, `py/twostack.py`; not in Lean).** Write an F configuration as one row: the stack from the
+bottom up, a 0 for the F head, then the word segments, then the last segment. Each entry carries a gap: 0 for stack
+entries and the head, n = g − 1 for a word segment, "end" for the last segment. Infinitely many entries −1 with gap 0
+stand to the left. The cursor is the first entry with a gap other than 0. With a, b the two entries left of the cursor,
+one F pass plus the B pass after it is
+
+    R1  gap n ≥ 1 or end:  a, b, x<n>      →  0, (a+2)<b>, x<n−2>
+    R2  gap n = −1:        a, x<−1>, y<m>  →  0, (a+2)<x−2>, (y−1)<m>     needs x ≥ 1 and y ≥ 1
+                           a, x<−1>, 0<end> → 0, (a+2)<end>
+
+and an entry whose gap becomes 0 simply joins the left stack L. Everything left of the cursor is a stack of numbers,
+everything right of it a stack R of (value, gap) pairs, so the macro machine is a two-stack machine. `zstep` agrees
+with `mstep` (F pass, then B pass) on all 10⁶ F configurations of the first 2·10⁶ macro steps, on every small F
+configuration of the test set, and on 200,000 random ones, and it is undefined exactly where `mstep` is
+(`tests/test_macro.py`). R2 is the old "two 1s side by side" rule and the only way to get stuck.
+
+**Parity bookkeeping (follows from the rules).** A value keeps its parity as it moves: L entry a comes back as a + 2,
+an L entry b becomes a gap, a gap counts down by 2. Parity changes only in R2, which uses up an odd gap (−1) and turns y
+into y − 1, and odd values are born only from the −1 entries (R1 with a short L gives the value 1 or the gap −1). If
+every value is even nothing can get stuck. From the first 3·10⁶ macro steps: the −1 entries are used 40 times, and R
+empties (cursor at the end) 105 times, with growing intervals (the last ones about 3.5·10⁵ macro steps apart).
+
+**Necessary conditions seen in the run (heuristic, 3·10⁶ macro steps).** In the word: no segment is 0; the segment right
+of an odd gap is at least 2, and at least 4 (and even) when the segment left of that gap is odd; the segment right of
+an even gap with an odd segment on its left is at least 2 unless the gap after it is 0 (four exceptions, all followed by
+a gap 0, such as `7 <2> 1 <0> 4`). These say that a 1 never sits right of an odd gap, which is what R2 needs. They are
+not closed on their own: `F 6 5 | 0 | 1 <4> 0` satisfies them and its next F configuration `F 6 | 0 | 7 <0> 1 <2> 0`
+does not, because the odd stack entry 5 comes back as 7 next to the 1.
+
+**Window languages in the two-stack form (random closure test, not closed).** Windows of K consecutive tokens (L values,
+the cursor, R pairs; values exact up to C, then parity), started from the run and closed by sampling: K = 3, C = 3
+samples a stuck configuration in round 13; K = 4, C = 4 in round 37 (165,000 windows); K = 5, C = 3 in round 47
+(257,000 windows).
+
+**Why local conditions are not enough (sketch).** A 1 in R is safe while the entry X just left of it has an even value:
+when X's gap reaches 0, X joins L, the 1 becomes the cursor, and R1 makes X its left neighbour's gap. But X's value flips
+when the entry left of X reaches gap −1 (R2), and that entry's gap came from an L entry b, which came from an earlier
+cursor value. So whether a 1 is safe depends on a chain of pending flips through both stacks, with no bound on its
+length that the run shows. A closed family probably has to count these pending flips (for example a parity attached to
+each R entry that says whether it will be flipped before it freezes) rather than list local patterns.
