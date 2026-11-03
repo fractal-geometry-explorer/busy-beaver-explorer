@@ -252,8 +252,8 @@ its top trips through it (`concrete_trip`), keeping the proved rules from trip t
 are the same as without jumps, at the same steps: all 3,697 returns to 10¹⁴ (`tests/test_machine.py` checks 10¹¹).
 To 10¹⁴ the run takes 47 s instead of 259 s; 255 rules, 121 jumps.
 
-Result (trusted Python): **no halt in the first 10²³ steps** (1.2·10¹¹ trips, about 10,000 of them at the top), in
-17 minutes:
+Result (trusted Python): no halt in the first 10²³ steps (1.2·10¹¹ trips, about 10,000 of them at the top) in 17
+minutes, and in the first 1.48·10³³ steps in two hours:
 
 | steps | trips | top trips | tokens | time |
 |---|---|---|---|---|
@@ -262,9 +262,19 @@ Result (trusted Python): **no halt in the first 10²³ steps** (1.2·10¹¹ trip
 | 10²⁰ | 3.1·10⁹ | 5,098 | 57 | 7 min |
 | 10²² | 3.9·10¹⁰ | 8,378 | 67 | 14 min |
 | 1.06·10²³ | 1.2·10¹¹ | 10,061 | 77 | 17 min |
+| 10²⁶ | 3.8·10¹² | 14,508 | 85 | 32 min |
+| 10³⁰ | 3.8·10¹⁴ | 22,495 | 103 | 65 min |
+| 10³² | 4.6·10¹⁵ | 28,702 | 109 | 100 min |
+| 1.48·10³³ | 7.2·10¹⁵ | 32,124 | 95 | 119 min |
+
+(A second run from the start, after a container restart cut off the first; it stopped at the two-hour limit for a
+background job, with a checkpoint at 1.48·10³³. Each decade costs about 1,000 s now; the time goes into top trips, a few of
+them 20 to 30 s each.)
+
+So: **no halt in the first 1.48·10³³ steps** (trusted Python).
 
 The number of trips grows roughly like the square root of the steps, as the width 2.6√t predicts, and the number
 of top trips like log t. The tape stays a few dozen tokens long, but its blocks get huge: at 1.06·10²³ the leftmost
-block has 8.3·10¹⁰ pairs and one level 1.2·10¹⁰. Nothing so far suggests a halt, but this is evidence, not proof:
+block has 8.3·10¹⁰ pairs and one level 1.2·10¹⁰; at 1.48·10³³ the leftmost block has 2.7·10¹⁶ pairs. Nothing so far suggests a halt, but this is evidence, not proof:
 the open part is still the top of the counter, where the left end replays the run from blank tape in front of a
 wall.
