@@ -215,3 +215,30 @@ what is left is its top: the left end, where the walls of the first entry live.
 3. **A level running out.** A level's W loses one pair for every two of its digit changes, and the level to its right
    changes three times as often, so a level with a small W runs out. Catalogue what the run does then (`short`).
 4. **Halting.** A halt needs `E>0 1 1`. The counter trips never halt (proved); a halt has to come from the top.
+
+## 3 November 2026: an accelerated run, and what the top does to a wall
+
+### Counter trips in closed form (`py/accel.py`)
+
+The steps of one counter trip are a linear function of the lengths it touches, read off the pieces in `Rules.lean`:
+last level digit 2: 4g+4W+18; digit 1: 4W+16; a borrow costs 8g+4W+23 at the last level and 8g+4W+8 at each other
+digit-0 level, plus 4g+4W+3 (digit 2) or 4W+1 (digit 1) at the turn. This matches all 14,129 counter trips of the
+first 10⁹ steps. Level p is touched by the trips whose counter value is a multiple of 3^p, its digit cycles 2, 1, 0,
+and its lengths change by one pair at the 2s and 0s, so n trips of the counter can be applied at once, with their
+exact step count, as long as no level runs short. `py/accel.py` does that and runs the other trips (the top) on the
+macro simulator, built from the token list with long blocks still run-length coded. Every state it passes through
+is a return of the plain macro run at the same step (checked to 10¹¹; `tests/test_machine.py` checks 10⁹).
+
+Result (trusted Python): **no halt in the first 1.05·10¹⁵ steps** (1.6·10⁷ trips, 1,741 at the top), in five
+minutes. The tape then has 53 tokens.
+
+### The slow part: a wall drains into the left end
+
+Most of those minutes go into a few top trips that last up to 10¹² steps without the head coming back to the right
+end. Inside one (from step 1.42·10¹³, tape `92 0 6 0 4 0 8 1 37 1 1485 0 220 ... 107543 1 1 0 339982 0 ...`), after a
+short rearrangement the head shuttles between the left end and the wall of 339,982 pairs; all levels in between have
+seps `1 1` and do not change. Each round trip moves two pairs from the wall to the leftmost block (`94 1 8 ...`,
+`96 1 8 ...`, `98 1 8 ...`), and takes 3,658,888, 3,658,920, 3,658,952, ... steps (32 more each time). That goes on
+for about 170,000 round trips, until the wall is used up. This is the replay of the first entry seen from the other
+side: the wall is spent at a fixed rate while the left end grows. A cycle accelerator (proved with `symtm.py`, then
+applied k times at once) would make these phases instant; that is being built in the shared tools.
