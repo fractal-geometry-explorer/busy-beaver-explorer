@@ -13,11 +13,13 @@ The next V trips are counter steps (lean/Counter.lean), so this program applies 
 
 n is the largest count for which no level runs too short. The trips the theorems do not cover (the top of the
 counter, py/counter.py) are run on the macro simulator (tools/py/bbtools/macro.py) from the token list, which keeps
-blocks of any length run-length coded. Step counts are exact: tests/test_machine.py checks the program against the
+blocks of any length run-length coded. Inside those, cycles the macro run repeats with counts changing linearly (a
+wall drained a few pairs per round trip) are jumped over with rules that bbtools.cycles proves symbolically. Step counts are exact: tests/test_machine.py checks the program against the
 plain macro run, return for return.
 
 What rests on what: a bulk step is a sequence of instances of the counter theorems (kernel), but the bookkeeping that
-applies them (this file) is trusted Python, as is the macro simulator for the other trips.
+applies them (this file) is trusted Python, as are the macro simulator and the cycle jumps (bbtools.cycles writes a
+Lean theorem for each rule, but this program does not compile them) for the other trips.
 
 usage: python3 accel.py STEPS [EVERY]     run to STEPS (1e30 is fine); print the state every EVERY trips run concretely
 """
@@ -26,6 +28,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "tools", "py"))
 from bbtools.macro import MacroRun  # noqa: E402
+from bbtools import cycles  # noqa: E402
 import counter  # noqa: E402
 
 DIGIT = counter.DIGIT
@@ -202,14 +205,43 @@ def macro_from_tokens(t):
     return r
 
 
-def concrete_trip(t):
-    """Run one trip from token list t on the macro simulator: (new token list, steps), or raise on a halt."""
+def _at_return(r):
+    return r.state == counter.C and r.dir == 1 and len(r.right) == 2 and r.right[1] == [(0, 1, 0, 0), 1]
+
+
+def concrete_trip(t, accelerate=True):
+    """Run from token list t on the macro simulator to the next return: (new token list, steps), or raise on a halt.
+    With `accelerate`, cycles the macro run repeats (a wall drained one block per round trip) are jumped over with
+    rules proved by bbtools.cycles; a jump may pass over whole returns, so one call can cover several trips."""
     r = macro_from_tokens(t)
+    acc = None
+    if accelerate:
+        global ACC
+        if ACC is None:
+            ACC = cycles.Accelerator(r)
+        acc = ACC
+        acc.run_, acc.hist = r, {}      # the proved rules are kept from trip to trip
     while True:
         if not r.step():
             raise RuntimeError(f"HALT {r.steps} steps into a concrete trip from {t}")
-        if r.state == counter.C and r.dir == 1 and len(r.right) == 2 and r.right[1] == [(0, 1, 0, 0), 1]:
+        if _at_return(r):
             return counter.blocks(counter.items(r)), r.steps
+        if acc is not None and acc.sample(r):
+            snap = cycles.snapshot(r)
+            h = acc.hist.pop(snap.key(), [])
+            acc.hist[snap.key()] = h
+            if len(acc.hist) > cycles.HIST_KEYS:
+                del acc.hist[next(iter(acc.hist))]
+            h.append(snap)
+            del h[:-3]
+            if acc.jump():
+                JUMPS.append(acc.jumps[-1])
+                if _at_return(r):
+                    return counter.blocks(counter.items(r)), r.steps
+
+
+ACC = None
+JUMPS = []      # (steps before, cycles, steps after, rule name) of every cycle jump, steps counted within the trip
 
 
 # ---------------------------------------------------------------- the driver

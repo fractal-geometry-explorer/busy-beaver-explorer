@@ -209,6 +209,21 @@ class TestAccel(unittest.TestCase):
             self.assertEqual(plain.get(s), counter.tape_str(t), (s, kind))
         self.assertEqual(kinds, {"bulk", "top", "proved"})
 
+    def test_cycle_jumps(self):
+        # the top trips with cycle jumps (bbtools.cycles) pass through the same returns as without them
+        n = 10 ** 11
+        orig = accel.concrete_trip
+        try:
+            accel.concrete_trip = lambda t: orig(t, accelerate=False)
+            plain = {s: t for s, _, t, _ in accel.run(n)}
+        finally:
+            accel.concrete_trip = orig
+        del accel.JUMPS[:]
+        for s, _, t, _ in accel.run(n):
+            if s <= n:
+                self.assertEqual(plain.get(s), t, s)
+        self.assertTrue(accel.JUMPS)
+
 
 def cost(t):
     """Steps of one counter trip, from the pieces of Rules.lean (last2 8a+8b+26, turn2 8a+8b+19, ...)."""

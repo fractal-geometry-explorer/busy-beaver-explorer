@@ -242,3 +242,29 @@ seps `1 1` and do not change. Each round trip moves two pairs from the wall to t
 for about 170,000 round trips, until the wall is used up. This is the replay of the first entry seen from the other
 side: the wall is spent at a fixed rate while the left end grows. A cycle accelerator (proved with `symtm.py`, then
 applied k times at once) would make these phases instant; that is being built in the shared tools.
+
+### Cycle jumps inside the top trips
+
+`tools/py/bbtools/cycles.py` (PR #183) finds such cycles in a macro run (samples where the head faces blank tape,
+same words, counts moving by a constant amount), proves the one-cycle rule symbolically with `symtm.py` for all
+values of the counts, and applies it k times at once with the exact step count k·S + D·k(k−1)/2. `accel.py` now runs
+its top trips through it (`concrete_trip`), keeping the proved rules from trip to trip. The returns it passes through
+are the same as without jumps, at the same steps: all 3,697 returns to 10¹⁴ (`tests/test_machine.py` checks 10¹¹).
+To 10¹⁴ the run takes 47 s instead of 259 s; 255 rules, 121 jumps.
+
+Result (trusted Python): **no halt in the first 10²³ steps** (1.2·10¹¹ trips, about 10,000 of them at the top), in
+17 minutes:
+
+| steps | trips | top trips | tokens | time |
+|---|---|---|---|---|
+| 10¹⁵ | 1.6·10⁷ | 1,741 | 53 | 1 min |
+| 10¹⁸ | 4.3·10⁸ | 3,255 | 63 | 3 min |
+| 10²⁰ | 3.1·10⁹ | 5,098 | 57 | 7 min |
+| 10²² | 3.9·10¹⁰ | 8,378 | 67 | 14 min |
+| 1.06·10²³ | 1.2·10¹¹ | 10,061 | 77 | 17 min |
+
+The number of trips grows roughly like the square root of the steps, as the width 2.6√t predicts, and the number
+of top trips like log t. The tape stays a few dozen tokens long, but its blocks get huge: at 1.06·10²³ the leftmost
+block has 8.3·10¹⁰ pairs and one level 1.2·10¹⁰. Nothing so far suggests a halt, but this is evidence, not proof:
+the open part is still the top of the counter, where the left end replays the run from blank tape in front of a
+wall.
