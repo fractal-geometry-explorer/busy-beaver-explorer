@@ -322,3 +322,10 @@ when the entry left of X reaches gap −1 (R2), and that entry's gap came from a
 cursor value. So whether a 1 is safe depends on a chain of pending flips through both stacks, with no bound on its
 length that the run shows. A closed family probably has to count these pending flips (for example a parity attached to
 each R entry that says whether it will be flipped before it freezes) rather than list local patterns.
+
+**How often an entry is flipped (heuristic, 3·10⁶ macro steps).** Following each entry of the two-stack form by
+identity (an L entry a keeps its identity as a + 2; a value that becomes a gap ends it): 208 entries other than the end
+entry are flipped by R2, 202 of them once and 6 twice, never more, and none goes below 1 (128 of them reach exactly 1).
+The end entry is flipped up to 8 times, which is harmless because the end may reach 0. So a pending-flip count per
+entry would be at most 2 in the run; a closed family could try "value ≥ 1 + pending flips", with the pending flips read
+off the parities of the entries to the entry's left.
