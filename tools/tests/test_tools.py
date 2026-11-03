@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.join(TOOLS, "pages"))
 from bbtools.machine import Machine, Run, run_blank, records, STATES  # noqa: E402
 from bbtools import symtm, leangen, invariants, ctl  # noqa: E402
 from bbtools.macro import MacroRun  # noqa: E402
+from bbtools import cycles  # noqa: E402
 from bbtools.explore import blocks, parse_words, tokenize, token_str, token_events, turns  # noqa: E402
 import merge_parts  # noqa: E402
 import build_status  # noqa: E402
@@ -190,6 +191,165 @@ class TestMacro(unittest.TestCase):
         # 1RB1RF_1LC0LB's sweeps cross whole runs of pairs: a million steps in about ten thousand macro steps
         r = MacroRun("1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---", 4).run(10 ** 6)
         self.assertLess(r.msteps, 20000)
+
+
+BB6_1RF = "1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---"
+BOUNCER = "1LB1RA_1RA1LB"     # a block of 1s growing by one cell at each end per sweep
+EATER = "0RB1RA_0RB0LC_0LC1LD_1RA1LD"   # on 1^a 0^z 1^b: a and z grow by one, b shrinks by one per sweep
+
+
+def eater_run(b):
+    """EATER from 0^inf A> 1 0 1^b 0^inf (a macro run with blocks of one cell)."""
+    r = MacroRun(EATER, 1)
+    r.right = [[(0,), 1], [(1,), b], [(0,), 1], [(1,), 1]]
+    return r
+
+
+def lean_env():
+    lean = os.environ.get("LEAN") or shutil.which("lean")
+    lib = os.environ.get("LEANLIB") or os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(lean))),
+                                                    "lib", "lean")
+    return lean, lib
+
+
+def check_rules_lean(test, machine, theorems):
+    """Compile `theorems` (Lean texts from symtm.prove) against the machine's generated definition."""
+    lean, lib = lean_env()
+    subprocess.run([os.path.join(TOOLS, "lean", "check.sh")], check=True, capture_output=True,
+                   env=dict(os.environ, LEAN=lean, LEANLIB=lib))
+    d = tempfile.mkdtemp(dir=BUILD)
+    with open(os.path.join(d, "Mach.lean"), "w") as f:
+        f.write(leangen.machine_lean(machine, "Mach"))
+    with open(os.path.join(d, "Rules.lean"), "w") as f:
+        f.write(symtm.rules_file("Mach", "Mach", theorems, "test rules"))
+    env = dict(os.environ, LEAN_PATH=f"{lib}:{os.path.join(TOOLS, 'lean', 'out')}:{d}")
+    subprocess.run([lean, "Mach.lean", "-o", "Mach.olean"], cwd=d, check=True, env=env, capture_output=True)
+    r = subprocess.run([lean, "Rules.lean"], cwd=d, env=env, capture_output=True, text=True)
+    test.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+
+class TestCycles(unittest.TestCase):
+    """The cycle accelerator against plain macro runs: after every jump the stacks, head position, state and step
+    count are those of the macro machine run without jumps."""
+
+    @staticmethod
+    def accelerated(run, steps, **kw):
+        a = cycles.Accelerator(run, **kw)
+        ends = []
+        jump = a.jump
+
+        def recording(limit=None):
+            n = jump(limit)
+            if n:
+                ends.append(cycles.snapshot(a.run_))
+            return n
+        a.jump = recording
+        a.run(steps)
+        return a, ends
+
+    def check_against_plain(self, machine, k, steps, min_jumps, start=None):
+        start = start or (lambda: MacroRun(machine, k))
+        a, ends = self.accelerated(start(), steps)
+        self.assertGreaterEqual(len(ends), min_jumps)
+        p = start()
+        for e in ends:
+            while p.steps < e.steps and p.step():
+                pass
+            self.assertEqual(cycles.snapshot(p), e, (machine, k, e.steps))
+        while p.steps < steps and p.step():
+            pass
+        self.assertEqual(cycles.snapshot(p), cycles.snapshot(a.run_))
+        return a
+
+    def test_detect(self):
+        w, v = (1, 0), (0, 1)
+        s = [cycles.Snap(100 + 10 * i + i * i, -4 * i, 1, -1, ((w, 5 + 2 * i), (v, 3)), ((w, 40 - i),))
+             for i in range(3)]
+        c = cycles.detect(s)
+        self.assertEqual(c.delta, (2, 0, -1))
+        self.assertEqual(c.dpos, -4)
+        self.assertEqual(c.dsteps, (11, 13))
+        self.assertIsNone(cycles.detect([s[0], s[1], s[1]]))      # not linear
+        t = cycles.Snap(0, 0, 1, -1, ((v, 5),), ((w, 40),))
+        self.assertIsNone(cycles.detect([s[0], t]))                 # another shape
+
+    def test_bb6_1rf_against_macro(self):
+        # walls eaten and blocks grown at the left end; many jumps, each one checked
+        a = self.check_against_plain(BB6_1RF, 4, 3 * 10 ** 8, 10)
+        self.assertGreater(sum(n for _, n, _, _ in a.jumps), 1000)
+
+    def test_bouncer_against_macro(self):
+        # nothing shrinks: the jumps are bounded only by the step limit, and land on it exactly where they can
+        for k in (1, 2, 3):
+            a = self.check_against_plain(BOUNCER, k, 10 ** 7, 1)
+            self.assertGreater(a.jumps[0][1], 500)
+
+    def test_eater_wall(self):
+        # the wall 1^b is eaten one cell per sweep: one jump, which stops with the wall still `margin` above what
+        # the rule needs; then the machine leaves to the right in blank tape, another jump
+        a = self.check_against_plain(EATER, 1, 3 * 10 ** 6, 2, start=lambda: eater_run(1000))
+        before, n, after, name = a.jumps[0]
+        rule = a.rules[0]
+        self.assertEqual(rule.delta, (-1, 1, 1))
+        self.assertEqual(str(rule.steps), "2*n1+2*n2+15")
+        p = eater_run(1000).run(after)
+        wall = p.right[1][1]
+        self.assertEqual(wall, rule.spec[0][2] + 2)        # offset + margin
+        self.assertGreater(n, 900)
+
+    def test_rules_hold_concretely(self):
+        """Each rule, its variables filled in with values unlike the sample's, is a true statement (plain run)."""
+        a, _ = self.accelerated(MacroRun(BB6_1RF, 4), 3 * 10 ** 7)
+        b = cycles.Accelerator(MacroRun(BOUNCER, 2)).run(10 ** 5)
+        c = cycles.Accelerator(eater_run(300)).run(10 ** 6)
+        cases = [(BB6_1RF, r) for r in a.rules[:6]] + [(BOUNCER, r) for r in b.rules] + [(EATER, r) for r in c.rules]
+        self.assertGreater(len(cases), 4)
+        rng = random.Random(5)
+        for text, rule in cases:
+            m = Machine.parse(text)
+            for _ in range(3):
+                env = {v: rng.randrange(0, 12) for v in rule.start.vars()}
+                start, end = rule.start, rule.end
+                cells, head = TestSymbolic.concretize(start, env, {})
+                ecells, ehead = TestSymbolic.concretize(end, env, {})
+                r = Run(m, state=start.state)
+                for i, x in enumerate(cells):
+                    r.tape.set(i, x)
+                r.head = head
+                n = rule.steps.subs(env)
+                for _ in range(n):
+                    self.assertTrue(r.step())
+                self.assertEqual(r.state, end.state)
+                off = r.head - ehead
+                lo, hi = min(off, r.tape.lo), max(off + len(ecells), r.tape.hi + 1)
+                self.assertEqual([r.tape.get(i) for i in range(lo, hi)],
+                                 [ecells[i - off] if 0 <= i - off < len(ecells) else 0 for i in range(lo, hi)],
+                                 (rule.name, env))
+
+    def test_margin(self):
+        # after every jump each shrinking count is still `margin` above what its rule needs
+        a, ends = self.accelerated(MacroRun(BB6_1RF, 4), 10 ** 8, margin=5)
+        by_name = {r.name: r for r in a.rules}
+        self.assertGreater(len(ends), 5)
+        for (_, n, _, name), e in zip(a.jumps, ends):
+            rule = by_name[name]
+            self.assertGreaterEqual(n, 2)
+            shrinking = [(sp, c) for sp, c, d in zip(rule.spec, e.counts(), rule.delta) if d < 0]
+            self.assertTrue(shrinking)
+            for sp, c in shrinking:
+                self.assertEqual(sp[0], "var")
+                self.assertGreaterEqual(c, sp[2] + 5)
+
+    @unittest.skipUnless(shutil.which("lean") or os.environ.get("LEAN"), "no Lean installed")
+    def test_lean_checks(self):
+        """The cycle rules (shift rules, re-bracketings, a step count linear in the variables) compile in Lean."""
+        a, _ = self.accelerated(MacroRun(BB6_1RF, 4), 10 ** 6)
+        self.assertTrue(any("rep_rotate" in r.lean for r in a.rules[:3]))
+        check_rules_lean(self, BB6_1RF, [r.lean for r in a.rules[:3]])
+        b = cycles.Accelerator(MacroRun(BOUNCER, 2)).run(10 ** 5)
+        check_rules_lean(self, BOUNCER, [r.lean for r in b.rules])
+        c = cycles.Accelerator(eater_run(300)).run(10 ** 6)
+        check_rules_lean(self, EATER, [r.lean for r in c.rules])
 
 
 class TestParts(unittest.TestCase):

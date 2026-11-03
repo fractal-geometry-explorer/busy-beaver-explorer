@@ -11,7 +11,7 @@ as they are and keeps only what is about its own machine.
 | `lean/TM/CTL.lean` | closed tape languages: an automaton on each side of the head and a set of abstract configurations, a closure test run by `decide`, and its soundness: every configuration of the run is covered (`reach`), so a set with no halt proves the machine never halts (`not_halts`) and one whose halts have blank tape after the head confines halting to the right edge (`halt_tail_blank`, `no_double_zero`) | new |
 | `lean/check.sh` | compile the library, then a machine's files, with plain `lean` (no Lake) | `bb6-holdout/lean/check.sh` |
 | `py/bbtools/leangen.py` | the Lean definition of a machine, generated from its text form | new |
-| `py/bbtools/symtm.py` | symbolic simulation with repeats and unknown context, shift rules found automatically, and **Lean proofs written from the trace** (`prove`) | `bb6-holdout/rec/symtm.py`, `lean/gen_rules.py` |
+| `py/bbtools/symtm.py` | symbolic simulation with repeats and unknown context, shift rules found automatically (optionally after re-bracketing a repeat next to the head, `rotate=True`, proved with `TM.rep_rotate`), and **Lean proofs written from the trace** (`prove`) | `bb6-holdout/rec/symtm.py`, `lean/gen_rules.py` |
 | `py/bbtools/machine.py` | parser of the standard format and the reference simulator | the many per-machine simulators |
 | `py/bbtools/explore.py` | records, end-of-tape events and block lists of a run, for finding macro structure | new |
 | `py/bbtools/invariants.py` | exhaustive search for conserved a·ones + b·pos + W[state] (mod m) | the holdout's mod-3 invariant, found by hand there |
@@ -20,6 +20,7 @@ as they are and keeps only what is about its own machine.
 | `py/bbtools/explore.py` `tokens`, `turns` | the tape read as words (`a=10,b=110`, longest first, run-length coded) at the moments the head extends the tape, and the head's turns | new (for `bb6-1RB1RF_1LC0LB`) |
 | `c/tokrun.c` | the same word view in C, for billions of steps | new |
 | `py/bbtools/macro.py` | a macro-machine simulator: blocks of k cells, run-length coded, runs of a block crossed at once when the head comes out the far side in the same state; exact (tested cell for cell), and for machines whose sweeps cross long runs it takes about one macro step per run (10¹² steps of 1RB1RF_1LC0LB in 23 s) | new (for `bb6-1RB1RF_1LC0LB`) |
+| `py/bbtools/cycles.py` | a linear cycle accelerator for the macro simulator: at sample points (default: the head at an end of the tape) it detects counts moving by constant increments, proves the one-cycle rule with `symtm` (changing and long counts as variables; a Lean theorem per rule), and applies k cycles at once with the exact step count k·S + D·k(k−1)/2, stopping while every shrinking count is still `margin` above what the rule needs; checked jump by jump against plain macro runs (the 1.42·10¹³ regime of 1RB1RF_1LC0LB: 126,612 cycles, 7.5·10¹¹ steps, in 0.6 s) | new |
 | `c/parts.h`, `c/run_parts.sh`, `py/merge_parts.py` | a search split into parts: output protocol, resumable parallel runner, checked merge (refuses missing or unfinished parts) | `bb6-holdout/dfs/run_parts.sh`, `merge.py` |
 | `c/windowscan.c` | an example part program: every K-cell word in a state, run T steps | new |
 | `pages/build_status.py` | a proof-status page from JSON, every claim tagged kernel / native / trusted / heuristic / open | the design of `pages/proof-status.html` |
@@ -57,6 +58,7 @@ python3 -m bbtools.explore records MACHINE 100000
 python3 -m bbtools.explore tokens MACHINE 3000000 a=10,b=110 L 40     # the tape as words at the left end
 python3 -m bbtools.explore turns MACHINE 1681 2200                    # every turn of the head
 python3 -m bbtools.macro MACHINE 4 1e12                                # macro machine, blocks of 4 cells
+python3 -m bbtools.cycles MACHINE 4 2e13                               # the same with proved cycle jumps
 python3 -c 'from bbtools.symtm import prove; print(prove("MACHINE", "rule", "L A> 1^n R", "L 1^n A> R")[0])'
 
 gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun MACHINE 1000000000 at F L
