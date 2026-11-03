@@ -22,6 +22,12 @@ the next, and the machine follows it for all values of the parameters (`mstep_so
 cases (a gap `g = 0` next to an empty segment), so if the macro machine never gets stuck from the configuration after
 12 steps, the machine never halts (`no_halt_of_macro`).
 
+**Proved in Lean, kernel only** (`lean/Counter.lean`): a counter. Φ = (sum of the stack) + h + Σ(m + g − 1) is
+kept by a pass that ends inside the word and by a B step with a nonempty stack, goes up by 2 or 1 when a pass runs into the last segment, and down
+by 1 when B has an empty stack (`phi_interior`, `phi_end`, `phi_bottom`). Read as a recursive program (the two-stack
+form's right stack is a call stack), Φ/2 counts the turns of the outermost loop, up to the rare
+steps at the left end. It does not rule out getting stuck by itself.
+
 **Proved in Lean with `native_decide`**: no halt in the first 10,000,000 steps (`blank_runs_10M`).
 
 **Computed** (trusted C/Python, tested): no halt in the first 10¹⁰ steps (`tools/c/tmrun.c`, 313 ones, 642 cells);
@@ -48,12 +54,15 @@ have never been more than 4 of them at once.
 | `lean/Blank.lean` | bounded runs from blank tape and the halting configurations |
 | `lean/Pass.lean` | the pass and which passes halt, the leftward sweep and erase (kernel) |
 | `lean/Macro.lean` | the macro machine: encoding, `mstep`, `mstep_sound`, `no_halt_of_macro` (kernel) |
+| `lean/Counter.lean` | the counter Φ: kept by interior steps, changed only at the ends of the tape (kernel) |
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `lean/check.sh` | compiles the shared library, then the files above |
 | `py/blank.py` | the run from blank tape on the shared simulator: summary, records, D reading a 0 |
 | `py/passes.py` | pass starts, the predicted ending of each pass checked against the machine, the parity check |
 | `c/passes.c` | the same checks in C, for billions of steps |
 | `py/macro.py` | the macro machine as in Lean, checked against the run from blank tape; `show`, `stats` |
+| `py/twostack.py` | the two-stack form of the macro machine (rules R1, R2) |
+| `py/callstack.py` | the two-stack form read as a recursive program; the counter Φ by kind of step; flips at the caller |
 | `c/macro.c` | the run and the macro machine side by side, the whole tape compared at every pass start |
 | `py/pds.py` | the pushdown reduction: one side of the tape as a DFA, the other exact, post* saturation |
 | `c/pds.c` | the same in C, enumerating every DFA up to a size |
