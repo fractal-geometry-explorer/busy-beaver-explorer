@@ -105,8 +105,8 @@ limit: every run that finished is UNKNOWN. Length 1 at widths 1 to 29, length 2 
 lengths 5 to 8 at 1 to 16.
 
 **LRU history** (`results/lru.tsv`): UNKNOWN at widths 1 to 11, the costliest at width 8 (75.7 million
-configurations, 90 s, 8.3 GB); width 12 passed 90 million (8.5 GB, 106 s). LRU symbols multiply fast: 4,000 to
-600,000 distinct n-grams where the plain decider has 30 to 2,000.
+configurations, 90 s, 8.3 GB); width 12 passed 90 million (8.5 GB, 106 s). LRU symbols multiply fast: 605,223 distinct
+left n-grams at width 12, against 19,703 for the plain decider at width 39.
 
 So no variant of the decider in the paper proves this machine nonhalting at any width that can be run here.
 
