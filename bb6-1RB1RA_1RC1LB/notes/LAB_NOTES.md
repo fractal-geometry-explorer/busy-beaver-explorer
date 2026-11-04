@@ -790,3 +790,25 @@ second partial result suggested there, gets no support from the ensemble: whatev
 next return has to come from the particular orbit, not from a tendency of the map. The blank-tape orbit itself
 starts from the narrow tape (1, 6), but it is one orbit; what the narrow designs show is that small starts merge, not
 that they avoid high valuations.
+
+## November 4, 2026: why N is never 3030 or 4054 mod 2¹²
+
+The entry of 30 October found that over a period of the last 18 blocks N never takes the residues 3030 and 4054 mod
+2¹², and left it unexplained. It is not an obstruction of any kind; it is the end of one thinning branch of the
+2-adic tree (**computed**, exact: `py/top_stats.py thin`, `runs/thin_branch.txt`, about a second).
+
+N mod 2¹² depends only on the last 12 blocks, which on the blank-tape orbit cycle with period 327,680
+(`cycle12`, `lean/CycleRun.lean`), so one period gives the law exactly for all later times. Follow the class of
+982 = 0b1111010110 down the bits: mod 2⁴ it is 6 (0.5 of its uniform share, the floor at that depth), mod 2⁵ 22
+(0.25, the rarest class), then 22, 86, 214, 470, 982 for k = 6 to 10, with shares 0.19, 0.19, 0.063, 0.031,
+0.016: for k = 5 to 11 the rarest class mod 2^k is on this branch (at k = 7 tied with 22), and for k = 8 to 10
+it keeps only a sixth to a quarter of its parent's visits instead of half. Mod 2¹⁰ it has 5 visits per period where a uniform
+law would give 320. Those 5 split as 2 at 982 and 3 at 2006 mod 2¹¹, and all five have bit 11 equal to 0. So
+982 + 2048 = 3030 and 2006 + 2048 = 4054 get none. Every other residue mod 2¹² is visited, and mod 2¹⁸ the only
+misses are the 128 lifts of these two (`runs/bottom2adic_18.txt`).
+
+So the pattern is the far tail of the non-uniform law of N's low bits: the classes do not thin at a constant rate,
+and one branch thins faster than its neighbours. It says nothing about powers of two, which are 0 mod 2¹² and get
+their share there. The open question it leaves is the shape of the law itself: why the branch ending in 010110
+(22 mod 32) is starved, from the residues mod 5 the levels settle on (entry on period factors). `tests/test_top.py`
+checks the two misses and the 5 visits.

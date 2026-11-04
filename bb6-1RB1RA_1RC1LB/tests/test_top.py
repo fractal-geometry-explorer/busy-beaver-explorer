@@ -155,5 +155,15 @@ class EnsembleFast(unittest.TestCase):
         self.assertEqual(top_stats.p_div(10, 10), 0)
 
 
+class ThinBranch(unittest.TestCase):
+    def test_missed_residues(self):
+        """Over one period of the last 12 blocks, N mod 2^12 misses exactly 3030 and 4054, and their class 982
+        mod 2^10 is visited 5 times instead of 320."""
+        Ns, end = top_stats.last_blocks_N()
+        self.assertEqual(end, top_stats.LAST12)
+        self.assertEqual(sorted(set(range(4096)) - {n % 4096 for n in Ns}), [3030, 4054])
+        self.assertEqual(sum(n % 1024 == 982 for n in Ns), 5)
+
+
 if __name__ == "__main__":
     unittest.main()
