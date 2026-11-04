@@ -8,6 +8,9 @@ usage:
                                             passes it, for k = 1, 2, ...  (1e17: about 30 s)
   python3 top_stats.py ensemble FILE...     the returns in output files of c/ensemble.c: the halting law, v2(d1), the
                                             odd part u mod 2^t, d1 mod q, the leading bits, and the near-halts
+  python3 top_stats.py thin                 why N is never 3030 or 4054 mod 2^12: over one period of the last 12 blocks
+                                            of the blank-tape orbit (lean/CycleRun.lean cycle12), the share of the
+                                            rarest residue class mod 2^k, k = 4..12 (about 1 s)
   python3 top_stats.py fast FILE...         the totals that c/ensemble_fast.c prints (summed over the files): the
                                             halting law and v2(d1) = s against the random model, by the size of d1
 
@@ -333,6 +336,47 @@ def fast(files, tmax=24):
         print(f"  this s >= {a} ({base} pairs): " + "  ".join(row))
 
 
+LAST12 = [12, 27, 37, 63, 74, 351, 2166, 544, 7604, 4314, 30067, 45962]   # level 0 = the last block (cycle12)
+PERIOD12 = 327680
+
+
+def last_blocks_N(blocks=LAST12, steps=PERIOD12):
+    """N mod 2^k for k = len(blocks), after each of `steps` super steps of the last k blocks run on their own (they
+    are a closed system: level 0 receives 10 each super step, nothing flows down), and the blocks at the end."""
+    lv, K, out = list(blocks), len(blocks), []
+    for _ in range(steps):
+        h, k = 10, 0
+        while True:
+            d = lv[k] + h
+            if d % 2:
+                lv[k] = (d + 5) // 2
+                if k + 1 < K:
+                    lv[k + 1] += (d - 1) // 2
+                break
+            lv[k] = h = d // 2
+            k += 1
+            if k == K:
+                break
+        out.append((10 + sum(x << i for i, x in enumerate(lv))) % (1 << K))
+    return out, lv
+
+
+def thin():
+    Ns, end = last_blocks_N()
+    print(f"one period of the last 12 blocks ({PERIOD12} super steps); the blocks come back: {end == LAST12}")
+    print(" k   classes  rarest (share of uniform)            the class of 982 = 0b1111010110")
+    for k in range(4, 13):
+        c = Counter(n % (1 << k) for n in Ns)
+        share = PERIOD12 / (1 << k)
+        lo = sorted(c.items(), key=lambda x: (x[1], x[0]))[:3]
+        r = 982 % (1 << k)
+        print(f"{k:2d}  {len(c):6d}   " + ", ".join(f"{a} {b / share:.4f}" for a, b in lo).ljust(40) +
+              f"{r}: {c[r]} visits, {c[r] / share:.4f}")
+    c = Counter(n % 4096 for n in Ns)
+    print(f"mod 2^12: 982 {c[982]}, 2006 {c[2006]}, 3030 {c[3030]}, 4054 {c[4054]} visits per period "
+          f"(uniform {PERIOD12 // 4096})")
+
+
 def main(argv):
     if argv[:1] == ["odds"]:
         odds()
@@ -344,6 +388,8 @@ def main(argv):
                 print(f"{k + 1:4d}  {r:12d}  {p:12d}  {p / r:.4f}")
     elif argv[:1] == ["ensemble"] and len(argv) > 1:
         ensemble(argv[1:])
+    elif argv[:1] == ["thin"]:
+        thin()
     elif argv[:1] == ["fast"] and len(argv) > 1:
         fast(argv[1:])
     else:

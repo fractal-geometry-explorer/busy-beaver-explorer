@@ -27,3 +27,5 @@ Outputs of long runs (see ../notes/LAB_NOTES.md for how each was made).
   each section names its commands (`gcc -O3 -march=native -o ensemble_fast c/ensemble_fast.c`). On four cores the
   2²⁴ runs take about 25 minutes each, the `-u` runs (one process each) about 95, the 10¹⁴ runs about an hour; the
   raw totals (about 2 MB a run) are not kept.
+- `thin_branch.txt`: `python3 py/top_stats.py thin` (about a second): N mod 2^k over one period of the last 12 blocks
+  of the blank-tape orbit, and the thinning class of 982 that leaves 3030 and 4054 mod 2¹² unvisited.
