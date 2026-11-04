@@ -5,6 +5,7 @@ import Wave
 import Events
 import DeepMind
 import WaveTime
+import EventTime
 import Periods
 import Monotone
 
@@ -46,6 +47,11 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6b.orbitT_steps
 #print axioms BB6b.orbitT_halt
 #print axioms BB6b.runs_of_orbitT
+#print axioms BB6b.carry_reachE
+#print axioms BB6b.ev_steps
+#print axioms BB6b.ev4_time
+#print axioms BB6b.evOrbitT_steps
+#print axioms BB6b.evOrbitT_tape
 
 #print axioms BB6b.cycle_residues
 #print axioms BB6b.period_factor

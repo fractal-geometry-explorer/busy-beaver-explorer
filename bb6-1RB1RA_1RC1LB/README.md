@@ -29,6 +29,12 @@ at each level.
   reaches the next one in exactly `superT` steps (or halts right after that many): 200, then 2q² + q − 5 for each block
   the wave passes with even d = 2q, then 2q² + 4q + 17 + A where it turns at an odd d = 2q + 1 (A is 3 plus q + 1 per
   block passed; at the left end the wave goes on with p = 0, and a halt there costs 11);
+- **the step count of each single event** (`ev_steps`, `lean/EventTime.lean`): from an event the machine reaches the
+  next one in exactly `evT` steps (or halts right after that many). With the last block x and q = x/2: 2q² + 8q + 17
+  for even x; for odd x, 2q² + 9q + 5 to start the wave, then 2q² + q − 5 for each block it passes with even d = 2q
+  and 2q² + 4q + 11 + B where it turns at an odd d = 2q + 1 (B is q + 3 for the event's own q, plus q + 1 per block
+  passed; a halt at the left end costs 11). The four events of a super step add up to `superT` (`ev4_time`), and the
+  timed event orbit from (1, 2) at step 17 is the machine's run, step for step (`evOrbitT_tape`);
 - the block rules behind it (`transfer`, `empty_start`, `sweep_step`, `carry_*`) and the shift rules `a_sweep`,
   `b_sweep`, for every block length;
 - **no halt in the first 1.2·10³² steps** (`blank_runs_cycles`, `lean/CycleRun.lean`): the tables of the last 1 to 30
@@ -64,8 +70,8 @@ configuration of the first 1,000 macro steps); no conserved quantity a·ones + b
 (`tools/py/bbtools/invariants.py`).
 
 **Computed, resting on the wave model** (`py/waves.py`, `c/blkrun.c`, `tests/test_waves.py`; checked against direct
-simulation and against `py/macro.py`): the step counts of the single events (the events themselves are proved,
-above); the sum over a super step is the proved `superT`.
+simulation and against `py/macro.py`): the wave model itself; its events and their step counts are now proved
+(above), and agree with `waves.py` on the first 200,000 events.
 The wave goes v₂(N) + 1 blocks deep and reaches the left end of the tape when 2^(m−1) divides N (which is why the
 head gets there so rarely: the next time after step 2,047,931 is step 26,618,972,322, confirmed by a direct run).
 
@@ -119,6 +125,7 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 | `lean/DeepMind.lean` | google-deepmind/cryptids' `highLevelNext`, copied into core Lean and proved equal to `ev` |
 | `lean/Monotone.lean` | N strictly increases at every super step (`superL_grows`, `orbit_grows`) |
 | `lean/WaveTime.lean` | the super step's exact step count, and the timed super orbit `orbitT` |
+| `lean/EventTime.lean` | each single event's exact step count (`evT`, `ev_steps`), and the timed event orbit `evOrbitT` |
 | `lean/orbit_gen.py` → `lean/Orbit/`, `OrbitKernel.lean`, `OrbitNative.lean` | the orbit checked in chunks between checkpoints from `c/orbitck.c` (generated; do not edit) |
 | `lean/check_orbit.sh` | checks those files in parallel (`kernel` or `all`) |
 | `lean/Cascade.lean` | the last blocks run on their own (`superL_split`, `superT_split`), and the tables are sound (`build_rep`, `runs_of_drive`) |
