@@ -136,7 +136,7 @@ stage PassEntryHalt LaneHalt CleanTreesC
 stage SmallEndHalt PassEntryHaltClose LoopFarHalt
 stage OpenSmallHalt
 stage WideHalt
-stage FarHalt
+stage FarHalt WindowHalt
 stage BigEndHalt
 stage OpenHaltClose
 $LEAN thm/EndToEndAxioms.lean

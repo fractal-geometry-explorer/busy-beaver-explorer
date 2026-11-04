@@ -3963,3 +3963,15 @@ One handle: suppose the clean-tape tree settles a class of clean tapes n, with t
 n. Then the lane fixes n for each j, and since the classes have 2-adic limits, b's class asks two fixed 2-adic numbers
 to agree in about j digits. Only finitely many j can meet that unless the two are equal. What is left is the classes
 that the tree cuts at every depth.
+
+**Where the chain's last pass start can come from, against the 4-wall family (November 4; `FOUR_WALL_ORIGIN.md`,
+`../lean/thm/WindowHalt.lean`).** No idea other than the 2-adic handle was found that rules out the 4-wall family for
+every number of passes. The 4-wall loop has a lock like the 3-wall one: Λ = 9Λ̃ with Λ̃ ≡ 3 (mod 7). But it bounds the
+passes only by about log₆₄ W, and every mod-7 or mod-9 relation found is an identity of the forms. What is new is that
+each kind of step lands in a narrower shape than the theorems kept. A full pass lands in a window with two sides,
+15W + 144R + 375 ≤ 64(W − b) ≤ 16W + 128R − 994. The loop entry and a round-7 landing have W ≤ 32R, and a half pass
+lands with W ≤ 64R + 6 and 2(W − b) + 900 ≤ W + 2R (`LoopChain.window_end`, `blank_halt_open_window`). With that, the
+run from blank tape halts through none of six of the eight far families that had met every stated condition
+(`blank_halt_not_window_family`). Of the other two, one is ruled out by PR #114's count, and `loop5_far_66c` can only
+be a loop entry itself. The untrusted counts in `far_shape.md` (258 of 319 four-pass members at 2⁶⁶ with
+W ≤ 64R + 6) say that wide members remain, so the family is not ruled out.
