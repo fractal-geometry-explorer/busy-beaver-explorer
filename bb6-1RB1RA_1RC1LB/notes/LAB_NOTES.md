@@ -721,6 +721,22 @@ residues the levels settle on), and a deterministic bound on v₂(d₁) at a ret
 starts (a few CPU days) would settle whether the shortfall in high valuations is real. Page:
 `pages/1RB1RA_1RC1LB/top-blocks.html`.
 
+## October 31, 2026: 35 levels, and no halt in the first 4.4·10³⁷ steps, by the kernel alone
+
+**The last 1 to 35 blocks cycle on the orbit, with their least periods** (**proved, kernel only**: `cycle1`–`cycle35`,
+`lean/CycleRun.lean`), and **no halt in the first 44,405,698,359,075,157,430,295,693,458,238,990,120 steps** (4.4·10³⁷,
+`blank_runs_cycles`, axioms `propext`, `Classical.choice`, `Quot.sound`), the bound that `lean/CascadeRun.lean` had
+only with `native_decide`: the same plan, 35 levels and then 6 passes of the last table, 6.75·10¹⁷ super steps. The
+periods of the last 31 to 35 blocks are 343,597,383,680,000, 1,374,389,534,720,000, 5,497,558,138,880,000,
+21,990,232,555,520,000 and 87,960,930,222,080,000 (factors ×2, ×4, ×4, ×4, ×4), as `c/superrun.c` has them.
+
+**Cost.** `check_cycles.sh 35 6`: 33,760 pieces in 2,821 files (the tables of levels 31 to 35 have 0.4, 0.8, 1.6, 3.3
+and 6.5 million entries; the 6 passes over the last are 11,520 pieces), 743 MB of written tables and 6 GB of
+.olean files; 20.5 CPU hours, 5¾ hours on 4 cores. The per-entry cost is the kernel's, about 0.8 ms: a Bool-valued
+checker of `lvSeg` with `Nat.beq` in place of `decide` on the result was no faster. The pieces
+were unchanged; only the chaining in `CycleLevels/` needed `maxRecDepth` raised for the `pass` and `build` steps of the
+levels with 960 and 1,920 stretches (`cycle_gen.py`).
+
 ## November 1, 2026: the shortfall in high valuations comes from the starting tapes, not from the map
 
 The entry of 30 October found that from 60,000 random starts (2 to 4 blocks of 1 to 100, orbits of 2²⁴ super steps)
