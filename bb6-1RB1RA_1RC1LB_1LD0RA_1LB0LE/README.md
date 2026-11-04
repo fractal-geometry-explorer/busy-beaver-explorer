@@ -148,6 +148,18 @@ positive-dimension 2-adic set, and the problem looks Collatz-hard (heuristic).
 ψ = y_k − 2y_(k−1) + 4y_(k−2) − … moves by 2ψ' = −ψ + 3(−2)^n − 7 in every pass, n ≤ k the number of blocks the
 sweep crosses (`psi_next`). On `[a, 2a+d]` it is d.
 
+**A sentinel block of 3: the excursions run the blank orbit** (`lean/Sentinel.lean`, kernel; `py/sentinel.py`;
+`notes/LAB_NOTES.md`, 4 November). With φ(y₁ … y_k) = y₁ … y_(k−1) (y_k + 5) 3, a pass commutes with φ for every block
+list, halts and stops at a block of 1 included (`next_phi`), so the orbit of φ y is φ of the orbit of y (`iter_phi`).
+From `1^5 0 1^3` the pass map runs φ of the blank orbit for ever (`sentinel_orbit`, `sentinel_one_iff`): the
+"sentinel orbit" below is the blank orbit itself; and `[x, 2x+6, 3]` runs exactly the excursion of `[x, 2x+1]`
+(`inner_counter`). A last block that is 3 modulo 2^r acts as a sentinel for about r passes, and so (computed, m up to
+3·10⁴) for a = 1 + 2^m u **the first m − 1 passes of the excursion from `[a, 2a+1]` are φ of the blank orbit modulo
+2^(m−t−1)**, with its route and blocks at least its blocks; the first block stays above a/4. This is why the open set
+of the return map accumulates at a = 1 and every open residue is 1 mod 256. Later phases of the deep excursions
+replay values of the blank orbit's counter too, but the transitions between phases, where the high bits of a enter,
+have no closed form (observed).
+
 **No induction on sizes alone** (`py/induction.py`, `notes/LAB_NOTES.md`, 1 November): with every parity free and the
 constants of the closed form dropped, the first block of the lists reachable from `[1, 2]` halves every two passes, so
 an inductive lower bound must say which parities occur. Near a = 1 the excursion agrees, modulo a power of 2 losing
@@ -170,6 +182,7 @@ of 1), and so the question itself.
 | `lean/Thin.lean` | for every a: a non-returning a has its residue among the open classes (`thin_ok`), 67 residues mod 2^34 |
 | `lean/Visit.lean` | the jumps of the return map skip no value = 1 mod 32 off the open residues (`skip_off_open34`); the orbit meets the first failure (`orbit_meets_first_failure`) |
 | `lean/Psi.lean` | the alternating sum ψ and its exact rule under a pass (`psi_next`) |
+| `lean/Sentinel.lean` | the sentinel conjugacy `next_phi`, the sentinel orbit as φ of the blank orbit, the inner counter |
 | `lean/Plan.lean`, `lean/return62.py` | the cut of the class a = 5 + 4u into pieces for the kernel; writes `lean/R62/` and `lean/Return62.lean` |
 | `lean/R62/Shard*.lean`, `lean/Return62.lean` | generated: the pieces, each by `decide +kernel`, and the theorem below 2^62 |
 | `lean/check_return62.sh` | checks the pieces in parallel (`JOBS`), then `Return62.lean`, and that it rests on no `native_decide` |
@@ -186,6 +199,8 @@ of 1), and so the question itself.
 | `tests/test_front.py` | the statements of `lean/Front.lean` on the Python closed form, and the orbit measurements |
 | `py/dynamics.py` | the long-run dynamics of G: the orbit as a counter, the bits an excursion reads, the class tree and its open set, the mixing |
 | `py/induction.py` | the free-parity pass map (no induction on sizes alone) and the sentinel orbit near a = 1 |
+| `py/sentinel.py` | the sentinel map φ: the conjugacy on random lists, the excursions from a = 1 + 2^m u against φ of the blank orbit (`deep`), the phases of the open classes (`phases`) |
+| `tests/test_sentinel.py` | the conjugacy, the sentinel orbit, the inner counter against G, `deep` for m to 600, the open classes' first phase |
 | `tests/test_induction.py` | the free-parity minima, the loose map against the closed form, the sentinel orbit for a = 1 + 2^m u |
 | `tests/test_dynamics.py` | the counter, the bits read, the tree to mod 2^26, the mixing at depth 32 |
 | `tests/test_returnmap.py` | the chains, the classes down to mod 2^38, the classes against concrete runs, the orbit chain |
@@ -234,6 +249,8 @@ python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/front.py stats 100000000   # about 4 
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/returnmap.py classes 60    # 24 s (classes 72: 2.5 min)
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_dynamics.py
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_induction.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_sentinel.py
+python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/sentinel.py deep 30000 3   # about 1 min
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/dynamics.py orbit 300000; python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/dynamics.py tree 72   # 4 min
 python3 tools/pages/build_status.py bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/status.json pages/1RB1RA_1RC1LB_1LD0RA_1LB0LE/proof-status.html   # after editing status.json
 python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/explainer_status.py                                                                       # the same, for the explainer
