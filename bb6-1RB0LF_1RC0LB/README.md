@@ -42,6 +42,9 @@ reduction that keeps one side of the tape exact and abstracts the other by a DFA
 to its right every time so far; pass endings look like a binary counter, a gap of 4j + 2 about half as often as
 4j − 2 (`notes/LAB_NOTES.md`).
 
+**Observed only**: configurations that differ from the run's in one even entry can get stuck (`py/perturb.py`), so
+non-stuckness depends on exact values; the run has one near miss by 10⁹ steps of the two-stack form.
+
 **Open**: a proof that the macro machine never gets stuck, and the
 question itself. Only odd numbers in the macro configuration can get it stuck, and in the first 10¹⁰ steps there
 have never been more than 4 of them at once.
@@ -62,6 +65,7 @@ have never been more than 4 of them at once.
 | `c/passes.c` | the same checks in C, for billions of steps |
 | `py/macro.py` | the macro machine as in Lean, checked against the run from blank tape; `show`, `stats` |
 | `py/twostack.py` | the two-stack form of the macro machine (rules R1, R2) |
+| `py/perturb.py` | configurations of the run with a few even numbers changed by 2, run on: some get stuck |
 | `py/callstack.py` | the two-stack form read as a recursive program; the counter Φ by kind of step; flips at the caller |
 | `c/macro.c` | the run and the macro machine side by side, the whole tape compared at every pass start |
 | `py/pds.py` | the pushdown reduction: one side of the tape as a DFA, the other exact, post* saturation |
