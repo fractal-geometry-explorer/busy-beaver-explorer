@@ -410,3 +410,47 @@ could be a *summary* of I^k on an abstract L, as in interprocedural analysis: fo
 abstract L top I^k returns, and how many flips it can cause its caller. The values matter only through the number
 of turns, so the abstraction needs the values of the top few entries exactly and the parity of the turn count of
 each frame. I have not built it.
+
+## 4 November 2026: odd numbers as carries, a near miss, and stuck configurations next to the run
+
+**Odd numbers move like carries (follows from the rules; heuristic where counted).** In the call-stack reading
+(previous section) the first two turns of a loop read the entry s just below its caller's pair as (s, 0), then
+(0, s + 2). So a loop of two or more turns that digs out an odd s gets an odd-gap callee and is flipped once. A
+flipped frame returns an odd value. Its caller's next turn uses that value as a gap and is flipped in turn, unless
+the frame was its caller's last turn: then the odd value stays in L, below what comes next, until a later loop
+digs it out. So an odd number climbs down the call stack one frame per flip, like a carry, and comes to rest in L
+when it meets a frame with no turns left. In the run the odd numbers sit near the bottoms of both stacks (in L, a 1 as
+the second entry from the bottom; in R, odd frames next to the end). The active top of the computation is all even.
+
+**A near miss in the run (trusted Python, 10⁹ steps of the two-stack form, about 6·10¹⁰ machine steps).** No step
+gets stuck. But at step 204,719,420 (about 1.2·10¹⁰ machine steps, just past the C check) a frame created with value
+2 is flipped a second time, down to 0. It survives only because its gap is 0 at that moment: it has no turns left, so
+it returns 0 at once. A third flip, or one more odd-gap turn, would have got the machine stuck. So "a frame of value 2
+is flipped at most once", the pattern of the previous section, is false. Counts at 10⁵, 10⁶, …, 10⁹ steps: frames
+of value 2 flipped once 43, 109, 156, 288, 446; flipped twice 0, 0, 0, 0, 1. (The count comes from scratch code: a
+version of `zstep` that follows frames by identity, checked against `zstep` every 10⁵ steps.)
+
+**Stuck configurations next to the run (trusted Python, `py/perturb.py`).** I took 198 configurations of the
+two-stack form from the first 2·10⁶ steps of the run, changed 1 to 3 of their even numbers by ±2, and ran each changed
+configuration on. Every parity stays the same, R frames keep values of at least 2, and gaps stay at least 2. In 1,980
+changed configurations, each run 2·10⁵ steps, 6 got stuck, typically after 10⁴ steps or more and a few dozen R2 steps. As a control, 990 unchanged replays of the
+same configurations, 5·10⁴ steps each, make 3,445 R2 steps and none gets stuck. `python3
+py/perturb.py example` shows one: the run's configuration after 90,000 steps with one entry of L, the seventh from the
+bottom, changed from 0 to 2. The run goes on; the changed configuration gets stuck after 24,141 steps (25 R2 steps).
+
+What this means for a proof:
+
+* No closed family can depend only on parities, or only on the order of values without their size. It has to tell
+  the run apart from configurations that differ from it in one even entry deep in L.
+* The perturbed runs flip a frame of value 2 a second time in 0.8 % of cases (83 of 10,022). The real run has done
+  it once in 446 (expected 3.7 at the perturbed rate). The run is somewhat luckier than its perturbations, but
+  not by enough to show a structural reason (a Poisson chance of about 0.12).
+* A heuristic estimate, if the real run behaves like its perturbations: about one stuck configuration per 1,700
+  flips of value-2 frames (6 in 10,022). The run makes about 100 to 150 of those per decade of steps, so the
+  expected first stuck step is something like 10²⁰ steps of the two-stack form, far beyond direct simulation. This is consistent with halting at an astronomical time and also
+  with not halting. The data does not decide it, and there is no proof either way.
+
+**Next.** Either a structural reason that the run is not like its perturbations (an invariant relating the deep
+entries of L to the frames that will dig them out, exactly, not by parity), or an accelerated simulator for the
+recursion (I^k summarized for the all-even top of the computation) that reaches the next few hundred flips of
+value-2 frames and checks each near miss directly.
