@@ -13,6 +13,10 @@
  *                                      R random lists (part PART draws items PART, PART + NPARTS, ... of the
  *                                      stream), 1 to KMAX blocks, each uniform in 1..B, run P passes or to the event
  *
+ *   passorbit loose N                 N passes of the sentinel orbit from [1, 3]: the closed form with a stop at a
+ *                                      block of 1 allowed (py/blockcount.py, `loose_step`); prints the first pass
+ *                                      with each block count
+ *
  * PASSORBIT_EVENTS=N in the environment prints up to N `event` lines per part (default 200).
  *
  * The event: a sweep that stops at a block of a single 1 (outside the closed form), or a halt (the sweep runs off the
@@ -28,6 +32,7 @@
 typedef uint64_t u64;
 
 enum { OK = 0, HALT = 1, ONE = 2, BIG = 3 };
+static int loose_mode = 0;   /* `loose`: a stop block of 1 follows the same formula (py/blockcount.py, loose_step) */
 static const char *EVNAME[] = {"ok", "halt", "stop_block_1", "too_many_blocks"};
 
 /* One pass on y[0..*k-1] in place.  Returns OK, HALT, ONE (stop block 1; y unchanged) or BIG (y unchanged).
@@ -55,7 +60,7 @@ static int pass(u64 *y, int *k, int *jout, u64 *stop) {
         out[n++] = Y(K - 1) + add;
     } else {
         u64 yj = Y(j);
-        if (yj == 1) return ONE;
+        if (yj == 1 && !loose_mode) return ONE;
         u64 h[MAXK + 4];
         for (int i = j + 1; i < K; i++) h[i] = Y(i) / 2;
         h[K] = (y[K - 1] + 5) / 2;
@@ -281,12 +286,31 @@ static int run_grid(int argc, char **argv) {
     return 0;
 }
 
+static int run_loose(int argc, char **argv) {
+    (void)argc;
+    u64 N = strtoull(argv[2], 0, 10), y[MAXK + 4] = {1, 3}, stop;
+    int k = 2, maxk = 2, j;
+    loose_mode = 1;
+    for (u64 t = 1; t <= N; t++) {
+        int r = pass(y, &k, &j, &stop);
+        if (r != OK) { printf("%s at pass %llu\n", EVNAME[r], (unsigned long long)t); return 0; }
+        if (k > maxk) {
+            maxk = k;
+            printf("%d blocks first at pass %llu: ", k, (unsigned long long)t); put_list(y, k); putchar('\n');
+            fflush(stdout);
+        }
+    }
+    printf("%llu passes, at most %d blocks\n", (unsigned long long)N, maxk);
+    return 0;
+}
+
 int main(int argc, char **argv) {
     if (getenv("PASSORBIT_EVENTS")) max_printed = strtoull(getenv("PASSORBIT_EVENTS"), 0, 10);
     if (argc >= 3 && !strcmp(argv[1], "orbit")) return run_orbit(argc, argv);
     if (argc >= 5 && !strcmp(argv[1], "comps")) return run_comps(argc, argv);
     if (argc >= 7 && !strcmp(argv[1], "random")) return run_random(argc, argv);
     if (argc >= 5 && !strcmp(argv[1], "grid")) return run_grid(argc, argv);
+    if (argc >= 3 && !strcmp(argv[1], "loose")) return run_loose(argc, argv);
     fprintf(stderr, "usage: see the comment at the top of passorbit.c\n");
     return 1;
 }

@@ -291,7 +291,7 @@ for `j ≥ 2` the new last block is odd and at least 3, so a good pass start sta
 pass map at `j = 1`) and finds `c ≥ -1`, `-1` exactly for `x = 2` (`decide +kernel`, 35 s).  The Python mirror
 `macro.pre` agrees with `next_full` on random lists (`test_formula`).
 
-**What is not proved.** That `c ≥ -1` for every list: before the loop the converter can carry on through any number of
+**What is not proved** (as of this section; for every list see "c ≥ -1 for every list of blocks" below). That `c ≥ -1` for every list: before the loop the converter can carry on through any number of
 blocks that are 1 mod 3, and `pre` follows it only list by list.  Observed: for `x = 6r + 5` the offset is `4r + 2` for
 every list tried; for `x ≡ 0, 1 (mod 3)`, and for some `x = 6r + 2` such as 14 and 32, it depends on the blocks
 further left.
@@ -319,3 +319,327 @@ reach the pass start `1^11866 0 1^17246 A>0` at step 1,000,110,302,407.  So `bla
 
 **What this gives.** A Lean-checked floor of 10¹² steps, ten times the C simulation, in a few minutes; the floor is
 cheap to raise (the cost per pass grows with the tape width, about √(t/250)).  It is still only a floor.
+
+## 1 November 2026: bounding the drift to the left
+
+The aim was a proof that from a good start the head of a recursive pass gets at most a few cells past the left end of
+the tape, which with `astep_key` (`lean/Finish.lean`) would make every pass finish.  Not done; what was found:
+
+**A bound on the drift is the whole problem.**  Every step moves the cells right of the head towards the left end
+(`astep_key` in cell terms: whole words are consumed, or a word's separator moves left).  Any measure built from the
+words alone, a multiset of separator positions or a dictionary order with longer words first, needs a bound on how far
+left things go to be well founded, so a bound on the drift is equivalent to termination, not a step towards it.
+The tape grows only when the converter runs off the left end, after every block left of the head has been turned into
+words; then a C step moves the leftmost block into the words and F starts a block 2 one cell further left.
+
+**No constant bound.**  The 582 recursive passes of the first 10¹⁰ steps go at most 6 cells past the left end, but
+over all good lists the drift grows with the number of blocks: a hill climb (`j = 1`) finds 6 with 4 blocks, 9 with 8,
+11 with 12 and 13 with 24 (`[25, 14, 14, 7, 7, 25, 8, 29, 5, 4, 28, 5, 14, 10, 3, 16, 11, 5, 2, 10, 21, 4, 11, 19]`).
+So a theorem would have to bound the drift by something like the number of blocks, and that needs the structure of
+the pass.
+
+**`pre` (`lean/Formula.lean`) reaches arbitrarily deep.**  How many blocks of the original list `pre` touches is not
+set by the first block that stops the converter (a block not 1 mod 3): over 20,000 random lists of 1 to 8 blocks,
+lists whose first block already stops it are still dug into to depth 8.  The way back sweeps right, two words `0 1 1`
+at a time, over blocks `x, y`, and every word `0 1` or `0 1 1 1` on the way converts `y` back into words, sometimes
+`x` and further blocks too, so the left part is rebuilt many times (11 times for `[7, 10, 40, 25, 21]`).  An
+induction over the blocks, as for `c ≥ -1`, has to follow these rebuilds.
+
+Linear potentials (cells plus nonnegative multiples of counts of words and blocks by value and residue) were ruled
+out before; the same holds with counts of the run of blocks 1 mod 3 next to the head.  The next idea to try is a
+description of the A states of `pre`: the blocks left of the head (up to 8 in the samples), and the words, which
+beyond the first two are always 1, 2 or 3 (5,000 random lists, every A state), and a measure on the sequence of irregular words `1` and `3` between the runs of
+`0 1 1`.
+
+## 1 November 2026: `c ≥ -1` for every list of blocks, in Lean
+
+`lean/Offset.lean`, `lean/OffsetData.lean` (kernel only).  For every list `ls` of blocks of at least 2, of any length,
+if `pre` stops then it returns `a, b, M`, `p`, `u` with `2u ≤ a + 2p + 1`, and `2u ≤ a + 2p` unless `ls` starts with 2;
+`u ≤ 2`; `b ≥ 2` and `M` is blocks of at least 2 then 0s (`offset_bound`).  With `recur_sound`, for every `j ≥ 2` the
+pass from a good list with last block `3j` reaches a list of blocks of at least 2 with last block `2j + c ≥ 2j - 1`
+(`recur_next`).  Everything is conditional on `pre` stopping, which is the open drift question above.
+
+**How.**  Instead of an induction over the blocks, an abstract interpretation of the block machine.  A number is a code:
+exactly 0 to 3, or "at least 4" with its residue mod 3 (`gD`).  The blocks to the left keep three codes and, for the
+rest, one of "all 0", "a block of at least 2, then blocks of at least 2, then 0s", "anything" (`gL`).  The words keep
+two codes, and the rest is empty or a run of words 1, 2, 3 in which every 1 is followed by a 2, given by its first and
+last word (`Seq`, `gW`): the notes above saw that beyond the first two the words are always 1, 2 or 3.  `u` is kept
+exactly, with a flag for "the block left of the last is 2".  Each concrete step of `pre` is matched by an abstract one
+(`absAstep_sound`, `absNext_sound`), where a step that cannot be described gives `none`.  From the 11 starts (block 2;
+3 to 6 by code; or none; with "blocks of at least 2" or "all 0" behind) 4,463 descriptions are reachable; none is
+`none`, `u ≤ 2` throughout, and at every one where `pre` may stop (A, no ones under the head, words possibly all 2) the
+bound holds with `p ≥` the number of explicit words and the first block at least its code's least value.
+
+**Getting the kernel through.**  Computing the closure inside `decide +kernel` ran out of 16 GB.  So `OffsetGen.lean`
+evaluates the closure (`reach`, about 9 s in the interpreter), sorts it by an injective key and writes it as a balanced
+search tree, split into 64 named subtrees of about 70 descriptions; `OffsetData.lean` has one `decide +kernel` per
+subtree that each of its descriptions is fine (`okA`: bound where it may stop, every abstract step lands in the tree and
+keeps the flag), and `check_ok` joins them (127 checks, about 70 s, 1.3 GB).  Membership is only ever used in the
+direction "found in the tree, so in its list" (`TS.mem_toList`), so a wrong tree could only fail the check.  `check.sh`
+regenerates the file and compares.
+
+**What was needed.**  A first version lost precision: for a code "at least 4, residue 1" the number of words `0 1 1`
+in the B step was allowed to be 0, which let `u` grow without bound.  Restricting it per code (`jsA`) fixed that; the
+first-block bound also had to allow 0s after the blocks of at least 2 (`gzB`, `tailB`).
+
+
+## 1 November 2026: `pre` never gets stuck
+
+**Question.**  Can the abstraction of `lean/Offset.lean` show that `pre` always stops from a good list (blocks of at
+least 2)?
+
+**Acyclicity fails.**  Dumping the 4,463 reachable descriptions and their abstract steps: the graph has two strongly
+connected parts of 1,838 descriptions each, so there is no simple proof that the abstract run is finite.  This is
+expected from the drift question: a description forgets how far left the head is, and the conversion of a word and its
+consumption undo each other in the description.  `u` stays at most 2 throughout (0: 2,191 descriptions, 1: 2,182,
+2: 90).
+
+**What does follow** (`lean/Stops.lean`, kernel only).  At every description the block machine has a next step unless
+`pre` stops or takes a supply word there (`progA`; `prog_ok` checks it with `decide +kernel` on the tree in a few
+seconds, `progA_sound` transfers it to every described configuration).  So the run of `pre` from a good list never
+meets a case the block machine does not cover; the hypothesis "meets no case it does not cover" of `Finish.lean` is
+gone.  The measure `(3 − u) · 3^N + val N (key c)` goes down at every step of `pre`: an ordinary step lowers the key
+(`astep_key`, `val_mono`), and taking a supply word raises `u` by one, which pays for any change of the key since
+`val N _ < 3^N`.  Hence if every configuration of the run keeps at most `N` cells (head offset plus cells of the words),
+`pre` stops within `4 · 3^N` steps (`pre_stops`), and `recur_next` holds with that bound in place of "if `pre` stops"
+(`recur_next_bounded`).
+
+**Still open.**  The bound itself: that the head does not drift left without bound.  It is now the only gap between
+the kernel results and "every recursive pass from a good list finishes, with last block at least `2j − 1`".
+
+
+## 1 November 2026: does goodness rule out the shrinking chain?
+
+**Question.**  With `recur_next` (a good list with last block `3j`, `j ≥ 2`, passes to blocks of at least 2 and last
+block at least `2j − 1`, if `pre` stops) and `next_good`, do good pass starts stay good, so that no halt is possible
+once `pre` is known to stop?
+
+**No.**  `Good` is not an invariant, with or without termination: `2 2 3 → 10 1` halts (`recur_two_three_halts`), and
+`3 6 → 2 7 4 → 2 13 1` halts (`three_six_halts`, `lean/Chain.lean`, three passes evaluated by the kernel).  The bound
+`2j − 1` settles every `j ≥ 3` (last block at least 5), but for `j = 2` it allows 3 and 4, and for `j = 1` it says
+nothing (`recur_next` needs `j ≥ 2`; with `j = 1` `pre` may take `u = 2 > j` supply words, outside `recur_sound`).
+
+**What does follow** (`lean/Chain.lean`, kernel only, with `pre` stopping as the only assumption).  Strengthen good
+to *safe*: at least two blocks, and a last block 3 only after a block of at least 6.  Then
+* `safe_pass`: a safe pass start with last block other than 3 and 6 is followed by a safe one.  The covered passes make
+  a last block 3 only from 7 (`… x, 7 → … x + 6, 3`; from the lone block `2` they would give `2 3`, hence two blocks),
+  and the recursive ones with `j ≥ 3` give at least 5.
+* `six_after_two`: `… d, 2, 6 → … d + 8, 3`, safe.
+* `six_pass`: `… x, 6` with `x ≠ 2` gives last block `4 + c`, `c ≥ 0`: a halt if `c = 0`, safe otherwise.
+* `blank_safe`: the run reaches `10 3`.
+
+**The two open cases.**  **A**: a last block 3 after a block `x ≥ 6`.  Computed (`py/blocks.py chain 14 4 1 20000`:
+all 55,700 lists, every list of up to 4 blocks with `x` up to 20 and the rest 2..14, and 20,000 random ones): the next
+pass start is always safe; `(c, u)` is `(0, 2)` (14,936 lists, next last block 2), or `c ≥ 3` with `u ≤ 1`; never
+`c ∈ {1, 2, 4}`.  A proof would need the abstraction of `Offset.lean` to keep `x ≥ 6` and to separate `c = 0` from
+`c ≥ 3`; it tracks numbers above 3 only by residue mod 3, so as it stands it cannot.  **B**: a last block 6 with
+`c = 0`.  This is a real halting route from good, even safe, lists (`8 6 → 2 11 4`, `4 3 6 → 8 5 4`), so it cannot be
+excluded by a condition on the pass start alone; it needs to know which last blocks 6 the run reaches.  A last block 6
+comes from `… d, 3, 2 → … d + 2, 6` (covered), from 9 with `c = 0`, or from 6 with `c = 2`; that is the chain
+`… → 9 → 6 → 4 → 1` of the heuristic entry above, now with every other route closed (given termination and case A).
+
+
+## 1 November 2026: case B, a last block 6 with offset 0
+
+**Question.**  Case B of `lean/Chain.lean` is a pass start `…, x, 6` with `x ≠ 2` and offset `c = 0`; it really halts
+(`8 6 → 2 11 4 → 2 17 1`).  Is there an invariant of the run, on the offset or on the blocks to the left, that keeps
+the run out of it?
+
+**Not one on the pass start alone** (`lean/CaseB.lean`, kernel only).  The leftmost block is always even on the run
+(all 8,257 passes to 10¹² steps; kept by every pass of 10,019 random safe lists with an even leftmost block), so parity
+was the first candidate.  It does not suffice: `16 16` is safe, all its blocks are even, and it halts by case B,
+`16 16 → 26 9 → 6 27 6 → 14 27 4 → 14 33 1` (`sixteen_halts`).  `314 54` too, after a longer descent:
+`314 54 → 70 265 36 → 76 277 24 → 80 287 16 → 80 297 9 → 94 291 6 → 22 175 194 4 → 22 175 200 1` (`chain_54_halts`),
+three recursive passes with offset 0, the covered `16 → 9`, and `9 → 6` with offset 0.  And `c = 0` itself is not a
+residue condition on `x`: on the lists `[x]` it holds for `x` = 3, 8, 9, 14, 19, 21, 26, 27, 32, 37, 39, 44, 45, 55, …,
+every residue mod 6 except 0, 4 and 5 among them, and on longer lists for most `x`.
+
+**What the offset is.**  Computed (`py/blocks.py caseb`): with the block left of the last other than 2, `c = 0` exactly
+when `pre` takes two supply words (`u = 2`), on all 2,743 lists of 1 to 3 blocks of 2..15.  (`c = a + 2p − 2u`, so the
+two extra words are what cancels the gain.)
+
+**What the history must contain** (`safe_pass_shrink`, kernel only, `pre` stopping the only assumption).  From a safe
+start with last block `n + 1` other than 3 and 6, the next pass start `K ls' n'` is safe, `2n ≤ 3n' + 6`, and
+`n' = 5` (last block 6) only if `n = 8` (last block 9) or `n = 1` with a block 3 left of the last (`… d, 3, 2 → … d + 2,
+6`).  So the last block falls by at most a factor about 3/2 a pass, and case B is entered only through a last block 9
+or `3 2`.  Every halting start found sits at the end of such a descent: all 63 safe starts `x b` with `x` even below
+400 and `b` below 300 that halt within 12 passes halt by case B, with `b` in {6, 9, 16, 24, 54} only.
+
+**On the run** (`py/blocks.py caseb 15 400 300 12 3000` for the first 3,000 passes from `10 3`; the same counts over
+all 8,257 passes to 10¹² steps took about 7 minutes): offset 0 in 631 of 2,654 recursive passes, never more than 3 in a
+row; case B never reached; the smallest last block from pass `t` on is 3, 12, 53, 338, 375, 762 for `t` = 0, 32, 156,
+1000, 2000, 6000, and from pass 156 on the last block is always at least 1.38 times the square root of the total
+number of ones.  Since a pass divides the last block by at most about 3/2, coming down to 9 from a last block `L` takes
+at least `log(L/9) / log(3/2)` passes in a row, each a 1-mod-3 covered pass or a recursive one with small offset; from
+pass 2000 on that is at least 9.
+
+**Still open.**  That such a descent never happens.  It is a question about how the offsets of successive recursive
+passes line up along the run, which no condition on a bounded number of blocks decides (the examples above are of two
+blocks).  A proof would have to tie the last block to the size of the tape, for instance a lower bound such as "last block at
+least the square root of the total" that the passes keep; the run suggests one (above, and the heuristic entry
+earlier), none is proved, and a single pass can break it (`safe_pass_shrink` allows the last block to fall by 3/2 while
+the total grows).
+
+
+## 1 November 2026: a lower bound on the last block by the size of the tape?
+
+**Question.**  `lean/CaseB.lean` leaves a halt needing a descent of the last block to 9.  On the run the last block is
+at least 1.38 times the square root of the total from pass 156 on.  Is there a bound of this kind that every pass keeps?
+
+**No, not of the form "last block at least f(tape)"** (`lean/Bound.lean`, kernel only).  A covered pass from a last
+block 1 mod 3 (at least 7) shrinks it to two thirds of it plus 5, less 5, grows the block next to it and leaves the
+rest, so the total grows by at least 2 (`descent_step`).  So for any nondecreasing `f` a good start whose last block is
+`f(total)` and 1 mod 3 passes to a good start below the bound (`no_total_bound`); the same goes for any bound
+nondecreasing in the blocks.  A proof along these lines has to use more than sizes: the residues that decide how long
+a descent lasts (`k` covered descents in a row need `3^k` to divide the last block plus 5, `next_shrink`).
+
+**The descents on the run** (`py/blocks.py descents 8256`, all 8,257 passes to 10¹² steps): 2,709 descents (maximal runs
+of passes that each shrink the last block), by length 1454, 631, 416, 111, 59, 26, 9, 3 for lengths 1 to 8, so each
+further step happens with probability about 0.4.  Each step shrinks the last block by about 2/3 (the deepest,
+`9715 → 375` in 8 passes from pass 4151, is 0.039 ≈ (2/3)^8).  The smallest last block / √total from pass 156 on is 1.38
+(pass 414).
+
+**Heuristic.**  Coming down from a last block `b` to 9 takes about `log(b/9) / log(3/2)` steps of descent, which with a
+step probability of 0.4 happens with probability about `(b/9)^(log 0.4 / log 1.5) = (b/9)^−2.26`.  On the run the total
+grows linearly in the passes (1,787, 3,547, 7,059, 14,041, 28,193 ones at passes 500, 1000, 2000, 4000, 8000) and the
+median last block around pass `t` is about 0.65 of the total (1019, 2153, 4583, 9152, 18515), so the chance of a
+descent to 9 at pass `t` falls like `t^−2.26`, and the sum over all passes converges: evidence, not proof, that the run
+never reaches case B.
+## 1 November 2026: a ranking function for `pre`? What the A states show
+
+**Aim.**  A measure that goes down along `pre` from every good list, so that `pre` stops with no assumption
+(`pre_stops` needs only a bound on the cells).  Not found; what was found narrows the question.
+
+**Two words at a time** (`py/tokens.py check`, 3,000 random good lists, no exception; `test_tokens`).  Look at `pre`
+only at A with no ones under the head.  Between two such states it eats exactly the first two words.  Call a word
+other than 2 *irregular*.  Only the pair `1 2` writes new words: the converter runs left through the blocks that are
+1 mod 3 (each becomes a word 1 followed by 2s), stops at the first block that is not, and A comes back; what it
+writes ends in a word 3 where the 2 was (rarely, nothing).  So the irregular word in front moves exactly one word to
+the right and every new irregular word is to its left.  The other pairs write nothing: `2 2` is the loop of
+`tail_two` (blocks `a, b` gain 4 and 2), `2 1` and `2 3` remove the irregular word, `3 2` removes the 3 and pushes a
+new block 4, `3 1` and `3 3` are rare.  In closed form, with the blocks `a_1, …, a_k` (nearest first) 1 mod 3,
+`a_i = 3 j_i + 1`, then a block `b`, then `c, d`:
+
+| `b` | blocks after | words written in place of `1 2` |
+|---|---|---|
+| `3m`, `m ≥ 1` | `c + 3, d + 2, …` | `2^{m-1} 1 2^{j_k} 1 … 1 2^{j_1} 3` |
+| none (all blocks 1 mod 3) | `2, 2` | `2^{j_k} 1 2^{j_{k-1}} 1 … 1 2^{j_1} 3` |
+| `3m + 2` | `3, c + 6, …` (roughly; small cases differ) | `… 2^{m-2} 3` |
+
+**Tokens.**  Count irregular words plus nonzero blocks.  Over the same lists this count never goes up, except by
+exactly 1 on a step where the tape grows at the left end (`+2` or `+6` added to a block past the leftmost one starts
+a new block).  Growth steps are few (at most 4 in random lists of up to 10 blocks; a hill climb, `py/tokens.py climb`,
+finds about one per block: 5 with 2 blocks, 9 with 8, 12 with 12), and they can come one after another: from `[4, 3,
+19]` three in a row while one word 1 walks right through the 2s, the count going 3, 4, 5.
+
+**No count works.**  The row "none" above shows why no potential linear in counts of words and blocks (weights by
+kind, any residue) can go down: with weight `β` per block, `α₁`, `α₃` per word 1 and 3, it changes by
+`(k - 2)(α₁ - β) + α₃`, which is `α₃ > 0` for `k = 2`; and `k = 0, 1` with the row `3m` force `α₁ ≤ β`.  An LP over
+1,357 kinds of step from random runs (counts by position, kind and residue; and again with a free constant for each
+of 1,736 abstract states: the first two blocks, the last two, the first two words) is infeasible, both for "cells +
+potential does not grow" and for the weaker "potential drops on every growth step".
+
+**Orders that fail.**  Dictionary order on the tokens read from the right end is what `astep_key` already gives at
+word level, and has the same infinite chains (`1`, `3 1`, `3 3 1`, …: new irregular words on the left).  Multisets of
+token positions (Dershowitz–Manna), measured from the right end or from the current left end, blocks by either end,
+words by any of their cells, every ranking of the kinds: 2 to 13 % of steps go up, always at the growth steps or right
+after them.  Dictionary order on the tokens read from the left: at least 108 of 498 kinds of step go up.  The position
+of the head at successive growth steps does not move monotonically either.
+
+**What a proof needs.**  Termination is equivalent to finitely many growth steps (between them the cells are bounded
+and `pre_stops` applies).  Growth needs every block between the head and the left end to be 1 mod 3 (or the carry to
+end one or two blocks from it), and leaves fresh blocks `2, 2`, `3, 2`, `3, 6`.  A proof will have to use what the
+fresh blocks and the words written with them look like, for example that from the fresh blocks the next carry
+cannot reach the left end until a word of the stream to the right has been used up; the reduction to two words per A
+state above is the place to start.
+
+## 1 November 2026: the A-state rules in Lean, and the growth steps
+
+**Proved in Lean** (`lean/Tokens.lean`, kernel only).  The rules of the section above, for every block and word
+length: `carry` (B before a word `0` goes left over blocks `3 j_i + 1`, each becoming the words `1, 2^{j_i}`);
+`a_one_two` (A before `1, 2` is B before `0, 3`); the three ways a carry started by `1, 2` can stop, `row_zero` (at
+a block `3m + 3`: blocks `c + 3, d + 2`, words `2^m`, the carried words, `3`), `row_two` (at a block `3m + 8`: blocks
+`3, c + 6`, words `2^m`, the carried words, `3`) and `row_end` (past the leftmost block: blocks `2, 2`, words `2^j`,
+the carried words, `3`); and the pairs that write no words, `two_one`, `two_three`, `three_two` (with `tail_two` for
+`2 2`).  For each row the token count after it, exactly (`row_zero_tokens`, `row_two_tokens`, `row_end_tokens`): one
+more in `row_end`; in `row_zero` one more less one for each of `c`, `d` that is not 0; in `row_two` one more less one
+if `c ≠ 0`.  So the count goes up exactly at the rows where a block 0 past the leftmost one is written, which is
+where the tape grows.  (Rows not covered: the stopping blocks 2 and 5, and `3 1`, `3 3`; all rare.)
+
+**Computed** (`py/tokens.py`, random good lists and hill climbs).
+* After every growth step exactly two blocks are left; the carry has turned all the others into words 1.
+* The number of growth steps is at most the token count at the first A state plus 2 (20,000 random lists of up to
+  10 blocks: plus 1 at most; three hill climbs maximising the excess: plus 2, from `[46, 50, 41, 31, 46, 22, 7]`).
+  So each growth step seems to use up one of the tokens the pass started with, but the count itself is no measure:
+  it can go up with each of several growth steps in a row and only come down later (`tokens + growth steps so far`
+  exceeds the starting count by up to 7).
+* The LP of the section above becomes feasible once the abstract state keeps block lengths exactly up to 15, the
+  two nearest blocks, the depth up to 3 and the first six words; its earlier infeasibility came from an abstract
+  cycle (`[7, 8]` before `1 2 2 3`, growth, `[3, 6]`, `2 2`, back) that the exact lengths break.  With 1,188 states
+  for 1,113 kinds of step from 400 runs this fits the sample rather than proves anything, but it says a finite
+  description of the bottom of the stack and the front words may carry a ranking.
+
+**Next.**  A proof of "growth steps ≤ starting tokens + 2" by following one growth to the next: both start from two
+blocks, so the state between is the two blocks, the stack built by `three_two` from words 3, and the words; the rows
+above give each step exactly.
+
+## 1 November 2026: the remaining carry cases, and a bounded credit that does not exist
+
+**Proved in Lean** (`lean/Tokens.lean`, kernel only).  The cases left out above: `three_one` (`3 1`: a new block
+3, the block behind gains 2) and `three_three` (`3 3`: a new block 5); the carry stopping at a block 5, with nothing
+carried (`row_five_nil`: blocks `4, c + 6`) or after carrying (`row_five`: blocks `2, c + 6`, the farthest carried
+word 1 used up), with their token counts (one fewer unless `c = 0`, where the tape grows and the count stays); and
+at a block 2, where the pass does not come back to A at once: with nothing carried B is again at a block 1, in front
+of `c + 6`, before the old words, so a new carry starts (`row_small_nil`), and after carrying it is D after `c + 6`
+before the farthest carried block's `2^j` (`row_small`).  With `carry_start` every first block of the carry is now
+covered: `3m + 3`, 2, 5, `3m + 8`, or none left.
+
+**A bounded credit does not exist for small descriptions.**  The bound "growth steps ≤ starting tokens + 2" would
+follow from `tokens + h` never going up and dropping at every growth step, for some `h` between 0 and a constant
+depending only on a description of the state.  An LP over the A steps of 1,000 random runs is infeasible for every
+description tried (the nearest one or two blocks and the farthest two by length up to 7 or 10 and residue, the depth
+up to 5, the first two or three words), for any bound on `h`.  The obstruction is always a cycle of two-block states
+`[x, y]` with long runs of 2s and single words 1, in which a growth step returns to the same description; in the
+real runs the lengths of the runs of 2s break the cycle.  So a proof has to follow those lengths: for two blocks and
+a word 1 after `t` pairs of 2s, the blocks are `x + 4t, y + 2t`, and which row the next carry takes depends on
+`x + t` and `y - t` mod 3.
+
+
+## 1 November 2026: a residue invariant against the descent to 9?
+
+**Question.**  `lean/Bound.lean` shows that sizes alone cannot keep the last block from coming down to 9; the length of
+a descent is decided by residues (`k` covered descents need `3^k` to divide the last block plus 5).  Is there an
+invariant of the run on the residues of the last block `b` and the block `x` left of it that excludes the starts that
+come down to case B?
+
+**Not with a small modulus** (computed, `py/blocks.py residues 8256 18 27 54 81 162`, passes 156 to 8,256 of the run to
+10¹² steps).  The pairs `(x mod M, b mod M)` seen on the run: 316 of 324 for `M = 18`, 728 of 729 for `M = 27`, 1,651 of
+2,916 for 54, 3,786 of 6,561 for 81, 4,544 of 26,244 for 162, about what 8,100 independent samples would fill.  The
+nine safe even starts known to halt by case B (`16 16`, `314 54`, `224 24`, `386 24`, `26 9`, `8 6`, `4 16`, `62 24`,
+`170 24`, `HALTING_STARTS`) all share their pair with some pass start of the run for `M` up to 54, seven of them for
+81 and five for 162.  Since every one of those halts, no condition on `(x mod M, b mod M)`, with or without the parity
+of the leftmost block, can hold on the run and fail on them, for any `M` dividing 54; by the counts, likely for none of
+moderate size.  The residues of the run look equidistributed, and the starts that come down to case B differ from the
+run's only in size (they are small) and in the higher 3-adic digits.
+
+**So** the descent to 9 is not excluded by any finite residue information on the last two blocks, nor (`Bound.lean`) by
+sizes alone.  What decides it is the combination: a small last block with the right digits.  That is the Collatz-like
+core of this machine; the heuristic of the previous entries (the chances of a descent to 9 sum to a finite number) is
+the strongest statement the evidence supports.  Nothing new to prove in Lean here.
+
+
+## 1 November 2026: the two-block cycle shrinks
+
+The obstruction above, a cycle of two-block states with long runs of 2s, made exact (`lean/Tokens.lean`,
+`cycle36`, kernel only).  A growth step through `row_two` at the farthest block leaves the blocks `3, 6` at the left
+end.  If `2t` words 2 and then `1, 2` follow, the A loop makes the blocks `4t + 3, 2t + 6`; for `t = 3s + 1` the
+first is `1 mod 3` and the second is `3(2s) + 8`, so the next carry goes through the first and `row_two` stops at the
+second, the farthest block, which is a growth step again, back at `3, 6`.  What comes next is `2s` words 2, then the
+carried words `1, 2^{4s+2}`, then 3.  So each round replaces `t` by `s = (t - 1)/3`; the cycle ends within
+`log₃ t + 1` rounds.  The runs of 2s are what pay for these growth steps.
+
+Computed (`run` from two blocks `x, y` before one word 1 and then only 2s, every `x, y < 200`): at most 5 growth steps
+before the stack gets a third block or the pass ends, the longest from `4, 86` (the cycle above with `t = 13, 4, 1`,
+then `3, 6` before `1 2` takes `row_zero` to `9, 2`); the count grows like the logarithm of the blocks.  So "growth
+steps ≤ starting tokens + 2" cannot come from the two-block states alone in a single round: the shrinking runs have
+to be followed through, and the bound on all growth steps would combine this shrinking with the token count.

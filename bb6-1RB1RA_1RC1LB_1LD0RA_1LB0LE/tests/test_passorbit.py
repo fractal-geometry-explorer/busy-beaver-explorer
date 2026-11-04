@@ -53,6 +53,19 @@ def first_event(y, p):
     return None
 
 
+class TestLoose(unittest.TestCase):
+    def test_loose(self):
+        """`passorbit loose`: the sentinel orbit from [1, 3], first pass with each block count, as
+        py/blockcount.py's loose_firsts (to 3*10^5 passes)."""
+        import blockcount
+        out = run("loose", 300000)
+        got = {int(m.group(1)): (int(m.group(2)), list(eval(m.group(3))))
+               for m in re.finditer(r"^(\d+) blocks first at pass (\d+): (\[.*\])$", out, re.M)}
+        want = blockcount.loose_firsts(300000)
+        self.assertEqual(got, {k: v for k, v in want.items() if k > 2})
+        self.assertEqual(got[7][0], 269206)
+
+
 class TestOrbit(unittest.TestCase):
     def test_checkpoints(self):
         """Every checkpoint (the list and the hash of the whole run) of the first 10^5 passes equals passmap's."""

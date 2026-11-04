@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.join(ROOT, "py"))
 import blank  # noqa: E402
 import blocks  # noqa: E402
 import macro  # noqa: E402
+import tokens  # noqa: E402
 import build_status  # noqa: E402
 from bbtools import ctl  # noqa: E402
 from bbtools.invariants import conserved  # noqa: E402
@@ -275,6 +276,43 @@ class TestBlocks(unittest.TestCase):
         self.assertTrue(all(len(v) == 1 for v in out.values()))
         self.assertTrue(all((min(v) == -1) == (x == 2) and min(v) >= -1 and not v & {1, 4} for (_, x), v in out.items()))
 
+    def test_chain(self):
+        """lean/Chain.lean, case A: a last block 3 after a block of at least 6 is followed by a safe pass start, with
+        c = 0 (and u = 2) or c >= 3; the examples of good starts that halt."""
+        bad, cu = blocks.chain(9, 3, 5, 300)
+        self.assertEqual(bad, [])
+        self.assertTrue(all(c == 0 and u == 2 or c >= 3 for c, u in cu))
+        self.assertEqual(macro.next_full((3, 6)), (2, 7, 4))
+        self.assertEqual(macro.next_full((2, 7, 4)), (2, 13, 1))
+        self.assertEqual(macro.next_full((2, 2, 3)), (10, 1))
+
+    def test_caseb(self):
+        """lean/CaseB.lean: offset 0 exactly with two supply words; safe even starts that halt do so by case B, after a
+        descent that safe_pass_shrink allows; the run keeps an even leftmost block and does not reach case B."""
+        out = blocks.caseb(8, 60, 60, 10, 200)
+        self.assertTrue(out["c0_iff_u2"] and out["shrink_ok"] and out["even"])
+        self.assertEqual(out["via_b"], out["halts"])
+        self.assertGreater(out["halts"], 0)
+        self.assertEqual(out["case_b"], 0)
+        self.assertEqual(blocks.path_of((16, 16), 10), [(16, 16), (26, 9), (6, 27, 6), (14, 27, 4), (14, 33, 1), blocks.HALT])
+        self.assertTrue(blocks.is_case_b((6, 27, 6)))
+        self.assertEqual(blocks.path_of((314, 54), 10)[-1], blocks.HALT)
+
+    def test_descents(self):
+        """lean/Bound.lean: the descents of the last block on the run shrink it by about 2/3 a pass."""
+        lengths, deep, ratio = blocks.descents(300)
+        self.assertEqual(max(lengths), 7)
+        self.assertEqual(deep[0][1:], (7, 238, 12))
+        self.assertGreater(ratio, 3)
+
+    def test_residues(self):
+        """notes, residues: by pass 2000 the run's (x, b) mod 18 and mod 27 already contain the residue class of every
+        halting start found."""
+        out = blocks.residues(2000, [18, 27])
+        self.assertEqual(len(out[27][2]), len(blocks.HALTING_STARTS))
+        self.assertEqual(len(out[18][2]), len(blocks.HALTING_STARTS))
+        for h in blocks.HALTING_STARTS:
+            self.assertEqual(blocks.path_of(h, 12)[-1], blocks.HALT)
 
     def test_formula(self):
         """lean/Formula.lean: `pre` once per list gives the next pass start of the recursive pass for every j >= u
@@ -294,6 +332,15 @@ class TestBlocks(unittest.TestCase):
                     m = p + j - u
                     strip = lambda l: list(l[:max([i + 1 for i, v in enumerate(l) if v] or [0])])
                     self.assertEqual(strip(r[1]), strip([b + 2 * ((m + 1) // 2)] + M), (ls, j))
+
+    def test_tokens(self):
+        """py/tokens.py: between A states `pre` eats two words, only `1 2` writes words (ending in 3 where the 2 was),
+        and the count of irregular words plus blocks goes up only when the tape grows, by 1."""
+        pairs, moves, bad = tokens.check(5, 800)
+        self.assertEqual(bad, [])
+        self.assertTrue(all(dt <= 0 for dt, grew in moves if not grew))
+        self.assertIn((1, True), moves)
+        self.assertEqual(set(pairs), {(2, 2), (2, 1), (2, 3), (1, 2), (3, 2), (3, 1), (3, 3)})
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

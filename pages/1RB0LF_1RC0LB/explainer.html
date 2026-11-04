@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Inside 1RB0LF_1RC0LB</title>
+<meta name="description" content="An interactive explainer of the 6-state machine 1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA: the table, where it can halt, the machine running in the browser, a space-time diagram, and what is known about it, each result marked by what it rests on.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --sunk:#eceef2; --line:#d9dce3; --line-strong:#b9bec9;
+  --fg:#14171d; --fg2:#4a505c; --muted:#7a808c; --accent:#2350a8; --accent-soft:#e3eaf8;
+  --ink:#1b2230; --cell0:#ffffff; --head:#d2551f;
+  --kernel:#1c7a4d; --kernel-bg:#e2f3ea; --native:#2350a8; --native-bg:#e3eaf8;
+  --computed:#9a6400; --computed-bg:#fbf0d9; --heur:#7a4fb5; --heur-bg:#efe8f8; --open:#b3363a; --open-bg:#f8e3e3;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#11141a; --surface:#181c24; --sunk:#0d1015; --line:#2a303b; --line-strong:#3c4452;
+  --fg:#e9ecf2; --fg2:#b4bac6; --muted:#858c99; --accent:#8fb0f0; --accent-soft:#1d2a44;
+  --ink:#dfe5f0; --cell0:#11141a; --head:#f08a55;
+  --kernel:#5cc893; --kernel-bg:#14301f; --native:#8fb0f0; --native-bg:#1d2a44;
+  --computed:#e7b453; --computed-bg:#33280f; --heur:#b99cf0; --heur-bg:#2a2040; --open:#f08488; --open-bg:#3a1c1e;
+  color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#11141a; --surface:#181c24; --sunk:#0d1015; --line:#2a303b; --line-strong:#3c4452;
+  --fg:#e9ecf2; --fg2:#b4bac6; --muted:#858c99; --accent:#8fb0f0; --accent-soft:#1d2a44;
+  --ink:#dfe5f0; --cell0:#11141a; --head:#f08a55;
+  --kernel:#5cc893; --kernel-bg:#14301f; --native:#8fb0f0; --native-bg:#1d2a44;
+  --computed:#e7b453; --computed-bg:#33280f; --heur:#b99cf0; --heur-bg:#2a2040; --open:#f08488; --open-bg:#3a1c1e;
+  color-scheme:dark; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--body);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 64px}
+.wrap{max-width:1080px;margin:0 auto}
+.col{max-width:68ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,3.3rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(1.45rem,3vw,1.95rem);font-weight:700;margin-bottom:.6rem}
+h3{font-size:1.12rem;font-weight:700;margin:1.4rem 0 .4rem}
+p{margin:.65rem 0}
+a{color:var(--accent)}
+code,.mono{font-family:var(--mono);font-size:.86em}
+code{background:var(--sunk);padding:.08em .32em;border-radius:4px;overflow-wrap:anywhere}
+section{padding-block:44px 8px;border-top:1px solid var(--line)}
+.eyebrow{font:600 .74rem/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem;display:block}
+.lede{font-size:1.14rem;color:var(--fg2)}
+.small{font-size:.88rem;color:var(--fg2)}
+.ev{display:inline-flex;align-items:center;gap:.35em;font:600 .72rem/1 var(--body);letter-spacing:.04em;text-transform:uppercase;
+  padding:.32em .55em;border-radius:999px;white-space:nowrap;vertical-align:.12em}
+.ev.k{color:var(--kernel);background:var(--kernel-bg)} .ev.k::before{content:"\25C6"}
+.ev.n{color:var(--native);background:var(--native-bg)} .ev.n::before{content:"\25C8"}
+.ev.c{color:var(--computed);background:var(--computed-bg)} .ev.c::before{content:"\25B2"}
+.ev.h{color:var(--heur);background:var(--heur-bg)} .ev.h::before{content:"\2248"}
+.ev.o{color:var(--open);background:var(--open-bg)} .ev.o::before{content:"?"}
+header.hero{padding-block:48px 28px}
+.crumb{font-size:.88rem;color:var(--muted);overflow-wrap:anywhere;margin:0 0 18px}
+.machine-id{font-family:var(--mono);font-size:clamp(.78rem,2.2vw,1rem);color:var(--fg2);word-break:break-all;margin:.8rem 0 0}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:26px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.fact b{font:700 1.4rem/1.15 var(--display)}
+.key{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:22px;align-items:center}
+.key div{display:flex;gap:8px;align-items:center;font-size:.86rem;color:var(--fg2)}
+nav.toc{margin-top:26px;display:flex;flex-wrap:wrap;gap:6px}
+nav.toc a{font-size:.84rem;text-decoration:none;color:var(--fg2);border:1px solid var(--line);border-radius:999px;padding:.25em .7em;background:var(--surface)}
+nav.toc a:hover{border-color:var(--accent);color:var(--accent)}
+.tw{overflow-x:auto;margin:1rem 0}
+table{border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:.42rem .8rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--fg2);font-size:.8rem;letter-spacing:.03em}
+table.tt td{text-align:center;font-family:var(--mono)} table.tt th{text-align:center}
+td.halt{color:var(--open);font-weight:600}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+.grid2>*{min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin:22px 0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,select,input[type=text]{font:500 .9rem var(--body);color:var(--fg);background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:.45em .8em}
+button{cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text]{font-family:var(--mono);min-width:0;width:11em;max-width:100%}
+.readout{display:flex;flex-wrap:wrap;gap:6px 22px;margin:14px 0 6px;font-size:.9rem;color:var(--fg2)}
+.readout b{font-family:var(--mono);color:var(--fg);font-weight:600}
+.statechip{display:inline-block;min-width:1.6em;text-align:center;font:700 .9rem var(--mono);color:var(--surface);background:var(--head);border-radius:5px;padding:0 .3em}
+.cells{display:flex;gap:2px;justify-content:center;margin:14px 0 4px;overflow:hidden}
+.cell{width:22px;height:30px;flex:0 0 22px;border:1px solid var(--line-strong);border-radius:3px;background:var(--cell0);position:relative}
+.cell.one{background:var(--ink);border-color:var(--ink)}
+.cell.out{border-style:dashed;opacity:.5}
+.cell.hd{outline:2px solid var(--head);outline-offset:2px}
+.cell.hd::after{content:attr(data-s);position:absolute;top:-24px;left:50%;transform:translateX(-50%);font:700 .8rem var(--mono);color:var(--head)}
+.cellwrap{padding-top:22px}
+.config{font-family:var(--mono);font-size:.82rem;background:var(--sunk);border-radius:8px;padding:10px 12px;overflow-wrap:anywhere;margin-top:10px}
+canvas{display:block;max-width:100%}
+.stwrap{overflow-x:auto;margin-top:12px}
+.cap{font-size:.8rem;color:var(--muted);margin-top:6px}
+.log{font-family:var(--mono);font-size:.8rem;max-height:300px;overflow:auto;border-top:1px solid var(--line);margin-top:12px;padding-top:8px}
+.log div{display:grid;grid-template-columns:7.5em 1.5em 3.5em minmax(0,1fr);gap:10px;padding:2px 0}
+.log div span:last-child{overflow-wrap:anywhere}
+.log .t{color:var(--muted);text-align:right}
+.claim{border-left:3px solid var(--line-strong);padding:.15rem 0 .15rem .9rem;margin:1rem 0}
+.claim.k{border-color:var(--kernel)} .claim.n{border-color:var(--native)} .claim.c{border-color:var(--computed)}
+.claim.h{border-color:var(--heur)} .claim.o{border-color:var(--open)}
+.claim .where{font-size:.8rem;color:var(--muted);margin-top:.2rem}
+.claim p{margin:.35rem 0}
+.lfilter{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.lfilter button{font-size:.8rem;padding:.3em .7em;border-radius:999px}
+.lfilter button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.litem{display:grid;grid-template-columns:8.5em minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.litem .w{font-size:.78rem;color:var(--muted);overflow-wrap:anywhere}
+.litem p{margin:.25rem 0}
+pre{font-family:var(--mono);font-size:.8rem;background:var(--sunk);border-radius:8px;padding:12px;overflow-x:auto;line-height:1.5}
+footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;font-size:.9rem;color:var(--fg2)}
+@media (max-width:560px){ .litem{grid-template-columns:1fr;gap:4px} .log div{grid-template-columns:6em 1.2em 3em minmax(0,1fr)} }
+@media (prefers-reduced-motion:reduce){ *{scroll-behavior:auto!important;transition:none!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / 1RB0LF_1RC0LB / explained</p>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 3 November 2026.</span>
+  <h1>Does this machine ever halt?</h1>
+  <p class="machine-id">1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA</p>
+  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for ten billion steps without stopping, and in that time it has visited only 642 cells. This page runs the real machine in your browser and lists what is known, each result marked by what it rests on. It grows as the work does.</p></div>
+  <div class="facts">
+    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 20,000 steps by the kernel alone.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>10</sup> steps</b><span class="small">No halt in the C simulator; 313 ones and 642 cells visited at the end.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>Halts only at <code>D&gt;0 1</code></b><span class="small">The one way to stop: D reads a 0 with a 1 to its right.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>Halts only at a gap of 3</b><span class="small">A pass crosses gaps of 1 and 2; it halts exactly when the next gap has length 3.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>No odd runs</b><span class="small">At every pass start in 10<sup>10</sup> steps, runs of length 3 or more are even, so no gap of 3.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>A macro machine</b><span class="small">Pass to pass, the run is a map on a stack and a list of lengths; it halts only if that map gets stuck.</span></div>
+  </div>
+  <div class="key" aria-label="Evidence levels used on this page">
+    <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
+    <div><span class="ev n">native_decide</span> proved in Lean, one evaluation trusts the compiler</div>
+    <div><span class="ev c">Computed</span> C or Python in the repository, tested but not proved</div>
+    <div><span class="ev h">Heuristic</span> evidence and estimates</div>
+    <div><span class="ev o">Open</span> not known</div>
+  </div>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#passes">Passes, and the one way to halt</a><a href="#macro">From pass to pass: a machine on lists of numbers</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+</header>
+<section id="machine">
+  <span class="eyebrow">The machine</span>
+  <h2>6 states, two symbols, 1 halting transition</h2>
+  <div class="grid2">
+    <div class="col">
+    <p>Each entry says what to write, which way to move and which state to enter. The machine starts in A on a blank tape (all 0s).</p>
+    <p>The machine stops when it is in E reading 1. E is entered only from D0 (writes 1, moves R): <code>D&gt;0 1</code>. So a halt is the moment this pattern appears, with the head on the cell after <code>&gt;</code>.</p>
+    </div>
+    <div class="tw"><table class="tt" aria-label="Transition table">
+      <thead><tr><th>state</th><th>reads 0</th><th>reads 1</th></tr></thead>
+      <tbody>
+        <tr><th>A</th><td>1 R B</td><td>0 L F</td></tr>
+        <tr><th>B</th><td>1 R C</td><td>0 L B</td></tr>
+        <tr><th>C</th><td>1 R D</td><td>1 R B</td></tr>
+        <tr><th>D</th><td>1 R E</td><td>1 R F</td></tr>
+        <tr><th>E</th><td>1 L A</td><td class="halt">halt</td></tr>
+        <tr><th>F</th><td>0 R C</td><td>1 L A</td></tr>
+      </tbody></table></div>
+  </div>
+</section>
+<section id="run">
+  <span class="eyebrow">Watch it run</span>
+  <h2>The tape from blank, step by step</h2>
+  <div class="col"><p>This is the real machine, simulated in your browser. Step it, play it, or jump to a step count. Below the cells is the whole visited tape in the notation of the notes: <code>1^5</code> is five 1s, and <code>C&gt;0</code> is the head in state C on a 0.</p></div>
+  <div class="panel">
+    <div class="controls">
+      <button id="step" type="button">Step</button>
+      <button id="play" class="primary" type="button">Play</button>
+      <label class="small" for="speed">Speed</label>
+      <select id="speed"><option value="1">1 step/frame</option><option value="10" selected>10 steps/frame</option><option value="1000">1,000 steps/frame</option><option value="100000">100,000 steps/frame</option></select>
+      <button id="reset" type="button">Reset</button>
+      <label class="small" for="jumpTo">Go to step</label>
+      <input type="text" id="jumpTo" inputmode="numeric" value="1000" spellcheck="false" autocomplete="off">
+      <button id="jumpGo" type="button">Go</button>
+    </div>
+    <div class="controls" style="margin-top:8px"><span class="small">Jump to:</span><button type="button" data-jump="63">63</button><button type="button" data-jump="1000">1,000</button><button type="button" data-jump="100000">100,000</button><button type="button" data-jump="1000000">1,000,000</button></div>
+    <div class="readout"><span>step <b id="rStep">0</b></span><span>state <span class="statechip" id="rState">A</span></span><span>cells visited <b id="rWidth">1</b></span><span>ones <b id="rOnes">0</b></span></div>
+    <div class="cellwrap"><div class="cells" id="cells" aria-label="Tape cells around the head"></div></div>
+    <div class="cap">Cells around the head (dark = 1, dashed = never visited).</div>
+    <div class="config" id="config" aria-live="polite"></div>
+  </div>
+</section>
+<section id="glance">
+  <span class="eyebrow">The run at a glance</span>
+  <h2>Space-time diagram and records</h2>
+  <div class="col"><p>The diagram stacks the tape at many moments. Sampling at each new cell shows the shape of the run as the visited region grows; sampling evenly in time shows where the head spends its time. The records list every step at which the head reaches a cell no earlier step reached, with the side, the width so far and the whole tape: the first place to look for a repeating macro structure.</p></div>
+  <div class="panel">
+    <div class="controls">
+      <label class="small" for="stMode">Rows</label>
+      <select id="stMode"><option value="rec" selected>at each new cell</option><option value="time">evenly in time</option></select>
+      <label class="small" for="stSteps">up to step</label>
+      <select id="stSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000" selected>10,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <button id="stGo" class="primary" type="button">Draw</button>
+    </div>
+    <div class="stwrap"><canvas id="st" aria-label="Space-time diagram"></canvas></div>
+    <div class="cap" id="stCap"></div>
+  </div>
+  <div class="panel">
+    <div class="controls">
+      <label class="small" for="recSteps">Records up to step</label>
+      <select id="recSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000" selected>10,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <button id="recGo" class="primary" type="button">List</button>
+    </div>
+    <div class="cap" id="recCap"></div>
+    <div class="log" id="recs"></div>
+  </div>
+</section>
+<section id="passes">
+  <span class="eyebrow">Macro structure</span>
+  <h2>Passes, and the one way to halt</h2>
+<p>Watch the simulator for a while and the head settles into a rhythm. Moving right, states C and B fill a <em>sparse</em> stretch of tape, single 1s with short runs of 0s between them, into solid 1s: <code>C&gt;1 0 1 0</code> becomes <code>1 1 1 1 C&gt;</code>. Moving left, A and F turn a solid block back into alternating cells, <code>1 1 1 1 A&gt;1</code> into <code>A&gt;1 1 0 1 0</code>, and B erases blocks. Left of the head the tape is solid, right of it sparse.</p>
+<p>Call a run of 0s between two 1s a <em>gap</em>. A rightward run, a <em>pass</em>, starts when F or B reads the first cell of a gap and moves right. C crosses every gap of length 1 or 2, and the first gap of another length ends the pass:</p>
+<ul><li>a gap of <b>3</b>: C and D fill two cells and E reads the 1 that ends the gap, which <b>halts</b>;</li><li>a gap of <b>4 or more</b>: C, D and E fill three cells and E turns the head left;</li><li><b>two 1s side by side</b>: B or F turns left.</li></ul>
+<p>This is proved in Lean, checked by the kernel, for any number of crossed gaps (<code>pass_outcome</code> in <code>lean/Pass.lean</code>). So the machine halts exactly when some pass meets a gap of 3 before any other gap longer than 2.</p>
+<p>It never has. In ten billion steps every run of 0s or of 1s of length 3 or more, between cells of the other symbol, has had <b>even</b> length at every pass start. A pass that ends at a gap of 4 or more uses up 4 of its cells, which keeps the parity; B erases an even block and a few cells beside it, and the pass that follows refills four of them, which again leaves an even run. If that parity can be proved to last forever, the machine never halts. That proof is the open step.</p>
+<p>Most passes end at a gap of 6, half as many at 10, a quarter at 14, and so on: gaps of 4j + 2, each about half as common as the last. That is how the digits of a binary counter behave, and the tape grows about as slowly as a counter does: 199 cells after a million steps, 642 after ten billion.</p>
+</section>
+<section id="macro">
+  <span class="eyebrow">Macro structure</span>
+  <h2>From pass to pass: a machine on lists of numbers</h2>
+<p>Stop the simulator whenever a pass is about to start and the tape always looks the same way. Left of the head is a <em>stack</em> of solid blocks of even length, <code>1^(2s+2)</code>, separated by single 0s. The head stands on a gap of <code>2h + 2</code> cells. Right of it is a <em>word</em>: <em>segments</em> <code>(0 1)^m</code> separated by <em>gaps</em> of <code>2n + 2</code> cells, where n = &minus;1 means two 1s side by side.</p>
+<p>The states alternate. A pass from <b>B</b> fills four cells of its gap and sweeps back over the top block of the stack, which becomes a segment in front of a gap four cells shorter. A pass from <b>F</b> runs right over every gap with n = 0, pushing each segment it crosses onto the stack as a block, and stops at the first other gap. If that gap has n &ge; 1 it shrinks by 2, and the last block pushed is erased again and becomes B's next gap. If it has n = &minus;1, the segment after it loses one 0 1.</p>
+<p>Lean proves these three rules for every value of the parameters (<code>mstep_sound</code> in <code>lean/Macro.lean</code>), and the C simulator checks them against all 344,806,676 pass starts of the first ten billion steps. The rules fail only when two 1s side by side touch an empty segment; then a gap of odd length appears, and only a gap of odd length can turn into the fatal gap of 3. So the machine halts only if this macro machine gets stuck (<code>no_halt_of_macro</code>).</p>
+<p>If every number is even, nothing can go wrong: each rule turns even numbers into even numbers, and a gap counting down by 2 from an even value reaches 0 and is crossed, never &minus;1. Odd numbers enter only at the ends of the tape: at the left end when the stack runs empty, and in the last segment. In the run there have never been more than four of them at once, and only 546 of 344,806,676 passes have met two 1s side by side. Proving that the odd numbers never line up badly is the open step.</p>
+<p>The ruler-like tally of pass endings is visible here too: B's head gap is h = m + 2 for the last segment m the previous pass crossed, and h = 2, 4, 6, 8 occur with frequencies that halve exactly. The first nonzero gap is counted down by 2 per round, like the lowest digit of a counter.</p>
+</section>
+<section id="ledger">
+  <span class="eyebrow">What is known</span>
+  <h2>Every result, by what it rests on</h2>
+  <div class="col"><p>Status as of 3 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="lfilter" role="group" aria-label="Filter by evidence level">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
+    <button type="button" data-f="native" aria-pressed="false">native_decide</button>
+    <button type="button" data-f="trusted" aria-pressed="false">Computed</button>
+    <button type="button" data-f="heuristic" aria-pressed="false">Heuristic</button>
+    <button type="button" data-f="open" aria-pressed="false">Open</button>
+  </div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>halt_shape</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly in state E reading a 1, and <code>D&gt;0 1</code> halts after one more ordinary step, whatever the rest of the tape.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_20000</code>, <code>blank_at_63</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 20,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 20,000 steps from blank tape without a halt, evaluated by Lean's kernel. At step 63 the tape is <code>0 1^2 0 1^4 C&gt;0</code> (<code>blank_at_63</code>).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>pass</code>, <code>pass_outcome</code>, <code>start_F</code>, <code>start_B</code>, <code>lean/Pass.lean</code></div></div><div><b>Which passes halt</b><p>A pass starts when F or B reads a 0 and moves right; C then crosses every gap of length 1 or 2 (by induction over any list of them). The first gap of another length ends the pass: a gap of 3 halts, a gap of 4 or more turns left at E, two 1s side by side turn left at B or F. So a pass halts exactly when the first gap it meets that is not 1 or 2 has length 3.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep</code>, <code>sweep_end_odd</code>, <code>sweep_end_even</code>, <code>erase</code>, <code>erase_end</code>, <code>lean/Pass.lean</code></div></div><div><b>The leftward pieces</b><p>A and F turn <code>1^(2k) A&gt;1</code> into <code>A&gt;1 (1 0)^k</code>; B erases <code>1^k</code>; at the 0 left of a block an odd block starts a pass and an even block starts B erasing the block before it.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>mstep_sound</code>, <code>blank_to_M0</code>, <code>no_halt_of_macro</code>, <code>lean/Macro.lean</code></div></div><div><b>The macro machine</b><p>At every pass start the tape is a stack of solid blocks <code>1^(2s+2)</code> separated by single 0s, the head on a gap of <code>2h+2</code> cells, and a word of segments <code>(0 1)^m</code> and gaps <code>0^(2g) 1</code>. A function <code>mstep</code> on these numbers gives the next pass start, and Lean proves the machine goes there, for all values of the parameters. <code>mstep</code> fails only at a gap <code>g = 0</code> (two 1s side by side) next to an empty segment. So if the macro machine never gets stuck from the configuration after 12 steps, the machine never halts.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>phi_interior</code>, <code>phi_end</code>, <code>phi_bottom</code>, <code>lean/Counter.lean</code></div></div><div><b>A conserved counter</b><p>Read as a recursive program (the right stack of the two-stack form is a call stack), the macro machine keeps a sum &Phi;: the stack, plus the head gap, plus m + g &minus; 1 for every segment m and gap g of the word. A pass that ends inside the word and a B step with a nonempty stack leave &Phi; unchanged; a pass that runs into the last segment adds 2 or 1; B with an empty stack takes 1 off. So &Phi; counts the passes that reach the right end, up to the rare steps at the left end. It does not by itself rule out getting stuck.</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_10M</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000,000 steps</b><p>The same run for 10<sup>7</sup> steps, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code>, <code>tests/test_machine.py</code></div></div><div><b>No halt in the first 10<sup>10</sup> steps</b><p>The shared C simulator runs 10<sup>10</sup> steps from blank tape without a halt; the tape then holds 313 ones and the head has visited 642 cells. The C simulator agrees with the Python reference simulator on the first 80 records of the run (a test).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/invariants.py</code></div></div><div><b>No simple conserved quantity</b><p>No a&middot;ones + b&middot;pos + W[state] is conserved modulo 2 to 12, so a linear invariant like the first holdout's mod-3 count does not exist here.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/passes.c</code>, <code>py/passes.py check</code>, <code>tests/test_passes.py</code></div></div><div><b>No pass meets a gap of 3, and runs stay even</b><p>In the first 10<sup>10</sup> steps there are 344,806,676 pass starts. At each one <code>c/passes.c</code> reads the cells ahead and finds the gap that will end the pass: never a gap of 3. And every run of 0s or 1s of length 3 or more between cells of the other symbol (away from the head) has even length: no odd run at any pass start. A Python version also runs each pass and checks the prediction against the machine (no mismatch in 10<sup>6</sup> steps).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/macro.c</code>, <code>py/macro.py check</code>, <code>tests/test_macro.py</code></div></div><div><b>The run follows the macro machine</b><p>Run side by side with the machine, the macro machine predicts every one of the 344,806,676 pass starts in the first 10<sup>10</sup> steps, cell for cell over the whole tape, and never gets stuck. Python agrees with C, and with the machine on all small configurations.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/pds.c</code>, <code>py/pds.py</code>, <code>tests/test_pds.py</code>, <code>notes/LAB_NOTES.md</code></div></div><div><b>No small DFA closes the tape</b><p>One side of the tape abstracted by a DFA, the other kept exactly as a pushdown stack, reachability computed exactly by post* saturation: every DFA with at most 7 states, on either side, lets the abstraction reach a halt. Run-window languages on the tape do not close either. Tested sound on random small machines.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/blank.py records</code>, <code>notes/LAB_NOTES.md</code></div></div><div><b>The tape grows very slowly</b><p>The visited width is 199 cells after 10<sup>6</sup> steps and 642 after 10<sup>10</sup>, so the time per new cell grows fast, far faster than for the other machines studied here. The left part of the tape holds blocks of 1s of even length separated by single 0s; the head reaches new cells on both sides.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/macro.py stats</code>, <code>notes/LAB_NOTES.md</code></div></div><div><b>Pass endings look like a binary counter</b><p>Almost every pass ends at a gap of length 4j + 2, and each j is about half as common as j &minus; 1. In macro terms half of all passes are B passes, which end at their own head gap h = m + 2, where m is the last segment the F pass before crossed; h = 2, 4, 6, 8, &hellip; occur with frequencies halving exactly. In the macro machine the first nonzero gap is counted down by 2 per round and a segment just before it becomes a gap of its own size: a counter whose digits are the gaps. Not a proved description of the run.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/macro.c</code>, <code>notes/LAB_NOTES.md</code></div></div><div><b>Only a few odd numbers</b><p>If every number in a macro configuration is even, every rule gives even numbers again and none can get stuck. Odd numbers enter only at the left end (popping the empty stack gives a segment 1) and at the last segment. In the run there are at most 4 odd numbers at a time, and F meets two 1s side by side only 546 times in 10<sup>10</sup> steps (of 344,806,676 passes).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w"><code>notes/LAB_NOTES.md</code></div></div><div><b>The macro machine never gets stuck</b><p>A description of where the odd numbers can be that the rules preserve and that excludes the two stuck cases. That would prove the machine never halts. An odd number has over a thousand distinct small neighbourhoods in the run, so the description is not tiny; window and pushdown languages over the macro numbers are the next tries.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known.</p></div></div>
+</section>
+<section id="check">
+  <span class="eyebrow">Check it yourself</span>
+  <h2>Commands</h2>
+  <pre><code>bash scripts/setup-lean.sh                    # Lean 4.34.0, core only
+. /etc/profile.d/lean.sh
+bb6-1RB0LF_1RC0LB/lean/check.sh               # the library, then Machine, Blank, Axioms (under a minute)
+python3 bb6-1RB0LF_1RC0LB/tests/test_machine.py
+bb6-1RB0LF_1RC0LB/lean/check.sh               # also Macro.lean: mstep_sound, no_halt_of_macro
+python3 bb6-1RB0LF_1RC0LB/py/blank.py records 100000 60
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA 10000000000
+cd tools/py &amp;&amp; python3 -m bbtools.invariants 1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA 12
+python3 bb6-1RB0LF_1RC0LB/tests/test_passes.py
+python3 bb6-1RB0LF_1RC0LB/py/passes.py check 1000000
+gcc -O2 -o passes bb6-1RB0LF_1RC0LB/c/passes.c &amp;&amp; ./passes 10000000000
+python3 bb6-1RB0LF_1RC0LB/tests/test_macro.py
+python3 bb6-1RB0LF_1RC0LB/py/macro.py show 40
+python3 bb6-1RB0LF_1RC0LB/py/callstack.py check 1000000   # how the counter changes, by kind of step
+gcc -O2 -o macro bb6-1RB0LF_1RC0LB/c/macro.c &amp;&amp; ./macro 10000000000
+python3 bb6-1RB0LF_1RC0LB/tests/test_pds.py
+gcc -O2 -o pds bb6-1RB0LF_1RC0LB/c/pds.c &amp;&amp; ./pds 6 L &amp;&amp; ./pds 6 R   # every DFA up to 6 states, about a minute each</code></pre>
+</section>
+<footer class="foot">
+  <p>Built by <code>tools/pages/build_explainer.py</code> from <code>bb6-1RB0LF_1RC0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>
+  <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+</footer>
+</div>
+<script type="application/json" id="spec">{"machine": "1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA"}</script>
+<script id="engine">
+var BB = (function () {
+  "use strict";
+  var STATES = "ABCDEFGHIJ";
+  function parse(text) {
+    var groups = text.trim().split("_"), n = groups.length, table = [];
+    for (var s = 0; s < n; s++) {
+      var g = groups[s], row = [];
+      if (g.length !== 6) throw new Error("bad group " + g);
+      for (var y = 0; y < 2; y++) {
+        var t = g.substr(3 * y, 3), q = STATES.indexOf(t[2]);
+        if (t === "---" || q < 0 || q >= n) { row.push(null); continue; }
+        row.push([+t[0], t[1] === "R" ? 1 : -1, q]);
+      }
+      table.push(row);
+    }
+    return { text: text.trim(), n: n, table: table };
+  }
+  function Run(m) {
+    this.m = m; this.cells = new Uint8Array(1024); this.off = 512;
+    this.lo = 0; this.hi = 0; this.head = 0; this.state = 0; this.steps = 0; this.halted = false; this.nOnes = 0;
+  }
+  Run.prototype.get = function (p) { var i = p + this.off; return i < 0 || i >= this.cells.length ? 0 : this.cells[i]; };
+  Run.prototype.grow = function () {
+    var n = this.cells.length, c = new Uint8Array(3 * n);
+    c.set(this.cells, n); this.cells = c; this.off += n;
+  };
+  Run.prototype.step = function () {
+    if (this.halted) throw new Error("halted");
+    var i = this.head + this.off, y = this.cells[i], tr = this.m.table[this.state][y];
+    this.steps++;
+    if (tr === null) { this.halted = true; return false; }
+    this.nOnes += tr[0] - y; this.cells[i] = tr[0];
+    this.head += tr[1]; this.state = tr[2];
+    if (this.head < this.lo) this.lo = this.head;
+    if (this.head > this.hi) this.hi = this.head;
+    i = this.head + this.off;
+    if (i < 1 || i >= this.cells.length - 1) this.grow();
+    return true;
+  };
+  Run.prototype.run = function (max) { while (this.steps < max) if (!this.step()) return true; return false; };
+  Run.prototype.ones = function () { return this.nOnes; };
+  Run.prototype.word = function (lo, hi) { var w = []; for (var p = lo; p <= hi; p++) w.push(this.get(p)); return w; };
+  Run.prototype.configStr = function () {
+    return formatConfig(this.word(this.lo, this.hi), this.head - this.lo, STATES[this.state]);
+  };
+  function rle(cells) {
+    var out = [], i = 0;
+    while (i < cells.length) {
+      var j = i; while (j < cells.length && cells[j] === cells[i]) j++;
+      out.push(j - i > 1 ? cells[i] + "^" + (j - i) : String(cells[i])); i = j;
+    }
+    return out;
+  }
+  function formatConfig(cells, h, state) {
+    return rle(cells.slice(0, h)).concat([state + ">" + cells[h]], rle(cells.slice(h + 1))).join(" ");
+  }
+  // [steps, "L"|"R", hi - lo, config] each time the head reaches a new cell, at most k of them.
+  function records(m, maxSteps, k) {
+    var r = new Run(m), out = [];
+    while (r.steps < maxSteps && out.length < k) {
+      var lo = r.lo, hi = r.hi;
+      if (!r.step()) break;
+      if (r.lo < lo) out.push([r.steps, "L", r.hi - r.lo, r.configStr()]);
+      else if (r.hi > hi) out.push([r.steps, "R", r.hi - r.lo, r.configStr()]);
+    }
+    return { records: out, run: r };
+  }
+  return { STATES: STATES, parse: parse, Run: Run, rle: rle, formatConfig: formatConfig, records: records };
+})();
+if (typeof module !== "undefined") module.exports = BB;
+</script>
+<script>
+(function () {
+  "use strict";
+  var spec = JSON.parse(document.getElementById("spec").textContent);
+  var M = BB.parse(spec.machine), $ = function (id) { return document.getElementById(id); };
+  var css = function (v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); };
+  var fmt = function (n) { return n.toLocaleString("en-US"); };
+  // simulator
+  var r = new BB.Run(M), playing = false, raf = 0;
+  function draw() {
+    $("rStep").textContent = fmt(r.steps);
+    $("rState").textContent = r.halted ? "halt" : BB.STATES[r.state];
+    $("rWidth").textContent = fmt(r.hi - r.lo + 1);
+    $("rOnes").textContent = fmt(r.ones());
+    var box = $("cells"), w = box.clientWidth || 600, n = Math.max(9, Math.min(41, Math.floor(w / 24) | 1)), h = n >> 1;
+    var html = "";
+    for (var p = r.head - h; p <= r.head + h; p++) {
+      var cls = "cell" + (r.get(p) ? " one" : "") + (p < r.lo || p > r.hi ? " out" : "") + (p === r.head ? " hd" : "");
+      html += '<div class="' + cls + '"' + (p === r.head ? ' data-s="' + (r.halted ? "H" : BB.STATES[r.state]) + '"' : "") + "></div>";
+    }
+    box.innerHTML = html;
+    var width = r.hi - r.lo + 1;
+    $("config").textContent = width <= 4000 ? r.configStr() : "(" + fmt(width) + " cells: too wide to print here)";
+  }
+  function advance(n) {
+    var target = r.steps + n;
+    while (!r.halted && r.steps < target) if (!r.step()) break;
+  }
+  function jump(t) { if (t < r.steps) r = new BB.Run(M); advance(t - r.steps); draw(); }
+  function loop() {
+    if (!playing) return;
+    advance(+$("speed").value); draw();
+    if (r.halted) { stop(); return; }
+    raf = requestAnimationFrame(loop);
+  }
+  function stop() { playing = false; cancelAnimationFrame(raf); $("play").textContent = "Play"; }
+  $("step").onclick = function () { stop(); advance(1); draw(); };
+  $("play").onclick = function () {
+    if (playing) { stop(); return; }
+    playing = true; $("play").textContent = "Pause"; loop();
+  };
+  $("reset").onclick = function () { stop(); r = new BB.Run(M); draw(); };
+  $("jumpGo").onclick = function () {
+    stop(); var t = parseInt($("jumpTo").value.replace(/[^0-9]/g, ""), 10);
+    if (t >= 0 && t <= 1e9) jump(t);
+  };
+  document.querySelectorAll("[data-jump]").forEach(function (b) {
+    b.onclick = function () { stop(); $("jumpTo").value = b.dataset.jump; jump(+b.dataset.jump); };
+  });
+  window.addEventListener("resize", draw);
+  draw();
+  // space-time diagram: one row per sample, the visited tape across
+  function spacetime() {
+    var mode = $("stMode").value, steps = Math.min(+$("stSteps").value, 1e9), rows = 600;
+    var q = new BB.Run(M), snaps = [];
+    function snap() { snaps.push([q.steps, q.lo, q.word(q.lo, q.hi), q.head, q.halted]); }
+    snap();
+    if (mode === "time") {
+      var every = Math.max(1, Math.floor(steps / rows));
+      while (q.steps < steps && !q.halted) { q.run(Math.min(steps, q.steps + every)); snap(); }
+    } else {
+      while (q.steps < steps && snaps.length < rows) {
+        var lo = q.lo, hi = q.hi;
+        if (!q.step()) { snap(); break; }
+        if (q.lo < lo || q.hi > hi) snap();
+      }
+    }
+    var lo = Math.min.apply(null, snaps.map(function (s) { return s[1]; }));
+    var hi = Math.max.apply(null, snaps.map(function (s) { return s[1] + s[2].length - 1; }));
+    var W = hi - lo + 1, cw = Math.max(1, Math.min(12, Math.floor(1000 / W))), ch = Math.max(1, Math.min(8, Math.floor(600 / snaps.length)));
+    var cv = $("st"), dpr = window.devicePixelRatio || 1;
+    cv.width = W * cw * dpr; cv.height = snaps.length * ch * dpr;
+    cv.style.width = W * cw + "px"; cv.style.height = snaps.length * ch + "px";
+    var g = cv.getContext("2d"); g.scale(dpr, dpr);
+    g.fillStyle = css("--cell0"); g.fillRect(0, 0, W * cw, snaps.length * ch);
+    g.fillStyle = css("--sunk");
+    snaps.forEach(function (s, i) { g.fillRect((s[1] - lo) * cw, i * ch, s[2].length * cw, ch); });
+    g.fillStyle = css("--ink");
+    snaps.forEach(function (s, i) { s[2].forEach(function (c, j) { if (c) g.fillRect((s[1] - lo + j) * cw, i * ch, cw, ch); }); });
+    g.fillStyle = css("--head");
+    snaps.forEach(function (s, i) { g.fillRect((s[3] - lo) * cw, i * ch, cw, ch); });
+    var last = snaps[snaps.length - 1];
+    $("stCap").textContent = snaps.length + " rows, steps 0 to " + fmt(last[0]) + ", " + fmt(W) + " cells" +
+      (last[4] ? "; the machine halted" : "") + ". Time runs down, the tape runs left to right; dark = 1, orange = the head.";
+  }
+  $("stGo").onclick = spacetime;
+  spacetime();
+  // records
+  function showRecords() {
+    var steps = Math.min(+$("recSteps").value, 1e9), res = BB.records(M, steps, 400), out = "";
+    res.records.forEach(function (x) {
+      out += '<div><span class="t">' + fmt(x[0]) + "</span><span>" + x[1] + '</span><span class="t">' + x[2] +
+        "</span><span>" + x[3].replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</span></div>";
+    });
+    $("recs").innerHTML = out || "<div>none</div>";
+    $("recCap").textContent = res.records.length + " records in " + fmt(res.run.steps) + " steps" +
+      (res.run.halted ? "; the machine halted" : "") + (res.records.length >= 400 ? " (the first 400 shown)" : "") + ".";
+  }
+  $("recGo").onclick = showRecords;
+  showRecords();
+  // ledger
+  document.querySelectorAll(".lfilter button").forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll(".lfilter button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+      document.querySelectorAll(".litem").forEach(function (it) {
+        it.hidden = b.dataset.f !== "all" && it.dataset.level !== b.dataset.f;
+      });
+    };
+  });
+})();
+</script>
+</body>
+</html>

@@ -4,6 +4,7 @@ invariant finder, the Lean generator and the status-page builder.
 
 usage: python3 tools/tests/test_tools.py        (from anywhere; builds the C programs into a temporary directory)
 """
+import json
 import os
 import random
 import shutil
@@ -19,9 +20,13 @@ sys.path.insert(0, os.path.join(TOOLS, "pages"))
 
 from bbtools.machine import Machine, Run, run_blank, records, STATES  # noqa: E402
 from bbtools import symtm, leangen, invariants, ctl  # noqa: E402
-from bbtools.explore import blocks  # noqa: E402
+from bbtools.macro import MacroRun  # noqa: E402
+from bbtools import cycles  # noqa: E402
+from bbtools.explore import blocks, parse_words, tokenize, token_str, token_events, turns  # noqa: E402
 import merge_parts  # noqa: E402
 import build_status  # noqa: E402
+import explainer_status  # noqa: E402
+import build_explainer  # noqa: E402
 
 THIS = "1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB"
 HOLDOUT = "1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0LD1RE"
@@ -77,6 +82,38 @@ class TestMachine(unittest.TestCase):
         self.assertEqual(blocks([1, 1, 0, 1, 0, 0]), [(2, 1), (1, 2)])
         self.assertEqual(blocks([0, 1]), [(0, 1), (1, 0)])
 
+    def test_tokens(self):
+        words = parse_words("a=10,b=110")
+        self.assertEqual([w[0] for w in words], ["b", "a"])
+        cells = [0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1]
+        self.assertEqual(token_str(tokenize(cells, words)), "0^2 a^2 b 0 a 1")
+        for bad in ("a=12", "0=10", "a="):
+            with self.assertRaises(ValueError):
+                parse_words(bad)
+        # reading the tokens back gives the cells
+        rng = random.Random(3)
+        for _ in range(200):
+            cells = [rng.randrange(2) for _ in range(rng.randrange(30))]
+            back = []
+            for t, k in tokenize(cells, words):
+                back += (list(dict(words)[t]) if t in dict(words) else [int(t)]) * k
+            self.assertEqual(back, cells)
+
+    def test_turns(self):
+        m = Machine.parse(THIS)
+        ts = list(turns(m, 0, 2000))
+        self.assertTrue(ts)
+        r = Run(m)
+        last = None
+        for t, s, pos, d in ts:
+            while r.steps < t - 1:
+                r.step()
+            h, st = r.head, r.state
+            r.step()
+            self.assertEqual((r.steps, st, h - r.tape.lo, ">" if r.head > h else "<"), (t, s, pos, d))
+            self.assertNotEqual(d, last)
+            last = d
+
 
 class TestC(unittest.TestCase):
     def tmrun(self, *args):
@@ -103,6 +140,216 @@ class TestC(unittest.TestCase):
         out = self.tmrun(THIS, 20000, "records", 60).splitlines()[:-1]
         py = [f"{t} {side} {r.tape.hi - r.tape.lo} {r.config_str()}" for t, side, r in records(Machine.parse(THIS), 20000)]
         self.assertEqual(out, py[:60])
+
+
+    def test_tokrun_against_python(self):
+        for text, words in ((THIS, "a=10,b=110"), (HOLDOUT, "x=1110,y=10")):
+            out = subprocess.run([cc("tokrun"), text, "200000", words, "LR", "80"], check=True, capture_output=True,
+                                 text=True).stdout.splitlines()
+            ws, py = parse_words(words), []
+            for r, side in token_events(Machine.parse(text), 200000, ws):
+                if len(py) == 80:
+                    break
+                py.append(f"{r.steps} HALT" if side == "HALT" else
+                          f"{r.steps} {side} {r.tape.hi - r.tape.lo} {STATES[r.state]} {token_str(tokenize(r.tape.word(), ws))}")
+            self.assertEqual(out, py, text)
+        for text, steps in CHAMPIONS.items():
+            out = subprocess.run([cc("tokrun"), text, "1000", "a=10"], check=True, capture_output=True,
+                                 text=True).stdout.splitlines()
+            self.assertEqual(out[-1], f"{steps} HALT")
+
+
+class TestMacro(unittest.TestCase):
+    def test_champions(self):
+        for m, n in CHAMPIONS.items():
+            for k in (1, 2, 3, 5):
+                r = MacroRun(m, k).run(10 ** 6)
+                self.assertTrue(r.halted, (m, k))
+                self.assertEqual(r.steps, n, (m, k))
+
+    def test_bb5(self):
+        r = MacroRun(BB5, 6).run(10 ** 9)
+        self.assertTrue(r.halted)
+        self.assertEqual(r.steps, 47176870)
+
+    def test_against_plain(self):
+        # the tape, head, state and step count after each macro step equal the plain simulator's at that step
+        for m in (THIS, HOLDOUT, "1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---"):
+            for k in (2, 3, 4):
+                r, p = MacroRun(m, k), Run(Machine.parse(m))
+                for _ in range(1500):
+                    if not r.step():
+                        break
+                    while p.steps < r.steps:
+                        p.step()
+                    self.assertEqual((p.steps, p.state, p.head), (r.steps, r.state, r.head()), (m, k))
+                    cells = r.cells()
+                    for i in range(min(cells.keys() | {p.tape.lo}), max(cells.keys() | {p.tape.hi}) + 1):
+                        self.assertEqual(cells.get(i, 0), p.tape.get(i), (m, k, r.steps, i))
+
+    def test_runs_compress(self):
+        # 1RB1RF_1LC0LB's sweeps cross whole runs of pairs: a million steps in about ten thousand macro steps
+        r = MacroRun("1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---", 4).run(10 ** 6)
+        self.assertLess(r.msteps, 20000)
+
+
+BB6_1RF = "1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---"
+BOUNCER = "1LB1RA_1RA1LB"     # a block of 1s growing by one cell at each end per sweep
+EATER = "0RB1RA_0RB0LC_0LC1LD_1RA1LD"   # on 1^a 0^z 1^b: a and z grow by one, b shrinks by one per sweep
+
+
+def eater_run(b):
+    """EATER from 0^inf A> 1 0 1^b 0^inf (a macro run with blocks of one cell)."""
+    r = MacroRun(EATER, 1)
+    r.right = [[(0,), 1], [(1,), b], [(0,), 1], [(1,), 1]]
+    return r
+
+
+def lean_env():
+    lean = os.environ.get("LEAN") or shutil.which("lean")
+    lib = os.environ.get("LEANLIB") or os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(lean))),
+                                                    "lib", "lean")
+    return lean, lib
+
+
+def check_rules_lean(test, machine, theorems):
+    """Compile `theorems` (Lean texts from symtm.prove) against the machine's generated definition."""
+    lean, lib = lean_env()
+    subprocess.run([os.path.join(TOOLS, "lean", "check.sh")], check=True, capture_output=True,
+                   env=dict(os.environ, LEAN=lean, LEANLIB=lib))
+    d = tempfile.mkdtemp(dir=BUILD)
+    with open(os.path.join(d, "Mach.lean"), "w") as f:
+        f.write(leangen.machine_lean(machine, "Mach"))
+    with open(os.path.join(d, "Rules.lean"), "w") as f:
+        f.write(symtm.rules_file("Mach", "Mach", theorems, "test rules"))
+    env = dict(os.environ, LEAN_PATH=f"{lib}:{os.path.join(TOOLS, 'lean', 'out')}:{d}")
+    subprocess.run([lean, "Mach.lean", "-o", "Mach.olean"], cwd=d, check=True, env=env, capture_output=True)
+    r = subprocess.run([lean, "Rules.lean"], cwd=d, env=env, capture_output=True, text=True)
+    test.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+
+class TestCycles(unittest.TestCase):
+    """The cycle accelerator against plain macro runs: after every jump the stacks, head position, state and step
+    count are those of the macro machine run without jumps."""
+
+    @staticmethod
+    def accelerated(run, steps, **kw):
+        a = cycles.Accelerator(run, **kw)
+        ends = []
+        jump = a.jump
+
+        def recording(limit=None):
+            n = jump(limit)
+            if n:
+                ends.append(cycles.snapshot(a.run_))
+            return n
+        a.jump = recording
+        a.run(steps)
+        return a, ends
+
+    def check_against_plain(self, machine, k, steps, min_jumps, start=None):
+        start = start or (lambda: MacroRun(machine, k))
+        a, ends = self.accelerated(start(), steps)
+        self.assertGreaterEqual(len(ends), min_jumps)
+        p = start()
+        for e in ends:
+            while p.steps < e.steps and p.step():
+                pass
+            self.assertEqual(cycles.snapshot(p), e, (machine, k, e.steps))
+        while p.steps < steps and p.step():
+            pass
+        self.assertEqual(cycles.snapshot(p), cycles.snapshot(a.run_))
+        return a
+
+    def test_detect(self):
+        w, v = (1, 0), (0, 1)
+        s = [cycles.Snap(100 + 10 * i + i * i, -4 * i, 1, -1, ((w, 5 + 2 * i), (v, 3)), ((w, 40 - i),))
+             for i in range(3)]
+        c = cycles.detect(s)
+        self.assertEqual(c.delta, (2, 0, -1))
+        self.assertEqual(c.dpos, -4)
+        self.assertEqual(c.dsteps, (11, 13))
+        self.assertIsNone(cycles.detect([s[0], s[1], s[1]]))      # not linear
+        t = cycles.Snap(0, 0, 1, -1, ((v, 5),), ((w, 40),))
+        self.assertIsNone(cycles.detect([s[0], t]))                 # another shape
+
+    def test_bb6_1rf_against_macro(self):
+        # walls eaten and blocks grown at the left end; many jumps, each one checked
+        a = self.check_against_plain(BB6_1RF, 4, 3 * 10 ** 8, 10)
+        self.assertGreater(sum(n for _, n, _, _ in a.jumps), 1000)
+
+    def test_bouncer_against_macro(self):
+        # nothing shrinks: the jumps are bounded only by the step limit, and land on it exactly where they can
+        for k in (1, 2, 3):
+            a = self.check_against_plain(BOUNCER, k, 10 ** 7, 1)
+            self.assertGreater(a.jumps[0][1], 500)
+
+    def test_eater_wall(self):
+        # the wall 1^b is eaten one cell per sweep: one jump, which stops with the wall still `margin` above what
+        # the rule needs; then the machine leaves to the right in blank tape, another jump
+        a = self.check_against_plain(EATER, 1, 3 * 10 ** 6, 2, start=lambda: eater_run(1000))
+        before, n, after, name = a.jumps[0]
+        rule = a.rules[0]
+        self.assertEqual(rule.delta, (-1, 1, 1))
+        self.assertEqual(str(rule.steps), "2*n1+2*n2+15")
+        p = eater_run(1000).run(after)
+        wall = p.right[1][1]
+        self.assertEqual(wall, rule.spec[0][2] + 2)        # offset + margin
+        self.assertGreater(n, 900)
+
+    def test_rules_hold_concretely(self):
+        """Each rule, its variables filled in with values unlike the sample's, is a true statement (plain run)."""
+        a, _ = self.accelerated(MacroRun(BB6_1RF, 4), 3 * 10 ** 7)
+        b = cycles.Accelerator(MacroRun(BOUNCER, 2)).run(10 ** 5)
+        c = cycles.Accelerator(eater_run(300)).run(10 ** 6)
+        cases = [(BB6_1RF, r) for r in a.rules[:6]] + [(BOUNCER, r) for r in b.rules] + [(EATER, r) for r in c.rules]
+        self.assertGreater(len(cases), 4)
+        rng = random.Random(5)
+        for text, rule in cases:
+            m = Machine.parse(text)
+            for _ in range(3):
+                env = {v: rng.randrange(0, 12) for v in rule.start.vars()}
+                start, end = rule.start, rule.end
+                cells, head = TestSymbolic.concretize(start, env, {})
+                ecells, ehead = TestSymbolic.concretize(end, env, {})
+                r = Run(m, state=start.state)
+                for i, x in enumerate(cells):
+                    r.tape.set(i, x)
+                r.head = head
+                n = rule.steps.subs(env)
+                for _ in range(n):
+                    self.assertTrue(r.step())
+                self.assertEqual(r.state, end.state)
+                off = r.head - ehead
+                lo, hi = min(off, r.tape.lo), max(off + len(ecells), r.tape.hi + 1)
+                self.assertEqual([r.tape.get(i) for i in range(lo, hi)],
+                                 [ecells[i - off] if 0 <= i - off < len(ecells) else 0 for i in range(lo, hi)],
+                                 (rule.name, env))
+
+    def test_margin(self):
+        # after every jump each shrinking count is still `margin` above what its rule needs
+        a, ends = self.accelerated(MacroRun(BB6_1RF, 4), 10 ** 8, margin=5)
+        by_name = {r.name: r for r in a.rules}
+        self.assertGreater(len(ends), 5)
+        for (_, n, _, name), e in zip(a.jumps, ends):
+            rule = by_name[name]
+            self.assertGreaterEqual(n, 2)
+            shrinking = [(sp, c) for sp, c, d in zip(rule.spec, e.counts(), rule.delta) if d < 0]
+            self.assertTrue(shrinking)
+            for sp, c in shrinking:
+                self.assertEqual(sp[0], "var")
+                self.assertGreaterEqual(c, sp[2] + 5)
+
+    @unittest.skipUnless(shutil.which("lean") or os.environ.get("LEAN"), "no Lean installed")
+    def test_lean_checks(self):
+        """The cycle rules (shift rules, re-bracketings, a step count linear in the variables) compile in Lean."""
+        a, _ = self.accelerated(MacroRun(BB6_1RF, 4), 10 ** 6)
+        self.assertTrue(any("rep_rotate" in r.lean for r in a.rules[:3]))
+        check_rules_lean(self, BB6_1RF, [r.lean for r in a.rules[:3]])
+        b = cycles.Accelerator(MacroRun(BOUNCER, 2)).run(10 ** 5)
+        check_rules_lean(self, BOUNCER, [r.lean for r in b.rules])
+        c = cycles.Accelerator(eater_run(300)).run(10 ** 6)
+        check_rules_lean(self, EATER, [r.lean for r in c.rules])
 
 
 class TestParts(unittest.TestCase):
@@ -320,6 +567,63 @@ class TestStatusPage(unittest.TestCase):
         self.assertIn('class="card open"', page)
         with self.assertRaises(ValueError):
             build_status.build({"title": "T", "machine": THIS, "claims": [{"level": "proved", "title": "x", "text": ""}]})
+
+    def test_explainer_status(self):
+        spec = {"asof": "now", "claims": [{"level": "kernel", "title": "k", "text": "a</b>", "where": "w"}]}
+        page = '<p>x</p>\n<script type="application/json" id="status-data">\nold\n</script>\n'
+        out = explainer_status.build(page, spec)
+        self.assertIn('"title": "k"', out)
+        self.assertNotIn("</b>", out)
+        self.assertEqual(explainer_status.build(out, spec), out)
+        with self.assertRaises(ValueError):
+            explainer_status.build("<p>no block</p>", spec)
+
+
+class TestExplainerPage(unittest.TestCase):
+    """tools/pages/build_explainer.py: the page builds, and its engine, run in Node, agrees with bbtools."""
+
+    def test_build(self):
+        spec = {"title": "T", "machine": THIS, "claims": [{"level": "kernel", "title": "k", "text": "a"}],
+                "explainer": {"sections": [{"id": "x", "heading": "Extra", "html": ["<p>one</p>", "<p>two</p>"]}]}}
+        page = build_explainer.build(spec)
+        self.assertIn('<script id="engine">', page)
+        self.assertIn('<section id="x">', page)
+        self.assertIn("<p>one</p>\n<p>two</p>", page)
+        with self.assertRaises(ValueError):
+            build_explainer.build({"title": "T", "machine": THIS, "claims": [{"level": "proved", "title": "x", "text": ""}]})
+
+    def test_halt_analysis(self):
+        self.assertEqual(build_explainer.halt_analysis(Machine.parse(BB5)),
+                         [("E0", [("C1", 0, "L", "0 C>1")])])
+        self.assertEqual(build_explainer.halt_analysis(Machine.parse("1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA")),
+                         [("E1", [("D0", 1, "R", "D>0 1")])])
+
+    @unittest.skipUnless(shutil.which("node"), "node is not installed")
+    def test_engine_against_python(self):
+        rng = random.Random(7)
+        machines = [BB5, THIS, HOLDOUT, LOOP2] + [random_machine(rng, rng.randint(2, 5)) for _ in range(40)]
+        steps = [0, 1, 2, 7, 50, 333, 2000]
+        path = os.path.join(BUILD, "engine.js")
+        with open(path, "w") as f:
+            f.write(build_explainer.ENGINE)
+            f.write("const MS = %s, ST = %s;\n" % (json.dumps(machines), json.dumps(steps)))
+            f.write("console.log(JSON.stringify(MS.map(t => { const m = BB.parse(t);"
+                    " return { at: ST.map(n => { const r = new BB.Run(m); const h = r.run(n);"
+                    " return [h, r.steps, r.ones(), r.configStr()]; }),"
+                    " recs: BB.records(m, 3000, 60).records }; })));\n")
+        got = json.loads(subprocess.run(["node", path], check=True, capture_output=True, text=True).stdout)
+        for t, g in zip(machines, got):
+            m = Machine.parse(t)
+            for n, x in zip(steps, g["at"]):
+                r = Run(m)
+                h = r.run(n)
+                self.assertEqual(x, [h, r.steps, r.ones(), r.config_str()], (t, n))
+            py = []
+            for k, (s, side, r) in enumerate(records(m, 3000)):
+                if k >= 60:
+                    break
+                py.append([s, side, r.tape.hi - r.tape.lo, r.config_str()])
+            self.assertEqual(g["recs"], py, t)
 
 
 if __name__ == "__main__":

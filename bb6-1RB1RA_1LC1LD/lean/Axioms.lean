@@ -5,7 +5,13 @@ import Recur
 import Finish
 import Blocks
 import Formula
+import OffsetData
+import Stops
 import Count
+import Chain
+import CaseB
+import Bound
+import Tokens
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
 a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
@@ -56,9 +62,56 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6c.recur_two_three_halts
 #print axioms BB6c.recur_two_good
 #print axioms BB6c.recur_small
+-- Offset.lean, OffsetData.lean: c ≥ -1 for every list of blocks ≥ 2, if pre stops (kernel only)
+#print axioms BB6c.absAstep_sound
+#print axioms BB6c.absNext_sound
+#print axioms BB6c.pre_abs
+#print axioms BB6c.check_ok
+#print axioms BB6c.offset_bound
+#print axioms BB6c.recur_next
+-- Stops.lean: pre never gets stuck, so it stops when the cells stay bounded (kernel only)
+#print axioms BB6c.prog_ok
+#print axioms BB6c.preR_inv
+#print axioms BB6c.pre_stops
+#print axioms BB6c.recur_next_bounded
+-- Chain.lean: good starts do not stay good; a halt needs a last block 3 after a block >= 6, or 6 (kernel only)
+#print axioms BB6c.three_six_halts
+#print axioms BB6c.two_two_three_halts
+#print axioms BB6c.next_safe
+#print axioms BB6c.safe_pass
+#print axioms BB6c.six_after_two
+#print axioms BB6c.six_pass
+#print axioms BB6c.blank_safe
+-- CaseB.lean: safe even starts that halt by case B, and how fast the last block can come down (kernel only)
+#print axioms BB6c.sixteen_halts
+#print axioms BB6c.chain_54_halts
+#print axioms BB6c.safe_pass_shrink
+-- Bound.lean: no lower bound on the last block by the total is kept by every pass (kernel only)
+#print axioms BB6c.descent_step
+#print axioms BB6c.no_total_bound
 -- Count.lean: the pass map with step counts (kernel only), and the run to 10¹² steps (native_decide)
 #print axioms BB6c.passesC_sound
 #print axioms BB6c.blank_passesC
 #print axioms BB6c.blank_reaches_1e12
 #print axioms BB6c.blank_runs_1e12
 #print axioms BB6c.blank_runs_1e10
+-- Tokens.lean: pre at its A states, the carry and the three ways it stops (kernel only)
+#print axioms BB6c.carry
+#print axioms BB6c.row_zero
+#print axioms BB6c.row_two
+#print axioms BB6c.row_end
+#print axioms BB6c.two_one
+#print axioms BB6c.two_three
+#print axioms BB6c.three_two
+#print axioms BB6c.row_zero_tokens
+#print axioms BB6c.row_two_tokens
+#print axioms BB6c.row_end_tokens
+#print axioms BB6c.three_one
+#print axioms BB6c.three_three
+#print axioms BB6c.row_five_nil
+#print axioms BB6c.row_five
+#print axioms BB6c.row_small_nil
+#print axioms BB6c.row_small
+#print axioms BB6c.row_five_tokens
+#print axioms BB6c.row_five_nil_tokens
+#print axioms BB6c.cycle36
