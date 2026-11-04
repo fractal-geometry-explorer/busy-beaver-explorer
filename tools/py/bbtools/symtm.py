@@ -339,6 +339,40 @@ def try_cross(m, cfg):
     return None
 
 
+@dataclass
+class Rotate:
+    """A re-bracketing next to the head (no steps): side 'l' or 'r', the literal word x that moves across the
+    repeat (cells left to right), the repeat's word before (w) and after (w2), its count n."""
+    side: str
+    x: tuple
+    w: tuple
+    w2: tuple
+    n: Lin
+
+
+def try_rotate(cfg):
+    """Re-bracket a repeat next to the head so that its copies start at the head: on the left `(w)^n x` with x a
+    proper prefix of w becomes `x (w')^n`, on the right `x (w)^n` with x a proper suffix of w becomes `(w')^n x`.
+    Returns the Rotate done, or None (cfg unchanged)."""
+    for j in range(1, MAX_CARRY + 1):
+        if len(cfg.left) > j and isinstance(cfg.left[-1 - j], Rep) and all(isinstance(t, int) for t in cfg.left[-j:]):
+            r = cfg.left[-1 - j]
+            x = tuple(cfg.left[-j:])
+            if j < len(r.word) and r.word[:j] == x and not r.n.is_zero():
+                w2 = r.word[j:] + r.word[:j]
+                cfg.left[-1 - j:] = list(x) + [Rep(w2, r.n)]
+                return Rotate("l", x, r.word, w2, r.n)
+    for j in range(1, MAX_CARRY + 1):
+        if len(cfg.right) > j and isinstance(cfg.right[j], Rep) and all(isinstance(t, int) for t in cfg.right[:j]):
+            r = cfg.right[j]
+            x = tuple(cfg.right[:j])
+            if j < len(r.word) and r.word[len(r.word) - j:] == x and not r.n.is_zero():
+                w2 = x + r.word[:len(r.word) - j]
+                cfg.right[:j + 1] = [Rep(w2, r.n)] + list(x)
+                return Rotate("r", x, r.word, w2, r.n)
+    return None
+
+
 # ---------------------------------------------------------------- canonical form
 def canon(seq):
     """A normal form for comparing token lists: constant repeats expanded, literals pushed to the right of symbolic
@@ -391,14 +425,27 @@ def same_config(c1, c2):
 
 
 # ---------------------------------------------------------------- runs
-def run(m, cfg, stop, max_moves=100000, cross=True, trace=None):
+def run(m, cfg, stop, max_moves=100000, cross=True, trace=None, rotate=False):
     """Advance until stop(cfg). Shift rules first, then single steps.  With `trace` a list, appends
-    ('step', before, after) or ('cross', before, after, Cross) for each move."""
+    ('step', before, after) or ('cross', before, after, Cross) for each move.  With `rotate`, a repeat next to the
+    head is re-bracketed (`try_rotate`, traced as ('rot', before, after, Rotate)) when that lets a shift rule apply."""
     for _ in range(max_moves):
         if stop(cfg):
             return cfg
         before = cfg.copy() if trace is not None else None
         x = try_cross(m, cfg) if cross else None
+        if x is None and cross and rotate:
+            c2 = cfg.copy()
+            rot = try_rotate(c2)
+            if rot is not None:
+                mid = c2.copy()
+                x = try_cross(m, c2)
+                if x is not None:
+                    cfg.left, cfg.right, cfg.steps = c2.left, c2.right, c2.steps
+                    if trace is not None:
+                        trace.append(("rot", before, mid, rot))
+                        trace.append(("cross", mid, cfg.copy(), x))
+                    continue
         if x is None:
             step(m, cfg)
             if trace is not None:
@@ -460,12 +507,13 @@ def cfg_term(c):
     return f"⟨{left_term(c.left)}, {right_term(c.right)}, .{STATES[c.state]}⟩"
 
 
-def _segments(trace):
-    """Group consecutive single steps: [('steps', before, after, n) | ('cross', before, after, Cross)]."""
+def _segments(trace, max_seg=None):
+    """Group consecutive single steps, at most max_seg in a group: [('steps', before, after, n) | ('cross', before,
+    after, Cross) | ('rot', before, after, Rotate)]."""
     segs = []
     for ev in trace:
         if ev[0] == "step":
-            if segs and segs[-1][0] == "steps":
+            if segs and segs[-1][0] == "steps" and (max_seg is None or segs[-1][3] < max_seg):
                 segs[-1] = ("steps", segs[-1][1], ev[2], segs[-1][3] + 1)
             else:
                 segs.append(("steps", ev[1], ev[2], 1))
@@ -478,15 +526,20 @@ class ProofError(Exception):
     pass
 
 
-def prove(m, name, start, end, nsteps=None, doc=None, max_moves=100000, cross=True):
+def prove(m, name, start, end, nsteps=None, doc=None, max_moves=100000, cross=True, rotate=False, count_first=False,
+          max_seg=None):
     """Lean theorem `name`: from `start` the machine reaches `end` in `nsteps` steps (default: the run's count).
-    `start`, `end`: Config or strings for Config.parse.  Returns (lean_text, final_config)."""
+    `start`, `end`: Config or strings for Config.parse.  `rotate`: see `run` (re-bracketings are proved in Lean with
+    `TM.rep_rotate`).  `count_first`: prove the step count with `omega` before the run's steps are in the context
+    (much faster for long runs).  `max_seg`: at most this many single steps in one `rfl` (long ones exceed Lean's
+    recursion depth).  Returns (lean_text, final_config)."""
     m = Machine.parse(m) if isinstance(m, str) else m
     start = Config.parse(start) if isinstance(start, str) else start
     end = Config.parse(end) if isinstance(end, str) else end
     trace = []
     try:
-        fin = run(m, start.copy(), lambda c: not c.steps.is_zero() and same_config(c, end), max_moves=max_moves, cross=cross, trace=trace)
+        fin = run(m, start.copy(), lambda c: not c.steps.is_zero() and same_config(c, end), max_moves=max_moves, cross=cross, trace=trace,
+                  rotate=rotate)
     except (TouchContext, NeedSplit, Halted, RuntimeError) as e:
         raise ProofError(f"{name}: {type(e).__name__}: {e}")
     if nsteps is not None and lin(nsteps) != fin.steps:
@@ -502,12 +555,28 @@ def prove(m, name, start, end, nsteps=None, doc=None, max_moves=100000, cross=Tr
         lines.append(f"/-- {doc} -/")
     lines.append(f"theorem {name}{binders} :")
     lines.append(f"    steps ({fin.steps.lean()}) {cfg_term(start)} = some {cfg_term(fin)} := by")
+    hdr = len(lines)
     hs, counts = [], []
-    for i, seg in enumerate(_segments(trace)):
+    for i, seg in enumerate(_segments(trace, max_seg)):
         if seg[0] == "steps":
             _, a, b, n = seg
             lines.append(f"  have h{i} : steps {n} {cfg_term(a)} = some {cfg_term(b)} := rfl")
             counts.append(str(n))
+        elif seg[0] == "rot":
+            _, a, b, x = seg
+            if x.side == "l":
+                j = len(x.x)
+                xs, ys, y2s = tuple(reversed(x.x)), tuple(reversed(x.w)), tuple(reversed(x.w2))
+                lhs, rhs, rest = left_term(a.left), left_term(b.left), left_term(a.left[:len(a.left) - 1 - j])
+            else:
+                j = len(x.x)
+                xs, ys, y2s = x.x, x.w, x.w2
+                lhs, rhs, rest = right_term(a.right), right_term(b.right), right_term(a.right[j + 1:])
+            # the equation inline (not a hypothesis, which would slow `omega` below)
+            lines.append(f"  have h{i} : steps 0 {cfg_term(a)} = some {cfg_term(b)} := by")
+            lines.append(f"    simp only [steps_zero, show {lhs} = {rhs} from")
+            lines.append(f"      rep_rotate ({x.n.lean()}) {_word(xs)} {_word(ys)} {_word(y2s)} rfl ({rest})]")
+            counts.append("0")
         else:
             _, a, b, x = seg
             if x.d == "r":
@@ -538,7 +607,11 @@ def prove(m, name, start, end, nsteps=None, doc=None, max_moves=100000, cross=Tr
     chain = hs[-1]
     for h in reversed(hs[:-1]):
         chain = f"steps_seq trans {h} ({chain})"
-    lines.append(f"  exact steps_congr trans (a := {total}) (by omega) ({chain})")
+    if count_first:
+        lines.insert(hdr, f"  have hn : {total} = {fin.steps.lean()} := by omega")
+        lines.append(f"  exact steps_congr trans hn ({chain})")
+    else:
+        lines.append(f"  exact steps_congr trans (a := {total}) (by omega) ({chain})")
     return "\n".join(lines) + "\n", fin
 
 

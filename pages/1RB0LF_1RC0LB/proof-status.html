@@ -75,7 +75,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.</p>
     <p>The run is a sequence of passes: the head fills a sparse region into solid 1s moving right, and turns solid blocks back into alternating cells moving left. Lean proves which passes halt, and that from pass start to pass start the run is a macro machine on a stack and a list of segment and gap lengths; the machine halts only if that macro machine gets stuck.</p>
-    <p class="asof">Status as of 2 November 2026.</p>
+    <p class="asof">Status as of 3 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -120,6 +120,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The macro machine</h3>
         <p>At every pass start the tape is a stack of solid blocks <code>1^(2s+2)</code> separated by single 0s, the head on a gap of <code>2h+2</code> cells, and a word of segments <code>(0 1)^m</code> and gaps <code>0^(2g) 1</code>. A function <code>mstep</code> on these numbers gives the next pass start, and Lean proves the machine goes there, for all values of the parameters. <code>mstep</code> fails only at a gap <code>g = 0</code> (two 1s side by side) next to an empty segment. So if the macro machine never gets stuck from the configuration after 12 steps, the machine never halts.</p>
         <p class="where"><code>mstep_sound</code>, <code>blank_to_M0</code>, <code>no_halt_of_macro</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A conserved counter</h3>
+        <p>Read as a recursive program (the right stack of the two-stack form is a call stack), the macro machine keeps a sum &Phi;: the stack, plus the head gap, plus m + g &minus; 1 for every segment m and gap g of the word. A pass that ends inside the word and a B step with a nonempty stack leave &Phi; unchanged; a pass that runs into the last segment adds 2 or 1; B with an empty stack takes 1 off. So &Phi; counts the passes that reach the right end, up to the rare steps at the left end. It does not by itself rule out getting stuck.</p>
+        <p class="where"><code>phi_interior</code>, <code>phi_end</code>, <code>phi_bottom</code>, <code>lean/Counter.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -204,6 +209,7 @@ python3 bb6-1RB0LF_1RC0LB/py/passes.py check 1000000
 gcc -O2 -o passes bb6-1RB0LF_1RC0LB/c/passes.c &amp;&amp; ./passes 10000000000
 python3 bb6-1RB0LF_1RC0LB/tests/test_macro.py
 python3 bb6-1RB0LF_1RC0LB/py/macro.py show 40
+python3 bb6-1RB0LF_1RC0LB/py/callstack.py check 1000000   # how the counter changes, by kind of step
 gcc -O2 -o macro bb6-1RB0LF_1RC0LB/c/macro.c &amp;&amp; ./macro 10000000000
 python3 bb6-1RB0LF_1RC0LB/tests/test_pds.py
 gcc -O2 -o pds bb6-1RB0LF_1RC0LB/c/pds.c &amp;&amp; ./pds 6 L &amp;&amp; ./pds 6 R   # every DFA up to 6 states, about a minute each</code></pre>

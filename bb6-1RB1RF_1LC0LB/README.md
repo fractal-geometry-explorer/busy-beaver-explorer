@@ -46,7 +46,9 @@ a·ones + b·pos + W[state] modulo 2 to 12 (`tools/py/bbtools/invariants.py`); c
 7 cells all allow a halt (`tools/py/bbtools/ctl.py`); of the 151,240 trips from the right end in the first 10¹¹
 steps, 150,680 are covered by the counter theorems and end as they say, and the other 560 reach the irregular left
 end or a short level among the leftmost six (`py/counter.py check`, with `tools/py/bbtools/macro.py`); of those 560,
-513 go through the shapes of `Top.lean` and end as they say, and the other 47 build a wall (`py/top.py check`).
+513 go through the shapes of `Top.lean` and end as they say, and the other 47 build a wall (`py/top.py check`); no halt in
+the first 10³³ steps, with the counter trips applied in closed form and cycles inside the other trips jumped over
+(`py/accel.py`, `tools/py/bbtools/cycles.py`).
 
 **Observed** (heuristic): the tape is blocks of pairs `10` separated by single 0s, and the width grows like 2.6√t; the
 mark `110` occurs at the left-end moments only right after a block, never after a boundary; in front of a long block
@@ -68,6 +70,7 @@ then copies that level's X pairs into a new first block of about 2X, one round o
 | `py/blank.py` | the run from blank tape: summary, the tape as words at the left end, the tape at every turn, transition counts |
 | `py/counter.py` | the level lists at the right end, the counter step, and its check against the run |
 | `py/top.py` | the top trips: cut into walk, piece and sweep, the piece generalised to a shape, checked against the run |
+| `py/accel.py` | the run with counter trips applied in closed form (no halt through 10³³ steps) |
 | `py/replay.py` | finds the walls and how far the left end replays the blank run |
 | `c/growth.c` | width, ones and left-end extensions at 1-2-5 steps, fast |
 | `runs/` | outputs of the long runs |

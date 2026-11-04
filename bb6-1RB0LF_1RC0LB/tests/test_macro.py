@@ -15,7 +15,9 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "py"))
 
 import macro  # noqa: E402
-from macro import B, F, MACHINE, encode, mstep  # noqa: E402
+import twostack  # noqa: E402
+import callstack  # noqa: E402
+from macro import B, F, M0, MACHINE, encode, mstep  # noqa: E402
 from bbtools.machine import Run, Tape  # noqa: E402
 
 
@@ -89,6 +91,66 @@ class TestMacro(unittest.TestCase):
         starts, bad, stuck = macro.check(1000000)
         self.assertEqual((int(m.group(1)), int(m.group(2)), int(m.group(3))), (starts, 0, 0))
         self.assertEqual((bad, stuck), (0, 0))
+
+
+class TestTwoStack(unittest.TestCase):
+    def test_same_as_macro_on_small_configurations(self):
+        """zstep is the F pass plus the B pass after it, stuck exactly where mstep is stuck."""
+        n = 0
+        for c in small_configs():
+            if c[0] != "F":
+                continue
+            d = mstep(c)
+            while d is not None and d[0] != "F":
+                d = mstep(d)
+            e = twostack.zstep(twostack.from_macro(c))
+            self.assertEqual(e, None if d is None else twostack.from_macro(d), c)
+            n += 1
+        self.assertGreater(n, 5000)
+
+    def test_run_from_blank(self):
+        n, bad = twostack.check(300000)
+        self.assertGreater(n, 100000)
+        self.assertEqual(bad, 0)
+
+
+class Counter(unittest.TestCase):
+    """The counter of lean/Counter.lean on the macro machine, and the same counter on the two-stack form."""
+
+    def check_step(self, c, d):
+        p, q = callstack.mphi(c), callstack.mphi(d)
+        if c[0] == "F" and d[0] == "B" and d[3]:
+            self.assertEqual(q, p, c)  # phi_interior, from F
+        elif c[0] == "F" and d[0] == "B":
+            self.assertIn(q - p, (1, 2), c)  # phi_end
+        elif c[0] == "B" and c[1]:
+            self.assertEqual(q, p, c)  # phi_interior, from B
+        elif c[0] == "B":
+            self.assertEqual(q, p - 1, c)  # phi_bottom
+
+    def test_small_configurations(self):
+        n = 0
+        for c in small_configs():
+            d = mstep(c)
+            if d is not None:
+                self.check_step(c, d)
+                n += 1
+        self.assertGreater(n, 5000)
+
+    def test_run_from_blank(self):
+        c = M0
+        for _ in range(200000):
+            d = mstep(c)
+            self.check_step(c, d)
+            c = d
+
+    def test_two_stack_interior(self):
+        out = callstack.check(200000)
+        for (rule, bottom, end, dphi), k in out.items():
+            if not bottom and not end:
+                self.assertEqual(dphi, 0)
+            if rule == "R1" and end and not bottom:
+                self.assertEqual(dphi, 2)
 
 
 if __name__ == "__main__":

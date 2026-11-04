@@ -1,0 +1,1018 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Busy Beaver deciders</title>
+<meta name="description" content="How the Busy Beaver Challenge proved S(5) = 47,176,870: the deciders that classified 181,385,789 five-state machines (Loops, n-gram CPS, RepWL, FAR, WFAR) and the earlier ones (backward reasoning, halting segment, bouncers), each running in the browser on machines and certificates taken from Coq-BB5 and the BB(5) paper.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --sunk:#eceef2; --line:#d9dce3; --line-strong:#b9bec9;
+  --fg:#14171d; --fg2:#4a505c; --muted:#6c727e;
+  --accent:#2350a8; --accent-soft:#e3eaf8; --ink:#1b2230; --cell0:#ffffff; --head:#d2551f;
+  --ok:#1c7a4d; --ok-bg:#e2f3ea; --bad:#b3363a; --bad-bg:#f8e3e3; --warn:#9a6400; --warn-bg:#fbf0d9;
+  --rep1:rgba(35,80,168,.16); --rep2:rgba(210,85,31,.16); --band1:#3b82f6; --band2:#f59e0b;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#11141a; --surface:#181c24; --sunk:#0d1015; --line:#2a303b; --line-strong:#3c4452;
+  --fg:#e9ecf2; --fg2:#b4bac6; --muted:#8d94a1;
+  --accent:#8fb0f0; --accent-soft:#1d2a44; --ink:#dfe5f0; --cell0:#11141a; --head:#f08a55;
+  --ok:#5cc893; --ok-bg:#14301f; --bad:#f08488; --bad-bg:#3a1c1e; --warn:#e7b453; --warn-bg:#33280f;
+  --rep1:rgba(143,176,240,.2); --rep2:rgba(240,138,85,.2); --band1:#60a5fa; --band2:#fbbf24;
+  color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#11141a; --surface:#181c24; --sunk:#0d1015; --line:#2a303b; --line-strong:#3c4452;
+  --fg:#e9ecf2; --fg2:#b4bac6; --muted:#8d94a1;
+  --accent:#8fb0f0; --accent-soft:#1d2a44; --ink:#dfe5f0; --cell0:#11141a; --head:#f08a55;
+  --ok:#5cc893; --ok-bg:#14301f; --bad:#f08488; --bad-bg:#3a1c1e; --warn:#e7b453; --warn-bg:#33280f;
+  --rep1:rgba(143,176,240,.2); --rep2:rgba(240,138,85,.2); --band1:#60a5fa; --band2:#fbbf24;
+  color-scheme:dark; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--body);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 64px}
+.wrap{max-width:1080px;margin:0 auto}
+.col{max-width:70ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(1.45rem,3vw,1.95rem);font-weight:700;margin-bottom:.6rem}
+h3{font-size:1.12rem;font-weight:700;margin:1.4rem 0 .4rem}
+p{margin:.65rem 0}
+a{color:var(--accent)}
+code,.mono{font-family:var(--mono);font-size:.86em}
+code{background:var(--sunk);padding:.08em .32em;border-radius:4px;overflow-wrap:anywhere}
+section{padding-block:44px 8px;border-top:1px solid var(--line)}
+.eyebrow{font:600 .74rem/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem;display:block}
+.lede{font-size:1.14rem;color:var(--fg2)}
+.small{font-size:.88rem;color:var(--fg2)}
+.muted{color:var(--muted)}
+header.hero{padding-block:48px 28px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:26px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.fact b{font:700 1.5rem/1.1 var(--display)}
+.fact span{font-size:.88rem;color:var(--fg2);line-height:1.4}
+nav.toc{margin-top:26px;display:flex;flex-wrap:wrap;gap:6px}
+nav.toc a{font-size:.84rem;text-decoration:none;color:var(--fg2);border:1px solid var(--line);border-radius:999px;padding:.25em .7em;background:var(--surface)}
+nav.toc a:hover{border-color:var(--accent);color:var(--accent)}
+.tw{overflow-x:auto;margin:1rem 0}
+table{border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:.42rem .8rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--fg2);font-size:.8rem;letter-spacing:.03em}
+td.num,th.num{text-align:right}
+td.mono{font-family:var(--mono);font-size:.82rem;overflow-wrap:anywhere}
+table.tt td,table.tt th{text-align:center;font-family:var(--mono);padding:.25rem .6rem}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin:22px 0}
+.panel h3{margin-top:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.controls label{font-size:.86rem;color:var(--fg2);display:flex;gap:6px;align-items:center}
+button,select,input[type=text],input[type=number]{font:500 .9rem var(--body);color:var(--fg);background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:.45em .8em;max-width:100%}
+button{cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button:disabled{opacity:.5;cursor:default}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text]{font-family:var(--mono);font-size:.82rem;width:24em}
+input[type=number]{width:6.5em;font-family:var(--mono)}
+select{min-width:0}
+.result{margin:14px 0 4px;padding:10px 14px;border-radius:8px;background:var(--sunk);font-size:.94rem}
+.result.ok{background:var(--ok-bg)} .result.ok b.v{color:var(--ok)}
+.result.no{background:var(--warn-bg)} .result.no b.v{color:var(--warn)}
+.result.halt{background:var(--bad-bg)} .result.halt b.v{color:var(--bad)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 22px;margin:10px 0 6px;font-size:.9rem;color:var(--fg2)}
+.readout b{font-family:var(--mono);color:var(--fg);font-weight:600}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;align-items:start}
+.cap{font-size:.8rem;color:var(--muted);margin-top:6px}
+canvas{display:block;max-width:100%;image-rendering:pixelated;background:var(--cell0);border:1px solid var(--line);border-radius:4px}
+.scroll{overflow:auto;max-height:340px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg)}
+.scroll.tall{max-height:520px}
+.mlist{font:400 .8rem/1.55 var(--mono);white-space:pre;color:var(--fg)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font:500 .78rem var(--mono);background:var(--sunk);border:1px solid var(--line);border-radius:5px;padding:.05em .4em;white-space:nowrap}
+.chip.new{background:var(--accent-soft);border-color:var(--accent)}
+.chip.h{background:var(--bad-bg);border-color:var(--bad)}
+.transcript{font:400 .8rem/1.9 var(--mono);overflow-wrap:anywhere}
+.transcript span{padding:.1em .15em;border-radius:3px}
+.transcript .r1{background:var(--rep1)} .transcript .r2{background:var(--rep2)}
+.key{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.84rem;color:var(--fg2);margin-top:8px}
+.key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px;border:1px solid var(--line-strong)}
+svg text{font-family:var(--mono)}
+.svgwrap{overflow-x:auto}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.gallery figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px}
+.gallery canvas{width:100%;height:auto}
+.gallery figcaption{font-size:.82rem;margin-top:6px;color:var(--fg2)}
+.gallery figcaption b{display:block;color:var(--fg);font-size:.9rem}
+.gallery figcaption code{font-size:.7rem;display:block;margin-top:4px;word-break:break-all;white-space:normal}
+.tree{font:400 .8rem/1.6 var(--mono)}
+.tree .n{padding:2px 6px;border-left:2px solid var(--line-strong);margin:2px 0}
+.tree .dead{color:var(--bad)}
+.batch{font-size:.88rem;color:var(--fg2);margin-top:8px}
+.bar{height:8px;background:var(--sunk);border-radius:4px;overflow:hidden;margin-top:6px;max-width:420px}
+.bar span{display:block;height:100%;background:var(--accent);width:0}
+.pill{display:inline-block;font:600 .72rem/1 var(--body);padding:.3em .55em;border-radius:999px;background:var(--sunk);color:var(--fg2);vertical-align:.1em;white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.no{background:var(--warn-bg);color:var(--warn)} .pill.bad{background:var(--bad-bg);color:var(--bad)}
+.callout{border-left:3px solid var(--accent);padding:.2rem 0 .2rem .9rem;margin:1rem 0;color:var(--fg2)}
+footer{margin-top:48px;font-size:.86rem;color:var(--muted)}
+@media (max-width:560px){ input[type=text]{width:100%} .panel{padding:14px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <span class="eyebrow"><a href="index.html">Busy Beaver Explorer</a> · How BB(5) was settled</span>
+  <h1>The deciders behind S(5) = 47,176,870</h1>
+  <p class="lede col">In 2024 the Busy Beaver Challenge proved, in the Coq proof assistant, that no five-state two-symbol Turing machine that halts from a blank tape runs longer than 47,176,870 steps. The proof enumerates every machine that matters and hands each one to a <em>decider</em>: a program that either proves it halts, proves it never halts, or gives up. This page explains each decider and runs it in your browser on machines and certificates taken from the proof itself.</p>
+  <div class="facts">
+    <div class="fact"><b>181,385,789</b><span>machines enumerated in tree normal form, every one decided</span></div>
+    <div class="fact"><b>5 deciders</b><span>Loops, n-gram CPS, RepWL, FAR and weighted FAR</span></div>
+    <div class="fact"><b>40 certificates</b><span>automata hardcoded in the proof for the hardest regular and irregular cases</span></div>
+    <div class="fact"><b>13 machines</b><span>no decider handles: proved one by one by hand in Coq</span></div>
+  </div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#pipeline">The pipeline</a><a href="#machines">Machines and diagrams</a><a href="#loops">Loops</a><a href="#ngram">n-gram CPS</a><a href="#repwl">RepWL</a><a href="#halt">Long halters</a><a href="#far">FAR</a><a href="#wfar">Weighted FAR</a><a href="#sporadic">Sporadic machines</a><a href="#earlier">Earlier deciders</a><a href="#repo">This repo</a><a href="#sources">Sources</a>
+  </nav>
+</header>
+
+<section id="pipeline">
+  <span class="eyebrow">Overview</span>
+  <h2>The pipeline</h2>
+  <div class="col">
+    <p>Coq-BB5 runs every enumerated machine through the deciders in turn, cheapest first, until one answers. Loops settles almost everything; each later stage handles what the earlier ones could not. The counts below are from the proof's own tally (<code>CoqBB5/BB5/README.md</code>) and the BB(5) paper's Table 2. The bars are on a logarithmic scale, because the stages span seven orders of magnitude.</p>
+  </div>
+  <div class="panel">
+    <div class="svgwrap" id="funnel"></div>
+    <div class="tw"><table id="pipeTable">
+      <thead><tr><th>Stage</th><th class="num">Nonhalting</th><th class="num">Halting</th><th class="num">Total</th><th>In Coq-BB5</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <p class="cap">The 6,005,142 n-gram CPS machines are 6,003,729 from the generic runs plus 1,413 listed with their own parameters in <code>Decider_NGramCPS_Hardcoded_Parameters.v</code>; RepWL, FAR, WFAR and the long halters are all hardcoded lists. Those lists are embedded in this page, so the batch buttons below rerun the proof's own cases.</p>
+  </div>
+  <div class="col">
+    <h3>One idea under most of them: a closed set</h3>
+    <p>All the nonhalting deciders except Loops are instances of the <em>closed tape language</em> (CTL) argument: find a set of configurations that contains the start (blank tape, state A), is closed under one step of the machine, and contains no configuration about to halt. Then the run can never leave the set, so it never halts. The deciders differ in what kind of set they look for: sets of short windows (n-gram CPS), regular expressions with repeated words (RepWL), any regular language given by an automaton (FAR), or a language with a counter (weighted FAR, the only one that is not regular). FAR works the other way round, as "co-CTL": it builds a regular language containing every configuration that will eventually halt and checks that the start is not in it.</p>
+  </div>
+</section>
+
+<section id="machines">
+  <span class="eyebrow">Notation</span>
+  <h2>Machines and space-time diagrams</h2>
+  <div class="col">
+    <p>A machine is written in the standard text format: one group per state, A first, giving for symbol 0 then symbol 1 the symbol to write, the direction and the next state. <code>---</code> is the halting transition. The diagrams on this page draw one row per step, time going down: dark cells are 1s, the orange cell is the head.</p>
+  </div>
+  <div class="panel">
+    <div class="controls">
+      <label>Machine <input type="text" id="simM" value="1RB1LC_1RC1RB_1RD0LE_1LA1LD_---0LA" aria-label="Machine to simulate"></label>
+      <label>Steps <input type="number" id="simN" value="400" min="1" max="20000"></label>
+      <button class="primary" id="simGo">Draw</button>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div><div id="simTable"></div><div class="readout" id="simRead"></div></div>
+      <div><canvas id="simCanvas" width="400" height="400" aria-label="Space-time diagram"></canvas><p class="cap">The default is the BB(5) champion, which halts after 47,176,870 steps with 4,098 ones on the tape.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="loops">
+  <span class="eyebrow">Decider 1 · 175,373,810 machines</span>
+  <h2>Loops: cyclers and translated cyclers</h2>
+  <div class="col">
+    <p>The simplest way not to halt is to repeat. A <em>cycler</em> returns to exactly the same configuration (state, head position and tape). A <em>translated cycler</em> repeats a configuration shifted along the tape: it walks off one side forever, like a glider, rebuilding the same pattern at its edge. The paper reports that about 86% of the loops it found are translated cyclers.</p>
+    <p>Coq-BB5's <code>loop1_decider</code> (<code>Deciders/Decider_Loop.v</code>) does not compare tapes at all. It simulates <i>L</i> steps, records the <em>transcript</em> of (state, symbol read, head position) at each step, and looks backwards from the end for a stretch of the transcript that repeats twice back to back. It then rewinds the pair until either the two starting head positions coincide (a cycler) or both starts are at the edge of the visited tape on the side the head is moving to (a translated cycler). The paper proves this is enough: the cells the repetition reads were all written during the repetition itself, or lie in untouched blank tape. Halts seen within the <i>L</i> steps are reported too, which is why this stage also catches 48,379,711 of the 48,379,894 halters.</p>
+    <p>The pipeline runs it with <i>L</i> = 130, then 4,100, and finally 1,050,000 for two machines listed in <code>Decider_Loop_Hardcoded_Parameters.v</code>.</p>
+  </div>
+  <div class="panel">
+    <h3>Run the loop decider</h3>
+    <div class="controls">
+      <select id="lpPreset" aria-label="Example machine"></select>
+      <input type="text" id="lpM" aria-label="Machine">
+      <label>L <input type="number" id="lpL" value="130" min="2" max="2000000"></label>
+      <button class="primary" id="lpGo">Decide</button>
+    </div>
+    <div id="lpRes" class="result">Pick a machine and press Decide.</div>
+    <div class="grid2">
+      <div><canvas id="lpCanvas" width="300" height="300" aria-label="Space-time diagram with the two repetitions shaded"></canvas>
+        <div class="key"><span><i style="background:var(--band1)"></i>first copy</span><span><i style="background:var(--band2)"></i>second copy</span></div></div>
+      <div><h3 style="margin-top:0">The transcript at the repetition</h3><div class="transcript" id="lpTr"></div>
+        <p class="cap">Each entry is state, symbol read and head position. The decider only needs these; the asterisk marks a step where the head is at the right (or left) edge of the visited tape.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="ngram">
+  <span class="eyebrow">Decider 2 · 6,005,142 machines</span>
+  <h2>n-gram Closed Position Set</h2>
+  <div class="col">
+    <p>n-gram CPS (Nathan Fenner's simplification of the closed position sets in Skelet's <code>bbfind</code>) forgets everything about the tape except short windows. A <em>local context</em> is the state, the symbol under the head and the n cells on each side, written like <code>011 [B 0] 100</code>. Two more sets record which n-grams have been seen to the left (<i>L</i>) and right (<i>R</i>) of contexts.</p>
+    <p>Each context is stepped. If B reading 0 is <code>1RC</code>, then <code>011 [B 0] 100</code> becomes <code>111 [C 1] 00?</code>: the leftmost cell falls out of view (so <code>011</code> joins <i>L</i>), and the unknown cell <code>?</code> is filled in every way allowed by the n-grams in <i>R</i> that start with <code>00</code>. The decider repeats this until nothing new appears. If no context in the final set is about to take a halting transition, the machine never halts, since every real configuration's window is in the set.</p>
+    <p>Coq-BB5 makes this much stronger by enlarging the alphabet: each cell can also remember the last <i>k</i> (state, symbol) pairs that visited it (<em>history</em>), or all of them in order of last use (<em>LRU</em>). The augmented machine behaves exactly like the original, but its windows carry more information. Without augmentation n-gram CPS decides 5,117,863 machines, with history 887,093, and with LRU 182.</p>
+  </div>
+  <div class="panel">
+    <h3>Run n-gram CPS</h3>
+    <div class="controls">
+      <select id="ngPreset" aria-label="Example machine"></select>
+      <input type="text" id="ngM" aria-label="Machine">
+      <label>n <input type="number" id="ngN" value="2" min="1" max="12"></label>
+      <label>Alphabet <select id="ngMode"><option value="plain">binary</option><option value="hist">history</option><option value="lru">LRU</option></select></label>
+      <label>k <input type="number" id="ngK" value="2" min="1" max="10"></label>
+      <button class="primary" id="ngGo">Decide</button>
+    </div>
+    <div id="ngRes" class="result">Pick a machine and press Decide.</div>
+    <div class="grid2">
+      <div>
+        <h3>Left n-grams <span class="muted small" id="ngLc"></span></h3><div class="chips" id="ngL"></div>
+        <h3>Right n-grams <span class="muted small" id="ngRc"></span></h3><div class="chips" id="ngR"></div>
+      </div>
+      <div><h3>Replay</h3>
+        <input type="range" id="ngSlider" min="0" max="0" value="0" style="width:100%" aria-label="Visit number">
+        <div class="readout" id="ngStep"></div>
+        <div class="chips" id="ngNew"></div>
+      </div>
+    </div>
+    <h3>The closed set of local contexts <span class="muted small" id="ngCc"></span></h3>
+    <div class="scroll"><div class="mlist" id="ngC"></div></div>
+  </div>
+  <div class="panel">
+    <h3>Rerun the proof's hardcoded cases</h3>
+    <p class="small">Coq-BB5 lists 1,413 machines with the n-gram length and augmentation that decides them. These buttons run the in-page decider on them with those parameters.</p>
+    <div class="controls"><button id="ngB100">100 at random</button><button id="ngBall">All 1,413</button></div>
+    <div class="batch" id="ngBatch"></div><div class="bar"><span id="ngBar"></span></div>
+  </div>
+</section>
+
+<section id="repwl">
+  <span class="eyebrow">Decider 3 · 6,577 machines</span>
+  <h2>Repeated Word List</h2>
+  <div class="col">
+    <p>RepWL, introduced in Coq-BB5 by mxdys, cuts the tape into words of a fixed length <i>l</i> counted outwards from the head, and writes any word repeated <i>T</i> or more times as <code>(w)^T+</code>, "at least <i>T</i> copies". The configuration <code>0∞ 11100 A&gt; 111101010111111111 0∞</code> with <i>l</i> = 2 and <i>T</i> = 3 becomes <code>0∞ (01) (11) (00) A&gt; (11)^2 (01)^3+ (11)^3+ 0∞</code>. The head sits between cells and points at the word it is about to read.</p>
+    <p>Two moves explore these regex configurations. <em>Block simulation</em>: when the head faces a word with a fixed count, run the machine inside it until it walks out, then regroup. <em>Regex branching</em>: when it faces <code>(w)^T+</code>, split into "exactly <i>T</i>" and "more than <i>T</i>" and continue both. If the graph of configurations closes with no halt, the machine never halts. This handles the <em>bouncers</em>, machines that sweep back and forth over a growing tape of repeated words.</p>
+    <p>Each of the 6,577 machines comes with its own (<i>l</i>, <i>T</i>), found by a grid search: <i>l</i> from 1 to 57 and <i>T</i> from 2 to 4, with at most 320 steps per block and 150,001 nodes.</p>
+  </div>
+  <div class="panel">
+    <h3>Build a RepWL graph</h3>
+    <div class="controls">
+      <select id="rwPreset" aria-label="Example machine"></select>
+      <input type="text" id="rwM" aria-label="Machine">
+      <label>l <input type="number" id="rwL" value="2" min="1" max="60"></label>
+      <label>T <input type="number" id="rwT" value="3" min="2" max="8"></label>
+      <label>Rules <select id="rwSem"><option value="coq">Coq-BB5</option><option value="paper">paper's figures (Python)</option></select></label>
+      <button class="primary" id="rwGo">Decide</button>
+    </div>
+    <div id="rwRes" class="result">Pick a machine and press Decide.</div>
+    <div class="grid2">
+      <div><div class="svgwrap scroll tall" id="rwGraph"></div><p class="cap">Solid arrows are block simulation, dashed arrows regex branching. Graphs of more than 40 nodes are listed instead of drawn.</p></div>
+      <div><canvas id="rwCanvas" width="300" height="300" aria-label="Space-time diagram"></canvas><p class="cap">The machine's first steps from the blank tape.</p></div>
+    </div>
+    <p class="small">Two sets of rules agree on what they prove but count nodes differently. The paper's RepWL figures and its node counts (42, 845 and 143,181 for its three examples, 3,130 and 3,076 for the two four-state machines) come from the Python reproduction in bbchallenge-deciders, which runs a whole <code>(w)^k</code> block at once and keeps blocks of zeros next to <code>0∞</code>. Coq-BB5 pops one word at a time and lets zero words merge into <code>0∞</code>. On the 6,577 listed machines the Coq rules decide all of them. The Python rules decide all but three, where a 28-cell word repeated twice needs more than 320 steps when run as one block.</p>
+  </div>
+  <div class="panel">
+    <h3>Rerun the proof's hardcoded cases</h3>
+    <div class="controls"><button id="rwB100">100 at random</button><button id="rwBall">All 6,577</button></div>
+    <div class="batch" id="rwBatch"></div><div class="bar"><span id="rwBar"></span></div>
+  </div>
+</section>
+
+<section id="halt">
+  <span class="eyebrow">Stage 6 · 183 machines</span>
+  <h2>Long halters: just run them</h2>
+  <div class="col">
+    <p>A machine that halts is proved halting by running it. Loops already catches every halt within 4,100 steps; 183 machines halt later and are simply simulated up to 47,176,870 steps (<code>Decider_Halt_BB5.v</code>). The champion found by Heiner Marxen and Jürgen Buntrock in 1989 is the longest: 47,176,870 steps, leaving 4,098 ones. That number is the lower bound of S(5); everything else on this page is the upper bound.</p>
+  </div>
+  <div class="panel">
+    <div class="controls"><button class="primary" id="hChamp">Run the champion to its halt</button><button id="hAll">Run all 183 long halters</button></div>
+    <div class="result" id="hRes">The champion takes about half a second in a recent browser.</div>
+    <div class="batch" id="hBatch"></div><div class="bar"><span id="hBar"></span></div>
+    <div class="tw"><table id="hTable" hidden><thead><tr><th>Machine</th><th class="num">Steps to halt</th><th class="num">Ones</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<section id="far">
+  <span class="eyebrow">Decider 4 · 23 machines</span>
+  <h2>Finite Automata Reduction</h2>
+  <div class="col">
+    <p>FAR, developed by Justin Blanchard (with implementations by Tony Guilfoyle and Tristan Stérin), looks for a regular language that contains every configuration that will eventually halt, then checks that the blank start is not in it. Configurations are written as words such as <code>0110C1001</code>: the tape, with the state letter just before the head's cell.</p>
+    <p>The certificate is a small deterministic automaton (DFA) that reads the tape to the left of the head. From it Coq-BB5's <code>dfa_nfa_verifier</code> (<code>Deciders/Verifier_FAR.v</code>) builds a nondeterministic automaton (NFA). Its states are pairs (DFA state, machine state) plus a sink ⊥, and it reads the head's cell and everything to its right. Its transitions are forced by the machine: a halting transition goes to ⊥, a right move follows the DFA, and left moves are added until nothing changes. By construction the NFA reaches ⊥ on every configuration that will eventually halt. If the start configuration, read on zeros, never reaches ⊥, the machine never halts. Finding the DFA is the hard part: weeks of search for some of the 23. Checking it takes milliseconds.</p>
+  </div>
+  <div class="panel">
+    <h3>The paper's example: a four-state machine</h3>
+    <p class="small">Machine <code>1RB0LD_1LC1RA_0RB0LC_---1LA</code> with the two-state DFA that tracks the last symbol read (0 → state 0, 1 → state 1). The NFA below is computed in your browser from the machine and the DFA; it is the one drawn in the paper's Figure 12. The double circle is ⊥, the "will halt" sink; the start state 0A is outlined in blue. A label like 0|1 means the edge is taken on either symbol.</p>
+    <div class="svgwrap" id="farSvg"></div>
+    <div class="controls" style="margin-top:12px">
+      <label>Left of head <input type="text" id="farL" value="0110" style="width:9em"></label>
+      <label>State <select id="farS"><option>A</option><option>B</option><option>C</option><option selected>D</option></select></label>
+      <label>Head cell and right <input type="text" id="farR" value="1" style="width:9em"></label>
+      <button id="farGo">Read it</button>
+    </div>
+    <div class="result" id="farRes"></div>
+    <div id="farCond" class="small"></div>
+  </div>
+  <div class="panel">
+    <h3>Verify the 23 certificates of Coq-BB5</h3>
+    <p class="small">From <code>Verifier_FAR_Hardcoded_Certificates.v</code>: each machine with its DFA.</p>
+    <div class="controls"><button class="primary" id="farAll">Verify all 23</button></div>
+    <div class="tw"><table id="farTable" hidden><thead><tr><th>Machine</th><th class="num">DFA states</th><th class="num">NFA states</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<section id="wfar">
+  <span class="eyebrow">Decider 5 · 17 machines</span>
+  <h2>Weighted Finite Automata Reduction</h2>
+  <div class="col">
+    <p>Some machines have no regular invariant at all, typically because they keep two counts in balance. A finite automaton cannot check that <code>0ⁿ1ⁿ</code> has as many 0s as 1s; a <em>weighted</em> automaton can, by adding +1 for each 0 and −1 for each 1 and accepting total weight zero. Weighted FAR, Iijil's method, is a CTL argument with two deterministic weighted automata. One reads the tape left of the head, left to right, and the other reads the right side, right to left. A configuration becomes <code>[p] C1 [q]</code> with a total weight <i>W</i>.</p>
+    <p>Coq-BB5's <code>MITM_WDFA_verifier</code> (<code>Deciders/Verifier_WFAR.v</code>) starts from <code>[p0] A0 [q0]</code> with <i>W</i> = 0. It steps the machine abstractly: a right move updates the left automaton with the written symbol and branches over every way the right automaton could have arrived at its state. Weights travel along as exact values or as bounds (<i>W</i> ≥ <i>d</i>, <i>W</i> ≤ <i>d</i>) once they pass a cap. Configurations whose bound contradicts the signs the automata force (for instance, a state every word reaches with weight ≤ 0 alongside <i>W</i> ≥ 2) are thrown out. If the set closes without a halting transition, the machine never halts. The paper believes the 17 machines it decides are irregular, because long searches found no regular proof for them.</p>
+  </div>
+  <div class="panel">
+    <h3>The paper's example</h3>
+    <p class="small">Machine <code>1RB---_0RC1LC_1RD1RC_1LE1LD_0RA0LE</code>, a counter, with the certificate exactly as Coq-BB5 hardcodes it (cap 2). Edge labels are symbol:weight; zero weights are omitted. The right automaton has a third state, a dead sink, which the paper's Figure 13 leaves out.</p>
+    <div class="grid2"><div class="svgwrap" id="wfSvgL"></div><div class="svgwrap" id="wfSvgR"></div></div>
+    <div class="controls" style="margin-top:12px">
+      <label>Left <input type="text" id="wfL" value="10101" style="width:8em"></label>
+      <label>State and symbol <input type="text" id="wfH" value="C1" style="width:4em"></label>
+      <label>Right <input type="text" id="wfR" value="01" style="width:8em"></label>
+      <button id="wfGo">Read it</button>
+    </div>
+    <div class="result" id="wfRes"></div>
+    <h3>The closed set Coq-BB5 builds <span class="muted small" id="wfCount"></span></h3>
+    <div class="scroll"><div class="mlist" id="wfSet"></div></div>
+  </div>
+  <div class="panel">
+    <h3>Verify the 17 certificates of Coq-BB5</h3>
+    <div class="controls"><button class="primary" id="wfAll">Verify all 17</button></div>
+    <div class="tw"><table id="wfTable" hidden><thead><tr><th>Machine</th><th class="num">Left / right states</th><th class="num">Cap</th><th class="num">Closed set</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<section id="sporadic">
+  <span class="eyebrow">Stages 7 and 8 · 13 + 24 machines</span>
+  <h2>Sporadic machines and the 1RB reduction</h2>
+  <div class="col">
+    <p>Thirteen machines resisted every decider and were proved nonhalting one at a time, twelve of them in Maja Kądziołka's busycoq library and Skelet #17 last, in Coq-BB5 itself. Georgi Georgiev (Skelet) had already listed all of them as holdouts of his <code>bbfind</code> program in 2003. Skelet #1 is a translated cycler, but it only starts repeating after about 5.4·10<sup>51</sup> steps, with a period of more than 8 billion. The diagrams show 20,000 steps; counters are drawn on a narrower tape, as in the paper.</p>
+  </div>
+  <div class="gallery" id="gallery"></div>
+  <div class="panel">
+    <h3>The 1RB reduction</h3>
+    <p class="small">The enumeration also produces machines whose first transitions write 0. From a blank tape, writing 0 changes nothing, so such a machine behaves like the one that starts at the first state that writes a 1. Coq-BB5's <code>TM_to_NF</code> renames it to start with <code>1RB</code>, and if the result already has a proof, it is reused. 24 machines are settled this way: 23 reduce to FAR and WFAR certificates and one to Finned #3.</p>
+    <div class="controls"><input type="text" id="nfM" value="0RB0LD_1RC1RE_1LA1RC_1LC1LD_---0RB" aria-label="Machine"><button id="nfGo">Reduce</button></div>
+    <div class="result" id="nfRes"></div>
+  </div>
+</section>
+
+<section id="earlier">
+  <span class="eyebrow">Before Coq-BB5</span>
+  <h2>The earlier deciders</h2>
+  <div class="col">
+    <p>From 2022 the challenge worked on a seed database of 88,664,064 machines that survived 47 million steps. It applied six deciders in turn: cyclers (11.2 million machines), translated cyclers (73.9 million), backward reasoning (1.25 million), halting segment, finite automata reduction, and bouncers. Each has an independent reproduction in bbchallenge-deciders and a correctness proof in the bbchallenge-proofs paper. The final Coq proof replaced them with the five deciders above, but three of them work in ways none of those do.</p>
+  </div>
+  <div class="panel">
+    <h3>Backward reasoning</h3>
+    <p class="small">Start from a halting configuration and ask what could have led to it, one step at a time, keeping only the cells that are forced. If every branch runs into a cell that would need two different values, the halt is unreachable. In the paper's example, <code>1RB0LD_1LC0RE_---1LD_1LA1LD_1RA0RA</code>, the only way into C is B reading 0, and the only way into B is A reading 0. That step writes a 1 where the chain needs a 0, so after two backward steps there is nothing left: the machine never halts, although its forward behaviour looks chaotic.</p>
+    <div class="controls"><input type="text" id="brM" value="1RB0LD_1LC0RE_---1LD_1LA1LD_1RA0RA" aria-label="Machine"><label>Depth <input type="number" id="brD" value="10" min="1" max="60"></label><button id="brGo">Reason backwards</button></div>
+    <div class="result" id="brRes"></div>
+    <div class="scroll"><div class="tree" id="brTree"></div></div>
+  </div>
+  <div class="panel">
+    <h3>Halting segment</h3>
+    <p class="small">Watch only a segment of <i>n</i> cells; when the head leaves it, consider every way it could come back. The graph of segment configurations is built from the <i>n</i> + 2 starts (blank segment, head anywhere in it or on either side). The bbchallenge-proofs paper shows that a halting machine must reach a halting node at every one of the <i>n</i> + 2 head positions. If some position is missing, it cannot halt. Example: the three-state <code>1RB1RC_0LA0RA_0LB---</code> with <i>n</i> = 2, as in the paper's figure.</p>
+    <div class="controls"><input type="text" id="hsM" value="1RB1RC_0LA0RA_0LB---" aria-label="Machine"><label>n <input type="number" id="hsN" value="2" min="1" max="8"></label><button id="hsGo">Build the graph</button></div>
+    <div class="result" id="hsRes"></div>
+    <div class="svgwrap scroll tall" id="hsGraph"></div>
+  </div>
+  <div class="panel">
+    <h3>Bouncers</h3>
+    <p class="small">A bouncer sweeps between the ends of a tape made of fixed <em>walls</em> and growing <em>repeaters</em>. Tony Guilfoyle's decider (reproduced in Rust in bbchallenge-deciders) guesses a formula from the run, then proves that one sweep maps it to itself with each repeater one copy longer. This decided 29,799 machines of the seed database; RepWL covers them in the Coq proof. Below, the formula found for machine #88,427,177, the paper's running example: <code>0∞ 111 (111)ⁿ 01111 (11)ᵐ C&gt; 0∞</code>. The table lists the steps at which the run matches it. The counts grow by one each sweep. This only shows the certificate at work; the proof is the symbolic sweep.</p>
+    <div class="controls"><select id="boPreset" aria-label="Bouncer"></select><button id="boGo">Match the formula</button></div>
+    <div class="grid2"><div class="tw"><table id="boTable"><thead><tr><th class="num">Step</th><th>Repeat counts</th></tr></thead><tbody></tbody></table></div>
+      <canvas id="boCanvas" width="300" height="300" aria-label="Space-time diagram of the bouncer"></canvas></div>
+  </div>
+  <div class="panel">
+    <h3>Try them on any machine</h3>
+    <p class="small">Paste a machine and run all eight deciders with moderate parameters. Remember that these are partial deciders: "unknown" means only that this decider, with these parameters, found no proof.</p>
+    <div class="controls"><input type="text" id="allM" value="1RB1LE_1LC1RD_1LB1RC_1LA0RD_---0LA" aria-label="Machine"><button class="primary" id="allGo">Run all</button></div>
+    <div class="tw"><table id="allTable"><thead><tr><th>Decider</th><th>Parameters</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<section id="repo">
+  <span class="eyebrow">Connections</span>
+  <h2>How this relates to the work in this repository</h2>
+  <div class="col">
+    <p>The machines studied here are six-state holdouts, so by definition every decider above, run with any parameters anyone has tried, has failed on them. The techniques still carry over as tools.</p>
+    <ul>
+      <li><code>tools/py/bbtools/ctl.py</code> searches for a closed tape language from windows of K cells, and <code>tools/lean/TM/CTL.lean</code> checks it in Lean with a soundness theorem (<code>not_halts</code>). This is the CTL argument of n-gram CPS and FAR, with the same split as Coq-BB5's FAR and WFAR: an expensive search that produces a certificate and a cheap checker that the proof trusts.</li>
+      <li>The pushdown reduction notes for <code>1RB0LF_1RC0LB</code> show that no DFA of up to seven states closes its tape. That is the situation weighted FAR was built for: an invariant that needs a counter, which a regular language cannot express.</li>
+      <li><code>tools/py/bbtools/macro.py</code>, the block macro simulator with run-length coding, uses RepWL's representation: words of fixed length with repeat counts. Abstracting large counts to "at least <i>T</i>" and branching on them, as RepWL does, would turn it into a closure check.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="sources">
+  <span class="eyebrow">References</span>
+  <h2>Sources</h2>
+  <div class="col">
+    <ul>
+      <li>The bbchallenge Collaboration, <a href="https://arxiv.org/abs/2509.12337">Determination of the fifth Busy Beaver value</a> (2025); LaTeX sources at <a href="https://github.com/bbchallenge/bbchallenge-paper">bbchallenge/bbchallenge-paper</a>. Algorithms, figures, examples and counts on this page come from it.</li>
+      <li><a href="https://github.com/ccz181078/Coq-BB5">ccz181078/Coq-BB5</a>, the proof: deciders in <code>CoqBB5/BB5/Deciders/</code>, hardcoded machines and certificates in <code>CoqBB5/BB5/BB5_Deciders_Hardcoded_Parameters/</code> (embedded here from commit <code id="coqCommit"></code>).</li>
+      <li><a href="https://github.com/bbchallenge/bbchallenge-deciders">bbchallenge/bbchallenge-deciders</a>: the earlier deciders (cyclers, translated cyclers, backward reasoning, halting segment, FAR, bouncers) and reproductions of the Coq ones, including the bouncer certificates used above.</li>
+      <li><a href="https://github.com/bbchallenge/bbchallenge-proofs">bbchallenge/bbchallenge-proofs</a>: correctness proofs of the earlier deciders.</li>
+      <li><a href="https://github.com/meithecatte/busycoq">meithecatte/busycoq</a>: Coq proofs of the sporadic machines.</li>
+    </ul>
+    <p class="small">The deciders on this page are JavaScript transcriptions written for this page (<code>pages/src/deciders/engine.js</code> in this repository). They are tested against the sources: every hardcoded n-gram CPS and RepWL machine is decided with its parameters, all 40 FAR and WFAR certificates verify, and the paper's examples give the paper's results. They are explanations, not part of any proof.</p>
+  </div>
+  <footer>Part of <a href="index.html">Busy Beaver Explorer</a> · source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></footer>
+</section>
+</div>
+
+<script id="data" type="application/json">/*DATA*/</script>
+<script id="engine">
+/*ENGINE*/
+</script>
+<script>
+"use strict";
+const DATA = JSON.parse(document.getElementById("data").textContent);
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => n.toLocaleString("en-US");
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (k === "class") e.className = v; else if (k === "text") e.textContent = v; else e.setAttribute(k, v);
+  }
+  for (const c of kids) e.append(c);
+  return e;
+}
+const SVGNS = "http://www.w3.org/2000/svg";
+function s(tag, attrs, text) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs || {})) e.setAttribute(k, v);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function setResult(el, kind, html) { el.className = "result " + (kind || ""); el.innerHTML = html; }
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function parseOr(el, input) {
+  try { return BB.parse(input.value); } catch (e) { setResult(el, "halt", "That is not a machine in the standard format: " + esc(e.message)); return null; }
+}
+function fillPreset(sel, presets, onPick) {
+  presets.forEach((p, i) => sel.append(h("option", { value: i, text: p.name })));
+  sel.addEventListener("change", () => onPick(presets[+sel.value]));
+  onPick(presets[0]);
+}
+
+// ------------------------------------------------------------ space-time diagrams
+// Draws `steps` rows; columns span the visited tape (capped at maxCells, centred on the visited range).
+function drawST(canvas, m, steps, opts = {}) {
+  const r = new BB.Run(m), rows = [], pos = [];
+  let lo = 0, hi = 0;
+  for (let t = 0; t < steps; t++) {
+    rows.push(null); pos.push(r.pos);
+    if (!r.step()) break;
+    lo = Math.min(lo, r.pos); hi = Math.max(hi, r.pos);
+  }
+  const maxCells = opts.maxCells || 400;
+  let a = lo, b = hi;
+  if (b - a + 1 > maxCells) { const c = Math.round((lo + hi) / 2); a = c - (maxCells >> 1); b = a + maxCells - 1; }
+  const W = b - a + 1, H = pos.length;
+  const cap = opts.px || 8;
+  const px = Math.max(1, Math.min(cap, Math.floor((opts.width || 420) / W)));
+  const py = Math.max(1, Math.min(cap, Math.floor((opts.height || 420) / Math.max(H, 1))));
+  canvas.width = W * px; canvas.height = H * py;
+  // Very long runs are squeezed vertically on screen rather than drawn as a tall strip.
+  canvas.style.height = canvas.height > 640 ? "640px" : "";
+  const g = canvas.getContext("2d");
+  g.fillStyle = css("--cell0"); g.fillRect(0, 0, canvas.width, canvas.height);
+  // Re-run to draw the tape row by row.
+  const q = new BB.Run(m), ink = css("--ink"), head = css("--head");
+  for (let t = 0; t < H; t++) {
+    g.fillStyle = ink;
+    for (let p = Math.max(a, q.lo); p <= Math.min(b, q.hi); p++) if (q.read(p)) g.fillRect((p - a) * px, t * py, px, py);
+    if (q.pos >= a && q.pos <= b) { g.fillStyle = head; g.fillRect((q.pos - a) * px, t * py, px, py); }
+    if (!q.step()) break;
+  }
+  // Shade marked time ranges on top of the cells so they show even where the tape is all 1s.
+  g.globalAlpha = 0.55;
+  for (const band of opts.bands || []) { g.fillStyle = band.color; g.fillRect(0, band.t0 * py, canvas.width, (band.t1 - band.t0) * py); }
+  g.globalAlpha = 1;
+  return { a, b, px, py, H };
+}
+function machineTable(m) {
+  const t = h("table", { class: "tt" });
+  t.append(h("thead", {}, h("tr", {}, h("th", { text: "" }), h("th", { text: "0" }), h("th", { text: "1" }))));
+  const tb = h("tbody");
+  for (let st = 0; st < m.n; st++) tb.append(h("tr", {}, h("th", { text: BB.L(st) }), h("td", { text: BB.trText(m.tr[2 * st]) }), h("td", { text: BB.trText(m.tr[2 * st + 1]) })));
+  t.append(tb);
+  return t;
+}
+
+// ------------------------------------------------------------ pipeline chart
+(function pipeline() {
+  const stages = [
+    ["1. Loops", 126994099, 48379711, "Decider_Loop.v"],
+    ["2. n-gram CPS", 6005142, 0, "Decider_NGramCPS.v"],
+    ["3. RepWL", 6577, 0, "Decider_RepWL.v"],
+    ["4. FAR", 23, 0, "Verifier_FAR.v"],
+    ["5. Weighted FAR", 17, 0, "Verifier_WFAR.v"],
+    ["6. Long halters", 0, 183, "Decider_Halt_BB5.v"],
+    ["7. Sporadic machines", 13, 0, "BB5_Sporadic_Machines.v"],
+    ["8. 1RB reduction", 24, 0, "TM_to_NF"],
+  ];
+  const tb = $("pipeTable").querySelector("tbody");
+  for (const [n, a, b, f] of stages) tb.append(h("tr", {}, h("td", { text: n }), h("td", { class: "num", text: fmt(a) }), h("td", { class: "num", text: fmt(b) }), h("td", { class: "num", text: fmt(a + b) }), h("td", {}, h("code", { text: f }))));
+  tb.append(h("tr", {}, h("td", {}, h("b", { text: "Total" })), h("td", { class: "num", text: fmt(133005895) }), h("td", { class: "num", text: fmt(48379894) }), h("td", { class: "num" }, h("b", { text: fmt(181385789) })), h("td")));
+  const W = 760, rowH = 34, lab = 170, H = stages.length * rowH + 30, maxLog = Math.log10(2e8);
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, width: "100%", role: "img", "aria-label": "Machines decided per stage, logarithmic scale" });
+  svg.style.minWidth = "560px";
+  const x = (v) => lab + (W - lab - 110) * Math.log10(Math.max(v, 1)) / maxLog;
+  for (const tick of [1, 100, 1e4, 1e6, 1e8]) {
+    svg.append(s("line", { x1: x(tick), x2: x(tick), y1: 4, y2: H - 22, stroke: "var(--line)", "stroke-width": 1 }));
+    svg.append(s("text", { x: x(tick), y: H - 6, "text-anchor": "middle", "font-size": 11, fill: "var(--muted)" }, tick >= 1e4 ? "10" + ["", "", "", "", "⁴", "", "⁶", "", "⁸"][Math.log10(tick)] : fmt(tick)));
+  }
+  stages.forEach(([n, a, b], i) => {
+    const y = 8 + i * rowH, tot = a + b;
+    const g = s("g");
+    g.append(s("title", {}, `${n}: ${fmt(tot)} machines (${fmt(a)} nonhalting, ${fmt(b)} halting)`));
+    g.append(s("text", { x: 0, y: y + 17, "font-size": 12.5, fill: "var(--fg)", style: "font-family:var(--body)" }, n));
+    g.append(s("rect", { x: lab, y: y + 4, width: Math.max(4, x(tot) - lab), height: 18, rx: 4, fill: "var(--accent)" }));
+    g.append(s("text", { x: x(tot) + 8, y: y + 17, "font-size": 12, fill: "var(--fg2)" }, fmt(tot)));
+    g.append(s("rect", { x: 0, y, width: W, height: rowH, fill: "transparent" }));
+    svg.append(g);
+  });
+  $("funnel").append(svg);
+  $("coqCommit").textContent = DATA.source.commit.slice(0, 12);
+})();
+
+// ------------------------------------------------------------ simulator
+function simulate() {
+  const m = parseOr($("simRead"), $("simM"));
+  if (!m) return;
+  const n = Math.min(20000, Math.max(1, +$("simN").value || 400));
+  $("simTable").replaceChildren(machineTable(m));
+  drawST($("simCanvas"), m, n);
+  const r = new BB.Run(m); r.run(n);
+  $("simRead").innerHTML = `<span>after <b>${fmt(r.steps)}</b> steps</span><span>${r.halted ? "<b>halted</b>" : "running"}</span><span>ones <b>${fmt(r.ones())}</b></span><span>cells visited <b>${fmt(r.hi - r.lo + 1)}</b></span>`;
+}
+$("simGo").addEventListener("click", simulate);
+simulate();
+
+// ------------------------------------------------------------ loops
+const LOOP_PRESETS = [
+  { name: "Cycler from the paper, Figure 2 left", m: "1RB---_0RC0LE_1LD0LA_1LB1RB_1LC1RC", L: 130 },
+  { name: "Translated cycler from the paper, Figure 2 right", m: "1RB---_1LB1LC_0RD0RC_1LE1RE_1LA0LE", L: 130 },
+  { name: "Translated cycler the paper says needs a larger L", m: "1RB0LE_1LC0RD_---1LD_1RE0LA_1LA0RE", L: 4100 },
+  { name: "Coq-BB5 hardcoded loop, L = 1,050,000 (1)", m: DATA.loop[0], L: 1050000 },
+  { name: "Coq-BB5 hardcoded loop, L = 1,050,000 (2)", m: DATA.loop[1], L: 1050000 },
+  { name: "BB(5) champion (neither halts nor loops within L)", m: "1RB1LC_1RC1RB_1RD0LE_1LA1LD_---0LA", L: 4100 },
+];
+fillPreset($("lpPreset"), LOOP_PRESETS, (p) => { $("lpM").value = p.m; $("lpL").value = p.L; runLoops(); });
+$("lpGo").addEventListener("click", runLoops);
+function runLoops() {
+  const out = $("lpRes"), m = parseOr(out, $("lpM"));
+  if (!m) return;
+  const L = Math.min(2000000, Math.max(2, +$("lpL").value || 130));
+  const t0 = performance.now(), x = BB.loops(m, L), ms = (performance.now() - t0).toFixed(0);
+  const tr = $("lpTr"); tr.replaceChildren();
+  if (x.result === "halt") {
+    setResult(out, "halt", `<b class="v">Halts</b> after ${fmt(x.steps + 1)} steps, at the undefined transition ${BB.L(x.state)}${x.sym}. (${ms} ms)`);
+    drawST($("lpCanvas"), m, Math.min(x.steps + 1, 3000));
+    return;
+  }
+  if (x.result === "unknown") {
+    setResult(out, "no", `<b class="v">Unknown</b>: no repetition found in the last ${fmt(L)} steps. Try a larger L, or another decider. (${ms} ms)`);
+    drawST($("lpCanvas"), m, Math.min(L, 600));
+    return;
+  }
+  const k = x.period, b = x.start;
+  setResult(out, "ok", `<b class="v">Never halts</b>: a <b>${x.kind}</b>. The transcript from step ${fmt(b)} repeats with period ${fmt(k)}${x.shift ? `, shifted ${Math.abs(x.shift)} cells ${x.shift > 0 ? "right" : "left"} each time` : ""}. (${ms} ms for ${fmt(L)} steps)`);
+  const drawN = b + 2 * k + 4;
+  if (drawN <= 4000) drawST($("lpCanvas"), m, drawN, { bands: [{ t0: b, t1: b + k, color: css("--band1") }, { t0: b + k, t1: b + 2 * k, color: css("--band2") }] });
+  else drawST($("lpCanvas"), m, 600);
+  // Transcript around the repetition.
+  const T = x.transcript, show = Math.min(k, 40);
+  let lo = 0, hi = 0;
+  const edge = new Array(T.S.length);
+  for (let t = 0; t < T.S.length; t++) { lo = Math.min(lo, T.D[t]); hi = Math.max(hi, T.D[t]); edge[t] = (x.shift >= 0 ? T.D[t] >= hi : T.D[t] <= lo) && x.shift !== 0; }
+  const item = (t, cls) => h("span", { class: cls, text: BB.L(T.S[t]) + T.M[t] + "(" + T.D[t] + ")" + (edge[t] ? "*" : "") });
+  for (const [c, cls] of [[b, "r1"], [b + k, "r2"]]) {
+    for (let i = 0; i < show; i++) { tr.append(item(c + i, cls), " "); }
+    if (show < k) tr.append(h("span", { class: "muted", text: `… ${fmt(k - show)} more` }), " ");
+  }
+  if (drawN > 4000) tr.append(h("p", { class: "cap", text: "The repetition is too long to draw; the diagram shows the first 600 steps." }));
+}
+
+// ------------------------------------------------------------ n-gram CPS
+const NG_PRESETS = [
+  { name: "README example (bbchallenge-deciders), n = 2", m: "1RB---_0LC0RB_1RD1LD_0LE0RA_0RC0RA", n: 2, mode: "plain" },
+  { name: "Translated cycler from the paper's Figure 3, n = 2", m: "1RB0LE_1LC0RD_---1LD_1RE0LA_1LA0RE", n: 2, mode: "plain" },
+  { name: "Fractal-looking machine from Figure 5, LRU, n = 2", m: "1RB0RA_1LC---_1RC1LD_0LE1RA_0LC0LE", n: 2, mode: "lru" },
+  ...pickNG(),
+  { name: "The BB(5) champion (it halts, so this must fail)", m: "1RB1LC_1RC1RB_1RD0LE_1LA1LD_---0LA", n: 2, mode: "plain" },
+];
+function pickNG() {
+  const out = [], want = [["hist", 0], ["hist", 2], ["hist", 4], ["lru", 0]];
+  for (const [mode, k] of want) {
+    const e = DATA.ngram.find((x) => x[1] === mode && x[2] === k && x[3] <= 4);
+    if (e) out.push({ name: `Coq-BB5 hardcoded: ${mode === "lru" ? "LRU" : k ? "history " + k : "binary"}, n = ${e[3]}`, m: e[0], n: e[3], mode: mode === "lru" ? "lru" : k ? "hist" : "plain", k });
+  }
+  return out;
+}
+let ngTrace = [];
+fillPreset($("ngPreset"), NG_PRESETS, (p) => { $("ngM").value = p.m; $("ngN").value = p.n; $("ngMode").value = p.mode; if (p.k) $("ngK").value = p.k; runNG(); });
+$("ngGo").addEventListener("click", runNG);
+function runNG() {
+  const out = $("ngRes"), m = parseOr(out, $("ngM"));
+  if (!m) return;
+  const n = Math.min(12, Math.max(1, +$("ngN").value || 2)), mode = $("ngMode").value, k = +$("ngK").value || 2;
+  const t0 = performance.now(), x = BB.ngramCPS(m, n, { mode, k, trace: true, gas: 3000000 }), ms = (performance.now() - t0).toFixed(0);
+  const what = mode === "plain" ? "binary alphabet" : mode === "lru" ? "LRU history" : `history of the last ${k}`;
+  if (x.result === "nonhalt") setResult(out, "ok", `<b class="v">Never halts</b>: with n = ${n} and the ${what}, the set closes after ${fmt(x.visits)} visits in ${x.passes} passes, with ${fmt(x.C.length)} local contexts and none about to halt. (${ms} ms)`);
+  else if (x.reason === "halt") setResult(out, "no", `<b class="v">Unknown</b>: the context <code>${esc(x.at)}</code> is about to take a halting transition, so this abstraction cannot exclude a halt. Try a larger n or an augmentation. (${ms} ms)`);
+  else setResult(out, "no", `<b class="v">Unknown</b>: gave up after ${fmt(x.visits)} visits. (${ms} ms)`);
+  const chipList = (el, list, cnt) => { el.replaceChildren(...list.slice(0, 200).map((g) => h("span", { class: "chip", text: g }))); cnt.textContent = `(${fmt(list.length)})`; };
+  chipList($("ngL"), x.L || [], $("ngLc")); chipList($("ngR"), x.R || [], $("ngRc"));
+  const C = x.C || [];
+  $("ngC").textContent = C.slice(0, 3000).map((c) => (x.at === c ? c + "   ← about to halt" : c)).join("\n") + (C.length > 3000 ? `\n… ${fmt(C.length - 3000)} more` : "");
+  $("ngCc").textContent = `(${fmt(C.length)})`;
+  ngTrace = x.trace || [];
+  const sl = $("ngSlider"); sl.max = Math.max(0, ngTrace.length - 1); sl.value = 0; showNGStep();
+}
+function showNGStep() {
+  const e = ngTrace[+$("ngSlider").value];
+  if (!e) { $("ngStep").textContent = ""; $("ngNew").replaceChildren(); return; }
+  $("ngStep").innerHTML = `<span>visit <b>${+$("ngSlider").value + 1}</b> of ${fmt(ngTrace.length)}${ngTrace.length >= 4000 ? "+" : ""}</span><span>contexts <b>${fmt(e.C)}</b></span><span>|L| <b>${e.L}</b> |R| <b>${e.R}</b></span>`;
+  $("ngNew").replaceChildren(h("span", { class: "chip", text: e.from }), h("span", { class: "muted small", text: e.news.length ? " gives new " : " gives nothing new" }), ...e.news.map((c) => h("span", { class: "chip new", text: c })));
+}
+$("ngSlider").addEventListener("input", showNGStep);
+
+// ------------------------------------------------------------ batch runner
+function batch(list, fn, ui, label) {
+  const { text, bar, buttons } = ui;
+  buttons.forEach((b) => (b.disabled = true));
+  let i = 0, ok = 0, bad = [];
+  const t0 = performance.now();
+  (function chunk() {
+    const end = performance.now() + 40;
+    while (i < list.length && performance.now() < end) { if (fn(list[i])) ok++; else bad.push(list[i][0]); i++; }
+    bar.style.width = (100 * i / list.length).toFixed(1) + "%";
+    text.textContent = `${fmt(i)} of ${fmt(list.length)} run, ${fmt(ok)} decided${bad.length ? `, ${bad.length} not: ${bad.slice(0, 3).join(", ")}` : ""} (${((performance.now() - t0) / 1000).toFixed(1)} s)`;
+    if (i < list.length) setTimeout(chunk, 0);
+    else { buttons.forEach((b) => (b.disabled = false)); text.textContent += ok === list.length ? ` · all ${label}` : ""; }
+  })();
+}
+function sample(list, k) { const a = list.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a.slice(0, k); }
+const ngFn = ([m, mode, k, len]) => BB.ngramCPS(BB.parse(m), len, mode === "lru" ? { mode: "lru" } : k ? { mode: "hist", k } : { mode: "plain" }).result === "nonhalt";
+const ngUI = { text: $("ngBatch"), bar: $("ngBar"), buttons: [$("ngB100"), $("ngBall")] };
+$("ngB100").addEventListener("click", () => batch(sample(DATA.ngram, 100), ngFn, ngUI, "decided"));
+$("ngBall").addEventListener("click", () => batch(DATA.ngram, ngFn, ngUI, "decided"));
+const rwFn = ([m, l, T]) => BB.repWL(BB.parse(m), l, T).result === "nonhalt";
+const rwUI = { text: $("rwBatch"), bar: $("rwBar"), buttons: [$("rwB100"), $("rwBall")] };
+$("rwB100").addEventListener("click", () => batch(sample(DATA.repwl, 100), rwFn, rwUI, "decided"));
+$("rwBall").addEventListener("click", () => batch(DATA.repwl, rwFn, rwUI, "decided"));
+
+// ------------------------------------------------------------ RepWL
+const RW_PRESETS = [
+  { name: "The paper's Figure 9 machine, l = 2, T = 3", m: "0RB0LC_1LA1RB_1RD0RE_1LC1LA_---0LD", l: 2, T: 3, sem: "paper" },
+  { name: "Smallest graph among the 6,577 (Figure 10 left), (5, 2)", m: "1RB0RD_0LC0LA_0LD1LC_1RA0LE_0RC---", l: 5, T: 2, sem: "paper" },
+  { name: "Average graph (Figure 10 centre), (2, 3)", m: "1RB---_1LB1RC_1RA1RD_1LE0RD_0LB0LC", l: 2, T: 3, sem: "paper" },
+  { name: "Largest graph (Figure 10 right), (20, 2)", m: "1RB---_0RC1RD_0LD1RC_1LE0RA_1RA0LE", l: 20, T: 2, sem: "paper" },
+  { name: "Four-state machine from the BB(4) pipeline, (4, 3)", m: "1RB1LA_1LA0RC_1LD1RC_---0LA", l: 4, T: 3, sem: "paper" },
+  { name: "Needs Coq's word-at-a-time rule, (28, 3)", m: "0RB---_0LC0RA_1RD1LC_1RB0LE_1LD0LE", l: 28, T: 3 },
+];
+fillPreset($("rwPreset"), RW_PRESETS, (p) => { $("rwM").value = p.m; $("rwL").value = p.l; $("rwT").value = p.T; $("rwSem").value = p.sem || "coq"; runRW(); });
+$("rwGo").addEventListener("click", runRW);
+function runRW() {
+  const out = $("rwRes"), m = parseOr(out, $("rwM"));
+  if (!m) return;
+  const l = Math.max(1, +$("rwL").value || 2), T = Math.max(2, +$("rwT").value || 3), sem = $("rwSem").value;
+  const t0 = performance.now(), x = (sem === "coq" ? BB.repWL : BB.repWLPaper)(m, l, T, { graph: true }), ms = (performance.now() - t0).toFixed(0);
+  if (x.result === "nonhalt") setResult(out, "ok", `<b class="v">Never halts</b>: the graph closes with <b>${fmt(x.nodes)}</b> regex configurations and no halt. (${ms} ms)`);
+  else setResult(out, "no", `<b class="v">Unknown</b>: ${esc(x.reason)}${x.at ? ` at <code>${esc(x.at)}</code>` : ""}, after ${fmt(x.nodes)} nodes. (${ms} ms)`);
+  drawST($("rwCanvas"), m, 400);
+  const box = $("rwGraph"); box.replaceChildren();
+  if (x.graph && x.graph.nodes.length <= 40) box.append(layered(x.graph.nodes, x.graph.edges.filter((e) => e[1] >= 0), (lab) => lab === "branch"));
+  else if (x.graph) box.append(h("div", { class: "mlist", text: x.graph.nodes.slice(0, 400).join("\n") + (x.graph.nodes.length > 400 ? `\n… ${fmt(x.graph.nodes.length - 400)} more` : "") }));
+}
+
+// Layered drawing of a small directed graph: layer = BFS depth from node 0 (or from all roots).
+function layered(labels, edges, dashed, roots = [0], marks = {}) {
+  const n = labels.length, depth = new Array(n).fill(-1), adj = labels.map(() => []);
+  for (const [a, b] of edges) adj[a].push(b);
+  const q = [];
+  for (const r of roots) { depth[r] = 0; q.push(r); }
+  while (q.length) { const a = q.shift(); for (const b of adj[a]) if (depth[b] < 0) { depth[b] = depth[a] + 1; q.push(b); } }
+  for (let i = 0; i < n; i++) if (depth[i] < 0) depth[i] = 0;
+  const layers = [];
+  for (let i = 0; i < n; i++) (layers[depth[i]] = layers[depth[i]] || []).push(i);
+  const cw = Math.max(...labels.map((t) => t.length)) * 7.4 + 22, rh = 64, wMax = Math.max(...layers.map((L) => L.length));
+  const W = Math.max(wMax * (cw + 16) + 40, 300), H = layers.length * rh + 10;
+  const pos = [];
+  layers.forEach((L, d) => L.forEach((i, j) => { pos[i] = [20 + (W - 40) * (j + 0.5) / L.length, 14 + d * rh]; }));
+  const svg = s("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Graph" });
+  const defs = s("defs"), mk = s("marker", { id: "ar" + Math.random().toString(36).slice(2), viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" });
+  mk.append(s("path", { d: "M0,0 L10,5 L0,10 z", fill: "var(--fg2)" })); defs.append(mk); svg.append(defs);
+  const seen = new Set();
+  for (const [a, b, lab] of edges) {
+    const key = a + ">" + b; if (seen.has(key)) continue; seen.add(key);
+    const [x1, y1] = pos[a], [x2, y2] = pos[b];
+    let d;
+    if (a === b) d = `M${x1 + cw / 2 - 10},${y1 + 4} c 40,-20 40,40 0,22`;
+    else if (y2 > y1) d = `M${x1},${y1 + 22} L${x2},${y2}`;
+    else { const bend = cw / 2 + 24 + 10 * ((a + b) % 4); d = `M${x1 + cw / 2},${y1 + 11} C${x1 + bend + 30},${y1} ${x2 + bend + 30},${y2 + 22} ${x2 + cw / 2},${y2 + 11}`; }
+    svg.append(s("path", { d, fill: "none", stroke: "var(--fg2)", "stroke-width": 1.3, "stroke-dasharray": dashed(lab) ? "4 3" : "", "marker-end": `url(#${mk.id})` }));
+  }
+  labels.forEach((t, i) => {
+    const [x, y] = pos[i], mkc = marks[i];
+    svg.append(s("rect", { x: x - cw / 2, y, width: cw, height: 22, rx: 5, fill: mkc ? mkc.fill : "var(--surface)", stroke: mkc ? mkc.stroke : (i === 0 ? "var(--accent)" : "var(--line-strong)"), "stroke-width": i === 0 || mkc ? 2 : 1 }));
+    svg.append(s("text", { x, y: y + 15, "text-anchor": "middle", "font-size": 11.5, fill: "var(--fg)" }, t));
+  });
+  return svg;
+}
+
+// ------------------------------------------------------------ long halters
+$("hChamp").addEventListener("click", () => {
+  const r = new BB.Run(BB.parse("1RB1LC_1RC1RB_1RD0LE_1LA1LD_---0LA")), t0 = performance.now();
+  r.run(47176870);
+  const ms = (performance.now() - t0).toFixed(0);
+  // The halting transition is counted as a step and writes a 1 by convention.
+  setResult($("hRes"), "halt", `<b class="v">Halted</b> after <b>${fmt(r.steps + 1)}</b> steps (counting the halting step) with <b>${fmt(r.ones() + 1)}</b> ones (the halting transition writes a 1). ${ms} ms.`);
+});
+$("hAll").addEventListener("click", () => {
+  const list = DATA.halt.map((m) => [m]), rows = [];
+  const tb = $("hTable").querySelector("tbody");
+  batch(list, ([m]) => { const r = new BB.Run(BB.parse(m)); r.run(47176870); rows.push([m, r.halted ? r.steps + 1 : -1, r.ones() + 1]); if (rows.length === list.length) done(); return r.halted; },
+    { text: $("hBatch"), bar: $("hBar"), buttons: [$("hAll"), $("hChamp")] }, "halt");
+  function done() {
+    rows.sort((a, b) => b[1] - a[1]);
+    tb.replaceChildren(...rows.map(([m, st, o]) => h("tr", {}, h("td", { class: "mono", text: m }), h("td", { class: "num", text: fmt(st) }), h("td", { class: "num", text: fmt(o) }))));
+    $("hTable").hidden = false;
+  }
+});
+
+// ------------------------------------------------------------ FAR
+const FAR_M = BB.parse("1RB0LD_1LC1RA_0RB0LC_---1LA"), FAR_DFA = [[0, 1], [0, 0]];
+const farNfa = BB.farNFA(FAR_M, FAR_DFA);
+(function drawFar() {
+  // Node positions follow the paper's TikZ figure (standalone-far-nfa.tex).
+  const P = { "0A": [0, 2], "0D": [4, 2], "0B": [2, 0], "0C": [4, 0], "1C": [2, -2.5], "1B": [0, -4], "1A": [4, -4], "1D": [5.5, -2], "⊥": [2, 4] };
+  const X = (v) => 80 + v * 92, Y = (v) => 70 + (4 - v) * 62, R = 19;
+  const W = X(5.5) + 40, H = Y(-4) + 36;
+  const svg = s("svg", { width: "100%", viewBox: `0 0 ${W} ${H}`, style: `max-width:${W}px;height:auto`, role: "img", "aria-label": "FAR NFA of the paper's four-state example" });
+  const id = "farar", defs = s("defs"), mk = s("marker", { id, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" });
+  mk.append(s("path", { d: "M0,0 L10,5 L0,10 z", fill: "var(--fg2)" })); defs.append(mk); svg.append(defs);
+  const edges = new Map();
+  for (let i = 0; i < 2; i++) for (let a = 0; a < farNfa.N; a++) for (const b of farNfa.T[i][a]) {
+    const k = farNfa.name(a) + ">" + farNfa.name(b); edges.set(k, (edges.get(k) || []).concat(i));
+  }
+  for (const [k, syms] of edges) {
+    const [a, b] = k.split(">");
+    const [x1, y1] = [X(P[a][0]), Y(P[a][1])], [x2, y2] = [X(P[b][0]), Y(P[b][1])];
+    const label = syms.join("|");
+    if (a === b) {
+      const up = a === "⊥";
+      svg.append(s("path", { d: up ? `M${x1 - 8},${y1 - R + 2} C${x1 - 30},${y1 - 60} ${x1 + 30},${y1 - 60} ${x1 + 8},${y1 - R + 2}` : `M${x1 - R + 2},${y1 - 8} C${x1 - 60},${y1 - 30} ${x1 - 60},${y1 + 30} ${x1 - R + 2},${y1 + 8}`, fill: "none", stroke: "var(--fg2)", "stroke-width": 1.3, "marker-end": `url(#${id})` }));
+      svg.append(s("text", { x: up ? x1 + 26 : x1 - 56, y: up ? y1 - 46 : y1 + 4, "text-anchor": up ? "start" : "end", "font-size": 12, fill: "var(--fg)" }, label));
+      continue;
+    }
+    const back = edges.has(b + ">" + a), dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy), ux = dx / len, uy = dy / len;
+    const off = back ? 9 : 0, nx = -uy * off, ny = ux * off;
+    const sx = x1 + ux * R + nx, sy = y1 + uy * R + ny, ex = x2 - ux * (R + 2) + nx, ey = y2 - uy * (R + 2) + ny;
+    // Labels sit beside the line: on the outer side for a pair of opposite edges, otherwise below or right of it.
+    const flip = !back && (ux > 0.01 ? false : ux < -0.01 ? true : uy > 0), lx = flip ? uy : -uy, ly = flip ? -ux : ux;
+    svg.append(s("line", { x1: sx, y1: sy, x2: ex, y2: ey, stroke: "var(--fg2)", "stroke-width": 1.3, "marker-end": `url(#${id})` }));
+    svg.append(s("text", { x: (sx + ex) / 2 + lx * 10, y: (sy + ey) / 2 + ly * 10 + 4, "text-anchor": "middle", "font-size": 11.5, fill: "var(--fg)", stroke: "var(--surface)", "stroke-width": 3, "paint-order": "stroke" }, label));
+  }
+  // ⊥ gets a double ring; the start (A, DFA 0) is outlined in accent.
+  for (const [nm, [px, py]] of Object.entries(P)) {
+    const x = X(px), y = Y(py), start = nm === "0A";
+    svg.append(s("circle", { cx: x, cy: y, r: R, fill: "var(--surface)", stroke: start ? "var(--accent)" : "var(--fg2)", "stroke-width": start ? 2.2 : 1.3 }));
+    if (nm === "⊥") svg.append(s("circle", { cx: x, cy: y, r: R - 4, fill: "none", stroke: "var(--fg2)", "stroke-width": 1.3 }));
+    svg.append(s("text", { x, y: y + 4.5, "text-anchor": "middle", "font-size": 13, fill: "var(--fg)", "font-weight": 600 }, nm));
+  }
+  $("farSvg").append(svg);
+  const conds = [
+    ["The DFA ignores leading zeros (state 0 reading 0 stays in 0)", farNfa.dfa0],
+    ["Every halting transition leads to ⊥, every right move follows the DFA, left moves closed (" + farNfa.rounds + " rounds)", true],
+    ["Reading the blank start A0 0 0 … never reaches ⊥ (reachable: " + [...farNfa.acc].map(farNfa.name).join(", ") + ")", !farNfa.haltReachable],
+  ];
+  $("farCond").replaceChildren(...conds.map(([t, ok]) => h("div", {}, h("span", { class: "pill " + (ok ? "ok" : "bad"), text: ok ? "holds" : "fails" }), " " + t)));
+})();
+function farRead() {
+  const l = $("farL").value.replace(/[^01]/g, ""), r = $("farR").value.replace(/[^01]/g, "") || "0", st = $("farS").value.charCodeAt(0) - 65;
+  const x = BB.farAccepts(FAR_M, FAR_DFA, farNfa, l, st, r);
+  const path = x.path.map((set) => "{" + set.map(farNfa.name).join(", ") + "}").join(" → ");
+  setResult($("farRes"), x.mayHalt ? "halt" : "ok", `DFA reads <code>${l || "ε"}</code> and ends in state ${x.u}; the NFA starts at <b>${x.u}${"ABCD"[st]}</b> and reads <code>${r}</code> then zeros: ${path}. ${x.mayHalt ? "<b class='v'>⊥ is reachable</b>: the language contains this configuration, so it may halt (FAR over-approximates)." : "<b class='v'>⊥ is not reachable</b>: this configuration never halts."}`);
+}
+$("farGo").addEventListener("click", farRead);
+farRead();
+$("farAll").addEventListener("click", () => {
+  const tb = $("farTable").querySelector("tbody"); tb.replaceChildren();
+  for (const [m, , dfa] of DATA.far) {
+    const x = BB.farNFA(BB.parse(m), dfa);
+    tb.append(h("tr", {}, h("td", { class: "mono", text: m }), h("td", { class: "num", text: dfa.length }), h("td", { class: "num", text: x.N }), h("td", {}, h("span", { class: "pill " + (x.result === "nonhalt" ? "ok" : "bad"), text: x.result === "nonhalt" ? "never halts" : "fails" }))));
+  }
+  $("farTable").hidden = false;
+});
+
+// ------------------------------------------------------------ WFAR
+const WF = DATA.wfar[0], WF_M = BB.parse(WF[0]);
+function drawWA(box, w, names, title) {
+  const n = w.length, W = 330, H = 214, cx = (i) => 50 + (W - 100) * (n === 1 ? 0.5 : i / (n - 1)), cy = (i) => (i % 2 ? 144 : 84);
+  const svg = s("svg", { width: "100%", viewBox: `0 0 ${W} ${H}`, style: `max-width:${W}px;height:auto`, role: "img", "aria-label": title });
+  const id = "wa" + names[0], defs = s("defs"), mk = s("marker", { id, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" });
+  mk.append(s("path", { d: "M0,0 L10,5 L0,10 z", fill: "var(--fg2)" })); defs.append(mk); svg.append(defs);
+  svg.append(s("text", { x: 8, y: 16, "font-size": 12, fill: "var(--fg2)", style: "font-family:var(--body)" }, title));
+  const lab = new Map();
+  for (let u = 0; u < n; u++) for (let i = 0; i < 2; i++) {
+    const v = w[u][2 * i], wt = w[u][2 * i + 1], k = u + ">" + v;
+    lab.set(k, (lab.get(k) ? lab.get(k) + "," : "") + i + (wt ? ":" + (wt > 0 ? "+" : "") + wt : ""));
+  }
+  for (const [k, t] of lab) {
+    const [a, b] = k.split(">").map(Number), x1 = cx(a), y1 = cy(a), x2 = cx(b), y2 = cy(b), R = 17;
+    if (a === b) {
+      const up = a % 2 === 0;
+      svg.append(s("path", { d: up ? `M${x1 - 7},${y1 - R + 1} C${x1 - 26},${y1 - 52} ${x1 + 26},${y1 - 52} ${x1 + 7},${y1 - R + 1}` : `M${x1 - 7},${y1 + R - 1} C${x1 - 26},${y1 + 52} ${x1 + 26},${y1 + 52} ${x1 + 7},${y1 + R - 1}`, fill: "none", stroke: "var(--fg2)", "stroke-width": 1.3, "marker-end": `url(#${id})` }));
+      svg.append(s("text", { x: x1 + 22, y: up ? y1 - 36 : y1 + 44, "text-anchor": "start", "font-size": 11.5, fill: "var(--fg)" }, t));
+      continue;
+    }
+    const back = lab.has(b + ">" + a), dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy), ux = dx / len, uy = dy / len, off = back ? 8 : 0, nx = -uy * off, ny = ux * off;
+    const sx = x1 + ux * R + nx, sy = y1 + uy * R + ny, ex = x2 - ux * (R + 2) + nx, ey = y2 - uy * (R + 2) + ny;
+    // Labels sit beside the line: on the outer side for a pair of opposite edges, otherwise below or right of it.
+    const flip = !back && (ux > 0.01 ? false : ux < -0.01 ? true : uy > 0), lx = flip ? uy : -uy, ly = flip ? -ux : ux;
+    svg.append(s("line", { x1: sx, y1: sy, x2: ex, y2: ey, stroke: t.includes(":") ? "var(--head)" : "var(--fg2)", "stroke-width": t.includes(":") ? 2 : 1.3, "marker-end": `url(#${id})` }));
+    svg.append(s("text", { x: (sx + ex) / 2 + lx * 10, y: (sy + ey) / 2 + ly * 10 + 4, "text-anchor": "middle", "font-size": 11.5, fill: "var(--fg)", stroke: "var(--surface)", "stroke-width": 3, "paint-order": "stroke" }, t));
+  }
+  for (let u = 0; u < n; u++) {
+    svg.append(s("circle", { cx: cx(u), cy: cy(u), r: 17, fill: "var(--surface)", stroke: u === 0 ? "var(--accent)" : "var(--fg2)", "stroke-width": u === 0 ? 2.2 : 1.3 }));
+    svg.append(s("text", { x: cx(u), y: cy(u) + 4.5, "text-anchor": "middle", "font-size": 12.5, "font-weight": 600, fill: "var(--fg)" }, names[u]));
+  }
+  box.append(svg);
+}
+const WFL = WF[3], WFR = WF[5], LN = WFL.map((_, i) => "p" + i), RN = WFR.map((_, i) => "q" + i);
+drawWA($("wfSvgL"), WFL, LN, "Left automaton (reads left to right)");
+drawWA($("wfSvgR"), WFR, RN, "Right automaton (reads right to left)");
+const wfRun = BB.wfar(WF_M, WF[1], WFL, WFR);
+const wfName = (e) => `[${LN[e[0]]}] ${BB.L(e[3])}${e[2]} [${RN[e[1]]}]  ${e[5] === null ? "W = " + e[4] : e[5] > 0 ? "W ≥ " + e[4] : "W ≤ " + e[4]}`;
+$("wfSet").textContent = wfRun.set.map(wfName).sort().join("\n");
+$("wfCount").textContent = `(${wfRun.set.length} weighted configurations, none about to halt)`;
+function wfRead() {
+  const l = $("wfL").value.replace(/[^01]/g, ""), r = $("wfR").value.replace(/[^01]/g, ""), hd = $("wfH").value.trim().toUpperCase();
+  const st = hd.charCodeAt(0) - 65, sym = +hd[1];
+  if (!(st >= 0 && st < 5 && (sym === 0 || sym === 1))) { setResult($("wfRes"), "halt", "State and symbol look like <code>C1</code>."); return; }
+  const x = BB.wfarRead(WFL, WFR, l, r), W = x.wl + x.wr;
+  const covered = wfRun.set.some((e) => e[0] === x.l && e[1] === x.r && e[2] === sym && e[3] === st && (e[5] === null ? e[4] === W : e[5] > 0 ? W >= e[4] : W <= e[4]));
+  setResult($("wfRes"), covered ? "ok" : "no", `Left word <code>${l || "ε"}</code> ends in <b>${LN[x.l]}</b> with weight ${x.wl}; right word <code>${r || "ε"}</code>, read right to left, ends in <b>${RN[x.r]}</b> with weight ${x.wr}. So this is <b>[${LN[x.l]}] ${hd} [${RN[x.r]}]</b> with W = ${W}. ${covered ? "<b class='v'>It is in the closed set</b>, so the machine never halts from it." : "<b class='v'>It is not in the closed set</b>: the certificate says nothing about it (it may not be reachable)."}`);
+}
+$("wfGo").addEventListener("click", wfRead);
+wfRead();
+$("wfAll").addEventListener("click", () => {
+  const tb = $("wfTable").querySelector("tbody"); tb.replaceChildren();
+  for (const [m, maxD, , wl, , wr] of DATA.wfar) {
+    const x = BB.wfar(BB.parse(m), maxD, wl, wr);
+    tb.append(h("tr", {}, h("td", { class: "mono", text: m }), h("td", { class: "num", text: wl.length + " / " + wr.length }), h("td", { class: "num", text: maxD }), h("td", { class: "num", text: x.set ? fmt(x.set.length) : "–" }), h("td", {}, h("span", { class: "pill " + (x.result === "nonhalt" ? "ok" : "bad"), text: x.result === "nonhalt" ? "never halts" : "fails" }))));
+  }
+  $("wfTable").hidden = false;
+});
+
+// ------------------------------------------------------------ sporadic gallery
+const SPORADIC = [
+  ["Skelet #1", "1RB1RD_1LC0RC_1RA1LD_0RE0LB_---1RC", "A translated cycler that only starts repeating after about 5.4·10⁵¹ steps.", 400],
+  ["Skelet #10", "1RB0RA_0LC1RA_1RE1LD_1LC0LD_---0RB", "The double Fibonacci counter.", 200],
+  ["Skelet #17", "1RB---_0LC1RE_0LD1LC_1RA1LB_0RB0RA", "Related to Gray code; the last machine proved, in Coq-BB5 itself.", 400],
+  ["Skelet #15", "1RB---_1RC1LB_1LD1RE_1LB0LD_1RA0RC", "Shift overflow counter: two independent binary counters.", 200],
+  ["Skelet #26", "1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LC---", "Shift overflow counter.", 200],
+  ["Skelet #33", "1RB1LC_0RC0RB_1LD0LA_1LE---_1LA1RE", "Shift overflow counter.", 200],
+  ["Skelet #34", "1RB1LC_0RC0RB_1LD0LA_1LE---_1LA1RA", "Shift overflow counter.", 200],
+  ["Skelet #35", "1RB1LC_0RC0RB_1LD0LA_1LE---_1LA0LA", "Shift overflow counter.", 200],
+  ["Finned #1", "1RB0LE_1RC1RB_1RD1LC_0LE0RB_---1LA", "Holds three unary numbers in a linear relation that a halt would break.", 400],
+  ["Finned #2", "1RB1RA_1RC1LB_0LD0RA_1RA1LE_---0LD", "Finned machine.", 400],
+  ["Finned #3", "1RB1RE_1LC1RB_0RA0LD_1LB1LD_---0RA", "Finned machine; an irregularity argument is known for it.", 400],
+  ["Finned #4", "1RB1LA_0LC0RE_---1LD_1RA0LC_1RA1RE", "Finned machine.", 400],
+  ["Finned #5", "1RB1LA_0LC0RE_---1LD_1LA0LC_1RA1RE", "Finned machine.", 400],
+];
+(function gallery() {
+  const g = $("gallery");
+  const figs = SPORADIC.map(([name, m, text]) => {
+    const c = h("canvas", { width: 200, height: 200, "aria-label": "Space-time diagram of " + name });
+    g.append(h("figure", {}, c, h("figcaption", {}, h("b", { text: name }), text + " ", h("code", { text: m }))));
+    return c;
+  });
+  // Draw lazily, one per frame, when the gallery scrolls into view: 20,000 steps each.
+  let started = false;
+  const go = () => {
+    if (started) return; started = true;
+    let i = 0;
+    (function next() { if (i >= SPORADIC.length) return; const [, m, , w] = SPORADIC[i]; drawStatic(figs[i], BB.parse(m), 20000, w); i++; requestAnimationFrame(next); })();
+  };
+  if ("IntersectionObserver" in window) new IntersectionObserver((es, ob) => { if (es.some((e) => e.isIntersecting)) { go(); ob.disconnect(); } }).observe(g);
+  else go();
+})();
+// A compressed diagram: `steps` rows folded into `rowsOut` rows (a cell is dark if it is 1 at the sampled step), tape of width w.
+function drawStatic(canvas, m, steps, w, rowsOut = 400) {
+  canvas.width = w; canvas.height = rowsOut;
+  const g = canvas.getContext("2d"), img = g.createImageData(w, rowsOut);
+  const ink = hex(css("--ink")), bg = hex(css("--cell0"));
+  const r = new BB.Run(m), every = Math.max(1, Math.floor(steps / rowsOut));
+  for (let row = 0; row < rowsOut; row++) {
+    for (let x = 0; x < w; x++) {
+      const v = r.read(x - (w >> 1)), c = v ? ink : bg, o = 4 * (row * w + x);
+      img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = 255;
+    }
+    if (r.run(every)) break;
+  }
+  g.putImageData(img, 0, 0);
+}
+function hex(c) { const m = /^#?([0-9a-f]{6})$/i.exec(c); if (!m) return [0, 0, 0]; const n = parseInt(m[1], 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
+
+$("nfGo").addEventListener("click", reduceNF);
+function reduceNF() {
+  const out = $("nfRes"), m = parseOr(out, $("nfM"));
+  if (!m) return;
+  const x = BB.reduce1RB(m);
+  if (x.result !== "reduced") { setResult(out, "no", x.result === "halts" ? "It halts on the blank tape before writing anything." : "It never writes a 1 from the blank tape, so it is a cycler of the blank tape."); return; }
+  const known = SPORADIC.find((p) => p[1] === x.machine.text);
+  const viaFar = DATA.far.find((e) => e[0] === x.machine.text) || DATA.wfar.find((e) => e[0] === x.machine.text);
+  setResult(out, "ok", `The blank tape stays blank through states ${x.chain.map(BB.L).join(" → ")}; ${BB.L(x.start)} is the first to write a 1${x.mirror ? " (moving left, so the machine is mirrored)" : ""}. Renamed in order of first visit: <code>${x.machine.text}</code>${known ? `, which is <b>${known[0]}</b>` : viaFar ? ", which has a FAR or WFAR certificate in Coq-BB5" : ""}.`);
+}
+reduceNF();
+
+// ------------------------------------------------------------ backward reasoning
+$("brGo").addEventListener("click", runBR);
+function runBR() {
+  const out = $("brRes"), m = parseOr(out, $("brM"));
+  if (!m) return;
+  const x = BB.backward(m, Math.max(1, +$("brD").value || 10));
+  if (x.result === "nonhalt") setResult(out, "ok", `<b class="v">Never halts</b>: every backward branch from ${x.roots.map((r) => BB.L(r.s) + r.i).join(", ")} dies within ${x.depth + 1} backward step${x.depth ? "s" : ""}. (The machine also has to survive that many steps forward, which this one does.)`);
+  else setResult(out, "no", `<b class="v">Unknown</b>: ${x.reason || "a branch is still open at the depth limit"}.`);
+  const kids = x.nodes.map(() => []);
+  x.nodes.forEach((n, i) => { if (n.parent >= 0) kids[n.parent].push(i); });
+  const tapeStr = (n) => { const lo = n.tape[0][0], hi = n.tape[n.tape.length - 1][0]; let t = ""; const mp = new Map(n.tape); for (let p = Math.min(lo, n.pos); p <= Math.max(hi, n.pos); p++) t += (p === n.pos ? "[" + BB.L(n.s) + "]" : "") + (mp.has(p) ? mp.get(p) : "·"); return t; };
+  const tree = $("brTree"); tree.replaceChildren();
+  const walk = (i, d) => {
+    const n = x.nodes[i];
+    tree.append(h("div", { class: "n", style: `margin-left:${d * 18}px`, text: (n.via ? "came from " + n.via + ":  " : "halting configuration:  ") + tapeStr(n) + (n.open ? "   (still open)" : "") }));
+    for (const dd of n.dead) tree.append(h("div", { class: "n dead", style: `margin-left:${(d + 1) * 18}px`, text: "✗ " + dd }));
+    for (const k of kids[i]) walk(k, d + 1);
+  };
+  x.nodes.forEach((n, i) => { if (n.parent < 0) walk(i, 0); });
+}
+runBR();
+
+// ------------------------------------------------------------ halting segment
+$("hsGo").addEventListener("click", runHS);
+function runHS() {
+  const out = $("hsRes"), m = parseOr(out, $("hsM"));
+  if (!m) return;
+  const n = Math.min(8, Math.max(1, +$("hsN").value || 2)), x = BB.haltingSegment(m, n);
+  const cov = Object.entries(x.cover).map(([t, ps]) => `${t}: ${ps.length ? ps.map((p) => (p < 0 ? "left" : p >= n ? "right" : "cell " + p)).join(", ") : "none"}`).join("; ");
+  if (x.result === "nonhalt") setResult(out, "ok", `<b class="v">Never halts</b>: ${fmt(x.nodes.length)} segment configurations; halting nodes reached at ${cov}, which does not cover all ${n + 2} head positions.`);
+  else setResult(out, "no", `<b class="v">Unknown</b>: halting nodes reached at ${cov}, covering every position. ${fmt(x.nodes.length)} nodes.`);
+  const box = $("hsGraph"); box.replaceChildren();
+  const roots = x.nodes.map((v, i) => i).slice(0, n + 2);
+  const marks = {};
+  x.nodes.forEach((v, i) => { if (v.s < 0) marks[i] = { fill: "var(--bad-bg)", stroke: "var(--bad)" }; else if (i < n + 2) marks[i] = { fill: "var(--accent-soft)", stroke: "var(--accent)" }; });
+  if (x.nodes.length <= 60) box.append(layered(x.nodes.map(x.name), x.edges, () => false, roots, marks));
+  else box.append(h("div", { class: "mlist", text: x.nodes.map(x.name).join("\n") }));
+}
+runHS();
+
+// ------------------------------------------------------------ bouncers
+const BOUNCERS = [
+  { name: "#88,427,177, the paper's running example", m: "1RB1LE_1LC1RD_1LB1RC_1LA0RD_---0LA", f: ".111(111)01111(11)C>." },
+  { name: "#1,355, a unilateral bouncer", m: "1RB---_0RC---_0RD0LD_1LE0RE_0LA1LC", f: ".<A010110(0110)." },
+  { name: "#3,867", m: "1RB---_0RC---_0RD1LD_0LE0LA_1LE1LC", f: ".<A0110110(110)." },
+];
+fillPreset($("boPreset"), BOUNCERS, () => runBO());
+$("boGo").addEventListener("click", runBO);
+function runBO() {
+  const p = BOUNCERS[+$("boPreset").value], m = BB.parse(p.m), x = BB.bouncerMoments(m, p.f, 20000, 14);
+  const tb = $("boTable").querySelector("tbody");
+  tb.replaceChildren(h("tr", {}, h("td", { colspan: 2, class: "mono", text: "formula " + p.f + " on " + p.m })), ...x.hits.map((e) => h("tr", {}, h("td", { class: "num", text: fmt(e.step) }), h("td", { class: "mono", text: e.counts.join(", ") }))));
+  drawST($("boCanvas"), m, x.hits.length ? x.hits[Math.min(8, x.hits.length - 1)].step + 1 : 600);
+}
+
+// ------------------------------------------------------------ all deciders on one machine
+$("allGo").addEventListener("click", runAll);
+function runAll() {
+  const tb = $("allTable").querySelector("tbody"), m = parseOr($("allTable"), $("allM"));
+  if (!m) return;
+  const rows = [
+    ["Loops", "L = 4,100", () => { const x = BB.loops(m, 4100); return x.result === "halt" ? ["halts", "bad"] : x.result === "nonhalt" ? [x.kind, "ok"] : ["unknown", "no"]; }],
+    ["n-gram CPS", "n = 3, binary", () => r(BB.ngramCPS(m, 3, { gas: 500000 }))],
+    ["n-gram CPS", "n = 2, history 2", () => r(BB.ngramCPS(m, 2, { mode: "hist", k: 2, gas: 500000 }))],
+    ["n-gram CPS", "n = 2, LRU", () => r(BB.ngramCPS(m, 2, { mode: "lru", gas: 500000 }))],
+    ["RepWL", "l = 2, T = 3", () => r(BB.repWL(m, 2, 3, { N: 20000 }))],
+    ["RepWL", "l = 4, T = 2", () => r(BB.repWL(m, 4, 2, { N: 20000 }))],
+    ["Backward reasoning", "depth 30", () => r(BB.backward(m, 30))],
+    ["Halting segment", "n = 4", () => r(BB.haltingSegment(m, 4))],
+    ["1RB reduction", "", () => { const x = BB.reduce1RB(m); return [x.result === "reduced" ? (x.machine.text === m.text ? "already starts with 1RB" : "reduces to " + x.machine.text) : x.result, "no"]; }],
+  ];
+  function r(x) { return x.result === "nonhalt" ? ["never halts", "ok"] : ["unknown", "no"]; }
+  tb.replaceChildren(...rows.map(([n, p, f]) => { let res; try { res = f(); } catch (e) { res = ["error: " + e.message, "bad"]; } return h("tr", {}, h("td", { text: n }), h("td", { class: "mono", text: p }), h("td", {}, h("span", { class: "pill " + res[1], text: res[0] }))); }));
+}
+runAll();
+</script>
+</body>
+</html>

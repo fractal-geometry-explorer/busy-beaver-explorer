@@ -279,3 +279,134 @@ and at least 2 in almost every case), or track the odd numbers as particles with
 **Window languages on macro tokens (random closure test, not closed).** Windows of K consecutive macro tokens (values
 exact up to C, then parity) seen in the run, closed by sampling: K = 3, C = 4 reaches stuck configurations; K = 5, C = 6
 keeps adding windows after 30 rounds (74,000 windows, no stuck configuration sampled).
+
+## 3 November 2026: the macro machine as two stacks and a cursor
+
+**Two-stack form (checked, `py/twostack.py`; not in Lean).** Write an F configuration as one row: the stack from the
+bottom up, a 0 for the F head, then the word segments, then the last segment. Each entry carries a gap: 0 for stack
+entries and the head, n = g − 1 for a word segment, "end" for the last segment. Infinitely many entries −1 with gap 0
+stand to the left. The cursor is the first entry with a gap other than 0. With a, b the two entries left of the cursor,
+one F pass plus the B pass after it is
+
+    R1  gap n ≥ 1 or end:  a, b, x<n>      →  0, (a+2)<b>, x<n−2>
+    R2  gap n = −1:        a, x<−1>, y<m>  →  0, (a+2)<x−2>, (y−1)<m>     needs x ≥ 1 and y ≥ 1
+                           a, x<−1>, 0<end> → 0, (a+2)<end>
+
+and an entry whose gap becomes 0 simply joins the left stack L. Everything left of the cursor is a stack of numbers,
+everything right of it a stack R of (value, gap) pairs, so the macro machine is a two-stack machine. `zstep` agrees
+with `mstep` (F pass, then B pass) on all 10⁶ F configurations of the first 2·10⁶ macro steps, on every small F
+configuration of the test set, and on 200,000 random ones, and it is undefined exactly where `mstep` is
+(`tests/test_macro.py`). R2 is the old "two 1s side by side" rule and the only way to get stuck.
+
+**Parity bookkeeping (follows from the rules).** A value keeps its parity as it moves: L entry a comes back as a + 2,
+an L entry b becomes a gap, a gap counts down by 2. Parity changes only in R2, which uses up an odd gap (−1) and turns y
+into y − 1, and odd values are born only from the −1 entries (R1 with a short L gives the value 1 or the gap −1). If
+every value is even nothing can get stuck. From the first 3·10⁶ macro steps: the −1 entries are used 40 times, and R
+empties (cursor at the end) 105 times, with growing intervals (the last ones about 3.5·10⁵ macro steps apart).
+
+**Necessary conditions seen in the run (heuristic, 3·10⁶ macro steps).** In the word: no segment is 0; the segment right
+of an odd gap is at least 2, and at least 4 (and even) when the segment left of that gap is odd; the segment right of
+an even gap with an odd segment on its left is at least 2 unless the gap after it is 0 (four exceptions, all followed by
+a gap 0, such as `7 <2> 1 <0> 4`). These say that a 1 never sits right of an odd gap, which is what R2 needs. They are
+not closed on their own: `F 6 5 | 0 | 1 <4> 0` satisfies them and its next F configuration `F 6 | 0 | 7 <0> 1 <2> 0`
+does not, because the odd stack entry 5 comes back as 7 next to the 1.
+
+**Window languages in the two-stack form (random closure test, not closed).** Windows of K consecutive tokens (L values,
+the cursor, R pairs; values exact up to C, then parity), started from the run and closed by sampling: K = 3, C = 3
+samples a stuck configuration in round 13; K = 4, C = 4 in round 37 (165,000 windows); K = 5, C = 3 in round 47
+(257,000 windows).
+
+**Why local conditions are not enough (sketch).** A 1 in R is safe while the entry X just left of it has an even value:
+when X's gap reaches 0, X joins L, the 1 becomes the cursor, and R1 makes X its left neighbour's gap. But X's value flips
+when the entry left of X reaches gap −1 (R2), and that entry's gap came from an L entry b, which came from an earlier
+cursor value. So whether a 1 is safe depends on a chain of pending flips through both stacks, with no bound on its
+length that the run shows. A closed family probably has to count these pending flips (for example a parity attached to
+each R entry that says whether it will be flipped before it freezes) rather than list local patterns.
+
+**How often an entry is flipped (heuristic, 3·10⁶ macro steps).** Following each entry of the two-stack form by
+identity (an L entry a keeps its identity as a + 2; a value that becomes a gap ends it): 208 entries other than the end
+entry are flipped by R2, 202 of them once and 6 twice, never more, and none goes below 1 (128 of them reach exactly 1).
+The end entry is flipped up to 8 times, which is harmless because the end may reach 0. So a pending-flip count per
+entry would be at most 2 in the run; a closed family could try "value ≥ 1 + pending flips", with the pending flips read
+off the parities of the entries to the entry's left.
+
+**Pending flips read off neighbours (random closure test, not closed).** Requiring, for each right-stack entry y below an
+entry v<n> (or below the cursor), y ≥ 1 + [n odd] + [n odd and v odd], holds at every one of 10⁶ steps of the run, but a
+random closure test breaks it about one step in ten. Every break comes from odd entries near the top of the left stack
+becoming a gap; adding the two conditions this suggests still leaves about 14% of tested configurations breaking
+after one step, and one of them fails 38 times in the run itself. Each repair needs more of the left stack.
+
+**Finite automata over two-stack tokens (SAT, `py/ctl_sat.py`, not closed).** I looked for a DFA whose language
+contains the start configuration, is closed under the abstract rules, and contains no stuck window. Words are read in
+this order: −1 entries, then the left stack, then the cursor, then the right stack. Closure is checked with a
+state-inclusion relation. The abstract rules agree with 3·10⁵ micro-steps of the run. Results:
+
+- values exact up to 1 (gaps up to 1): no DFA with up to 6 states;
+- values exact up to 2: none with up to 5 states;
+- values exact up to 3, gaps exact up to 1: none with up to 6 states reading left to right, and none with up to 5
+  reading right to left.
+
+These are complete UNSAT results within those sizes. Seven states (left to right) and six (right to left) did not
+finish in about two hours each, so this search stalls just above where the parity thread's tape automata did.
+
+**Future flips are not a function of nearby parities (heuristic, 10⁶ macro steps).** I sampled 26,823 right-stack
+entries at random times and recorded how many times each would still be flipped. I then grouped them by the parities
+(value, and gap or "left stack") of the d entries to their left. For each group I predicted its most common flip
+count. Of the 707 entries with a future flip, that guess gets 578 wrong at d = 1, 543 at d = 8 and 467 at d = 16. So the
+pending flips of an entry depend on context far to its left, including values and not only parities. An exact
+pending-flip formula would need that far context, which is the same obstacle the local and automaton searches hit.
+
+## 3 November 2026: the two-stack form as a recursive program, and a counter
+
+**The right stack is a call stack (follows from the rules; `py/callstack.py`).** Read a right-stack entry v<n> as a
+*frame*: a loop that still has n/2 turns to run and then pushes v onto L. R1 is one turn of the cursor frame: pop b,
+pop a, push 0, and call the frame (a+2)<b>; a frame with gap 0 returns at once by pushing its value, and when a
+callee returns its value is the top of L. So while every gap is even, one turn is the function
+
+    I(L a b) = I^(b/2)(L 0) (a+2)
+
+and the end entry runs I forever. Everything the macro machine does between two visits to the ends of the tape is
+this one recursion. An odd gap runs down to −1 and R2 ends that frame differently: it takes 1 from the value of its
+caller (the entry below it) and is replaced by the frame (a′+2)<x−2>, a′ the top of L and x its own value. Since
+x − 2 = a minus the flips the frame received itself, an odd-gap callee returns "a instead of a + 2, plus one extra
+turn of I that the caller does not count". Two more consequences of the rules: inside one loop the gap of each turn
+is the value returned by the turn before (b_{j+1} = a_j + 2 − flips), and the first two turns of every loop read
+the entry just below the caller's pair, s, as (s, 0) and then (0, s + 2). So an odd s under a frame with two or more
+turns flips that frame. Which entry ends up as an a and which as a b depends on how many turns every loop below has
+left, which is why parities alone did not predict flips (earlier sections).
+
+**A conserved counter (proved, kernel: `lean/Counter.lean`).** Let Φ be the sum of L plus v + n over the frames,
+the end left out. R1 and R2 both keep Φ, and so does a frame returning; only the ends of the row change it. In
+macro terms Φ(F S ws mt) = ΣS + Σ(m + g − 1) and Φ(B S h ws mt) = ΣS + h + Σ(m + g − 1). Lean proves:
+
+* `phi_interior`: a pass from F that ends inside the word keeps Φ, and so does a B step with a nonempty stack;
+* `phi_end`: a pass from F that runs into the last segment adds 2 (blank tape ahead) or 1 (two 1s side by side
+  next to the last segment);
+* `phi_bottom`: B with an empty stack (the entry −1 below L) takes 1 off.
+
+The only steps not covered are the two from Binf (blank tape ahead of B). In the run (10⁶ steps of the two-stack form,
+`python3 py/callstack.py check 1000000`): 999,659 interior R1 steps and 185 interior R2 steps with ΔΦ = 0, 92 R1
+turns of the end frame with ΔΦ = +2, 37 steps at the bottom of L, and 27 R2 steps whose caller is the end. So Φ/2 is
+the number of turns of the end frame, up to the bottom corrections. Φ is the only conserved quantity of the form
+Σ f(value) + Σ h(value, gap) over the entries: solving the two rules for f and h forces f linear in the value with a
+parity term, and the parity term is conserved only modulo 2 (R2 changes the number of odd numbers by 0 or 2).
+
+**No numeral system with arithmetic digits (heuristic).** In the all-even model with zeros below L (halve every
+value: I(L a b) = I^b(L 0)(a+1)), the sum of L goes up by exactly 1 per I, so the stack is a representation of a
+number N and I is N ↦ N + 1. But the representation is not a positional one: from (1, 0) the orbit is (2), (1 1 1),
+(2 2), (1 1 3), (2 2 2), (1 2 1 3), (3 3 2), (1 1 2 1 4), (1 0 1 2 4 2), (3 2 1 5), …, with no carry pattern I could
+find, and different starting stacks give unrelated orbits.
+
+**Flips at the caller (heuristic, 3·10⁶ steps; `python3 py/callstack.py flips 3000000`).** Recording the caller's
+value and how often it was flipped before, at every R2: a caller other than the end has value 2 at 128 of its first
+flips and 4 to 14 at the other 82 (once 5); it is flipped a second time only 5 times, always at an odd value of 3
+to 9. No caller
+other than the end is ever flipped at value 1, and a frame flipped down to 1 is never flipped again. That is the
+pattern a proof would need ("a frame created with value 2 is flipped at most once"), but it is not proved, and a
+closed family built on it still has to say which future a and b each L entry will be.
+
+**Next.** The recursion makes the macro machine a pushdown system whose stack symbols are frames. A closed family
+could be a *summary* of I^k on an abstract L, as in interprocedural analysis: for each abstract L top, which
+abstract L top I^k returns, and how many flips it can cause its caller. The values matter only through the number
+of turns, so the abstraction needs the values of the top few entries exactly and the parity of the turn count of
+each frame. I have not built it.

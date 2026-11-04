@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.join(ROOT, "py"))
 
 import blank  # noqa: E402
 import counter  # noqa: E402
+import accel  # noqa: E402
 import replay  # noqa: E402
 import top  # noqa: E402
 import build_status  # noqa: E402
@@ -221,6 +222,73 @@ class TestTop(unittest.TestCase):
         # every trip to 10^9 steps that counter.py does not cover goes through a shape of Top.lean, except the long
         # trips that build a wall, and each ends as its shape says
         self.assertEqual(dict(top.check(10 ** 9)), {"proved": 235, "long": 20})
+
+
+class TestAccel(unittest.TestCase):
+    def test_bulk_is_repeated_steps(self):
+        # n trips at once = n single counter steps, with the step counts of the pieces in Rules.lean
+        import random
+        rng = random.Random(3)
+        for _ in range(200):
+            levs = []
+            for p in range(rng.randint(1, 5)):
+                d = rng.randrange(3)
+                par = 1 if d == 2 else 0
+                levs.append([d, 2 * rng.randint(1, 40) + par, 2 * rng.randint(20, 400) + par])
+            t = accel.with_levels([7], 1, levs)
+            levs2, i0 = accel.regular(t)
+            self.assertEqual(levs2, levs)
+            v = accel.value(levs)
+            n = accel.max_trips(levs, v)
+            nl, steps = accel.bulk(levs, v, n)
+            u, total = t, 0
+            for _ in range(n):
+                total += cost(u)
+                u, why = counter.predict(u)
+                self.assertIsNone(why)
+            self.assertEqual(accel.with_levels(t, i0, nl), u)
+            self.assertEqual(steps, total)
+
+    def test_matches_plain_run(self):
+        # every state the accelerated run passes through is a return of the plain macro run, at the same step
+        plain = {s: counter.tape_str(t) for s, t in counter.returns(10 ** 9)}
+        kinds = set()
+        for s, trips, t, kind in accel.run(10 ** 9):
+            if s > 10 ** 9:
+                break
+            kinds.add(kind)
+            self.assertEqual(plain.get(s), counter.tape_str(t), (s, kind))
+        self.assertEqual(kinds, {"bulk", "top", "proved"})
+
+    def test_cycle_jumps(self):
+        # the top trips with cycle jumps (bbtools.cycles) pass through the same returns as without them
+        n = 10 ** 11
+        orig = accel.concrete_trip
+        try:
+            accel.concrete_trip = lambda t: orig(t, accelerate=False)
+            plain = {s: t for s, _, t, _ in accel.run(n)}
+        finally:
+            accel.concrete_trip = orig
+        del accel.JUMPS[:]
+        for s, _, t, _ in accel.run(n):
+            if s <= n:
+                self.assertEqual(plain.get(s), t, s)
+        self.assertTrue(accel.JUMPS)
+
+
+def cost(t):
+    """Steps of one counter trip, from the pieces of Rules.lean (last2 8a+8b+26, turn2 8a+8b+19, ...)."""
+    i, last, c = len(t) - 5, True, 0
+    while True:
+        g, w = t[i], t[i + 2]
+        d = counter.DIGIT[(t[i - 1], t[i + 1])]
+        if d == 2:
+            return c + 4 * g + 4 * w + (18 if last else 3)
+        if d == 1:
+            return c + 4 * w + (16 if last else 1)
+        c += 8 * g + 4 * w + (23 if last else 8)
+        last = False
+        i -= 4
 
 
 if __name__ == "__main__":
