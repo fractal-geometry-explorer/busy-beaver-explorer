@@ -1,0 +1,31 @@
+# The return map of 1RB1RA_1RC1LB_1LD0RA_1LB0LE below 2^62 by Lean's kernel alone (about an hour of CPU, so its own
+# workflow, run only when its Lean files or the shared library change).
+name: Return map, kernel
+
+on:
+  pull_request:
+    paths:
+      - "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/**"
+      - "tools/lean/**"
+      - "scripts/setup-lean.sh"
+      - ".github/workflows/return62.yml"
+  push:
+    branches: [main]
+    paths:
+      - "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/**"
+      - "tools/lean/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kernel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Lean
+        run: sudo bash scripts/setup-lean.sh
+      - name: Return map below 2^62, kernel only
+        run: . /etc/profile.d/lean.sh && JOBS=$(nproc) bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return62.sh

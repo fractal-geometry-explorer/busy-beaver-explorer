@@ -1,5 +1,6 @@
 import Test.BB2
 import Test.BB4
+import Test.Loop2Cert
 
 /-! Tests of the shared library on machines whose behaviour is known. -/
 
@@ -47,5 +48,11 @@ theorem sweepL_cross (k : Nat) (L R : Tape) :
     steps sweepL (k * 2) ⟨rep k [true, false] L, app [false] R, false⟩
       = some ⟨L, app [false] (rep k [false, true] R), false⟩ :=
   cross_l sweepL (u := [false]) (w := [true, false]) (v := [false, true]) (fun _ _ => rfl) k L R
+
+/-- A closed tape language (`Loop2Cert.lean`, windows of two cells) proves that 1RB0LB_0LA--- never halts from
+blank tape: the language allows no halt. -/
+theorem loop2_never_halts : ¬ Loop2.HaltsFromBlank :=
+  CTL.not_halts Loop2.trans (ML := Loop2.certL) (MR := Loop2.certR) (S := Loop2.certS) (by decide) (by decide)
+    (by decide)
 
 end Test

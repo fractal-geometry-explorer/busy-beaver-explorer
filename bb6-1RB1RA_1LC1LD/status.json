@@ -1,0 +1,227 @@
+{
+  "title": "What is known about 1RB1RA_1LC1LD, and what is open",
+  "description": "Proof status of the six-state machine 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB: what is proved in Lean, what is computed, what is only observed.",
+  "machine": "1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB",
+  "crumb": "1RB1RA_1LC1LD",
+  "home": "../index.html",
+  "intro": [
+    "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.",
+    "The machine is set up in Lean on the shared library, and the run from blank tape is simulated in Python, C and Lean. A closed tape language proved in Lean confines any halt to the right edge of the written tape. The macro structure of the run is not found yet. The run is a sequence of passes, each starting with A on the blank cell right of blocks of ones separated by single 0s; Lean proves the map from one pass start to the next for every last block: in closed form when the last block is not a multiple of 3, and, when it is, as a machine on lists of numbers whose every step is proved sound. <a href=\"explainer.html\">The explainer</a> runs the machine and the pass map in the browser."
+  ],
+  "asof": "Status as of 1 November 2026.",
+  "verdict": [
+    "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>12</sup> steps with <code>native_decide</code>, by the pass map with step counts; the C simulator finds no halt in the first 10<sup>11</sup> steps. These are floors, not the way to an answer.",
+    "<b>Where a halt would come from.</b> The only halting transition is E0, and E is entered only from D reading a 0, so the machine halts exactly when D reads a 0 with a 0 to its right. Lean proves that in the run from blank tape this can happen only at the right edge: past the head, two 0s in a row occur only in the blank region beyond everything written, so the machine halts if and only if E steps onto that blank region. At the left end D always has a 1 to its right, but that is forced by the step that brings D there, not a property of the run."
+  ],
+  "claims": [
+    {
+      "level": "kernel",
+      "title": "The halting configurations",
+      "text": "The machine stops exactly in state E reading a 0, and <code>D&gt;0 0</code> halts after one more ordinary step, whatever the rest of the tape.",
+      "where": "<code>step_none_iff</code>, <code>halt_shape</code>, <code>lean/Blank.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "D at the left end has a 1 to its right",
+      "text": "D is entered either from E reading 1, which leaves a 1 to D's left, or by a left move from B reading 1 or C reading 0, which writes a 1 to D's right. So D with a 0 on its left, in particular at the left end of the tape, always has a 1 on its right. This explains the observation from the long runs; it holds one step after any configuration, from any tape.",
+      "where": "<code>d_one_right</code>, <code>d_left_end</code>, <code>lean/Edge.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "A halt can only happen at the right edge",
+      "text": "A closed tape language with windows of three cells (an automaton on each side of the head and 245 abstract configurations, found by <code>tools/py/bbtools/ctl.py</code> and checked by <code>decide</code> in the kernel) covers every configuration of the run from blank tape. From it: to the right of the head cell, two 0s in a row occur only in the blank region beyond everything written; the halting shape <code>D&gt;0 0</code> occurs only with blank tape from D onward; and the machine halts from blank tape if and only if, at some step, it is in state E with blank tape from the head onward. The language does not constrain the left side, which may hold runs of 0s.",
+      "where": "<code>right_no_double_zero</code>, <code>d_zero_zero</code>, <code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code>, <code>tools/lean/TM/CTL.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "No halt in the first 20,000 steps",
+      "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 20,000 steps from blank tape without a halt, evaluated by Lean's kernel. At step 46 the tape is <code>1^2 0 1^5 A&gt;0</code> (<code>blank_at_46</code>).",
+      "where": "<code>blank_runs_20000</code>, <code>blank_at_46</code>, <code>lean/Blank.lean</code>"
+    },
+    {
+      "level": "native",
+      "title": "No halt in the first 10,000,000 steps",
+      "text": "The same run for 10<sup>7</sup> steps, evaluated by compiled code. Superseded by the pass map below, which goes to 10<sup>12</sup>.",
+      "where": "<code>blank_runs_10M</code>, <code>lean/Blank.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "The pass map, when the last block is not a multiple of 3",
+      "text": "Write a pass start as <code>&hellip; 1^d 0 1^c 0 1^b A&gt;0</code>. Then the next pass start is <code>&hellip; 1^d 0 1^(c + 6 + 2&lfloor;(m&minus;1)/2&rfloor;) 0 1^(2m&minus;1) A&gt;0</code> when b = 3m + 1 (m &ge; 1), and <code>&hellip; 1^(d + 2 + 2&lceil;m/2&rceil;) 0 1^(c + 2m + 3) A&gt;0</code> when b = 3m + 2, for every block length and every tape further left (a missing block counts as 0). B converts the last block from the right, 111 into 101; at its left end the residue mod 3 decides where the cells go, and on the way back two blocks grow by 2 and 4 for every two converted words.",
+      "where": "<code>next</code>, <code>next_sound</code>, <code>lean/Macro.lean</code>; the rules in <code>lean/Rules.lean</code> (generated by <code>lean/rules.py</code>)"
+    },
+    {
+      "level": "kernel",
+      "title": "A last block of 1 halts, and 4 halts one pass later",
+      "text": "A pass start whose last block is 1 halts during that pass (D reads a 0 with a 0 to its right at the right end); a last block 4 gives a last block 1. So a pass start ending in <code>1^1 0 1^2</code> also halts, two passes later. No pass start in the first 10<sup>10</sup> steps ends in 1 or 4.",
+      "where": "<code>K_zero_halts</code>, <code>kA0</code>, <code>halts_of_reaches</code>, <code>lean/Macro.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "The first passes from blank tape",
+      "text": "The run reaches the pass starts <code>1^2 0 1^2</code>, <code>1^2 0 1^5</code>, <code>1^4 0 1^7</code> and <code>1^10 0 1^3</code>, the last three by the pass map; the fourth ends in a multiple of 3. Then 100 more passes by the full pass map below, 32 of them recursive, evaluated by the kernel: the run reaches the pass start <code>1^162 0 1^206 A&gt;0</code> (after 2,065,482 steps).",
+      "where": "<code>blank_passes</code>, <code>lean/Macro.lean</code>; <code>blank_passes_104</code>, <code>lean/Recur.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "The covered passes keep every block at least 2",
+      "text": "Call a pass start good if every block is at least 2 and the last block is neither 1 nor 4 (1 halts on this pass, 4 on the next). Every pass the map above covers takes a good pass start to a good one, and so does any run of covered passes. So from a good pass start a halt needs a pass whose last block is a multiple of 3. On a covered pass the last block either shrinks, with the last block plus 5 becoming exactly two thirds of what it was (last block 1 mod 3), or becomes at least the block to its left plus 3 (last block 2 mod 3).",
+      "where": "<code>Good</code>, <code>next_good</code>, <code>nextIter_good</code>, <code>next_shrink</code>, <code>lean/Blocks.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "The pass map for every last block",
+      "text": "When the last block is a multiple of 3 the pass is followed by a machine on lists of numbers, <code>astep</code>: the state, the ones at the head, the blocks to the left and the words <code>0 1^k</code> to the right. Each of its 25 kinds of step is proved to be what the real machine does, for every length and every tape around it, from 19 new tape rules in <code>lean/Rules.lean</code> (and one sweep of a block into the next word, by induction). With the closed form above this gives <code>pass</code>, one pass for every last block, and whatever it returns (the next pass start, or a halt) the machine really does. It is not proved that the block machine always finishes a pass (see the next item): where it meets a case it does not cover it returns nothing, and it never does so in the runs checked.",
+      "where": "<code>astep</code>, <code>astep_sound</code>, <code>pass</code>, <code>pass_sound</code>, <code>passes_sound</code>, <code>lean/Recur.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "The block machine never goes round in circles",
+      "text": "Read the cells from the head to the right end of the tape backwards, from the right end. Every step of the block machine that does not end the pass makes this list smaller in dictionary order (a 1 before a 0, a list before its extensions): either the head moves right past whole words, or the first word that changes, counting from the right end, gets longer. So the block machine never repeats a configuration, and if its head stays within N cells of the right end and it meets no case it does not cover, it ends the pass within 3<sup>N</sup> steps. That the head cannot drift left without bound is not proved; in every recursive pass computed it reaches a fixed distance past the left end of the tape that does not depend on the length of the last block.",
+      "where": "<code>astep_key</code>, <code>arun_finishes</code>, <code>pass_finishes</code>, <code>lean/Finish.lean</code>; <code>py/macro.py reach</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "The last block after a recursive pass: 2j + c",
+      "text": "A recursive pass from <code>&hellip; x, 3j</code> turns the last block into the words <code>0</code>, <code>0 1</code> and j words <code>0 1 1</code>. Its end is a loop: from A before a block a with m words <code>0 1 1</code> ahead, every two words add 4 to a and 2 to the block left of it, and the next pass start has last block a + 2m, for every a, m and tape to the left. The block machine never reads past the words in front of it, so what comes before the loop is the same for every j: it is run once, with words <code>0 1 1</code> taken from an unbounded supply as needed (<code>pre</code>, u words taken, p still ahead when it stops), and then for every j &ge; u the next pass start has last block 2j + c with c = a + 2p &minus; 2u, which depends only on the blocks to the left. For x = 2 this is closed form for every list to the left and every j: c = &minus;1, so a last block 3 after a 2 becomes 1 and halts, and a last block of 6 or more after a 2 keeps a good pass start good. For every list of one to three blocks of 2 to 10 (819 lists) the kernel checks c &ge; &minus;1, with &minus;1 exactly when x = 2, for every j. That <code>pre</code> always stops is not proved.",
+      "where": "<code>tail_end</code>, <code>pre_sound</code>, <code>recur_sound</code>, <code>recur_two</code>, <code>recur_two_three_halts</code>, <code>recur_two_good</code>, <code>recur_small</code>, <code>lean/Formula.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "c &ge; &minus;1 for every list of blocks, if <code>pre</code> stops",
+      "text": "For every list of blocks of at least 2 to the left of the last block, of any length: if <code>pre</code> stops, then c &ge; &minus;1, and c &ge; 0 unless the block left of the last is 2; at most two words <code>0 1 1</code> are taken from the supply; and the blocks it leaves are all at least 2. So for every j &ge; 2 a good list with last block 3j passes to a list of blocks of at least 2 with last block at least 2j &minus; 1. The proof describes configurations of the block machine abstractly: a number exactly if it is at most 3, otherwise by its residue mod 3; the first three blocks to the left and the first two words to the right explicitly, the rest by its shape (all 0; blocks of at least 2 then 0s; anything; and for the words, a run of words 1, 2, 3 in which every 1 is followed by a 2). Every step of <code>pre</code> is matched by an abstract step, and the kernel checks the 4,463 descriptions reachable from the starts, split into 127 pieces (about 70 seconds): none loses its description, and every one at which <code>pre</code> may stop has the bound. That <code>pre</code> always stops is not proved.",
+      "where": "<code>absAstep_sound</code>, <code>absNext_sound</code>, <code>pre_abs</code>, <code>check_ok</code>, <code>offset_bound</code>, <code>recur_next</code>, <code>lean/Offset.lean</code>, <code>lean/OffsetData.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "<code>pre</code> never gets stuck, so it stops when the cells stay bounded",
+      "text": "At each of the 4,463 abstract descriptions reachable from a list of blocks of at least 2, the block machine has a next step unless <code>pre</code> stops or takes a supply word there, and at most two supply words are ever taken (checked by the kernel on the tree). So the run of <code>pre</code> never meets a case the block machine does not cover. With the key that goes down at every step, this gives: if every configuration of the run keeps at most N cells (head offset plus the cells of the words), <code>pre</code> stops within 4&middot;3<sup>N</sup> steps, and the next pass start has blocks of at least 2 and last block at least 2j &minus; 1, with no further assumption. The abstract graph has cycles (two strongly connected parts of 1,838 descriptions each), so it does not by itself bound the cells; that the head does not drift left without bound remains open.",
+      "where": "<code>progA_sound</code>, <code>prog_ok</code>, <code>preR_inv</code>, <code>pre_stops</code>, <code>recur_next_bounded</code>, <code>lean/Stops.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "Good starts do not stay good; a halt needs a last block 3 or 6",
+      "text": "Goodness is not kept by every pass: <code>2 2 3</code> and <code>3 6</code> are good and halt (<code>3 6 &rarr; 2 7 4 &rarr; 2 13 1</code>). Call a pass start safe if it is good, has at least two blocks, and has a last block 3 only after a block of at least 6; the run reaches the safe <code>10 3</code>. If <code>pre</code> stops: a safe pass start with last block other than 3 and 6 is followed by a safe one (a covered pass makes a last block 3 only from 7, the block to its left gaining 6, and a recursive pass from 9 or more gives at least 5); a last block 6 after a 2 gives a last block 3 after a block of at least 10; and a last block 6 after any other block gives last block 4 + c with c &ge; 0, which halts if c = 0 and is safe otherwise. So, given that <code>pre</code> stops, a halt needs either a last block 3 after a block of at least 6 that is not followed by a safe start (case A), or a last block 6 with c = 0 (case B).",
+      "where": "<code>Safe</code>, <code>safe_pass</code>, <code>six_after_two</code>, <code>six_pass</code>, <code>three_six_halts</code>, <code>blank_safe</code>, <code>lean/Chain.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "Case B needs the history: safe even starts that halt, and how fast the last block can fall",
+      "text": "No condition on the pass start alone that safety and parity can express rules case B out: <code>16 16</code> and <code>314 54</code> are safe, every block even (as the leftmost block always is on the run), and both halt by case B (<code>16 16 &rarr; 26 9 &rarr; 6 27 6 &rarr; 14 27 4 &rarr; 14 33 1</code>, evaluated by the kernel). What a halt by case B needs, if <code>pre</code> stops: from a safe start with last block other than 3 and 6 the next start is safe, its last block is at least two thirds of the old one less 5/3, and it is 6 only if the old last block was 9, or 2 after a block 3. So the last block must come down to 9 first, by at most a factor 3/2 a pass.",
+      "where": "<code>sixteen_halts</code>, <code>chain_54_halts</code>, <code>safe_pass_shrink</code>, <code>lean/CaseB.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "No lower bound on the last block by the size of the tape is kept",
+      "text": "A covered pass from a last block 1 mod 3 (at least 7) shrinks it to two thirds of it plus 5, less 5, while the block next to it grows and the rest stays, so the total grows by at least 2. Hence for any nondecreasing f, a good start whose last block is f(total) and 1 mod 3 passes to a good start below the bound. Ruling out a descent to 9 needs the residues that decide how long a descent lasts, not only sizes.",
+      "where": "<code>descent_step</code>, <code>no_total_bound</code>, <code>lean/Bound.lean</code>"
+    },
+    {
+      "level": "kernel",
+      "title": "The pass map with step counts",
+      "text": "Every rule of <code>lean/Rules.lean</code> states its exact number of steps, so the pass map can carry them: <code>passC</code> is <code>pass</code> returning, beside the next pass start (or a halt), the exact number of machine steps the pass takes, and <code>passesC</code> iterates it. Whatever they return, the machine does, in exactly that many steps. From blank tape the fourth pass start <code>1^10 0 1^3 A&gt;0</code> is reached at step 183.",
+      "where": "<code>passC</code>, <code>passC_sound</code>, <code>passesC_sound</code>, <code>blank_passesC</code>, <code>lean/Count.lean</code>"
+    },
+    {
+      "level": "native",
+      "title": "No halt in the first 10<sup>12</sup> steps",
+      "text": "The counted pass map, run from <code>1^10 0 1^3</code> for 8,257 passes and evaluated by compiled code (about 2.5 minutes), reaches the pass start <code>1^11866 0 1^17246 A&gt;0</code> at step 1,000,110,302,407, so the run from blank tape does not halt in its first 10<sup>12</sup> steps (and so not in the first 10<sup>10</sup> or 10<sup>11</sup>). Only the evaluation trusts the compiler; that each pass is what the machine does, step count included, is kernel-checked. Every pass start on the way to 10<sup>11</sup> steps (3,843 of them) agrees in step number and blocks with the C simulator.",
+      "where": "<code>blank_reaches_1e12</code>, <code>blank_runs_1e12</code>, <code>blank_runs_1e10</code>, <code>lean/Count.lean</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "No halt in the first 10<sup>11</sup> steps",
+      "text": "The shared C simulator runs 10<sup>11</sup> steps from blank tape without a halt (12,410 ones at the end; at 10<sup>10</sup> steps 5,580 ones and 6,278 cells visited). The C simulator agrees with the Python reference simulator on the first 80 records of the run (a test). The Lean pass map now goes further (10<sup>12</sup>, above).",
+      "where": "<code>tools/c/tmrun.c</code>, <code>tests/test_machine.py</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "No simple conserved quantity",
+      "text": "No a&middot;ones + b&middot;pos + W[state] is conserved modulo 2 to 12, so the mod-3 argument of the first holdout has no counterpart of this linear kind here.",
+      "where": "<code>tools/py/bbtools/invariants.py</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "The pass map agrees with the run to 10<sup>10</sup> steps",
+      "text": "In the first 10<sup>10</sup> steps there are 1,786 pass starts, all of them blocks separated by single 0s, with at most 8 blocks and no block shorter than 2. The closed-form map agrees with the run on all 1,205 whose last block is not a multiple of 3. The full pass map <code>pass</code> of <code>lean/Recur.lean</code>, run by Lean on its own output from <code>1^10 0 1^3</code>, gives all 1,782 later pass starts exactly, and its Python transcription gives all 1,786, the 581 recursive ones included. Both maps also agree with direct runs from 300 random block lists each that the run need not reach (tests).",
+      "where": "<code>py/macro.py check-full</code>, <code>tools/c/tmrun.c</code>, <code>tests/test_machine.py</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "Every pass start to 10<sup>11</sup> steps is good",
+      "text": "All 3,845 pass starts in the first 10<sup>11</sup> steps have every block at least 2 and a last block other than 1 and 4. Blocks shorter than 10 occur only as the first block (2, 4, 6 or 8) or as the last block in the first dozen passes; after pass 156 (about 6&middot;10<sup>6</sup> steps) the last block is always at least 22.",
+      "where": "<code>py/blocks.py run</code> on <code>tools/c/tmrun &hellip; at A R</code> output"
+    },
+    {
+      "level": "heuristic",
+      "title": "The tape grows slowly and splits into two regions",
+      "text": "The visited width grows roughly like the square root of the step count (about 6,300 cells after 10<sup>10</sup> steps). The left part of the tape fills with blocks <code>1^2 0</code>, with an occasional <code>1 0</code>, and the head sweeps over it; the right part holds a few long blocks of 1s. The head reaches new cells mostly on the right.",
+      "where": "<code>py/blank.py records</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "Only a last block of 3 or 6 can break goodness",
+      "text": "For a recursive pass from <code>&hellip; x, 3j</code> the new last block is 2j + c, where the offset c depends on the blocks to the left but not on j (proved, <code>recur_sound</code>), and is never below &minus;1 (exactly &minus;1 when x = 2; proved for x = 2 and for lists of up to 3 blocks of 2 to 10) and never 1 or 4. So with a last block of 9 or more the recursive pass also gives a good pass start, and every good list on which the next pass start is not good has last block 3 or 6: exhaustive over all lists of up to 3 blocks of 2 to 30 and up to 5 blocks of 2 to 12, and 20,000 random lists with blocks up to 200. Examples: <code>2 3 &rarr; 8 1</code>, <code>5 3 &rarr; 8 4</code>, <code>8 6 &rarr; 2 11 4</code>. A last block 3 with a block of 6 or more to its left was always safe; a last block 3 from a covered pass always has one.",
+      "where": "<code>py/blocks.py exhaustive</code>, <code>random</code>, <code>offsets</code>; <code>tests/test_machine.py</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "Case B: offset 0 means two supply words, and the run stays far from it",
+      "text": "With the block left of the last other than 2, the offset c is 0 exactly when <code>pre</code> takes two supply words, on all 2,743 lists of 1 to 3 blocks of 2..15. All 63 safe starts <code>x b</code> with x even below 400 and b below 300 that halt within 12 passes halt by case B, with b in {6, 9, 16, 24, 54}. Over the 8,257 pass starts to 10<sup>12</sup> steps: the leftmost block is always even; offset 0 in 631 of 2,654 recursive passes, never more than 3 in a row; case B never reached; the smallest last block from pass 156 on is 53, from pass 2,000 on 375, and from pass 156 on the last block is at least 1.38 times the square root of the total number of ones.",
+      "where": "<code>py/blocks.py caseb</code>, <code>tests/test_machine.py</code>"
+    },
+    {
+      "level": "heuristic",
+      "title": "Descents to 9 get rarer: the sum of their chances converges",
+      "text": "On the run to 10<sup>12</sup> steps there are 2,709 descents of the last block (maximal runs of passes each shrinking it), 1,454, 631, 416, 111, 59, 26, 9 and 3 of lengths 1 to 8: each further step about 0.4 likely, each shrinking the last block by about 2/3. Coming down from b to 9 then has chance about (b/9)<sup>&minus;2.26</sup>; the total grows linearly in the passes and the median last block is about 0.65 of it, so this falls like t<sup>&minus;2.26</sup> in the pass number t, and the sum converges. Evidence, not proof, that case B is never reached.",
+      "where": "<code>py/blocks.py descents</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "No residue invariant on the last two blocks separates the run from the halting starts",
+      "text": "Over passes 156 to 8,256 of the run, the pairs (x mod M, b mod M) of the last block b and the block x left of it fill 728 of the 729 pairs mod 27, and the nine known safe even starts that halt by case B all share their pair with some pass start of the run for every M dividing 54 (seven of them mod 81, five mod 162). So no condition on these residues, with or without parity, holds on the run and fails on the halting starts: they differ from the run only in size and in the higher 3-adic digits.",
+      "where": "<code>py/blocks.py residues</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "heuristic",
+      "title": "The recursive case: a last block that is a multiple of 3",
+      "text": "Then the converter does not stop at the left end of the last block: it carries on into the next block in a second mode (B reading <code>0 0</code>), and that block's residue mod 3 decides again: 1 carries on further left, 0 and 2 turn back. So the routes form an infinite family (which the block machine of <code>lean/Recur.lean</code> follows one word at a time), one for each run of blocks that are 1 mod 3, and a route census over small cases would not be complete. In the first 10<sup>10</sup> steps the converter crosses 0, 1, 2 and 3 extra blocks of 1 mod 3 in 400, 178, 3 and 1 of the 581 recursive passes. The rules for these steps are worked out symbolically but not yet put together in Lean.",
+      "where": "<code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "heuristic",
+      "title": "No finite invariant: the danger is a shrinking chain",
+      "text": "Both shrinking routes take the last block to about two thirds (covered: exactly, recursive: 2j + c). A last block 6 arises from a last block 9 with offset 0, which is common, and 9 from 15 or 16, and so on, so the pass starts that can reach a halt are not cut out by any condition on a bounded number of blocks: whether the run halts is a question about how these chains of residues line up. In the run the last block stays large: the fraction of pass starts after the first 300 with a last block below &epsilon; times the width is 0.33, 0.047, 0.0085 and 0.0006 for &epsilon; = 0.5, 0.2, 0.1, 0.05, and none below 0.036, falling faster than &epsilon;. If that continues, the expected number of last blocks of 9 or less is finite, which is evidence (not proof) that the run never halts.",
+      "where": "<code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "open",
+      "title": "That <code>pre</code> stops, and the bad last blocks",
+      "text": "The new last block after a recursive pass is proved to be 2j + c with c depending only on the blocks to the left, c = &minus;1 when x = 2, and c &ge; &minus;1 for every list of blocks of at least 2 provided the part before the final loop (<code>pre</code>) stops (<code>lean/Formula.lean</code>, <code>lean/Offset.lean</code>). Open: that the head does not drift left without bound (proved equivalent to <code>pre</code> always stopping, since <code>pre</code> never gets stuck); case A of <code>lean/Chain.lean</code>, a last block 3 after a block of at least 6 (computed: always followed by a safe start, with c = 0 or c &ge; 3, over 55,700 lists, <code>py/blocks.py chain</code>); and case B, whether the run ever reaches a last block 6 with c = 0 (which does halt: <code>8 6 &rarr; 2 11 4</code>; it is entered only through a last block 9 or <code>3 2</code>, after a descent of the last block by at most 3/2 a pass, <code>lean/CaseB.lean</code>). Every other pass from a safe start is proved to give a safe start, given that <code>pre</code> stops.",
+      "where": "<code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "open",
+      "title": "Does it halt from blank tape?",
+      "text": "Not known.",
+      "where": ""
+    }
+  ],
+  "check": [
+    "bash scripts/setup-lean.sh                    # Lean 4.34.0, core only",
+    ". /etc/profile.d/lean.sh",
+    "bb6-1RB1RA_1LC1LD/lean/check.sh               # the library, then Machine, Blank, EdgeCert, Edge, Rules, Macro, Blocks, Recur, Finish, Formula, Offset, OffsetData, Stops, Chain, CaseB, Bound, Count, Tokens, Axioms",
+    "python3 bb6-1RB1RA_1LC1LD/tests/test_machine.py",
+    "python3 bb6-1RB1RA_1LC1LD/py/blank.py records 100000 60",
+    "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 10000000000",
+    "python3 bb6-1RB1RA_1LC1LD/py/macro.py check 3000000   # the pass map against the run",
+    "./tmrun 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 10000000000 at A R 100000 | grep 'A>0$' > passes.txt && python3 bb6-1RB1RA_1LC1LD/py/macro.py check-full passes.txt",
+    "python3 bb6-1RB1RA_1LC1LD/py/blocks.py exhaustive 30 3   # good lists whose next pass start is not good: last block 3 or 6",
+    "python3 bb6-1RB1RA_1LC1LD/py/blocks.py chain 14 4 1 20000   # case A of lean/Chain.lean: a last block 3 after a block of at least 6",
+    "python3 bb6-1RB1RA_1LC1LD/py/blocks.py caseb 15 400 300 12 3000   # case B: offset 0 and two supply words, halting starts, the run",
+    "python3 bb6-1RB1RA_1LC1LD/py/blocks.py descents 8256   # the descents of the last block on the run to 10^12 steps (minutes)",
+    "python3 bb6-1RB1RA_1LC1LD/py/blocks.py residues 8256 18 27 54 81 162   # residues of the last two blocks on the run against the halting starts (minutes)",
+    "cd tools/py && python3 -m bbtools.invariants 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 12",
+    "cd tools/py && python3 -m bbtools.ctl 1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB 3"
+  ]
+}

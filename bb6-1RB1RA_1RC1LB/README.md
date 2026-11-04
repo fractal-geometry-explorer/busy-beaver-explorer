@@ -4,7 +4,8 @@ Whether this machine halts from blank tape is open. This folder holds its work; 
 [`../tools`](../tools), the proof-status page is [`../pages/1RB1RA_1RC1LB/proof-status.html`](../pages/1RB1RA_1RC1LB/proof-status.html)
 (built from [`status.json`](status.json)), and the log is [`notes/LAB_NOTES.md`](notes/LAB_NOTES.md). Two more pages
 explain the run: [`reduction.html`](../pages/1RB1RA_1RC1LB/reduction.html), the reduction to the number N with what
-each link rests on, and [`explainer.html`](../pages/1RB1RA_1RC1LB/explainer.html), which runs the machine in the browser
+each link rests on, [`top-blocks.html`](../pages/1RB1RA_1RC1LB/top-blocks.html), where halting is decided and how far
+the heuristic holds, and [`explainer.html`](../pages/1RB1RA_1RC1LB/explainer.html), which runs the machine in the browser
 at each level.
 
 ## What is established
@@ -18,6 +19,12 @@ at each level.
   (`halts_iff_pow2'`, `lean/Wave.lean`): every fourth time A stands on the blank right of the tape, the tape is
   p₁ … pₘ then 5, 0, the next such tape is `superstep P` (a wave of halvings going left: `super_run`, for every list),
   and a super step halts iff N is a power of two (`superL_none_iff`); the orbit starts at (1, 6);
+- **the single events** (`ev_sound`, `lean/Events.lean`): each time A stands on the blank right of the tape, the next
+  such tape follows in closed form. With the last block x, the one before it k and q = x/2, an even x gives the blocks
+  … k + q + 1, q + 2, and an odd x starts the wave at k with value k + q + 2 and ends with the last block q. Four events
+  are the super step (`ev4`), the machine halts iff the event orbit from (1, 2) at step 17 halts (`halts_iff_ev`), and
+  this event map is Google DeepMind's `highLevelNext`, copied into `lean/DeepMind.lean` and proved equal to it for
+  every event (`highLevelNext_eq`);
 - **the step count of the super step** (`super_steps`, `lean/WaveTime.lean`): from the tape p₁ … pₘ 5 0 the machine
   reaches the next one in exactly `superT` steps (or halts right after that many): 200, then 2q² + q − 5 for each block
   the wave passes with even d = 2q, then 2q² + 4q + 17 + A where it turns at an odd d = 2q + 1 (A is 3 plus q + 1 per
@@ -31,6 +38,9 @@ at each level.
   (`blank_runs_1_4e16`, `lean/OrbitKernel.lean`: the first 10⁷ super steps, checked in 1,000 chunks by
   `check_orbit.sh`, about three CPU hours); within `check.sh`, no halt in the first 2·10¹⁰ steps (`blank_runs_2e10`,
   10⁵ macro steps) and in the first 20,000 step by step;
+- **N only grows** (`superL_grows`, `orbit_grows`, `lean/Monotone.lean`): N strictly increases at every super step, so
+  the orbit meets each power of two at most once, and the next return's d₁ exceeds p₁ + p₂/2 + p₃/4 + … for the blocks
+  now (with the blocks at the end of the long run: the next return halts only if 2⁸⁰ divides d₁);
 - **each level cycles, or the machine never halts** (`cycles_or_never_halts`, `lean/Cycles.lean`): from any state the
   last k blocks either cycle or go silent, and a silent bottom on the orbit means no halt. Which case holds for every
   k is not decided;
@@ -55,8 +65,8 @@ configuration of the first 1,000 macro steps); no conserved quantity a·ones + b
 (`tools/py/bbtools/invariants.py`).
 
 **Computed, resting on the wave model** (`py/waves.py`, `c/blkrun.c`, `tests/test_waves.py`; checked against direct
-simulation and against `py/macro.py`): the finer events (each time A is at the right end, four per super step) and
-their step counts; the sum over a super step is the proved `superT`.
+simulation and against `py/macro.py`): the step counts of the single events (the events themselves are proved,
+above); the sum over a super step is the proved `superT`.
 The wave goes v₂(N) + 1 blocks deep and reaches the left end of the tape when 2^(m−1) divides N (which is why the
 head gets there so rarely: the next time after step 2,047,931 is step 26,618,972,322, confirmed by a direct run).
 
@@ -68,6 +78,13 @@ with no halt: **no halt in the first 2.7·10⁴⁹ steps** (the orbit is proved 
 proved, `superT`; the run itself is C). With `-r` it prints the period rule for each level: all 44 factors are the ones the
 mod-5 rule predicts (`runs/periods_rules.txt`), a settled level remembers only its block mod 5, and a wave passes the
 last k blocks at the rate 1.2764·2^−k per super step (N's low bits lean towards 0 by that constant factor).
+
+**The top blocks** (`py/top_stats.py`, `c/ensemble.c`, `c/bottom2adic.c`; [`top-blocks.html`](../pages/1RB1RA_1RC1LB/top-blocks.html)):
+halting is decided by d₁ = N/2^(m−1) at the returns to the left end, now 1.9·10²⁴ (81 bits; earlier write-ups said
+10²⁷ by a miscount). The random model gives about 5·10⁻²⁵ for a future halt (heuristic). Exact over a period of the
+last 18 blocks, N mod 2^k has a valuation profile tending to 1.28, ever fairer next bits, and never 3030 or 4054 mod
+2¹²; at the top of the orbit the waves pass each block half the time; from 60,000 random starts the map halts 2,018
+times against 2,024 predicted, and near-halts follow the model within a factor of about 2 up to d₁ ≈ 2³⁰.
 
 **Observed only**: no macro configuration up to 9·10¹³ steps comes near the halting shape (left blocks in the
 hundreds of thousands); see the notes.
@@ -84,7 +101,7 @@ It is an open holdout, unannotated in the community ledger's "Cubic Mess" class,
 DeepMind's [cryptids](https://github.com/google-deepmind/cryptids) repository lists it as an open problem with a Lean
 reduction to a map on stacks of block lengths (27 October 2026): the macro step cut at other moments, and a
 higher-level map that is exactly the event map of `py/waves.py`, one level below the super step (`py/deepmind.py`
-checks both). Nothing found goes as far as the super step's formula or the criterion on N. Its map is not Antihydra's or Hydra's. One machine merged into an equivalence class by
+checks both; `lean/DeepMind.lean` proves the second). Nothing found goes as far as the super step's formula or the criterion on N. Its map is not Antihydra's or Hydra's. One machine merged into an equivalence class by
 bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same tapes. Details and sources:
 [`notes/PRIOR_WORK.md`](notes/PRIOR_WORK.md).
 
@@ -99,6 +116,9 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 | `lean/MacroRun.lean` | bounded runs from blank tape by the macro step |
 | `py/macro.py` | the same macro map in Python (`python3 py/macro.py 50` prints the run) |
 | `lean/Wave.lean` | the super step proved from `next`, and halting iff N is a power of two |
+| `lean/Events.lean` | the single events (`ev`, `ev_sound`), four of them the super step (`ev4`), and halting by events |
+| `lean/DeepMind.lean` | google-deepmind/cryptids' `highLevelNext`, copied into core Lean and proved equal to `ev` |
+| `lean/Monotone.lean` | N strictly increases at every super step (`superL_grows`, `orbit_grows`) |
 | `lean/WaveTime.lean` | the super step's exact step count, and the timed super orbit `orbitT` |
 | `lean/orbit_gen.py` → `lean/Orbit/`, `OrbitKernel.lean`, `OrbitNative.lean` | the orbit checked in chunks between checkpoints from `c/orbitck.c` (generated; do not edit) |
 | `lean/check_orbit.sh` | checks those files in parallel (`kernel` or `all`) |
@@ -112,6 +132,9 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `py/waves.py` | the wave model: the run in another cut, and the super step with N, exact step counts |
 | `py/n_search.py` | the search for an invariant that keeps N off the powers of two |
+| `py/top_stats.py` | the top blocks: the next return's floor and the odds (`odds`), pass rates at the top of the orbit (`toppass`), the random model tested on `c/ensemble.c` runs (`ensemble`) |
+| `c/ensemble.c` | the super step from many random starts, every return and halt |
+| `c/bottom2adic.c` | N mod 2^k over one exact period of the last k blocks |
 | `py/deepmind.py` | lines up google-deepmind/cryptids' stack map and its high-level map with `py/macro.py` and `py/waves.py` |
 | `py/sibling.py` | checks that `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, merged by bbchallenge into an equivalence class, runs as this machine does |
 | `c/blkrun.c` | the wave model in C, for runs far beyond direct simulation |
@@ -121,6 +144,7 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 | `tests/test_machine.py` | the generated files are current, early facts of the run |
 | `tests/test_waves.py` | the block model against `tmrun`, the reference simulator and `runs/` |
 | `tests/test_superrun.py` | `superrun` against `waves.py`, `blkrun.c`, its direct mode and `py/superrun.py`; `py/cycles.py` against its tables |
+| `tests/test_top.py` | `c/ensemble.c` and `c/bottom2adic.c` against `py/waves.py`; `py/top_stats.py`; N grows on random starts |
 | `tests/test_explainer.py` | the engine of `pages/1RB1RA_1RC1LB/explainer.html` against `py/macro.py`, `py/waves.py` and the reference simulator (needs Node) |
 | `runs/` | outputs of long runs |
 | `notes/PRIOR_WORK.md` | what the community and the literature knew about this machine (30 October 2026), with sources |
@@ -135,5 +159,6 @@ bb6-1RB1RA_1RC1LB/lean/check_cycles.sh 35 6     # the tables of 35 levels in pie
 python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py     # about 20 s
 python3 bb6-1RB1RA_1RC1LB/tests/test_superrun.py  # about 20 s
+python3 bb6-1RB1RA_1RC1LB/tests/test_top.py       # the tools for the top blocks, a few seconds
 python3 bb6-1RB1RA_1RC1LB/tests/test_explainer.py # the explainer page's engine (Node), a few seconds
 ```

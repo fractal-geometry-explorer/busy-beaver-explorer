@@ -42,8 +42,9 @@ event of the first 10^9 steps, with exact step counts, and the predicted left-en
 runs/left_records_1e10.txt and a direct run to 2.7 10^10 steps, and against the first 2,000 configurations of
 py/macro.py, the cut of the same run that lean/Macro.lean proves).  The super step and the halting criterion are
 proved in Lean (lean/Wave.lean: `super_run`, `superL_none_iff`, `halts_iff_pow2'`), and so are the step counts of
-the super step (lean/WaveTime.lean: `super_steps`, the formula of `super_steps` here); the finer events of `step` and
-their step counts are not.
+the super step (lean/WaveTime.lean: `super_steps`, the formula of `super_steps` here), and so are the events of
+`step` (lean/Events.lean: `ev`, `ev_sound`, the list part of `step` for every event); the step counts of single events
+are not.
 """
 import sys
 

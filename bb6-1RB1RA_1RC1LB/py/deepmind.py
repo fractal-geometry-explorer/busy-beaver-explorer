@@ -13,7 +13,8 @@ The script checks two things:
          one block of a carry, the macro step here runs the carry over all the 2s and the sweep back right);
   high   DeepMind's high-level map (the section R = []) is the event map of waves.py `step`: the event (b_1, ..., b_n),
          A on the blank right of the tape, is C(b_n + 1, (b_(n-1) - 1, ..., b_1 - 1), []) two steps later, and the
-         two orbits agree event for event.  The super step of lean/Wave.lean is every fourth event.
+         two orbits agree event for event.  The super step of lean/Wave.lean is every fourth event.  lean/DeepMind.lean
+         proves this for every event (`highLevelNext_eq`), with `toHL` the translation above.
 """
 import sys
 

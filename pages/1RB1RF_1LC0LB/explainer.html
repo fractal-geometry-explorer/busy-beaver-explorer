@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Inside 1RB1RF_1LC0LB</title>
+<meta name="description" content="An interactive explainer of the six-state machine 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---: a tape simulator from blank tape with the tape read as pairs, the sweeps and the one halting shape, the left-end moments, walls that replay the blank run, growth, and every result marked by what it rests on.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column (68ch) that widens to 1080px for the instruments (tape, explorer, charts).
+   Tape cells are the recurring motif: 1 = inked cell, 0 = empty cell. */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --sunk:#eceef2; --line:#d9dce3; --line-strong:#b9bec9;
+  --fg:#14171d; --fg2:#4a505c; --muted:#7a808c;
+  --accent:#2350a8; --accent-soft:#e3eaf8;
+  --ink:#1b2230; --cell0:#ffffff;
+  --head:#d2551f;
+  --kernel:#1c7a4d; --kernel-bg:#e2f3ea;
+  --native:#2350a8; --native-bg:#e3eaf8;
+  --computed:#9a6400; --computed-bg:#fbf0d9;
+  --heur:#7a4fb5; --heur-bg:#efe8f8;
+  --open:#b3363a; --open-bg:#f8e3e3;
+  --s1:#2a78d6; --s2:#eb6834; --grid:#e1e0d9; --axis:#c3c2b7;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#11141a; --surface:#181c24; --sunk:#0d1015; --line:#2a303b; --line-strong:#3c4452;
+  --fg:#e9ecf2; --fg2:#b4bac6; --muted:#858c99;
+  --accent:#8fb0f0; --accent-soft:#1d2a44;
+  --ink:#dfe5f0; --cell0:#11141a; --head:#f08a55;
+  --kernel:#5cc893; --kernel-bg:#14301f; --native:#8fb0f0; --native-bg:#1d2a44;
+  --computed:#e7b453; --computed-bg:#33280f; --heur:#b99cf0; --heur-bg:#2a2040;
+  --open:#f08488; --open-bg:#3a1c1e; --s1:#3987e5; --s2:#d95926; --grid:#2c2c2a; --axis:#383835;
+  color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#11141a; --surface:#181c24; --sunk:#0d1015; --line:#2a303b; --line-strong:#3c4452;
+  --fg:#e9ecf2; --fg2:#b4bac6; --muted:#858c99;
+  --accent:#8fb0f0; --accent-soft:#1d2a44;
+  --ink:#dfe5f0; --cell0:#11141a; --head:#f08a55;
+  --kernel:#5cc893; --kernel-bg:#14301f; --native:#8fb0f0; --native-bg:#1d2a44;
+  --computed:#e7b453; --computed-bg:#33280f; --heur:#b99cf0; --heur-bg:#2a2040;
+  --open:#f08488; --open-bg:#3a1c1e; --s1:#3987e5; --s2:#d95926; --grid:#2c2c2a; --axis:#383835;
+  color-scheme:dark; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--body);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 64px}
+.wrap{max-width:1080px;margin:0 auto}
+.col{max-width:68ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,3.3rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(1.45rem,3vw,1.95rem);font-weight:700;margin-bottom:.6rem}
+h3{font-size:1.12rem;font-weight:700;margin:1.4rem 0 .4rem}
+p{margin:.65rem 0}
+a{color:var(--accent)}
+code,.mono{font-family:var(--mono);font-size:.86em}
+code{background:var(--sunk);padding:.08em .32em;border-radius:4px;white-space:nowrap}
+section{padding-block:44px 8px;border-top:1px solid var(--line)}
+.eyebrow{font:600 .74rem/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem;display:block}
+.lede{font-size:1.14rem;color:var(--fg2)}
+.small{font-size:.88rem;color:var(--fg2)}
+.muted{color:var(--muted)}
+/* evidence chips */
+.ev{display:inline-flex;align-items:center;gap:.35em;font:600 .72rem/1 var(--body);letter-spacing:.04em;text-transform:uppercase;
+  padding:.32em .55em;border-radius:999px;white-space:nowrap;vertical-align:.12em}
+.ev::before{font-size:.9em}
+.ev.k{color:var(--kernel);background:var(--kernel-bg)} .ev.k::before{content:"◆"}
+.ev.n{color:var(--native);background:var(--native-bg)} .ev.n::before{content:"◈"}
+.ev.c{color:var(--computed);background:var(--computed-bg)} .ev.c::before{content:"▲"}
+.ev.h{color:var(--heur);background:var(--heur-bg)} .ev.h::before{content:"≈"}
+.ev.o{color:var(--open);background:var(--open-bg)} .ev.o::before{content:"?"}
+.claim{border-left:3px solid var(--line-strong);padding:.15rem 0 .15rem .9rem;margin:1rem 0}
+.claim.k{border-color:var(--kernel)} .claim.n{border-color:var(--native)} .claim.c{border-color:var(--computed)}
+.claim.h{border-color:var(--heur)} .claim.o{border-color:var(--open)}
+.claim .where{font-size:.8rem;color:var(--muted);margin-top:.2rem}
+.claim p{margin:.35rem 0}
+/* hero */
+header.hero{padding-block:48px 28px}
+.machine-id{font-family:var(--mono);font-size:clamp(.78rem,2.2vw,1rem);color:var(--fg2);word-break:break-all;margin:.8rem 0 0}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:26px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.fact b{font:700 1.5rem/1.1 var(--display)}
+.fact span.small{line-height:1.4}
+.key{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:22px;align-items:center}
+.key div{display:flex;gap:8px;align-items:center;font-size:.86rem;color:var(--fg2)}
+nav.toc{margin-top:26px;display:flex;flex-wrap:wrap;gap:6px}
+nav.toc a{font-size:.84rem;text-decoration:none;color:var(--fg2);border:1px solid var(--line);border-radius:999px;padding:.25em .7em;background:var(--surface)}
+nav.toc a:hover{border-color:var(--accent);color:var(--accent)}
+/* tables */
+.tw{overflow-x:auto;margin:1rem 0}
+table{border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:.42rem .8rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--fg2);font-size:.8rem;letter-spacing:.03em}
+td.mono,th.mono{font-family:var(--mono);font-size:.84rem}
+table.tt td{text-align:center;font-family:var(--mono)} table.tt th{text-align:center}
+/* panels */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin:22px 0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,select,input[type=text]{font:500 .9rem var(--body);color:var(--fg);background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:.45em .8em}
+button{cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text]{font-family:var(--mono);min-width:0;width:16em;max-width:100%}
+.readout{display:flex;flex-wrap:wrap;gap:6px 22px;margin:14px 0 6px;font-size:.9rem;color:var(--fg2)}
+.readout b{font-family:var(--mono);color:var(--fg);font-weight:600}
+.statechip{display:inline-block;min-width:1.6em;text-align:center;font:700 .9rem var(--mono);color:var(--surface);background:var(--head);border-radius:5px;padding:0 .3em}
+.cells{display:flex;gap:2px;justify-content:center;margin:14px 0 4px;overflow:hidden}
+.cell{width:22px;height:30px;flex:0 0 22px;border:1px solid var(--line-strong);border-radius:3px;background:var(--cell0);position:relative}
+.cell.one{background:var(--ink);border-color:var(--ink)}
+.cell.blank{border-style:dashed;opacity:.55}
+.cell.hd{outline:2px solid var(--head);outline-offset:2px}
+.cell.hd::after{content:attr(data-s);position:absolute;top:-24px;left:50%;transform:translateX(-50%);font:700 .8rem var(--mono);color:var(--head)}
+.cellwrap{padding-top:22px}
+canvas{display:block;max-width:100%}
+.stwrap{overflow-x:auto}.stwrap canvas{min-width:860px}
+.tw table{min-width:600px}
+.strip{width:100%;height:26px;border-radius:4px;background:var(--sunk);margin-top:10px}
+.cap{font-size:.8rem;color:var(--muted);margin-top:6px}
+.ctrow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-top:12px}
+.ctleft{font:400 .8rem/1.4 var(--mono);color:var(--muted);background:var(--sunk);border-radius:8px;padding:8px 10px;max-width:100%;overflow-wrap:anywhere}
+.ctlev{border:1px solid var(--line);border-radius:8px;padding:6px 10px;min-width:92px;background:var(--surface)}
+.ctlev .dg{font:700 1.5rem/1 var(--display)}
+.ctlev .sp{font:400 .75rem/1.3 var(--mono);color:var(--fg2)}
+.ctlev.d2 .dg{color:var(--kernel)} .ctlev.d1 .dg{color:var(--accent)} .ctlev.d0 .dg{color:var(--muted)}
+.ctlev .chg{background:var(--accent-soft);border-radius:3px}
+.ctlev.turn{border-color:var(--accent)}
+.passlog{font-family:var(--mono);font-size:.82rem;max-height:220px;overflow:auto;border-top:1px solid var(--line);margin-top:12px;padding-top:8px}
+.passlog div{display:grid;grid-template-columns:5.5em 7.5em 1fr;gap:10px;padding:2px 0}
+.passlog .t{color:var(--muted);text-align:right}
+.tag{font:600 .7rem/1 var(--body);padding:.25em .45em;border-radius:4px;background:var(--sunk);color:var(--fg2);white-space:nowrap}
+.tag.rec{background:var(--accent-soft);color:var(--accent)}
+.tag.bad{background:var(--open-bg);color:var(--open)}
+.tag.ok{background:var(--kernel-bg);color:var(--kernel)}
+/* explorer rows */
+.xrows{margin-top:14px;display:flex;flex-direction:column;gap:6px;max-height:520px;overflow:auto}
+.xrow{display:grid;grid-template-columns:2.6em minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--line)}
+.xrow .i{font:600 .8rem var(--mono);color:var(--muted);text-align:right}
+.bars{display:flex;gap:2px;height:16px;min-width:0}
+.bars span{background:var(--ink);border-radius:2px;min-width:2px;opacity:.85}
+.bars span.last{background:var(--head);opacity:1}
+.xrow .bl{font:500 .84rem var(--mono);margin-top:4px;overflow-wrap:anywhere}
+.xrow .tags{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.xrow.halt{background:var(--open-bg)}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.presets button{font-family:var(--mono);font-size:.8rem;padding:.3em .6em}
+/* flow */
+.flow{display:grid;gap:10px;margin:18px 0}
+.flow .node{border:1px solid var(--line-strong);border-radius:10px;padding:10px 14px;background:var(--surface);font-size:.92rem}
+.flow .node.kn{border-color:var(--kernel)} .flow .node.on{border-color:var(--open);background:var(--open-bg)}
+.flow .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.flow .arrow{text-align:center;color:var(--muted);font-size:1.1rem;line-height:1}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0}
+.chain .st{font:700 1.4rem var(--display);border:2px solid var(--line-strong);border-radius:10px;padding:.2em .6em;background:var(--surface)}
+.chain .st.end{border-color:var(--open);color:var(--open)}
+.chain .ar{font-size:.78rem;color:var(--fg2);text-align:center;line-height:1.25}
+.chain .ar::after{content:"→";display:block;font-size:1.2rem;color:var(--muted)}
+/* charts */
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{fill:var(--muted);font:11px var(--body);font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.84rem;color:var(--fg2);margin:4px 0 6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:6px 9px;font-size:.8rem;
+  box-shadow:0 4px 14px rgba(0,0,0,.12);white-space:nowrap;z-index:5;font-variant-numeric:tabular-nums}
+.tip[hidden]{display:none}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+.grid2>*{min-width:0}
+/* ledger */
+.lfilter{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.lfilter button{font-size:.8rem;padding:.3em .7em;border-radius:999px}
+.lfilter button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.ledger{display:flex;flex-direction:column}
+.litem{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.litem .w{font-size:.78rem;color:var(--muted);font-family:var(--mono);overflow-wrap:anywhere}
+.litem b{font-weight:600}
+.gap{border:1px solid var(--open);border-radius:12px;padding:16px 18px;background:var(--surface);margin:14px 0}
+.gap h3{margin-top:0;color:var(--open)}
+pre.sym{font-family:var(--mono);font-size:.8rem;background:var(--sunk);border-radius:8px;padding:12px;overflow-x:auto;line-height:1.5}
+@media (max-width:560px){ .passlog div{grid-template-columns:4.5em 6em 1fr} .litem{grid-template-columns:1fr;gap:4px} }
+@media (prefers-reduced-motion:reduce){ *{scroll-behavior:auto!important;transition:none!important} }
+.crumb{font-size:.88rem;color:var(--muted);overflow-wrap:anywhere;margin:0 0 18px}
+footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;font-size:.9rem;color:var(--fg2)}
+/* this page */
+.words{font-family:var(--mono);font-size:.84rem;background:var(--sunk);border-radius:8px;padding:10px 12px;overflow-x:auto;white-space:nowrap;margin-top:10px;min-height:2.6em}
+.words .hdw{color:var(--head);font-weight:600}
+.words .mk{color:var(--open);font-weight:600}
+.rule{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin:18px 0;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.rule .rowc{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rule .lbl{font:600 .78rem var(--body);color:var(--muted);min-width:7.5em}
+.mini{display:flex;gap:2px}
+.mini .cell{width:18px;height:24px;flex:0 0 18px}
+.mini .cell.hd::after{top:-20px;font-size:.72rem}
+.mini.cellwrap{padding-top:18px}
+.lev{font-family:var(--mono);font-size:.8rem}
+.lev td{white-space:nowrap}
+.lev td.bl{white-space:normal;overflow-wrap:anywhere;max-width:60ch}
+.lev tr.wall td{background:var(--accent-soft)}
+.lev tr.rep td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.levwrap{max-height:460px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.levwrap table{min-width:640px;width:100%}
+.levwrap th{position:sticky;top:0;background:var(--surface);z-index:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / 1RB1RF_1LC0LB / explained</p>
+  <span class="eyebrow">An open six-state machine · status as of 2 November 2026</span>
+  <h1>Does this machine ever halt?</h1>
+  <p class="machine-id">1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---</p>
+  <div class="col">
+    <p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run ten billion steps without stopping. The work on it has just begun: this page shows how its tape is organised, the one way it could stop, what has been proved in Lean, what has only been computed, and the patterns that the next proofs will aim at.</p>
+  </div>
+  <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>One halting shape</b><span class="small">Every halt from blank tape comes two steps after the head, in state E, reads <code>0 1 1</code>.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>Three sweep rules</b><span class="small">Sweeps right in E and left in B shift the pairs <code>10</code>; E marks each boundary <code>0 10</code> as <code>0 11</code>.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>10</sup> steps</b><span class="small">No halt (C simulator). In Lean: 20,000 steps by the kernel, 10<sup>7</sup> with <code>native_decide</code>.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>Walls replay the start</b><span class="small">In front of a long block the left end goes through the run from blank tape again, and walls nest.</span></div>
+  </div>
+  <div class="key" aria-label="Evidence levels used on this page">
+    <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
+    <div><span class="ev n">native_decide</span> proved in Lean, one evaluation trusts the compiler</div>
+    <div><span class="ev c">Computed</span> C or Python, tested but not proved</div>
+    <div><span class="ev h">Heuristic</span> patterns and evidence</div>
+    <div><span class="ev o">Open</span> not known</div>
+  </div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#machine">The machine</a><a href="#tape">Watch it run</a><a href="#sweeps">Sweeps and the halt</a>
+    <a href="#left">Left-end moments</a><a href="#walls">Walls</a><a href="#growth">Growth</a><a href="#next">Next</a><a href="#ledger">Ledger</a>
+  </nav>
+</header>
+
+<section id="machine">
+  <span class="eyebrow">1 · The machine</span>
+  <h2>Six states, two symbols, one halting transition</h2>
+  <div class="col">
+    <p>Each entry says what to write, which way to move and which state to enter. The run starts in state A on a blank tape. The only way to stop is to be in F reading a 1.</p>
+  </div>
+  <div class="tw"><table class="tt" aria-label="Transition table">
+    <thead><tr><th>state</th><th>reads 0</th><th>reads 1</th></tr></thead>
+    <tbody id="ttBody"></tbody>
+  </table></div>
+  <div class="col">
+    <div class="claim k"><p><span class="ev k">Kernel</span> F is entered from A or D reading a 1 and then reads the cell to their right. D is entered only by C reading 1 (<code>0LD</code>), which leaves a 0 just right of D, so D never leads to a halt. A is entered only by E reading 0. So every halt from blank tape comes two steps after <code>E&gt;0 1 1</code>: E steps onto the 0, A onto the first 1, F onto the second.</p>
+      <p class="where"><code>halt_from_e011</code>, <code>d_right_zero</code>, <code>lean/Blank.lean</code></p></div>
+    <p class="small">The figures beside the table count how often each transition is used in the first million steps of the simulator below: A, E reading 0, D reading 1 and F are rare, and mark the moments where something happens.</p>
+  </div>
+</section>
+
+<section id="tape">
+  <span class="eyebrow">2 · Watch it run</span>
+  <h2>The tape from blank, read as pairs</h2>
+  <div class="col">
+    <p>The tape soon consists of pairs <code>10</code>, in blocks separated by single extra 0s. Below the cells, the tape is read from the left with the words <b>a</b> = <code>10</code> and <b>b</b> = <code>110</code> and run-length coded, so <code>a^13 0 a^13</code> is two blocks of 13 pairs. The head is the coloured cell; the diagram underneath stacks one row per turn of the head, so sweeps show as long rows.</p>
+  </div>
+  <div class="panel">
+    <div class="controls">
+      <button type="button" class="primary" id="simRun">Run</button>
+      <button type="button" id="simStep">Step</button>
+      <button type="button" id="simTurn">Next turn</button>
+      <button type="button" id="simReset">Reset</button>
+      <label class="small">Speed <select id="simSpeed"><option value="1">1 step</option><option value="20">20 steps</option><option value="500" selected>500 steps</option><option value="20000">20,000 steps</option></select> per frame</label>
+    </div>
+    <div class="presets" aria-label="Jump to a step">
+      <span class="small">Jump to</span>
+      <button type="button" data-go="1681">1,681</button><button type="button" data-go="1790">1,790</button><button type="button" data-go="277787">277,787</button><button type="button" data-go="1942279">1,942,279</button>
+    </div>
+    <div class="readout"><span>step <b id="rStep">0</b></span><span>state <span class="statechip" id="rState">A</span></span><span>cells <b id="rWidth">1</b></span><span>ones <b id="rOnes">0</b></span></div>
+    <div class="cellwrap"><div class="cells" id="cells"></div></div>
+    <div class="words" id="words" aria-live="off"></div>
+    <div class="stwrap" style="margin-top:14px"><canvas id="st" width="860" height="260" style="width:100%" aria-label="One row per turn of the head"></canvas></div>
+    <p class="cap">Cells window: 37 cells around the head. Diagram: the whole tape, one row per turn, newest at the bottom (1 = dark, head = orange).</p>
+  </div>
+</section>
+
+<section id="sweeps">
+  <span class="eyebrow">3 · Sweeps and the halt</span>
+  <h2>Shifting pairs, marking boundaries</h2>
+  <div class="col">
+    <p>Three rules carry most of the run. Each is proved in Lean for any number of pairs and any tape around them, from a symbolic run written out by <code>tools/py/bbtools/symtm.py</code>.</p>
+  </div>
+  <div id="rules"></div>
+  <div class="col">
+    <p>So a sweep to the right leaves every boundary it crosses marked as <code>0 11</code>. In the run, the excursions from the right end that follow run left to a boundary and back, and the marks are gone by the time the head is back at the left end (observed, not proved). A mark that is still there when a sweep in E arrives, in step with E's pairs, is the halt.</p>
+    <div class="claim h"><p><span class="ev h">Heuristic</span> At all 207 moments up to 10<sup>10</sup> steps when the head extends the tape on the left, the word <code>110</code> occurs 67 times, always right after a block of pairs and never right after a boundary 0. Right after a pair it is out of step with E: E arrives on its first 1 and turns back. Right after a boundary it would be the halting shape.</p>
+      <p class="where"><code>runs/left_1e10.txt</code></p></div>
+  </div>
+</section>
+
+<section id="left">
+  <span class="eyebrow">4 · Left-end moments</span>
+  <h2>The tape each time the left end grows</h2>
+  <div class="col">
+    <p>Each row is a moment when the head reaches a new cell on the left, after last reaching one on the right: the step, the width, and the blocks of pairs in order (a <code>b</code> or a double 0 is shown as it is). Shaded rows start with a <b>wall</b>, a block of at least 50 pairs at the left end; rows with a bar replay the run from blank tape in front of the wall (section 5).</p>
+  </div>
+  <div class="levwrap"><table class="lev"><thead><tr><th>step</th><th>width</th><th>state</th><th>tape as words</th></tr></thead><tbody id="levBody"></tbody></table></div>
+  <p class="cap">From <code>runs/left_1e10.txt</code>, written by <code>tools/c/tokrun</code> (the same as <code>py/blank.py left</code>). The first rows are checked against the simulator on this page by <code>tests/test_explainer.py</code>.</p>
+</section>
+
+<section id="walls">
+  <span class="eyebrow">5 · Walls</span>
+  <h2>In front of a wall, the run starts over</h2>
+  <div class="col">
+    <p>Take the run from blank tape at its left-end moments: moment <i>i</i> reads <code>0^2 P a^x 1</code>, a prefix P and a last block of x pairs. When a moment starts with a wall of W pairs, the moments that follow read <code>0^2 P a^y 0 …</code> with the same prefixes P, the wall in place of the last block. The wall loses the same amounts each time, whatever W is and whatever lies beyond it. The chart shows what each wall has lost after each replayed moment.</p>
+  </div>
+  <div class="panel chart" id="wallChart"></div>
+  <p class="cap">The walls of <code>py/replay.py</code> with at least five replayed moments; the lines lie on top of each other.</p>
+  <div class="col">
+    <div class="claim h"><p><span class="ev h">Heuristic</span> Ten walls in the first 10<sup>10</sup> steps, from 71 to 43,801 pairs, all lose 1, 4, 6, 10, 12, 22, 28, … after their replayed moments (the first, 257 pairs at step 277,787, for 29 moments); that is about half the blank run's last block, plus one. Walls nest: at step 1.78·10<sup>9</sup> the tape starts <code>0^2 a^1768 0 a^6 0 a^10762</code>. So the run looks like a recursive counter whose structure changes when a wall is used up. The replay counts are lower bounds, since moments can merge while the left end grows into the wall.</p>
+      <p class="where"><code>py/replay.py</code>, <code>runs/left_1e10.txt</code></p></div>
+  </div>
+</section>
+
+<section id="counter">
+  <span class="eyebrow">6 · The counter</span>
+  <h2>The right end counts down in base 3</h2>
+  <div class="col">
+    <p>Look at the tape each time the head comes back to the right end. Read from the right, it is a list of <b>levels</b>, each <code>s (10)^g s′ (10)^W</code>: two single cells s, s′ around a block of g pairs, then a block of W pairs. A level's <b>digit</b> is 2 when its cells read <code>1 1</code>, 1 for <code>0 1</code> and 0 for <code>0 0</code>. One trip of the head from the right end and back takes one off the number these digits spell in base 3, last level lowest:</p>
+    <ul>
+      <li><b>2 → 1</b>: s becomes 0, and one pair moves from W into g.</li>
+      <li><b>1 → 0</b>: s′ becomes 0, and the lengths stay as they are.</li>
+      <li><b>0 → 2</b> (a borrow): the trip goes on to the next level to the left; on the way back this one gets <code>1 1</code>, and one pair moves from W into g.</li>
+    </ul>
+    <p>The last level is the exception: its W grows instead of shrinking, so each trip adds two pairs to the tape. A level's W only shrinks, by one pair for every two of its digit's three changes, and lower levels change three times as often as the level to their left. Press the button to step the counter from the tape at step 10<sup>10</sup>.</p>
+  </div>
+  <div class="panel">
+    <div class="controls">
+      <button type="button" class="primary" id="ctNext">Next trip</button>
+      <button type="button" id="ctBorrow">Run to the next borrow past the levels</button>
+      <button type="button" id="ctReset">Reset</button>
+    </div>
+    <div class="readout"><span>trips <b id="ctTrips">0</b></span><span>pairs on the tape <b id="ctPairs">0</b></span><span id="ctNote"></span></div>
+    <div class="ctrow" id="ctRow"></div>
+    <p class="cap">Left: the irregular blocks at the left end of the tape, as tokens (block lengths and single cells). Right of them, the levels; the last level is on the right. A highlighted number changed on the last trip. The levels and the starting tape are from <code>python3 py/counter.py levels 1e10</code>.</p>
+  </div>
+  <div class="col">
+    <div class="claim k"><p><span class="ev k">Kernel</span> Each trip from the right end and back acts on the levels as above, for any block lengths and any number of borrows, with whatever lies to the left of the level where the trip turns: <code>counter_last2</code>, <code>counter_last1</code>, <code>counter_borrow2</code> and <code>counter_borrow1</code>, built from eight symbolic pieces of the run (a walk over a level with digit 0, the turn at a digit 2 or 1, the reset on the way back). The theorems need g and W odd for digit 2 and even for digits 1 and 0, the parities the run keeps.</p>
+      <p class="where"><code>lean/Counter.lean</code>, <code>lean/Rules.lean</code></p></div>
+    <div class="claim c"><p><span class="ev c">Computed</span> Of the 151,240 trips in the first 10<sup>11</sup> steps, 150,680 are covered by these theorems and all of them end as the theorems say. In the other 560 the borrow runs past the levels into the irregular blocks at the left end (321), or meets one of the leftmost levels when it is too short or of the wrong parity (239). Those trips, the top of the counter, are where the walls of section 5 live and where a halt would have to come from.</p>
+      <p class="where"><code>python3 py/counter.py check 1e11</code> (the macro simulator <code>tools/py/bbtools/macro.py</code>)</p></div>
+  </div>
+</section>
+
+<section id="growth">
+  <span class="eyebrow">7 · Growth</span>
+  <h2>The width grows like the square root of time</h2>
+  <div class="panel chart" id="growthChart"></div>
+  <div class="col"><p class="small">Width (visited cells) at steps 10, 20, 50, … 10<sup>10</sup>, on logarithmic axes, with the line 2.6&radic;t. Half of the cells are 1. From <code>runs/growth_1e10.txt</code> (<code>c/growth.c</code>). <span class="ev c">Computed</span></p></div>
+</section>
+
+<section id="next">
+  <span class="eyebrow">8 · Next</span>
+  <h2>What would turn the patterns into proofs</h2>
+  <div class="col">
+    <div class="claim o"><p><span class="ev o">Open</span> <b>The top of the counter.</b> The trips that run past the levels into the left end, and those that meet a short leftmost level, as maps on the block lengths: how a new level is made, and what the left end does to a level that runs out.</p></div>
+    <div class="claim o"><p><span class="ev o">Open</span> <b>The replay.</b> A statement that in front of a long enough wall the left end follows the blank run, the wall losing a fixed amount per moment. This would make the run a recursion on walls.</p></div>
+    <div class="claim o"><p><span class="ev o">Open</span> <b>Wall exhaustion.</b> What happens when a wall is used up, and whether any case leaves a mark right after a boundary in E's way.</p></div>
+    <div class="claim o"><p><span class="ev o">Open</span> <b>A language over pairs.</b> Closed tape languages on windows of 2 to 7 raw cells all allow a halt; one built on the words <code>10</code>, <code>110</code>, <code>0</code>, keeping the pair alignment, might not.</p></div>
+  </div>
+</section>
+
+<section id="ledger">
+  <span class="eyebrow">9 · Ledger</span>
+  <h2>Every result, by what it rests on</h2>
+  <div class="lfilter" role="group" aria-label="Filter by evidence level">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
+    <button type="button" data-f="native" aria-pressed="false">native_decide</button>
+    <button type="button" data-f="trusted" aria-pressed="false">Computed</button>
+    <button type="button" data-f="heuristic" aria-pressed="false">Heuristic</button>
+    <button type="button" data-f="open" aria-pressed="false">Open</button>
+  </div>
+  <p class="small" id="ledgerAsof"></p>
+  <div class="ledger" id="ledgerList"></div>
+  <p class="small">The <a href="proof-status.html">proof-status page</a> has the same results with the commands to check them, built from <code>bb6-1RB1RF_1LC0LB/status.json</code>; this list is written from the same file by <code>tools/pages/explainer_status.py</code>.</p>
+</section>
+<footer class="foot"><a href="proof-status.html">Proof status</a> &middot; <a href="../index.html">All pages</a> &middot; <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/bb6-1RB1RF_1LC0LB">Source and notes</a></footer>
+</div>
+<script type="application/json" id="run-data">
+{"counts":{"A0":743,"A1":1315,"B0":125093,"B1":125901,"C0":247004,"C1":124753,"D0":124351,"D1":402,"E0":2057,"E1":246664,"F0":1717},"left":[[3,2,"D","0^2 1"],[32,11,"D","0^2 a^3 0 a 1"],[275,36,"D","0^2 a 0 a^7 0 a^8 1"],[538,53,"D","0^2 a^3 0^2 a^9 0 a^12 1"],[1681,92,"D","0^2 a^13 0 a^13 0 a^18 1"],[2184,109,"D","0^2 a^3 0 a^12 0 a^15 0 a^22 1"],[5757,174,"D","0^2 a 0 a^7 0 a^9 0 a^25 0 a^42 1"],[8786,215,"D","0^2 a^3 0^2 a^9 0 a^7 0 a^31 0 a^54 1"],[15819,294,"D","0^2 a^13 0 a^13 0 a^3 0 a^41 0 a^74 1"],[20624,335,"D","0^2 a^3 0 a^12 0 a^15 0 a 0 a^47 0 a^86 1"],[22829,352,"D","0^2 a^3 0 a^2 0 a^14 0 a^18 0^2 a^45 0 a^90 1"],[42622,475,"B","0^2 a^88 0 a^6 0 a b a^11 0 a^27 0 a^100 1"],[54314,551,"B","0^2 a^91 b a^5 0 a^5 0 a^7 0 a^39 0 a^124 1"],[61502,591,"D","0^2 a^95 0 a^4 0 a^7 0 a^5 0 a^45 0 a^136 1"],[81245,680,"D","0^2 a 0 a^100 0 a^2 0 a^14 0^2 a^55 0 a^164 1"],[128436,823,"B","0^2 a^108 0 a^2 0 a^125 0 a^174 1"],[136258,849,"B","0^2 a^109 b a 0 a^129 0 a^182 1"],[140952,865,"D","0^2 a^113 0^2 a^131 0 a^186 1"],[277787,1148,"D","0^2 a^257 0 a^123 0 a^192 1"],[282674,1165,"D","0^2 a^3 0 a^256 0 a^125 0 a^196 1"],[308167,1230,"D","0^2 a 0 a^7 0 a^253 0 a^135 0 a^216 1"],[324348,1271,"D","0^2 a^3 0^2 a^9 0 a^251 0 a^141 0 a^228 1"],[353301,1350,"D","0^2 a^13 0 a^13 0 a^247 0 a^151 0 a^248 1"],[371258,1391,"D","0^2 a^3 0 a^12 0 a^15 0 a^245 0 a^157 0 a^260 1"],[470741,1576,"D","0^2 a 0 a^7 0 a^9 0 a^25 0 a^235 0 a^187 0 a^320 1"],[538228,1689,"D","0^2 a^3 0^2 a^9 0 a^7 0 a^31 0 a^229 0 a^205 0 a^356 1"],[664211,1888,"D","0^2 a^13 0 a^13 0 a^3 0 a^41 0 a^219 0 a^235 0 a^416 1"],[747298,2001,"D","0^2 a^3 0 a^12 0 a^15 0 a 0 a^47 0 a^213 0 a^253 0 a^452 1"],[776749,2042,"D","0^2 a^3 0 a^2 0 a^14 0 a^18 0^2 a^45 0 a^211 0 a^259 0 a^464 1"],[872014,2229,"B","0^2 a^88 0 a^6 0 a b a^11 0 a^27 0 a^205 0 a^275 0 a^496 1"],[1068494,2449,"B","0^2 a^91 b a^5 0 a^5 0 a^7 0 a^39 0 a^193 0 a^311 0 a^568 1"],[1175852,2561,"D","0^2 a^95 0 a^4 0 a^7 0 a^5 0 a^45 0 a^187 0 a^329 0 a^604 1"],[1449485,2818,"D","0^2 a 0 a^100 0 a^2 0 a^14 0^2 a^55 0 a^173 0 a^371 0 a^688 1"],[1600820,3025,"B","0^2 a^108 0 a^2 0 a^125 0 a^167 0 a^387 0 a^720 1"],[1689438,3099,"B","0^2 a^109 b a 0 a^129 0 a^163 0 a^399 0 a^744 1"],[1735394,3139,"D","0^2 a^113 0^2 a^131 0 a^161 0 a^405 0 a^756 1"],[1942279,3462,"D","0^2 a^257 0 a^123 0 a^157 0 a^415 0 a^776 1"],[1989964,3503,"D","0^2 a^3 0 a^256 0 a^125 0 a^155 0 a^421 0 a^788 1"],[2238087,3688,"D","0^2 a 0 a^7 0 a^253 0 a^135 0 a^145 0 a^451 0 a^848 1"],[2394758,3801,"D","0^2 a^3 0^2 a^9 0 a^251 0 a^141 0 a^139 0 a^469 0 a^884 1"],[2669381,4000,"D","0^2 a^13 0 a^13 0 a^247 0 a^151 0 a^129 0 a^499 0 a^944 1"],[2841652,4113,"D","0^2 a^3 0 a^12 0 a^15 0 a^245 0 a^157 0 a^123 0 a^517 0 a^980 1"],[3790465,4658,"D","0^2 a 0 a^7 0 a^9 0 a^25 0 a^235 0 a^187 0 a^93 0 a^607 0 a^1160 1"],[4429758,4987,"D","0^2 a^3 0^2 a^9 0 a^7 0 a^31 0 a^229 0 a^205 0 a^75 0 a^661 0 a^1268 1"],[5612431,5546,"D","0^2 a^13 0 a^13 0 a^3 0 a^41 0 a^219 0 a^235 0 a^45 0 a^751 0 a^1448 1"],[6391740,5875,"D","0^2 a^3 0 a^12 0 a^15 0 a 0 a^47 0 a^213 0 a^253 0 a^27 0 a^805 0 a^1556 1"],[6663633,5988,"D","0^2 a^3 0 a^2 0 a^14 0 a^18 0^2 a^45 0 a^211 0 a^259 0 a^21 0 a^823 0 a^1592 1"],[7430754,6367,"B","0^2 a^88 0 a^6 0 a b a^11 0 a^27 0 a^205 0 a^275 0 a^5 0 a^871 0 a^1688 1"],[7673854,6455,"D","0^2 a^91 0 a^8 0 a^4 0 a^10 0 a^28 0 a^206 0 a^282 0^2 a^877 0 a^1716 1"],[13048515,8242,"B","0^2 a^1752 0 a^94 0 a^8 0 a^4 0 a^10 0 a^27 b a^203 0 a^291 0 a^1726 1"],[13215843,8318,"B","0^2 a^1756 0 a^94 0 a^8 0 a^3 b a^9 0 a^31 0 a^199 0 a^303 0 a^1750 1"],[13703223,8538,"B","0^2 a^1760 0 a^93 b a^7 0 a^7 0 a^5 0 a^43 0 a^187 0 a^339 0 a^1822 1"],[14299683,8794,"D","0^2 a^1763 0 a^95 0 a^5 0 a^14 0^2 a^55 0 a^173 0 a^381 0 a^1906 1"],[14946230,8997,"B","0^2 a^104 0 a^1766 0 a^93 b a^5 0 a^23 0 a^167 0 a^397 0 a^1938 1"],[15501190,9217,"B","0^2 a^107 b a^1765 0 a^97 0 a 0 a^35 0 a^155 0 a^433 0 a^2010 1"],[15600956,9257,"D","0^2 a^111 0 a^1764 0 a^100 0^2 a^35 0 a^153 0 a^439 0 a^2022 1"],[16145285,9424,"B","0^2 a^68 0 a^113 b a^1761 0 a^109 0 a^147 0 a^455 0 a^2054 1"],[16452139,9536,"D","0^2 a^71 0 a^115 0 a^1759 0 a^115 0 a^141 0 a^473 0 a^2090 1"],[16764106,9649,"D","0^2 a^3 0 a^70 0 a^117 0 a^1757 0 a^121 0 a^135 0 a^491 0 a^2126 1"],[18411399,10194,"D","0^2 a 0 a^7 0 a^67 0 a^127 0 a^1747 0 a^151 0 a^105 0 a^581 0 a^2306 1"],[19469780,10523,"D","0^2 a^3 0^2 a^9 0 a^65 0 a^133 0 a^1741 0 a^169 0 a^87 0 a^635 0 a^2414 1"],[21350933,11082,"D","0^2 a^13 0 a^13 0 a^61 0 a^143 0 a^1731 0 a^199 0 a^57 0 a^725 0 a^2594 1"],[22549330,11411,"D","0^2 a^3 0 a^12 0 a^15 0 a^59 0 a^149 0 a^1725 0 a^217 0 a^39 0 a^779 0 a^2702 1"],[25368097,12112,"B","0^2 a^2 0 a^4 0 a^14 0 a^18 0 a^56 0 a^164 0 a^1714 0 a^258 0^2 a^886 0 a^2934 1"],[36557151,13918,"B","0^2 a^1776 0 a^4 0 a^14 0 a^18 0 a^56 0 a^163 b a^1711 0 a^267 0 a^2944 1"],[36850631,13994,"B","0^2 a^1780 0 a^4 0 a^14 0 a^17 b a^55 0 a^167 0 a^1707 0 a^279 0 a^2968 1"],[37715323,14214,"B","0^2 a^1784 0 a^3 b a^13 0 a^21 0 a^51 0 a^179 0 a^1695 0 a^315 0 a^3040 1"],[39048799,14542,"D","0^2 a^1787 0 a^5 0 a^11 0 a^27 0 a^45 0 a^197 0 a^1677 0 a^369 0 a^3148 1"],[40427620,14871,"D","0^2 a^3 0 a^1786 0 a^7 0 a^9 0 a^33 0 a^39 0 a^215 0 a^1659 0 a^423 0 a^3256 1"],[47013939,16280,"D","0^2 a 0 a^7 0 a^1783 0 a^18 0^2 a^57 0 a^13 0 a^293 0 a^1581 0 a^657 0 a^3724 1"],[48918526,16679,"B","0^2 a^108 0 a^4 0 a^5 b a^1783 0 a^27 0 a^7 0 a^309 0 a^1565 0 a^705 0 a^3820 1"],[50851446,17043,"B","0^2 a^111 b a^3 0 a^10 0 a^1780 0 a^36 0^2 a^325 0 a^1545 0 a^765 0 a^3940 1"],[54323190,17789,"B","0^2 a^760 0 a^6 0 a^9 b a^1777 0 a^45 0 a^1539 0 a^781 0 a^3972 1"],[55525110,18009,"B","0^2 a^763 b a^5 0 a^13 0 a^1773 0 a^57 0 a^1527 0 a^817 0 a^4044 1"],[56137860,18121,"D","0^2 a^767 0 a^4 0 a^15 0 a^1771 0 a^63 0 a^1521 0 a^835 0 a^4080 1"],[59273793,18666,"D","0^2 a 0 a^771 0 a 0 a^25 0 a^1761 0 a^93 0 a^1491 0 a^925 0 a^4260 1"],[59924690,18779,"D","0^2 a^3 0^2 a^774 0^2 a^25 0 a^1759 0 a^99 0 a^1485 0 a^943 0 a^4296 1"],[62556315,20364,"B","0^2 a^1545 b a^33 0 a^1758 0 a^101 0 a^1483 0 a^949 0 a^4308 1"],[63654325,20548,"D","0^2 a^1547 0 a^37 0 a^1755 0 a^111 0 a^1473 0 a^979 0 a^4368 1"],[64319692,20661,"D","0^2 a^3 0 a^1546 0 a^39 0 a^1753 0 a^117 0 a^1467 0 a^997 0 a^4404 1"],[67733985,21206,"D","0^2 a 0 a^7 0 a^1543 0 a^49 0 a^1743 0 a^147 0 a^1437 0 a^1087 0 a^4584 1"],[69852566,21535,"D","0^2 a^3 0^2 a^9 0 a^1541 0 a^55 0 a^1737 0 a^165 0 a^1419 0 a^1141 0 a^4692 1"],[73500719,22094,"D","0^2 a^13 0 a^13 0 a^1537 0 a^65 0 a^1727 0 a^195 0 a^1389 0 a^1231 0 a^4872 1"],[75759316,22423,"D","0^2 a^3 0 a^12 0 a^15 0 a^1535 0 a^71 0 a^1721 0 a^213 0 a^1371 0 a^1285 0 a^4980 1"],[87839599,24048,"D","0^2 a 0 a^7 0 a^9 0 a^25 0 a^1525 0 a^101 0 a^1691 0 a^303 0 a^1281 0 a^1555 0 a^5520 1"],[95717646,25025,"D","0^2 a^3 0^2 a^9 0 a^7 0 a^31 0 a^1519 0 a^119 0 a^1673 0 a^357 0 a^1227 0 a^1717 0 a^5844 1"],[109898029,26664,"D","0^2 a^13 0 a^13 0 a^3 0 a^41 0 a^1509 0 a^149 0 a^1643 0 a^447 0 a^1137 0 a^1987 0 a^6384 1"],[119035836,27641,"D","0^2 a^3 0 a^12 0 a^15 0 a 0 a^47 0 a^1503 0 a^167 0 a^1625 0 a^501 0 a^1083 0 a^2149 0 a^6708 1"],[122187207,27970,"D","0^2 a^3 0 a^2 0 a^14 0 a^18 0^2 a^45 0 a^1501 0 a^173 0 a^1619 0 a^519 0 a^1065 0 a^2203 0 a^6816 1"],[130861032,28925,"B","0^2 a^88 0 a^6 0 a b a^11 0 a^27 0 a^1495 0 a^189 0 a^1603 0 a^567 0 a^1017 0 a^2347 0 a^7104 1"],[151707112,30873,"B","0^2 a^91 b a^5 0 a^5 0 a^7 0 a^39 0 a^1483 0 a^225 0 a^1567 0 a^675 0 a^909 0 a^2671 0 a^7752 1"],[162839110,31849,"D","0^2 a^95 0 a^4 0 a^7 0 a^5 0 a^45 0 a^1477 0 a^243 0 a^1549 0 a^729 0 a^855 0 a^2833 0 a^8076 1"],[190651303,34122,"D","0^2 a 0 a^100 0 a^2 0 a^14 0^2 a^55 0 a^1463 0 a^285 0 a^1507 0 a^855 0 a^729 0 a^3211 0 a^8832 1"],[201961678,35097,"B","0^2 a^108 0 a^2 0 a^125 0 a^1457 0 a^301 0 a^1491 0 a^903 0 a^681 0 a^3355 0 a^9120 1"],[210661496,35747,"B","0^2 a^109 b a 0 a^129 0 a^1453 0 a^313 0 a^1479 0 a^939 0 a^645 0 a^3463 0 a^9336 1"],[215090812,36075,"D","0^2 a^113 0^2 a^131 0 a^1451 0 a^319 0 a^1473 0 a^957 0 a^627 0 a^3517 0 a^9444 1"],[222718497,36878,"D","0^2 a^257 0 a^123 0 a^1447 0 a^329 0 a^1463 0 a^987 0 a^597 0 a^3607 0 a^9624 1"],[227287782,37207,"D","0^2 a^3 0 a^256 0 a^125 0 a^1445 0 a^335 0 a^1457 0 a^1005 0 a^579 0 a^3661 0 a^9732 1"],[250921505,38832,"D","0^2 a 0 a^7 0 a^253 0 a^135 0 a^1435 0 a^365 0 a^1427 0 a^1095 0 a^489 0 a^3931 0 a^10272 1"],[265731616,39809,"D","0^2 a^3 0^2 a^9 0 a^251 0 a^141 0 a^1429 0 a^383 0 a^1409 0 a^1149 0 a^435 0 a^4093 0 a^10596 1"],[291465439,41448,"D","0^2 a^13 0 a^13 0 a^247 0 a^151 0 a^1419 0 a^413 0 a^1379 0 a^1239 0 a^345 0 a^4363 0 a^11136 1"],[307535310,42425,"D","0^2 a^3 0 a^12 0 a^15 0 a^245 0 a^157 0 a^1413 0 a^431 0 a^1361 0 a^1293 0 a^291 0 a^4525 0 a^11460 1"],[394970523,47290,"D","0^2 a 0 a^7 0 a^9 0 a^25 0 a^235 0 a^187 0 a^1383 0 a^521 0 a^1271 0 a^1563 0 a^21 0 a^5335 0 a^13080 1"],[402308802,47667,"D","0^2 a^3 0^2 a^10 0 a^8 0 a^28 0 a^234 0 a^188 0 a^1382 0 a^530 0 a^1266 0 a^1586 0^2 a^5387 0 a^13204 1"],[632042936,58489,"B","0^2 a^10766 0 a^20 0 a^8 0 a^10 0 a^28 0 a^234 0 a^188 0 a^1382 0 a^529 b a^1263 0 a^1595 0 a^13214 1"],[633262428,58565,"B","0^2 a^10770 0 a^20 0 a^8 0 a^10 0 a^28 0 a^234 0 a^187 b a^1381 0 a^533 0 a^1259 0 a^1607 0 a^13238 1"],[636738036,58785,"B","0^2 a^10774 0 a^20 0 a^8 0 a^10 0 a^27 b a^233 0 a^191 0 a^1377 0 a^545 0 a^1247 0 a^1643 0 a^13310 1"],[647126896,59437,"B","0^2 a^10778 0 a^20 0 a^7 b a^9 0 a^31 0 a^229 0 a^203 0 a^1365 0 a^581 0 a^1211 0 a^1751 0 a^13526 1"],[679380064,61385,"B","0^2 a^10781 b a^19 0 a^11 0 a^5 0 a^43 0 a^217 0 a^239 0 a^1329 0 a^689 0 a^1103 0 a^2075 0 a^14174 1"],[696258326,62361,"D","0^2 a^10785 0 a^18 0 a^13 0 a^3 0 a^49 0 a^211 0 a^257 0 a^1311 0 a^743 0 a^1049 0 a^2237 0 a^14498 1"],[719512563,63662,"B","0^2 a^2 0 a^10786 0 a^20 0 a^18 0^2 a^52 0 a^203 0 a^281 0 a^1287 0 a^815 0 a^977 0 a^2453 0 a^14930 1"],[737701045,64632,"B","0^2 a^108 0 a^10785 b a^17 0 a^27 0 a^197 0 a^297 0 a^1271 0 a^863 0 a^929 0 a^2597 0 a^15218 1"],[756187275,65608,"D","0^2 a^111 0 a^10787 0 a^15 0 a^33 0 a^191 0 a^315 0 a^1253 0 a^917 0 a^875 0 a^2759 0 a^15542 1"],[775102330,66585,"D","0^2 a^3 0 a^110 0 a^10789 0 a^13 0 a^39 0 a^185 0 a^333 0 a^1235 0 a^971 0 a^821 0 a^2921 0 a^15866 1"],[876763463,71450,"D","0^2 a 0 a^7 0 a^107 0 a^10799 0 a^3 0 a^69 0 a^155 0 a^423 0 a^1145 0 a^1241 0 a^551 0 a^3731 0 a^17486 1"],[906172784,72751,"B","0^2 a^2 0 a^2 0 a^10 0 a^108 0 a^10804 0^2 a^70 0 a^147 0 a^447 0 a^1121 0 a^1313 0 a^479 0 a^3947 0 a^17918 1"],[929437764,73757,"B","0^2 a^144 0 a^2 0 a^9 b a^105 0 a^10813 0 a^141 0 a^463 0 a^1105 0 a^1361 0 a^431 0 a^4091 0 a^18206 1"],[976024852,75705,"B","0^2 a^147 b a 0 a^13 0 a^101 0 a^10825 0 a^129 0 a^499 0 a^1069 0 a^1469 0 a^323 0 a^4415 0 a^18854 1"],[1000027570,76681,"D","0^2 a^151 0^2 a^15 0 a^99 0 a^10831 0 a^123 0 a^517 0 a^1051 0 a^1523 0 a^269 0 a^4577 0 a^19178 1"],[1041094069,78332,"D","0^2 a^25 0 a^161 0 a^95 0 a^10841 0 a^113 0 a^547 0 a^1021 0 a^1613 0 a^179 0 a^4847 0 a^19718 1"],[1066357116,79309,"D","0^2 a^3 0 a^24 0 a^163 0 a^93 0 a^10847 0 a^107 0 a^565 0 a^1003 0 a^1667 0 a^125 0 a^5009 0 a^20042 1"],[1126796325,81558,"D","0^2 a 0 a^8 0 a^22 0 a^170 0 a^88 0 a^10860 0 a^96 0 a^606 0 a^964 0 a^1794 0^2 a^5373 0 a^20790 1"],[1557213974,92337,"B","0^2 a^10744 0 a^4 0 a^8 0 a^22 0 a^170 0 a^88 0 a^10860 0 a^96 0 a^605 b a^961 0 a^1803 0 a^20800 1"],[1559059218,92413,"B","0^2 a^10748 0 a^4 0 a^8 0 a^22 0 a^170 0 a^88 0 a^10859 b a^95 0 a^609 0 a^957 0 a^1815 0 a^20824 1"],[1564469186,92633,"B","0^2 a^10752 0 a^4 0 a^8 0 a^22 0 a^169 b a^87 0 a^10863 0 a^91 0 a^621 0 a^945 0 a^1851 0 a^20896 1"],[1580535846,93285,"B","0^2 a^10756 0 a^4 0 a^7 b a^21 0 a^173 0 a^83 0 a^10875 0 a^79 0 a^657 0 a^909 0 a^1959 0 a^21112 1"],[1629821110,95233,"B","0^2 a^10759 b a^3 0 a^11 0 a^17 0 a^185 0 a^71 0 a^10911 0 a^43 0 a^765 0 a^801 0 a^2283 0 a^21760 1"],[1655215364,96209,"D","0^2 a^10763 0 a^2 0 a^13 0 a^15 0 a^191 0 a^65 0 a^10929 0 a^25 0 a^819 0 a^747 0 a^2445 0 a^22084 1"],[1690975213,97546,"D","0^2 a^3 0 a^10762 0 a^3 0 a^15 0 a^14 0 a^202 0 a^56 0 a^10956 0^2 a^887 0 a^673 0 a^2667 0 a^22528 1"],[1775074436,99413,"B","0^2 a^1768 0 a^6 0 a^10762 0 a^2 0 a^18 0 a^14 0 a^201 b a^53 0 a^10965 0 a^667 0 a^2683 0 a^22560 1"],[1781484132,99633,"B","0^2 a^1772 0 a^6 0 a^10762 0 a^2 0 a^17 b a^13 0 a^205 0 a^49 0 a^10977 0 a^655 0 a^2719 0 a^22632 1"],[1800649976,100285,"B","0^2 a^1776 0 a^6 0 a^10761 b a 0 a^21 0 a^9 0 a^217 0 a^37 0 a^11013 0 a^619 0 a^2827 0 a^22848 1"],[1810534076,100613,"D","0^2 a^1779 0 a^8 0 a^10764 0^2 a^19 0 a^7 0 a^223 0 a^31 0 a^11031 0 a^601 0 a^2881 0 a^22956 1"],[1837813909,101516,"B","0^2 a^36 0 a^1781 b a^5 0 a^10773 0 a 0 a^239 0 a^15 0 a^11079 0 a^553 0 a^3025 0 a^23244 1"],[1841320327,101628,"D","0^2 a^39 0 a^1784 0 a^4 0 a^10776 0^2 a^237 0 a^13 0 a^11085 0 a^547 0 a^3043 0 a^23280 1"],[1862655320,102391,"B","0^2 a^472 0 a^42 0 a^1783 b a 0 a^10785 0 a^7 0 a^11101 0 a^531 0 a^3091 0 a^23376 1"],[1866112510,102503,"D","0^2 a^475 0 a^44 0 a^1786 0^2 a^10783 0 a^5 0 a^11107 0 a^525 0 a^3109 0 a^23412 1"],[2437470351,124286,"B","0^2 a^21564 0 a^477 b a^41 0 a^1796 0^2 a^11117 0 a^513 0 a^3145 0 a^23484 1"],[3996520153,146616,"B","0^2 a^43798 0 a^475 b a^41 0 a^1805 0 a^507 0 a^3161 0 a^23516 1"],[3999846159,146728,"D","0^2 a^43801 0 a^477 0 a^39 0 a^1811 0 a^501 0 a^3179 0 a^23552 1"],[4003000910,146841,"D","0^2 a^3 0 a^43800 0 a^479 0 a^37 0 a^1817 0 a^495 0 a^3197 0 a^23588 1"],[4018862123,147386,"D","0^2 a 0 a^7 0 a^43797 0 a^489 0 a^27 0 a^1847 0 a^465 0 a^3287 0 a^23768 1"],[4028448856,147715,"D","0^2 a^3 0^2 a^9 0 a^43795 0 a^495 0 a^21 0 a^1865 0 a^447 0 a^3341 0 a^23876 1"],[4044543929,148274,"D","0^2 a^13 0 a^13 0 a^43791 0 a^505 0 a^11 0 a^1895 0 a^417 0 a^3431 0 a^24056 1"],[4054270678,148603,"D","0^2 a^3 0 a^12 0 a^15 0 a^43789 0 a^511 0 a^5 0 a^1913 0 a^399 0 a^3485 0 a^24164 1"],[4062702369,148860,"D","0^2 a^3 0 a^2 0 a^14 0 a^16 0 a^43790 0 a^518 0^2 a^1921 0 a^385 0 a^3527 0 a^24248 1"],[4421293546,152799,"B","0^2 a^3840 0 a^6 0 a^2 0 a^14 0 a^15 b a^43787 0 a^527 0 a^379 0 a^3543 0 a^24280 1"],[4428462986,153019,"B","0^2 a^3844 0 a^6 0 a b a^13 0 a^19 0 a^43783 0 a^539 0 a^367 0 a^3579 0 a^24352 1"],[4450049334,153671,"B","0^2 a^3847 b a^5 0 a^5 0 a^9 0 a^31 0 a^43771 0 a^575 0 a^331 0 a^3687 0 a^24568 1"],[4460936634,153999,"D","0^2 a^3851 0 a^4 0 a^7 0 a^7 0 a^37 0 a^43765 0 a^593 0 a^313 0 a^3741 0 a^24676 1"],[4497565971,155084,"B","0^2 a b a^3853 0 a^4 0 a^16 0^2 a^53 0 a^43745 0 a^653 0 a^253 0 a^3921 0 a^25036 1"],[4508263631,155478,"B","0^2 a^106 0 a^3855 b a 0 a^25 0 a^43739 0 a^669 0 a^237 0 a^3969 0 a^25132 1"],[4512030063,155590,"D","0^2 a^109 0 a^3858 0^2 a^25 0 a^43737 0 a^675 0 a^231 0 a^3987 0 a^25168 1"],[4522489520,155929,"B","0^2 a^47 b a^109 0 a^3867 0 a^43731 0 a^691 0 a^215 0 a^4035 0 a^25264 1"],[4526261598,156041,"D","0^2 a^51 0 a^108 0 a^3869 0 a^43729 0 a^697 0 a^209 0 a^4053 0 a^25300 1"],[4545208491,156586,"D","0^2 a 0 a^55 0 a^105 0 a^3879 0 a^43719 0 a^727 0 a^179 0 a^4143 0 a^25480 1"],[4556646632,156915,"D","0^2 a^3 0^2 a^57 0 a^103 0 a^3885 0 a^43713 0 a^745 0 a^161 0 a^4197 0 a^25588 1"],[4575840345,157570,"D","0^2 a^109 0 a^13 0 a^99 0 a^3895 0 a^43703 0 a^775 0 a^131 0 a^4287 0 a^25768 1"],[4587418310,157899,"D","0^2 a^3 0 a^108 0 a^15 0 a^97 0 a^3901 0 a^43697 0 a^793 0 a^113 0 a^4341 0 a^25876 1"],[4646095433,159524,"D","0^2 a 0 a^7 0 a^105 0 a^25 0 a^87 0 a^3931 0 a^43667 0 a^883 0 a^23 0 a^4611 0 a^26416 1"],[4662935168,159937,"B","0^2 a^2 0 a^2 0 a^10 0 a^106 0 a^30 0 a^84 0 a^3938 0 a^43662 0 a^908 0^2 a^4668 0 a^26552 1"],[5661608452,169307,"B","0^2 a^9340 0 a^2 0 a^10 0 a^106 0 a^30 0 a^84 0 a^3937 b a^43659 0 a^917 0 a^26562 1"],[5664823400,169383,"B","0^2 a^9344 0 a^2 0 a^10 0 a^106 0 a^29 b a^83 0 a^3941 0 a^43655 0 a^929 0 a^26586 1"],[5674284656,169603,"B","0^2 a^9348 0 a^2 0 a^9 b a^105 0 a^33 0 a^79 0 a^3953 0 a^43643 0 a^965 0 a^26658 1"],[5702657196,170255,"B","0^2 a^9351 b a 0 a^13 0 a^101 0 a^45 0 a^67 0 a^3989 0 a^43607 0 a^1073 0 a^26874 1"],[5716959600,170583,"D","0^2 a^9355 0^2 a^15 0 a^99 0 a^51 0 a^61 0 a^4007 0 a^43589 0 a^1127 0 a^26982 1"],[5741613021,171154,"D","0^2 a^25 0 a^9365 0 a^95 0 a^61 0 a^51 0 a^4037 0 a^43559 0 a^1217 0 a^27162 1"],[5756092826,171483,"D","0^2 a^3 0 a^24 0 a^9367 0 a^93 0 a^67 0 a^45 0 a^4055 0 a^43541 0 a^1271 0 a^27270 1"],[5829279149,173108,"D","0^2 a 0 a^7 0 a^21 0 a^9377 0 a^83 0 a^97 0 a^15 0 a^4145 0 a^43451 0 a^1541 0 a^27810 1"],[5865756482,173905,"B","0^2 a^2 0 a^2 0 a^10 0 a^20 0 a^9384 0 a^80 0 a^114 0^2 a^4180 0 a^43407 0 a^1673 0 a^28074 1"],[6100765978,182363,"B","0^2 a^8364 0 a^2 0 a^10 0 a^20 0 a^9383 b a^77 0 a^123 0 a^43401 0 a^1689 0 a^28106 1"],[6110679426,182583,"B","0^2 a^8368 0 a^2 0 a^9 b a^19 0 a^9387 0 a^73 0 a^135 0 a^43389 0 a^1725 0 a^28178 1"],[6140313006,183235,"B","0^2 a^8371 b a 0 a^13 0 a^15 0 a^9399 0 a^61 0 a^171 0 a^43353 0 a^1833 0 a^28394 1"],[6155242010,183563,"D","0^2 a^8375 0^2 a^15 0 a^13 0 a^9405 0 a^55 0 a^189 0 a^43335 0 a^1887 0 a^28502 1"],[6180866591,184134,"D","0^2 a^25 0 a^8385 0 a^9 0 a^9415 0 a^45 0 a^219 0 a^43305 0 a^1977 0 a^28682 1"],[6195969076,184463,"D","0^2 a^3 0 a^24 0 a^8387 0 a^7 0 a^9421 0 a^39 0 a^237 0 a^43287 0 a^2031 0 a^28790 1"],[6246824365,185548,"B","0^2 a b a^5 0 a^24 0 a^8396 0^2 a^9437 0 a^19 0 a^297 0 a^43227 0 a^2211 0 a^29150 1"],[6934892889,204710,"B","0^2 a^18874 0 a^7 b a^21 0 a^8405 0 a^13 0 a^313 0 a^43211 0 a^2259 0 a^29246 1"],[6950282501,205038,"D","0^2 a^18877 0 a^9 0 a^19 0 a^8411 0 a^7 0 a^331 0 a^43193 0 a^2313 0 a^29354 1"],[6965649082,205367,"D","0^2 a^3 0 a^18876 0 a^11 0 a^17 0 a^8417 0 a 0 a^349 0 a^43175 0 a^2367 0 a^29462 1"],[6967780543,205408,"D","0^2 a^3 0 a^2 0 a^18878 0 a^14 0 a^16 0 a^8420 0^2 a^345 0 a^43173 0 a^2373 0 a^29474 1"],[7010838424,206195,"B","0^2 a^688 0 a^6 0 a^2 0 a^18878 0 a^13 b a^13 0 a^8429 0 a^43167 0 a^2389 0 a^29506 1"],[7021687616,206415,"B","0^2 a^692 0 a^6 0 a b a^18877 0 a^17 0 a^9 0 a^8441 0 a^43155 0 a^2425 0 a^29578 1"],[7045305840,206887,"D","0^2 a^695 0 a^7 0 a^3 0 a^18876 0 a^28 0^2 a^8463 0 a^43129 0 a^2503 0 a^29734 1"],[8000344459,223906,"B","0^2 a^16920 0 a^698 0 a^6 0 a^5 b a^18873 0 a^37 0 a^43123 0 a^2519 0 a^29766 1"],[8011031823,224126,"B","0^2 a^16924 0 a^697 b a^5 0 a^9 0 a^18869 0 a^49 0 a^43111 0 a^2555 0 a^29838 1"],[8027041643,224454,"D","0^2 a^16927 0 a^699 0 a^3 0 a^15 0 a^18863 0 a^67 0 a^43093 0 a^2609 0 a^29946 1"],[8043033472,224783,"D","0^2 a^3 0 a^16926 0 a^701 0 a 0 a^21 0 a^18857 0 a^85 0 a^43075 0 a^2663 0 a^30054 1"],[8048567597,224896,"D","0^2 a^3 0 a^2 0 a^16928 0 a^704 0^2 a^19 0 a^18855 0 a^91 0 a^43069 0 a^2681 0 a^30090 1"],[8064279662,225223,"B","0^2 a^36 0 a^6 0 a b a^16925 0 a^713 0 a^18849 0 a^107 0 a^43053 0 a^2729 0 a^30186 1"],[8096852650,225875,"B","0^2 a^39 b a^5 0 a^5 0 a^16921 0 a^725 0 a^18837 0 a^143 0 a^43017 0 a^2837 0 a^30402 1"],[8113218038,226203,"D","0^2 a^43 0 a^4 0 a^7 0 a^16919 0 a^731 0 a^18831 0 a^161 0 a^42999 0 a^2891 0 a^30510 1"],[8195831481,227828,"D","0^2 a 0 a^47 0 a 0 a^17 0 a^16909 0 a^761 0 a^18801 0 a^251 0 a^42909 0 a^3161 0 a^31050 1"],[8212512056,228157,"D","0^2 a^3 0^2 a^50 0^2 a^17 0 a^16907 0 a^767 0 a^18795 0 a^269 0 a^42891 0 a^3215 0 a^31158 1"],[8218095043,228366,"B","0^2 a^97 b a^25 0 a^16906 0 a^769 0 a^18793 0 a^275 0 a^42885 0 a^3233 0 a^31194 1"],[8246041679,228910,"D","0^2 a^99 0 a^29 0 a^16903 0 a^779 0 a^18783 0 a^305 0 a^42855 0 a^3323 0 a^31374 1"],[8262879588,229239,"D","0^2 a^3 0 a^98 0 a^31 0 a^16901 0 a^785 0 a^18777 0 a^323 0 a^42837 0 a^3377 0 a^31482 1"],[8347856431,230864,"D","0^2 a 0 a^7 0 a^95 0 a^41 0 a^16891 0 a^815 0 a^18747 0 a^413 0 a^42747 0 a^3647 0 a^32022 1"],[8399472414,231841,"D","0^2 a^3 0^2 a^9 0 a^93 0 a^47 0 a^16885 0 a^833 0 a^18729 0 a^467 0 a^42693 0 a^3809 0 a^32346 1"],[8486549357,233480,"D","0^2 a^13 0 a^13 0 a^89 0 a^57 0 a^16875 0 a^863 0 a^18699 0 a^557 0 a^42603 0 a^4079 0 a^32886 1"],[8539425100,234457,"D","0^2 a^3 0 a^12 0 a^15 0 a^87 0 a^63 0 a^16869 0 a^881 0 a^18681 0 a^611 0 a^42549 0 a^4241 0 a^33210 1"],[8810889673,239322,"D","0^2 a 0 a^7 0 a^9 0 a^25 0 a^77 0 a^93 0 a^16839 0 a^971 0 a^18591 0 a^881 0 a^42279 0 a^5051 0 a^34830 1"],[8979437142,242243,"D","0^2 a^3 0^2 a^9 0 a^7 0 a^31 0 a^71 0 a^111 0 a^16821 0 a^1025 0 a^18537 0 a^1043 0 a^42117 0 a^5537 0 a^35802 1"],[9269797975,247122,"D","0^2 a^13 0 a^13 0 a^3 0 a^41 0 a^61 0 a^141 0 a^16791 0 a^1115 0 a^18447 0 a^1313 0 a^41847 0 a^6347 0 a^37422 1"],[9449682900,250043,"D","0^2 a^3 0 a^12 0 a^15 0 a 0 a^47 0 a^55 0 a^159 0 a^16773 0 a^1169 0 a^18393 0 a^1475 0 a^41685 0 a^6833 0 a^38394 1"],[9510589785,251020,"D","0^2 a^3 0 a^2 0 a^14 0 a^18 0^2 a^45 0 a^53 0 a^165 0 a^16767 0 a^1187 0 a^18375 0 a^1529 0 a^41631 0 a^6995 0 a^38718 1"],[9675331178,253703,"B","0^2 a^88 0 a^6 0 a b a^11 0 a^27 0 a^47 0 a^181 0 a^16751 0 a^1235 0 a^18327 0 a^1673 0 a^41487 0 a^7427 0 a^39582 1"]],"walls":[{"step":277787,"event":18,"wall":257,"replayed":29,"after":[256,253,251,247,245,235,229,219,213,211,205,193,187,173,167,163,161,157,155,145,139,129,123,93,75,45,27,21,5]},{"step":1942279,"event":36,"wall":257,"replayed":11,"after":[256,253,251,247,245,235,229,219,213,211,205]},{"step":16452139,"event":57,"wall":71,"replayed":5,"after":[70,67,65,61,59]},{"step":39048799,"event":67,"wall":1787,"replayed":2,"after":[1786,1783]},{"step":63654325,"event":78,"wall":1547,"replayed":24,"after":[1546,1543,1541,1537,1535,1525,1519,1509,1503,1501,1495,1483,1477,1463,1457,1453,1451,1447,1445,1435,1429,1419,1413,1383]},{"step":222718497,"event":96,"wall":257,"replayed":6,"after":[256,253,251,247,245,235]},{"step":756187275,"event":112,"wall":111,"replayed":2,"after":[110,107]},{"step":3999846159,"event":139,"wall":43801,"replayed":5,"after":[43800,43797,43795,43791,43789]},{"step":4575840345,"event":157,"wall":109,"replayed":2,"after":[108,105]},{"step":8246041679,"event":195,"wall":99,"replayed":11,"after":[98,95,93,89,87,77,71,61,55,53,47]}],"growth":[[10,6,2,1],[20,10,5,1],[50,16,9,2],[100,24,11,2],[200,32,15,2],[500,53,29,3],[1000,70,34,4],[2000,105,52,5],[5000,162,81,6],[10000,242,123,8],[20000,331,164,9],[50000,527,264,12],[100000,743,369,15],[200000,1020,508,18],[500000,1629,814,25],[1000000,2377,1188,30],[2000000,3516,1759,38],[5000000,5274,2638,44],[10000000,7474,3732,49],[20000000,10698,5348,61],[50000000,16887,8443,71],[100000000,25548,12775,86],[200000000,34949,17473,93],[500000000,53625,26807,104],[1000000000,76681,38339,118],[2000000000,111994,55993,137],[5000000000,163281,81642,161],[10000000000,258671,129335,207]]}
+</script>
+<script type="application/json" id="status-data">
+{
+ "asof": "Status as of 3 November 2026.",
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly in state F reading a 1, and <code>E&gt;0 1 1<\/code> halts after two more ordinary steps, whatever the rest of the tape.",
+   "where": "<code>step_none_iff<\/code>, <code>halt_shape<\/code>, <code>lean/Blank.lean<\/code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Every halt comes from E reading 0 1 1",
+   "text": "F is entered from A or D reading 1 and then reads the cell to their right. D is entered only by <code>C1 &rarr; 0LD<\/code>, which leaves a 0 to D's right, so the D route never halts (<code>d_right_zero<\/code>); A is entered only by <code>E0 &rarr; 0RA<\/code>. So in the run from blank tape every halt happens two ordinary steps after a configuration <code>E&gt;0 1 1<\/code>, and the machine halts from blank tape only if <code>E&gt;0 1 1<\/code> occurs.",
+   "where": "<code>d_right_zero<\/code>, <code>a_entry<\/code>, <code>f_entry<\/code>, <code>halt_from_e011<\/code>, <code>halts_imp_e011<\/code>, <code>lean/Blank.lean<\/code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The sweep rules",
+   "text": "E runs right over any number of pairs <code>10<\/code>, shifting each one cell to the right, 2 steps a pair (<code>e_run<\/code>). E at a block boundary <code>0 10<\/code> turns it into <code>0 11<\/code> in 3 steps and goes on (<code>e_mark<\/code>). B runs left over pairs two at a time, shifting each one cell to the right, 4 steps per two pairs, through D in between (<code>b_run<\/code>). All three hold for every number of pairs and any tape around them; the proofs were written by <code>tools/py/bbtools/symtm.py<\/code> from symbolic runs.",
+   "where": "<code>e_run<\/code>, <code>e_mark<\/code>, <code>b_run<\/code>, <code>lean/Rules.lean<\/code> (generated by <code>lean/rules.py<\/code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The right end is a base-3 counter",
+   "text": "When the head is back at the right end (state C reading the <code>0<\/code> of <code>0 10<\/code>, blank beyond), read the tape from the right as levels <code>s (10)^g s&prime; (10)^W<\/code>, with digit 2 for seps <code>1 1<\/code>, 1 for <code>0 1<\/code> and 0 for <code>0 0<\/code>. The machine returns to the right end after subtracting one from the base-3 number the digits spell (last level lowest): a digit 2 becomes 1 (s &rarr; 0, one pair from W to g), a digit 1 becomes 0 (s&prime; &rarr; 0), and each digit 0 passed by the borrow becomes 2 (one pair from W to g), except that the last level's W grows, by 1 or 2. Proved for every block length (g, W odd for digit 2, even otherwise, W at least 1 to 4 pairs), any number of borrows and any tape left of the level where the trip turns, so no such trip halts. The proofs chain eight symbolic pieces of the run, generated by <code>symtm.py<\/code>, by induction on the number of borrows.",
+   "where": "<code>counter_last2<\/code>, <code>counter_last1<\/code>, <code>counter_borrow2<\/code>, <code>counter_borrow1<\/code>, <code>lean/Counter.lean<\/code>; pieces <code>first0<\/code>, <code>walk0<\/code>, <code>turn2<\/code>, <code>turn1<\/code>, <code>sweep0<\/code>, <code>sweepLast<\/code>, <code>last2<\/code>, <code>last1<\/code> in <code>lean/Rules.lean<\/code>"
+  },
+  {
+   "level": "kernel",
+   "title": "43 shapes of the top of the counter",
+   "text": "A trip that the four counter theorems do not cover is the counter's walk over digit-0 levels, then a <em>top piece<\/em> on the tape left of them, then the counter's sweep back; or, when the last level itself is irregular, one piece that is the whole trip. Lean proves that the walk and the sweep work around any piece that starts in the walk's phase and ends in the sweep's (<code>counter_borrow_any<\/code>), and proves 43 pieces, each a map on block lengths valid for every value of its variables: for example <code>0^inf (2x+1) 1 (2y+1) 0 (2z+2) &rarr; 0^inf 2x 1 (2y+3) 1 (2z+3)<\/code> (a borrow into the first level), <code>0^inf (2x+2) &rarr; 0^inf 3 1 (2x+3)<\/code> (a new level at the left end) and <code>L 1 2x &rarr; L 0 (2x+2)<\/code> (a level of the wrong parity, any tape L to its left). Together with the walked levels, any number of them, each is the whole trip from the right end and back. The pieces were found and generalised by <code>py/top.py<\/code> and proved along symbolic runs written by <code>symtm.py<\/code>; no trip through them halts.",
+   "where": "<code>top_0<\/code> to <code>top_42<\/code> (with the runs <code>top_piece_i<\/code>), <code>lean/Top.lean<\/code> (generated by <code>lean/top_gen.py<\/code> from <code>lean/top_shapes.txt<\/code>); <code>counter_borrow_any<\/code>, <code>lean/Counter.lean<\/code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 20,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 20,000 steps from blank tape without a halt, evaluated by Lean's kernel. At step 18 the tape is <code>1 0 1 0 1 0 1 F&gt;0<\/code> (<code>blank_at_18<\/code>).",
+   "where": "<code>blank_runs_20000<\/code>, <code>blank_at_18<\/code>, <code>lean/Blank.lean<\/code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10,000,000 steps",
+   "text": "The same run for 10<sup>7<\/sup> steps, evaluated by compiled code.",
+   "where": "<code>blank_runs_10M<\/code>, <code>lean/Blank.lean<\/code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>10<\/sup> steps",
+   "text": "The C simulator <code>tools/c/tmrun.c<\/code> (tested against the Python reference simulator) runs 10<sup>10<\/sup> steps from blank tape without a halt, in under a minute. At that point 258,671 cells are visited and 129,335 of them are 1.",
+   "where": "<code>tools/c/tmrun.c<\/code>; <code>c/growth.c<\/code>, <code>runs/growth_1e10.txt<\/code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>33<\/sup> steps",
+   "text": "<code>py/accel.py<\/code> applies the counter trips in closed form, many at once with their exact step counts (each trip costs a linear function of the lengths it touches, from the pieces in <code>lean/Rules.lean<\/code>), and runs the other trips on the macro simulator, jumping over repeated cycles inside them with rules proved symbolically by <code>tools/py/bbtools/cycles.py<\/code>. It passes 1.06&middot;10<sup>23<\/sup> steps (1.2&middot;10<sup>11<\/sup> trips) without a halt in 17 minutes, and 1.48&middot;10<sup>33<\/sup> steps (7.2&middot;10<sup>15<\/sup> trips) in two hours. Every state it passes through agrees with the plain macro run, checked to 10<sup>14<\/sup> steps.",
+   "where": "<code>python3 py/accel.py 1e23<\/code>; <code>tests/test_machine.py<\/code> (<code>TestAccel<\/code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Almost every trip in the first 10<sup>11<\/sup> steps is a counter step",
+   "text": "Of the 151,240 trips from the right end and back in the first 10<sup>11<\/sup> steps, 150,680 are covered by the counter theorems and all end as they say. The other 560 are the top of the counter: 321 borrow past the levels into the irregular blocks at the left end, and 239 meet one of the leftmost few levels when it is too short or of the wrong parity for the theorems. Run with the macro simulator <code>tools/py/bbtools/macro.py<\/code> (blocks of 4 cells, runs crossed at once; tested cell for cell against the reference simulator), 10<sup>11<\/sup> steps in about two minutes.",
+   "where": "<code>python3 py/counter.py check 1e11<\/code>; <code>tests/test_machine.py<\/code> checks the first 10<sup>8<\/sup> steps"
+  },
+  {
+   "level": "trusted",
+   "title": "513 of the 560 top trips to 10<sup>11<\/sup> steps are proved shapes",
+   "text": "Of the 560 trips in the first 10<sup>11<\/sup> steps that the counter theorems do not cover, 513 go through one of the 43 proved shapes, and each ends as its shape says (comparing tapes with the run). The other 47 are the trips that build a wall: each starts with the walk arriving at a digit-0 level <code>0 (10)^X 0<\/code> that has a single pair to its left, and in 42 of them the left end then grows a new first block of 2X &minus; c pairs (c from 1 to 26), one round of the head per pair of X; these depend on X through a loop, so no single symbolic run covers them.",
+   "where": "<code>python3 py/top.py check 1e11<\/code> (events, shapes); <code>tests/test_machine.py<\/code> checks the first 10<sup>9<\/sup> steps and runs each shape on the reference simulator"
+  },
+  {
+   "level": "trusted",
+   "title": "No simple conserved quantity",
+   "text": "No quantity a&middot;(number of 1s) + b&middot;(head position) + W[state] is conserved modulo m for any m from 2 to 12, so no such count rules out halting candidates, unlike the mod-3 invariant of the holdout.",
+   "where": "<code>python3 -m bbtools.invariants<\/code> (<code>tools/py/bbtools/invariants.py<\/code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Windows of cells do not separate the halt",
+   "text": "Closed tape languages built from windows of 2 to 7 cells (<code>tools/py/bbtools/ctl.py<\/code>) all cover the run and all still allow a halt, so they prove nothing here. The protection seems to be the alignment of the pairs <code>10<\/code> with E's sweep, which windows of raw cells do not record.",
+   "where": "<code>python3 -m bbtools.ctl MACHINE K<\/code>, K = 2..7"
+  },
+  {
+   "level": "heuristic",
+   "title": "The tape is blocks of pairs, and grows like the square root of time",
+   "text": "Each time the head reaches a new cell at the left end, the tape reads <code>0 0 (10)^n1 0 (10)^n2 &hellip; 0 (10)^nk 1<\/code>, sometimes with a word <code>110<\/code> right after a block. Through 10<sup>10<\/sup> steps the width is about 2.6&radic;t at step t and half of the cells are 1. The head goes back and forth between the right end and the block boundaries; each sweep to the right in E marks the boundaries, and each excursion from the right end runs left to a boundary and back.",
+   "where": "<code>py/blank.py left<\/code>, <code>py/blank.py turns<\/code>, <code>tools/c/tokrun.c<\/code>, <code>runs/left_1e10.txt<\/code>, <code>runs/growth_1e10.txt<\/code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A mark never sits after a boundary at the left-end moments",
+   "text": "In all 207 left-end moments up to 10<sup>10<\/sup> steps, the word <code>110<\/code> occurs 67 times, always right after a block of pairs and never right after a boundary 0. Right after a pair it is out of step with E's sweep (E arrives on its first 1 and turns), so it is harmless; right after a boundary it would be the halting shape.",
+   "where": "<code>runs/left_1e10.txt<\/code>; notes/LAB_NOTES.md, 2 November 2026"
+  },
+  {
+   "level": "heuristic",
+   "title": "In front of a long block, the left end replays the run from blank tape",
+   "text": "When the tape at a left-end moment starts <code>0 0 (10)^W 0<\/code> with W large (a wall), the following left-end moments repeat those of the run from blank tape, the blank run's last block replaced by the wall, and the wall shrinks by the same amounts every time: 1, 3, 2, 4, 2, 10, 6, 10, 6, 2, 6, 12, &hellip; whether W is 71, 257, 1,547 or 43,801. The first wall, 257 pairs at step 277,787, is followed by 29 replayed moments. Walls nest (at step 1.8&middot;10<sup>9<\/sup> the tape starts with walls of 1,768 and 10,762 pairs), so the run looks like a recursive counter. The count of replayed moments is a lower bound: the moments are taken where the head extends the tape on the left after extending it on the right, which the replay need not keep in step.",
+   "where": "<code>py/replay.py<\/code> on <code>runs/left_1e10.txt<\/code>"
+  },
+  {
+   "level": "open",
+   "title": "Wall building, and the top as a whole",
+   "text": "The 47 trips that build a wall (a loop that copies a block of X pairs into a block of about 2X at the left end), as an inductive lemma; then the top as a whole: whether the shapes and the wall building close up into a recursion that can be followed forever, and whether any of them can leave a mark right after a boundary in E's way.",
+   "where": "next steps, notes/LAB_NOTES.md"
+  }
+ ]
+}
+</script>
+<script id="engine">
+// The engine: the machine and the word view of its tape, no DOM. tests/test_explainer.py runs this block in Node
+// and compares it with the reference simulator (tools/py/bbtools) and py/blank.py.
+// 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- ; entries [write, move (+1 right, -1 left), next], null = halt
+const MACHINE = "1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---";
+const STATES = "ABCDEF";
+const TABLE = MACHINE.split("_").map(g => [0, 1].map(y => {
+  const t = g.slice(3 * y, 3 * y + 3);
+  return t[2] === "-" ? null : [+t[0], t[1] === "R" ? 1 : -1, STATES.indexOf(t[2])];
+}));
+
+function makeTM(size) {
+  const n = size || 1 << 12;
+  return { tape: new Uint8Array(n), off: n >> 1, head: 0, lo: 0, hi: 0, st: 0, steps: 0, halted: false };
+}
+function grow(m) {
+  const n = m.tape.length, t = new Uint8Array(3 * n);
+  t.set(m.tape, n); m.tape = t; m.off += n;
+}
+function cellAt(m, p) { const i = p + m.off; return i < 0 || i >= m.tape.length ? 0 : m.tape[i]; }
+// One step (bbchallenge count: the halting transition counts as a step and is not carried out). False at a halt.
+function tmStep(m) {
+  if (m.halted) return false;
+  let i = m.head + m.off;
+  if (i < 0 || i >= m.tape.length) { grow(m); i = m.head + m.off; }
+  const e = TABLE[m.st][m.tape[i]];
+  m.steps++;
+  if (!e) { m.halted = true; return false; }
+  m.tape[i] = e[0]; m.head += e[1]; m.st = e[2];
+  if (m.head < m.lo) m.lo = m.head;
+  if (m.head > m.hi) m.hi = m.head;
+  return true;
+}
+function cells(m, lo, hi) {
+  const out = [];
+  for (let p = lo; p <= hi; p++) out.push(cellAt(m, p));
+  return out;
+}
+// The cells read from the left with the words b = 110, a = 10 (longest first), run-length coded: "0^2 a^3 0 a 1".
+const WORDS = [["b", [1, 1, 0]], ["a", [1, 0]]];
+function tokenize(cs) {
+  const out = [];
+  let i = 0;
+  while (i < cs.length) {
+    let tok = null;
+    for (const [name, w] of WORDS) {
+      if (i + w.length <= cs.length && w.every((c, j) => cs[i + j] === c)) { tok = name; i += w.length; break; }
+    }
+    if (tok === null) { tok = String(cs[i]); i++; }
+    if (out.length && out[out.length - 1][0] === tok) out[out.length - 1][1]++;
+    else out.push([tok, 1]);
+  }
+  return out;
+}
+function tokenStr(toks) { return toks.map(([t, k]) => k === 1 ? t : t + "^" + k).join(" "); }
+function words(cs) { return tokenStr(tokenize(cs)); }
+// The moments when the head extends the tape on the left after it last extended it on the right:
+// [steps, width (hi - lo), state, words]; [steps, "HALT"] at a halt.  As py/blank.py left.
+function leftEvents(maxSteps, maxEvents) {
+  const m = makeTM(1 << 14), out = [];
+  let last = null;
+  while (m.steps < maxSteps && out.length < maxEvents) {
+    const lo = m.lo, hi = m.hi;
+    if (!tmStep(m)) { out.push([m.steps, "HALT"]); break; }
+    const side = m.lo < lo ? "L" : m.hi > hi ? "R" : null;
+    if (side && side !== last) {
+      last = side;
+      if (side === "L") out.push([m.steps, m.hi - m.lo, STATES[m.st], words(cells(m, m.lo, m.hi))]);
+    }
+  }
+  return out;
+}
+// Transition counts over the first n steps: {"A0": count, ...}.
+function transitionCounts(n) {
+  const m = makeTM(1 << 14), c = {};
+  while (m.steps < n) {
+    const k = STATES[m.st] + cellAt(m, m.head);
+    c[k] = (c[k] || 0) + 1;
+    if (!tmStep(m)) break;
+  }
+  return c;
+}
+// One excursion from the right end as the base-3 counter of lean/Counter.lean (the same as py/counter.py predict).
+// Tokens: block lengths in pairs (numbers) and single cells ("0"/"1"), ending "0", 1. Returns {t} or {why}.
+function counterStep(t0) {
+  const t = t0.slice(), D = { "11": 2, "01": 1, "00": 0 };
+  const n = t.length;
+  if (n < 5 || t[n - 2] !== "0" || t[n - 1] !== 1) return { why: "tail" };
+  let i = n - 5, last = true;
+  for (;;) {
+    if (i < 1 || typeof t[i] !== "number" || typeof t[i + 2] !== "number") return { why: "left" };
+    const d = D[t[i - 1] + t[i + 1]];
+    if (d === undefined) return { why: "left" };
+    const g = t[i], w = t[i + 2];
+    if (d === 2) {
+      if (!(g % 2 === 1 && w % 2 === 1 && w >= (last ? 1 : 3))) return { why: "short" };
+      t[i - 1] = "0"; t[i] += 1; t[i + 2] += last ? 1 : -1; return { t };
+    }
+    if (d === 1) {
+      if (!(g % 2 === 0 && g >= 2 && w % 2 === 0 && w >= 2)) return { why: "short" };
+      t[i + 1] = "0"; if (last) t[i + 2] += 2; return { t };
+    }
+    if (!(g % 2 === 0 && g >= 2 && w % 2 === 0 && w >= (last ? 2 : 4))) return { why: "short" };
+    t[i - 1] = "1"; t[i + 1] = "1"; t[i] += 1; t[i + 2] += last ? 1 : -1;
+    last = false; i -= 4;
+  }
+}
+</script>
+<script>
+(function () {
+"use strict";
+const $ = id => document.getElementById(id);
+const DATA = JSON.parse($("run-data").textContent);
+const STATUS = JSON.parse($("status-data").textContent);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt = n => n.toLocaleString("en-US");
+
+// ---------- 1. table
+(function () {
+  const counts = DATA.counts;
+  const body = $("ttBody");
+  for (let s = 0; s < 6; s++) {
+    const tr = document.createElement("tr");
+    let h = "<th>" + STATES[s] + "</th>";
+    for (let y = 0; y < 2; y++) {
+      const e = TABLE[s][y], k = STATES[s] + y, c = counts[k] || 0;
+      const txt = e ? e[0] + (e[1] > 0 ? "R" : "L") + STATES[e[2]] : "halt";
+      const rare = c < 5000;
+      h += "<td" + (e ? "" : ' style="color:var(--open);font-weight:600"') + ">" + txt +
+        '<div class="small" style="font-family:var(--body)">' + (rare ? "<b>" + fmt(c) + "</b>" : fmt(c)) + "&times;</div></td>";
+    }
+    tr.innerHTML = h;
+    body.appendChild(tr);
+  }
+})();
+
+// ---------- counter
+(function () {
+  const START = [92, "0", 6, "0", 4, "0", 8, "1", 37, "1", 37, "1", 211, "1", 16721, "0", 1326, "0", 18236, "0", 1948,
+    "0", 41212, "0", 8254, "0", 41236, "0", 1];
+  const DG = { "11": 2, "01": 1, "00": 0 };
+  let cur = START.slice(), prev = null, trips = 0;
+  function split(t) {
+    const levs = [];
+    let i = t.length - 5;
+    while (i >= 1 && typeof t[i] === "number" && typeof t[i + 2] === "number" && DG[t[i - 1] + t[i + 1]] !== undefined) {
+      levs.unshift(i); i -= 4;
+    }
+    return { left: t.slice(0, levs.length ? levs[0] - 1 : t.length - 2), levs };
+  }
+  function pairs(t) { let n = 0; for (const x of t) if (typeof x === "number") n += x; return n; }
+  function render(note) {
+    const { left, levs } = split(cur);
+    let h = '<div class="ctleft">' + left.join(" ") + "</div>";
+    const ch = k => prev && prev.length === cur.length && prev[k] !== cur[k] ? ' class="chg"' : "";
+    for (const i of levs) {
+      const d = DG[cur[i - 1] + cur[i + 1]];
+      h += '<div class="ctlev d' + d + '"><div class="dg">' + d + '</div><div class="sp"><span' + ch(i - 1) + ">" + cur[i - 1] +
+        "</span> g <span" + ch(i) + ">" + fmt(cur[i]) + "</span> <span" + ch(i + 1) + ">" + cur[i + 1] + "</span></div>" +
+        '<div class="sp">W <span' + ch(i + 2) + ">" + fmt(cur[i + 2]) + "</span></div></div>";
+    }
+    $("ctRow").innerHTML = h;
+    $("ctTrips").textContent = fmt(trips);
+    $("ctPairs").textContent = fmt(pairs(cur));
+    $("ctNote").textContent = note || "";
+  }
+  function next() {
+    const r = counterStep(cur);
+    if (!r.t) {
+      render(r.why === "left" ? "The next trip borrows past the levels into the left end: no theorem covers it."
+        : "The next trip meets a level too short or of the wrong parity: no theorem covers it.");
+      return false;
+    }
+    prev = cur; cur = r.t; trips++;
+    return true;
+  }
+  $("ctNext").addEventListener("click", () => { if (next()) render(); });
+  $("ctBorrow").addEventListener("click", () => {
+    let k = 0;
+    while (k < 1000000 && next()) k++;
+  });
+  $("ctReset").addEventListener("click", () => { cur = START.slice(); prev = null; trips = 0; render(); });
+  render();
+})();
+
+// ---------- 2. simulator
+const sim = { m: makeTM(1 << 14), running: false, rows: [], lastDir: 0 };
+const WIN = 37;
+function resetSim() { sim.m = makeTM(1 << 14); sim.rows = []; sim.lastDir = 0; sim.running = false; $("simRun").textContent = "Run"; draw(); }
+function snapshot() {
+  const m = sim.m;
+  sim.rows.push({ lo: m.lo, hi: m.hi, head: m.head, cs: cells(m, m.lo, m.hi) });
+  if (sim.rows.length > 260) sim.rows.shift();
+}
+function stepOnce() {
+  const m = sim.m, h = m.head;
+  if (!tmStep(m)) return false;
+  const d = m.head > h ? 1 : -1;
+  if (d !== sim.lastDir) { sim.lastDir = d; snapshot(); }
+  return true;
+}
+function draw() {
+  const m = sim.m;
+  $("rStep").textContent = fmt(m.steps);
+  $("rState").textContent = m.halted ? "halt" : STATES[m.st];
+  $("rWidth").textContent = fmt(m.hi - m.lo + 1);
+  let ones = 0; for (let p = m.lo; p <= m.hi; p++) ones += cellAt(m, p);
+  $("rOnes").textContent = fmt(ones);
+  // cells window
+  const box = $("cells"); box.innerHTML = "";
+  const half = WIN >> 1;
+  for (let p = m.head - half; p <= m.head + half; p++) {
+    const d = document.createElement("div");
+    d.className = "cell" + (cellAt(m, p) ? " one" : "") + (p < m.lo || p > m.hi ? " blank" : "") + (p === m.head ? " hd" : "");
+    if (p === m.head) d.dataset.s = STATES[m.st];
+    box.appendChild(d);
+  }
+  // words, with the head shown
+  const left = words(cells(m, m.lo, m.head - 1)), right = words(cells(m, m.head, m.hi));
+  const esc = s => s.replace(/b(\^\d+)?/g, '<span class="mk">$&</span>');
+  $("words").innerHTML = (left ? esc(left) + " " : "") + '<span class="hdw">[' + STATES[m.st] + "]</span> " + esc(right);
+  // space-time rows
+  const cv = $("st"), ctx = cv.getContext("2d");
+  const W = cv.width, H = cv.height;
+  ctx.fillStyle = css("--sunk"); ctx.fillRect(0, 0, W, H);
+  if (!sim.rows.length) return;
+  let lo = Infinity, hi = -Infinity;
+  for (const r of sim.rows) { lo = Math.min(lo, r.lo); hi = Math.max(hi, r.hi); }
+  const n = hi - lo + 1, cw = W / n, rh = H / Math.max(sim.rows.length, 60);
+  ctx.fillStyle = css("--ink");
+  sim.rows.forEach((r, i) => {
+    const y = H - (sim.rows.length - i) * rh;
+    for (let k = 0; k < r.cs.length; k++) if (r.cs[k]) ctx.fillRect((r.lo + k - lo) * cw, y, Math.max(cw, 0.6), rh);
+  });
+  ctx.fillStyle = css("--head");
+  sim.rows.forEach((r, i) => {
+    const y = H - (sim.rows.length - i) * rh;
+    ctx.fillRect((r.head - lo) * cw - 1, y, Math.max(cw, 2), rh);
+  });
+}
+function loop() {
+  if (!sim.running) return;
+  const k = +$("simSpeed").value;
+  for (let i = 0; i < k; i++) if (!stepOnce()) { sim.running = false; break; }
+  draw();
+  if (sim.running) requestAnimationFrame(loop); else $("simRun").textContent = "Run";
+}
+$("simRun").onclick = () => { sim.running = !sim.running; $("simRun").textContent = sim.running ? "Pause" : "Run"; if (sim.running) loop(); };
+$("simStep").onclick = () => { stepOnce(); draw(); };
+$("simTurn").onclick = () => { const d = sim.lastDir; let g = 0; while (sim.lastDir === d && g++ < 1e7 && stepOnce()); draw(); };
+$("simReset").onclick = resetSim;
+document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => {
+  const t = +b.dataset.go;
+  if (sim.m.steps > t) resetSim();
+  sim.running = false; $("simRun").textContent = "Run";
+  while (sim.m.steps < t && stepOnce());
+  draw();
+});
+resetSim();
+
+// ---------- 3. rule diagrams
+function strip(cs, head, st) {
+  return '<div class="mini cellwrap">' + cs.map((c, i) =>
+    '<div class="cell' + (c ? " one" : "") + (i === head ? ' hd" data-s="' + st : "") + '"></div>').join("") + "</div>";
+}
+function runTape(cs, head, st, n) {
+  const m = makeTM(64);
+  cs.forEach((c, i) => { m.tape[m.off + i] = c; });
+  m.lo = 0; m.hi = cs.length - 1; m.head = head; m.st = STATES.indexOf(st);
+  for (let i = 0; i < n; i++) if (!tmStep(m)) break;
+  return { cs: cells(m, 0, cs.length - 1), head: m.head, st: m.halted ? "!" : STATES[m.st], steps: m.steps, halted: m.halted };
+}
+const RULES = [
+  ["e_run", "E runs right over pairs, shifting each one cell (2 steps a pair).", [0, 1, 0, 1, 0, 1, 0, 0], 1, "E", 6],
+  ["e_mark", "E at a boundary <code>0 10</code> marks it <code>0 11</code> and goes on (3 steps).", [0, 1, 0, 0, 1, 0, 1, 0], 3, "E", 3],
+  ["b_run", "B runs left over pairs, two at a time, through D between them (4 steps per two pairs).", [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0], 10, "B", 8],
+  ["halt_shape", "E meeting a mark <code>0 11</code> in step: two steps later F reads a 1 and the machine stops.", [0, 1, 0, 0, 1, 1, 0, 0], 3, "E", 3],
+];
+$("rules").innerHTML = RULES.map(([name, txt, cs, h, st, n]) => {
+  const r = runTape(cs, h, st, n);
+  return '<div class="rule"><div><span class="ev k">Kernel</span> <code>' + name + "</code> " + txt + "</div>" +
+    '<div class="rowc"><span class="lbl">before</span>' + strip(cs, h, st) + "</div>" +
+    '<div class="rowc"><span class="lbl">' + (r.halted ? "halts at step " + r.steps : "after " + r.steps) + "</span>" + strip(r.cs, r.head, r.halted ? "F" : r.st) + "</div></div>";
+}).join("");
+
+// ---------- 4. left-end moments
+(function () {
+  const body = $("levBody");
+  const wallRows = new Set(DATA.walls.map(w => w.event)), repRows = new Set();
+  DATA.walls.forEach(w => { for (let i = 1; i <= w.replayed; i++) repRows.add(w.event + i); });
+  body.innerHTML = DATA.left.map(([t, w, s, ws], i) =>
+    '<tr class="' + (wallRows.has(i) ? "wall" : "") + (repRows.has(i) ? " rep" : "") + '"><td>' + fmt(t) + "</td><td>" + fmt(w) + "</td><td>" + s +
+    '</td><td class="bl">' + ws + "</td></tr>").join("");
+})();
+
+// ---------- charts
+function svgEl(tag, attrs, parent) {
+  const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function chart(host, opts) {
+  host.innerHTML = "";
+  const W = 820, H = 300, L = 62, R = 16, T = 14, B = 40;
+  if (opts.legend) {
+    const lg = document.createElement("div"); lg.className = "legend";
+    lg.innerHTML = opts.legend.map(([c, t]) => '<span><i style="background:' + c + '"></i>' + t + "</span>").join("");
+    host.appendChild(lg);
+  }
+  const svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": opts.label });
+  host.appendChild(svg);
+  const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; host.appendChild(tip);
+  const sx = v => L + (opts.x(v) - opts.x0) / (opts.x1 - opts.x0) * (W - L - R);
+  const sy = v => H - B - (opts.y(v) - opts.y0) / (opts.y1 - opts.y0) * (H - T - B);
+  for (const t of opts.yt) { svgEl("line", { x1: L, x2: W - R, y1: sy(t), y2: sy(t), stroke: css("--grid") }, svg); svgEl("text", { x: L - 8, y: sy(t) + 4, "text-anchor": "end" }, svg).textContent = opts.yf(t); }
+  for (const t of opts.xt) { svgEl("text", { x: sx(t), y: H - B + 18, "text-anchor": "middle" }, svg).textContent = opts.xf(t); }
+  svgEl("line", { x1: L, x2: W - R, y1: H - B, y2: H - B, stroke: css("--axis") }, svg);
+  svgEl("text", { x: (L + W - R) / 2, y: H - 4, "text-anchor": "middle" }, svg).textContent = opts.xl;
+  svgEl("text", { x: 12, y: (T + H - B) / 2, "text-anchor": "middle", transform: "rotate(-90 12 " + (T + H - B) / 2 + ")" }, svg).textContent = opts.yl;
+  const pts = [];
+  for (const s of opts.series) {
+    const d = s.pts.map((p, i) => (i ? "L" : "M") + sx(p[0]).toFixed(1) + " " + sy(p[1]).toFixed(1)).join(" ");
+    svgEl("path", { d, fill: "none", stroke: s.color, "stroke-width": s.w || 2, "stroke-dasharray": s.dash || "" }, svg);
+    if (s.dots) s.pts.forEach(p => { svgEl("circle", { cx: sx(p[0]), cy: sy(p[1]), r: 3, fill: s.color }, svg); pts.push([sx(p[0]), sy(p[1]), s.name, p]); });
+  }
+  svg.addEventListener("mousemove", ev => {
+    const r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) * W / r.width, y = (ev.clientY - r.top) * H / r.height;
+    let best = null, bd = 400;
+    for (const p of pts) { const d = (p[0] - x) ** 2 + (p[1] - y) ** 2; if (d < bd) { bd = d; best = p; } }
+    if (!best) { tip.hidden = true; return; }
+    tip.hidden = false; tip.textContent = best[2] + ": " + opts.tipf(best[3]);
+    tip.style.left = Math.min(best[0] * r.width / W + 10, r.width - 160) + "px"; tip.style.top = (best[1] * r.height / H - 30) + "px";
+  });
+  svg.addEventListener("mouseleave", () => { tip.hidden = true; });
+}
+function drawCharts() {
+  // walls: lost after each replayed moment
+  const pal = [css("--s1"), css("--s2"), css("--kernel"), css("--heur"), css("--computed")];
+  const ws = DATA.walls.filter(w => w.replayed >= 5);
+  const maxI = Math.max(...ws.map(w => w.replayed)), maxL = Math.max(...ws.map(w => w.wall - w.after[w.after.length - 1]));
+  chart($("wallChart"), {
+    label: "Pairs each wall has lost after each replayed moment",
+    legend: ws.map((w, i) => [pal[i % pal.length], "wall " + fmt(w.wall) + " (step " + fmt(w.step) + ")"]),
+    x: v => v, y: v => v, x0: 0, x1: maxI + 1, y0: 0, y1: Math.ceil(maxL / 50) * 50,
+    xt: [0, 5, 10, 15, 20, 25, 30].filter(t => t <= maxI + 1), xf: String, xl: "replayed moment i",
+    yt: [0, 50, 100, 150, 200, 250].filter(t => t <= maxL + 50), yf: String, yl: "pairs lost",
+    series: ws.map((w, i) => ({ name: "wall " + fmt(w.wall), color: pal[i % pal.length], w: Math.max(1.5, 5 - i), dots: true,
+      pts: w.after.map((a, j) => [j + 1, w.wall - a]) })),
+    tipf: p => "moment " + p[0] + ", lost " + p[1],
+  });
+  // growth
+  const g = DATA.growth, lg = Math.log10;
+  chart($("growthChart"), {
+    label: "Width against steps, logarithmic axes",
+    legend: [[css("--s1"), "width"], [css("--muted"), "2.6 √t"]],
+    x: lg, y: lg, x0: 1, x1: 10, y0: 0, y1: 6,
+    xt: [10, 100, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10], xf: v => "10^" + Math.round(lg(v)), xl: "steps",
+    yt: [1, 10, 100, 1e3, 1e4, 1e5, 1e6], yf: v => fmt(v), yl: "width",
+    series: [{ name: "2.6√t", color: css("--muted"), dash: "4 4", w: 1.5, pts: [[10, 2.6 * Math.sqrt(10)], [1e10, 2.6 * 1e5]] },
+      { name: "width", color: css("--s1"), dots: true, pts: g.map(r => [r[0], r[1]]) }],
+    tipf: p => fmt(p[1]) + " cells at step " + fmt(p[0]),
+  });
+}
+drawCharts();
+if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { drawCharts(); draw(); });
+
+// ---------- 8. ledger
+(function () {
+  const names = { kernel: ["k", "Kernel"], native: ["n", "native_decide"], trusted: ["c", "Computed"], heuristic: ["h", "Heuristic"], open: ["o", "Open"] };
+  $("ledgerAsof").textContent = STATUS.asof;
+  const list = $("ledgerList");
+  function render(f) {
+    list.innerHTML = STATUS.claims.filter(c => f === "all" || c.level === f).map(c => {
+      const [k, t] = names[c.level];
+      return '<div class="litem"><div><span class="ev ' + k + '">' + t + "</span></div><div><b>" + c.title + "</b><p style=\"margin:.25rem 0\">" + c.text +
+        '</p><div class="w">' + c.where + "</div></div></div>";
+    }).join("");
+  }
+  document.querySelectorAll(".lfilter button").forEach(b => b.onclick = () => {
+    document.querySelectorAll(".lfilter button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    render(b.dataset.f);
+  });
+  render("all");
+})();
+})();
+</script>
+</body>
+</html>

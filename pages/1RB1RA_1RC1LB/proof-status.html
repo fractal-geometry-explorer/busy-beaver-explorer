@@ -90,7 +90,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-s0">Prior work</h2>
     <div class="prose">
       <p>The machine is an open BB(6) holdout on @mxdys's lists (623 machines up to equivalence, 24 October 2026) and sits unannotated in the community ledger's "Cubic Mess" class. It is not a named cryptid and has no page on the <a href="https://wiki.bbchallenge.org/wiki/Cryptid">bbchallenge wiki</a>.</p>
-      <p>Google DeepMind's <a href="https://github.com/google-deepmind/cryptids">cryptids</a> repository lists it as an open acceleration problem (<a href="https://github.com/google-deepmind/cryptids/pull/18">PR #18</a>, 27 October 2026), with a Lean proof that it halts iff a map on two stacks of block lengths halts. That map is the macro step here cut at other moments, and its higher-level map is exactly the event map of <code>py/waves.py</code> (each time A is on the blank right end), one level below the super step (<code>py/deepmind.py</code>). Nothing found reduces it further; the super step's formula and the criterion on N appear to be new.</p>
+      <p>Google DeepMind's <a href="https://github.com/google-deepmind/cryptids">cryptids</a> repository lists it as an open acceleration problem (<a href="https://github.com/google-deepmind/cryptids/pull/18">PR #18</a>, 27 October 2026), with a Lean proof that it halts iff a map on two stacks of block lengths halts. That map is the macro step here cut at other moments, and its higher-level map is exactly the event map of <code>py/waves.py</code> (each time A is on the blank right end), one level below the super step (<code>py/deepmind.py</code> checks it, <code>lean/DeepMind.lean</code> proves it for every event). Nothing found reduces it further; the super step's formula and the criterion on N appear to be new.</p>
       <p>The machine <code>1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB</code>, which the ledger says was merged into another equivalence class in April 2026, runs through the same tapes and halts from the same configurations (<code>py/sibling.py</code>), so these results should apply to it too. Its Collatz-like map is not Antihydra's or Hydra's: those iterate one integer under n &rarr; &lfloor;3n/2&rfloor;, while here the state is a growing list and N does not determine the next N. Sources and details: <code>notes/PRIOR_WORK.md</code>.</p>
     </div>
   </section>
@@ -116,6 +116,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>super_run</code>, <code>carry_wave</code>, <code>carry_left</code>, <code>orbit_tape</code>, <code>lean/Wave.lean</code></p>
       </div>
       <div class="card">
+        <h3>The single events, and DeepMind's high-level map</h3>
+        <p>Each time A stands on the blank right of the tape (an event, four per super step), the next event follows in closed form. If the last two blocks are k and x and q = &lfloor;x/2&rfloor;: for even x they become k + q + 1, q + 2; for odd x the wave of the super step starts at k with value k + q + 2, and the last block of the new tape is q. Proved from the macro map for every tape of the run's shape (the machine reaches the next event, or halts where the map says), and four events from [P, 5, 0] are the super step. So the machine halts iff the event orbit from [1, 2] (step 17) halts, and every tape of that orbit occurs. Google DeepMind's <code>highLevelNext</code> (cryptids, 27 October 2026), copied into core Lean, equals this map on every event, two steps later; their reduction is reached here again by another route.</p>
+        <p class="where"><code>ev_sound</code>, <code>carry_ev</code>, <code>ev4</code>, <code>halts_iff_ev</code>, <code>evOrbit_tape</code>, <code>lean/Events.lean</code>; <code>highLevelNext_eq</code>, <code>halts_iff_hl</code>, <code>lean/DeepMind.lean</code></p>
+      </div>
+      <div class="card">
         <h3>The step count of a super step</h3>
         <p>From the tape [p<sub>1</sub>, &hellip;, p<sub>m</sub>, 5, 0] the machine reaches the next super-step tape in exactly <code>superT</code> steps, or halts right after that many: 200 steps to the first carry of the wave, then 2q<sup>2</sup> + q &minus; 5 for each block the wave passes with even d = 2q, then 2q<sup>2</sup> + 4q + 17 + A where it turns at an odd d = 2q + 1, with A = 3 plus q + 1 for each block passed. At the left end the wave goes on with p = 0, and a halt there costs 11 steps. Proved for every list by following the timed macro steps of <code>next_sound</code> through the wave. It equals the sum of the four step counts of <code>py/waves.py</code> on 150,000 super steps (a test).</p>
         <p class="where"><code>super_steps</code>, <code>carry_wave_t</code>, <code>superT</code>, <code>lean/WaveTime.lean</code></p>
@@ -124,6 +129,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>When a super step halts</h3>
         <p>A super step halts iff N is a power of two. The wave passes a block exactly when d is even, so if it reaches the left end, 2<sup>m&minus;1</sup>&middot;d<sub>1</sub> = N, and it halts there exactly when d<sub>1</sub> is a power of two; if it turns at an odd d<sub>i</sub>, N is an odd number of at least 3 times a power of two.</p>
         <p class="where"><code>superL_none_iff</code>, <code>wave_none_iff</code>, <code>lean/Wave.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>N only grows</h3>
+        <p>N strictly increases at every super step that does not halt, so along the orbit from blank tape it is strictly increasing and meets each power of two at most once. Where the wave turns at block i (j = m &minus; i) N gains more than 2<sup>j+1</sup>; at a return it is multiplied by more than (3 + s)/2. Since m is fixed between returns, the next return's d<sub>1</sub> exceeds p<sub>1</sub> + p<sub>2</sub>/2 + p<sub>3</sub>/4 + &hellip; for the blocks at any time before it.</p>
+        <p class="where"><code>superL_grows</code>, <code>orbit_grows</code>, <code>blank_orbit_grows</code> (with <code>leftEnd_grows</code>, <code>wave_grows</code>), <code>lean/Monotone.lean</code></p>
       </div>
       <div class="card">
         <h3>The machine halts iff the macro run does</h3>
@@ -192,8 +202,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>tools/py/bbtools/invariants.py</code></p>
       </div>
       <div class="card">
-        <h3>The wave model's finer events and step counts</h3>
-        <p><code>py/waves.py</code>: each time A stands on the blank right of the tape (four times per super step), the next such time follows from the block lengths by a left-going wave, with exact machine step counts. The super step, the halting criterion and the step count of a whole super step are now proved in Lean; the finer events and their single step counts are not. Checked against <code>tmrun</code> at all 12,927 such times of the first 10<sup>9</sup> steps, against every new left cell up to 10<sup>10</sup> steps, and against the first 2,000 configurations of the proved macro map; Lean's <code>superstep</code> and <code>superT</code> agree with <code>waves.py</code> on its examples.</p>
+        <h3>The step counts of single events</h3>
+        <p><code>py/waves.py</code>: each time A stands on the blank right of the tape (four times per super step), the next such time follows from the block lengths by a left-going wave, with exact machine step counts. The super step, the single events, the halting criterion and the step count of a whole super step are proved in Lean; the step counts of single events are not. Checked against <code>tmrun</code> at all 12,927 such times of the first 10<sup>9</sup> steps, against every new left cell up to 10<sup>10</sup> steps, and against the first 2,000 configurations of the proved macro map; Lean's <code>superstep</code> and <code>superT</code> agree with <code>waves.py</code> on its examples.</p>
         <p class="where"><code>py/waves.py</code>, <code>tests/test_waves.py</code>, <code>notes/LAB_NOTES.md</code></p>
       </div>
       <div class="card">
@@ -208,8 +218,18 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>The last blocks are periodic</h3>
-        <p>Numbering the blocks from the right, block k only receives an add or a wave from block k&minus;1 and passes one on, so the last k blocks are a closed system. Each wave halves a block, and they fall into exact cycles: the last block 11 &rarr; 13 &rarr; 14 &rarr; 12, the last two with period 8, the last 20 with period 1.7&middot;10<sup>10</sup>, the last 44 with period 1.8&middot;10<sup>21</sup> super steps (each a 2<sup>a</sup>&middot;5<sup>b</sup>). The search checks each cycle before using it. That every level either cycles or goes silent is now proved in Lean (above), and so is the rule for the factors; the periods of the last 1 to 30 blocks are kernel-checked (above), and beyond those they are computed. Every one of the 44 factors is the one the mod-5 rule predicts, and from the fourth block on a settled block remembers only its residue mod 5 from one period to the next.</p>
+        <p>Numbering the blocks from the right, block k only receives an add or a wave from block k&minus;1 and passes one on, so the last k blocks are a closed system. Each wave halves a block, and they fall into exact cycles: the last block 11 &rarr; 13 &rarr; 14 &rarr; 12, the last two with period 8, the last 20 with period 1.7&middot;10<sup>10</sup>, the last 44 with period 1.8&middot;10<sup>21</sup> super steps (each a 2<sup>a</sup>&middot;5<sup>b</sup>). The search checks each cycle before using it. That every level either cycles or goes silent is now proved in Lean (above), and so is the rule for the factors; the periods of the last 1 to 35 blocks are kernel-checked (above), and beyond those they are computed. Every one of the 44 factors is the one the mod-5 rule predicts, and from the fourth block on a settled block remembers only its residue mod 5 from one period to the next.</p>
         <p class="where"><code>c/superrun.c</code> (lines <code>table</code> of <code>runs/superrun_long.txt</code>; <code>-r</code> and <code>runs/periods_rules.txt</code> for the rule), <code>notes/LAB_NOTES.md</code></p>
+      </div>
+      <div class="card">
+        <h3>The next return needs 2<sup>80</sup> | d<sub>1</sub></h3>
+        <p>At the end of the long run (super step 6&middot;10<sup>23</sup>) the top four blocks give p<sub>1</sub> + p<sub>2</sub>/2 + p<sub>3</sub>/4 + p<sub>4</sub>/8 = 1.18&middot;10<sup>24</sup> = 2<sup>79.96</sup>, so by <code>orbit_grows</code> the next return halts only if d<sub>1</sub> = 2<sup>a</sup> with a &ge; 80.</p>
+        <p class="where"><code>py/top_stats.py odds</code>; the blocks from <code>c/superrun.c</code> (<code>runs/superrun_long.txt</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The law of N mod 2<sup>k</sup> at the right end</h3>
+        <p>N mod 2<sup>k</sup> depends only on the last k blocks, which cycle; over one exact period of the last 18 (1,048,576,000 super steps) v<sub>2</sub>(N) = j occurs 1, 0.5, 1.25, 1.75, 2.13, 1.44, &hellip; times 2<sup>&minus;(j+1)</sup>, then near 1.28; the next bit given the lower ones is off from a fair coin by 0.07 on average at bit 4 and 0.0018 at bit 17, so the 2-adic law of N has a density (no class above 3.5 times uniform); and N is never 3030 or 4054 mod 2<sup>12</sup>, the only residues mod 2<sup>18</sup> it misses.</p>
+        <p class="where"><code>c/bottom2adic.c</code>, <code>runs/bottom2adic_18.txt</code>, <code>tests/test_top.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
@@ -226,8 +246,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Almost certainly no halt</h3>
-        <p>At a return the deciding number d<sub>1</sub> is now about 1.9&middot;10<sup>27</sup> and has grown by about 2.4 bits per return; if it behaved like a random integer, the chance of ever hitting a power of two from here would be about 10<sup>&minus;27</sup>. The rule for the periods explains the last blocks completely but gives no obstruction: halting is decided at the top, where the blocks are young. N shows no modular obstruction (see below).</p>
-        <p class="where"><code>notes/LAB_NOTES.md</code></p>
+        <p>At a return the deciding number d<sub>1</sub> is now about 1.9&middot;10<sup>24</sup> (81 bits) and has grown by about 2.1 bits per return; if it behaved like a random integer, the chance of ever hitting a power of two from here would be about 5&middot;10<sup>&minus;25</sup> (10% to 90% over resampled futures: 5&middot;10<sup>&minus;26</sup> to 1.4&middot;10<sup>&minus;24</sup>). Earlier versions said 1.9&middot;10<sup>27</sup> and 10<sup>&minus;27</sup>, from a miscounted d<sub>1</sub>. The rule for the periods explains the last blocks completely but gives no obstruction: halting is decided at the top, where the blocks are young. N shows no modular obstruction (see below).</p>
+        <p class="where"><code>py/top_stats.py odds</code>, <code>runs/odds.txt</code>, <code>pages/1RB1RA_1RC1LB/top-blocks.html</code></p>
+      </div>
+      <div class="card">
+        <h3>The random model holds on the map within a factor of about 2</h3>
+        <p>From 60,000 random starts (522,749 returns, d<sub>1</sub> up to 2<sup>30</sup>) the super step halts 2,018 times against 2,023.7 predicted by 1/(d<sub>1</sub> ln 2). Near-halts (odd part of d<sub>1</sub> below 2<sup>c</sup>, c &le; 20) come at 0.4 to 1.4 times the predicted rate at every scale; v<sub>2</sub>(d<sub>1</sub>) is geometric within 3% up to 7 and about 15% short beyond (about 3&sigma;); d<sub>1</sub>'s residues and leading bits are within a few percent of uniform. On the blank-tape orbit, waves pass each of the top 24 blocks half the time (0.4998 to 0.5006 where over 10<sup>5</sup> waves reach them).</p>
+        <p class="where"><code>c/ensemble.c</code>, <code>py/top_stats.py</code>, <code>runs/ensemble_summary.txt</code>, <code>runs/toppass_1e17.txt</code>; <code>pages/1RB1RA_1RC1LB/top-blocks.html</code></p>
       </div>
       <div class="card">
         <h3>No invariant keeps N off the powers of two</h3>
@@ -247,7 +272,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>bash scripts/setup-lean.sh                  # Lean 4.34.0, core only
 . /etc/profile.d/lean.sh
-bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave, WaveTime, Cascade, CascadeRun, Cycles, Periods (about 6 min)
+bb6-1RB1RA_1RC1LB/lean/check.sh             # the library, then Machine, Rules, Blank, Macro, MacroRun, Wave, Events, DeepMind, Monotone, WaveTime, Cascade, CascadeRun, Cycles, Periods (about 6 min)
 bb6-1RB1RA_1RC1LB/lean/check_orbit.sh all   # the long runs in parallel (about 3 CPU hours kernel, 6 native)
 bb6-1RB1RA_1RC1LB/lean/check_cycles.sh 35 6  # the tables of 35 levels in pieces, kernel only (about 21 CPU hours)
 python3 tools/tests/test_tools.py           # the shared tools
@@ -255,7 +280,9 @@ python3 bb6-1RB1RA_1RC1LB/tests/test_machine.py
 python3 bb6-1RB1RA_1RC1LB/py/macro.py 50    # the macro run
 python3 bb6-1RB1RA_1RC1LB/tests/test_waves.py   # the wave model against direct simulation (about 25 s)
 python3 bb6-1RB1RA_1RC1LB/tests/test_superrun.py   # the tabulated search against blkrun, waves.py and Python (about 20 s)
-python3 bb6-1RB1RA_1RC1LB/py/n_search.py residues 4000000   # the invariant search (also: digits, starts)</code></pre>
+python3 bb6-1RB1RA_1RC1LB/py/n_search.py residues 4000000   # the invariant search (also: digits, starts)
+python3 bb6-1RB1RA_1RC1LB/tests/test_top.py      # the ensemble and 2-adic tools against waves.py (seconds)
+python3 bb6-1RB1RA_1RC1LB/py/top_stats.py odds    # the next return&#x27;s floor and the odds of a halt</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>bb6-1RB1RA_1RC1LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

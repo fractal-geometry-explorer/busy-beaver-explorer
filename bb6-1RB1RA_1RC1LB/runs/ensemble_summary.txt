@@ -1,0 +1,75 @@
+# python3 py/top_stats.py ensemble on the output of c/ensemble.c: 30,000 orbits of 2^24 super steps (seeds 100-102, 10,000 each)
+# and 30,000 more (seeds 200-203, about 7,500 each), all from 2 to 4 random blocks of 1..100; see notes/LAB_NOTES.md (30 October 2026).
+orbits 60000, returns 522749, halts 2018
+
+The halting law: halts against the sum of 1/(d1 ln 2), by the size of d1
+ log2 d1   returns  halts  expected  ratio
+     2         15      0      3.16   0.00
+     3        311     27     38.14   0.71
+     4       2226     75    133.02   0.56
+     5      13164    252    396.88   0.63
+     6      47816    612    739.62   0.83
+     7      55524    708    466.21   1.52
+     8      35211    200    146.40   1.37
+     9      27107     82     55.50   1.48
+    10      24286     38     24.96   1.52
+    11      23152     10     11.82   0.85
+    12      22164      6      5.63   1.07
+    13      21813      3      2.77   1.08
+    14      21470      4      1.36   2.93
+    15      21539      1      0.68   1.46
+    16      21217      0      0.34   0.00
+    17      20941      0      0.17   0.00
+    18      21200      0      0.08   0.00
+    19      20667      0      0.04   0.00
+    20      21136      0      0.02   0.00
+    21      20112      0      0.01   0.00
+    22      20270      0      0.01   0.00
+  d1 >= 2^3: 2018 halts, 2023.7 expected, ratio 0.997 +- 0.022
+  d1 >= 2^6: 1664 halts, 1455.6 expected, ratio 1.143 +- 0.026
+
+v2(d1) = s at the returns: P(s >= t) * 2^t, by the size of d1 (1 = geometric)
+  d1 in [2^12, 2^16) (86986 returns): 1.00 0.99 1.01 0.99 0.98 0.95 0.91 0.90 0.87 0.91 0.93 0.75 0.99 0.85
+  d1 in [2^16, 2^20) (84025 returns): 1.00 0.99 1.00 1.02 0.98 0.96 0.95 1.00 0.94 0.76 0.74 0.61 0.44 0.29
+  d1 in [2^20, 2^24) (81712 returns): 1.00 1.01 1.01 1.01 0.99 0.97 0.96 0.88 0.79 0.93 1.09 1.13 0.95 0.60
+  d1 in [2^24, 2^40) (41214 returns): 1.00 1.01 1.02 1.01 1.02 1.01 1.03 1.10 0.96 0.87 0.67 0.75 0.70 0.20
+
+Residues at the 293937 returns with d1 >= 2^12 (returns of one orbit are not independent)
+  u mod 2^2: chi2    0.1 on 1 dof; u = 1 mod 2^2: 1.000 of uniform
+  u mod 2^3: chi2    4.0 on 3 dof; u = 1 mod 2^3: 1.003 of uniform
+  u mod 2^4: chi2   21.6 on 7 dof; u = 1 mod 2^4: 1.007 of uniform
+  u mod 2^6: chi2   96.9 on 31 dof; u = 1 mod 2^6: 0.994 of uniform
+  u mod 2^8: chi2  462.0 on 127 dof; u = 1 mod 2^8: 0.928 of uniform
+  d1 mod  3: chi2    7.9 on  2 dof; the residues of powers of two get 1.001 of their share
+  d1 mod  5: chi2   19.1 on  4 dof; the residues of powers of two get 0.997 of their share
+  d1 mod  7: chi2   11.9 on  6 dof; the residues of powers of two get 0.999 of their share
+  d1 mod  9: chi2   26.2 on  8 dof; the residues of powers of two get 1.001 of their share
+  d1 mod 11: chi2   25.9 on 10 dof; the residues of powers of two get 0.999 of their share
+  d1 mod 13: chi2   42.5 on 12 dof; the residues of powers of two get 0.999 of their share
+  d1 mod 17: chi2   43.6 on 16 dof; the residues of powers of two get 1.001 of their share
+  d1 mod 31: chi2  114.6 on 30 dof; the residues of powers of two get 0.983 of their share
+  leading bits, frac(log2 d1) in tenths (1 = uniform): 1.02 1.02 1.03 1.00 1.00 0.99 0.99 0.98 0.99 0.98
+  within 0.01 of a power of two: 0.0200 (uniform 0.02)
+
+Near-halts: returns with u < 2^c, against (2^c / 2) / (d1 ln 2) each (c = 1 is the halt); only returns with d1 >= 2^(c+6)
+   c       [2^8,2^12)          [2^12,2^16)          [2^16,2^20)          [2^20,2^24)          [2^24,2^40)       all
+   1    330/  238.7 1.38     14/   10.4 1.34                                                                  344/249.8 = 1.377
+   2    581/  477.4 1.22     19/   20.9 0.91      0/    1.3 0.00                                             600/499.6 = 1.201
+   3    381/  369.1 1.03     26/   41.8 0.62      0/    2.5 0.00                                             407/413.6 = 0.984
+   4    273/  294.2 0.93     56/   83.6 0.67      0/    5.0 0.00                                             330/383.1 = 0.861
+   5    190/  189.1 1.00    127/  167.1 0.76      2/   10.1 0.20                                             321/366.9 = 0.875
+   6                         286/  334.2 0.86      8/   20.1 0.40      2/    1.2 1.63                        296/355.7 = 0.832
+   7                         272/  308.3 0.88     21/   40.3 0.52      2/    2.5 0.81                        295/351.1 = 0.840
+   8                         242/  262.0 0.92     55/   80.5 0.68      3/    4.9 0.61                        300/347.7 = 0.863
+   9                         167/  175.1 0.95    149/  161.1 0.92      9/    9.8 0.91                        325/346.5 = 0.938
+  10                                              306/  322.2 0.95     28/   19.7 1.42                        334/342.8 = 0.974
+  11                                              263/  298.7 0.88     44/   39.4 1.12      0/    1.8 0.00   307/339.9 = 0.903
+  12                                              249/  255.8 0.97     79/   78.8 1.00      0/    3.7 0.00   328/338.2 = 0.970
+  13                                              135/  167.6 0.81    138/  157.5 0.88      3/    7.3 0.41   276/332.4 = 0.830
+  14                                                                   263/  315.0 0.83     11/   14.6 0.75   274/329.7 = 0.831
+  15                                                                   222/  287.0 0.77     19/   29.3 0.65   241/316.3 = 0.762
+  16                                                                   184/  247.3 0.74     51/   58.5 0.87   235/305.8 = 0.768
+  17                                                                   153/  164.5 0.93    106/  117.0 0.91   259/281.5 = 0.920
+  18                                                                                        254/  234.1 1.09   254/234.1 = 1.085
+  19                                                                                        132/  157.1 0.84   132/157.1 = 0.840
+  20                                                                                         53/   58.2 0.91   53/58.2 = 0.910
