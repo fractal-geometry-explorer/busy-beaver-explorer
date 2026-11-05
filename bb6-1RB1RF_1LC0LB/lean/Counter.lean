@@ -277,4 +277,28 @@ theorem counter_borrow1 (a b c d : Nat) (zs : List (Nat × Nat)) (L : Tape) :
   obtain ⟨n4, h4⟩ := sweep_all c d zs false false (2 * a + 2) b L
   exact ⟨_, steps_seq trans h h4⟩
 
+/-! ## A borrow into any turn
+
+The walk and the sweep back do not look at the tape left of the turning level, so a borrow can end at any piece of
+tape that takes the head from the walk's phase (`C> 1 1 0 0 1 0 1`) back to the sweep's (`... 0 1 1 0 C>`) without
+looking to its right.  `Top.lean` uses this with the pieces it proves for the left end of the tape. -/
+
+/-- A borrow through the last level and the levels `zs` (all digit 0) that turns on the tape `T` by any piece `h`
+that ends with `0 1 1` left of the head and a `0` after it. -/
+theorem counter_borrow_any (c d : Nat) (zs : List (Nat × Nat)) {T X : Tape} {m : Nat}
+    (h : ∀ R : Tape, steps m ⟨T, W5 (cons false (cons true R)), .C⟩ = some ⟨F3 X, R, .C⟩)
+    (hX : ∃ Y, X = cons false Y) :
+    ∃ n, steps n ⟨lv false false (2 * c + 2) (2 * d + 2) (Zs zs (app Q T)), R0, .C⟩
+      = some ⟨lv true true (2 * c + 3) (2 * d + 3) (Rs zs X), R0, .C⟩ := by
+  obtain ⟨n1, h1⟩ := walk_all c d zs T
+  have h2 := h (JR zs (JbL c d))
+  obtain ⟨n3, h3⟩ := sweepN zs (F3 X) (JbL c d)
+  rw [sr_canon] at h3
+  obtain ⟨Y, rfl⟩ := hX
+  obtain ⟨Y', hY⟩ := rs_head zs Y
+  have h4 : steps (4 * c + 4 * d + 11) ⟨F3 (cons false Y'), JbL c d, .C⟩ = some ⟨OL c d Y', R0, .C⟩ :=
+    sweepLast c d Y'
+  rw [ol_canon, ← hY] at h4
+  exact ⟨_, steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 h4))⟩
+
 end BB6e

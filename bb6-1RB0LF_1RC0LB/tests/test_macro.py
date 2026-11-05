@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.join(ROOT, "py"))
 import macro  # noqa: E402
 import twostack  # noqa: E402
 import callstack  # noqa: E402
+import perturb  # noqa: E402
 from macro import B, F, M0, MACHINE, encode, mstep  # noqa: E402
 from bbtools.machine import Run, Tape  # noqa: E402
 
@@ -151,6 +152,19 @@ class Counter(unittest.TestCase):
                 self.assertEqual(dphi, 0)
             if rule == "R1" and end and not bottom:
                 self.assertEqual(dphi, 2)
+
+
+class Perturb(unittest.TestCase):
+    def test_example(self):
+        """py/perturb.py's example: one entry of L changed from 0 to 2 gets stuck; the run itself does not."""
+        z = callstack.start()
+        for _ in range(perturb.EXAMPLE_AT):
+            z = twostack.zstep(z)
+        e = twostack.norm([list(x) for x in perturb.EXAMPLE])
+        diff = [k for k in range(len(z)) if z[k] != e[k]]
+        self.assertEqual(diff, [6])
+        self.assertEqual(perturb.run(e, 30000)[0], 24141)
+        self.assertIsNone(perturb.run(z, 30000)[0])
 
 
 if __name__ == "__main__":

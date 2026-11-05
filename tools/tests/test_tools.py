@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(TOOLS, "py"))
 sys.path.insert(0, os.path.join(TOOLS, "pages"))
 
 from bbtools.machine import Machine, Run, run_blank, records, STATES  # noqa: E402
-from bbtools import symtm, leangen, invariants, ctl  # noqa: E402
+from bbtools import symtm, leangen, invariants, ctl, ngramcps  # noqa: E402
 from bbtools.macro import MacroRun  # noqa: E402
 from bbtools import cycles  # noqa: E402
 from bbtools.explore import blocks, parse_words, tokenize, token_str, token_events, turns  # noqa: E402
@@ -556,6 +556,82 @@ class TestCTL(unittest.TestCase):
     def test_committed_cert_current(self):
         with open(os.path.join(TOOLS, "lean", "Test", "Loop2Cert.lean")) as f:
             self.assertEqual(f.read(), ctl.lean_file(LOOP2, 2, "Test.Loop2", "Test.Loop2"))
+
+
+class TestNGramCPS(unittest.TestCase):
+    """tools/c/ngramcps.c against the literal transcription of the paper's Algorithm 2 (bbtools/ngramcps.py), the
+    paper's examples, and tools/c/ngramtwin.c on the holdout."""
+
+    @staticmethod
+    def c(text, nl, nr, *opt):
+        out = subprocess.run([cc("ngramcps"), text, str(nl), str(nr)] + list(opt), check=True, capture_output=True,
+                             text=True).stdout
+        return dict(line.split(" ", 1) for line in out.splitlines() if " " in line)
+
+    def test_random_against_reference(self):
+        rng = random.Random(3)
+        seen = set()
+        for i in range(160):
+            text = random_machine(rng, rng.choice([3, 4, 5]))
+            nl, nr = rng.randint(1, 4), rng.randint(1, 4)
+            mode = ["plain", "h1", "h2", "lru"][i % 4]
+            kw = {"plain": {}, "h1": {"history": 1}, "h2": {"history": 2}, "lru": {"lru": True}}[mode]
+            opt = {"plain": [], "h1": ["-H", "1"], "h2": ["-H", "2"], "lru": ["-U"]}[mode]
+            r, C = ngramcps.ngram_cps(text, nl, nr, limit=200000, **kw)
+            if r == "LIMIT":
+                continue
+            d = self.c(text, nl, nr, *opt)
+            self.assertEqual(d["result"], r, (text, nl, nr, mode))
+            if r == "NONHALT":
+                self.assertEqual(int(d["configs"]), len(C), (text, nl, nr, mode))
+            seen.add((mode, r))
+        self.assertEqual(len(seen), 8)
+
+    def test_paper_examples(self):
+        # Figure 7: a translated cycler that NGramCPS decides; Figure 8: decided by the LRU augmentation only
+        self.assertEqual(self.c("1RB0LE_1LC0RD_---1LD_1RE0LA_1LA0RE", 2, 2)["result"], "NONHALT")
+        fig8 = "1RB0RA_1LC---_1RC1LD_0LE1RA_0LC0LE"
+        self.assertEqual(self.c(fig8, 2, 2)["result"], "UNKNOWN")
+        self.assertEqual(self.c(fig8, 2, 2, "-H", "2")["result"], "UNKNOWN")
+        self.assertEqual(self.c(fig8, 2, 2, "-U")["result"], "NONHALT")
+        self.assertEqual(self.c(BB5, 3, 3)["result"], "UNKNOWN")
+
+    def test_holdout_derivation(self):
+        """On the holdout every width fails; the derivation ends with the packet meeting a block (A1 E1 B0 C1 D1)."""
+        path = os.path.join(BUILD, "deriv.txt")
+        d = self.c(HOLDOUT, 12, 12, "-w", path, "-s", "200000")
+        self.assertEqual(d["result"], "UNKNOWN")
+        with open(path) as f:
+            rows = [line.split() for line in f if not line.startswith("#")]
+        self.assertEqual(int(d["derivation_length"]), len(rows) - 1)
+        self.assertEqual("".join(r[2][0] for r in rows[-5:]), "AEBCD")
+        self.assertTrue(rows[-5][1].endswith("011") and rows[-5][3].startswith("1"))
+        self.assertEqual(rows[0][4], "real")
+        self.assertIn("UNREAL", [r[4] for r in rows])
+
+    def test_twin(self):
+        sys.path.insert(0, os.path.join(TOOLS, "..", "bb6-holdout", "ngramcps"))
+        import twin
+        cells, head, state = twin.round_start([("W", 743), ("W", 1802), ("W", 3319)], 3326)
+        path = os.path.join(BUILD, "twin.tape")
+        twin.write_tape(path, cells, head, state)
+
+        def run(n, steps, hsteps):
+            out = subprocess.run([cc("ngramtwin"), HOLDOUT, str(n), str(n), path, str(steps), str(hsteps)],
+                                 check=True, capture_output=True, text=True).stdout
+            return dict(line.split(" ", 1) for line in out.splitlines() if " " in line)
+        d = run(4, 10 ** 7, 2 * 10 ** 7)
+        self.assertEqual((d["verdict"], d["twin_steps"]), ("CERTIFIED", "11362210"))   # pass_r6_halt_example
+        self.assertEqual(run(4, 10 ** 7, 10 ** 6)["verdict"], "NOT_CERTIFIED")     # not run to its halt
+        self.assertEqual(run(40, 10 ** 7, 2 * 10 ** 7)["verdict"], "NOT_CERTIFIED")  # sees the wall 6 from the end
+        # a configuration of the run from blank tape is covered at every width, by a run that has passed it
+        r = Run(Machine.parse(HOLDOUT))
+        r.run(5000)
+        t = r.tape
+        cells = "".join(str(t.get(p)) for p in range(t.lo, t.hi + 1))
+        twin.write_tape(path, cells, r.head - t.lo, STATES[r.state])
+        for n in (1, 7, 30):
+            self.assertEqual(run(n, 5001, 10)["covered"], "1")
 
 
 class TestStatusPage(unittest.TestCase):

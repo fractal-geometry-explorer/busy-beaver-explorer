@@ -8,6 +8,11 @@ usage:
                                             passes it, for k = 1, 2, ...  (1e17: about 30 s)
   python3 top_stats.py ensemble FILE...     the returns in output files of c/ensemble.c: the halting law, v2(d1), the
                                             odd part u mod 2^t, d1 mod q, the leading bits, and the near-halts
+  python3 top_stats.py thin                 why N is never 3030 or 4054 mod 2^12: over one period of the last 12 blocks
+                                            of the blank-tape orbit (lean/CycleRun.lean cycle12), the share of the
+                                            rarest residue class mod 2^k, k = 4..12 (about 1 s)
+  python3 top_stats.py fast FILE...         the totals that c/ensemble_fast.c prints (summed over the files): the
+                                            halting law and v2(d1) = s against the random model, by the size of d1
 
 At a return the wave has passed all m blocks with d even, N = 2^(m-1) d1, and the machine halts iff d1 is a power of
 two (lean/Wave.lean).  Write d1 = 2^s u with u odd.  The random model says d1 is a power of two with probability
@@ -205,6 +210,173 @@ def ensemble(files):
         print(f"  {c:2d}  " + "  ".join(row) + (f"   {to}/{te:.1f} = {to / te:.3f}" if te else ""))
 
 
+def read_fast(files):
+    """Adds up the totals of c/ensemble_fast.c: orbits, dropped, returns, halts, cell[b][s], inv[b], pair[a][c],
+    rcell[k][b][s]."""
+    tot = Counter()
+    cell, inv, pair, rcell = Counter(), defaultdict(float), Counter(), Counter()
+    for fn in files:
+        for line in open(fn):
+            f = line.split()
+            if not f:
+                continue
+            if f[0] == "orbits":
+                for k, v in zip(f[0::2], f[1::2]):
+                    tot[k] += int(v)
+            elif f[0] == "cell":
+                cell[int(f[1]), int(f[2])] += int(f[3])
+            elif f[0] == "inv":
+                inv[int(f[1])] += float(f[2])
+            elif f[0] == "pair":
+                pair[int(f[1]), int(f[2])] += int(f[3])
+            elif f[0] == "rcell":
+                rcell[int(f[1]), int(f[2]), int(f[3])] += int(f[4])
+    return tot, cell, inv, pair, rcell
+
+
+def p_div(b, t):
+    """P(2^t | d) for d of b bits (2^(b-1) <= d < 2^b) with the density 1/(d ln 2) of the random model (leading bits
+    uniform in log): the sum of 1/(k 2^t ln 2) over the multiples k 2^t in the range.  2^-t when t << b."""
+    if t >= b:
+        return 0.0
+    lo, hi = -(-(1 << (b - 1)) >> t), ((1 << b) - 1) >> t
+    if hi - lo > 10 ** 5:
+        return 2.0 ** -t
+    return sum(1 / k for k in range(lo, hi + 1)) / (2 ** t * LN2)
+
+
+def fast(files, tmax=24):
+    tot, cell, inv, pair, rcell = read_fast(files)
+    nb = Counter()
+    for (b, s), n in cell.items():
+        nb[b] += n
+    print(f"orbits {tot['orbits']} (dropped {tot['dropped']}), returns {tot['returns']}, halts {tot['halts']}")
+
+    print("\nThe halting law: halts against the sum of 1/(d1 ln 2), by the size of d1 (b bits: 2^(b-1) <= d1 < 2^b)")
+    print("    b      returns   halts   expected  ratio")
+    for b in sorted(nb):
+        h, e = cell[b, b - 1], inv[b] / LN2
+        if e > 0.005:
+            print(f"  {b:3d}  {nb[b]:11d}  {h:6d}  {e:9.2f}  {h / e:5.2f}")
+    for lo in (4, 7, 13, 17):
+        h = sum(cell[b, b - 1] for b in nb if b >= lo)
+        e = sum(inv[b] for b in nb if b >= lo) / LN2
+        if e > 0:
+            print(f"  d1 >= 2^{lo - 1}: {h} halts, {e:.1f} expected, ratio {h / e:.3f} +- {math.sqrt(e) / e:.3f}")
+
+    def tail(b, t):
+        return sum(n for (bb, s), n in cell.items() if bb == b and s >= t)
+
+    print("\nv2(d1) = s at the returns: observed / expected for s >= t (expected: P(2^t | d1) for d1 of b bits with "
+          "density 1/(d1 ln 2), `p_div`), by the size of d1; in brackets (observed - expected) / sqrt(expected)")
+    bands = ((12, 16), (16, 20), (20, 24), (24, 28), (28, 40), (40, 128))
+    for a, z in bands:
+        bs = [b for b in nb if a < b <= z]
+        n = sum(nb[b] for b in bs)
+        if not n:
+            continue
+        row = []
+        for t in range(4, tmax + 1):
+            o = sum(tail(b, t) for b in bs)
+            e = sum(nb[b] * p_div(b, t) for b in bs)
+            if e >= 3:
+                row.append(f"t={t} {o / e:.3f} ({(o - e) / math.sqrt(e):+.1f})")
+        print(f"  d1 in [2^{a}, 2^{z}) ({n} returns): " + "; ".join(row))
+    print("  pooled over d1 >= 2^16, only returns with b >= t + 6 (the multiples of 2^t in the range at least 32):")
+    for t in range(4, tmax + 1):
+        bs = [b for b in nb if b > 16 and b >= t + 6]
+        o = sum(tail(b, t) for b in bs)
+        e = sum(nb[b] * p_div(b, t) for b in bs)
+        if e >= 3:
+            print(f"    t = {t:2d}: {o:9d} observed, {e:11.1f} expected, ratio {o / e:.4f} +- {math.sqrt(e) / e:.4f}"
+                  f"  ({(o - e) / math.sqrt(e):+.1f} sigma)")
+
+    print("\nBy the odd part instead: returns with u < 2^c (u = d1 / 2^s, so s >= b - c), observed / expected "
+          "(expected `p_div`(b, b - c) per return; c = 1 is the halt); only b >= c + 7")
+    for c in range(1, 21):
+        row, to, te = [], 0, 0.0
+        for a, z in bands:
+            bs = [b for b in nb if a < b <= z and b >= c + 7]
+            o = sum(tail(b, b - c) for b in bs)
+            e = sum(nb[b] * p_div(b, b - c) for b in bs)
+            to, te = to + o, te + e
+            row.append(f"{o:6d}/{e:8.1f} {o / e:4.2f}" if e >= 1 else " " * 20)
+        pooled = f"   {to}/{te:.1f} = {to / te:.3f} ({(to - te) / math.sqrt(te):+.1f})" if te else ""
+        print(f"  {c:2d}  " + "  ".join(row) + pooled)
+
+    if rcell:
+        print("\nBy the return's number k in its orbit (1 = the first return): observed / expected for s >= t over the "
+              "returns with d1 >= 2^16 and b >= t + 6, and the mean log2 d1 of those returns")
+        ks = sorted({k for k, _, _ in rcell})
+        for k in ks:
+            nk = Counter()
+            for (kk, b, ss), n in rcell.items():
+                if kk == k:
+                    nk[b] += n
+            tot_k = sum(n for b, n in nk.items() if b > 16)
+            if tot_k < 1000:
+                continue
+            mean_b = sum((b - 0.5) * n for b, n in nk.items() if b > 16) / tot_k
+            row = []
+            for t in (4, 6, 8, 10, 12, 14):
+                bs = [b for b in nk if b > 16 and b >= t + 6]
+                o = sum(n for (kk, b, ss), n in rcell.items() if kk == k and b in bs and ss >= t)
+                e = sum(nk[b] * p_div(b, t) for b in bs)
+                if e >= 10:
+                    row.append(f"t={t} {o / e:.3f} ({(o - e) / math.sqrt(e):+.1f})")
+            print(f"  k = {k:2d} ({tot_k} returns, log2 d1 about {mean_b:.1f}): " + "; ".join(row))
+
+    print("\nConsecutive returns of an orbit (both d1 >= 2^12): P(next s >= t | this s >= a) * 2^t")
+    for a in (0, 2, 4, 6):
+        base = sum(n for (x, y), n in pair.items() if x >= a)
+        row = []
+        for t in (2, 4, 6, 8):
+            o = sum(n for (x, y), n in pair.items() if x >= a and y >= t)
+            row.append(f"t={t} {o * 2 ** t / base:.3f}" if base else "")
+        print(f"  this s >= {a} ({base} pairs): " + "  ".join(row))
+
+
+LAST12 = [12, 27, 37, 63, 74, 351, 2166, 544, 7604, 4314, 30067, 45962]   # level 0 = the last block (cycle12)
+PERIOD12 = 327680
+
+
+def last_blocks_N(blocks=LAST12, steps=PERIOD12):
+    """N mod 2^k for k = len(blocks), after each of `steps` super steps of the last k blocks run on their own (they
+    are a closed system: level 0 receives 10 each super step, nothing flows down), and the blocks at the end."""
+    lv, K, out = list(blocks), len(blocks), []
+    for _ in range(steps):
+        h, k = 10, 0
+        while True:
+            d = lv[k] + h
+            if d % 2:
+                lv[k] = (d + 5) // 2
+                if k + 1 < K:
+                    lv[k + 1] += (d - 1) // 2
+                break
+            lv[k] = h = d // 2
+            k += 1
+            if k == K:
+                break
+        out.append((10 + sum(x << i for i, x in enumerate(lv))) % (1 << K))
+    return out, lv
+
+
+def thin():
+    Ns, end = last_blocks_N()
+    print(f"one period of the last 12 blocks ({PERIOD12} super steps); the blocks come back: {end == LAST12}")
+    print(" k   classes  rarest (share of uniform)            the class of 982 = 0b1111010110")
+    for k in range(4, 13):
+        c = Counter(n % (1 << k) for n in Ns)
+        share = PERIOD12 / (1 << k)
+        lo = sorted(c.items(), key=lambda x: (x[1], x[0]))[:3]
+        r = 982 % (1 << k)
+        print(f"{k:2d}  {len(c):6d}   " + ", ".join(f"{a} {b / share:.4f}" for a, b in lo).ljust(40) +
+              f"{r}: {c[r]} visits, {c[r] / share:.4f}")
+    c = Counter(n % 4096 for n in Ns)
+    print(f"mod 2^12: 982 {c[982]}, 2006 {c[2006]}, 3030 {c[3030]}, 4054 {c[4054]} visits per period "
+          f"(uniform {PERIOD12 // 4096})")
+
+
 def main(argv):
     if argv[:1] == ["odds"]:
         odds()
@@ -216,6 +388,10 @@ def main(argv):
                 print(f"{k + 1:4d}  {r:12d}  {p:12d}  {p / r:.4f}")
     elif argv[:1] == ["ensemble"] and len(argv) > 1:
         ensemble(argv[1:])
+    elif argv[:1] == ["thin"]:
+        thin()
+    elif argv[:1] == ["fast"] and len(argv) > 1:
+        fast(argv[1:])
     else:
         print(__doc__)
 

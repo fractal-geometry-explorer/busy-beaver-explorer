@@ -8,7 +8,7 @@
     "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.",
     "The run is a sequence of passes: the head fills a sparse region into solid 1s moving right, and turns solid blocks back into alternating cells moving left. Lean proves which passes halt, and that from pass start to pass start the run is a macro machine on a stack and a list of segment and gap lengths; the machine halts only if that macro machine gets stuck."
   ],
-  "asof": "Status as of 3 November 2026.",
+  "asof": "Status as of 4 November 2026.",
   "verdict": [
     "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps.",
     "<b>Where a halt would come from.</b> Every rightward run is a pass that crosses gaps (runs of 0s between two 1s) of length 1 and 2 and stops at the first other gap. Lean proves that the pass halts exactly when that gap has length 3 (<code>pass_outcome</code>, kernel).",
@@ -104,6 +104,12 @@
       "title": "Only a few odd numbers",
       "text": "If every number in a macro configuration is even, every rule gives even numbers again and none can get stuck. Odd numbers enter only at the left end (popping the empty stack gives a segment 1) and at the last segment. In the run there are at most 4 odd numbers at a time, and F meets two 1s side by side only 546 times in 10<sup>10</sup> steps (of 344,806,676 passes).",
       "where": "<code>c/macro.c</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "heuristic",
+      "title": "Stuck configurations next to the run",
+      "text": "Changing one to three even numbers of a configuration of the run by 2, with every parity kept, gets the macro machine stuck in 6 of 1,980 tries, typically after 10<sup>4</sup> steps or more; one example changes a single entry deep in the stack from 0 to 2. So whatever keeps the run from getting stuck depends on exact values, not on parities. The run itself has one near miss in 10<sup>9</sup> steps of the two-stack form (about 6&middot;10<sup>10</sup> machine steps): a frame flipped down to 0 that had no turns left.",
+      "where": "<code>py/perturb.py</code>, <code>notes/LAB_NOTES.md</code>"
     },
     {
       "level": "open",

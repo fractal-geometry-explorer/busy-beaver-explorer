@@ -21,6 +21,7 @@ import blank  # noqa: E402
 import counter  # noqa: E402
 import accel  # noqa: E402
 import replay  # noqa: E402
+import top  # noqa: E402
 import build_status  # noqa: E402
 from bbtools.invariants import conserved  # noqa: E402
 from bbtools.leangen import machine_lean  # noqa: E402
@@ -41,6 +42,12 @@ class TestGenerated(unittest.TestCase):
         out = subprocess.run([sys.executable, os.path.join(ROOT, "lean", "rules.py")], check=True,
                              capture_output=True, text=True).stdout
         with open(os.path.join(ROOT, "lean", "Rules.lean")) as f:
+            self.assertEqual(f.read(), out)
+
+    def test_top_lean_current(self):
+        out = subprocess.run([sys.executable, os.path.join(ROOT, "lean", "top_gen.py")], check=True,
+                             capture_output=True, text=True).stdout
+        with open(os.path.join(ROOT, "lean", "Top.lean")) as f:
             self.assertEqual(f.read(), out)
 
     def test_page_current(self):
@@ -171,6 +178,50 @@ class TestCounter(unittest.TestCase):
         tally = counter.check(10 ** 8)
         self.assertEqual(tally.get("wrong", 0), 0)
         self.assertEqual(dict(tally), {"proved": 4326, "left": 108, "short": 76})
+
+
+class TestTop(unittest.TestCase):
+    def test_shapes_on_machine(self):
+        # each proved shape, with random lengths, a random tape left of it and a random borrow, run on the plain
+        # simulator from the right end: the trip ends as the shape and the counter's reset say
+        import random
+        from bbtools.machine import Machine, Tape
+        m = Machine.parse(M)
+        rng = random.Random(7)
+        for st in top.load_shapes():
+            sh = top.Shape(st)
+            for _ in range(2):
+                vals = {v: rng.randint(0, 3) for v in sh.vars}
+                ctx = [rng.randint(1, 5), rng.choice("01"), rng.randint(1, 5)]
+                left = top.subst(sh.lhs, vals, ctx)
+                after = top.subst(sh.rhs, vals, ctx)
+                if sh.turn:
+                    zs = [(2 * rng.randint(1, 3), 2 * rng.randint(2, 4)) for _ in range(rng.randint(0, 2))]
+                    zs.append((2 * rng.randint(1, 3), 2 * rng.randint(1, 3)))        # the last level
+                    if left and isinstance(left[-1], int):
+                        left[-1] += 2
+                    else:
+                        left.append(2)
+                    for i, (g, w) in enumerate(zs):
+                        left += ["0", g, "0", w]
+                        after += ["1", g + 1, "1", w + 1 if i == len(zs) - 1 else w - 1]
+                s = counter.tape_str(left + ["0", 1])
+                tape = Tape()
+                for i, ch in enumerate(s):
+                    tape.set(i, int(ch))
+                r = Run(m, state=counter.C, tape=tape, head=len(s) - 3)
+                while True:
+                    self.assertTrue(r.step())
+                    if (r.state == counter.C and r.tape.get(r.head) == 0 and r.tape.get(r.head + 1) == 1
+                            and not any(r.tape.word(r.head + 2, max(r.tape.hi, len(s)) + 1))):
+                        break
+                got = "".join(map(str, r.tape.word(min(r.tape.lo, 0), r.head - 1))).lstrip("0")
+                self.assertEqual(got, counter.tape_str(after + ["0", 1])[:-3].lstrip("0"), (st, vals, ctx))
+
+    def test_run_to_1e9(self):
+        # every trip to 10^9 steps that counter.py does not cover goes through a shape of Top.lean, except the long
+        # trips that build a wall, and each ends as its shape says
+        self.assertEqual(dict(top.check(10 ** 9)), {"proved": 235, "long": 20})
 
 
 class TestAccel(unittest.TestCase):

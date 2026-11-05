@@ -11,6 +11,8 @@ Explorations of six-state Busy Beaver machines.
   - [`bb6-holdout/README.md`](bb6-holdout/README.md): what is established and how to check it
   - [`bb6-holdout/HANDOFF.md`](bb6-holdout/HANDOFF.md): state of the work and proposed next steps
   - [`bb6-holdout/notes/LAB_NOTES.md`](bb6-holdout/notes/LAB_NOTES.md): the full research log
+  - [`bb6-holdout/ngramcps/README.md`](bb6-holdout/ngramcps/README.md): why the deciders that settled BB(5) fail on it
+    (n-gram CPS run at every practical width, and a proof that it fails at every width up to 1,000)
 - [`bb6-1RB1RA_1RC1LB/`](bb6-1RB1RA_1RC1LB/): work on the open machine `1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB`,
   just started: bounded runs and shift rules in Lean, observations of its run
   ([`README.md`](bb6-1RB1RA_1RC1LB/README.md), [`notes/LAB_NOTES.md`](bb6-1RB1RA_1RC1LB/notes/LAB_NOTES.md)).

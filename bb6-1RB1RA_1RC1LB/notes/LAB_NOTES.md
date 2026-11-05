@@ -591,6 +591,32 @@ only after multiples of m).
 the cost about doubles per level; 35 levels, the native bound's, would be some 20 times more. CI checks the first 16
 levels and 2 passes (`check_cycles.sh 16 2`, about a minute).
 
+## November 1, 2026: the step count of each single event, proved
+
+**Lean, kernel only** (`lean/EventTime.lean`, in `check.sh`; standard axioms):
+
+- `evT`: the steps of one event. With the event `x :: k :: ls` (blocks nearest first) and q = x/2: 2q² + 8q + 17 for
+  even x (q transfers, the empty start, and A's run over the new last block q + 2); for odd x, 2q² + 9q + 5 up to the
+  carry at `k`, then `waveTimeE (k + q + 2) ls (q + 3)`, the wave priced as in `superT`: `evenT d` = 2r² + r − 5 for
+  each block passed with even d = 2r, and `oddE d B` = 2r² + 4r + 11 + B where it turns at odd d = 2r + 1. `B` is the
+  cost of the sweep back: `cost S` = Σ (s + 2) over the right part S, which starts as [q + 1] and gains a block per
+  block passed. A halt at the left end costs 11.
+- `sweep_reachE`: the sweep over any right part S from head block m, plus A's run over the block it leaves, takes
+  m + Σ (s + 2) steps. That is the identity that lets the right part be anything; `carry_wave_t` needed the super
+  step's `c0 :: R ++ [1]`.
+- `carry_reachE`: `carry_ev` of `Events.lean` with the times, for any right part.
+- `ev_steps`: from `E b` the machine is at `E b'` after exactly `evT b` steps when `ev b = some b'`, and after exactly
+  `evT b` steps reaches a configuration with no transition when `ev b = none`, for every b with positive blocks left
+  of the last.
+- `ev4_time`: the four events of a super step take 17, 27, 101 and 55 + the wave, which is `superT`
+  (`waveTimeE d L (A + 6) = waveTime d L A`). `evOrbitT_tape`: the timed event orbit from [2, 1] at step 17 gives the
+  step of each event on the run from blank tape.
+- Checked: `evT` along the orbit equals the counts of `waves.py` `step` on the first 200,000 events (a one-off
+  comparison, the last at step 216,775,634,245), and the examples in the file.
+
+Still not proved: that no other event lies between `E b` and `E (ev b)` (`tests/test_waves.py` checks it against
+direct simulation).
+
 ## October 30, 2026: the single events in Lean, and DeepMind's high-level map
 
 **Lean, kernel only** (`lean/Events.lean`, `lean/DeepMind.lean`, in `check.sh`):
@@ -694,3 +720,111 @@ Two partial results look reachable: the right-end law for every k (a 2-adic dens
 residues the levels settle on), and a deterministic bound on v₂(d₁) at a return from the top blocks. A run of 10⁷
 starts (a few CPU days) would settle whether the shortfall in high valuations is real. Page:
 `pages/1RB1RA_1RC1LB/top-blocks.html`.
+
+## October 31, 2026: 35 levels, and no halt in the first 4.4·10³⁷ steps, by the kernel alone
+
+**The last 1 to 35 blocks cycle on the orbit, with their least periods** (**proved, kernel only**: `cycle1`–`cycle35`,
+`lean/CycleRun.lean`), and **no halt in the first 44,405,698,359,075,157,430,295,693,458,238,990,120 steps** (4.4·10³⁷,
+`blank_runs_cycles`, axioms `propext`, `Classical.choice`, `Quot.sound`), the bound that `lean/CascadeRun.lean` had
+only with `native_decide`: the same plan, 35 levels and then 6 passes of the last table, 6.75·10¹⁷ super steps. The
+periods of the last 31 to 35 blocks are 343,597,383,680,000, 1,374,389,534,720,000, 5,497,558,138,880,000,
+21,990,232,555,520,000 and 87,960,930,222,080,000 (factors ×2, ×4, ×4, ×4, ×4), as `c/superrun.c` has them.
+
+**Cost.** `check_cycles.sh 35 6`: 33,760 pieces in 2,821 files (the tables of levels 31 to 35 have 0.4, 0.8, 1.6, 3.3
+and 6.5 million entries; the 6 passes over the last are 11,520 pieces), 743 MB of written tables and 6 GB of
+.olean files; 20.5 CPU hours, 5¾ hours on 4 cores. The per-entry cost is the kernel's, about 0.8 ms: a Bool-valued
+checker of `lvSeg` with `Nat.beq` in place of `decide` on the result was no faster. The pieces
+were unchanged; only the chaining in `CycleLevels/` needed `maxRecDepth` raised for the `pass` and `build` steps of the
+levels with 960 and 1,920 stretches (`cycle_gen.py`).
+
+## November 1, 2026: the shortfall in high valuations comes from the starting tapes, not from the map
+
+The entry of 30 October found that from 60,000 random starts (2 to 4 blocks of 1 to 100, orbits of 2²⁴ super steps)
+P(v₂(d₁) ≥ t) at the returns fell short of 2^−t for t ≥ 8 (0.89, 0.85, 0.87, 0.84 at t = 8 to 11, about 3σ), and that
+10⁷ starts would settle whether it is real. It is real for that design and comes from its starts; the map's
+valuations are geometric. (**heuristic**, `runs/valuation_test.txt`.)
+
+**A faster ensemble** (`c/ensemble_fast.c`, **computed**). The same starts and the same orbits as `c/ensemble.c`
+(same xorshift64 and order of draws), run on the periodic tables of `c/superrun.c` (no machine step counts), with the
+totals of the returns kept in C: per bit length b of d₁ and valuation s the number of returns, Σ 1/d₁ per b, the same
+split by the return's number in its orbit, and consecutive pairs. 0.56 ms per orbit of 2²⁴ super steps instead of
+65; 10⁷ orbits in 24 minutes on four cores. `-v` prints exactly what `c/ensemble.c` prints: identical on 6,200 orbits
+(50,000 returns) in four designs, and in `tests/test_top.py`. Two differences from `c/superrun.c`, both needed for
+random starts: an orbit stops when a tabulated level only ever receives adds (a silent bottom, `lean/Cycles.lean`;
+the simplest is a last block of 15, since 15 + 10 = 25 turns back into 15), and a level is tabulated even when only
+the top level would stay explicit, since otherwise a two- or three-block start with a silent bottom runs 10¹⁴ super
+steps one at a time. `-u` counts a return only if no earlier return of any orbit had the same d₁, the same number of
+blocks and the same (up to) three blocks below the top (a 64-bit hash in an open-addressed table, one process).
+
+**The expectation** (`py/top_stats.py fast`, `p_div`). For d₁ of b bits with the density 1/(d₁ ln 2) of the random
+model, P(2^t | d₁) = Σ 1/(k 2^t ln 2) over the multiples k·2^t in [2^(b−1), 2^b): 2^−t when t ≪ b, and
+1/(2^(b−1) ln 2) for t = b − 1 (the halt). Near-halts, u < 2^c, are s ≥ b − c, so they get the exact expectation
+too; the old (2^c/2)/(d₁ ln 2) per return is off by up to 30 % when d₁ is within a few bits of 2^(c+7). The pooled
+tests use only b ≥ t + 6.
+
+**The runs** (pooled over d₁ ≥ 2¹⁶ and b ≥ t + 6, observed / expected for 2^t | d₁):
+
+| starts (2²⁴ super steps unless noted) | returns counted | t = 8 | t = 10 | t = 12 | halts, d₁ ≥ 2¹⁶ |
+|---|---|---|---|---|---|
+| 10⁷, 2–4 blocks of 1–100 (the old design, seeds 1000–1039) | 87,106,740 | 0.901 ± 0.003 | 0.865 ± 0.005 | 0.743 ± 0.012 | 46 / 112.0 |
+| the same, `-u` (73,836,550 returns skipped) | 13,267,399 | 0.999 ± 0.007 | 0.984 ± 0.014 | 0.964 ± 0.030 | 26 / 16.6 |
+| 10⁷, 4 blocks of 1–100 | 82,828,126 | 1.009 ± 0.003 | 0.977 ± 0.005 | 0.980 ± 0.011 | 117 / 112.6 |
+| the same, `-u` (60,179,559 skipped) | 22,603,266 | 0.998 ± 0.006 | 0.987 ± 0.011 | 0.987 ± 0.023 | 41 / 27.6 |
+| 10⁷, 2–4 blocks of 1–10⁴ | 82,246,414 | 1.000 ± 0.003 | 1.006 ± 0.006 | 1.002 ± 0.012 | 155 / 109.9 |
+| 10⁷, 2–8 blocks of 1–10⁶ | 70,690,020 | 1.000 ± 0.002 | 0.998 ± 0.004 | 0.995 ± 0.008 | 89 / 86.7 |
+| 10⁵ of 10¹⁴, the old design | 1,626,302 | 0.940 ± 0.015 | 0.900 ± 0.031 | 0.929 ± 0.062 | 1 / 1.1 |
+| the same, `-u` (614,542 skipped) | 1,016,806 | 0.969 ± 0.019 | 0.969 ± 0.038 | 1.04 ± 0.08 | 0 / 0.7 |
+| 10⁵ of 10¹⁴, 2–4 blocks of 1–10⁴ | 1,528,219 | 0.995 ± 0.016 | 1.027 ± 0.032 | 1.07 ± 0.06 | 1 / 1.1 |
+| 2·10⁵ of 10¹⁴, 2–8 blocks of 1–10⁶ | 2,727,309 | 0.988 ± 0.010 | 1.006 ± 0.019 | 1.004 ± 0.039 | 3 / 1.7 |
+
+The errors are √(expected), which assumes independent returns; that is exactly what fails in the old design.
+
+**What happened in the old design.** Fresh seeds reproduce the shortfall at 36σ (t = 8), but it is lumpy: by the
+return's number k in its orbit the ratio at t = 8 runs from 0.26 (k = 18) to 5.7 (k = 19, +35σ), with swings of both
+signs at every t, which a smooth property of the map would not give. m = 2 is drawn a third of the time and two blocks
+of 1 to 100 make only 10⁴ tapes, so each is drawn about 330 times; and orbits from different starts merge (in 20,000
+orbits, 10 % of the returns with d₁ ≥ 2¹⁶ repeat an earlier (S, d₁); over 10⁷ orbits `-u` skips 85 % of all
+returns). The run therefore weights a limited set of histories by large, uneven factors, and the σ above mean
+nothing for it. With each return counted once the ratios are 1.00 at t = 4 to 8 and 0.96 to 0.99 at t = 9 to 12
+(1.2 to 1.6σ each, and not independent of each other); the starts that neither repeat nor merge (blocks up to 10⁴ or
+10⁶) give 0.995 to 1.006 for t ≤ 12 with errors of 0.2 % to 1.2 %. The long orbits, with d₁ up to about 2⁵⁰, agree:
+in the band d₁ ≥ 2⁴⁰ the wide starts give 0.975 to 1.003 for t ≤ 10 (within 1.1σ) and the old design with `-u` 0.95
+to 1.01. On the halts themselves the old design was low above 2¹⁶ (46 against 112); once repeats are removed every
+run is at 1.0 to 1.6 times the model there, on counts of 26 to 155.
+
+Two small things remain. The `-u` runs of the narrow designs sit 1 % to 5 % low at t = 9 to 11, each within 2σ;
+the key cannot catch two merged orbits whose tables have absorbed different numbers of levels, so some repeats
+remain, and the wide starts show nothing of the kind. And with the narrow starts and no `-u`, consecutive returns are
+correlated (P(next s ≥ 8 | this s ≥ 6)·2⁸ = 0.68); in the wide starts the same number is 1.05 (on about
+2,600 pairs expected) and the other pair statistics are within 1 % of independence.
+
+**What it means.** The one systematic departure from the random model found on 30 October does not survive: at a
+return the valuation of d₁ is geometric to within about 1 % for t ≤ 12, at every size of d₁ the runs reach (up to
+about 2⁵⁰), from starts that do not repeat. So the odds of a future halt stay at about 5·10⁻²⁵ (heuristic, the
+entry of 30 October), with no extra factor in either direction, and a deterministic bound on v₂(d₁) at a return, the
+second partial result suggested there, gets no support from the ensemble: whatever would rule out 2⁸⁰ | d₁ at the
+next return has to come from the particular orbit, not from a tendency of the map. The blank-tape orbit itself
+starts from the narrow tape (1, 6), but it is one orbit; what the narrow designs show is that small starts merge, not
+that they avoid high valuations.
+
+## November 4, 2026: why N is never 3030 or 4054 mod 2¹²
+
+The entry of 30 October found that over a period of the last 18 blocks N never takes the residues 3030 and 4054 mod
+2¹², and left it unexplained. It is not an obstruction of any kind; it is the end of one thinning branch of the
+2-adic tree (**computed**, exact: `py/top_stats.py thin`, `runs/thin_branch.txt`, about a second).
+
+N mod 2¹² depends only on the last 12 blocks, which on the blank-tape orbit cycle with period 327,680
+(`cycle12`, `lean/CycleRun.lean`), so one period gives the law exactly for all later times. Follow the class of
+982 = 0b1111010110 down the bits: mod 2⁴ it is 6 (0.5 of its uniform share, the floor at that depth), mod 2⁵ 22
+(0.25, the rarest class), then 22, 86, 214, 470, 982 for k = 6 to 10, with shares 0.19, 0.19, 0.063, 0.031,
+0.016: for k = 5 to 11 the rarest class mod 2^k is on this branch (at k = 7 tied with 22), and for k = 8 to 10
+it keeps only a sixth to a quarter of its parent's visits instead of half. Mod 2¹⁰ it has 5 visits per period where a uniform
+law would give 320. Those 5 split as 2 at 982 and 3 at 2006 mod 2¹¹, and all five have bit 11 equal to 0. So
+982 + 2048 = 3030 and 2006 + 2048 = 4054 get none. Every other residue mod 2¹² is visited, and mod 2¹⁸ the only
+misses are the 128 lifts of these two (`runs/bottom2adic_18.txt`).
+
+So the pattern is the far tail of the non-uniform law of N's low bits: the classes do not thin at a constant rate,
+and one branch thins faster than its neighbours. It says nothing about powers of two, which are 0 mod 2¹² and get
+their share there. The open question it leaves is the shape of the law itself: why the branch ending in 010110
+(22 mod 32) is starved, from the residues mod 5 the levels settle on (entry on period factors). `tests/test_top.py`
+checks the two misses and the 5 visits.
