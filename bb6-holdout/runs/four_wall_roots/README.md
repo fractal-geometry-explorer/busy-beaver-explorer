@@ -68,6 +68,28 @@ That is the other 4.8% of the run's entries, where the sample shows no linear re
 that sit inside a cluster of run entries are in such clusters, from rounds 22 to 59. Proving the five relations from the
 clean-tape tree's first rounds would make this a theorem. The open part would then be the late-round entries alone.
 
+## Against the clean-tape tree's entry classes: no root is the value of a settled class
+
+`EntryForms.lean` (in `lean/`, untrusted driver) walks `cleanTreeGS 2⁴¹ d` and prints every loop entry it settles,
+as affine forms of a, b, c and W in the class's coordinates, together with the class's cone. `match_forms.py` asks
+whether a root is the value of some class's (b, c, W) at integer coordinates inside the cone. The first wall is left
+free, as it is in the members' families. `calib.py` runs the same matcher on the run's own entries above 2⁴¹ from the
+sample, to show that the matcher finds what it should.
+
+| depth d | entry classes | their measure | roots matched (of 113) | run entries matched (of the first 3,000 above 2⁴¹) |
+|---|---|---|---|---|
+| 30 | 2,880 | 0.0013395 | 0 | 2,935 |
+| 36 | 28,660 | 0.0013412 | 0 | 2,942 |
+| 40 | 169,631 | 0.0013416 | 0 | 2,942 |
+
+So 98% of the run's actual entries are values of classes settled by depth 36, but none of the roots is. A halting
+member of the 4-wall family at 2⁶⁶ could therefore only be entered from a clean tape that the tree leaves unsettled
+at depth 40, or from one of the roughly 2% of entries that the matcher misses. This is what the 2-adic picture of
+`FOUR_WALL_ALL_N.md` predicts, and it is no proof. Still, it is the first direct check of the far members' entries
+against the tree's classes. Run from `lean/` after `check_end.sh`:
+`lean --load-dynlib=cbuild/so/libBB6all.so --run EntryForms.lean 2199023255552 40 > ef40.txt` (about 25 minutes,
+25 MB), then `python3 match_forms.py ef40.txt`.
+
 ## Files
 
 - `pullback.py`: the inverse of `StepMap` and `StepWall` (`lean/BB6/Ends.lean`) for the full pass, the half pass and
@@ -86,3 +108,5 @@ clean-tape tree's first rounds would make this a theorem. The open part would th
 - `rel.py`, `entry_rel.py entries_all.txt`: the integer relations of the run's entries per round (`rel_out.txt`) and
   their check on every entry, with the roots against them (`entry_rel.txt`). `entries_all.txt` holds n, round, b, W and R
   for each `E` row of `sample.tsv.gz`.
+- `match_forms.py forms.txt`, `calib.py forms.txt entries_all.txt [limit]`: the roots, and the run's own entries,
+  against the entry classes that `EntryForms.lean` prints.
