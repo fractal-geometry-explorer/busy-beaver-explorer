@@ -83,7 +83,7 @@ back to a pass start with R′ = 16R and L₁′ = 64L₁, and that one must aga
 end at a root. One consequence (not in Lean): (W + 2R)·L₁² ≤ 2³⁷·R³ at every pass start of the chain, because it
 holds at every pass start with W ≤ 64R + 6 and a full pass keeps it.
 
-Next steps that could still help, in order of cost:
+Next steps that could still help, in order of cost (both done on November 5, `../runs/four_wall_roots/README.md`: they narrow each member to one explicit loop entry but do not rule the family out):
 
 1. Re-run the far-shape census at 2⁶⁶ for n = 4 and 5 (`tools/routes/far/loop/`, a few minutes per census once
    `check_end.sh` has built the native library). Count the members with `WindowShape` and W ≡ 2 (mod 6), and split

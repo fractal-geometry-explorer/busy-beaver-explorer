@@ -3993,3 +3993,12 @@ run from blank tape halts through none of six of the eight far families that had
 (`blank_halt_not_window_family`). Of the other two, one is ruled out by PR #114's count, and `loop5_far_66c` can only
 be a loop entry itself. The untrusted counts in `far_shape.md` (258 of 319 four-pass members at 2⁶⁶ with
 W ≤ 64R + 6) say that wide members remain, so the family is not ruled out.
+
+**The far 4-wall members at 2⁶⁶ pulled back to their loop entries (November 5; `../runs/four_wall_roots/`,
+untrusted).** Steps 1 and 2 of `FOUR_WALL_ORIGIN.md`. A fresh census reproduces the 319 four-pass and 19 five-pass
+far members. 109 and 5 of them have W ≡ 2 (mod 6), and all 338 have W ≡ 0 (mod 4). Inverting `StepMap` and `StepWall`
+maps each member to its possible roots. None is a round-7 landing. Most are a half pass from an entry, or the entry
+itself, and two are full passes. Every step was checked forward in the mark model. 82 and 5 members keep a root with
+`EntryFar`, and 14 of those roots sit inside dense clusters of the run's own first loop entries above 2⁴⁰. So the
+pull-back narrows each member to one explicit entry but does not rule the family out. The next test would be the
+clusters' limit points from the clean-tape tree's entry classes.
