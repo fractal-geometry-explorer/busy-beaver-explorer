@@ -44,7 +44,9 @@ to its right every time so far; pass endings look like a binary counter, a gap o
 4j − 2 (`notes/LAB_NOTES.md`).
 
 **Computed** (trusted C, tested against Python): the two-stack form of the macro machine does not get stuck in its
-first 2·10¹¹ steps (`c/twostack.c`); it has two near misses (a frame flipped down to 0), both harmless.
+first 10¹² steps (`c/fastrun.c`, about 4 s per 10⁹ steps; `c/twostack.c` to 2·10¹¹); it has two near misses (a
+frame flipped down to 0), at steps 204,719,421 and 2,084,922,784, both harmless, and none after. Memoizing frames on
+the inputs they inspect (`py/accel.py`) is exact but gives no real speed-up: the memo grows like steps^0.86.
 
 **Observed only**: configurations that differ from the run's in one even entry can get stuck (`py/perturb.py`,
 `c/twostack.c perturb`), so non-stuckness depends on exact values. But the run is no safer than these perturbed
@@ -77,6 +79,9 @@ have never been more than 4 of them at once.
 | `py/twostack.py` | the two-stack form of the macro machine (rules R1, R2) |
 | `py/perturb.py` | configurations of the run with a few even numbers changed by 2, run on: some get stuck |
 | `c/twostack.c` | the two-stack form in C, frames followed by identity (flips, near misses); `perturb` runs the control |
+| `c/fastrun.c` | the two-stack form in plain C without frame identities, about twice as fast; saved states, near misses with their rows |
+| `py/accel.py` | the two-stack form with frames memoized on their inspected inputs: exact, but the memo grows almost as fast as the run |
+| `tests/test_accel.py` | `fastrun.c` and `accel.py` against `twostack.zstep` step by step, and against each other |
 | `py/callstack.py` | the two-stack form read as a recursive program; the counter Φ by kind of step; flips at the caller |
 | `c/macro.c` | the run and the macro machine side by side, the whole tape compared at every pass start |
 | `py/pds.py` | the pushdown reduction: one side of the tape as a DFA, the other exact, post* saturation |

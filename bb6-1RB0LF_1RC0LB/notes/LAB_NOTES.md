@@ -549,3 +549,52 @@ statistics above is one. Two things would change the picture: a measurable gap b
 run goes on (the C run continues toward 10¹² steps of the two-stack form; at 2 to 3 % per decade it is unlikely to
 get stuck there), or a reason the near-miss rate keeps falling with the run's age, which would make the heuristic
 lean toward non-halting.
+
+## 5 November 2026 (later): the run to 10¹² steps, and an exact memo that still does not help
+
+A sibling thread wrote `c/twostack.c` and the controls above at the same time; this section adds a second, leaner
+simulator, the run to 10¹², and a memo keyed on inspected inputs only.
+
+**Memoizing frames on what they inspect (trusted Python, `py/accel.py`).** The scratch memo above keys a frame on the
+exact entries of L it pops. Most popped values are only moved, though (a becomes the value a + 2 and is later pushed
+back), so `py/accel.py` runs each frame symbolically: its value and every popped entry are symbols, made concrete
+only when a rule looks at them (a popped b: is it 0, how many turns; a value that becomes a gap in R2; a value a
+callee took something off). The memo is a decision tree per gap; a leaf gives the entries to pop, what to push
+(constants or input + offset), the flips k for the caller, the step count, counts and events. A frame never reads its
+caller, so the caller only checks value ≥ k afterwards; the end entry with value 0 is the exception and is run step
+by step. It is exact (`tests/test_accel.py`: without memo equal to `zstep` at every step; with memo equal to the run
+without memo at every end turn, events and counts included; equal to the C run's row after 254,823,857 steps). But it
+compresses no better: 29,825 leaves after 10⁶ steps, 241,095 after 1.2·10⁷, 1,673,884 after 1.1·10⁸, about
+steps^0.86, against 1.5 times as many with exact keys. Frames of gap 4 already read about 8 entries of L and inspect
+several, and those entries look like random small even numbers.
+
+**A leaner C simulator (trusted C, `c/fastrun.c`).** No frame identities, fixed arrays, entries −1 preset below L, the
+state saved every 10¹¹ steps: about 4 s per 10⁹ steps on one core, twice `c/twostack.c`. It equals `zstep` step by step
+for 20,000 steps, `py/accel.py` (row and counts) after 1.2·10⁷ steps in the test and 2.5·10⁸ by hand, and a resumed
+run equals an unbroken one. It prints every near miss with its row.
+
+**The run to 10¹² (trusted C).** Not stuck in the first 10¹² steps of the two-stack form (of the order of 10¹⁴ machine
+steps; about 70 minutes). Counts at each power of 10 (R2 includes those whose caller is the end entry):
+
+| steps | R2 | frames taken to 1 | taken to 0 | end entry replaced | max \|R\| |
+|---|---|---|---|---|---|
+| 10⁹ | 783 | 446 | 1 | 7 | 53 |
+| 10¹⁰ | 978 | 565 | 2 | 8 | 66 |
+| 10¹¹ | 1,241 | 731 | 2 | 8 | 71 |
+| 10¹² | 1,709 | 1,024 | 2 | 9 | 88 |
+
+The two near misses are the ones above, with rows `… | 2<-1> 0<0> 6<0> 4<0> 2<4> 2<4> 8<4> 6<end>` and
+`… | 4<-1> 0<0> 2<2> 8<5> 3<end>`; there is none in the 998·10⁹ steps after 2.1·10⁹, while R2 steps go on at 200 to
+470 per decade. At the copies' stuck rate per flip (1.6·10⁻⁴), about 1,650 flips by 10¹² leave the run unstuck with
+probability about 0.75, so reaching 10¹² says nothing new about the question.
+
+**Single-change copies of one late configuration (trusted C, `fastrun perturb`).** One even entry changed by ±2 in the
+run's configuration at step 10⁹, 900 copies run 10⁹ steps each: none stuck, 17,401 R2 steps, 1 frame taken to 0. At
+step 10¹⁰, 156 copies run 10¹⁰ steps each: none stuck, 4,476 R2 steps, 3 taken to 0. That is fewer near misses per
+flip (4 in about 22,000) than the multi-change copies of control 1 and 2 (0.15 to 0.3 %), and at their stuck rate
+about 3.5 stuck copies would be expected. But all copies of a group share one configuration and differ in one entry,
+often deep in L where it is not dug out for a long time, so they are far from independent; this is a hint that the
+risk might fall with the run's age, not evidence. Copies from many late snapshots, with a change near the top of
+the stacks, would test it.
+
+**Next.** The run continues from its saved state toward 10¹³ (about 12 hours of one core).
