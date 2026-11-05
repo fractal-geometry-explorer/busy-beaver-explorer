@@ -43,4 +43,10 @@ ls CycleData/D*.lean | grep -v _ | xargs -P "$JOBS" -I{} bash -c 'check {}'
 ls CyclePieces/*.lean | xargs -P "$JOBS" -I{} bash -c 'check {}'
 ls CycleLevels/*.lean | xargs -P "$JOBS" -I{} bash -c 'check {}'
 check CycleRun.lean
+if [ "$K" -ge 12 ]; then  # N is never 3030 or 4054 mod 2^12 (needs cycle12)
+  [ "$RESUME" = 1 ] || { python3 residue_gen.py; rm -rf out/ResidueData; }
+  mkdir -p out/ResidueData
+  ls ResidueData/*.lean | xargs -P "$JOBS" -I{} bash -c 'check {}'
+  check ResidueRun.lean
+fi
 echo "ALL CHECKED (cycles, kernel)"

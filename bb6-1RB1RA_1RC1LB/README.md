@@ -54,6 +54,12 @@ at each level.
   (`cycle1`–`cycle35`, `lean/CycleRun.lean`; the last six also by `decide`, `cycle₁`–`cycle₆`): each level's table is
   written out and checked in pieces of 3,000 entries (`lean/CycleCert.lean`), the block of the next level comes back
   after L passes and not before, so L times the least period is the least period (`least_append`);
+- **the low bits of N, and two residues it never takes** (`lean/Residues.lean`, `lean/ResidueRun.lean`): N mod 2^k
+  is a function of the last k blocks (`bigN_bottom`); from super step 7 on N ≡ 2 mod 4 at exactly one super step in
+  eight (`mod4_blank`); three steps after the last two blocks are (12, 26), N is larger by exactly 106
+  (`plus106`); and from some super step on N is never 3030 or 4054 mod 2¹² (`never_3030_4054`, the cycle of the last
+  12 blocks in 20 pieces, run by `check_cycles.sh` from 12 levels). Both misses are in the class of −42 mod 2¹⁰, the branch that
+  is thin on this orbit's cycles and not on others of the map; it cannot exclude a power of two (notes, 5 November);
 - **each level multiplies the period by 1, 2, 4 or 5** (`period_factor`, `lean/Periods.lean`): mod 5 a wave acts on a
   block as p ↦ 3(p + h), so over a period the next block moves mod 5 by r ↦ 3^W r + b (W the waves it receives), the
   blocks of a cycle are distinct mod 5, and the factor is the period of the residue under that affine map: 1 or 4 if W
@@ -89,7 +95,8 @@ last k blocks at the rate 1.2764·2^−k per super step (N's low bits lean towar
 halting is decided by d₁ = N/2^(m−1) at the returns to the left end, now 1.9·10²⁴ (81 bits; earlier write-ups said
 10²⁷ by a miscount). The random model gives about 5·10⁻²⁵ for a future halt (heuristic). Exact over a period of the
 last 18 blocks, N mod 2^k has a valuation profile tending to 1.28, ever fairer next bits, and never 3030 or 4054 mod
-2¹²; at the top of the orbit the waves pass each block half the time; from 60,000 random starts the map halts 2,018
+2¹² (proved; the thin class is −42, `py/top_stats.py branch`, and other cycles of the map starve other classes,
+`py/top_stats.py cycles`); at the top of the orbit the waves pass each block half the time; from 60,000 random starts the map halts 2,018
 times against 2,024 predicted, and near-halts follow the model within a factor of about 2 up to d₁ ≈ 2³⁰. On 10⁷
 starts (`c/ensemble_fast.c`, the same orbits on periodic tables) v₂(d₁) at a return is geometric: the shortfall in
 high valuations that the 60,000 starts showed comes from their repeated and merging starting tapes, and is gone when
@@ -135,6 +142,8 @@ bbchallenge, `1RB1RA_1RC1LB_1LD0RA_1RA0LE_---0LF_0RD0LB`, runs through the same 
 | `lean/Cascade.lean` | the last blocks run on their own (`superL_split`, `superT_split`), and the tables are sound (`build_rep`, `runs_of_drive`) |
 | `lean/CascadeRun.lean` | no halt in the first 4.4·10³⁷ steps, by 35 levels of tables in one evaluation (`native_decide`) |
 | `lean/Cycles.lean` | every level cycles or goes silent, and silent means no halt (`cycles_or_never_halts`); the last six blocks' cycles |
+| `lean/Residues.lean` | N mod 2^k follows the last k blocks (`bigN_bottom`, `never_bad`), N ≡ 2 mod 4 once in eight steps (`mod4_blank`), N + 106 three steps after (12, 26) (`plus106`) |
+| `lean/residue_gen.py` → `lean/ResidueRun.lean` | N never 3030 or 4054 mod 2¹² (`never_3030_4054`; pieces in `ResidueData/`, not in git; generated, do not edit) |
 | `lean/CycleCert.lean` | the tables in pieces the kernel can check (`lvSeg`, `pseg`, `step_sound`), and least periods (`least_append`) |
 | `lean/TableLit.lean` | `tbl%`, which reads a written table into a term (the kernel checks what it makes) |
 | `lean/cycle_gen.py` → `lean/CycleRun.lean` | writes the pieces (`CycleData/`, `CyclePieces/`, `CycleLevels/`, not in git) and the chain: `cycle1`–`cycle35`, `blank_runs_cycles` (generated; do not edit) |
