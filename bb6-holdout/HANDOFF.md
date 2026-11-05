@@ -158,6 +158,17 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    a proof (the routes' forms in Lean, and the exhaustive check or the
    far-shape search) and, on the halting side, every halting class at every R: the censuses had missed ζ, the route at
    R ≡ 1,702 and γ's paths until run at every R of a class.
+   **The routes are not finite** (October 28, `lean/thm/FourWallPass.lean`, `lean/thm/RouteLoop.lean`). Every lane
+   Q + c = 2^j or 3 · 2^j with a constant c > 0 found so far has c = 5 · 2^k − 4 (k = 3, 6, 7, 10, 11: Q + 36, 316,
+   636, 5,116 and 10,236), and between the chain's break and the re-entry the run makes n passes of a loop on four
+   marks (`four_wall_pass`: eight rounds, exact on a residue class) with k = 4n + 7 (or 4n + 6 with variant passes),
+   so the re-entry round is 8n + 19; `loop_routes` proves halting pass starts with R ≥ 769, open at every depth, for
+   n = 0 to 9, and the construction gives one for every n tried (to 10). A census of fixed routes cannot be completed
+   into a proof; the routes are a prefix, a loop and an exit. What is needed is an argument through the 4-wall loop,
+   as the σ bound goes through the full pass (its invariant is r³/Λ², with r = ρ − 1 → r/16 and Λ → Λ/64,
+   `lean/END_TO_END.md`, "Routes of every length"). The far shape does not bound n either: the far pass starts of
+   `lean/thm/LoopFarHalt.lean` make exactly two, three, four and five passes (`loop_far_routes`, `loop_far_exact` in
+   `lean/thm/RouteLoopFar.lean`).
    The original note:
    **"A halt needs a close", formally**: from a well-formed state the model is uncovered only at contacts; show which
    contacts are reachable, so that "no close" over a stretch becomes "no halt" for whole runs.
