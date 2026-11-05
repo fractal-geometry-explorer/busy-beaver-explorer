@@ -2,7 +2,8 @@
 # Check the end-to-end theorem (run ./check.sh first):
 #   1. the proved modules BB6/RouteTree.lean, BB6/CleanTree.lean, BB6/RouteExplore.lean, BB6/CleanRange.lean,
 #      BB6/RouteEntry.lean, BB6/EntryTree.lean, BB6/CleanEntryTree.lean, BB6/SmallEnd.lean, BB6/WideEntry.lean,
-#      BB6/BigEnd.lean, BB6/MassPar.lean, BB6/RouteEntryC.lean and BB6/EntryTestsC.lean (seconds);
+#      BB6/BigEnd.lean, BB6/MassPar.lean, BB6/RouteEntryC.lean, BB6/EntryTestsC.lean and BB6/Count3.lean (the
+#      machine's count of 1s plus state weight, conserved mod 3) (seconds);
 #   2. the exit and endgame trees, the endgame trees that pass end meetings at distance 2, and the run from blank
 #      tape to width 2^20, evaluated by Lean's kernel (`decide +kernel`; no compiler is trusted): the generated
 #      modules thm/ExitPieces*.lean, thm/EndgamePieces*.lean and thm/EndgameClosePieces*.lean hold one theorem per
@@ -55,7 +56,10 @@
 #      trees in the theorems with those checks (thm/OpenHaltClose.lean, nothing evaluated), and six families of pass
 #      starts with the far shape, R >= 769 and width above 2^41 that halt on the 4-wall loop's lanes with two to five
 #      passes, three of them wider than 2^66 (thm/LoopFarHalt.lean, the model run on them by the kernel), which make
-#      exactly that many passes (thm/RouteLoopFar.lean, the same); prints the axioms of the final theorems;
+#      exactly that many passes (thm/RouteLoopFar.lean, the same), the two of
+#      them at four and five passes that the conserved count keeps the run from blank tape off and two on the same
+#      routes that meet it (thm/LoopFarCount.lean, the same), and the end-to-end statement with the count's widths
+#      mod 6 (thm/CountHalt.lean, nothing evaluated); prints the axioms of the final theorems;
 #   5. with them, the measure of the clean-tape trees' cut classes at 36 digits (thm/CleanMass.lean,
 #      thm/CleanDirectMass.lean, thm/CleanKernelMass.lean, thm/CleanEntryMass.lean, thm/CleanEntryKernelMass.lean,
 #      thm/CleanSmallMass.lean, thm/CleanWideMass.lean, thm/CleanFarMass.lean, thm/CleanBigMass.lean, about 5 minutes
@@ -77,7 +81,7 @@ for a in "$@"; do
   esac
 done
 for f in RouteTree CleanTree RouteExplore CleanRange RouteEntry EntryTree CleanEntryTree SmallEnd WideEntry BigEnd \
-  MassPar RouteEntryC EntryTestsC; do
+  MassPar RouteEntryC EntryTestsC Count3; do
   echo "== BB6/$f.lean"; $LEAN BB6/$f.lean -o out/BB6/$f.olean
 done
 for f in ExitStart EndgameStart EndgameCloseStart PrefixBase; do
@@ -135,10 +139,11 @@ stage EndToEndDirect PassHaltClasses PassClean EndToEndClose PassHaltClose
 stage CleanEntryHalt PassOpenHalt RouteEntryHaltC
 stage PassEntryHalt LaneHalt CleanTreesC RouteLoop
 stage SmallEndHalt PassEntryHaltClose LoopFarHalt
-stage OpenSmallHalt RouteLoopFar
+stage OpenSmallHalt RouteLoopFar LoopFarCount
 stage WideHalt
-stage FarHalt
+stage FarHalt WindowHalt
 stage BigEndHalt
 stage OpenHaltClose
+stage CountHalt
 $LEAN thm/EndToEndAxioms.lean
 echo "END TO END CHECKED"
