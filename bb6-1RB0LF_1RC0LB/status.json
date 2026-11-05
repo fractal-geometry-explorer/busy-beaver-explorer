@@ -8,7 +8,7 @@
     "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.",
     "The run is a sequence of passes: the head fills a sparse region into solid 1s moving right, and turns solid blocks back into alternating cells moving left. Lean proves which passes halt, and that from pass start to pass start the run is a macro machine on a stack and a list of segment and gap lengths; the machine halts only if that macro machine gets stuck."
   ],
-  "asof": "Status as of 4 November 2026.",
+  "asof": "Status as of 5 November 2026.",
   "verdict": [
     "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps.",
     "<b>Where a halt would come from.</b> Every rightward run is a pass that crosses gaps (runs of 0s between two 1s) of length 1 and 2 and stops at the first other gap. Lean proves that the pass halts exactly when that gap has length 3 (<code>pass_outcome</code>, kernel).",
@@ -83,6 +83,12 @@
     },
     {
       "level": "trusted",
+      "title": "The two-stack form never gets stuck in 10<sup>12</sup> steps",
+      "text": "A plain C simulator of the two-stack form of the macro machine runs 10<sup>12</sup> of its steps from blank tape (of the order of 10<sup>14</sup> machine steps) and never gets stuck. It equals the Python reference step by step on the first 20,000 steps and a memoized Python simulator after 254,823,857 steps. It logs every near miss, a frame taken down to value 0: there are two, at steps 204,719,421 and 2,084,922,784, both of frames with no turns left, and none after that.",
+      "where": "<code>c/twostack.c</code>, <code>py/accel.py</code>, <code>tests/test_accel.py</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "trusted",
       "title": "No small DFA closes the tape",
       "text": "One side of the tape abstracted by a DFA, the other kept exactly as a pushdown stack, reachability computed exactly by post* saturation: every DFA with at most 7 states, on either side, lets the abstraction reach a halt. Run-window languages on the tape do not close either. Tested sound on random small machines.",
       "where": "<code>c/pds.c</code>, <code>py/pds.py</code>, <code>tests/test_pds.py</code>, <code>notes/LAB_NOTES.md</code>"
@@ -108,8 +114,8 @@
     {
       "level": "heuristic",
       "title": "Stuck configurations next to the run",
-      "text": "Changing one to three even numbers of a configuration of the run by 2, with every parity kept, gets the macro machine stuck in 6 of 1,980 tries, typically after 10<sup>4</sup> steps or more; one example changes a single entry deep in the stack from 0 to 2. So whatever keeps the run from getting stuck depends on exact values, not on parities. The run itself has one near miss in 10<sup>9</sup> steps of the two-stack form (about 6&middot;10<sup>10</sup> machine steps): a frame flipped down to 0 that had no turns left.",
-      "where": "<code>py/perturb.py</code>, <code>notes/LAB_NOTES.md</code>"
+      "text": "Changing one to three even numbers of a configuration of the run by 2, with every parity kept, gets the macro machine stuck in 6 of 1,980 tries from the first 2&middot;10<sup>6</sup> steps, typically after 10<sup>4</sup> steps or more; one example changes a single entry deep in the stack from 0 to 2. So whatever keeps the run from getting stuck depends on exact values, not on parities. At a larger scale such changes are much less dangerous: 900 changed configurations from step 10<sup>9</sup>, run 10<sup>9</sup> steps each, and 156 from step 10<sup>10</sup>, run 10<sup>10</sup> steps each, never get stuck and take a frame to 0 only 4 times in all, while the run itself has 2 such near misses in 10<sup>12</sup> steps. The numbers are too small to estimate when, or whether, the run gets stuck.",
+      "where": "<code>py/perturb.py</code>, <code>c/twostack.c perturb</code>, <code>notes/LAB_NOTES.md</code>"
     },
     {
       "level": "open",
@@ -141,7 +147,9 @@
     "python3 bb6-1RB0LF_1RC0LB/py/callstack.py check 1000000   # how the counter changes, by kind of step",
     "gcc -O2 -o macro bb6-1RB0LF_1RC0LB/c/macro.c && ./macro 10000000000",
     "python3 bb6-1RB0LF_1RC0LB/tests/test_pds.py",
-    "gcc -O2 -o pds bb6-1RB0LF_1RC0LB/c/pds.c && ./pds 6 L && ./pds 6 R   # every DFA up to 6 states, about a minute each"
+    "gcc -O2 -o pds bb6-1RB0LF_1RC0LB/c/pds.c && ./pds 6 L && ./pds 6 R   # every DFA up to 6 states, about a minute each",
+    "python3 bb6-1RB0LF_1RC0LB/tests/test_accel.py",
+    "gcc -O3 -o twostack bb6-1RB0LF_1RC0LB/c/twostack.c && ./twostack run 1e12   # about 70 minutes"
   ],
   "explainer": {
     "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for ten billion steps without stopping, and in that time it has visited only 642 cells. This page runs the real machine in your browser and lists what is known, each result marked by what it rests on. It grows as the work does.",
@@ -155,6 +163,11 @@
         "level": "trusted",
         "value": "10<sup>10</sup> steps",
         "text": "No halt in the C simulator; 313 ones and 642 cells visited at the end."
+      },
+      {
+        "level": "trusted",
+        "value": "10<sup>12</sup> macro steps",
+        "text": "The macro machine, as two stacks, never gets stuck; two near misses, both early."
       },
       {
         "level": "kernel",

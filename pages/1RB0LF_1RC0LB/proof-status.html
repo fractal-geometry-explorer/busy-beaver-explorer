@@ -75,7 +75,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.</p>
     <p>The run is a sequence of passes: the head fills a sparse region into solid 1s moving right, and turns solid blocks back into alternating cells moving left. Lean proves which passes halt, and that from pass start to pass start the run is a macro machine on a stack and a list of segment and gap lengths; the machine halts only if that macro machine gets stuck.</p>
-    <p class="asof">Status as of 4 November 2026.</p>
+    <p class="asof">Status as of 5 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -158,6 +158,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/macro.c</code>, <code>py/macro.py check</code>, <code>tests/test_macro.py</code></p>
       </div>
       <div class="card">
+        <h3>The two-stack form never gets stuck in 10<sup>12</sup> steps</h3>
+        <p>A plain C simulator of the two-stack form of the macro machine runs 10<sup>12</sup> of its steps from blank tape (of the order of 10<sup>14</sup> machine steps) and never gets stuck. It equals the Python reference step by step on the first 20,000 steps and a memoized Python simulator after 254,823,857 steps. It logs every near miss, a frame taken down to value 0: there are two, at steps 204,719,421 and 2,084,922,784, both of frames with no turns left, and none after that.</p>
+        <p class="where"><code>c/twostack.c</code>, <code>py/accel.py</code>, <code>tests/test_accel.py</code>, <code>notes/LAB_NOTES.md</code></p>
+      </div>
+      <div class="card">
         <h3>No small DFA closes the tape</h3>
         <p>One side of the tape abstracted by a DFA, the other kept exactly as a pushdown stack, reachability computed exactly by post* saturation: every DFA with at most 7 states, on either side, lets the abstraction reach a halt. Run-window languages on the tape do not close either. Tested sound on random small machines.</p>
         <p class="where"><code>c/pds.c</code>, <code>py/pds.py</code>, <code>tests/test_pds.py</code>, <code>notes/LAB_NOTES.md</code></p>
@@ -182,8 +187,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Stuck configurations next to the run</h3>
-        <p>Changing one to three even numbers of a configuration of the run by 2, with every parity kept, gets the macro machine stuck in 6 of 1,980 tries, typically after 10<sup>4</sup> steps or more; one example changes a single entry deep in the stack from 0 to 2. So whatever keeps the run from getting stuck depends on exact values, not on parities. The run itself has one near miss in 10<sup>9</sup> steps of the two-stack form (about 6&middot;10<sup>10</sup> machine steps): a frame flipped down to 0 that had no turns left.</p>
-        <p class="where"><code>py/perturb.py</code>, <code>notes/LAB_NOTES.md</code></p>
+        <p>Changing one to three even numbers of a configuration of the run by 2, with every parity kept, gets the macro machine stuck in 6 of 1,980 tries from the first 2&middot;10<sup>6</sup> steps, typically after 10<sup>4</sup> steps or more; one example changes a single entry deep in the stack from 0 to 2. So whatever keeps the run from getting stuck depends on exact values, not on parities. At a larger scale such changes are much less dangerous: 900 changed configurations from step 10<sup>9</sup>, run 10<sup>9</sup> steps each, and 156 from step 10<sup>10</sup>, run 10<sup>10</sup> steps each, never get stuck and take a frame to 0 only 4 times in all, while the run itself has 2 such near misses in 10<sup>12</sup> steps. The numbers are too small to estimate when, or whether, the run gets stuck.</p>
+        <p class="where"><code>py/perturb.py</code>, <code>c/twostack.c perturb</code>, <code>notes/LAB_NOTES.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
@@ -217,7 +222,9 @@ python3 bb6-1RB0LF_1RC0LB/py/macro.py show 40
 python3 bb6-1RB0LF_1RC0LB/py/callstack.py check 1000000   # how the counter changes, by kind of step
 gcc -O2 -o macro bb6-1RB0LF_1RC0LB/c/macro.c &amp;&amp; ./macro 10000000000
 python3 bb6-1RB0LF_1RC0LB/tests/test_pds.py
-gcc -O2 -o pds bb6-1RB0LF_1RC0LB/c/pds.c &amp;&amp; ./pds 6 L &amp;&amp; ./pds 6 R   # every DFA up to 6 states, about a minute each</code></pre>
+gcc -O2 -o pds bb6-1RB0LF_1RC0LB/c/pds.c &amp;&amp; ./pds 6 L &amp;&amp; ./pds 6 R   # every DFA up to 6 states, about a minute each
+python3 bb6-1RB0LF_1RC0LB/tests/test_accel.py
+gcc -O3 -o twostack bb6-1RB0LF_1RC0LB/c/twostack.c &amp;&amp; ./twostack run 1e12   # about 70 minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>bb6-1RB0LF_1RC0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

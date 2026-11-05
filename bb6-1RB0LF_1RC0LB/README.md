@@ -42,8 +42,14 @@ reduction that keeps one side of the tape exact and abstracts the other by a DFA
 to its right every time so far; pass endings look like a binary counter, a gap of 4j + 2 about half as often as
 4j − 2 (`notes/LAB_NOTES.md`).
 
+**Computed** (trusted C, tested): the two-stack form of the macro machine never gets stuck in 10¹² of its steps from
+blank tape (`c/twostack.c`, about 4 s per 10⁹ steps); two near misses (a frame taken to 0 with no turns left), at
+steps 204,719,421 and 2,084,922,784, none after. Memoizing frames on their inspected inputs (`py/accel.py`) is exact
+but gives no real speed-up: the memo grows like steps^0.86.
+
 **Observed only**: configurations that differ from the run's in one even entry can get stuck (`py/perturb.py`), so
-non-stuckness depends on exact values; the run has one near miss by 10⁹ steps of the two-stack form.
+non-stuckness depends on exact values; at 10⁹ to 10¹⁰ steps such changed configurations (1,056 runs, 2.5·10¹² steps)
+never got stuck.
 
 **Open**: a proof that the macro machine never gets stuck, and the
 question itself. Only odd numbers in the macro configuration can get it stuck, and in the first 10¹⁰ steps there
@@ -67,6 +73,9 @@ have never been more than 4 of them at once.
 | `py/twostack.py` | the two-stack form of the macro machine (rules R1, R2) |
 | `py/perturb.py` | configurations of the run with a few even numbers changed by 2, run on: some get stuck |
 | `py/callstack.py` | the two-stack form read as a recursive program; the counter Φ by kind of step; flips at the caller |
+| `py/accel.py` | the two-stack form with frames memoized on their inspected inputs: exact, but the memo grows almost as fast as the run |
+| `c/twostack.c` | the two-stack form in plain C (about 4 s per 10⁹ steps), near misses logged, saved states, perturbed runs |
+| `tests/test_accel.py` | both against `twostack.zstep` step by step, and against each other |
 | `c/macro.c` | the run and the macro machine side by side, the whole tape compared at every pass start |
 | `py/pds.py` | the pushdown reduction: one side of the tape as a DFA, the other exact, post* saturation |
 | `c/pds.c` | the same in C, enumerating every DFA up to a size |

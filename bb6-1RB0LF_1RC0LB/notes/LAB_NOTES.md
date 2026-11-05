@@ -454,3 +454,69 @@ What this means for a proof:
 entries of L to the frames that will dig them out, exactly, not by parity), or an accelerated simulator for the
 recursion (I^k summarized for the all-even top of the computation) that reaches the next few hundred flips of
 value-2 frames and checks each near miss directly.
+
+## 5 November 2026: a fast simulator, the run to 10¹² two-stack steps, near misses
+
+**Memoizing frames does not pay (trusted Python, `py/accel.py`).** In the call-stack reading a frame v<n> run to its
+return is a function of the frame and of the entries of L it pops. It never reads its caller; it only takes k off
+the caller's value, so the caller checks value ≥ k when it returns (the end entry with value 0 is the one exception
+and is run step by step). `py/accel.py` memoizes frames on what they inspect: every popped value and the frame's own
+value are symbols, made concrete only when a rule looks at them (a popped b: is it 0, how many turns; a value that
+becomes a gap in R2; a value a callee took something off). The memo is a decision tree per gap; a leaf says how many
+entries to pop, what to push (constants or input + offset), k, and the step count, counts and logged events. It is
+exact: without the memo it equals `twostack.zstep` at every step, and with the memo it equals the run without memo
+at every end turn (configuration, step count, counts, events; `tests/test_accel.py`), and it finds the near miss at
+step 204,719,421. But it does not accelerate: the memo has 29,825 leaves after 10⁶ steps, 241,095 after 1.2·10⁷ and
+1,673,884 after 1.1·10⁸, about steps^0.86, and one hit stands for about 24 steps. Even the frames of gap 4 read about 8
+entries of L and inspect several of them, and those entries look like random small even numbers, so the same
+inspected inputs rarely come back. Keying on the exact popped prefix instead of the inspected values is only 1.5
+times worse. So there is no carry-level structure for a memo to use, at least not one visible in these inputs; the
+"binary counter" of the pass endings is a statement about one end of the tape, not about the frames.
+
+**Plain C instead (trusted C, `c/twostack.c`).** The two stacks never get deep (|R| at most 88 by 10¹²
+steps), so a direct implementation with fixed arrays and entries −1 preset below L does a step in about 4 ns:
+10⁹ steps in 4 s and 10¹² in 70 minutes on one core. It equals `zstep` step by step on the first
+20,000 steps, equals `py/accel.py` (row, counts) at an end turn after 1.2·10⁷ steps in the test and after
+254,823,857 steps by hand, and resuming from a saved state gives the same state as an unbroken run. An earlier version
+with growable stacks gave the same counts and near misses up to 10¹⁰.
+
+**The run (trusted C).** No step gets stuck in the first 10¹² steps of the two-stack form
+(at about 60 machine steps per two-stack step, the rate near 10⁸, that is of the order of 10¹⁴ machine steps). Counts
+at each power of 10:
+
+| steps | R2 | frames taken to 1 | taken to 0 (near misses) | end entry replaced | max \|R\| |
+|---|---|---|---|---|---|
+| 10⁸ | 533 | 288 | 0 | 7 | 47 |
+| 10⁹ | 783 | 446 | 1 | 7 | 53 |
+| 10¹⁰ | 978 | 565 | 2 | 8 | 66 |
+| 10¹¹ | 1,241 | 731 | 2 | 8 | 71 |
+| 10¹² | 1,709 | 1,024 | 2 | 9 | 88 |
+
+There are two near misses, both with gap 0 (the frame had no turns left and returned 0 at once):
+
+* step 204,719,421 (the one found before): `… | 2<-1> 0<0> 6<0> 4<0> 2<4> 2<4> 8<4> 6<end>`, the frame six above the end;
+* step 2,084,922,784 (new): `… | 4<-1> 0<0> 2<2> 8<5> 3<end>`, three above the end; its R2 came from a frame with
+  value 4 whose gap had counted down to −1.
+
+None in the 998·10⁹ steps after that. R2 steps keep coming (about 200 to 470 per decade, slowly more), and so do frames
+taken to 1 (120 to 290 per decade), but a frame taken to 0 has not happened again. The run goes on toward 10¹³ steps
+from saved states, and this section will be updated.
+
+**Perturbed runs at a larger scale (trusted C, `twostack perturb`).** `twostack perturb S H K SEED` runs to S, then K times changes one even
+entry by ±2 (an entry of L, or the value or an even gap of a frame, keeping values of frames ≥ 2 and gaps ≥ 2, as
+`py/perturb.py` does) and runs H steps. From the run's configuration at 10⁹ steps, 900 changed configurations run
+10⁹ steps each: none gets stuck; together they make 17,401 R2 steps, take 10,783 frames to 1 and 1 to 0. From 10¹⁰,
+156 changed configurations run 10¹⁰ steps each: none gets stuck; 4,476 R2 steps, 2,699 frames to 1, 3 to 0. So at this
+scale a changed configuration is about as eventful as the run itself (the run made 195 R2 steps between 10⁹ and 10¹⁰;
+the changed ones about 29 each in 10¹⁰ steps after 10¹⁰, the run 263 between 10¹⁰ and 10¹¹), and near misses are
+rare for both: 4 in 2.5·10¹² perturbed steps, 2 in the run's 10¹².
+
+What this changes in the estimate of 4 November: that estimate took the stuck rate of perturbations of the first
+2·10⁶ steps (6 stuck per 10,022 frames of value 2 flipped twice) and the run's rate of such flips. At 10⁹ to 10¹⁰ the
+perturbed runs got no configuration stuck at all in about 2.5·10¹² steps, and flip frames to 0 about once per 6·10¹¹
+steps. With so few events this gives no new number for the first stuck step; it says that stuck configurations close
+to the run are much rarer at this scale than near the start, which is consistent both with a halt far beyond 10²⁰ and
+with no halt. Nothing here is a proof, and none of it is in Lean.
+
+**Next.** Run on to 10¹³ (about 12 hours of one core) and record every near miss. A real speed-up needs a description of
+the frames that a memo can reuse, which the inspected inputs do not give.
