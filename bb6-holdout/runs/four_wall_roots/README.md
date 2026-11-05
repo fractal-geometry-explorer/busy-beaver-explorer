@@ -4,7 +4,7 @@ This follows step 1 and step 2 of "Next steps" in `../../notes/FOUR_WALL_ORIGIN.
 four- and five-pass routes at 2⁶⁶. Keep those that the count mod 6 allows (W ≡ 2 mod 6, PR #114). Then pull each one
 back through the chain's three step maps until the pull-back reaches the loop entry it would need.
 
-**In short.** The pull-back works and is cheap. Every surviving member maps to one or two explicit loop entries. But it
+**In short.** The pull-back works and is cheap. (Below, an untrusted extra: 95% of the run's entries lie on exact linear relations that none of the roots meets, so the roots can only come from entries in late rounds of a cycle.) Every surviving member maps to one or two explicit loop entries. But it
 does not rule the family out. 82 of the 319 four-pass members and 5 of the 19 five-pass members have a root that passes
 `EntryFar`. Fourteen of those roots sit inside clusters of the run's own first loop entries above 2⁴⁰ (up to 2,128 of
 them within 0.01 in (R/W, (W − b)/W)). Shape cannot separate them. What is left is the same open clean-tape question,
@@ -49,6 +49,25 @@ point of this plane. A root can only come from a class whose limit point it matc
 matches as well. That is the handle of `FOUR_WALL_ALL_N.md`. The next useful computation would be the clusters' limit
 points from the clean-tape tree's entry classes, matched against these 113 roots.
 
+## Most of the run's entries lie on exact lines, and no root does
+
+In the 1/1024 sample, the run's loop entries come from a few rounds of their cycle, and in five of those rounds they
+satisfy exact integer linear relations (`rel.py`, checked on every entry by `entry_rel.py`):
+
+| round | entries in the sample | relations on (b, W, R) |
+|---|---|---|
+| 10 | 1,397,978 | 466b − 298W + 635R = 0 and 167W − 1,024b + 2,540 = 0 (one parameter: b, W and R are affine in n) |
+| 15 | 43,679 | 56,714b − 39,819W + 89,191R = 0 and 4,855W − 32,768b + 178,382 = 0 (one parameter) |
+| 20 | 2,730 | 271,624b − 227,771W + 612,032R = 0 and 16,155W − 65,536b + 153,008 = 0 (one parameter) |
+| 17, 18 | 183,330 and 43,691 | 16b − 11W + 24R + 4 = 0 (a plane; W = 2n + 64) |
+
+That is 95.2% of all entries, and 95.2% of those above 2⁴⁰, with no violation. None of the 113 roots satisfies any of
+these relations. The closest misses the round-17 plane by 0.013W. So if every entry in those rounds obeys its relation,
+which is untrusted and observed only on the sample, the 4-wall members can only come from entries in round 22 or later.
+That is the other 4.8% of the run's entries, where the sample shows no linear relation among b, W and R. All 17 roots
+that sit inside a cluster of run entries are in such clusters, from rounds 22 to 59. Proving the five relations from the
+clean-tape tree's first rounds would make this a theorem. The open part would then be the late-round entries alone.
+
 ## Files
 
 - `pullback.py`: the inverse of `StepMap` and `StepWall` (`lean/BB6/Ends.lean`) for the full pass, the half pass and
@@ -64,3 +83,6 @@ points from the clean-tape tree's entry classes, matched against these 113 roots
   (W − b)/W, W mod 4 and the round for each `E` row of `sample.tsv.gz` with W > 2⁴⁰.
 - `census_hi45.txt`: `far_route.py routes_hi45.txt 3 66` with `FIXBITS=32`, rebuilt from scratch. It reproduces the
   319 and 19 members of `far_shape.md`.
+- `rel.py`, `entry_rel.py entries_all.txt`: the integer relations of the run's entries per round (`rel_out.txt`) and
+  their check on every entry, with the roots against them (`entry_rel.txt`). `entries_all.txt` holds n, round, b, W and R
+  for each `E` row of `sample.tsv.gz`.
