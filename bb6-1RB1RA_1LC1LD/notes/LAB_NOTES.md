@@ -643,3 +643,70 @@ before the stack gets a third block or the pass ends, the longest from `4, 86` (
 then `3, 6` before `1 2` takes `row_zero` to `9, 2`); the count grows like the logarithm of the blocks.  So "growth
 steps ≤ starting tokens + 2" cannot come from the two-block states alone in a single round: the shrinking runs have
 to be followed through, and the bound on all growth steps would combine this shrinking with the token count.
+
+
+## 5 November 2026: the run is a map on two numbers
+
+**Two blocks.**  Over the first 95,333 passes (about 2·10¹⁵ steps) the pass start is `1^x 0 1^b A>0`, two blocks, at
+83,277 of them (87%); the rest have 3 blocks (8,450), 4 (2,351), and at most 11.  A recursive pass after a single block
+`x` with offset 0 adds blocks (the carry of `pre` writes them), and each pass with last block `3m + 2` merges the block
+left of the last into it, so the run keeps coming back to two blocks.  The leftmost block is always even, and so is
+`x` at every two-block start.  So most of the run is a map on pairs `(x, b)`.
+
+**`pre` after one block in closed form** (`py/twoblock.py`, `pre1`; computed, equal to `pre([x])` of `py/macro.py` for
+every `x` from 3 to 29,999).  `p = 0` always; with `L` the blocks left of the head, nearest first:
+
+| x mod 18 | L | u |
+|---|---|---|
+| 0, 6, 12 | `2x/3 + 2, x/3 + 2` | 0 |
+| 4, 10, 16 | `(2x + 7)/3, (x + 8)/3` | 0 |
+| 5, 11, 17 | `(2x - 4)/3, (x + 13)/3` | 0 |
+| 13 | `(2x + 19)/3, (x + 11)/3` | 1 |
+| 7 | `(7x + 59)/9, (2x + 22)/9` | 1 |
+| 2 (x > 2) | `(4x - 8)/9, (5x + 62)/9` | 1 |
+| 15 | `(4x + 12)/9, (5x + 51)/9` | 1 |
+| 1 | `4, (4x + 5)/9, (5x + 49)/9` | 2 |
+| 3 | `4, (7x + 42)/9, (2x + 12)/9` | 2 |
+| 8 | `4, (7x + 43)/9, (2x + 2)/9` | 2 |
+| 9 | `4, (2x + 15)/3, (x + 9)/3` | 2 |
+| 14 | `t = (x - 5)/9 = 3^k s`, `3 ∤ s`: for `s ≡ 1 (mod 6)`: `4, 4t + 2, 10t/3, 10t/9, …, 10t/3^k, (13s + 20)/3, (2s + 4)/3` | 2 |
+|    | for `s ≡ 5 (mod 6)`: `a, x + 7 + k - a` with `a = ((2·3^(k+2) - 2)s + 7 + 3k)/3` | 1 |
+
+With `recur_sound` (`P = j - u`; the block `L[1]` gains `2⌈P/2⌉`, the last block is `L[0] + 2P`) this makes the pass
+map on two blocks explicit.  For even `x`, the only case on the run:
+
+* `b = 3m + 1`: `(x + 6 + 2⌊(m - 1)/2⌋, 2m - 1)`; `b = 3m + 2`: `(2 + 2⌈m/2⌉, x + 2m + 3)` (`next`, `lean/Macro.lean`);
+* `b = 3j`, `x ≡ 0 (mod 6)`: `(x/3 + 2 + 2⌈j/2⌉, 2x/3 + 2 + 2j)`; `x ≡ 4 (mod 6)`: `((x + 8)/3 + 2⌈j/2⌉, (2x + 7)/3 + 2j)`;
+  `x ≡ 2 (mod 18)`: `((5x + 62)/9 + 2⌈(j - 1)/2⌉, (4x - 26)/9 + 2j)`;
+* `b = 3j`, `x ≡ 8 (mod 18)`, or `x ≡ 14 (mod 18)` with `s ≡ 1 (mod 6)`: offset 0, the last block becomes `2j` and
+  blocks are added (`(2x + 2)/9, (7x + 43)/9 + 2⌈j/2⌉ - 2, 2j` for 8; `k + 4` blocks for 14);
+  `x ≡ 14`, `s ≡ 5 (mod 6)`: two blocks, offset `a - 2`.
+
+So the offset is 0 after an even block exactly when `x ≡ 8 (mod 18)`, or `x ≡ 14 (mod 18)` and `(x - 5)/9` divided by
+its power of 3 is 1 mod 6; 22% of the two-block recursive passes on the run.  The 3-adic branch is the only place where
+`pre` on one block digs deeper than a fixed number of steps: a carry over `k` powers of 3, making `k + 4` blocks
+(on the run `k` up to 6).  The rest of the map is affine on residues mod 18: a two-dimensional Collatz-like map, the
+last block multiplied by 2/3 on a descent (`3m + 1`, or `3j` with offset 0) and otherwise refilled from `x`.
+
+**The cost of `pre([x])`** is a quadratic in `x` on each residue mod 18 other than 14 (`PRE_COST`, exact on 3..29,999),
+and the final loop of a recursive pass over `P` words `0 1 1` after a block `a` costs `5P² + 5aP - P + 3` (`P` even) or
+`5P² + 5aP + 9P + 5a + 5` (`P` odd) steps (`tail_cost`, exact on 3,000 random passes).  With the counts of `nextC`
+this is `passC` of `lean/Count.lean` without running the block machine on the long words: `pass_counted`.  From blank
+tape it gives the pass start `1^11866 0 1^17246 A>0` at step 1,000,110,302,407 after 8,257 passes, the number
+`blank_reaches_1e12` proves, so the counts are those of the Lean map.
+
+**The run to 10¹⁶ steps** (computed, `python3 py/twoblock.py run N`): no halt in the first 10¹⁶ steps
+(178,000 passes; the last pass start at step 10,030,879,921,947,805, two blocks, 627,938 ones).  Over the first 95,333 passes: no last block 3 or 6,
+the smallest last block from pass 8,257 on is 1,019 (pass 11,153) and from pass 50,000 on 1,787 (pass 80,632); the
+smallest last block / √total from pass 156 on is still 1.38 (pass 415), from pass 2,000 on 3.10, from 8,257 on 3.35.
+Offset 0 comes up to 6 recursive passes in a row (the earlier "at most 3" was for the first 10¹² steps only).
+
+**Growth.**  The total number of ones grows by 3.526 per pass on average (each covered pass adds 2 to 4), and a pass
+costs about 0.43·w² steps for a tape of width w, so after `n` passes the step count is about 1.78·n³ and the width is
+about 2.91·t^(1/3) (2.89 to 2.93 at every thousandth pass from 1,000 to 178,000).  The square root in the
+first entry (30 October) was a fit near 10¹⁰ steps; t/w² keeps growing (142 at 1.8·10⁹, 6,588 at 1.7·10¹⁴).
+
+**Next.**  Prove `pre1` in Lean, residue by residue as `recur_two` does for `x = 2`; the 14 branch is an induction on
+`k`.  With it the two-block part of the run is a closed-form map on `(x, b)`, and the question "can the last block come
+down to 9 or 6 with the right residues" becomes one about this map alone, plus the excursions to three or more blocks
+after an offset 0.
