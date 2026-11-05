@@ -80,9 +80,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>8</sup> steps with <code>native_decide</code> (through the macro machine); the C simulator finds no halt in the first 10<sup>10</sup> steps.</p>
       <p><b>Where a halt would come from.</b> Every rightward run is a pass that crosses gaps (runs of 0s between two 1s) of length 1 and 2 and stops at the first other gap. Lean proves that the pass halts exactly when that gap has length 3 (<code>pass_outcome</code>, kernel).</p>
-      <p><b>Why it has not halted.</b> Lean proves that the run is a macro machine on lists of numbers, and that the machine halts only if the macro machine gets stuck. That needs two 1s side by side next to an empty segment, which only odd numbers can bring about; in the run they are rare (at most 4 at a time), and the macro machine has never been stuck in 10<sup>10</sup> steps.</p>
+      <p><b>Why it has not halted.</b> Lean proves that the run is a macro machine on lists of numbers, and that the machine halts only if the macro machine gets stuck. That needs two 1s side by side next to an empty segment, which only odd numbers can bring about; in the run they are rare (at most 4 at a time), and the macro machine has never been stuck in 10<sup>10</sup> steps. Is that luck or structure? Configurations one even number away from the run's do get stuck, and per flip the run looks just like them: at their stuck rate it would have got stuck with probability about 0.17 so far. No structural reason for it to stay unstuck has shown up.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -134,6 +134,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same run for 10<sup>7</sup> steps, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_10M</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>8</sup> steps, through the macro machine</h3>
+        <p>Compiled evaluation runs the macro machine 10<sup>8</sup> steps from the pass start after 12 steps without getting stuck; the loop it runs is proved equal to <code>mrun</code> by the kernel, and <code>mrun_sound</code> turns it into at least 10<sup>8</sup> machine steps without a halt (in fact billions).</p>
+        <p class="where"><code>macro_runs_100M</code>, <code>blank_runs_macro_100M</code>, <code>mok_iff</code>, <code>lean/MacroRun.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
@@ -158,9 +163,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/macro.c</code>, <code>py/macro.py check</code>, <code>tests/test_macro.py</code></p>
       </div>
       <div class="card">
-        <h3>The two-stack form never gets stuck in 10<sup>12</sup> steps</h3>
-        <p>A plain C simulator of the two-stack form of the macro machine runs 10<sup>12</sup> of its steps from blank tape (of the order of 10<sup>14</sup> machine steps) and never gets stuck. It equals the Python reference step by step on the first 20,000 steps and a memoized Python simulator after 254,823,857 steps. It logs every near miss, a frame taken down to value 0: there are two, at steps 204,719,421 and 2,084,922,784, both of frames with no turns left, and none after that.</p>
-        <p class="where"><code>c/twostack.c</code>, <code>py/accel.py</code>, <code>tests/test_accel.py</code>, <code>notes/LAB_NOTES.md</code></p>
+        <h3>The two-stack form does not get stuck in 10<sup>12</sup> steps</h3>
+        <p>The macro machine written as two stacks (each step one F pass and one B pass) does not get stuck in its first 10<sup>12</sup> steps (of the order of 10<sup>14</sup> machine steps), run by a plain C simulator at about 4 s per 10<sup>9</sup> steps; a second C program that follows every frame by identity agrees up to 2&middot;10<sup>11</sup>. Two flips leave a frame at value 0 (steps 204,719,421 and 2,084,922,784), both on frames with no turns left, and none happen after that; there are 1,709 R2 steps by 10<sup>12</sup>. The fast simulator equals the Python rules step by step for 20,000 steps and an exact memoized Python simulator after 2.5&middot;10<sup>8</sup> steps; the frame-tracking one prints the same rows as the Python rules every 1000 steps for 3&middot;10<sup>5</sup> steps; those rules are tested against <code>mstep</code>.</p>
+        <p class="where"><code>c/fastrun.c</code>, <code>c/twostack.c</code>, <code>py/accel.py</code>, <code>tests/test_accel.py</code>, <code>tests/test_macro.py</code></p>
       </div>
       <div class="card">
         <h3>No small DFA closes the tape</h3>
@@ -187,15 +192,20 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Stuck configurations next to the run</h3>
-        <p>Changing one to three even numbers of a configuration of the run by 2, with every parity kept, gets the macro machine stuck in 6 of 1,980 tries from the first 2&middot;10<sup>6</sup> steps, typically after 10<sup>4</sup> steps or more; one example changes a single entry deep in the stack from 0 to 2. So whatever keeps the run from getting stuck depends on exact values, not on parities. At a larger scale such changes are much less dangerous: 900 changed configurations from step 10<sup>9</sup>, run 10<sup>9</sup> steps each, and 156 from step 10<sup>10</sup>, run 10<sup>10</sup> steps each, never get stuck and take a frame to 0 only 4 times in all, while the run itself has 2 such near misses in 10<sup>12</sup> steps. The numbers are too small to estimate when, or whether, the run gets stuck.</p>
+        <p>Changing one to three even numbers of a configuration of the run by 2, with every parity kept, gets the macro machine stuck: 6 of 1,980 tries in Python, 20 of 1,500 in C with longer runs (10<sup>8</sup> to 10<sup>9</sup> steps). One example changes a single entry deep in the stack from 0 to 2. So whatever keeps the run from getting stuck depends on exact values, not on parities. Every stuck copy examined ends the same way: a frame created with value 2, a few frames above the end, flipped twice and then hit once more: a third flip, or its own odd countdown running out at value 0.</p>
         <p class="where"><code>py/perturb.py</code>, <code>c/twostack.c perturb</code>, <code>notes/LAB_NOTES.md</code></p>
+      </div>
+      <div class="card">
+        <h3>The run is no safer than its perturbed copies</h3>
+        <p>Per flip (an R2 step taking 1 from its caller) the run and its perturbed copies agree: 61&ndash;63 % of flips hit frames created with value 2, about 1 % are second flips, and the run's near-miss rate (2 in 1,181 flips by 10<sup>11</sup> steps) is close to theirs (0.29 % over 124,075 flips). The copies get stuck about once per 6,200 flips (20 of 1,500 copies), so the run would have got stuck by 10<sup>11</sup> steps with probability about 0.17. The copies do not relax back to safety (their rate stays flat for 10<sup>8</sup>&ndash;10<sup>9</sup> steps after the change), their risk falls at most slowly with the run's age, and the run's flips do not thin out (about 200 per decade). If the run behaves like its copies, it gets stuck with chance 2 to 3 % per decade of steps: a halt is likely but astronomically late. This is a model, not a proof.</p>
+        <p class="where"><code>c/twostack.c</code>, <code>notes/LAB_NOTES.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>The macro machine never gets stuck</h3>
-        <p>A description of where the odd numbers can be that the rules preserve and that excludes the two stuck cases. That would prove the machine never halts. An odd number has over a thousand distinct small neighbourhoods in the run, so the description is not tiny; window and pushdown languages over the macro numbers are the next tries.</p>
+        <p>A description of where the odd numbers can be that the rules preserve and that excludes the two stuck cases. That would prove the machine never halts. An odd number has over a thousand distinct small neighbourhoods in the run, so the description is not tiny; window and pushdown languages over the macro numbers are the next tries. Any such description has to separate the run from configurations one even number away, which per flip behave like it and do get stuck.</p>
         <p class="where"><code>notes/LAB_NOTES.md</code></p>
       </div>
       <div class="card open">
@@ -223,8 +233,10 @@ python3 bb6-1RB0LF_1RC0LB/py/callstack.py check 1000000   # how the counter chan
 gcc -O2 -o macro bb6-1RB0LF_1RC0LB/c/macro.c &amp;&amp; ./macro 10000000000
 python3 bb6-1RB0LF_1RC0LB/tests/test_pds.py
 gcc -O2 -o pds bb6-1RB0LF_1RC0LB/c/pds.c &amp;&amp; ./pds 6 L &amp;&amp; ./pds 6 R   # every DFA up to 6 states, about a minute each
+gcc -O3 -o twostack bb6-1RB0LF_1RC0LB/c/twostack.c &amp;&amp; ./twostack 10000000000   # about 90 s; TWOSTACK_VERBOSE=1 prints near misses
+./twostack perturb 100000000 100000000 40 1   # 200 perturbed copies, 10^8 steps each, about 3 min
 python3 bb6-1RB0LF_1RC0LB/tests/test_accel.py
-gcc -O3 -o twostack bb6-1RB0LF_1RC0LB/c/twostack.c &amp;&amp; ./twostack run 1e12   # about 70 minutes</code></pre>
+gcc -O3 -o fastrun bb6-1RB0LF_1RC0LB/c/fastrun.c &amp;&amp; ./fastrun run 1e12 - state.bin   # about 70 minutes; resumable</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>bb6-1RB0LF_1RC0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

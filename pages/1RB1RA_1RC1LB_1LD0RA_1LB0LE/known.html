@@ -140,6 +140,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
           <li>A halt needs a sweep that stops at a block of a single 1, and that block can only be the first block.</li>
           <li>No such stop in the first 3&middot;2<sup>60</sup>+1 &asymp; 3.46&middot;10<sup>18</sup> passes.</li>
           <li>The exact rule for psi under a pass.</li>
+          <li>A block of 3 at the right end makes the pass map run a copy of itself: the orbit of &phi;(y) is &phi; of the orbit of y.</li>
+          <li>For every a = 1 + 2<sup>m</sup>u the excursion from [a, 2a+1] replays the blank orbit for m passes, so its first min(m, 3.46&middot;10<sup>18</sup>) passes are safe.</li>
           <li>Counterexamples to four proof routes.</li>
           <li>If every a &equiv; 5 (mod 12) returns, the machine never halts; if one fails, the blank orbit reaches the first failure.</li>
         </ul>
@@ -205,6 +207,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <div class="claim k"><div><span class="tag t-kernel">Lean, kernel</span> The rule above holds for every pass of every list. On a two-block state [a, 2a+d] it is just d.</div><div class="src"><code>psi_next</code> in <code>lean/Psi.lean</code></div></div>
       <div class="claim c"><div><span class="tag t-comp">computed</span> On the first 10<sup>8</sup> passes, and on every excursion class down to mod 2<sup>66</sup>, psi stays in &minus;21..24 with at most 6 blocks.</div><div class="src"><code>py/invsearch.py</code></div></div>
       <div class="claim h"><div><span class="tag t-heur">heuristic</span> Each pass roughly halves psi and adds a term set by how many blocks the sweep crosses, so psi is pulled back toward a small range. It ends the simple halving loops of the first block within about log<sub>4</sub>|psi| rounds. With at most 6 blocks it bounds the run of halvings, which was the hope of a proof. Part 4 shows why that hope did not hold.</div></div>
+      <p>A second exact fact found later: with &phi;(y<sub>1</sub> &hellip; y<sub>k</sub>) = y<sub>1</sub> &hellip; y<sub>k&minus;1</sub> (y<sub>k</sub>+5) 3, a block of 3 at the right end is always crossed and always stays 3, so the pass map run on &phi;(y) is the pass map run on y.</p>
+      <div class="claim k"><div><span class="tag t-kernel">Lean, kernel</span> next(&phi;(y)) = &phi;(next(y)) for every list, halts and stops at a block of 1 included. From the tape 1<sup>5</sup> 0 1<sup>3</sup> the pass map runs &phi; of the blank-tape orbit for ever, and [x, 2x+6, 3] runs exactly the excursion of [x, 2x+1].</div><div class="src"><code>next_phi</code>, <code>sentinel_orbit</code>, <code>inner_counter</code> in <code>lean/Sentinel.lean</code></div></div>
+      <div class="claim c"><div><span class="tag t-comp">computed</span> A last block that is 3 only modulo 2<sup>r</sup> works the same way for about r passes. So for a = 1 + 2<sup>m</sup>u the excursion from [a, 2a+1] replays the blank orbit, modulo a power of 2 that loses a bit per pass, for its first m &minus; 1 passes (checked up to m = 3&middot;10<sup>4</sup>), with its first block above a/4. The run reads its own beginning at the scale log a.</div><div class="src"><code>py/sentinel.py deep</code></div></div>
+      <div class="claim k"><div><span class="tag t-kernel">Lean, kernel</span> The replay holds for every m and u: a pass keeps &ldquo;each block at least the reference block, and equal modulo 2Q&rdquo; as &ldquo;modulo Q&rdquo;, so the excursion of a = 1 + 2<sup>m</sup>u follows &phi; of the blank orbit for m passes, and its first min(m, 3&middot;2<sup>60</sup>+2) passes never halt or stop at a block of 1.</div><div class="src"><code>next_rel</code>, <code>replay</code>, <code>replay_3e18_kernel</code> in <code>lean/Replay.lean</code>, <code>lean/Replay62.lean</code></div></div>
     </div>
   </section>
 

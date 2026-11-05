@@ -2,6 +2,7 @@ import Blank
 import Pass
 import Macro
 import Counter
+import MacroRun
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
 a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
@@ -22,3 +23,6 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6e.phi_interior
 #print axioms BB6e.phi_end
 #print axioms BB6e.phi_bottom
+#print axioms BB6e.mok_iff
+#print axioms BB6e.macro_runs_100M
+#print axioms BB6e.blank_runs_macro_100M

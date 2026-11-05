@@ -22,6 +22,7 @@ import blank  # noqa: E402
 import blocks  # noqa: E402
 import macro  # noqa: E402
 import tokens  # noqa: E402
+import twoblock  # noqa: E402
 import build_status  # noqa: E402
 from bbtools import ctl  # noqa: E402
 from bbtools.invariants import conserved  # noqa: E402
@@ -341,6 +342,14 @@ class TestBlocks(unittest.TestCase):
         self.assertTrue(all(dt <= 0 for dt, grew in moves if not grew))
         self.assertIn((1, True), moves)
         self.assertEqual(set(pairs), {(2, 2), (2, 1), (2, 3), (1, 2), (3, 2), (3, 1), (3, 3)})
+    def test_twoblock(self):
+        """py/twoblock.py: pre1 and its step cost are pre([x]) for every x below 1,000; the stack block machine and
+        the counted pass map agree with pass_full; from blank tape the counted map gives the step of
+        blank_reaches_1e12 (lean/Count.lean)."""
+        self.assertEqual(twoblock.verify(1000), 0)
+        self.assertGreater(twoblock.check(300), 200)
+        ls, n, S = twoblock.counted_run(8257, 8257, out=open(os.devnull, "w"))
+        self.assertEqual((ls, n + 1, S), ([11866], 17246, 1000110302407))
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

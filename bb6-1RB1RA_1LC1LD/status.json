@@ -8,7 +8,7 @@
     "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.",
     "The machine is set up in Lean on the shared library, and the run from blank tape is simulated in Python, C and Lean. A closed tape language proved in Lean confines any halt to the right edge of the written tape. The macro structure of the run is not found yet. The run is a sequence of passes, each starting with A on the blank cell right of blocks of ones separated by single 0s; Lean proves the map from one pass start to the next for every last block: in closed form when the last block is not a multiple of 3, and, when it is, as a machine on lists of numbers whose every step is proved sound. <a href=\"explainer.html\">The explainer</a> runs the machine and the pass map in the browser."
   ],
-  "asof": "Status as of 1 November 2026.",
+  "asof": "Status as of 5 November 2026.",
   "verdict": [
     "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>12</sup> steps with <code>native_decide</code>, by the pass map with step counts; the C simulator finds no halt in the first 10<sup>11</sup> steps. These are floors, not the way to an answer.",
     "<b>Where a halt would come from.</b> The only halting transition is E0, and E is entered only from D reading a 0, so the machine halts exactly when D reads a 0 with a 0 to its right. Lean proves that in the run from blank tape this can happen only at the right edge: past the head, two 0s in a row occur only in the blank region beyond everything written, so the machine halts if and only if E steps onto that blank region. At the left end D always has a 1 to its right, but that is forced by the step that brings D there, not a property of the run."
@@ -153,10 +153,22 @@
       "where": "<code>py/blocks.py run</code> on <code>tools/c/tmrun &hellip; at A R</code> output"
     },
     {
+      "level": "trusted",
+      "title": "No halt in the first 10<sup>16</sup> steps",
+      "text": "The counted pass map of <code>lean/Count.lean</code> transcribed in Python, with the block machine on stacks and the costs of <code>pre</code> after one block and of the final loop in closed form, runs 178,000 passes from blank tape without a halt. It reproduces the step count that Lean proves for pass 8,257 (1,000,110,302,407) exactly.",
+      "where": "<code>py/twoblock.py run</code>, <code>tests/test_machine.py</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "Most of the run is a map on two numbers",
+      "text": "87% of the first 95,333 pass starts are two blocks <code>1^x 0 1^b A&gt;0</code>, x always even; the others have at most 11 blocks. For one block x left of a last block 3j, <code>pre</code> is given in closed form (equal to the block machine for every x below 30,000): affine in x on each residue mod 18, except x &equiv; 14 mod 18, where it follows the power of 3 in (x &minus; 5)/9. So the pass map on two blocks is an explicit Collatz-like map on (x, b); the offset is 0 after an even block exactly when x &equiv; 8 mod 18, or x &equiv; 14 mod 18 and (x &minus; 5)/9 without its factors 3 is 1 mod 6. Offset 0 occurs up to 6 recursive passes in a row; the smallest last block from pass 50,000 on is 1,787.",
+      "where": "<code>py/twoblock.py</code> (<code>pre1</code>, <code>verify</code>), <code>notes/LAB_NOTES.md</code> (5 November)"
+    },
+    {
       "level": "heuristic",
       "title": "The tape grows slowly and splits into two regions",
-      "text": "The visited width grows roughly like the square root of the step count (about 6,300 cells after 10<sup>10</sup> steps). The left part of the tape fills with blocks <code>1^2 0</code>, with an occasional <code>1 0</code>, and the head sweeps over it; the right part holds a few long blocks of 1s. The head reaches new cells mostly on the right.",
-      "where": "<code>py/blank.py records</code>, <code>notes/LAB_NOTES.md</code>"
+      "text": "The width grows like the cube root of the step count: after n passes the tape holds about 3.53&middot;n ones and the step count is about 1.78&middot;n<sup>3</sup>, so the width is about 2.91&middot;t<sup>1/3</sup> (6,300 cells after 10<sup>10</sup> steps, 29,112 after 10<sup>12</sup>; between 2.89 and 2.93 at every thousandth pass to 10<sup>16</sup> steps). An earlier fit near 10<sup>10</sup> steps suggested a square root. During a pass the left part of the tape fills with blocks <code>1^2 0</code>, with an occasional <code>1 0</code>, and the head sweeps over it; the right part holds a few long blocks of 1s. The head reaches new cells mostly on the right.",
+      "where": "<code>py/blank.py records</code>, <code>py/twoblock.py run</code>, <code>notes/LAB_NOTES.md</code>"
     },
     {
       "level": "trusted",

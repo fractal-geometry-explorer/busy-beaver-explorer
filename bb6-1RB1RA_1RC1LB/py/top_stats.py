@@ -11,6 +11,11 @@ usage:
   python3 top_stats.py thin                 why N is never 3030 or 4054 mod 2^12: over one period of the last 12 blocks
                                             of the blank-tape orbit (lean/CycleRun.lean cycle12), the share of the
                                             rarest residue class mod 2^k, k = 4..12 (about 1 s)
+  python3 top_stats.py branch               where the thin class comes from: the phase of the last two blocks that alone
+                                            gives N = 2 mod 4, the 2-adic point -42 the class converges to, N + 106 three
+                                            steps later, and the deep wave before every deep visit (about 2 s)
+  python3 top_stats.py cycles [STARTS [K]]  the same law on other cycles of the last K blocks (default 8), reached from
+                                            STARTS random tapes (default 40): which classes they starve (about 30 s)
   python3 top_stats.py fast FILE...         the totals that c/ensemble_fast.c prints (summed over the files): the
                                             halting law and v2(d1) = s against the random model, by the size of d1
 
@@ -377,6 +382,94 @@ def thin():
           f"(uniform {PERIOD12 // 4096})")
 
 
+def bottom_run(blocks=LAST12, steps=PERIOD12):
+    """One period of the last blocks: (state, N, depth) before each super step, depth = the levels the wave reaches."""
+    lv, K, out = list(blocks), len(blocks), []
+    for _ in range(steps):
+        st, n = tuple(lv), 10 + sum(x << i for i, x in enumerate(lv))
+        h, k = 10, 0
+        while True:
+            d = lv[k] + h
+            if d % 2:
+                lv[k] = (d + 5) // 2
+                if k + 1 < K:
+                    lv[k + 1] += (d - 1) // 2
+                break
+            lv[k] = h = d // 2
+            k += 1
+            if k == K:
+                break
+        out.append((st, n, k + 1))
+    return out
+
+
+def branch():
+    run = bottom_run()
+    T = len(run)
+    print(f"one period of the last 12 blocks ({T} super steps), the state before each step")
+    two = sorted({r[0][:2] for r in run}, key=lambda b: next(t for t in range(T) if run[t][0][:2] == b))
+    print("the last two blocks run through", ", ".join(map(str, two)))
+    m4 = Counter(r[0][:2] for r in run if r[1] % 4 == 2)
+    print(f"N = 2 mod 4 only at {dict(m4)}: {sum(m4.values())} of {T} steps, 1/{T // sum(m4.values())} "
+          f"(uniform 1/4)")
+    ok = all(run[(t + 3) % T][1] - run[t][1] == 106 for t in range(T) if run[t][0][:2] == (12, 26))
+    print(f"three steps after (12, 26) N is larger by 106 every time: {ok}")
+    print(" k   -42 mod 2^k  visits  share   all at (12, 26)  v2(N) one step before (at (14, 40))")
+    for k in range(4, 13):
+        r = -42 % (1 << k)
+        vis = [t for t in range(T) if run[t][1] % (1 << k) == r]
+        at = all(run[t][0][:2] == (12, 26) for t in vis)
+        pre = Counter(min(v2(run[t - 1][1]), k) for t in vis)
+        print(f"{k:2d}  {r:10d}  {len(vis):6d}  {len(vis) * (1 << k) / T:.4f}   {str(at):15s}  "
+              + ", ".join(f"{a}{'+' if a == k else ''}: {b}" for a, b in sorted(pre.items())))
+
+
+def bottom_cycle(lv, burn=100000, pmax=1 << 18):
+    """Run the last K blocks lv (nearest first) for burn super steps, then to the first return: (period, Counter of
+    N mod 2^K over the period), or None if they do not come back within pmax steps (a silent level grows forever)."""
+    K = len(lv)
+    start = bottom_run(lv, burn + 1)[-1][0]
+    seq = bottom_run(start, pmax + 1)
+    for P in range(1, pmax + 1):
+        if seq[P][0] == start:
+            return P, Counter(n % (1 << K) for _, n, _ in seq[:P])
+    return None
+
+
+def cycles(starts=40, K=8, seed=1):
+    rnd = random.Random(seed)
+    seen = {}
+    for _ in range(starts):
+        c = bottom_cycle([rnd.randint(1, 1000) for _ in range(K)])
+        if c is None:
+            seen.setdefault("silent", 0)
+            seen["silent"] += 1
+            continue
+        P, law = c
+        key = (P, tuple(sorted(law.items())))
+        seen.setdefault(key, 0)
+        seen[key] += 1
+    M = 1 << K
+    print(f"{starts} random tapes of {K} blocks of 1 to 1000 (seed {seed}): the cycles their last {K} blocks reach")
+    print(f"  starts  period  22 mod 32  -42 mod {M}  classes mod {M} missed  rarest mod 32   0 mod {M}")
+    rows = []
+    for key, n in seen.items():
+        if key == "silent":
+            continue
+        P, law = key[0], dict(key[1])
+        sh = lambda r, m: sum(v for a, v in law.items() if a % m == r % m) * m / P
+        rar = min(range(32), key=lambda r: (sh(r, 32), r))
+        rows.append((n, P, sh(22, 32), sh(-42, M), M - len(law), rar, sh(rar, 32), sh(0, M)))
+    for n, P, a, b, miss, rar, rs, z in sorted(rows, key=lambda x: (x[2], x[1])):
+        print(f"  {n:6d}  {P:6d}  {a:9.3f}  {b:11.3f}  {miss:19d}  {rar:3d} ({rs:.3f})  {z:8.3f}")
+    print(f"  and {seen.get('silent', 0)} starts whose bottom does not come back within 2^18 steps (a silent level)")
+    run = bottom_run(LAST12[:K], PERIOD12)
+    law = Counter(n % M for _, n, _ in run)
+    sh = lambda r, m: sum(v for a, v in law.items() if a % m == r % m) * m / PERIOD12
+    print(f"  the blank-tape orbit: 22 mod 32 {sh(22, 32):.3f}, -42 mod {M} {sh(-42, M):.3f}, "
+          f"{M - len(law)} classes missed, 0 mod {M} {sh(0, M):.3f}")
+
+
 def main(argv):
     if argv[:1] == ["odds"]:
         odds()
@@ -390,6 +483,10 @@ def main(argv):
         ensemble(argv[1:])
     elif argv[:1] == ["thin"]:
         thin()
+    elif argv[:1] == ["branch"]:
+        branch()
+    elif argv[:1] == ["cycles"]:
+        cycles(*map(int, argv[1:3]))
     elif argv[:1] == ["fast"] and len(argv) > 1:
         fast(argv[1:])
     else:

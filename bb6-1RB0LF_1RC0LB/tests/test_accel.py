@@ -2,8 +2,8 @@
 
 * py/accel.py without memo, step by step against zstep; with memo against without memo at every end turn
   (configuration, step count, counts, logged events);
-* c/twostack.c `dump`, step by step against zstep;
-* c/twostack.c `run` against the memoized py/accel.py at an end turn after 10^7 steps (row, counts);
+* c/fastrun.c `dump`, step by step against zstep;
+* c/fastrun.c `run` against the memoized py/accel.py at an end turn after 10^7 steps (row, counts);
 * the near miss of the notes (a frame taken to 0 at step 204,719,421) with ACCEL_LONG=1.
 
 usage: python3 tests/test_accel.py
@@ -24,13 +24,13 @@ from twostack import END, norm, zstep  # noqa: E402
 
 
 def build():
-    exe = os.path.join(tempfile.mkdtemp(), "twostack")
-    subprocess.run(["gcc", "-O2", "-Wall", "-Werror", "-o", exe, os.path.join(ROOT, "c", "twostack.c")], check=True)
+    exe = os.path.join(tempfile.mkdtemp(), "fastrun")
+    subprocess.run(["gcc", "-O2", "-Wall", "-Werror", "-o", exe, os.path.join(ROOT, "c", "fastrun.c")], check=True)
     return exe
 
 
 def parse_row(lines):
-    """L and R lines of twostack.c's dump -> a row of the two-stack form."""
+    """L and R lines of fastrun.c's dump -> a row of the two-stack form."""
     L = [int(x) for x in lines[0].split(":")[1].split()]
     row = [[x, 0] for x in L]
     frames = []
@@ -58,7 +58,7 @@ def test_c_dump(exe, T=20000):
         got = parse_row(out[i + 1:i + 3])
         assert got == z, (k, got[-6:], z[-6:])
     assert k == T
-    print(f"twostack.c: {T} steps equal to zstep")
+    print(f"fastrun.c: {T} steps equal to zstep")
 
 
 def test_c_run(exe, T=10 ** 7):
@@ -82,7 +82,7 @@ def test_c_run(exe, T=10 ** 7):
         subprocess.run([exe, "run", str(2 * S), st, st2], check=True, capture_output=True)
         subprocess.run([exe, "run", str(2 * S), "-", st3], check=True, capture_output=True)
         assert open(st2, "rb").read() == open(st3, "rb").read()
-    print(f"twostack.c run: row and counts equal to accel.py after {S} steps; resume from a saved state")
+    print(f"fastrun.c run: row and counts equal to accel.py after {S} steps; resume from a saved state")
 
 
 def test_near_miss(exe):

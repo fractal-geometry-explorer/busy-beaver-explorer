@@ -165,5 +165,40 @@ class ThinBranch(unittest.TestCase):
         self.assertEqual(sum(n % 1024 == 982 for n in Ns), 5)
 
 
+class Branch(unittest.TestCase):
+    def test_branch(self):
+        """N = 2 mod 4 only at the bottom (12, 26), one step in 8; three steps later N is larger by 106; the thin class
+        is -42 mod 2^k, all its visits at (12, 26), and from k = 8 on each follows a wave with v2(N) >= 8
+        (= 8 from k = 9)."""
+        run = top_stats.bottom_run()
+        T = len(run)
+        self.assertEqual({r[0][:2] for r in run if r[1] % 4 == 2}, {(12, 26)})
+        self.assertEqual(sum(r[1] % 4 == 2 for r in run), T // 8)
+        self.assertTrue(all(run[(t + 3) % T][1] == run[t][1] + 106 for t in range(T) if run[t][0][:2] == (12, 26)))
+        visits = [sum(r[1] % (1 << k) == -42 % (1 << k) for r in run) for k in range(5, 13)]
+        self.assertEqual(visits, [2560, 960, 480, 80, 20, 5, 3, 0])
+        deep = [t for t in range(T) if run[t][1] % 256 == -42 % 256]
+        self.assertTrue(all(v2_(run[t - 1][1]) >= 8 for t in deep))
+        deeper = [t for t in range(T) if run[t][1] % 512 == -42 % 512]
+        self.assertTrue(all(v2_(run[t - 1][1]) == 8 for t in deeper))
+
+    def test_other_cycles(self):
+        """Other cycles of the last blocks starve other classes: from a few random tapes, the share of 22 mod 32 is
+        not the blank-tape orbit's 1/4 on every cycle."""
+        rnd = random.Random(1)
+        shares = set()
+        for _ in range(6):
+            c = top_stats.bottom_cycle([rnd.randint(1, 1000) for _ in range(5)], burn=20000, pmax=1 << 14)
+            if c:
+                P, law = c
+                shares.add(law[22] * 32 / P)
+        self.assertGreater(len(shares), 1)
+        self.assertTrue(any(s > 0.25 for s in shares))
+
+
+def v2_(x):
+    return (x & -x).bit_length() - 1
+
+
 if __name__ == "__main__":
     unittest.main()

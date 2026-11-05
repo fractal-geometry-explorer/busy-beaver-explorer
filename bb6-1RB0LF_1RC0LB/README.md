@@ -28,7 +28,8 @@ by 1 when B has an empty stack (`phi_interior`, `phi_end`, `phi_bottom`). Read a
 form's right stack is a call stack), Φ/2 counts the turns of the outermost loop, up to the rare
 steps at the left end. It does not rule out getting stuck by itself.
 
-**Proved in Lean with `native_decide`**: no halt in the first 10,000,000 steps (`blank_runs_10M`).
+**Proved in Lean with `native_decide`**: no halt in the first 10,000,000 steps (`blank_runs_10M`); the macro machine does not get stuck in its first 10⁸ steps, so no halt in the first 10⁸ machine steps
+(`macro_runs_100M`, `blank_runs_macro_100M`, `lean/MacroRun.lean`).
 
 **Computed** (trusted C/Python, tested): no halt in the first 10¹⁰ steps (`tools/c/tmrun.c`, 313 ones, 642 cells);
 every one of the 344,806,676 pass starts in the first 10¹⁰ steps is the macro configuration `mstep` predicts, and
@@ -42,14 +43,18 @@ reduction that keeps one side of the tape exact and abstracts the other by a DFA
 to its right every time so far; pass endings look like a binary counter, a gap of 4j + 2 about half as often as
 4j − 2 (`notes/LAB_NOTES.md`).
 
-**Computed** (trusted C, tested): the two-stack form of the macro machine never gets stuck in 10¹² of its steps from
-blank tape (`c/twostack.c`, about 4 s per 10⁹ steps); two near misses (a frame taken to 0 with no turns left), at
-steps 204,719,421 and 2,084,922,784, none after. Memoizing frames on their inspected inputs (`py/accel.py`) is exact
-but gives no real speed-up: the memo grows like steps^0.86.
+**Computed** (trusted C, tested against Python): the two-stack form of the macro machine does not get stuck in its
+first 10¹² steps (`c/fastrun.c`, about 4 s per 10⁹ steps; `c/twostack.c` to 2·10¹¹); it has two near misses (a
+frame flipped down to 0), at steps 204,719,421 and 2,084,922,784, both harmless, and none after. Memoizing frames on
+the inputs they inspect (`py/accel.py`) is exact but gives no real speed-up: the memo grows like steps^0.86.
 
-**Observed only**: configurations that differ from the run's in one even entry can get stuck (`py/perturb.py`), so
-non-stuckness depends on exact values; at 10⁹ to 10¹⁰ steps such changed configurations (1,056 runs, 2.5·10¹² steps)
-never got stuck.
+**Observed only**: configurations that differ from the run's in one even entry can get stuck (`py/perturb.py`,
+`c/twostack.c perturb`), so non-stuckness depends on exact values. But the run is no safer than these perturbed
+copies: per flip it has the same statistics and a near-miss rate like theirs, and at their stuck rate (1.6·10⁻⁴ per
+flip, 20 of 1,500 copies) its 1,181 flips in 10¹¹ steps would have got it stuck with probability only about 0.17.
+Perturbed copies stay risky for as long as they run (10⁸ to 10⁹ steps), their risk falls at most slowly with the
+run's age, and the run's flips do not thin out (about 200 per decade). So no structural reason for the run to stay
+unstuck has shown up; if it behaves like its copies it halts with chance 2 to 3 % per decade of steps (`notes/LAB_NOTES.md`, 5 November).
 
 **Open**: a proof that the macro machine never gets stuck, and the
 question itself. Only odd numbers in the macro configuration can get it stuck, and in the first 10¹⁰ steps there
@@ -64,6 +69,7 @@ have never been more than 4 of them at once.
 | `lean/Pass.lean` | the pass and which passes halt, the leftward sweep and erase (kernel) |
 | `lean/Macro.lean` | the macro machine: encoding, `mstep`, `mstep_sound`, `no_halt_of_macro` (kernel) |
 | `lean/Counter.lean` | the counter Φ: kept by interior steps, changed only at the ends of the tape (kernel) |
+| `lean/MacroRun.lean` | the macro machine run 10⁸ steps from M0 (`native_decide`), with the tail-recursive check proved equal to `mrun` |
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `lean/check.sh` | compiles the shared library, then the files above |
 | `py/blank.py` | the run from blank tape on the shared simulator: summary, records, D reading a 0 |
@@ -72,10 +78,11 @@ have never been more than 4 of them at once.
 | `py/macro.py` | the macro machine as in Lean, checked against the run from blank tape; `show`, `stats` |
 | `py/twostack.py` | the two-stack form of the macro machine (rules R1, R2) |
 | `py/perturb.py` | configurations of the run with a few even numbers changed by 2, run on: some get stuck |
-| `py/callstack.py` | the two-stack form read as a recursive program; the counter Φ by kind of step; flips at the caller |
+| `c/twostack.c` | the two-stack form in C, frames followed by identity (flips, near misses); `perturb` runs the control |
+| `c/fastrun.c` | the two-stack form in plain C without frame identities, about twice as fast; saved states, near misses with their rows |
 | `py/accel.py` | the two-stack form with frames memoized on their inspected inputs: exact, but the memo grows almost as fast as the run |
-| `c/twostack.c` | the two-stack form in plain C (about 4 s per 10⁹ steps), near misses logged, saved states, perturbed runs |
-| `tests/test_accel.py` | both against `twostack.zstep` step by step, and against each other |
+| `tests/test_accel.py` | `fastrun.c` and `accel.py` against `twostack.zstep` step by step, and against each other |
+| `py/callstack.py` | the two-stack form read as a recursive program; the counter Φ by kind of step; flips at the caller |
 | `c/macro.c` | the run and the macro machine side by side, the whole tape compared at every pass start |
 | `py/pds.py` | the pushdown reduction: one side of the tape as a DFA, the other exact, post* saturation |
 | `c/pds.c` | the same in C, enumerating every DFA up to a size |

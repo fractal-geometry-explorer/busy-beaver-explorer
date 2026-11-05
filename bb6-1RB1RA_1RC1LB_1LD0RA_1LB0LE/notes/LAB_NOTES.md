@@ -1000,3 +1000,138 @@ list, the orbit's own structure reduces to the universal excursion question, and
 all digit patterns of a positive-dimension 2-adic set with no finite description. The Lean results stand as
 reductions: no halt in the first 3.46·10¹⁸ passes (kernel), failures confined to 67 residues mod 2^34 for every a,
 and now that the orbit meets the first failure of residue 5 mod 12 if there is one.
+
+## 4 November 2026: a sentinel block of 3, and the blank orbit inside the excursions (`lean/Sentinel.lean`, `py/sentinel.py`)
+
+The last open item of 1 November was whether the deep excursions are "the same map one level down" in a form an
+induction could use. **They are, exactly: a block of 3 at the right end makes the pass map run a copy of itself, and
+the excursion from `[a, 2a+1]` with a = 1 + 2^m u runs the blank-tape orbit itself for its first m − 1 passes.**
+This does not settle the machine, but it turns the "sentinel orbit" of 1 November into the blank orbit, explains why
+the open set of the return map accumulates at a = 1, and shows the run reading its own beginning at the scale
+log a. Labels: **proof** (Lean, kernel), **computed**, **heuristic**.
+
+### The sentinel conjugacy (proof)
+
+Let φ(y₁ … y_k) = y₁ … y_(k−1) (y_k + 5) 3, and φ(blank) = [5, 3]. Then for every block list
+(`next_phi`, kernel; axioms `propext`, `Quot.sound`)
+
+    next (φ y) = φ (next y),     and a halt or a stop at a block of 1 of y is one of φ y too.
+
+The proof is short: a 3 is odd, so the sweep always crosses it and records g = 3, which the zigzag turns back into a
+3 after adding 5 to the block before it; and y_k + 5 has the other parity from y_k, so the sweep of φ y crosses it
+exactly when the sweep of y stops at once, with (y_k + 5)/2 − 1 = (y_k + 3)/2 the g that y_k itself would record.
+So `zag q ms (gs ++ [3]) = φ (zag q ms gs)` and `sweep (gs ++ [3]) ys = φ (sweep gs ys)` by induction, and the two
+cases of `next` follow. Iterated (`iter_phi`): the orbit of φ y is φ of the orbit of y, pass for pass.
+
+Consequences, kernel:
+
+* `sentinel_orbit`: from `1^5 0 1^3` the pass map runs φ of the blank-tape orbit for ever, and
+  `sentinel_one_iff`: it meets a stop block of 1 exactly when the blank orbit does. This is the loose orbit from
+  `[1, 3]` of `py/induction.py` after its first pass (`[0, 5, 3]`, `tests/test_sentinel.py`), so the "inner counter
+  `[x, 2x+6, 3]`, x = 5, 17, 29, 41, …" of 1 November was the blank orbit's own return map all along, and its
+  3·10⁵ clean passes are now a consequence of the blank-orbit results (3.46·10¹⁸ passes, kernel).
+* `inner_counter`, `inner_return`: `[x, 2x+6, 3]` runs exactly φ of the excursion of `[x, 2x+1]`: same route, same
+  number of passes, same return value, for every x.
+
+### The excursion of a = 1 + 2^m u runs the blank orbit (computed)
+
+A last block that is 3 only modulo 2^r is a sentinel for about r passes: crossing it gives 3 + 2^(r−1) w, one bit
+less. The first pass from `[a, 2a+1]`, a = 1 + 2^m u, gives `[2^(m−1) u, 5 + 3·2^(m−1) u, 3 + 2^m u]`, which is φ(blank)
+= `[0, 5, 3]` modulo 2^(m−1). Exactly (`py/sentinel.py deep`, `tests/test_sentinel.py`):
+
+    pass t+1 of the excursion  ≡  φ(orbit t)  mod 2^(m−t−1)     for t = 0 … m−2,
+
+block by block from the right (the extra blocks on the left ≡ 0), with the sweep stopping at the matching block, and
+every block at least its block of φ(orbit t): the excursion is φ(orbit t) plus a high part B_t ≥ 0. Checked for
+m = 12 and 64 with 2,000 odd u each, m = 3,000 with 30, and m = 30,000 with 3 (`runs/sentinel_deep_3e4.txt`).
+
+So **for every a with v₂(a − 1) = m, the first m − 1 passes of the excursion have the blank orbit's route**, and
+their stop blocks are at least the blank orbit's (odd and, as far as the blank orbit is known, not 1, so ≥ 3), so the excursion cannot meet a stop block of 1
+before pass m − 1 unless the blank orbit does before pass m − 2. This is why the tail of the first pass lives
+v₂(a − 1) passes (31 October), why every open residue is 1 mod 256 (the classes with a long sentinel are the ones
+that read many bits), and why a = 1 is in the open set at every depth: the 2-adic point a = 1 has an exact sentinel,
+its excursion is φ of the blank orbit for ever, and φ of a list never has two blocks, so it never returns.
+
+The high part B_t is the excursion of the big pair `[A, 2A]` driven by the blank orbit's parities: as fractions of
+a it returns to `[1, 2]` (1,515 of the first 3,940 passes at m = 4,000) and in between halves a tail in the shapes
+`[1/2, 3/2, 1]`, `[3/4, 7/4, 1/2]`, `[3/8, 5/4, 9/8, 1/4]`, … . Its first block stays at least 0.2497·a after pass 5
+for m up to 3·10⁴ (computed), against the halving loop of the free-parity model that reaches 1/768 in 12 passes:
+along the blank orbit's route the parities never line up for the halving loop.
+
+### After the sentinel (computed, not resolved)
+
+When the sentinel's bits run out (pass ≈ m), the excursion either returns within a few passes or a new last block
+that is 3 modulo a fresh power of 2 forms and a new phase begins. Reading the list under that sentinel back to a
+state `[x, 2x+1]` (`py/sentinel.py phases`) gives, on the open classes to mod 2^42, a first phase with x = 5 (the
+blank orbit) and later phases at x = 17, 41, 53, 65 (values of the blank orbit's counter) or x = 1 (a fresh copy of
+the deep case, one level down), mixed with values that are only residues and carry no clear meaning. So the
+excursions that read many bits look like the blank orbit's counter replayed in nested phases, but the transition
+between phases depends on the high bits and was not put in closed form.
+
+### What this gives toward a proof (heuristic)
+
+The structure is self-referential: the blank orbit reaches `[a, 2a+1]` with a ≈ 2^m near pass 2^m, and that
+excursion replays the blank orbit's first m passes. If every phase of every excursion were a replay of an earlier
+part of the blank orbit (or of an excursion of a smaller value), and the transitions between phases were safe, an
+induction on a would close: a first failure would have to be a replay of an earlier failure. What is proved is the
+replay itself (the conjugacy, kernel) and, computed, the first phase. What is missing is (i) the congruence above as
+a Lean theorem for every m (it is an induction on t with the closed form affine on residue classes, the kind of
+statement `snext_ok` already proves for fixed moduli), and (ii) a closed form for the transitions, where the high
+bits enter. (ii) is where the Collatz-like mixing of 31 October lives, so the verdict of 1 November stands; the
+difference is that the mixing now sits only at the phase transitions, a sparser and more structured set than the
+whole excursion.
+
+## 5 November 2026: the replay as a theorem for every a (`lean/Replay.lean`, `lean/Replay62.lean`)
+
+Point (i) of the 4 November list is done: **the congruence between the deep excursions and the blank orbit is now a
+kernel theorem for every m and u, with no upper bound on a.** Labels as before.
+
+### The pass map is 2-adically 1-Lipschitz and monotone (proof)
+
+`Rel Q ys zs` (lists nearest first): every block of `ys` is its block of `zs` plus a multiple of Q, and the blocks of
+`ys` beyond the length of `zs` (further left on the tape) are multiples of Q. `next_rel` (kernel): if
+`Rel (2Q) ys zs` and the pass from `zs` gives a list `z'`, then the pass from `ys` gives a list `y'` and
+`Rel Q y' z'`. The parities agree, so the two sweeps cross and stop at the same blocks; a block of `ys` is at least
+its block of `zs`, so it is not 0 (a halt) or 1 (the event) where that one is not; every halving halves the
+difference, and the blocks `bump` adds on the left of `zs` land on the extra blocks of `ys`, which is why those may
+be any multiples of Q. `iter_rel`: `Rel (2^t Q)` survives t passes as `Rel Q`. The proof is the closed form's
+recursion once more (`bump_rel`, `zag_rel`, `sweep_rel`), about 150 lines, no computation.
+
+### The replay (proof)
+
+`first_pass`: from `[a, 2a+1]` with a = 1 + 2k the first pass gives `[k, 3k+5, 2k+3]`. For k = 2^(m−1) u this is
+`Rel (2^(m−1))` to `[5, 3]` = φ(blank). With `sentinel_orbit` and `iter_rel`, `replay`: for a = 1 + 2^m u
+(m, u ≥ 1) and t ≤ m − 1, if the blank orbit is a list `zs` at pass t, then the excursion is a list at pass t + 1
+and is `Rel (2^(m−1−t))` to φ(zs). With the bounds on the blank orbit:
+
+* `replay_49153` (kernel, in `check.sh`): the first min(m, 49,154) passes of the excursion never halt and never stop
+  at a block of 1;
+* `replay_3e18_kernel` (kernel, `Replay62.lean`, checked by `check_return62.sh` after `Return62.lean`):
+  min(m, 3·2^60 + 2) passes; `replay_3e18` is the same from the `native_decide` bound.
+
+So for every a, a failure of the excursion from `[a, 2a+1]` can only come after pass v₂(a − 1): the long first
+phase that made the deep classes look dangerous is exactly as safe as the blank orbit's own beginning, for every a,
+and in particular for all the a ≥ 2^62 that `Return62.lean` does not reach.
+
+### What is still open
+
+The phase transitions of 4 November. After pass v₂(a − 1) the difference between the excursion and φ(blank orbit)
+is no longer even in every block, the routes split, and the next phase starts from a state set by the high bits of
+a. A proof of non-halting along these lines needs the same kind of statement for every later phase: that it is
+`Rel` to the orbit of some earlier, already safe state. `next_rel` is the tool for each such step (it needs only a
+reference orbit that is known to be safe); what is missing is the reference state for a phase after the first,
+which the observations of 4 November suggest is a state of the blank orbit's counter, but not in closed form.
+
+### Later phases: no small reference (computed, negative)
+
+`next_rel` needs a reference list whose orbit is known to be safe. For the first phase that is φ of the blank orbit.
+For the later phases the natural candidate is the list under the new sentinel, read modulo 2^(r−1): if it were a
+small list (an early state of the blank orbit's counter, as `[39, 77]` or `[62, 122]`), `next_rel` would cover that
+phase as it covers the first. `py/sentinel.py refs 56 2061` checks every later phase start (sentinel 3 mod 2^r,
+r ≥ 6) on all 2,061 open classes mod 2^58, each with 400 random high bits: of 7,740 phase starts only 167 (2%) have a
+small reference (blocks below 2^((r−1)/2)); the other 98% are residues as large as the modulus, that is, the low bits
+of a itself. So after the first phase the excursion is not a replay of anything already known, and comparing it
+with a smaller a instead (a' = a mod 2^R, which `next_rel` also allows, since the excursion is affine in a with
+nonnegative coefficients along a route) is the residue-class exploration of `Thin.lean` again. The first phase is
+the only place where the self-similarity gives something for free; what follows it is where the 2-adic mixing of
+31 October lives, and the verdict stands.

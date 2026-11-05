@@ -76,7 +76,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.</p>
     <p>The run's structure is now proved in two layers. Lean has the machine as an explicit map on lists of block lengths, and a theorem that the machine halts exactly when that map's run reaches one specific shape. Read four macro steps at a time, that map is a carry wave running left through the blocks, and Lean now also proves that the halting shape is one arithmetic event: a single number built from the blocks being a power of two. What is open is whether it ever is.</p>
     <p><a href="reduction.html">The reduction</a> walks through this link by link; <a href="explainer.html">level by level</a> runs the machine in the browser at each level.</p>
-    <p class="asof">Status as of 1 November 2026.</p>
+    <p class="asof">Status as of 5 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -180,6 +180,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Each block added to the cycling bottom multiplies its period by a factor L. Mod 5 a wave acts on a block as p &rarr; 3(p + h), whether the wave turns there or passes ((d + 5)/2 and d/2 are both 3d mod 5), and an add as p &rarr; p + v. So over a period the next block moves mod 5 by r &rarr; 3<sup>W</sup>r + b, W the waves it receives per period. Lean proves that the blocks of a cycle are distinct mod 5, so L is the period of the residue under that affine map: <b>L is 1, 2, 4 or 5, never 3</b>; 1 or 4 if W is odd, 1 or 2 if W &equiv; 2 mod 4, and if W &equiv; 0 mod 4, 5 when b &ne; 0 and 1 when b = 0. This is why every period is 2<sup>a</sup>&middot;5<sup>b</sup>.</p>
         <p class="where"><code>cycle_residues</code>, <code>period_factor</code>, <code>level_period</code>, <code>rule₁</code>&ndash;<code>rule₃</code>, <code>lean/Periods.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The low bits of N, and the two residues it never takes</h3>
+        <p>N mod 2<sup>k</sup> is a function of the last k blocks, so on the orbit it follows their cycle. From super step 7 on, N &equiv; 2 mod 4 exactly at one super step in eight (the last two blocks at [12, 26]; a uniform law would give one in four). Three super steps after [12, 26], N is larger by exactly 106, whatever the other blocks. And from some super step on, N is never 3030 or 4054 mod 2<sup>12</sup>: the cycle of the last 12 blocks (327,680 super steps) is checked in 20 pieces. Both are the 2-adic class of &minus;42, which is thin on this orbit's cycles but not on others of the same map; it says nothing about powers of two.</p>
+        <p class="where"><code>bigN_bottom</code>, <code>mod4_blank</code>, <code>plus106</code>, <code>neg42_iff</code>, <code>never_bad</code>, <code>lean/Residues.lean</code>; <code>never_3030_4054</code>, <code>lean/ResidueRun.lean</code> (in <code>check_cycles.sh</code> from 12 levels)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -228,7 +233,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>The law of N mod 2<sup>k</sup> at the right end</h3>
-        <p>N mod 2<sup>k</sup> depends only on the last k blocks, which cycle; over one exact period of the last 18 (1,048,576,000 super steps) v<sub>2</sub>(N) = j occurs 1, 0.5, 1.25, 1.75, 2.13, 1.44, &hellip; times 2<sup>&minus;(j+1)</sup>, then near 1.28; the next bit given the lower ones is off from a fair coin by 0.07 on average at bit 4 and 0.0018 at bit 17, so the 2-adic law of N has a density (no class above 3.5 times uniform); and N is never 3030 or 4054 mod 2<sup>12</sup>, the only residues mod 2<sup>18</sup> it misses.</p>
+        <p>N mod 2<sup>k</sup> depends only on the last k blocks, which cycle; over one exact period of the last 18 (1,048,576,000 super steps) v<sub>2</sub>(N) = j occurs 1, 0.5, 1.25, 1.75, 2.13, 1.44, &hellip; times 2<sup>&minus;(j+1)</sup>, then near 1.28; the next bit given the lower ones is off from a fair coin by 0.07 on average at bit 4 and 0.0018 at bit 17, so the 2-adic law of N has a density (no class above 3.5 times uniform); and N is never 3030 or 4054 mod 2<sup>12</sup> (now proved, above), the only residues mod 2<sup>18</sup> it misses.</p>
         <p class="where"><code>c/bottom2adic.c</code>, <code>runs/bottom2adic_18.txt</code>, <code>tests/test_top.py</code></p>
       </div>
     </div>

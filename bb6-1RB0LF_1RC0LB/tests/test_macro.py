@@ -115,6 +115,43 @@ class TestTwoStack(unittest.TestCase):
         self.assertEqual(bad, 0)
 
 
+class TwoStackC(unittest.TestCase):
+    """c/twostack.c against py/twostack.py: the same row every 1000 steps, the same R2 count."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.d = tempfile.TemporaryDirectory()
+        cls.exe = os.path.join(cls.d.name, "twostack")
+        subprocess.run(["gcc", "-O2", "-o", cls.exe, os.path.join(ROOT, "c", "twostack.c")], check=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.d.cleanup()
+
+    def test_rows(self):
+        T = 300000
+        out = subprocess.run([self.exe, "show", str(T), "1000"], capture_output=True, text=True, check=True).stdout
+        rows = out.splitlines()
+        z = callstack.start()
+        want = []
+        for t in range(T):
+            if t % 1000 == 0:
+                left, right = twostack.show(z).split(" | ")
+                want.append(f"{t}" + (" " + left if left else "") + " | " + right)
+            z = twostack.zstep(z)
+        self.assertEqual(rows, want)
+
+    def test_counts(self):
+        T = 300000
+        out = subprocess.run([self.exe, str(T)], capture_output=True, text=True, check=True).stdout
+        m = re.search(r"steps (\d+) r1 (\d+) r2 (\d+)", out)
+        z, r2 = callstack.start(), 0
+        for _ in range(T):
+            r2 += callstack.kind(z)[0] == "R2"
+            z = twostack.zstep(z)
+        self.assertEqual((int(m.group(1)), int(m.group(3))), (T, r2))
+
+
 class Counter(unittest.TestCase):
     """The counter of lean/Counter.lean on the macro machine, and the same counter on the two-stack form."""
 

@@ -224,6 +224,7 @@ python3 check_tree.py tree36_leaves.txt          # hours
 | `m2/` | the first JavaScript explorations of the machine (event and round extraction) |
 | `lock/` | locks for the extra-wall loops (October 27): P and Q pass maps as Lean theorems, the quadratic never-zero countdown of Q, locks for every periodic word, why mixtures have none, and why no such lock can settle the open cases, whose runs almost never reach the loop; the return pieces that make up two-marker runs, with the eight largest and their countdowns as Lean theorems, and the two-marker states that halt (`lock/LOCK_NOTES.md`) |
 | `integ/` | whether the fact that widths are whole numbers can close the open clean-tape classes (October 27): the branching below every open class as Lean-evaluated counts, the branching of single two-marker segments, why no lock can exist for a class, and the search for invariants modulo odd primes (`integ/INTEGRALITY.md`) |
+| `ngramcps/` | the n-gram CPS decider of the Coq-BB5 paper run from blank tape at every practical width, with and without its history augmentations: every run reaches the halt PACKET→block, and halting "twin" round starts, whose windows all occur in the run, prove that it fails at every width up to 1,000; why the paper's other deciders do not apply either (`ngramcps/README.md`) |
 | `sib/` | a simulator for any six-state machine from blank tape |
 
 The notes are a working log kept as the research went. Paths in them such as `../csearch/gx3.c` are relative to
