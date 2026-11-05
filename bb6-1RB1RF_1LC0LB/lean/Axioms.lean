@@ -1,6 +1,7 @@
 import Blank
 import Rules
 import Counter
+import Wall
 import Top
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
@@ -32,6 +33,11 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6e.sweepLast
 #print axioms BB6e.last2
 #print axioms BB6e.last1
+#print axioms BB6e.wall_start
+#print axioms BB6e.wall_right
+#print axioms BB6e.wall_turn
+#print axioms BB6e.wall_left
+#print axioms BB6e.wall_end
 
 -- Counter.lean: one right-end excursion as a base-3 decrement (kernel only)
 #print axioms BB6e.counter_last2
@@ -39,6 +45,12 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6e.counter_borrow2
 #print axioms BB6e.counter_borrow1
 #print axioms BB6e.counter_borrow_any
+
+-- Wall.lean: the copy loop that builds a wall (kernel only)
+#print axioms BB6e.wall_round
+#print axioms BB6e.wall_loop
+#print axioms BB6e.wall_jump
+#print axioms BB6e.counter_borrow_ex
 
 -- Top.lean: the top pieces (kernel only; generated, one pair of theorems per shape in top_shapes.txt)
 #print axioms BB6e.top_0

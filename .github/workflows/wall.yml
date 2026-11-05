@@ -1,0 +1,32 @@
+# The wall-building top pieces of 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- (bb6-1RB1RF_1LC0LB/lean/TopWall*.lean,
+# generated, about 15 MB of kernel-checked proof), by Lean's kernel alone.  They take longer than the Tests job allows,
+# so they have their own workflow, run only when that machine's Lean files or the shared library change.
+name: Wall pieces, kernel
+
+on:
+  pull_request:
+    paths:
+      - "bb6-1RB1RF_1LC0LB/lean/**"
+      - "tools/lean/**"
+      - "scripts/setup-lean.sh"
+      - ".github/workflows/wall.yml"
+  push:
+    branches: [main]
+    paths:
+      - "bb6-1RB1RF_1LC0LB/lean/**"
+      - "tools/lean/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kernel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Lean
+        run: sudo bash scripts/setup-lean.sh
+      - name: TopWall*.lean, kernel only
+        run: . /etc/profile.d/lean.sh && JOBS=2 bb6-1RB1RF_1LC0LB/lean/check_wall.sh

@@ -172,4 +172,47 @@ theorem last1 (a b : Nat) (L : Tape) :
   have h4 : steps 3 ⟨rep (b + 1) [true, false, true, false] (cons true (cons false (rep (a + 1) [false, true, false, true] (cons false (L))))), cons true (cons false (cons true (cons false (cons true (blank))))), .E⟩ = some ⟨cons false (cons true (cons false (rep (b + 1) [true, false, true, false] (cons true (cons false (rep (a + 1) [false, true, false, true] (cons false (L)))))))), cons false (cons true (blank)), .C⟩ := rfl
   exact steps_congr trans (a := 10 + ((b + 1) * 4 + (3 + ((b + 1) * 4 + (3))))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (h4)))))
 
+/-- A round of the wall loop starts at the left end: C crosses the first block `(10)^(2a+1)` to the right, in E. -/
+theorem wall_start (a : Nat) (R : Tape) :
+    steps (4 * a + 1) ⟨blank, cons false (rep (a) [true, false, true, false] (cons true (cons false (cons false (R))))), .C⟩ = some ⟨rep (a) [true, false, true, false] (cons true (blank)), cons true (cons false (cons false (R))), .E⟩ := by
+  have h0 : steps 1 ⟨blank, cons false (rep (a) [true, false, true, false] (cons true (cons false (cons false (R))))), .C⟩ = some ⟨cons true (blank), rep (a) [true, false, true, false] (cons true (cons false (cons false (R)))), .E⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [] L, app [true, false, true, false] R, .E⟩ = some ⟨app [] (app [true, false, true, false] L), R, .E⟩ := fun _ _ => rfl
+  have h1 : steps ((a) * 4) ⟨cons true (blank), rep (a) [true, false, true, false] (cons true (cons false (cons false (R)))), .E⟩ = some ⟨rep (a) [true, false, true, false] (cons true (blank)), cons true (cons false (cons false (R))), .E⟩ :=
+    cross_r trans c1 (a) (cons true (blank)) (cons true (cons false (cons false (R))))
+  exact steps_congr trans (a := 1 + ((a) * 4)) (by omega) (steps_seq trans h0 (h1))
+
+/-- E crosses a block `0 (10)^(2t+2)` of the tape between, marking its boundary. -/
+theorem wall_right (t : Nat) (L R : Tape) :
+    steps (4 * t + 5) ⟨L, cons true (cons false (cons false (cons true (cons false (rep (t) [true, false, true, false] (R)))))), .E⟩ = some ⟨rep (t) [true, false, true, false] (cons true (cons true (cons false (cons true (cons false (L)))))), R, .E⟩ := by
+  have h0 : steps 5 ⟨L, cons true (cons false (cons false (cons true (cons false (rep (t) [true, false, true, false] (R)))))), .E⟩ = some ⟨cons true (cons true (cons false (cons true (cons false (L))))), rep (t) [true, false, true, false] (R), .E⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [] L, app [true, false, true, false] R, .E⟩ = some ⟨app [] (app [true, false, true, false] L), R, .E⟩ := fun _ _ => rfl
+  have h1 : steps ((t) * 4) ⟨cons true (cons true (cons false (cons true (cons false (L))))), rep (t) [true, false, true, false] (R), .E⟩ = some ⟨rep (t) [true, false, true, false] (cons true (cons true (cons false (cons true (cons false (L)))))), R, .E⟩ :=
+    cross_r trans c1 (t) (cons true (cons true (cons false (cons true (cons false (L)))))) (R)
+  exact steps_congr trans (a := 5 + ((t) * 4)) (by omega) (steps_seq trans h0 (h1))
+
+/-- At the level being copied (`0 0 (10)^(x+1)`), the head takes one pair and turns back in D. -/
+theorem wall_turn (x : Nat) (L R : Tape) :
+    steps (8) ⟨L, cons true (cons false (cons false (cons false (cons true (cons false (rep (x) [true, false] (R))))))), .E⟩ = some ⟨L, cons false (cons false (cons true (cons false (cons false (cons false (rep (x) [true, false] (R))))))), .D⟩ := by
+  have h0 : steps 8 ⟨L, cons true (cons false (cons false (cons false (cons true (cons false (rep (x) [true, false] (R))))))), .E⟩ = some ⟨L, cons false (cons false (cons true (cons false (cons false (cons false (rep (x) [true, false] (R))))))), .D⟩ := rfl
+  exact steps_congr trans (a := 8) (by omega) (h0)
+
+/-- On the way back, a marked block is crossed to the left and its mark cleared. -/
+theorem wall_left (t : Nat) (L R : Tape) :
+    steps (4 * t + 5) ⟨rep (t) [true, false, true, false] (cons true (cons true (cons false (cons true (cons false (L)))))), cons false (R), .D⟩ = some ⟨L, cons false (cons false (cons true (cons false (cons false (cons true (rep (t) [false, true, false, true] (R))))))), .D⟩ := by
+  have c0 : ∀ L R : Tape, steps 4 ⟨app [true, false, true, false] L, app [false] R, .D⟩ = some ⟨L, app [false] (app [false, true, false, true] R), .D⟩ := fun _ _ => rfl
+  have h0 : steps ((t) * 4) ⟨rep (t) [true, false, true, false] (cons true (cons true (cons false (cons true (cons false (L)))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (cons false (L))))), cons false (rep (t) [false, true, false, true] (R)), .D⟩ :=
+    cross_l trans c0 (t) (cons true (cons true (cons false (cons true (cons false (L)))))) (R)
+  have h1 : steps 5 ⟨cons true (cons true (cons false (cons true (cons false (L))))), cons false (rep (t) [false, true, false, true] (R)), .D⟩ = some ⟨L, cons false (cons false (cons true (cons false (cons false (cons true (rep (t) [false, true, false, true] (R))))))), .D⟩ := rfl
+  exact steps_congr trans (a := (t) * 4 + (5)) (by omega) (steps_seq trans h0 (h1))
+
+/-- The round ends at the left end, the first block two pairs longer. -/
+theorem wall_end (a : Nat) (R : Tape) :
+    steps (4 * a + 3) ⟨cons true (rep (a) [false, true, false, true] (blank)), cons false (R), .D⟩ = some ⟨blank, cons false (cons true (cons false (rep (a) [true, false, true, false] (cons true (R))))), .C⟩ := by
+  have h0 : steps 1 ⟨cons true (rep (a) [false, true, false, true] (blank)), cons false (R), .D⟩ = some ⟨rep (a) [false, true, false, true] (blank), cons true (cons true (R)), .B⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [false, true, false, true] L, app [true] R, .B⟩ = some ⟨L, app [true] (app [true, false, true, false] R), .B⟩ := fun _ _ => rfl
+  have h1 : steps ((a) * 4) ⟨rep (a) [false, true, false, true] (blank), cons true (cons true (R)), .B⟩ = some ⟨blank, cons true (rep (a) [true, false, true, false] (cons true (R))), .B⟩ :=
+    cross_l trans c1 (a) (blank) (cons true (R))
+  have h2 : steps 2 ⟨blank, cons true (rep (a) [true, false, true, false] (cons true (R))), .B⟩ = some ⟨blank, cons false (cons true (cons false (rep (a) [true, false, true, false] (cons true (R))))), .C⟩ := rfl
+  exact steps_congr trans (a := 1 + ((a) * 4 + (2))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (h2)))
+
 end BB6e
