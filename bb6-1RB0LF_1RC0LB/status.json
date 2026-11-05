@@ -8,11 +8,11 @@
     "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.",
     "The run is a sequence of passes: the head fills a sparse region into solid 1s moving right, and turns solid blocks back into alternating cells moving left. Lean proves which passes halt, and that from pass start to pass start the run is a macro machine on a stack and a list of segment and gap lengths; the machine halts only if that macro machine gets stuck."
   ],
-  "asof": "Status as of 4 November 2026.",
+  "asof": "Status as of 5 November 2026.",
   "verdict": [
-    "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>7</sup> steps with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps.",
+    "<b>The question is open.</b> Lean proves no halt in the first 20,000 steps by the kernel alone and in the first 10<sup>8</sup> steps with <code>native_decide</code> (through the macro machine); the C simulator finds no halt in the first 10<sup>10</sup> steps.",
     "<b>Where a halt would come from.</b> Every rightward run is a pass that crosses gaps (runs of 0s between two 1s) of length 1 and 2 and stops at the first other gap. Lean proves that the pass halts exactly when that gap has length 3 (<code>pass_outcome</code>, kernel).",
-    "<b>Why it has not halted.</b> Lean proves that the run is a macro machine on lists of numbers, and that the machine halts only if the macro machine gets stuck. That needs two 1s side by side next to an empty segment, which only odd numbers can bring about; in the run they are rare (at most 4 at a time), and the macro machine has never been stuck in 10<sup>10</sup> steps."
+    "<b>Why it has not halted.</b> Lean proves that the run is a macro machine on lists of numbers, and that the machine halts only if the macro machine gets stuck. That needs two 1s side by side next to an empty segment, which only odd numbers can bring about; in the run they are rare (at most 4 at a time), and the macro machine has never been stuck in 10<sup>10</sup> steps. Is that luck or structure? Configurations one even number away from the run's do get stuck, and per flip the run looks just like them: at their stuck rate it would have got stuck with probability about 0.17 so far. No structural reason for it to stay unstuck has shown up."
   ],
   "claims": [
     {
@@ -58,6 +58,12 @@
       "where": "<code>blank_runs_10M</code>, <code>lean/Blank.lean</code>"
     },
     {
+      "level": "native",
+      "title": "No halt in the first 10<sup>8</sup> steps, through the macro machine",
+      "text": "Compiled evaluation runs the macro machine 10<sup>8</sup> steps from the pass start after 12 steps without getting stuck; the loop it runs is proved equal to <code>mrun</code> by the kernel, and <code>mrun_sound</code> turns it into at least 10<sup>8</sup> machine steps without a halt (in fact billions).",
+      "where": "<code>macro_runs_100M</code>, <code>blank_runs_macro_100M</code>, <code>mok_iff</code>, <code>lean/MacroRun.lean</code>"
+    },
+    {
       "level": "trusted",
       "title": "No halt in the first 10<sup>10</sup> steps",
       "text": "The shared C simulator runs 10<sup>10</sup> steps from blank tape without a halt; the tape then holds 313 ones and the head has visited 642 cells. The C simulator agrees with the Python reference simulator on the first 80 records of the run (a test).",
@@ -80,6 +86,12 @@
       "title": "The run follows the macro machine",
       "text": "Run side by side with the machine, the macro machine predicts every one of the 344,806,676 pass starts in the first 10<sup>10</sup> steps, cell for cell over the whole tape, and never gets stuck. Python agrees with C, and with the machine on all small configurations.",
       "where": "<code>c/macro.c</code>, <code>py/macro.py check</code>, <code>tests/test_macro.py</code>"
+    },
+    {
+      "level": "trusted",
+      "title": "The two-stack form does not get stuck in 2&middot;10<sup>11</sup> steps",
+      "text": "The macro machine written as two stacks (each step one F pass and one B pass), run in C with every frame followed by identity: no stuck step in the first 2&middot;10<sup>11</sup> steps (roughly 10<sup>13</sup> machine steps or more). Two flips leave a frame at value 0 (steps 204,719,421 and 2,084,922,784), both on frames with no turns left. The C program prints the same rows as the Python rules every 1000 steps for 3&middot;10<sup>5</sup> steps; those rules are tested against <code>mstep</code>.",
+      "where": "<code>c/twostack.c</code>, <code>py/twostack.py</code>, <code>tests/test_macro.py</code>"
     },
     {
       "level": "trusted",
@@ -108,13 +120,19 @@
     {
       "level": "heuristic",
       "title": "Stuck configurations next to the run",
-      "text": "Changing one to three even numbers of a configuration of the run by 2, with every parity kept, gets the macro machine stuck in 6 of 1,980 tries, typically after 10<sup>4</sup> steps or more; one example changes a single entry deep in the stack from 0 to 2. So whatever keeps the run from getting stuck depends on exact values, not on parities. The run itself has one near miss in 10<sup>9</sup> steps of the two-stack form (about 6&middot;10<sup>10</sup> machine steps): a frame flipped down to 0 that had no turns left.",
-      "where": "<code>py/perturb.py</code>, <code>notes/LAB_NOTES.md</code>"
+      "text": "Changing one to three even numbers of a configuration of the run by 2, with every parity kept, gets the macro machine stuck: 6 of 1,980 tries in Python, 20 of 1,500 in C with longer runs (10<sup>8</sup> to 10<sup>9</sup> steps). One example changes a single entry deep in the stack from 0 to 2. So whatever keeps the run from getting stuck depends on exact values, not on parities. Every stuck copy examined ends the same way: a frame created with value 2, a few frames above the end, flipped twice and then hit once more: a third flip, or its own odd countdown running out at value 0.",
+      "where": "<code>py/perturb.py</code>, <code>c/twostack.c perturb</code>, <code>notes/LAB_NOTES.md</code>"
+    },
+    {
+      "level": "heuristic",
+      "title": "The run is no safer than its perturbed copies",
+      "text": "Per flip (an R2 step taking 1 from its caller) the run and its perturbed copies agree: 61&ndash;63 % of flips hit frames created with value 2, about 1 % are second flips, and the run's near-miss rate (2 in 1,181 flips by 10<sup>11</sup> steps) is close to theirs (0.29 % over 124,075 flips). The copies get stuck about once per 6,200 flips (20 of 1,500 copies), so the run would have got stuck by 10<sup>11</sup> steps with probability about 0.17. The copies do not relax back to safety (their rate stays flat for 10<sup>8</sup>&ndash;10<sup>9</sup> steps after the change), their risk falls at most slowly with the run's age, and the run's flips do not thin out (about 200 per decade). If the run behaves like its copies, it gets stuck with chance 2 to 3 % per decade of steps: a halt is likely but astronomically late. This is a model, not a proof.",
+      "where": "<code>c/twostack.c</code>, <code>notes/LAB_NOTES.md</code>"
     },
     {
       "level": "open",
       "title": "The macro machine never gets stuck",
-      "text": "A description of where the odd numbers can be that the rules preserve and that excludes the two stuck cases. That would prove the machine never halts. An odd number has over a thousand distinct small neighbourhoods in the run, so the description is not tiny; window and pushdown languages over the macro numbers are the next tries.",
+      "text": "A description of where the odd numbers can be that the rules preserve and that excludes the two stuck cases. That would prove the machine never halts. An odd number has over a thousand distinct small neighbourhoods in the run, so the description is not tiny; window and pushdown languages over the macro numbers are the next tries. Any such description has to separate the run from configurations one even number away, which per flip behave like it and do get stuck.",
       "where": "<code>notes/LAB_NOTES.md</code>"
     },
     {
@@ -141,15 +159,17 @@
     "python3 bb6-1RB0LF_1RC0LB/py/callstack.py check 1000000   # how the counter changes, by kind of step",
     "gcc -O2 -o macro bb6-1RB0LF_1RC0LB/c/macro.c && ./macro 10000000000",
     "python3 bb6-1RB0LF_1RC0LB/tests/test_pds.py",
-    "gcc -O2 -o pds bb6-1RB0LF_1RC0LB/c/pds.c && ./pds 6 L && ./pds 6 R   # every DFA up to 6 states, about a minute each"
+    "gcc -O2 -o pds bb6-1RB0LF_1RC0LB/c/pds.c && ./pds 6 L && ./pds 6 R   # every DFA up to 6 states, about a minute each",
+    "gcc -O3 -o twostack bb6-1RB0LF_1RC0LB/c/twostack.c && ./twostack 10000000000   # about 90 s; TWOSTACK_VERBOSE=1 prints near misses",
+    "./twostack perturb 100000000 100000000 40 1   # 200 perturbed copies, 10^8 steps each, about 3 min"
   ],
   "explainer": {
     "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for ten billion steps without stopping, and in that time it has visited only 642 cells. This page runs the real machine in your browser and lists what is known, each result marked by what it rests on. It grows as the work does.",
     "facts": [
       {
         "level": "native",
-        "value": "10<sup>7</sup> steps",
-        "text": "No halt, proved in Lean; the first 20,000 steps by the kernel alone."
+        "value": "10<sup>8</sup> steps",
+        "text": "No halt, proved in Lean through the macro machine; the first 20,000 steps by the kernel alone."
       },
       {
         "level": "trusted",
@@ -210,6 +230,16 @@
           "<p>Lean proves these three rules for every value of the parameters (<code>mstep_sound</code> in <code>lean/Macro.lean</code>), and the C simulator checks them against all 344,806,676 pass starts of the first ten billion steps. The rules fail only when two 1s side by side touch an empty segment; then a gap of odd length appears, and only a gap of odd length can turn into the fatal gap of 3. So the machine halts only if this macro machine gets stuck (<code>no_halt_of_macro</code>).</p>",
           "<p>If every number is even, nothing can go wrong: each rule turns even numbers into even numbers, and a gap counting down by 2 from an even value reaches 0 and is crossed, never &minus;1. Odd numbers enter only at the ends of the tape: at the left end when the stack runs empty, and in the last segment. In the run there have never been more than four of them at once, and only 546 of 344,806,676 passes have met two 1s side by side. Proving that the odd numbers never line up badly is the open step.</p>",
           "<p>The ruler-like tally of pass endings is visible here too: B's head gap is h = m + 2 for the last segment m the previous pass crossed, and h = 2, 4, 6, 8 occur with frequencies that halve exactly. The first nonzero gap is counted down by 2 per round, like the lowest digit of a counter.</p>"
+        ]
+      },
+      {
+        "id": "luck",
+        "eyebrow": "Open question",
+        "heading": "Safe by design, or lucky so far?",
+        "html": [
+          "<p>Write the macro machine as two stacks and its right stack becomes a call stack: each entry is a <em>frame</em>, a loop with a few turns left that pushes its value when it is done. Odd numbers are the only danger. When a frame's own countdown is odd it ends one step early, and that step takes 1 from the frame that called it, a <em>flip</em>. A frame created with value 2 can take two flips; the third gets the machine stuck, and that is the only way the machine can ever halt.</p>",
+          "<p>In a hundred billion steps of this two-stack form the run has made 1,181 flips and has twice left a frame at 0, both times on a frame with no turns left, so nothing happened. To test whether something deeper protects it, take snapshots of the run, change one to three even numbers by 2 (every parity stays the same), and let each copy run. About one copy in seventy-five gets stuck within 10<sup>8</sup> to 10<sup>9</sup> steps, always in the same way: a value-2 frame near the bottom of the call stack is flipped twice and then hit once more.</p>",
+          "<p>Measured per flip, the run is indistinguishable from these copies. The same share of flips land on value-2 frames, second flips are as common, and the copies' stuck rate predicts a 17 % chance that the run would already have got stuck. The copies also stay risky for as long as they run, and the run keeps making about 200 flips per decade of steps. So there is no sign yet of the exact-value invariant a proof of non-halting would need. If the run behaves like its copies, it gets stuck with chance 2 to 3 % per decade: a halt that is likely but astronomically far away, perhaps around 10<sup>35</sup> steps. That is a statistical model, not a proof, and a steady decline in the risk over time, which the copies hint at but do not show clearly, would change it.</p>"
         ]
       }
     ]
