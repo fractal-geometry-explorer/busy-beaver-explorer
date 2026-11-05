@@ -12,9 +12,13 @@ mkdir -p out/R62
 ls R62/Shard*.lean | sed 's/\.lean$//' | xargs -P "${JOBS:-4}" -I{} sh -c 'echo "== {}.lean"; "$LEAN" {}.lean -o out/{}.olean'
 echo "== Return62.lean"
 "$LEAN" Return62.lean -o out/Return62.olean
+echo "== Replay62.lean"
+"$LEAN" Replay62.lean -o out/Replay62.olean
 cat > out/Axioms62.lean <<'LEAN'
 import Return62
+import Replay62
 #print axioms BB6d.returns_2_62_kernel
+#print axioms BB6d.replay_3e18_kernel
 #print axioms BB6d.no_one_3e18_kernel
 LEAN
 "$LEAN" out/Axioms62.lean | tee out/axioms62.txt

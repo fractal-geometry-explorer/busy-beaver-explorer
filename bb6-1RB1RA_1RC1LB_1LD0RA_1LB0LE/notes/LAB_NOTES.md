@@ -1080,3 +1080,58 @@ statement `snext_ok` already proves for fixed moduli), and (ii) a closed form fo
 bits enter. (ii) is where the Collatz-like mixing of 31 October lives, so the verdict of 1 November stands; the
 difference is that the mixing now sits only at the phase transitions, a sparser and more structured set than the
 whole excursion.
+
+## 5 November 2026: the replay as a theorem for every a (`lean/Replay.lean`, `lean/Replay62.lean`)
+
+Point (i) of the 4 November list is done: **the congruence between the deep excursions and the blank orbit is now a
+kernel theorem for every m and u, with no upper bound on a.** Labels as before.
+
+### The pass map is 2-adically 1-Lipschitz and monotone (proof)
+
+`Rel Q ys zs` (lists nearest first): every block of `ys` is its block of `zs` plus a multiple of Q, and the blocks of
+`ys` beyond the length of `zs` (further left on the tape) are multiples of Q. `next_rel` (kernel): if
+`Rel (2Q) ys zs` and the pass from `zs` gives a list `z'`, then the pass from `ys` gives a list `y'` and
+`Rel Q y' z'`. The parities agree, so the two sweeps cross and stop at the same blocks; a block of `ys` is at least
+its block of `zs`, so it is not 0 (a halt) or 1 (the event) where that one is not; every halving halves the
+difference, and the blocks `bump` adds on the left of `zs` land on the extra blocks of `ys`, which is why those may
+be any multiples of Q. `iter_rel`: `Rel (2^t Q)` survives t passes as `Rel Q`. The proof is the closed form's
+recursion once more (`bump_rel`, `zag_rel`, `sweep_rel`), about 150 lines, no computation.
+
+### The replay (proof)
+
+`first_pass`: from `[a, 2a+1]` with a = 1 + 2k the first pass gives `[k, 3k+5, 2k+3]`. For k = 2^(m−1) u this is
+`Rel (2^(m−1))` to `[5, 3]` = φ(blank). With `sentinel_orbit` and `iter_rel`, `replay`: for a = 1 + 2^m u
+(m, u ≥ 1) and t ≤ m − 1, if the blank orbit is a list `zs` at pass t, then the excursion is a list at pass t + 1
+and is `Rel (2^(m−1−t))` to φ(zs). With the bounds on the blank orbit:
+
+* `replay_49153` (kernel, in `check.sh`): the first min(m, 49,154) passes of the excursion never halt and never stop
+  at a block of 1;
+* `replay_3e18_kernel` (kernel, `Replay62.lean`, checked by `check_return62.sh` after `Return62.lean`):
+  min(m, 3·2^60 + 2) passes; `replay_3e18` is the same from the `native_decide` bound.
+
+So for every a, a failure of the excursion from `[a, 2a+1]` can only come after pass v₂(a − 1): the long first
+phase that made the deep classes look dangerous is exactly as safe as the blank orbit's own beginning, for every a,
+and in particular for all the a ≥ 2^62 that `Return62.lean` does not reach.
+
+### What is still open
+
+The phase transitions of 4 November. After pass v₂(a − 1) the difference between the excursion and φ(blank orbit)
+is no longer even in every block, the routes split, and the next phase starts from a state set by the high bits of
+a. A proof of non-halting along these lines needs the same kind of statement for every later phase: that it is
+`Rel` to the orbit of some earlier, already safe state. `next_rel` is the tool for each such step (it needs only a
+reference orbit that is known to be safe); what is missing is the reference state for a phase after the first,
+which the observations of 4 November suggest is a state of the blank orbit's counter, but not in closed form.
+
+### Later phases: no small reference (computed, negative)
+
+`next_rel` needs a reference list whose orbit is known to be safe. For the first phase that is φ of the blank orbit.
+For the later phases the natural candidate is the list under the new sentinel, read modulo 2^(r−1): if it were a
+small list (an early state of the blank orbit's counter, as `[39, 77]` or `[62, 122]`), `next_rel` would cover that
+phase as it covers the first. `py/sentinel.py refs 56 2061` checks every later phase start (sentinel 3 mod 2^r,
+r ≥ 6) on all 2,061 open classes mod 2^58, each with 400 random high bits: of 7,740 phase starts only 167 (2%) have a
+small reference (blocks below 2^((r−1)/2)); the other 98% are residues as large as the modulus, that is, the low bits
+of a itself. So after the first phase the excursion is not a replay of anything already known, and comparing it
+with a smaller a instead (a' = a mod 2^R, which `next_rel` also allows, since the excursion is affine in a with
+nonnegative coefficients along a route) is the residue-class exploration of `Thin.lean` again. The first phase is
+the only place where the self-similarity gives something for free; what follows it is where the 2-adic mixing of
+31 October lives, and the verdict stands.
