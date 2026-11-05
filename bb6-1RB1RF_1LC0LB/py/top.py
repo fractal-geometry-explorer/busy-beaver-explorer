@@ -28,6 +28,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "tools", "py"))
 sys.path.insert(0, HERE)
 import counter  # noqa: E402
+import wall  # noqa: E402
 from bbtools.machine import Machine  # noqa: E402
 from bbtools.symtm import Blank, Config, Ctx, Lin, Rep, TouchContext, lin, run  # noqa: E402
 
@@ -36,6 +37,7 @@ SHAPES = os.path.join(HERE, "..", "lean", "top_shapes.txt")
 TURN_TAIL = "C> 1 1 0 0 1 0 1 R"        # the walk's phase: `W5 (0 1 R)` in Counter.lean
 LAST_TAIL = "C> 0 1 0^inf"              # the right end
 MOVES = 2000                            # move budget for a piece (more: `long`)
+WALL_MOVES = 6000                       # the same for a piece with copy loops jumped over
 GEN_MOVES = 2000                        # move budget for a symbolic trial
 
 
@@ -111,17 +113,20 @@ def _at_end(turn):
                       and not c.steps.is_zero())
 
 
-def run_piece(start, turn, moves=MOVES):
-    """The configuration where the piece ends (raises TouchContext, NeedSplit, Halted or RuntimeError)."""
-    return run(M, Config.parse(start), _at_end(turn), max_moves=moves)
+def run_piece(start, turn, moves=MOVES, jumps=None, walls=True):
+    """The configuration where the piece ends (raises TouchContext, NeedSplit, Halted or RuntimeError).  Loops that
+    build a wall are jumped over (`wall.run`); with `jumps` a list, the parts of the run are appended to it."""
+    if not walls:
+        return run(M, Config.parse(start), _at_end(turn), max_moves=moves)
+    return wall.run(M, Config.parse(start), _at_end(turn), max_moves=moves, jumps=jumps)
 
 
-def find_piece(bs, ss, k, j):
+def find_piece(bs, ss, k, j, walls=False):
     """(frm, toks): the smallest stretch of the tape the piece runs on; (None, reason) if it does not close."""
     for frm in range(j, -1, -1):
         toks = piece_tokens(bs, ss, k, j, frm)
         try:
-            run_piece(start_str(toks, k, frm), k > 0)
+            run_piece(start_str(toks, k, frm), k > 0, WALL_MOVES if walls else MOVES, walls=walls)
             return frm, toks
         except TouchContext:
             continue
@@ -130,9 +135,9 @@ def find_piece(bs, ss, k, j):
     return None, "TouchContext"
 
 
-def generalize(toks, k, frm):
+def generalize(toks, k, frm, walls=False):
     """Make blocks symbolic, longest first, `2x + r` with the smallest r that keeps the symbolic run closing (the r
-    literal pairs all on one side of `(1010)^x`, or all but one).
+    literal pairs all on one side of `(1010)^x`, or all but one; for a wall trip, split in any way).
     Returns (toks, values) with values[var] the variable's value in this trip."""
     toks = list(toks)
     order = sorted((i for i, t in enumerate(toks) if isinstance(t, int) and t >= 2), key=lambda i: -toks[i])
@@ -143,14 +148,17 @@ def generalize(toks, k, frm):
         for r in sorted({n % 2 + 2 * m for m in (0, 1, 2, 3, 4, 6, 8)}):
             if r > n or done:
                 break
-            for a, b in dict.fromkeys([(r, 0), (0, r), (1, r - 1), (r - 1, 1)]):
+            splits = [(r, 0), (0, r), (1, r - 1), (r - 1, 1)]
+            if walls:       # a wall trip may need its literal pairs anywhere around the repeat
+                splits += [(a, r - a) for a in range(r + 1)]
+            for a, b in dict.fromkeys(splits):
                 if a < 0 or b < 0:
                     continue
                 v = f"v{len(vals)}"
                 trial = list(toks)
                 trial[i] = (v, a, b)
                 try:
-                    run_piece(start_str(trial, k, frm), k > 0, GEN_MOVES)
+                    run_piece(start_str(trial, k, frm), k > 0, WALL_MOVES if walls else GEN_MOVES, walls=walls)
                 except Exception:   # noqa: BLE001
                     continue
                 toks, vals[v], done = trial, (n - r) // 2, True
@@ -242,7 +250,14 @@ class Shape:
         self.start = start
         self.turn = start.endswith(TURN_TAIL)
         cfg = Config.parse(start)
-        fin = run(M, cfg.copy(), _at_end(self.turn), max_moves=MOVES)
+        self.jumps = []
+        try:                                    # a plain run if there is one, else with the loops jumped over
+            fin = run(M, cfg.copy(), _at_end(self.turn), max_moves=MOVES)
+            self.jumps = [(cfg.copy(), fin.copy())]
+        except Exception:   # noqa: BLE001
+            self.jumps = []
+            fin = wall.run(M, cfg.copy(), _at_end(self.turn), max_moves=WALL_MOVES, jumps=self.jumps)
+        self.wall = any(isinstance(j, wall.Jump) for j in self.jumps)
         self.steps = fin.steps
         self.lhs = blocks(cfg.left)
         self.rhs = blocks(fin.left)
@@ -290,10 +305,14 @@ def cut(before):
     or with 'long' set when the piece does not close."""
     bs, ss = norm(before)
     k, j = walk(bs, ss)
+    walls = False
     frm, toks = find_piece(bs, ss, k, j)
+    if frm is None:                     # a trip that builds a wall: the copy loops jumped over (`wall.py`)
+        walls = True
+        frm, toks = find_piece(bs, ss, k, j, walls=True)
     if frm is None:
         return {"k": k, "j": j, "long": toks}
-    gt, vals = generalize(toks, k, frm)
+    gt, vals = generalize(toks, k, frm, walls=walls)
     return {"k": k, "j": j, "frm": frm, "start": start_str(gt, k, frm), "vals": vals, "bs": bs, "ss": ss}
 
 

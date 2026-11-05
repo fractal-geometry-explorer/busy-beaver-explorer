@@ -367,3 +367,71 @@ of top trips like log t. The tape stays a few dozen tokens long, but its blocks 
 block has 8.3·10¹⁰ pairs and one level 1.2·10¹⁰; at 1.48·10³³ the leftmost block has 2.7·10¹⁶ pairs. Nothing so far suggests a halt, but this is evidence, not proof:
 the open part is still the top of the counter, where the left end replays the run from blank tape in front of a
 wall.
+
+## 5 November 2026: the wall-building trips, proved
+
+### One round of the copy loop (`lean/Wall.lean`, kernel)
+
+At the start of each round of the loop that builds a wall the head is in C at the left end, blank tape to its left, and
+to its right
+
+    0 (10)^(2a+1)  0 (10)^(2t1+2) ... 0 (10)^(2tm+2)  0 0 (10)^X  R              (`Rd a ts X R`)
+
+(the first block, the blocks between, the level being copied; all seps between the blocks are 0 at this moment, and
+the blocks between are even). A round is five symbolic pieces, now in `Rules.lean` (written by `rules.py`):
+`wall_start` (C crosses the first block in E), `wall_right` (E crosses one block between and marks its boundary),
+`wall_turn` (at `0 0 (10)^(x+1)` the head takes one pair and turns in D), `wall_left` (D/B cross a marked block back
+and clear the mark) and `wall_end` (back at the left end, the first block two pairs longer). Each is proved for all
+values and any tape around it. `wall_rightN` and `wall_leftN` cross any list of blocks by induction on the list,
+and
+
+* `wall_round`: `Rd a ts (x+1) R → Rd (a+1) ts x R`, for every a, ts, x, R;
+* `wall_loop`: k rounds, by induction on k; `wall_jump`: `Rd a ts X R → Rd (a+X) ts 0 R`.
+
+So the loop is one theorem for any length of the level, any first block and any tape between and beyond; that is
+the induction the 47 long trips needed.
+
+### The long trips as shapes (`py/wall.py`, `lean/top_gen.py`)
+
+`wall.run` is `symtm.run` with one more move: when the configuration is `blank C> Rd a ts X R` with X symbolic (or
+at least 4), it jumps to `Rd (a+X) ts 0 R`. `top.py` uses it for a trip only when the plain symbolic run does not
+close, so the 43 earlier shapes are unchanged. Two mistakes on the way, both caught by comparing with the run: the
+tape after the level was first rebuilt with its literal pairs folded into a repeat, which let a shift rule jump over
+the moment the head is back at the right end (3 trips ended two pairs late); and repeats of `0101` were rebuilt as
+`(10)^2n`, which the sweeps cannot cross whole (one trip ran out of moves). Now every block keeps its parts.
+
+`python3 py/top.py check 1e11`: of the 560 top trips, 513 go through the old shapes and **all 47 wall trips** go
+through 28 new ones, every one ending as the run does. The new shapes are appended to `top_shapes.txt` (so the
+numbering of `top_0` to `top_42` is kept); `top_gen.py` proves each as plain symbolic stretches (`top_piece_i_k`,
+by `symtm.prove`) chained with `wall_jump`, the tape at each jump matched with `Rd` by one `simp only` (constant
+counts expanded, `(10)^2n` as `(1010)^n`, literal cells moved right across the repeats they can cross:
+`mv10`, `mv01`, `mvQ`, `mvQ0`). A wall piece needs the borrow theorem with the piece's step count depending on the
+tape to its right, `counter_borrow_ex`. Examples:
+
+```
+turn  0^inf 2x+1 1 1 0 2y+4 0 2z+2              ->  0^inf 4y+7 1 2x+7 1 2z+2       the plainest wall: X = 2y+4
+turn  0^inf 2x+2 1 2y+1 1 3 1 2z+1 1 1 0 2w+8 0 2v+2  ->  0^inf 4w+8 1 2x+4 1 2y+4 1 1 1 2z+7 1 2v+2
+turn  ... 1 1 0 2w+8 0 2v+6 1 2u+5 1 1 0 2s+16 0 2r+2 -> 0^inf 4s+12 1 4w+... +32 ...  two loops in one trip
+```
+
+A first generalisation left one shape with blocks of 606, 1791 and 5382 pairs concrete; its proof did not fit in
+15 GB. For wall trips the literal pairs of a symbolic block may now sit anywhere around its repeat, and the move
+budget is 6,000: then every block of every wall shape is symbolic. The wall theorems are split over
+`TopWall1.lean` to `TopWall10.lean` (about 1 MB each), one Lean process each, since one file of all of them ran out
+of memory. Split so, they compile in about 4 minutes on two cores, at under 3 GB, and `AxiomsWall.lean` shows all 28
+rest on `propext` and `Quot.sound` only. They are checked by `lean/check_wall.sh` in their own CI workflow
+(`wall.yml`), next to the main Tests job.
+
+So **every trip from the right end and back in the first 10¹¹ steps is an instance of a theorem in Lean** (the
+counter theorems, or one of the 71 top shapes), all kernel only, and none of them halts. What is computed is only
+that the run's trips are those instances (`py/counter.py`, `py/top.py check`, trusted Python).
+
+### Leads
+
+1. **Shapes past 10¹¹.** `accel.py` runs the top trips concretely; classify them with `top.cut` instead, to see
+   whether the 71 shapes keep covering the run at 10¹⁵, 10²⁰, ... or new shapes keep appearing, and how fast.
+2. **Merge the families.** Many shapes are one rule across a different number of levels `1 (10)^odd` between the
+   left end and the copied level (the wall shapes too: `... 1 2z+1 1 1 0 2w+8 0 2v+2 -> 4w+8 ...` at several depths).
+   An induction on that list, as `wall_rightN` does for the blocks between, would make them one theorem each.
+3. **The top as a recursion.** With the families merged, the left end is a finite set of maps on block lengths; then
+   whether they close up forever, and whether any can put a mark right after a boundary in E's way.

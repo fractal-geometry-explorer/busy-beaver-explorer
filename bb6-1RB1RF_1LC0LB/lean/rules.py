@@ -48,6 +48,18 @@ RULES = [
     ("last1", "L 0 (1010)^a+1 1 (1010)^b+1 C> 0 1 0^inf",
      "L 0 (1010)^a+1 0 1 (0101)^b+1 0 1 0 C> 0 1 0^inf",
      "A whole excursion when the last level has digit 1."),
+    # one round of the wall-building loop (Wall.lean chains them): the left end, a block of the tape between it and
+    # the level being copied, crossed right and back, and the turn at that level, which gives one pair
+    ("wall_start", "0^inf C> 0 (1010)^a 1 0 0 R", "0^inf (1010)^a 1 E> 1 0 0 R",
+     "A round of the wall loop starts at the left end: C crosses the first block `(10)^(2a+1)` to the right, in E."),
+    ("wall_right", "L E> 1 0 0 1 0 (1010)^t R", "L 0 1 0 1 1 (0101)^t E> R",
+     "E crosses a block `0 (10)^(2t+2)` of the tape between, marking its boundary."),
+    ("wall_turn", "L E> 1 0 0 0 1 0 (10)^x R", "L D> 0 0 1 0 0 0 (10)^x R",
+     "At the level being copied (`0 0 (10)^(x+1)`), the head takes one pair and turns back in D."),
+    ("wall_left", "L 0 1 0 1 1 (0101)^t D> 0 R", "L D> 0 0 1 0 0 1 (0101)^t R",
+     "On the way back, a marked block is crossed to the left and its mark cleared."),
+    ("wall_end", "0^inf (1010)^a 1 D> 0 R", "0^inf C> 0 1 0 1 (0101)^a R",
+     "The round ends at the left end, the first block two pairs longer."),
 ]
 
 DOC = """# Sweep rules

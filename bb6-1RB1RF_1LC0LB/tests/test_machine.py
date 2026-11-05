@@ -45,10 +45,16 @@ class TestGenerated(unittest.TestCase):
             self.assertEqual(f.read(), out)
 
     def test_top_lean_current(self):
-        out = subprocess.run([sys.executable, os.path.join(ROOT, "lean", "top_gen.py")], check=True,
-                             capture_output=True, text=True).stdout
-        with open(os.path.join(ROOT, "lean", "Top.lean")) as f:
-            self.assertEqual(f.read(), out)
+        sys.path.insert(0, os.path.join(ROOT, "lean"))
+        import top_gen
+        made = top_gen.files()
+        import glob
+        have = {os.path.basename(p) for p in glob.glob(os.path.join(ROOT, "lean", "TopWall*.lean"))} | {"Top.lean",
+                                                                                               "AxiomsWall.lean"}
+        self.assertEqual(set(made), have)
+        for name, text in made.items():
+            with open(os.path.join(ROOT, "lean", name)) as f:
+                self.assertEqual(f.read(), text, name)
 
     def test_page_current(self):
         with open(os.path.join(ROOT, "status.json")) as f:
@@ -219,9 +225,18 @@ class TestTop(unittest.TestCase):
                 self.assertEqual(got, counter.tape_str(after + ["0", 1])[:-3].lstrip("0"), (st, vals, ctx))
 
     def test_run_to_1e9(self):
-        # every trip to 10^9 steps that counter.py does not cover goes through a shape of Top.lean, except the long
-        # trips that build a wall, and each ends as its shape says
-        self.assertEqual(dict(top.check(10 ** 9)), {"proved": 235, "long": 20})
+        # every trip to 10^9 steps that counter.py does not cover goes through a shape of Top.lean (the 20 that
+        # build a wall with the copy loop jumped over, wall.py and Wall.lean), and each ends as its shape says
+        self.assertEqual(dict(top.check(10 ** 9)), {"proved": 255})
+
+    def test_wall_match(self):
+        # the round form of Wall.lean read off a symbolic tape, and the loop jump
+        import wall
+        from bbtools.symtm import Config, lin
+        c = Config.parse("0^inf C> 0 10 (1010)^a 0 (1010)^3 0 10 10 0 0 10 (1010)^x 0 1 1 R")
+        r = wall.match(c)
+        self.assertEqual((r.a, r.ts, r.X), (lin("a"), [lin(2), lin(0)], 2 * lin("x") + 1))
+        self.assertIsNone(wall.match(Config.parse("0^inf C> 0 10 (1010)^a 0 10 0 0 (1010)^x R")))
 
 
 class TestAccel(unittest.TestCase):
