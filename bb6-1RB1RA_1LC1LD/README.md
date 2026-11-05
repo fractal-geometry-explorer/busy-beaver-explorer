@@ -95,7 +95,15 @@ exactly when `pre` takes two supply words, and on the run to 10¹² steps case B
 3 recursive passes in a row and the smallest last block from pass 2,000 on is 375 (`py/blocks.py caseb`); a recursive pass from a good list breaks goodness only when
 the last block is 3 or 6 (exhaustive on small lists, random on larger ones; `py/blocks.py`).
 
-**Observed only**: the width grows like the square root of the step count; when the last block is a multiple of 3 the
+**Computed** (`py/twoblock.py`, 5 November): the counted pass map, its long words handled in closed form, gives Lean's
+step count at pass 8,257 exactly and runs 178,000 passes, no halt in the first 10¹⁶ steps.  87% of the pass
+starts are two blocks `1^x 0 1^b A>0` (x even), and for one block left of the last `pre` is in closed form (`pre1`,
+equal to the block machine for every x below 30,000): affine on residues mod 18, except x ≡ 14 mod 18, which follows
+the power of 3 in (x − 5)/9.  So most of the run is an explicit Collatz-like map on two numbers (`notes/LAB_NOTES.md`,
+5 November).
+
+**Observed only**: the width grows like the cube root of the step count (about 2.91·t^(1/3); after n passes about
+1.78·n³ steps); when the last block is a multiple of 3 the
 converter carries on into further blocks, so the routes are an infinite family (`notes/LAB_NOTES.md`).
 
 **Open**: that the head does not drift left without bound (with it, the recursive pass always finishes, `pre` always stops, and `c ≥ -1` for every list follows); case A of `lean/Chain.lean`
@@ -130,6 +138,7 @@ question itself.
 | `py/blocks.py` | which pass starts can lead to a halt: the run, exhaustive and random checks, recursive offsets, case A of `lean/Chain.lean`, case B (`caseb`), descents of the last block (`descents`), their residues (`residues`) |
 | `py/blocks.py` | which pass starts can lead to a halt: the run, exhaustive and random checks, recursive offsets, case A of `lean/Chain.lean` |
 | `py/tokens.py` | `pre` at its A states: two words eaten each time, the token count, growth steps (`notes/LAB_NOTES.md`, 1 November, ranking function) |
+| `py/twoblock.py` | the two-block map: `pre` after one block in closed form (`pre1`) and its step cost, the block machine on stacks with step counts, the counted pass map `pass_counted` and the long run (`run`) |
 | `tests/test_machine.py` | generated files current, the page current, C against Python, the facts in the notes |
 | `tests/test_explainer.py` | the explainer page's engine (simulator, pass map, offsets) and run data against `py/macro.py` and the reference simulator, in Node |
 | `status.json` | the source of the proof-status page (`tools/pages/build_status.py`) |
