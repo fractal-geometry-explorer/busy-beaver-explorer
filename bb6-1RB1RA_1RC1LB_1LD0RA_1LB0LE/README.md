@@ -160,6 +160,14 @@ of the return map accumulates at a = 1 and every open residue is 1 mod 256. Late
 replay values of the blank orbit's counter too, but the transitions between phases, where the high bits of a enter,
 have no closed form (observed).
 
+**The replay is a theorem for every a** (`lean/Replay.lean`, `lean/Replay62.lean`, kernel; `notes/LAB_NOTES.md`,
+5 November). The pass map is 2-adically 1-Lipschitz and monotone (`next_rel`): if each block of `ys` is its block of
+`zs` plus a multiple of 2Q (extra blocks on the left multiples of 2Q) and the pass from `zs` gives a list, so does
+the pass from `ys`, with Q in place of 2Q. With the sentinel orbit (`replay`): for every a = 1 + 2^m u, with no
+upper bound on a, the excursion from `[a, 2a+1]` follows φ of the blank orbit for m passes, so **its first
+min(m, 3·2^60 + 2) passes never halt and never stop at a block of 1** (`replay_3e18_kernel`; `replay_49153` in the
+regular check). A failure of an excursion can only come after pass v₂(a − 1).
+
 **No induction on sizes alone** (`py/induction.py`, `notes/LAB_NOTES.md`, 1 November): with every parity free and the
 constants of the closed form dropped, the first block of the lists reachable from `[1, 2]` halves every two passes, so
 an inductive lower bound must say which parities occur. Near a = 1 the excursion agrees, modulo a power of 2 losing
@@ -182,6 +190,8 @@ of 1), and so the question itself.
 | `lean/Thin.lean` | for every a: a non-returning a has its residue among the open classes (`thin_ok`), 67 residues mod 2^34 |
 | `lean/Visit.lean` | the jumps of the return map skip no value = 1 mod 32 off the open residues (`skip_off_open34`); the orbit meets the first failure (`orbit_meets_first_failure`) |
 | `lean/Psi.lean` | the alternating sum ψ and its exact rule under a pass (`psi_next`) |
+| `lean/Replay.lean` | `Rel`, the pass map loses one bit (`next_rel`, `iter_rel`), the excursion of a = 1 + 2^m u replays the blank orbit (`replay`, `replay_49153`, `replay_3e18`) |
+| `lean/Replay62.lean` | `replay_3e18_kernel`, checked by `check_return62.sh` |
 | `lean/Sentinel.lean` | the sentinel conjugacy `next_phi`, the sentinel orbit as φ of the blank orbit, the inner counter |
 | `lean/Plan.lean`, `lean/return62.py` | the cut of the class a = 5 + 4u into pieces for the kernel; writes `lean/R62/` and `lean/Return62.lean` |
 | `lean/R62/Shard*.lean`, `lean/Return62.lean` | generated: the pieces, each by `decide +kernel`, and the theorem below 2^62 |
