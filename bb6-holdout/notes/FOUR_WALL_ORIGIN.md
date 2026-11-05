@@ -93,6 +93,8 @@ Next steps that could still help, in order of cost (both done on November 5, `..
 2. Pull the window's full-pass landings back step by step to their root, as above. It is exact and cheap, and it turns
    a member in the window into a single root to test.
 
+A third check (same README, last section) runs every clean tape within 2²⁴ below each member and its pull-back states through its cycle: none reaches one, so a member needs a cycle that grows by more than 2²⁵.
+
 Neither gives a proof for every number of passes. As PR #114 found, what remains is the clean tapes that no tree
 settles.
 
