@@ -3964,3 +3964,32 @@ One handle: suppose the clean-tape tree settles a class of clean tapes n, with t
 n. Then the lane fixes n for each j, and since the classes have 2-adic limits, b's class asks two fixed 2-adic numbers
 to agree in about j digits. Only finitely many j can meet that unless the two are equal. What is left is the classes
 that the tree cuts at every depth.
+
+**The 4-wall family for every number of passes: the conserved count in Lean, and where the 2-adic handle stops
+(October 29; `FOUR_WALL_ALL_N.md` here).** The count of 1s plus state weight (A 0, B 2, C to F 1) is now a theorem
+on the bare machine (`BB6/Count3.lean`, standard axioms). A pass start reached from blank tape has W ≡ 2 (mod 6), and a
+clean tape W ≡ 4 (mod 6); `blank_halt_open_big_count` (`thm/CountHalt.lean`) adds both to the end-to-end statement. All
+3,637,999 three-wall round starts in `below2p34` and `sample16k` of the blank-run data have W ≡ 2 (mod 6). The proved
+four- and five-pass far members (`loop4_far_66`, `loop5_far_66`) have W ≡ 4 and 0 (mod 6), so the run never reaches
+them. Moving them along the lattice of b's classes in `far_shape.md` gives members with W ≡ 2 (mod 6) on the same
+routes, which halt and are open at every depth (`loop4_far_66c`, `loop5_far_66c`, `thm/LoopFarCount.lean`), so the
+count does not keep the family off. The October 28 sketch, made exact: for one class of clean tapes that a finite tree
+takes to a loop entry, the lane fixes the class's free number, which converges 2-adically as the lane value grows. A
+halt then needs two 2-adic limits to agree to about j digits, so the class allows only lane values up to
+v₂(b(t_∞) − h_∞) + O(1) (given the untrusted convergence of the halting classes, every route and every k). That bound is
+about the class's depth, and the clean tapes no tree settles within their own length (about 1.52^K of the 2^K with K
+digits) reach their entry only at depth comparable to K. So the handle reduces the family to the open question
+`never_halts_of_big_count` already states, and no further. No proof for every number of passes; the note lists the one
+computation that would narrow it (the bound for every entry class of the 36- to 44-digit trees against the 2⁶⁶ floor).
+
+**Where the chain's last pass start can come from, against the 4-wall family (November 4; `FOUR_WALL_ORIGIN.md`,
+`../lean/thm/WindowHalt.lean`).** No idea other than the 2-adic handle was found that rules out the 4-wall family for
+every number of passes. The 4-wall loop has a lock like the 3-wall one: Λ = 9Λ̃ with Λ̃ ≡ 3 (mod 7). But it bounds the
+passes only by about log₆₄ W, and every mod-7 or mod-9 relation found is an identity of the forms. What is new is that
+each kind of step lands in a narrower shape than the theorems kept. A full pass lands in a window with two sides,
+15W + 144R + 375 ≤ 64(W − b) ≤ 16W + 128R − 994. The loop entry and a round-7 landing have W ≤ 32R, and a half pass
+lands with W ≤ 64R + 6 and 2(W − b) + 900 ≤ W + 2R (`LoopChain.window_end`, `blank_halt_open_window`). With that, the
+run from blank tape halts through none of six of the eight far families that had met every stated condition
+(`blank_halt_not_window_family`). Of the other two, one is ruled out by PR #114's count, and `loop5_far_66c` can only
+be a loop entry itself. The untrusted counts in `far_shape.md` (258 of 319 four-pass members at 2⁶⁶ with
+W ≤ 64R + 6) say that wide members remain, so the family is not ruled out.

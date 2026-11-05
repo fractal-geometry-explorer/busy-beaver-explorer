@@ -154,7 +154,10 @@ self-contained except for the large intermediate outputs mentioned in `README.md
    on some wider than 2⁶⁶ (`loop2_far_wide`, `loop3_far_wide`, `loop3_far_66`, `loop4_far_66` and `loop5_far_66` in
    `lean/thm/LoopFarHalt.lean`; the search, untrusted, finds them at two passes at every lane value from 2⁴⁰ to 2⁵⁵ and
    at three to five passes at 2⁶⁶, `routes/loop4/far_shape.md`), so keeping the family off needs an argument over the
-   4-wall loop (its invariant r³/Λ²) together with what the chain from the run's loop entries reaches. What is needed is
+   4-wall loop (its invariant r³/Λ²) together with what the chain from the run's loop entries reaches. The machine's conserved count is now in Lean (`lean/BB6/Count3.lean`: from blank tape a pass start has
+   W ≡ 2 (mod 6), `blank_halt_open_big_count`). It rules out the proved four- and five-pass members, but members on
+   the same routes meet it (`loop4_far_66c`, `loop5_far_66c`). And the 2-adic handle of the October 28 notes reduces the
+   family to the open clean tapes and no further (`notes/FOUR_WALL_ALL_N.md`, October 29). What is needed is
    a proof (the routes' forms in Lean, and the exhaustive check or the
    far-shape search) and, on the halting side, every halting class at every R: the censuses had missed ζ, the route at
    R ≡ 1,702 and γ's paths until run at every R of a class.
