@@ -8,6 +8,7 @@ import WaveTime
 import EventTime
 import Periods
 import Monotone
+import Residues
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
 a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
@@ -61,3 +62,8 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6b.superL_grows
 #print axioms BB6b.orbit_grows
 #print axioms BB6b.blank_orbit_grows
+
+#print axioms BB6b.Res.bigN_bottom
+#print axioms BB6b.Res.mod4_blank
+#print axioms BB6b.Res.neg42_iff
+#print axioms BB6b.Res.never_bad

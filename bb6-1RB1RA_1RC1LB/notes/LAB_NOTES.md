@@ -828,3 +828,56 @@ and one branch thins faster than its neighbours. It says nothing about powers of
 their share there. The open question it leaves is the shape of the law itself: why the branch ending in 010110
 (22 mod 32) is starved, from the residues mod 5 the levels settle on (entry on period factors). `tests/test_top.py`
 checks the two misses and the 5 visits.
+
+## November 5, 2026: the thin class is −42, it belongs to this orbit's cycles, and it cannot reach halting
+
+The entry of 4 November left open why the branch ending in 010110 is starved. The branch has a name: the classes
+22, 22, 86, 214, 470, 982, 2006, 4054 that it follows for k = 5 to 12 are **−42 mod 2^k**, and the two missing
+residues are its last step: 4054 = −42 and 3030 = −42 − 1024 mod 2¹², the two lifts of −42 mod 2¹⁰ with bit 11 set
+(982 and 2006 get 2 and 3 visits). Why it is thin comes in an exact part, which is now proved, and a part that is a
+property of this orbit's cycles rather than of the map.
+
+**Proved in Lean, kernel only** (`lean/Residues.lean`, standard axioms, a second; `lean/ResidueRun.lean`):
+- `bigN_append_mod`, `bigN_bottom`: N mod 2^k is a function of the last k blocks, so on the orbit it follows the
+  bottom's own run `bs` (`Cycles.lean`); `never_bad`: a residue that one period of the bottom's cycle never takes
+  is never taken again.
+- **N ≡ 2 mod 4 once in eight super steps** (`mod4_blank`): from super step 7 on, N ≡ 2 mod 4 iff the step is 7
+  plus a multiple of 8. N ≡ 2 mod 4 means the wave passes the last block and turns at the one before it, and the last
+  two blocks' cycle (12, 27), (11, 19), (13, 29), (14, 40), (12, 26), (11, 21), (13, 31), (14, 42) does that only at
+  (12, 26). A uniform law gives one in four, so every class 2 mod 4 starts at half its share; this is also the 0.5
+  at v₂(N) = 1 in the valuation profile of 30 October.
+- **Three super steps after (12, 26), N is larger by exactly 106**, whatever the blocks to the left (`plus106`): the
+  first step adds 18 to the third block and the next two only touch the last two. So N ≡ −42 mod 2^k at (12, 26)
+  iff N ≡ 64 mod 2^k at (14, 42) three steps later (`neg42_iff`, k ≥ 7): the thin class is the class of the waves
+  from (14, 42) that go exactly seven blocks deep with N/64 ≡ 1 mod 2^(k−6).
+- **From some super step on, N is never 3030 or 4054 mod 2¹²** (`never_3030_4054`): `cycle12` gives the last 12
+  blocks, and their cycle of 327,680 super steps is checked against both residues in 20 pieces of 16,384
+  (`residue_gen.py`, `runMiss`, `decide +kernel`; about 13 CPU minutes, 6½ minutes on two cores). It runs in
+  `check_cycles.sh` when that checks 12 levels or more, so in CI too.
+
+**Computed** (`py/top_stats.py branch`, `runs/branch.txt`, a second). Over the period of the last 12 blocks every
+visit to −42 mod 2^k (k = 4 to 12) is at (12, 26). The step before it is at (14, 40); for k = 5 to 7 its v₂(N) is 3
+or at least k, and from k = 8 on it is always at least 8 (exactly 8 from k = 9): every deep visit comes right after
+a wave through nine or more blocks, four super steps before the seven-block wave of `neg42_iff`. The visits run
+2,560, 960, 480, 80, 20, 5, 3, 0 for k = 5 to 12, so from k = 8 the class loses about three quarters of its visits
+at each bit where its neighbours lose half. Beyond that the counts are what this finite cycle happens to give; no
+rule was found for the per-bit losses.
+
+**Not a property of the map** (`py/top_stats.py cycles 40 8`, `runs/other_cycles.txt`, 20 s). From 40 random tapes
+of 8 blocks of 1 to 1,000, the last 8 blocks reach 23 different cycles (13 more starts have a silent level). On them
+the share of 22 mod 32 runs from 0 to 1.875 of uniform and that of −42 mod 2⁸ from 0 to 2.25, against 0.25 and 0.062
+on the blank-tape orbit, which is lower than on all but one of them; each cycle has its own thin classes, and 11 of
+the 23 miss between 8 and 107 classes mod 2⁸ outright, where the blank-tape orbit misses none. So which branch is starved is
+decided by the cycles the bottom of this orbit settled into, starting with the cycle of the last two blocks (which
+gives the first factor of two exactly); from random tapes of 5 blocks the last two also settle into other
+cycles, in which N ≡ 2 mod 4 a quarter or three eighths of the time.
+
+**Halting.** The rarity cannot be used against a halt. Halting needs N to be a power of two, which is 0 mod 2^k, and
+N ≡ 0 mod 2^k exactly when the wave passes all of the last k blocks. A cycle that never takes 0 mod 2^k is one in
+which block k only ever receives adds: a silent level, which `never_halts_of_silent` already turns into a proof of
+non-halting (one of the 23 cycles above is such a bottom: 0 mod 2⁸ never, 107 classes missed). The same
+mechanism that starves −42 on this orbit therefore could prove non-halting, but only through the criterion that
+exists, and on the blank-tape orbit it does the opposite: 0 mod 2^k is over-visited (1.31 of its share mod 2⁸, the
+factor 1.2764 per level of the entry on period factors), and every one of the 35 cycling levels passes waves. Every
+class that is thin or missed has some low bit set, so no residue condition of this kind excludes a power of two; the
+no-halt results stay as they were.

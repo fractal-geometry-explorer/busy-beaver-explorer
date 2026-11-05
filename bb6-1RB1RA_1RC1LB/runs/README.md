@@ -29,3 +29,7 @@ Outputs of long runs (see ../notes/LAB_NOTES.md for how each was made).
   raw totals (about 2 MB a run) are not kept.
 - `thin_branch.txt`: `python3 py/top_stats.py thin` (about a second): N mod 2^k over one period of the last 12 blocks
   of the blank-tape orbit, and the thinning class of 982 that leaves 3030 and 4054 mod 2¹² unvisited.
+- `branch.txt`: `python3 py/top_stats.py branch` (about a second): the thin class is −42 mod 2^k; N ≡ 2 mod 4 only
+  at the last two blocks (12, 26); N + 106 three steps later; and the deep wave one step before every deep visit.
+- `other_cycles.txt`: `python3 py/top_stats.py cycles 40 8` (about 20 s): the cycles that the last 8 blocks of 40
+  random tapes reach, and which classes mod 2^5 and 2^8 each starves or misses, against the blank-tape orbit's.
