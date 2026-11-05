@@ -22,6 +22,9 @@ usage:
   python3 py/sentinel.py phases D N         N members of the open classes mod 2^(D+2) (high bits random): the
                                             inner counter values x at each phase (the state, sentinel removed,
                                             brought to [x, 2x+1] by the short chains)
+  python3 py/sentinel.py refs D N           at each later phase start of those excursions, whether the list under
+                                            the sentinel, read modulo 2^(r-1), is a small list (every block in
+                                            1 .. 2^((r-1)/2)), which next_rel could use as a reference
 """
 import os
 import random
@@ -137,6 +140,33 @@ def open_members(depth, n, seed=1, high_bits=200):
     return [c.p + c.q * rnd.getrandbits(high_bits) for c in sorted(open_, key=lambda c: c.p)[:n]]
 
 
+def phase_refs(members):
+    """For each excursion, each phase start after the first pass (a three-or-more-block state whose last block is
+    3 mod 2^r, r >= 6, not the continuation of the previous sentinel): the list under the sentinel modulo 2^(r-1),
+    least residues, leading zeros dropped.  Returns a Counter of ('small'|'large', blocks) and one of the small
+    lists."""
+    import collections
+    kinds, small_lists = collections.Counter(), collections.Counter()
+    for a in members:
+        y, prev, t = [a, 2 * a + 1], None, 0
+        while True:
+            r = v2(y[-1] - 3)
+            if t > 1 and len(y) >= 3 and r >= 6 and (prev is None or r != prev - 1):
+                zs = [smallest(b, r - 1) for b in y[:-2] + [y[-2] - 5]]
+                while zs and zs[0] == 0:
+                    zs = zs[1:]
+                small = all(0 < b < 2 ** ((r - 1) // 2) for b in zs)
+                kinds[("small" if small else "large", len(zs))] += 1
+                if small:
+                    small_lists[tuple(zs)] += 1
+            prev = r
+            y = passmap.passmap(y)
+            t += 1
+            if len(y) == 2 and y[1] == 2 * y[0] + 1:
+                break
+    return kinds, small_lists
+
+
 def main(argv):
     if not argv:
         print(__doc__)
@@ -161,6 +191,11 @@ def main(argv):
             xs, end = inner_values(a)
             print(f"a mod 2^{depth + 2} = {a % 2 ** (depth + 2)}, v2(a-1) = {v2(a - 1)}: returns after {end};"
                   f" inner x by pass: {xs}")
+    elif argv[0] == "refs":
+        depth, n = int(argv[1]), int(argv[2])
+        kinds, small_lists = phase_refs(open_members(depth, n, high_bits=400))
+        print("phase starts by kind of reference (kind, blocks):", sorted(kinds.items()))
+        print("most common small references:", small_lists.most_common(8))
     else:
         print(__doc__)
 

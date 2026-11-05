@@ -166,7 +166,9 @@ have no closed form (observed).
 the pass from `ys`, with Q in place of 2Q. With the sentinel orbit (`replay`): for every a = 1 + 2^m u, with no
 upper bound on a, the excursion from `[a, 2a+1]` follows φ of the blank orbit for m passes, so **its first
 min(m, 3·2^60 + 2) passes never halt and never stop at a block of 1** (`replay_3e18_kernel`; `replay_49153` in the
-regular check). A failure of an excursion can only come after pass v₂(a − 1).
+regular check). A failure of an excursion can only come after pass v₂(a − 1). The later phases have no such
+reference: 98% of their starts on the open classes mod 2^58 read as residues as large as the modulus (computed,
+`py/sentinel.py refs`).
 
 **No induction on sizes alone** (`py/induction.py`, `notes/LAB_NOTES.md`, 1 November): with every parity free and the
 constants of the closed form dropped, the first block of the lists reachable from `[1, 2]` halves every two passes, so

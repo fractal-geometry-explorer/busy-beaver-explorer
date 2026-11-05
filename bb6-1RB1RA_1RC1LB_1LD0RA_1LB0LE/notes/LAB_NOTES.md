@@ -1121,3 +1121,17 @@ a. A proof of non-halting along these lines needs the same kind of statement for
 `Rel` to the orbit of some earlier, already safe state. `next_rel` is the tool for each such step (it needs only a
 reference orbit that is known to be safe); what is missing is the reference state for a phase after the first,
 which the observations of 4 November suggest is a state of the blank orbit's counter, but not in closed form.
+
+### Later phases: no small reference (computed, negative)
+
+`next_rel` needs a reference list whose orbit is known to be safe. For the first phase that is φ of the blank orbit.
+For the later phases the natural candidate is the list under the new sentinel, read modulo 2^(r−1): if it were a
+small list (an early state of the blank orbit's counter, as `[39, 77]` or `[62, 122]`), `next_rel` would cover that
+phase as it covers the first. `py/sentinel.py refs 56 2061` checks every later phase start (sentinel 3 mod 2^r,
+r ≥ 6) on all 2,061 open classes mod 2^58, each with 400 random high bits: of 7,740 phase starts only 167 (2%) have a
+small reference (blocks below 2^((r−1)/2)); the other 98% are residues as large as the modulus, that is, the low bits
+of a itself. So after the first phase the excursion is not a replay of anything already known, and comparing it
+with a smaller a instead (a' = a mod 2^R, which `next_rel` also allows, since the excursion is affine in a with
+nonnegative coefficients along a route) is the residue-class exploration of `Thin.lean` again. The first phase is
+the only place where the self-similarity gives something for free; what follows it is where the 2-adic mixing of
+31 October lives, and the verdict stands.
