@@ -435,3 +435,19 @@ that the run's trips are those instances (`py/counter.py`, `py/top.py check`, tr
    An induction on that list, as `wall_rightN` does for the blocks between, would make them one theorem each.
 3. **The top as a recursion.** With the families merged, the left end is a finite set of maps on block lengths; then
    whether they close up forever, and whether any can put a mark right after a boundary in E's way.
+
+## 5 November 2026 (later): the top trips to 10¹²
+
+First lead above, one decade on. `python3 py/top.py check 1e12` with the 71 shapes: of the 284,506 trips in the
+first 10¹² steps, 283,803 are counter trips (`py/counter.py check 1e12`, six minutes) and 703 are top trips (397
+`left`, 306 `short`); 691 of the 703 went through the 71 shapes, and the other 12 closed (none `long`, none `wrong`)
+but through 11 new shapes, 5 plain and 6 building a wall. The plain ones are the long "`1 10 10 (1010)^x`" ladders
+of the old families with two to four more rungs, and the wall ones are longer wall shapes. Added to
+`lean/top_shapes.txt` (`top_71` to `top_81`) and proved by `top_gen.py` with no change to the generator: Top.lean
+grows to 3 MB and the wall pieces are now `TopWall1.lean` to `TopWall16.lean`, about 28 MB, compiling in about 8
+minutes on two to three cores; all 34 wall theorems rest on `propext` and `Quot.sound` only.
+
+So **every trip of the first 10¹² steps is an instance of a kernel-checked theorem** (82 top shapes). The rate of new
+shapes is small (12 of 143 new top trips between 10¹¹ and 10¹²), but it is not zero, and every new one is a longer
+member of an old family, which is lead 2: merging the families into theorems by induction on the number of levels
+is what would stop the list growing, and the proof size with it.
