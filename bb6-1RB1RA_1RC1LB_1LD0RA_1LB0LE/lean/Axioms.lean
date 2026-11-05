@@ -5,6 +5,7 @@ import Return
 import Thin
 import Visit
 import Psi
+import Sentinel
 import Front
 import Seven
 import Run7
@@ -69,6 +70,12 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6d.orbit_meets_first_failure
 #print axioms BB6d.no_one_of_all
 #print axioms BB6d.psi_next
+#print axioms BB6d.next_phi
+#print axioms BB6d.iter_phi
+#print axioms BB6d.sentinel_orbit
+#print axioms BB6d.sentinel_one_iff
+#print axioms BB6d.inner_counter
+#print axioms BB6d.inner_return
 #print axioms BB6d.run_reach
 #print axioms BB6d.blocks7_204
 #print axioms BB6d.return7

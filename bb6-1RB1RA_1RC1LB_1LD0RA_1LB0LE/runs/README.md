@@ -27,3 +27,9 @@ Outputs of `py/invsearch.py` (1 November 2026, the search for an inductive first
 |---|---|---|
 | `psi_triples_orbit.txt` | `orbit_triples(10**8)`: (block count, psi, stop index) on passes 31 to 10^8 of the blank orbit | 4 min |
 | `psi_triples_classes.txt` | `class_triples(64)`: the same over every excursion class a = 1 mod 4 to mod 2^66 | 20 min |
+
+Output of the sentinel check (4 November 2026, `notes/LAB_NOTES.md`):
+
+| file | command | CPU time |
+|---|---|---|
+| `sentinel_deep_3e4.txt` | `py/sentinel.py deep 30000 3`: a = 1 + 2^30000 u, three u, the first 29,999 passes against φ of the blank orbit | 1 min |
