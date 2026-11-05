@@ -454,3 +454,98 @@ What this means for a proof:
 entries of L to the frames that will dig them out, exactly, not by parity), or an accelerated simulator for the
 recursion (I^k summarized for the all-even top of the computation) that reaches the next few hundred flips of
 value-2 frames and checks each near miss directly.
+
+## 5 November 2026: is the run structurally safe, or lucky? A fast two-stack simulator and two controls
+
+**A fast simulator of the two-stack form (trusted C, `c/twostack.c`).** The rules of `py/twostack.py` on two arrays: L
+and a stack R of frames, each frame carrying the value it was created with and how many times a callee's R2 has
+taken 1 from it (its *flips*). It runs about 1.1·10⁸ steps a second, and `tests/test_macro.py` checks that it prints
+the same row as `py/twostack.py` every 1000 steps for 3·10⁵ steps and makes the same number of R2 steps. Its numbers
+up to 10⁹ steps match the previous section's (446 value-2 frames flipped once, one flipped twice, at step
+204,719,421).
+
+**What getting stuck needs (follows from the rules).** Each flip takes 1 from the caller, so a frame created with
+value v (v = a + 2 ≥ 1) survives v flips and is stuck at the next one, or when it reaches gap −1 with value 0. Call
+the value left after a flip its *slack*. A *near miss* is a flip that leaves slack 0. Every stuck step seen in the
+controls below whose details I printed (`TWOSTACK_VERBOSE=1`) is a frame created with value 2 and flipped twice, one to
+five frames above the end, with only 1 to 3 odd numbers on the whole row; it is then either flipped a third time
+(sometimes on the very next step, when a callee of value 1 at gap −1 turns into a frame at gap −1 again) or reaches
+gap −1 itself with value 0.
+
+**The run, further (trusted C).** No stuck step in the first 2·10¹¹ steps of the two-stack form (each is one F pass
+and one B pass, about 60 machine steps each on average up to 10⁹, more later). Flips of frames other than the
+end, by decade of the step:
+
+| decade | 10⁵ | 10⁶ | 10⁷ | 10⁸ | 10⁹ | 10¹⁰ |
+|---|---|---|---|---|---|---|
+| flips | 105 | 72 | 235 | 243 | 190 | 256 |
+| near misses | 0 | 0 | 0 | 1 | 1 | 0 |
+
+So the flips do not thin out: about 200 per decade, flat since 10⁷. The two near misses are at steps 204,719,421 and
+2,084,922,784; both are value-2 frames six and three frames above the end with no turns left (gap 0), so nothing could
+flip them again except their last callee, which had finished.
+
+**Control 1: perturbed copies do not relax (trusted C, `twostack perturb`).** As in `py/perturb.py`: snapshots of the
+run, 5 copies of each with 3 even numbers changed by 2, each copy run on. Copies made from 120 snapshots in the first
+10⁸ steps and run 10⁸ steps each: 10 of 600 got stuck, with 59,307 flips and 212 near misses. The near-miss rate per
+flip is 0.42 % in the first 10⁷ steps after the change and 0.34 % from 10⁷ to 10⁸, so a perturbed copy does not drift
+back towards something safer: it carries its risk for as long as it runs. Copies made from 60 snapshots spread over
+the first 10¹⁰ steps and run 10⁹ steps each: 1 of 300 stuck, 7,110 flips, 11 near misses (0.15 %).
+
+**The run against its copies.** Per flip, the run looks like its perturbed copies on every count I made:
+
+| | flips | slack 1 | slack 3 | second flips | near misses | stuck |
+|---|---|---|---|---|---|---|
+| run, first 10¹⁰ steps | 925 | 61 % | 21 % | 1.3 % | 2 (0.22 %) | 0 |
+| copies, early snapshots | 59,307 | 61 % | 21 % | 1.2 % | 212 (0.36 %) | 10 |
+| copies, late snapshots | 7,110 | 63 % | 22 % | 0.8 % | 11 (0.15 %) | 1 |
+| all 1,500 copies (with control 2) | 124,075 | 62 % | 21 % | 1.1 % | 366 (0.29 %) | 20 |
+
+(slack 1 and 3: first flips of frames created with 2 and 4; second flips: flips that leave slack 0, 2, 4 or 6.) The run's near-miss rate lies between the two groups of copies.
+At the copies' stuck rate per flip, 1.6·10⁻⁴ over all 1,500 copies (one stuck step per 6,200 flips), the run's 925
+flips by 10¹⁰ would have got it stuck with probability about 0.14, and its 1,181 flips by 10¹¹ with about 0.17. So the run has not been lucky in any measurable sense, and nothing in these numbers points
+to a structural reason that keeps it unstuck. Changing one even number deep in L changes which frames the odd numbers
+later meet, and the copies then get stuck at a rate the run is consistent with.
+
+**Control 2: does the risk fall as the run grows? (trusted C, `twostack perturb`, decades counted from the start of
+the run.)** 200 copies from snapshots in the first 10⁸ steps, run 10⁸ steps each, and 400 from snapshots in the first
+10⁹ steps, run 10⁹ steps each; together with control 1, near misses per flip by decade of the run's step:
+
+| decade of the step | 10⁷ | 10⁸ | 10⁹ | late snapshots (10⁹ to 10¹⁰) |
+|---|---|---|---|---|
+| flips | 17,355 | 27,306 | 12,228 | 7,110 |
+| near misses | 52 (0.30 %) | 59 (0.22 %) | 31 (0.25 %) | 11 (0.15 %) |
+
+Stuck copies: 5 of 200 and 4 of 400. So the near-miss rate may fall slowly as the run grows (configurations get
+longer, and more of the flipped frames are far from the bottom), but by much less than a factor of 2 over three
+decades; the copies made from the later snapshots alone get stuck once per 9,000 flips (5 of 700 copies, 44,766
+flips). Every stuck copy whose details were printed (9 of them) ends with a frame created with value 2 and flipped
+twice, one to five frames above the end, with 1 to 3 odd numbers on the row: 4 times by a third flip, 5 times by
+reaching gap −1 itself.
+
+**What this says about the question (heuristic).** If the run behaves like its copies, each flip gets it stuck with
+probability 1 to 2·10⁻⁴, and with about 200 flips per decade the chance of halting is 2 to 3 % per decade of
+two-stack steps. With a constant rate per decade the machine halts with probability 1, at a time whose logarithm is
+spread over tens of decades (median some 25 to 35 decades past 10¹¹, around 10³⁵ two-stack steps); a rate that keeps
+falling fast enough would leave room for it never halting, and control 2 cannot rule that out. This is a model of the run, not a proof in either direction. What it does say is that a proof of
+non-halting cannot come from a property the run shares with its perturbed copies, and that so far no property
+separating them has shown up.
+
+**A memoized simulator does not help (Python, scratch).** I wrote the recursion of `py/callstack.py` as memoized calls:
+a frame v<n> on top of L, keyed by v, n and exactly the entries of L it pops before it returns (a trie over L read from
+the top), result the entries it leaves and the flips it gives its caller. It agrees with the two-stack form at all 99
+turns of the end frame in the first 2·10⁶ steps. But the misses stay at about 2 % of the steps up to 10⁸ steps, with
+no sign of falling, so the recursion does not compress: the values in L are too varied for sub-calls to repeat. The
+plain C simulator is the faster way on.
+
+**Lean: a longer bounded run (`lean/MacroRun.lean`, `native_decide`).** `mok` is `mrun` as a tail-recursive check
+(`mok_iff`, kernel), and compiled evaluation shows the macro machine does not get stuck in its first 10⁸ steps from
+M0 (`macro_runs_100M`, about 90 s). With `mrun_sound` that gives at least 10⁸ machine steps from blank tape without a
+halt (`blank_runs_macro_100M`), ten times the previous `native_decide` bound; the true number of machine steps behind
+10⁸ macro steps is in the billions (344,806,676 pass starts take 10¹⁰ steps).
+
+**Next.** A proof of non-halting needs a property that the run has and its perturbed copies lack; none of the per-flip
+statistics above is one. Two things would change the picture: a measurable gap between the run and its copies as the
+run goes on (the C run continues toward 10¹² steps of the two-stack form; at 2 to 3 % per decade it is unlikely to
+get stuck there), or a reason the near-miss rate keeps falling with the run's age, which would make the heuristic
+lean toward non-halting.
