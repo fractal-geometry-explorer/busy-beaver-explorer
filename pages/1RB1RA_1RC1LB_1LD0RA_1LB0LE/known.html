@@ -138,10 +138,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <ul>
           <li>The run is a sequence of passes, and one pass is a closed-form map on block lists, for every list.</li>
           <li>A halt needs a sweep that stops at a block of a single 1, and that block can only be the first block.</li>
-          <li>No such stop in the first 3&middot;2<sup>60</sup>+1 &asymp; 3.46&middot;10<sup>18</sup> passes.</li>
+          <li>No such stop in the first 3&middot;2<sup>72</sup>+1 &asymp; 1.42&middot;10<sup>22</sup> passes.</li>
           <li>The exact rule for psi under a pass.</li>
           <li>A block of 3 at the right end makes the pass map run a copy of itself: the orbit of &phi;(y) is &phi; of the orbit of y.</li>
-          <li>For every a = 1 + 2<sup>m</sup>u the excursion from [a, 2a+1] replays the blank orbit for m passes, so its first min(m, 3.46&middot;10<sup>18</sup>) passes are safe.</li>
+          <li>For every a = 1 + 2<sup>m</sup>u the excursion from [a, 2a+1] replays the blank orbit for m passes, so its first min(m, 1.42&middot;10<sup>22</sup>) passes are safe.</li>
           <li>Counterexamples to four proof routes.</li>
           <li>If every a &equiv; 5 (mod 12) returns, the machine never halts; if one fails, the blank orbit reaches the first failure.</li>
         </ul>
@@ -150,7 +150,6 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <span class="tag t-comp">computed</span>
         <ul>
           <li>No halt in the first 10<sup>11</sup> machine steps.</li>
-          <li>The return map is safe for every a below 2<sup>74</sup>, so no halt in the first 1.4&middot;10<sup>22</sup> passes.</li>
           <li>10<sup>11</sup> passes followed one by one never meet a block of 1.</li>
           <li>On the orbit psi stays in &minus;21..24.</li>
         </ul>
@@ -187,6 +186,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <div class="claims">
       <div class="claim k"><div><span class="tag t-kernel">Lean, kernel</span> For every a &equiv; 1 (mod 4) with 5 &le; a &lt; 2<sup>62</sup>, the excursion from [a, 2a+1] returns. So the first 3&middot;2<sup>60</sup>+1 &asymp; <b>3.46&middot;10<sup>18</sup> passes</b> never stop at a block of 1, and the machine really reaches each of their pass starts. The proof runs the map on residue classes of a and is split into 1,575 pieces checked by the kernel, about an hour of CPU.</div><div class="src"><code>returns_2_62_kernel</code>, <code>no_one_3e18_kernel</code> in <code>lean/Return62.lean</code>; the same statement with <span class="tag t-native">Lean, native_decide</span> in seconds (<code>no_one_3e18</code>)</div></div>
+      <div class="claim k"><div><span class="tag t-kernel">Lean, kernel</span> The same check run to 2<sup>74</sup>, cut into 9,389 pieces (62 minutes on 4 cores): every excursion for 5 &le; a &lt; 2<sup>74</sup> returns, so the first 3&middot;2<sup>72</sup>+1 &asymp; <b>1.42&middot;10<sup>22</sup> passes</b> never stop at a block of 1.</div><div class="src"><code>returns_2_74_kernel</code>, <code>no_one_1e22_kernel</code> in <code>lean/Return74.lean</code></div></div>
       <div class="claim c"><div><span class="tag t-comp">computed</span> The same class computation in Python, run down to residues mod 2<sup>74</sup>, finds every excursion for 5 &le; a &lt; 2<sup>74</sup> safe. With the Lean reduction that gives <b>no halt in the first 1.4&middot;10<sup>22</sup> passes</b>. This rests on trusted Python (tested against Lean's <code>next</code>), not on a proof.</div><div class="src"><code>py/returnmap.py</code></div></div>
       <div class="claim c"><div><span class="tag t-comp">computed</span> Independently, the machine runs 10<sup>11</sup> steps without halting, and the closed form, iterated one pass at a time in C with no residue classes, runs 10<sup>11</sup> passes without a block of 1. After pass 50 no sweep stops at a block below 59.</div><div class="src"><code>tools/c/tmrun.c</code>, <code>c/passorbit.c</code></div></div>
       <div class="claim k"><div><span class="tag t-kernel">Lean, kernel</span> With no upper bound on a: every a &equiv; 1 (mod 4) returns unless a mod 2<sup>34</sup> is one of <b>67 residues</b>, a fraction 1.6&middot;10<sup>&minus;8</sup>. A failure, if any, lives in a very thin set.</div><div class="src"><code>returns_off_open34</code> in <code>lean/Thin.lean</code></div></div>
