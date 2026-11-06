@@ -57,6 +57,12 @@ class TestGenerated(unittest.TestCase):
             with open(os.path.join(ROOT, "lean", name)) as f:
                 self.assertEqual(f.read(), text, name)
 
+    def test_rework_lean_current(self):
+        sys.path.insert(0, os.path.join(ROOT, "lean"))
+        import rework_gen
+        with open(os.path.join(ROOT, "lean", "Rework.lean")) as f:
+            self.assertEqual(f.read(), rework_gen.text()[0])
+
     def test_page_current(self):
         with open(os.path.join(ROOT, "status.json")) as f:
             spec = json.load(f)
@@ -226,10 +232,19 @@ class TestTop(unittest.TestCase):
                 self.assertEqual(got, counter.tape_str(after + ["0", 1])[:-3].lstrip("0"), (st, vals, ctx))
 
     def test_run_to_1e9(self):
-        # every trip to 10^9 steps that counter.py does not cover goes through a shape of Top.lean (the 20 that
-        # build a wall with the copy loop jumped over, wall.py and Wall.lean), and each ends as its shape says
-        # (36 of them instances of the families of TopFam.lean, any number of blocks in the list)
-        self.assertEqual(dict(top.check(10 ** 9)), {"family": 36, "proved": 219})
+        # every trip to 10^9 steps that counter.py does not cover is an instance of a family of TopFam.lean (any
+        # number of blocks in the list), a wall trip of Rework.lean (any list of blocks before the copied level,
+        # rework.py) or goes through a shape of Top.lean, and each ends as it says
+        self.assertEqual(dict(top.check(10 ** 9)), {"family": 36, "proved": 190, "wall": 29})
+
+    def test_rework_on_machine(self):
+        # the round function of Rework.lean (py/rework.py, from the saved cases) on random lists of blocks, round
+        # after round, and whole wall trips from the wall shapes with random values, against the plain simulator
+        import random
+        import rework
+        cs = rework.cases()
+        self.assertTrue(rework.check(cs, 60, seed=5))
+        self.assertTrue(rework.check_walls(cs, rework.shape_lists(random.Random(5), per=2)))
 
     def test_families_on_machine(self):
         # each family, with random lists of 0 to 4 blocks, random values, a random tape left of it (for an `L`

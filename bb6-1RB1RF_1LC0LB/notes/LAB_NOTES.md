@@ -510,9 +510,71 @@ or 1, either parity) in front of the copied level. A sequence of several kinds (
 cover any such list if the passes crossed the blocks one by one in one state, but they do not: before the copy loop
 the head converts the blocks next to the copied level one at a time, with short zig-zags whose state depends on the
 block before (a carry), and only then sweeps over all of them. So the wall families need an induction over that
-conversion, not only a crossing; that is the next lead, together with the third lead above.
+conversion, not only a crossing; that is the next lead, together with the third lead above (done in the next
+entry).
 
 ### CI
 
 The main Tests job took 25 of its 30 minutes (this machine's part only about 3); it is now four jobs in parallel
 (the shared tools with 1RB1RA_1RC1LB, 1RB1RA_1LC1LD, 1RB1RA_1RC1LB_1LD0RA_1LB0LE, and the other machines).
+
+## 6 November 2026 (later): the wall trips by induction on the rounds
+
+### A round as the machine walks (`py/rework.py`)
+
+A wall trip starts at `0^inf [L] 1 10 0 (10)^(2x+2) 0 (10)^(2w+2) C> tail` (tail `1 1 0 0 1 0 1 R` after a walk,
+`0 1 0^inf` at the right end), `L` a list of blocks `(s, b)` (a separator cell, then b pairs), nearest first. After a
+short start (`trig`, by cases on the first block) the head turns left at the copied level, `[L] 1 B> (10)^X 0 ...`,
+and 2x+2 *rounds* follow, each from one turn to the next with one pair less in the level, then the end. A round is
+not a pass: the head converts the blocks next to the level with zig-zags that carry a state from block to block, and
+may sweep part of the list, or all of it, more than once. So a round is computed the way the machine walks it:
+
+* a *left mode* (state, cells between the list and the head, the cell under the head) crosses the nearest block and
+  either turns back inside it (`refl`: the block becomes some blocks, the head goes right in a *right mode*) or comes
+  out on its far side in a new left mode, the block turned into a *piece* of tape right of the head (`cont`);
+* a right mode crosses a piece back over the nearest block `(s, E)` of the list (`pass`: that block becomes some
+  blocks) or turns left again at the list (`bounce`: a left mode, the rest of the piece to its right). The level and
+  the end are pieces too.
+
+Each case is one symbolic run on a block `2t+1` or `2t+2` (or `e + J` for the block a piece is crossed over), small
+values apart. `find` collects them on demand by running the function on the wall shapes (now kept in
+`lean/rework_shapes.txt`) and on random lists, and saves them (`lean/rework_cases.txt`): 8 left modes, 4 right
+modes, 32 pieces; 33 left cases, 57 right cases, 4 start cases. The check uses the saved table only (a case not in it
+is `Stuck`). Against the plain simulator: 200 random lists, round after round, all right; 300 wall trips from the
+wall shapes with random values, 274 right and 26 stuck (a case the table lacks, for instance a piece crossed over a
+block too short for it), none wrong.
+
+### The induction (`lean/ReworkCore.lean`, `lean/Rework.lean`, kernel)
+
+`ReworkCore.lean` (hand-written) states the cases abstractly: a `Sys` gives the modes, the pieces and what each mode
+does at each block or piece, `Sys.Ok` says that each case is a run of the machine, and `go n` computes a sweep or a
+crossing by those cases (n a bound on the depth). `go_ok` proves by induction on n that the machine does what `go`
+says, for any list. `rework_gen.py` writes `Rework.lean`: the 232 case lemmas (the symbolic run, then the same run
+with the tape written as blocks, closed by `simp` with the rewriting lemmas of Counter.lean and Wall.lean), `rw_ok :
+sys.Ok` by cases on the mode, the separator and the block length, then a round (`round_ok`), all rounds by induction
+(`iter_ok`), the start (`trigT_ok`, `trigL_ok`) and the end, and the whole trip:
+
+* `wall_turn`: after a walk over any standard levels (through `counter_borrow_ex`), for any list `L` with
+  `wallT n L x w = some L'`, the trip ends with `L'` and the levels reset;
+* `wall_last`: the same for a wall trip that is the whole trip from the right end.
+
+Both depend on `propext` and `Quot.sound` only. Compiling Rework.lean takes about 10 s.
+
+### The trips to 10¹²
+
+`top.check` now tries, after the families, `rework.predict`: the piece read as `b0 s1 b1 ... sn bn 1 1 0 X 0 W` with X
+and W even and at least 2 is a wall trip with `L = (0, b0), (s1, b1), ...`, and its end is what `wallT`/`wallL`
+compute, with the walked levels reset. `python3 py/top.py check 1e12`: **of the 703 top trips, 114 are family
+instances, 75 wall trips of Rework.lean and 514 go through shapes**, none wrong. The shapes no trip needs any more are
+dropped from `top_shapes.txt`: 35 of the 58, 32 of the 34 wall shapes among them. Left are 23 shapes, 2 of them
+building a wall: 5 trips (4 through `top_21`, 1 through `top_22`) on which the round function is `Stuck`, a case they
+need not being in the saved table.
+
+### Leads
+
+1. **The last two wall shapes.** Find the cases these 5 trips need (`find` on their starts), then the family covers
+   them and `TopWall1.lean` goes.
+2. **The top as a recursion.** With the counter, 7 families, the wall family and 21 plain shapes, the left end is a
+   finite set of maps on block lists; whether they close up forever, and whether any can put a mark right after a
+   boundary in E's way.
+
