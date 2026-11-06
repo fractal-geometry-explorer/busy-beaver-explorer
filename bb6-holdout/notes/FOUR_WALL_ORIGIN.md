@@ -113,7 +113,7 @@ satisfy. Two ways of turning this into a theorem were looked at and set aside:
 - *A backward search from each member.* Running a round backwards loses information: a swap halves a distance and a
   gap meeting a wall erases both positions, so each step back adds a free number. Following those numbers is the
   forward clean-tape tree again and meets the same open classes. A small-width probe of the exact reverse map
-  (`backprobe.c`, every round start with up to 6 marks and width up to 40; `backprobe_out.txt`) shows that most
+  (`backprobe.c`, every round start with up to 5 marks to width 40, and up to 6 to width 28; `backprobe_out.txt`) shows that most
   backward trees of three-wall states die within 5 rounds. That is encouraging but changes nothing at 2⁶⁶.
 
 A Lean version of the settled-class check (no clean tape the 44-digit tree settles leads to a member) is possible. It
