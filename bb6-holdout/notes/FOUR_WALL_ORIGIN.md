@@ -98,6 +98,28 @@ A third check (same README, last section) runs every clean tape within 2²⁴ be
 Neither gives a proof for every number of passes. As PR #114 found, what remains is the clean tapes that no tree
 settles.
 
+## Where the line stands (November 6)
+
+The 4-wall family is set aside here, not ruled out. For the 338 far members at 2⁶⁶ (four and five passes) three
+untrusted checks agree (`../runs/four_wall_roots/README.md`). No member's root is the value of an entry class that
+the 40-digit clean-tape tree settles. No clean tape within 2²⁴ below a member, or below a state on its pull-back,
+reaches one in its cycle (9.3 billion cycles). And no root lies on the exact relations that 95% of the run's entries
+satisfy. Two ways of turning this into a theorem were looked at and set aside:
+
+- *A bound on how far a cycle's width can grow.* A clean tape could only reach a member from below the checked window
+  if its cycle grew by more than 2²⁵, and the largest growth seen is 348. But a long cycle can only start from a
+  clean tape in a class the tree leaves open (measure 1.93 × 10⁻⁶ at 44 digits, at every width). Bounding those cycles
+  is the same as settling those tapes, which is the open question itself.
+- *A backward search from each member.* Running a round backwards loses information: a swap halves a distance and a
+  gap meeting a wall erases both positions, so each step back adds a free number. Following those numbers is the
+  forward clean-tape tree again and meets the same open classes. A small-width probe of the exact reverse map
+  (`backprobe.c`, every round start with up to 5 marks to width 40, and up to 6 to width 28; `backprobe_out.txt`) shows that most
+  backward trees of three-wall states die within 5 rounds. That is encouraging but changes nothing at 2⁶⁶.
+
+A Lean version of the settled-class check (no clean tape the 44-digit tree settles leads to a member) is possible. It
+would leave only the cut classes, so it would firm up the result without ruling out more of the family. What would
+change the picture is a new handle on the clean tapes no tree settles.
+
 ## Checks
 
 - `thm/WindowHalt.lean` compiles in about 2 s with Lean 4.34.0 after `check.sh` and `check_end.sh` through

@@ -92,6 +92,7 @@ against the tree's classes. Run from `lean/` after `check_end.sh`:
 
 ## Files
 
+- `backprobe.c`, `backprobe_out.txt`: a small-width probe of the reverse round map (`../../notes/FOUR_WALL_ORIGIN.md`, last section).
 - `targets.py`, `targets.txt`, `window.c`, `window16.txt`, `window24.txt`, `calib_window*.txt`: the direct run of the clean tapes below each target (the last section).
 
 - `pullback.py`: the inverse of `StepMap` and `StepWall` (`lean/BB6/Ends.lean`) for the full pass, the half pass and
