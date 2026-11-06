@@ -1135,3 +1135,17 @@ with a smaller a instead (a' = a mod 2^R, which `next_rel` also allows, since th
 nonnegative coefficients along a route) is the residue-class exploration of `Thin.lean` again. The first phase is
 the only place where the self-similarity gives something for free; what follows it is where the 2-adic mixing of
 31 October lives, and the verdict stands.
+
+## 6 November 2026: the return map below 2^74 by the kernel (`lean/Return74.lean`)
+
+`lean/return62.py` now takes the exponent of the bound (`return62.py BUDGET SHARDS E`; E = 62 rewrites the committed
+`R62/` and `Return62.lean` byte for byte). The cost of `explore` grows slowly with the bound (`Plan.cost`, in symbolic
+passes: 3.39·10⁶ for 2^62, 5.70·10⁶ for 2^66, 9.71·10⁶ for 2^70, 1.85·10⁷ for 2^74), because the number of routes
+grows like the open set, about 2^(0.19·depth). So the bound of the Python computation was within reach:
+`return62.py 12000 16 74` (33 minutes to plan) cuts a = 5 + 4u into 9,389 pieces in 16 files, and
+`check_return74.sh` checks them by `decide +kernel` in 62 minutes on 4 cores (`returns_2_74_kernel`). With
+`reach_upto`: **the first 3·2^72 + 1 ≈ 1.42·10²² passes from blank tape never stop at a block of 1, and the machine
+reaches each of their pass starts** (`no_one_1e22_kernel`, kernel only), the range that rested on Python since
+31 October. `Replay74.lean` gives `replay_1e22_kernel`: the first min(m, 3·2^72 + 2) passes of the excursion of any
+a = 1 + 2^m u are safe. The next factor 16 (2^78) would cost about twice as much again; nothing here changes the
+picture of 4 November, it only moves the line.

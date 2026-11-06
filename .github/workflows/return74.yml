@@ -1,0 +1,31 @@
+# The return map of 1RB1RA_1RC1LB_1LD0RA_1LB0LE below 2^74 by Lean's kernel alone (about 5.5 hours of CPU, so it runs
+# on pushes to main that touch its files, when R74/ itself changes in a pull request, and by hand).
+name: Return map to 2^74, kernel
+
+on:
+  pull_request:
+    paths:
+      - "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/R74/**"
+      - "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/Return74.lean"
+      - "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return74.sh"
+      - ".github/workflows/return74.yml"
+  push:
+    branches: [main]
+    paths:
+      - "bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/**"
+      - "tools/lean/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kernel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Lean
+        run: sudo bash scripts/setup-lean.sh
+      - name: Return map below 2^74, kernel only
+        run: . /etc/profile.d/lean.sh && JOBS=$(nproc) bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return74.sh
