@@ -597,7 +597,10 @@ often deep in L where it is not dug out for a long time, so they are far from in
 risk might fall with the run's age, not evidence. Copies from many late snapshots, with a change near the top of
 the stacks, would test it.
 
-**Next.** The run continues from its saved state toward 10¹³ (about 12 hours of one core).
+**Further, to 5.1·10¹² (trusted C, resumed from saved states in pieces).** Still not stuck, and no near miss. The
+counts at 5.1·10¹²: 1,923 R2 steps, 1,170 frames taken to 1, still 2 taken to 0, the end entry replaced 9 times,
+max |R| 95; there has been no R2 step at all between 3·10¹² and 5.1·10¹². The run stopped there (a background job
+in this container lives at most two hours at a time); `./fastrun run 1e13 STATE STATE` continues it from any saved state.
 
 ## 6 November 2026: the parity bookkeeping as theorems (`lean/Parity.lean`, kernel)
 
