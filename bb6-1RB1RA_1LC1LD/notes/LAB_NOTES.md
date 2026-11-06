@@ -779,7 +779,7 @@ the macro steps taken (the lemma chain of a Lean proof like those of `lean/TwoBl
 * Two blocks `z` (nearest), `y`: 894 classes, all agreeing with `pre` at three points each.  288 of the 324 residue
   pairs mod 18 are one affine class (as the least-squares fit found); 15 split into 3, 21 further; and 21 pairs have
   a branch that splits without end, the analogue of the 14 branch: `z ≡ 14` with `y ≡ 0 (mod 6)`; `y ≡ 14` with `z ≡ 1,
-  4, 7, 10, 13, 16`; `z ≡ 3` with `y ≡ 1 (mod 3)`; `z ≡ 7` with `y ≡ 1, 3, 8, 10`; and `(13, 4)`.
+  4, 7, 10, 13, 16`; `z ≡ 3` with `y ≡ 1 (mod 3)`; `z ≡ 7` with `y ≡ 1, 3, 8, 10`; and `(1, 16)`, `(13, 4)`.
 * Offset 0 on 354 of the 894 classes; 434 end on two blocks.
 
 **For Lean.**  The tracer's steps are the macro steps of the hand proofs, so the closed forms could be generated, but

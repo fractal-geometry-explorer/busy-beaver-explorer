@@ -148,6 +148,7 @@ question itself.
 | `py/blocks.py` | which pass starts can lead to a halt: the run, exhaustive and random checks, recursive offsets, case A of `lean/Chain.lean` |
 | `py/tokens.py` | `pre` at its A states: two words eaten each time, the token count, growth steps (`notes/LAB_NOTES.md`, 1 November, ranking function) |
 | `py/twoblock.py` | the two-block map: `pre` after one block in closed form (`pre1`) and its step cost, the block machine on stacks with step counts, the counted pass map `pass_counted` and the long run (`run`) |
+| `py/symtrace.py` | the block machine on affine expressions: `pre` in closed form by residue classes after one and two blocks, with the macro steps of each class |
 | `tests/test_machine.py` | generated files current, the page current, C against Python, the facts in the notes |
 | `tests/test_explainer.py` | the explainer page's engine (simulator, pass map, offsets) and run data against `py/macro.py` and the reference simulator, in Node |
 | `status.json` | the source of the proof-status page (`tools/pages/build_status.py`) |
