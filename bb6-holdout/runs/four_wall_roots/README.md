@@ -92,6 +92,8 @@ against the tree's classes. Run from `lean/` after `check_end.sh`:
 
 ## Files
 
+- `targets.py`, `targets.txt`, `window.c`, `window16.txt`, `window24.txt`, `calib_window*.txt`: the direct run of the clean tapes below each target (the last section).
+
 - `pullback.py`: the inverse of `StepMap` and `StepWall` (`lean/BB6/Ends.lean`) for the full pass, the half pass and
   the round-7 break, and `WindowShape`.
 - `dump.py out name R1 R2 C c j Wexp`: every far member from the census outputs of `far_route.py`
@@ -110,3 +112,38 @@ against the tree's classes. Run from `lean/` after `check_end.sh`:
   for each `E` row of `sample.tsv.gz`.
 - `match_forms.py forms.txt`, `calib.py forms.txt entries_all.txt [limit]`: the roots, and the run's own entries,
   against the entry classes that `EntryForms.lean` prints.
+
+## Every clean tape just below each target, run directly: none reaches one (November 5, later; untrusted)
+
+The tree checks above only see clean tapes whose class the tree settles. This check runs the clean tapes themselves,
+so it also covers the ones in cut classes. A cycle from the clean tape n starts at width 2n + 6, and along the run its
+three-wall round starts have 40 ≤ W − 2n ≤ 304 (every row of `sample.tsv.gz` and `rare.tsv.gz`; at most 88 rounds).
+So a clean tape whose cycle could pass through a state of width W has n a little below W/2.
+
+`targets.py` lists 556 targets as (b, W, R): all 338 far members at 2⁶⁶ (any W mod 6, not only the 113 `EntryFar`
+roots), and every state on their pull-back chains (210 half-pass, 7 full-pass and 1 round-7 predecessors). `window.c`
+takes, for each target of width W, every clean tape n with (W − 6)/2 − HALF ≤ n ≤ (W − 6)/2, of any residue mod 3
+(the run's own clean tapes are all 2 mod 3). It runs each one in the mark model of `../../blankrun/fast.h`, with
+positions widened to 128 bits, through its whole cycle to the next clean tape. It stops early once the width passes
+every target the window could need, since widths only grow. Every three-wall round start on the way is compared with
+the targets on (b, W, R), with the first wall left free.
+
+*Calibration* (`calib_window.txt`, `calib_window_out.txt`): 180 three-wall round starts of the run above 2⁴², up to
+four from each round of the cycle from 10 to 88 (entries, landings and the rest), taken as targets with HALF = 400.
+All 180 are found, each at its own clean tape n and in its own round.
+
+| HALF (clean tapes below each target) | cycles run | rounds | three-wall round starts | hits | halts or uncovered | longest cycle | largest W − 2n at a three-wall start | largest width gain of a cycle |
+|---|---|---|---|---|---|---|---|---|
+| 2¹⁶ (`window16.txt`, 2 s) | 22,152,223 | 81.7 M | 30,117 | 0 | 0 | 87 rounds | 208 | 300 |
+| 2²⁴ (`window24.txt`, 4 shards, 3 min each) | 9,328,132,652 | 34.4 G | 12,771,682 | 0 | 0 | 98 rounds | 280 | 348 |
+
+So no clean tape of width within 2²⁵ below a target reaches it, or reaches any state its pull-back passes through,
+in its cycle. A clean tape that did would need a cycle whose width grows by more than 2²⁵. Among the 9.3 billion cycles
+run here at these widths, the largest growth is 348. This is no proof: nothing here bounds a cycle's growth. That
+bound is the open part. A proof of it, say that every cycle from a clean tape of width 2n + 6 ends below width
+2n + 6 + 2²⁵, or a Lean statement that a three-wall start in a cycle has W − 2n bounded, would turn this into a
+theorem for these 338 members. They are only the members at one scale, 2⁶⁶, and with four or five passes.
+
+Run: `sed 's/^typedef int64_t ll;/typedef __int128 ll;/' ../../blankrun/fast.h > fast128.h`,
+`gcc -O2 -w -o window window.c`, `python3 targets.py > targets.txt`, `./window targets.txt 16777216 100000 S 4` for
+S = 0 to 3.
