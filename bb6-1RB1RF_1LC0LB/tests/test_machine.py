@@ -50,6 +50,7 @@ class TestGenerated(unittest.TestCase):
         made = top_gen.files()
         import glob
         have = {os.path.basename(p) for p in glob.glob(os.path.join(ROOT, "lean", "TopWall*.lean"))} | {"Top.lean",
+                                                                                               "TopFam.lean",
                                                                                                "AxiomsWall.lean"}
         self.assertEqual(set(made), have)
         for name, text in made.items():
@@ -227,7 +228,52 @@ class TestTop(unittest.TestCase):
     def test_run_to_1e9(self):
         # every trip to 10^9 steps that counter.py does not cover goes through a shape of Top.lean (the 20 that
         # build a wall with the copy loop jumped over, wall.py and Wall.lean), and each ends as its shape says
-        self.assertEqual(dict(top.check(10 ** 9)), {"proved": 255})
+        # (36 of them instances of the families of TopFam.lean, any number of blocks in the list)
+        self.assertEqual(dict(top.check(10 ** 9)), {"family": 36, "proved": 219})
+
+    def test_families_on_machine(self):
+        # each family, with random lists of 0 to 4 blocks, random values, a random tape left of it (for an `L`
+        # family) and a random borrow, run on the plain simulator from the right end: the trip ends as the
+        # family's end and the counter's reset say
+        import random
+        import family
+        from bbtools.machine import Machine, Tape
+        from bbtools.symtm import Ctx
+        m = Machine.parse(M)
+        rng = random.Random(11)
+        fams = [family.Family(t) for t in family.load()]
+        self.assertTrue(fams)
+        for f in fams:
+            vs = sorted(f.cfg.vars())
+            for n in range(5):
+                env = {v: rng.randint(0, 3) for v in vs}
+                elems = [{p: rng.randint(0, 3) for p in f.pat.params} for _ in range(n)]
+                ctx = "".join(rng.choice(["10" * rng.randint(1, 3) + "1", "10" * rng.randint(1, 3) + "0"])
+                              for _ in range(2)) if any(isinstance(t, Ctx) for t in f.cfg.left) else ""
+                start = family.cells(f.cfg.left, env, elems, ctx)
+                end = family.cells(f.fin.left, env, elems, ctx)
+                tail_after = ""
+                if f.turn:
+                    end = end[:-3]
+                    zs = [(2 * rng.randint(1, 3), 2 * rng.randint(2, 4)) for _ in range(rng.randint(0, 2))]
+                    zs.append((2 * rng.randint(1, 3), 2 * rng.randint(1, 3)))
+                    start += "1010"
+                    for i, (g, w) in enumerate(zs):
+                        start += "0" + "10" * g + "0" + "10" * w
+                        tail_after += "1" + "10" * (g + 1) + "1" + "10" * (w + 1 if i == len(zs) - 1 else w - 1)
+                s = (start + "010").lstrip("0")
+                want = (end + tail_after + "01").lstrip("0")
+                tape = Tape()
+                for i, ch in enumerate(s):
+                    tape.set(i, int(ch))
+                r = Run(m, state=counter.C, tape=tape, head=len(s) - 3)
+                while True:
+                    self.assertTrue(r.step())
+                    if (r.state == counter.C and r.tape.get(r.head) == 0 and r.tape.get(r.head + 1) == 1
+                            and not any(r.tape.word(r.head + 2, max(r.tape.hi, len(s)) + 1))):
+                        break
+                got = "".join(map(str, r.tape.word(min(r.tape.lo, 0), r.head + 1))).lstrip("0")
+                self.assertEqual(got, want, (f.text, n, env, elems, ctx))
 
     def test_wall_match(self):
         # the round form of Wall.lean read off a symbolic tape, and the loop jump

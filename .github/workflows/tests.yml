@@ -37,12 +37,29 @@ jobs:
         run: python3 bb6-1RB1RA_1RC1LB/tests/test_top.py
       - name: 1RB1RA_1RC1LB explainer page
         run: python3 bb6-1RB1RA_1RC1LB/tests/test_explainer.py
+
+  # The machines run in parallel jobs (one job of all of them took 25 of its 30 minutes).
+  machines-1lc1ld:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Lean
+        run: sudo bash scripts/setup-lean.sh
       - name: 1RB1RA_1LC1LD Lean
         run: . /etc/profile.d/lean.sh && bb6-1RB1RA_1LC1LD/lean/check.sh
       - name: 1RB1RA_1LC1LD tests
         run: python3 bb6-1RB1RA_1LC1LD/tests/test_machine.py
       - name: 1RB1RA_1LC1LD explainer page
         run: python3 bb6-1RB1RA_1LC1LD/tests/test_explainer.py
+
+  machines-1ld0ra:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Lean
+        run: sudo bash scripts/setup-lean.sh
       - name: 1RB1RA_1RC1LB_1LD0RA_1LB0LE Lean
         run: . /etc/profile.d/lean.sh && bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh
       - name: 1RB1RA_1RC1LB_1LD0RA_1LB0LE tests
@@ -73,6 +90,14 @@ jobs:
         run: python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_bigfront.py
       - name: 1RB1RA_1RC1LB_1LD0RA_1LB0LE ancestry and the return map's jumps
         run: python3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/tests/test_ancestry.py
+
+  machines-others:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Lean
+        run: sudo bash scripts/setup-lean.sh
       - name: 1RB0LF_1RC0LB Lean
         run: . /etc/profile.d/lean.sh && bb6-1RB0LF_1RC0LB/lean/check.sh
       - name: 1RB0LF_1RC0LB tests (generated files, both pages, the run from blank)

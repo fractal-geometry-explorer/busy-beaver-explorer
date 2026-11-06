@@ -451,3 +451,68 @@ So **every trip of the first 10¹² steps is an instance of a kernel-checked the
 shapes is small (12 of 143 new top trips between 10¹¹ and 10¹²), but it is not zero, and every new one is a longer
 member of an old family, which is lead 2: merging the families into theorems by induction on the number of levels
 is what would stop the list growing, and the proof size with it.
+
+## 6 November 2026: families of top shapes, by induction on a list of blocks
+
+Lead 2 above. Many top shapes are one rule with a different number of copies of some blocks: the ladders
+`0^inf (1010)^x0 1 10 10 (1010)^x1 1 10 10 (1010)^x2 ... 1 10 10 10 (1010)^y 10 0 10 10 (1010)^z` with one rung
+`1 10 10 (1010)^t` more each time were 11 of the 82 shapes, and 4 of the 11 new ones of 10¹².
+
+### Sequences in the symbolic runs (`tools/py/bbtools/seqtm.py`, `lean/Seq.lean`)
+
+A *sequence* `[ 1 10 10 (1010)^a ]^ts` is a list `ts` of blocks of one form, each with its own value of the
+parameter `a`, any length, any values. `seqtm.run` is `symtm.run` with the sequence as a context the run may not
+look into, and one more move: when the head is about to step onto it, one block is run on its own between two
+contexts (with up to three literal cells next to the head carried along, as in `symtm`'s shift rules); if the
+head comes out on the far side in the state it went in with, the block changed to some `w'`, then the whole list
+is crossed, and the sequence is on the other side as `[w']^ts`, in reverse order. In Lean the list is `sq f ts X`
+(first element next to the head) or `sqr f ts X` (last element next to the head), and `seqL`, `seqR`, `seqL'`,
+`seqR'` of `Seq.lean` prove the crossing for every list from the run of one block, by induction on the list. A
+sequence may also have several kinds of block (`[ w1 | w2 ]^ts`, elements `(kind, parameter)`, the one-block
+hypothesis proved by cases); no family uses that yet.
+
+The ladder's run crosses its list of rungs four times (B to the left, E to the right, B to the left, C to the
+right), each time block by block in one state, and closes; the theorem, for every list of rungs, takes Lean's
+kernel about a second.
+
+### The families (`py/family.py`, `lean/top_families.txt`, `lean/TopFam.lean`)
+
+`python3 py/family.py find` makes candidates from each shape: a stretch of its start from a separator to just
+before one, with one or two variables, together with the copies of it that follow, written as a sequence. A
+candidate is kept when its run closes; it covers a shape when, on random values, the shape's piece is an instance
+of the family (`family.match`, on blocks and separators) and the family's end is the shape's end, cell by cell.
+Chosen greedily, **7 families cover 24 of the 48 plain shapes**:
+
+| family | shapes it replaces |
+|---|---|
+| `0^inf (1010)^x0 [ 1 10 10 (1010)^a ]^ts 1 10 10 10 (1010)^x2 10 0 10 10 (1010)^x3` (the ladders) | 11 |
+| `L 1 10 (1010)^x0 1 10 (1010)^x1 10 10 0 (1010)^x2 10 10 [ 0 10 (1010)^a 10 0 (1010)^b 10 10 ]^ts 0` | 3 |
+| five more, each with the two-level block `[ 0 10 (1010)^a 10 0 (1010)^b 10 10 ]` or a shorter ladder | 2 each |
+
+`top_gen.py` proves each as `fam_i` in `TopFam.lean` (the run `fam_piece_i`: stretches by `symtm.prove`, the
+lists by `seqL`/`seqR`, the whole trip with `counter_borrow_ex`); all rest on `propext` and `Quot.sound` only, and
+the file compiles in seconds. The shapes they cover are dropped from `top_shapes.txt` (58 shapes are left, 24 of
+them plain, 34 wall-building; `top_i` is renumbered), and Top.lean goes from 3.0 MB to 0.7 MB (plus 0.26 MB of
+TopFam.lean).
+
+`top.check` now tries the families first: a trip is `family` when its piece is an instance of a family and the
+family's end, with the walked levels reset, is the run's tape. `tests/test_machine.py` also runs every family with
+lists of 0 to 4 random blocks on the plain simulator.
+
+`python3 py/top.py check 1e12`: of the 703 top trips, **114 are instances of the families and 589 go through the
+58 shapes**, none wrong, none unlisted. The 5 plain shapes that were new at 10¹² are all covered now (4 by the ladder
+family, 1 by the family of `[ 0 10 (1010)^a 10 0 (1010)^b 10 10 ]`), as any longer member of these families will be.
+
+### The wall shapes, not yet
+
+The 34 wall-building shapes are `0^inf B0 (s B)* 1 (2y+1) 1 1 0 X 0 W`, a list of blocks of mixed kinds (separator 0
+or 1, either parity) in front of the copied level. A sequence of several kinds (`seqtm`, proved by cases) would
+cover any such list if the passes crossed the blocks one by one in one state, but they do not: before the copy loop
+the head converts the blocks next to the copied level one at a time, with short zig-zags whose state depends on the
+block before (a carry), and only then sweeps over all of them. So the wall families need an induction over that
+conversion, not only a crossing; that is the next lead, together with the third lead above.
+
+### CI
+
+The main Tests job took 25 of its 30 minutes (this machine's part only about 3); it is now four jobs in parallel
+(the shared tools with 1RB1RA_1RC1LB, 1RB1RA_1LC1LD, 1RB1RA_1RC1LB_1LD0RA_1LB0LE, and the other machines).
