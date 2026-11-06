@@ -1,7 +1,7 @@
 #!/bin/bash
 # The return map below 2^74 by the kernel alone (Return74.lean and the pieces in R74/, written by return62.py 12000 16 74).
-# Checks the usual files first (check.sh), then the shards JOBS at a time (default 4; each needs up to ~2 GB), then
-# Return74.lean.  About 5.5 hours of CPU, 1.5 hours with 4 jobs.  LEAN, LEANLIB as for tools/lean/check.sh.
+# Checks the usual files first (check.sh), then the shards JOBS at a time (default 4; each needs up to 4.3 GB, so use 3
+# on a 16 GB machine), then Return74.lean.  About 4 hours of CPU, about an hour with 4 jobs.  LEAN, LEANLIB as for tools/lean/check.sh.
 set -e
 cd "$(dirname "$0")"
 ./check.sh

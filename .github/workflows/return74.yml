@@ -28,4 +28,5 @@ jobs:
       - name: Install Lean
         run: sudo bash scripts/setup-lean.sh
       - name: Return map below 2^74, kernel only
-        run: . /etc/profile.d/lean.sh && JOBS=$(nproc) bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return74.sh
+        # each shard needs up to 4.3 GB: three at a time fit the 16 GB runner, four do not
+        run: . /etc/profile.d/lean.sh && JOBS=3 bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check_return74.sh
