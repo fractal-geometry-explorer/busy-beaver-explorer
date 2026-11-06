@@ -347,13 +347,20 @@ def load_shapes():
         return [ln.rstrip("\n") for ln in f if ln.strip() and not ln.startswith("#")]
 
 
-def check(steps):
-    """Each non-counter trip through its shape, compared with the run: 'proved' (the shape is in
-    lean/top_shapes.txt and the prediction is the run's tape), 'unlisted' (correct but the shape is not in the
-    list), 'long', 'wrong'."""
+def check(steps, families=True):
+    """Each non-counter trip through a family (`family.py`, lean/TopFam.lean) or its shape, compared with the run:
+    'family' (an instance of a family of lean/top_families.txt and the family's end is the run's tape), 'proved'
+    (the shape is in lean/top_shapes.txt and the prediction is the run's tape), 'unlisted' (correct but the shape
+    is not in the list), 'long', 'wrong'."""
+    import family
+    fams = [family.Family(t) for t in family.load()] if families else []
     proved = set(load_shapes())
     tally = collections.Counter()
     for s, why, a, b in trips(steps):
+        fp = family.predict(fams, a) if fams else None
+        if fp is not None:
+            tally["family" if fp[1] == counter.tape_str(b) else "wrong"] += 1
+            continue
         c = cut(a)
         if "long" in c:
             tally["long"] += 1
