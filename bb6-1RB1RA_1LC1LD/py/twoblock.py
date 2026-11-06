@@ -13,6 +13,7 @@ step 1,000,110,302,407).
 usage:
   python3 py/twoblock.py verify X        pre1 and its cost against the block machine for every x < X
   python3 py/twoblock.py check N         run, pass_full and pass_counted agree on N random lists; tail_cost exact
+  python3 py/twoblock.py lean X J         the theorems of lean/TwoBlock.lean against pass_full, x < X, j <= J
   python3 py/twoblock.py run N [EVERY]   the counted run from blank tape for N passes, a line every EVERY passes
 """
 import os
@@ -271,6 +272,87 @@ def counted_run(N, every=1000, out=sys.stdout):
     return ls, n, S
 
 
+def g14(r):
+    """`g14` of lean/TwoBlock.lean: (word 3 left?, a, b, M) after the levels of the carry from the block 6r + 8."""
+    m, c = divmod(r, 3)
+    if c == 2:
+        return (False, 32 * m + 29, 22 * m + 28, [0])
+    if c == 0:
+        return (True, 24 * m + 4, 26 * m + 11, [4 * m + 2])
+    t, a, b, M = g14(m)
+    if t:
+        return (True, 24 * m + 12, a + 12 * m + 6, [b] + M)
+    return (False, a + 24 * m + 13, b + 12 * m + 6, M)
+
+
+def lean_one(x, j):
+    """The next pass start after `1^x 0 1^(3j) A>0` as the theorems of lean/TwoBlock.lean (and `recur_two` for x = 2)
+    state it, blocks left to right with zero blocks dropped; None where no theorem applies (j too small)."""
+    c2 = lambda v: 2 * ((v + 1) // 2)        # 2 ceil(v/2)
+    i = j - 1                                 # K [x] (3i + 2): last block 3j
+    r = x // 18
+    def out(ls, n):                           # K ls n, ls nearest first
+        bl = list(reversed(ls)) + [n + 1]
+        while bl and bl[0] == 0:
+            bl.pop(0)
+        return tuple(bl)
+    if x == 2:
+        return out([8 + c2(j - 2)], 2 * j - 2) if j >= 2 else None
+    if x == 5:
+        return out([6 + 2 * ((i + 2) // 2)], 2 + 2 * (i + 1) - 1)
+    if x % 6 == 0:
+        q = x // 6 - 1
+        return out([2 * q + 4 + 2 * ((i + 2) // 2)], 4 * q + 6 + 2 * (i + 1) - 1)
+    if x % 6 == 4:
+        q = x // 6
+        return out([2 * q + 4 + 2 * ((i + 2) // 2)], 4 * q + 5 + 2 * (i + 1) - 1)
+    if x % 6 == 5:
+        q = (x - 11) // 6
+        return out([2 * q + 8 + 2 * ((i + 2) // 2)], 4 * q + 6 + 2 * (i + 1) - 1)
+    k = x % 18
+    if k == 2:
+        r = (x - 20) // 18
+        return out([10 * r + 18 + c2(i)], 8 * r + 8 + 2 * i - 1)
+    if k == 7:
+        return out([4 * r + 4 + c2(i)], 14 * r + 12 + 2 * i - 1)
+    if k == 13:
+        return out([6 * r + 8 + c2(i)], 12 * r + 15 + 2 * i - 1)
+    if k == 15:
+        return out([10 * r + 14 + c2(i)], 8 * r + 8 + 2 * i - 1)
+    if k == 14:
+        t, a, b, M = g14(r)
+        if not t:
+            return out([b + c2(i)] + M, a + 2 * i - 1)
+        i -= 1
+        return out([a + 2 + c2(i), b] + M, 4 + 2 * i - 1) if i >= 0 else None
+    i -= 1                                    # the rest take two supply words: last block 3(i + 1) + 3
+    if i < 0:
+        return None
+    if k == 1:
+        r = (x - 19) // 18
+        return out([8 * r + 9 + c2(i), 10 * r + 16], 4 + 2 * i - 1)
+    if k == 8:
+        return out([14 * r + 11 + c2(i), 4 * r + 2], 4 + 2 * i - 1)
+    if k == 3:
+        return out([14 * r + 7 + c2(i), 4 * r + 2], 4 + 2 * i - 1)
+    if k == 9:
+        return out([12 * r + 11 + c2(i), 6 * r + 6], 4 + 2 * i - 1)
+    return None
+
+
+def check_lean(X, J):
+    """lean_one against the block machine (pass_full) for every x in 2..X-1 and j in 1..J: the number compared."""
+    n = 0
+    for x in range(2, X):
+        for j in range(1, J + 1):
+            p = lean_one(x, j)
+            if p is None:
+                continue
+            assert p == M.next_full((x, 3 * j)), (x, j, p, M.next_full((x, 3 * j)))
+            n += 1
+    return n
+
+
 if __name__ == "__main__":
     a = sys.argv[1:]
     if not a:
@@ -279,5 +361,7 @@ if __name__ == "__main__":
         verify(int(a[1]))
     elif a[0] == "check":
         check(int(a[1]))
+    elif a[0] == "lean":
+        print("lean/TwoBlock.lean agrees with the block machine on", check_lean(int(a[1]), int(a[2])), "passes")
     elif a[0] == "run":
         counted_run(int(a[1]), int(a[2]) if len(a) > 2 else 1000)

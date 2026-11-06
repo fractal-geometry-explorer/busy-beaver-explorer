@@ -710,3 +710,51 @@ first entry (30 October) was a fit near 10¹⁰ steps; t/w² keeps growing (142 
 `k`.  With it the two-block part of the run is a closed-form map on `(x, b)`, and the question "can the last block come
 down to 9 or 6 with the right residues" becomes one about this map alone, plus the excursions to three or more blocks
 after an offset 0.
+
+
+## 5 November 2026 (later): the pass after a single block, in Lean
+
+**Proved in Lean, kernel only** (`lean/TwoBlock.lean`).  For every `x ≥ 3` the recursive pass from `K [x] (3j - 1)`
+(one block `x`, nothing further left, last block `3j`) reaches the pass start that `pre1` of `py/twoblock.py` gives,
+for every `j ≥ u`: one theorem per residue, stated directly as `Reaches` between pass starts, like `recur_two`.
+
+| theorem | x | next pass start (blocks left to right, last block) |
+|---|---|---|
+| `one_zero6` | `6(q + 1)` | `2q + 4 + 2⌈j/2⌉`, `4q + 6 + 2j` |
+| `one_four6` | `6q + 4` | `2q + 4 + 2⌈j/2⌉`, `4q + 5 + 2j` |
+| `one_five6`, `one_five` | `6q + 11`, `5` | `2q + 8 + 2⌈j/2⌉`, `4q + 6 + 2j`; `6 + 2⌈j/2⌉`, `2j + 2` |
+| `one_two18` | `18r + 20` | `10r + 18 + 2⌈(j - 1)/2⌉`, `8r + 6 + 2j` |
+| `one_seven18` | `18r + 7` | `4r + 4 + 2⌈(j - 1)/2⌉`, `14r + 10 + 2j` |
+| `one_thirteen18` | `18r + 13` | `6r + 8 + 2⌈(j - 1)/2⌉`, `12r + 13 + 2j` |
+| `one_fifteen18` | `18r + 15` | `10r + 14 + 2⌈(j - 1)/2⌉`, `8r + 6 + 2j` |
+| `one_one18` | `18r + 19` | `10r + 16`, `8r + 9 + 2⌈(j - 2)/2⌉`, `2j` |
+| `one_eight18` | `18r + 8` | `4r + 2`, `14r + 11 + 2⌈(j - 2)/2⌉`, `2j` |
+| `one_three18` | `18r + 3` | `4r + 2`, `14r + 7 + 2⌈(j - 2)/2⌉`, `2j` |
+| `one_nine18` | `18r + 9` | `6r + 6`, `12r + 11 + 2⌈(j - 2)/2⌉`, `2j` |
+| `one_fourteen_two`, `one_fourteen_three` | `18r + 14` | by `g14 r`, below |
+
+(`x = 2` is `recur_two`.)  The proofs follow the block machine in macro steps: the conversion of `x` into words, the
+loop `tail_iter` over pairs of words 2, the pairs `2 1`, `2 3`, `3 2` of `lean/Tokens.lean`, and `tail_end`.  Every
+class but 0, 4 and 5 mod 6 makes a second sweep: after the first, A is before a word 1 and a block `a` (`4q + 2` or
+`4q + 3`), the supply word turns `1 2` into `0 3` (`a_one_two`), and `a mod 3`, so `x mod 18`, decides the second.
+
+**`x ≡ 14 (mod 18)`: the carry down the powers of 3.**  Here the second sweep starts at a block `12r + 7 ≡ 1 (mod 3)`,
+which is converted into words, and the converter goes on to the block `6r + 8`, before `0, 1, 2^(4r+2), 3`: the same
+situation as at the start, one level down.  `lvl` (strong induction on `r`) says where a level ends: for `r ≡ 2 (mod 3)`
+at A before the rest of the words with two blocks, for `r ≡ 0` at A before a word 3 with three blocks, and for
+`r ≡ 1` it hands on to the block `6(r/3) + 8` and, when that level is done, sweeps over the `2^(4r+1)` it left and
+the next 3, adding a block in the second case.  `g14 r` is that recursion; the number of levels is one more than the
+power of 3 in `2r + 1 = (x - 5)/9`, and the last level is the residue of what is left mod 6, as in `pre1`.
+
+So with `next_sound` every pass from a two-block start `1^x 0 1^b A>0` with `x ≥ 2` is now proved in closed form (for
+`b = 3j` with `j ≥ 2`; `j = 1` is case A of `lean/Chain.lean` and needs `u ≤ 1` here).  `py/twoblock.py lean`
+transcribes the theorems and checks them against `pass_full` (11,837 passes, `x < 400`, `j ≤ 30`).
+
+**What this does not give.**  The three or more blocks that a pass with offset 0 leaves are not covered: there
+the pass after the next recursive pass depends on the block further left (`pre` after one block is affine in the
+context only for `x ≡ 2 (mod 3)` other than 8 and 14 mod 18).  And nothing here says the leftmost block stays even;
+on the run it does, and then only `x ≡ 0, 2, 4 (mod 6)` matter.
+
+**Next.**  A Lean definition of the two-block map with one soundness theorem (instead of fifteen), and the same
+treatment of the three-block starts that offset 0 creates (`x, y` before the last block, `y = 4r + 2`, `6r + 6` or
+`10r + 16` as above); after them the run returns to two blocks by a pass with last block `3m + 2`.

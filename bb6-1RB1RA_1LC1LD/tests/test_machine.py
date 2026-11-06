@@ -351,5 +351,9 @@ class TestBlocks(unittest.TestCase):
         ls, n, S = twoblock.counted_run(8257, 8257, out=open(os.devnull, "w"))
         self.assertEqual((ls, n + 1, S), ([11866], 17246, 1000110302407))
 
+    def test_twoblock_lean(self):
+        """The theorems of lean/TwoBlock.lean, transcribed (twoblock.lean_one), are the block machine's passes."""
+        self.assertGreater(twoblock.check_lean(200, 20), 3800)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
