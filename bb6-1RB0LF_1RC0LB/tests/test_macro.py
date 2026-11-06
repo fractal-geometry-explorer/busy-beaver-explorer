@@ -152,6 +152,56 @@ class TwoStackC(unittest.TestCase):
         self.assertEqual((int(m.group(1)), int(m.group(3))), (T, r2))
 
 
+class Parity(unittest.TestCase):
+    """lean/Parity.lean on the Python macro machine: even configurations are never stuck and stay even away from the
+    left end; the count of odd numbers goes up only at the left end, by 1."""
+
+    @staticmethod
+    def oddc(c):
+        if c[0] == "Binf":
+            return sum(s % 2 for s in c[1])
+        S, ws = c[1], c[-2]
+        n = sum(s % 2 for s in S) + sum(m % 2 + (1 - g % 2) for m, g in ws)
+        return n + (c[2] % 2 if c[0] == "B" else 0)
+
+    @staticmethod
+    def even(c):
+        if c[0] == "Binf":
+            return False
+        S, ws = c[1], c[-2]
+        ok = all(s % 2 == 0 for s in S) and all(m % 2 == 0 and g % 2 == 1 for m, g in ws)
+        return ok and (c[0] == "F" or (c[2] % 2 == 0 and c[2] >= 2))
+
+    def check(self, c, d):
+        bottom = c[0] == "B" and not c[1]
+        if self.even(c):
+            self.assertIsNotNone(d, c)  # even_not_stuck
+            if not bottom:
+                self.assertTrue(self.even(d), c)  # even_step
+        if d is not None:
+            self.assertLessEqual(self.oddc(d) - self.oddc(c), 1 if bottom else 0, c)  # oddc_le
+            if bottom:
+                self.assertEqual(self.oddc(d), self.oddc(c) + 1, c)  # oddc_bottom
+            elif c[0] == "B":
+                self.assertEqual(self.oddc(d), self.oddc(c), c)  # oddc_B
+
+    def test_small_configurations(self):
+        n = 0
+        for c in small_configs():
+            self.check(c, mstep(c))
+            n += self.even(c)
+        self.assertGreater(n, 50)
+
+    def test_run_from_blank(self):
+        c, bottoms = M0, 0
+        for _ in range(300000):
+            d = mstep(c)
+            self.check(c, d)
+            bottoms += c[0] == "B" and not c[1]
+            c = d
+            self.assertLessEqual(self.oddc(c), self.oddc(M0) + bottoms)  # oddc_run
+
+
 class Counter(unittest.TestCase):
     """The counter of lean/Counter.lean on the macro machine, and the same counter on the two-stack form."""
 

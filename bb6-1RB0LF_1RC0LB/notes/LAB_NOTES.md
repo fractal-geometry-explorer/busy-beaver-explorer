@@ -598,3 +598,36 @@ risk might fall with the run's age, not evidence. Copies from many late snapshot
 the stacks, would test it.
 
 **Next.** The run continues from its saved state toward 10¹³ (about 12 hours of one core).
+
+## 6 November 2026: the parity bookkeeping as theorems (`lean/Parity.lean`, kernel)
+
+The notes have used two facts about odd numbers without proof: that a configuration with no odd numbers cannot get
+stuck, and that odd numbers come from the left end. Both are now theorems about `mstep`, for all values of all
+parameters, in the macro machine's own terms (stack entries s, segments m, gaps g, so the two-stack gap n = g − 1 is
+even when g is odd).
+
+* **Even configurations are safe.** Call a configuration even when every stack entry and segment is even and every
+  gap g is odd, and in state B the head gap h is even and at least 2; the last segment may be anything.
+  `even_not_stuck`: `mstep` is defined on it. `even_step`: the next configuration is even again unless the step was B
+  with an empty stack. `even_run`: an even configuration runs t steps without getting stuck, and stays even, as long
+  as none of them is B with an empty stack. The proof is one induction over the word for the F pass (it crosses gaps
+  g = 1, stops at the first odd g ≥ 3, and never meets g = 0) and one case for B.
+* **Odd numbers are born only at the left end.** `oddc` counts the odd stack entries, segments, gaps n = g − 1 and,
+  in state B, the head gap (it becomes the gap n = h − 2), leaving out the last segment. `oddc_B`: B with a nonempty
+  stack keeps the count. `oddc_bottom`: B with an empty stack adds exactly 1 (the segment 1 from below the stack).
+  `oddc_F`: a pass from F keeps the count or takes 2 off (two 1s side by side next to an odd segment: the gap −1 and
+  that segment both become even), or reaches the last segment and loses 1, or meets blank tape and loses at least 1.
+  `oddc_binf`: blank tape ahead of B never adds one. Together, `oddc_le`: a step adds at most 1, and only at the left
+  end; `oddc_run`: after t steps from M the count is at most the count of M plus the number of those steps that were
+  B with an empty stack.
+
+From M0 (one odd number, the head gap 1) this bounds the odd numbers by 1 + (visits to the left end). In the first
+3·10⁶ macro steps (Python, the test in `tests/test_macro.py` covers 3·10⁵): 38 visits to the left end, each adding 1;
+5 passes that cancel two; 28 passes that lose one at the last segment and 6 blank-tape steps; at most 3 odd numbers at
+once (none 30 % of the time, one 51 %, two 19 %, three 0.2 %).
+
+What this leaves open is exactly what the controls of 5 November were about. Getting stuck needs odd numbers, odd
+numbers enter one at a time at the left end and leave at the right end or in pairs, and in between each one moves by
+flips, one frame per flip, as described on 4 November. A proof of non-halting would have to show that the few odd
+numbers in flight never line up on one frame created with value 2. The perturbed copies show that this depends on
+the exact even values around them, so the bookkeeping above, which only counts, cannot settle it on its own.
