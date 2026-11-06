@@ -28,6 +28,14 @@ by 1 when B has an empty stack (`phi_interior`, `phi_end`, `phi_bottom`). Read a
 form's right stack is a call stack), Φ/2 counts the turns of the outermost loop, up to the rare
 steps at the left end. It does not rule out getting stuck by itself.
 
+**Proved in Lean, kernel only** (`lean/Parity.lean`): odd numbers are the only danger and come only from the left
+end. A configuration whose stack entries, segments and gaps n = g − 1 are all even (the last segment is free) is never
+stuck, and stays so until B has an empty stack (`even_not_stuck`, `even_step`, `even_run`). The number of odd
+numbers goes up only when B has an empty stack, by exactly 1; a B step otherwise keeps it and a pass from F keeps it,
+takes 2 off (two odd numbers cancel), or loses 1 at the last segment (`oddc_B`, `oddc_bottom`, `oddc_F`, `oddc_le`). So
+after t steps there are at most 1 + (visits to the left end) odd numbers (`oddc_run`); in the first 3·10⁶ macro
+steps there are 38 such visits and never more than 3 odd numbers.
+
 **Proved in Lean with `native_decide`**: no halt in the first 10,000,000 steps (`blank_runs_10M`); the macro machine does not get stuck in its first 10⁸ steps, so no halt in the first 10⁸ machine steps
 (`macro_runs_100M`, `blank_runs_macro_100M`, `lean/MacroRun.lean`).
 
@@ -69,6 +77,7 @@ have never been more than 4 of them at once.
 | `lean/Pass.lean` | the pass and which passes halt, the leftward sweep and erase (kernel) |
 | `lean/Macro.lean` | the macro machine: encoding, `mstep`, `mstep_sound`, `no_halt_of_macro` (kernel) |
 | `lean/Counter.lean` | the counter Φ: kept by interior steps, changed only at the ends of the tape (kernel) |
+| `lean/Parity.lean` | all-even configurations are safe; odd numbers are born only at the left end (kernel) |
 | `lean/MacroRun.lean` | the macro machine run 10⁸ steps from M0 (`native_decide`), with the tail-recursive check proved equal to `mrun` |
 | `lean/Axioms.lean` | prints what each theorem rests on |
 | `lean/check.sh` | compiles the shared library, then the files above |

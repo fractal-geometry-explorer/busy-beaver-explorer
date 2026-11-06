@@ -75,7 +75,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. This page tracks what has been established about it, sorted by what each result rests on.</p>
     <p>The run is a sequence of passes: the head fills a sparse region into solid 1s moving right, and turns solid blocks back into alternating cells moving left. Lean proves which passes halt, and that from pass start to pass start the run is a macro machine on a stack and a list of segment and gap lengths; the machine halts only if that macro machine gets stuck.</p>
-    <p class="asof">Status as of 5 November 2026.</p>
+    <p class="asof">Status as of 6 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -125,6 +125,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>A conserved counter</h3>
         <p>Read as a recursive program (the right stack of the two-stack form is a call stack), the macro machine keeps a sum &Phi;: the stack, plus the head gap, plus m + g &minus; 1 for every segment m and gap g of the word. A pass that ends inside the word and a B step with a nonempty stack leave &Phi; unchanged; a pass that runs into the last segment adds 2 or 1; B with an empty stack takes 1 off. So &Phi; counts the passes that reach the right end, up to the rare steps at the left end. It does not by itself rule out getting stuck.</p>
         <p class="where"><code>phi_interior</code>, <code>phi_end</code>, <code>phi_bottom</code>, <code>lean/Counter.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Odd numbers are the only danger, and come from the left end</h3>
+        <p>If every stack entry, segment and gap n = g &minus; 1 is even (the last segment may be anything), the macro machine is not stuck and stays all-even until B has an empty stack, for all values. The number of odd numbers goes up only when B has an empty stack, by exactly 1; otherwise a step keeps it, takes 2 off (two odd numbers cancel), or loses 1 at the last segment. So after t steps there are at most 1 + (visits to the left end) odd numbers; in the first 3&middot;10<sup>6</sup> macro steps there are 38 such visits and never more than 3 odd numbers at once.</p>
+        <p class="where"><code>even_not_stuck</code>, <code>even_step</code>, <code>even_run</code>, <code>oddc_le</code>, <code>oddc_run</code>, <code>lean/Parity.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -187,7 +192,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Only a few odd numbers</h3>
-        <p>If every number in a macro configuration is even, every rule gives even numbers again and none can get stuck. Odd numbers enter only at the left end (popping the empty stack gives a segment 1) and at the last segment. In the run there are at most 4 odd numbers at a time, and F meets two 1s side by side only 546 times in 10<sup>10</sup> steps (of 344,806,676 passes).</p>
+        <p>Odd numbers are born only at the left end of the tape (proved, above), and the left end is rare: 38 visits in the first 3&middot;10<sup>6</sup> macro steps. In the run there are at most 4 odd numbers at a time, and F meets two 1s side by side only 546 times in 10<sup>10</sup> steps (of 344,806,676 passes).</p>
         <p class="where"><code>c/macro.c</code>, <code>notes/LAB_NOTES.md</code></p>
       </div>
       <div class="card">
@@ -221,6 +226,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 bb6-1RB0LF_1RC0LB/lean/check.sh               # the library, then Machine, Blank, Axioms (under a minute)
 python3 bb6-1RB0LF_1RC0LB/tests/test_machine.py
 bb6-1RB0LF_1RC0LB/lean/check.sh               # also Macro.lean: mstep_sound, no_halt_of_macro
+bb6-1RB0LF_1RC0LB/lean/check.sh               # also Parity.lean: even configurations are safe, odd numbers come from the left end
 python3 bb6-1RB0LF_1RC0LB/py/blank.py records 100000 60
 gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA 10000000000
 cd tools/py &amp;&amp; python3 -m bbtools.invariants 1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA 12
