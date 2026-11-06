@@ -349,10 +349,12 @@ def load_shapes():
 
 def check(steps, families=True):
     """Each non-counter trip through a family (`family.py`, lean/TopFam.lean) or its shape, compared with the run:
-    'family' (an instance of a family of lean/top_families.txt and the family's end is the run's tape), 'proved'
+    'family' (an instance of a family of lean/top_families.txt and the family's end is the run's tape),
+    'wall' (a wall trip of lean/Rework.lean, `rework.predict`, and its end is the run's tape), 'proved'
     (the shape is in lean/top_shapes.txt and the prediction is the run's tape), 'unlisted' (correct but the shape
     is not in the list), 'long', 'wrong'."""
     import family
+    import rework
     fams = [family.Family(t) for t in family.load()] if families else []
     proved = set(load_shapes())
     tally = collections.Counter()
@@ -360,6 +362,10 @@ def check(steps, families=True):
         fp = family.predict(fams, a) if fams else None
         if fp is not None:
             tally["family" if fp[1] == counter.tape_str(b) else "wrong"] += 1
+            continue
+        wp = rework.predict(a) if families else None
+        if wp is not None:
+            tally["wall" if counter.tape_str(wp) == counter.tape_str(b) else "wrong"] += 1
             continue
         c = cut(a)
         if "long" in c:
