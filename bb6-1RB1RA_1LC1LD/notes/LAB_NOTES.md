@@ -758,3 +758,35 @@ on the run it does, and then only `x ≡ 0, 2, 4 (mod 6)` matter.
 **Next.**  A Lean definition of the two-block map with one soundness theorem (instead of fifteen), and the same
 treatment of the three-block starts that offset 0 creates (`x, y` before the last block, `y = 4r + 2`, `6r + 6` or
 `10r + 16` as above); after them the run returns to two blocks by a pass with last block `3m + 2`.
+
+
+## 6 November 2026: the three-block starts, by a symbolic tracer
+
+**Where the run leaves two blocks.**  A recursive pass with offset 0 after one block leaves three or more blocks
+(`lean/TwoBlock.lean`: `x ≡ 1, 3, 8, 9 (mod 18)` and half of 14).  Over the first 95,333 passes there are 6,191 such
+excursions from two blocks, 2.0 passes long on average, at most 14; 54% last one pass.  In the first 60,000 passes,
+2,184 recursive passes have two or more blocks to the left, 1,498 of them exactly two (a three-block start
+`1^y 0 1^z 0 1^(3j) A>0`); 1,069 of those (71%) end on two blocks again, 404 (27%) have offset 0.
+
+**`py/symtrace.py`**: the block machine run on affine expressions.  Block lengths are `18v + c + 36`; at every branch
+that depends on a residue or a size (a block mod 3, a word 0, 1, 2 or 3, the parity of a run of 2s before the loop
+`tail_iter`) the variable is split (`v → 3v + k`, `v → 2v + k`, `v → 0 | v + 1`) and both sides are followed.  The
+supply is a run of `J + 20` words 2.  Every class that reaches `pre`'s stop gives `pre` in closed form on it, with
+the macro steps taken (the lemma chain of a Lean proof like those of `lean/TwoBlock.lean`).
+
+* One block: 29 classes, 17 residues mod 18 with a single affine class each, and `x ≡ 14 (mod 18)` the only residue
+  that splits without end (the carry of `lvl`).  All agree with `pre`.
+* Two blocks `z` (nearest), `y`: 894 classes, all agreeing with `pre` at three points each.  288 of the 324 residue
+  pairs mod 18 are one affine class (as the least-squares fit found); 15 split into 3, 21 further; and 21 pairs have
+  a branch that splits without end, the analogue of the 14 branch: `z ≡ 14` with `y ≡ 0 (mod 6)`; `y ≡ 14` with `z ≡ 1,
+  4, 7, 10, 13, 16`; `z ≡ 3` with `y ≡ 1 (mod 3)`; `z ≡ 7` with `y ≡ 1, 3, 8, 10`; and `(13, 4)`.
+* Offset 0 on 354 of the 894 classes; 434 end on two blocks.
+
+**For Lean.**  The tracer's steps are the macro steps of the hand proofs, so the closed forms could be generated, but
+at 10 to 67 steps per class and nearly 900 classes, one theorem per class is too much to check by `simp` link by link.
+The way to go is the one of `lean/Offset.lean`: an abstract machine on these residue classes whose transitions are
+proved once, with the class list checked by `decide +kernel`; the deep pairs need an induction like `lvl`.
+
+**Next.**  A two-block map with excursions: `(x, b)` two blocks, and when an offset 0 leaves three, follow them by
+the three-block classes until two blocks come back; the run would then be a walk in that finite description plus the
+3-adic branches, each with its own induction.

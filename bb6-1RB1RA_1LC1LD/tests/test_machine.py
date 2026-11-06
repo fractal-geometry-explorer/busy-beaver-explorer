@@ -23,6 +23,7 @@ import blocks  # noqa: E402
 import macro  # noqa: E402
 import tokens  # noqa: E402
 import twoblock  # noqa: E402
+import symtrace  # noqa: E402
 import build_status  # noqa: E402
 from bbtools import ctl  # noqa: E402
 from bbtools.invariants import conserved  # noqa: E402
@@ -350,6 +351,15 @@ class TestBlocks(unittest.TestCase):
         self.assertGreater(twoblock.check(300), 200)
         ls, n, S = twoblock.counted_run(8257, 8257, out=open(os.devnull, "w"))
         self.assertEqual((ls, n + 1, S), ([11866], 17246, 1000110302407))
+
+    def test_symtrace(self):
+        """py/symtrace.py: the symbolic classes of pre after one and two blocks agree with pre; one block has the
+        single deeper branch x = 14 mod 18 of lean/TwoBlock.lean."""
+        one = symtrace.classes(1)
+        self.assertEqual(symtrace.check(one), 0)
+        self.assertEqual(symtrace.summary(one)[1], [(14,)])
+        two = [c for c in symtrace.classes(2, depth=4) if c[0][0] in (0, 8, 14)]
+        self.assertEqual(symtrace.check(two), 0)
 
     def test_twoblock_lean(self):
         """The theorems of lean/TwoBlock.lean, transcribed (twoblock.lean_one), are the block machine's passes."""
