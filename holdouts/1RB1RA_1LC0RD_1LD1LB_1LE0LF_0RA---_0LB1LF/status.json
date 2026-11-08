@@ -1,0 +1,102 @@
+{
+ "generated": true,
+ "group": "G10",
+ "title": "What is known about 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF.",
+ "machine": "1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF",
+ "crumb": "holdouts / 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (E1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 51,938 cells have been visited and 35,128 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: power/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.663). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.473).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF 1000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 51,938 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "heuristic",
+    "value": "power/sqrt",
+    "text": "The growth shape of the two sides of the tape (see below)."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.663). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.473).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"158.5\" y2=\"158.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"162.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"116.9\" y2=\"116.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"120.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"75.4\" y2=\"75.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"79.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,175.9 L59.2,175.9 L78.4,175.9 L97.6,165.5 L116.8,158.5 L136.0,155.9 L155.2,151.8 L174.4,149.6 L193.6,147.2 L212.8,137.9 L232.0,135.3 L251.2,131.5 L270.4,128.0 L289.6,122.9 L308.8,115.0 L328.0,114.7 L347.2,110.2 L366.4,101.0 L385.6,99.3 L404.8,97.9 L424.0,93.7 L443.2,79.0 L462.4,73.2 L481.6,68.2 L500.8,62.2 L520.0,56.6\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,179.2 L59.2,170.9 L78.4,165.5 L97.6,165.5 L116.8,165.5 L136.0,158.5 L155.2,158.5 L174.4,153.7 L193.6,147.2 L212.8,143.3 L232.0,134.9 L251.2,126.3 L270.4,118.7 L289.6,112.9 L308.8,107.6 L328.0,100.6 L347.2,95.2 L366.4,90.6 L385.6,83.7 L404.8,79.0 L424.0,74.0 L443.2,71.6 L462.4,66.1 L481.6,60.8 L500.8,55.5 L520.0,50.4\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 51,938 cells (14,411 left of the start, 21,766 right), with a density of 1s of 0.676.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>842,815,115</td><td><code>C&gt;0 1^7 0^2 1^7 0^2 1 0^2 1 0^2 1^5 0^2 1^13 0^2 1 0 1 0^2 1 0^2 1^7 0^2 1^7 0^2 1 0^2 1 0^2 1^5 0^2 1 0^2 1^5 0^2 1 0^2 1^7 0^2 1^9 0^2 1^3 0^2 1^5 0^2 1 0^2 1^5 0^2 1 0^2 1 0^2 1^5 0^2 1 0^2 1 0^2 1^7 0^2 1 0^2 1 0^2 1^7 0^2 1 0^2 1 0^2 1^7 0^2 1 0^2 1 0^2 1^7 0^2 1 0^2 1 0^2 1^7 0^2 1 0^2 1 0^2 1^7 0^2 1 0^2 1 0^2 1^7 0^2 1 0^2 1 0^2 1^7 0^2 1 0^2 1 0^2 1^7 0^2 1 0^2 1 0^2 1^7 0^2 1 0^2 1 0^2</code></td></tr><tr><td>left</td><td>858,674,060</td><td><code>D&gt;0 1^8 0^2 1^7 0^2 1 0^2 1^7 0^2 1^11 0^2 1 0^2 1 0^2 1 0^2 1^15 0^2 1^3 0^2 1 0^2 1 0^2 1^7 0^2 1^9 0^2 1 0^2 1 0^2 1^7 0^2 1^11 0^2 1^3 0^2 1^5 0^2 1 0^2 1^5 0^2 1 0^2 1 0^2 1^5 0^2 1 0^2 1 0^2 1^15 0^2 1^3 0^2 1 0^2 1^7 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3</code></td></tr><tr><td>left</td><td>874,668,995</td><td><code>D&gt;0 1^4 0^2 1^3 0^2 1 0^2 1^25 0^2 1 0^2 1 0^2 1^11 0^2 1^3 0^2 1 0^2 1 0^2 1^9 0^2 1^3 0^2 1^5 0^2 1^7 0^2 1^3 0^2 1 0^2 1 0^2 1 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1^5 0^2 1^3 0^2 1</code></td></tr><tr><td>right</td><td>958,142,179</td><td><code>0 1^3 0 1 0 1^2 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2</code></td></tr><tr><td>right</td><td>973,852,299</td><td><code>0 1^3 0 1 0 1^2 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2</code></td></tr><tr><td>right</td><td>989,546,143</td><td><code>0 1^3 0 1 0 1^2 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ }
+}

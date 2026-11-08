@@ -1,0 +1,52 @@
+# The batch of holdouts in holdouts/: on a pull request, the Lean files of every machine folder it touches and the
+# page check; by hand (workflow_dispatch), every folder, in four shards (about 11 s a machine).
+name: Holdouts
+
+on:
+  pull_request:
+    paths:
+      - "holdouts/**"
+      - "pages/holdouts/**"
+      - "tools/**"
+      - ".github/workflows/holdouts.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  changed:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Install Lean
+        run: sudo bash scripts/setup-lean.sh
+      - name: Pages and generated files current
+        run: python3 holdouts/test_holdouts.py
+      - name: Lean of the machine folders this pull request touches (at most 40; the rest by hand)
+        run: |
+          . /etc/profile.d/lean.sh
+          git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- holdouts \
+            | awk -F/ 'NF > 2 {print $2}' | sort -u | head -40 > dirs.txt
+          cat dirs.txt
+          while read d; do [ -x "holdouts/$d/lean/check.sh" ] && "holdouts/$d/lean/check.sh"; done < dirs.txt
+
+  all:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Lean
+        run: sudo bash scripts/setup-lean.sh
+      - name: Lean of every fourth machine folder
+        run: |
+          . /etc/profile.d/lean.sh
+          ls -d holdouts/*/lean | sort | awk 'NR % 4 == ${{ matrix.shard }}' | while read d; do "$d/check.sh"; done

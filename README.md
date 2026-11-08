@@ -31,6 +31,10 @@ Explorations of six-state Busy Beaver machines.
   just started: the halting shape (every halt comes from `E>0 1 1`) and the sweep rules in Lean, bounded runs, and
   first observations of its macro structure, walls in front of which the run from blank tape replays
   ([`README.md`](bb6-1RB1RF_1LC0LB/README.md), [`notes/LAB_NOTES.md`](bb6-1RB1RF_1LC0LB/notes/LAB_NOTES.md)).
+- [`holdouts/`](holdouts/): every other machine of bbchallenge's list of 608 BB(6) holdouts (30 October 2026), one
+  folder each: a first bounded run (10^9 steps) sorted by the growth shape of each side of the tape, the machine in
+  Lean with its halting configurations and bounded runs from blank tape, and an explainer page; the map of all 608 is
+  [`pages/holdouts/index.html`](pages/holdouts/index.html) ([`holdouts/README.md`](holdouts/README.md)).
 - [`tools/`](tools/): machine-agnostic tooling taken from the holdout's code: a Lean library for any machine (with
   proved bounded-run evaluation), a symbolic prover that writes Lean proofs of shift rules, C and Python simulators,
   a parallel parts runner with a checked merge, an invariant finder, a word view of the tape, and builders for a
