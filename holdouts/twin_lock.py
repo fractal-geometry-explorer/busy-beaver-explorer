@@ -1,0 +1,302 @@
+#!/usr/bin/env python3
+"""Write lean/Twin.lean for a pair of machines whose runs from blank tape are the same tape, step for step.
+
+    python3 holdouts/twin_lock.py MACHINE TWIN      # writes holdouts/MACHINE/lean/Twin.lean
+
+The pairs of states (one of MACHINE, one of TWIN) are closed from (A, A): a pair on a symbol either makes the same
+write and move in both machines, and leads to the next pair, or it is a *break* (one machine halts, both halt, or
+they write or move differently).  The Lean file proves that the two runs are locked (same tape, same head position,
+paired states) up to the first break, what happens at each break, and, when the twin halts at every break (or this
+machine does), that one machine's halting implies the other's.  `--list` prints the pairs and breaks only.
+"""
+import os
+import re
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+L = "ABCDEF"
+
+
+def parse(text):
+    m = {}
+    for i, row in enumerate(text.split("_")):
+        for x in range(2):
+            p = row[3 * x:3 * x + 3]
+            m[(i, x)] = None if p[0] == "-" else (int(p[0]), p[1], ord(p[2]) - 65)
+    return m
+
+
+def analyse(t1, t2):
+    """The paired states reachable from (A, A), and the breaks (s, t, symbol, kind)."""
+    a, b = parse(t1), parse(t2)
+    pairs, todo, breaks = {(0, 0)}, [(0, 0)], []
+    while todo:
+        s, t = todo.pop()
+        for x in (0, 1):
+            u, v = a[(s, x)], b[(t, x)]
+            if u is None and v is None:
+                breaks.append((s, t, x, "both"))
+            elif u is None:
+                breaks.append((s, t, x, "first"))
+            elif v is None:
+                breaks.append((s, t, x, "second"))
+            elif u[:2] != v[:2]:
+                breaks.append((s, t, x, "part"))
+            elif (u[2], v[2]) not in pairs:
+                pairs.add((u[2], v[2]))
+                todo.append((u[2], v[2]))
+    return sorted(pairs), sorted(breaks)
+
+
+def namespace(machine):
+    src = open(os.path.join(HERE, machine, "lean", "Machine.lean")).read()
+    return re.search(r"^namespace (\w+)", src, re.M).group(1)
+
+
+def lean_bool(x):
+    return "true" if x else "false"
+
+
+def lean_trans(m):
+    out = []
+    for i in range(6):
+        for x in range(2):
+            t = m[(i, x)]
+            rhs = "none" if t is None else f"some ({lean_bool(t[0])}, .{t[1]}, .{L[t[2]]})"
+            out.append(f"  | .{L[i]}, {lean_bool(x)} => {rhs}")
+    return "\n".join(out)
+
+
+def result(t):
+    """The configuration after transition `t` from a configuration `c`, as a Lean term."""
+    if t is None:
+        return "none"
+    w, d, s = t
+    if d == "R":
+        return f"some ⟨cons {lean_bool(w)} c.l, tail c.r, .{L[s]}⟩"
+    return f"some ⟨tail c.l, cons (c.l 0) (cons {lean_bool(w)} (tail c.r)), .{L[s]}⟩"
+
+
+KIND = {"first": "this machine halts, the twin goes on", "second": "the twin halts, this machine goes on",
+        "both": "both halt", "part": "neither halts, and they write or move differently"}
+
+
+def generate(t1, t2):
+    a, b = parse(t1), parse(t2)
+    pairs, breaks = analyse(t1, t2)
+    ns, tns = namespace(t1), namespace(t2)
+    name = lambda s, t, x: f"{L[s]}_{L[t]}_{x}"
+    doc_pairs = "  ".join(f"{L[s]}-{L[t]}" for s, t in pairs)
+    doc_breaks = "\n".join(f"* `Break.{name(s, t, x)}`: ({L[s]}, {L[t]}) reading {x}: {KIND[k]} (`at_{name(s, t, x)}`)."
+                           for s, t, x, k in breaks)
+    twin_always = all(k in ("second", "both") for *_, k in breaks)
+    this_always = all(k in ("first", "both") for *_, k in breaks)
+    if twin_always and this_always:
+        concl = ("Every break is a halt of both machines at once, so the two machines halt or run on together\n"
+                 "(`halts_iff`), with no assumption.")
+    elif twin_always:
+        concl = ("The twin halts at every break, so **if this machine halts, the twin halts** (`twin_halts_of_halts`),\n"
+                 "with no assumption: a proof that the twin runs forever is a proof for this machine too.  The converse\n"
+                 "is not proved: at a break where only the twin halts, this machine goes on, no longer tied to it.")
+    elif this_always:
+        concl = ("This machine halts at every break, so **if the twin halts, this machine halts** (`halts_of_twin_halts`),\n"
+                 "with no assumption: a proof that this machine runs forever is a proof for the twin too.  The converse\n"
+                 "is not proved: at a break where only this machine halts, the twin goes on, no longer tied to it.")
+    else:
+        concl = ("Not proved, and not provable along this line without settling the machines: that the two halt or run\n"
+                 "on together.  A machine's halt is itself a break, and there the other machine does not halt; what it\n"
+                 "does afterwards is no longer tied to the first.  \"No break ever\" says that both run forever.")
+    o = []
+    o.append(f"""import Machine
+
+/-!
+# {t1} and its twin {t2}, step for step
+
+Generated by `holdouts/twin_lock.py`; do not edit by hand.
+
+In 10^7 steps from blank tape the two machines write the same symbols and make the same moves.  The reason is in
+the tables.  The pairs of states (this machine, twin) reachable from (A, A),
+
+    {doc_pairs}
+
+make the same write and the same move on the same symbol, and lead to another such pair, in every case but these:
+
+{doc_breaks}
+
+Proved here, with no assumption: from blank tape the two runs have the same tape, the same head position and paired
+states at every step up to the first break (`lock_or_break`); a machine that halts has met a break
+(`break_of_halts`); if no break ever happens, neither machine halts (`not_halts_of_noBreak`).
+
+{concl}
+-/
+
+namespace {ns}
+
+open TM
+
+/-! The twin, {t2}, with the table of its own folder's `Machine.lean` (`{tns}.trans`). -/
+
+namespace Twin
+
+inductive St where
+  | A | B | C | D | E | F
+  deriving DecidableEq, Repr
+
+def trans : St → Bool → Option (Bool × Dir × St)
+{lean_trans(b)}
+
+def text : String := "{t2}"
+
+abbrev Config := TM.Cfg St
+abbrev step := TM.step trans
+abbrev steps := TM.steps trans
+abbrev init : Config := TM.blankCfg .A
+abbrev HaltsFromBlank : Prop := TM.Halts trans init
+
+end Twin
+
+/-- The pairs of states (this machine, twin) that go together. -/
+def paired : St → Twin.St → Bool
+  {" ".join(f"| .{L[s]}, .{L[t]}" for s, t in pairs)} => true
+  | _, _ => false
+
+/-- Locked: the same tape, the same head position, paired states. -/
+def Lock (c : Config) (d : Twin.Config) : Prop := c.l = d.l ∧ c.r = d.r ∧ paired c.st d.st = true
+
+/-- The places where paired states do not act alike. -/
+inductive Break : Config → Twin.Config → Prop""")
+    for s, t, x, k in breaks:
+        o.append(f"  | {name(s, t, x)} (c d) : c.st = .{L[s]} → d.st = .{L[t]} → c.r 0 = {lean_bool(x)} → Break c d")
+    alts = "\n".join(f"    | exact absurd (Break.{name(s, t, x)} _ _ rfl rfl hx) hb" for s, t, x, k in breaks)
+    o.append(f"""
+theorem lock_init : Lock init Twin.init := ⟨rfl, rfl, rfl⟩
+
+/-- One step keeps two locked configurations locked, unless they are at a break. -/
+theorem lock_step {{c : Config}} {{d : Twin.Config}} (h : Lock c d) (hb : ¬ Break c d) :
+    ∃ c' d', step c = some c' ∧ Twin.step d = some d' ∧ Lock c' d' := by
+  obtain ⟨l, r, s⟩ := c
+  obtain ⟨l', r', t⟩ := d
+  obtain ⟨h₁, h₂, h₃⟩ := h
+  simp only at h₁ h₂ h₃
+  subst h₁ h₂
+  cases s <;> cases t <;> simp [paired] at h₃ <;> cases hx : r 0 <;>
+    first
+{alts}
+    | simp [step, Twin.step, TM.step, trans, Twin.trans, hx, Lock, paired]
+""")
+    for s, t, x, k in breaks:
+        o.append(f"""/-- At the break ({L[s]}, {L[t]}) reading {x}: {KIND[k]}. -/
+theorem at_{name(s, t, x)} {{c : Config}} {{d : Twin.Config}} (h : Lock c d) (hc : c.st = .{L[s]}) (hd : d.st = .{L[t]})
+    (hx : c.r 0 = {lean_bool(x)}) :
+    step c = {result(a[(s, x)])} ∧
+    Twin.step d = {result(b[(t, x)])} := by
+  obtain ⟨l, r, s⟩ := c
+  obtain ⟨l', r', t⟩ := d
+  obtain ⟨h₁, h₂, _⟩ := h
+  simp only at h₁ h₂ hc hd hx
+  subst h₁ h₂ hc hd
+  simp [step, Twin.step, TM.step, trans, Twin.trans, hx]
+""")
+    o.append("""/-- The two runs from blank tape, `n` steps each. -/
+def Run (n : Nat) (c : Config) (d : Twin.Config) : Prop :=
+  steps n init = some c ∧ Twin.steps n Twin.init = some d
+
+/-- **Step for step until the first break.**  After `n` steps from blank tape the two machines are locked, or they
+were locked at a break at some earlier step. -/
+theorem lock_or_break (n : Nat) :
+    (∃ c d, Run n c d ∧ Lock c d) ∨ (∃ m, m < n ∧ ∃ c d, Run m c d ∧ Lock c d ∧ Break c d) := by
+  induction n with
+  | zero => exact .inl ⟨_, _, ⟨rfl, rfl⟩, lock_init⟩
+  | succ n ih =>
+    rcases ih with ⟨c, d, ⟨hc, hd⟩, hl⟩ | ⟨m, hm, h⟩
+    · by_cases hb : Break c d
+      · exact .inr ⟨n, Nat.lt_succ_self n, c, d, ⟨hc, hd⟩, hl, hb⟩
+      · obtain ⟨c', d', hc', hd', hl'⟩ := lock_step hl hb
+        refine .inl ⟨c', d', ⟨?_, ?_⟩, hl'⟩
+        · exact steps_seq trans hc (by simp [TM.steps, hc'] : TM.steps trans 1 c = some c')
+        · exact steps_seq Twin.trans hd (by simp [TM.steps, hd'] : TM.steps Twin.trans 1 d = some d')
+    · exact .inr ⟨m, Nat.lt_succ_of_lt hm, h⟩
+
+/-- No break at any step of the two runs. -/
+def NoBreak : Prop := ∀ n c d, Run n c d → Lock c d → ¬ Break c d
+
+/-- With no break, the two runs are locked at every step. -/
+theorem lock_of_noBreak (h : NoBreak) (n : Nat) : ∃ c d, Run n c d ∧ Lock c d := by
+  rcases lock_or_break n with h' | ⟨m, _, c, d, hr, hl, hb⟩
+  · exact h'
+  · exact absurd hb (h m c d hr hl)
+
+/-- With no break, neither machine halts. -/
+theorem not_halts_of_noBreak (h : NoBreak) : ¬ HaltsFromBlank ∧ ¬ Twin.HaltsFromBlank := by
+  constructor
+  · exact not_halts_of_forall trans fun n => by
+      obtain ⟨c, _, ⟨hc, _⟩, _⟩ := lock_of_noBreak h n
+      exact ⟨c, hc⟩
+  · exact not_halts_of_forall Twin.trans fun n => by
+      obtain ⟨_, d, ⟨_, hd⟩, _⟩ := lock_of_noBreak h n
+      exact ⟨d, hd⟩
+
+/-- With no break, the two machines have the same halting behaviour (neither halts). -/
+theorem halts_iff_of_noBreak (h : NoBreak) : HaltsFromBlank ↔ Twin.HaltsFromBlank := by
+  obtain ⟨h₁, h₂⟩ := not_halts_of_noBreak h
+  exact ⟨fun x => absurd x h₁, fun x => absurd x h₂⟩
+
+/-- If either machine halts, the runs reached a break while locked. -/
+theorem break_of_halts (h : HaltsFromBlank ∨ Twin.HaltsFromBlank) :
+    ∃ n c d, Run n c d ∧ Lock c d ∧ Break c d := by
+  apply Classical.byContradiction
+  intro hn
+  have nb : NoBreak := fun n c d hr hl hb => hn ⟨n, c, d, hr, hl, hb⟩
+  obtain ⟨h₁, h₂⟩ := not_halts_of_noBreak nb
+  rcases h with h | h
+  · exact h₁ h
+  · exact h₂ h
+""")
+    cases2 = "\n".join(f"  | {name(s, t, x)} hs ht hx => exact (at_{name(s, t, x)} hl hs ht hx).2" for s, t, x, k in breaks)
+    cases1 = "\n".join(f"  | {name(s, t, x)} hs ht hx => exact (at_{name(s, t, x)} hl hs ht hx).1" for s, t, x, k in breaks)
+    if twin_always:
+        o.append(f"""/-- The twin halts at every break. -/
+theorem twin_halts_at_break {{c : Config}} {{d : Twin.Config}} (hl : Lock c d) (hb : Break c d) : Twin.step d = none := by
+  cases hb with
+{cases2}
+
+/-- **If this machine halts from blank tape, so does the twin.** -/
+theorem twin_halts_of_halts (h : HaltsFromBlank) : Twin.HaltsFromBlank := by
+  obtain ⟨n, c, d, ⟨_, hd⟩, hl, hb⟩ := break_of_halts (.inl h)
+  exact ⟨n, d, hd, twin_halts_at_break hl hb⟩
+""")
+    if this_always:
+        o.append(f"""/-- This machine halts at every break. -/
+theorem halts_at_break {{c : Config}} {{d : Twin.Config}} (hl : Lock c d) (hb : Break c d) : step c = none := by
+  cases hb with
+{cases1}
+
+/-- **If the twin halts from blank tape, so does this machine.** -/
+theorem halts_of_twin_halts (h : Twin.HaltsFromBlank) : HaltsFromBlank := by
+  obtain ⟨n, c, d, ⟨hc, _⟩, hl, hb⟩ := break_of_halts (.inr h)
+  exact ⟨n, c, hc, halts_at_break hl hb⟩
+""")
+    if twin_always and this_always:
+        o.append("""/-- **The two machines halt or run on together.** -/
+theorem halts_iff : HaltsFromBlank ↔ Twin.HaltsFromBlank := ⟨twin_halts_of_halts, halts_of_twin_halts⟩
+""")
+    o.append(f"end {ns}\n")
+    return "\n".join(o)
+
+
+def main():
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    t1, t2 = args
+    if "--list" in sys.argv:
+        pairs, breaks = analyse(t1, t2)
+        print("pairs ", " ".join(L[s] + L[t] for s, t in pairs))
+        for s, t, x, k in breaks:
+            print(f"break ({L[s]}, {L[t]}) reading {x}: {KIND[k]}")
+        return
+    path = os.path.join(HERE, t1, "lean", "Twin.lean")
+    open(path, "w").write(generate(t1, t2))
+    print("wrote", path)
+
+
+if __name__ == "__main__":
+    main()
