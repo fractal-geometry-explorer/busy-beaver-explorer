@@ -103,6 +103,12 @@ More than a day of work remains.
 
 Open. The claims with what each rests on are in `status.json` and the proof-status page.
 
+## Deep exact run
+
+No halt in the first 1.24x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 6 cells ran
+from blank tape to step 12,428,929,969,419,733,536. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,010,402 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB1RD_0LC0LB_0RE0LD_1LB0RB_1RF---_0RA0RC/explainer.html`](../../pages/holdouts/1RB1RD_0LC0LB_0RE0LD_1LB0RB_1RF---_0RA0RC/explainer.html)

@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 12 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open, and reduced to an orbit.</b> A step takes <code>W A&gt; 0 b^N 1</code> (b = 110) to <code>W' A&gt; 0 b^N' 1</code> with N' = (3N + c)/2, where the new wall W' and c are computed from the wall W and the parity of N. Lean proves the transfer loop behind the 3/2, the step map for every wall on which its simulator answers, and that, as long as it answers along the orbit, the machine halts from blank tape exactly when the orbit reaches a halting step. The map has been iterated for 40,000 steps without a halt (the plain-simulation map for 300,000), and no wall with a halting step has been found in a search of the wall graph: no halting mechanism is known for this machine, but no invariant excluding one is proved."
  ],
@@ -106,15 +106,39 @@
    "where": "<code>py/stepmap.py graph</code>"
   },
   {
+   "level": "trusted",
+   "title": "The wall is a stack of counters (observed)",
+   "text": "Every wall in the first 100,000 steps of the orbit is <code>1 X_1 &hellip; X_n</code> with items <code>K(k) = b^k 1^3 b 1</code> (an open counter) and <code>K'(k) = b^k 1^6</code> (a closed one), at most 7 items. A step sends the parity of N into the wall from the right. An open counter on top closes when the parity is even; when it is odd it becomes about 3k/2 and passes the parity of k to the items below it. A closed counter is dissolved and its copies of b go back to the block, about 3k/2 of them, after it has passed a parity down; an empty closed counter hit by an odd parity gets a new open counter on top. This recursive rule (<code>step</code> in <code>py/stackmodel.py</code>) gives the same (W', N') as the step map that Lean proves, <code>py/zonemap.py</code>, on all 100,000 orbit steps (N then has 58,503 bits) and on 2,563 random walls of up to five items with either parity. It was fitted by hand and is not proved. It has no halting rule, and it does not describe what happens when a count would go below zero or when an empty closed counter lies under other items.",
+   "where": "<code>python3 py/stackmodel.py orbit 100000</code>, <code>python3 py/stackmodel.py random 1500</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Why it may never halt",
    "text": "The numbers in the wall grow like N only along runs of odd N and are absorbed into N by two even steps in a row, so the wall stays short; a halting configuration would need a wall shape the map has not produced in any explored branch. This is evidence, not an argument.",
    "where": ""
   },
   {
+   "level": "trusted",
+   "title": "Rounds between end events, by remainder class",
+   "text": "Sample the run whenever the head is in state B reading 1 with only 0s to its right. Read leftwards from the head, the tape is then <code>A U^m B</code>: one long periodic block between two short context words. For each class (A, U, B, m modulo 1 or 2 (the smallest modulus that works for the context)) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (39 events) the class map predicts the next event in all 26 rounds it applies to. This is an extrapolation checked by computation, not a proof.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 check 3e9</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "273,141 rounds of the class map without a halt",
+   "text": "Iterated with exact integers from the event at step 29,839 of the run (A = <code>(empty)</code>, U = <code>110</code>, m = 79, B = <code>1<sup>8</sup> 0110 1<sup>3</sup></code>): 273,141 rounds without meeting a halting class; m then has 79,895 bits (about 10<sup>48,102</sup> steps of the machine). 226 distinct contexts occur, the longest of 4,246 cells. The iteration stops there, at a context too large for the six simulations (a second long block has formed); this is a limit of the tool, not an event of the machine.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 orbit 273141</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No halting class among 530 contexts",
+   "text": "Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 530 contexts expanded, 530 found, to depth 186. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. 36 contexts longer than 300 cells were not expanded.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 bfs 530</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. By the reduction it halts iff the orbit of the step map reaches a halting step (given that the map keeps answering). No halting step is known at all; a proof of non-halting would need a description of every reachable wall (a tower of 3/2-counters) and of the steps on it.",
+   "text": "Not known. By the reduction it halts iff the orbit of the step map reaches a halting step (given that the map keeps answering). No halting step is known at all. In the observed stack model a halt could only come from a counter running below zero, which needs the counts in the wall to overtake N; a proof of non-halting would need the stack rules proved for every wall and a bound that keeps the wall below N.",
    "where": ""
   },
   {
@@ -130,7 +154,12 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC 1000000000",
   "python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/zonemap.py check 1500",
   "python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/zonemap.py orbit 20000",
-  "python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/stepmap.py graph 100"
+  "python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/stepmap.py graph 100",
+  "python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/stackmodel.py orbit 3000",
+  "python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/stackmodel.py random 300",
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 check 1e9",
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 orbit 5000",
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 bfs 300"
  ],
  "explainer": {
   "lede": "Nobody knows. This machine moves a block of N copies of 110 across a junction two in, three out, so N grows by 3/2 each step, while a wall on the left keeps a tower of smaller counters driven by the parity of N. No halting wall has been found.",
@@ -149,6 +178,11 @@
     "level": "trusted",
     "value": "100 walls",
     "text": "Searched with either parity: no halting step."
+   },
+   {
+    "level": "trusted",
+    "value": "7 levels",
+    "text": "The wall is a stack of 3/2 counters (observed): the deepest stack in 100,000 orbit steps."
    }
   ],
   "presets": [
@@ -184,11 +218,34 @@
     ]
    },
    {
+    "id": "stack",
+    "eyebrow": "Inside the wall",
+    "heading": "The wall is a stack of 3/2 counters",
+    "html": [
+     "<p>The walls the orbit visits are not arbitrary words. Each one is a single 1 followed by a list of items of two kinds, written with b = 110:</p>",
+     "<div class=\"tw\"><table><tr><th>item</th><th>cells</th><th>role</th></tr><tr><td>K(k)</td><td><code>b<sup>k</sup> 1<sup>3</sup> b 1</code></td><td>an open counter holding k</td></tr><tr><td>K'(k)</td><td><code>b<sup>k</sup> 1<sup>6</sup></code></td><td>a closed counter holding k</td></tr></table></div>",
+     "<p>The item nearest the block is the top of the stack. A step sends one bit into the wall, the parity of N, and the wall answers with a number of copies of b that are added to the block:</p>",
+     "<div class=\"tw\"><table><tr><th>top of the stack</th><th>parity</th><th>what happens</th></tr><tr><td>empty wall <code>1</code></td><td>even</td><td>nothing; 2 copies go to the block</td></tr><tr><td>empty wall <code>1</code></td><td>odd</td><td>a new open counter K(0)</td></tr><tr><td>open K(k)</td><td>even</td><td>it closes: K'(k); 2 copies go to the block</td></tr><tr><td>open K(k)</td><td>odd</td><td>k becomes &lfloor;3k/2&rfloor; plus what the stack below answers to the parity of k; the block pays for the growth</td></tr><tr><td>closed K'(0)</td><td>odd</td><td>a new open counter K(0) on top of it</td></tr><tr><td>closed K'(k), otherwise</td><td>either</td><td>it is dissolved: the stack below receives the parity of k (plus one if odd came in), and about 3k/2 copies go back to the block</td></tr></table></div>",
+     "<p>So every level is a counter that multiplies by 3/2, like the block itself, and a level only moves when the level above it sends it a bit. The exact amounts are in <code>py/stackmodel.py</code>. This rule was read off the data and then tested: it gives the same next wall and the same next N as the step map proved in Lean on all 100,000 steps of the orbit computed (walls of up to 7 items) and on 2,563 random walls. It is an observation, not a theorem.</p>",
+     "<p>The model has no rule that halts. What it leaves open is what happens when a counter would have to give more than it holds, which requires the counts in the wall to overtake N. Along the orbit N grows by 3/2 every step while the wall is repeatedly emptied into it, and nothing of the kind has come close. Standard deciders (n-gram closed sets, and pushdown closures with one side of the tape kept exactly) were tried with scratch tools and did not find a certificate; random and exhaustive small configurations of the same shape (about 200,000 in all) did not produce a halt either. Those runs are not in the repository.</p>"
+    ]
+   },
+   {
     "id": "halt",
     "eyebrow": "Halting",
     "heading": "No way to halt has been seen",
     "html": [
      "<p>The machine halts only when E reads a 1, which needs the head in A on a 0 followed by <code>111</code>. In the 300,000 steps of the map from the run, and in every step from the 100 walls reachable with arbitrary parities, this never happens. Unlike the Antihydra-type cryptids, no halting condition on the map is known; but the reachable walls form a tower of counters with no proved description, so non-halting is not proved either.</p>"
+    ]
+   },
+   {
+    "id": "classes",
+    "eyebrow": "Remainder classes",
+    "heading": "Does any remainder class halt?",
+    "html": [
+     "<p>A generic test used on the whole family: sample the run whenever the head is in state B reading 1 with only 0s to its right. Read leftwards from the head, the tape is then <code>A U<sup>m</sup> B</code>, one long periodic block between two short context words A and B. The <em>round</em> to the next sample is computed class by class: for a class (A, U, B, m modulo 1 or 2 (the smallest modulus that works for the context)) six values of m are simulated, and when they agree the round is taken to be an affine map of m. Against the direct run to 3&middot;10<sup>9</sup> steps the class map is right in all 26 rounds it applies to. It is an observed law, not a proved one.</p>",
+     "<p><b>The orbit.</b> Iterated with exact integers from the event at step 29,839 of the run (A = <code>(empty)</code>, U = <code>110</code>, m = 79, B = <code>1<sup>8</sup> 0110 1<sup>3</sup></code>): 273,141 rounds without meeting a halting class; m then has 79,895 bits (about 10<sup>48,102</sup> steps of the machine). 226 distinct contexts occur, the longest of 4,246 cells. The iteration stops there, at a context too large for the six simulations (a second long block has formed); this is a limit of the tool, not an event of the machine.</p>",
+     "<p><b>Can any class halt?</b> Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 530 contexts expanded, 530 found, to depth 186. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. 36 contexts longer than 300 cells were not expanded.</p>"
     ]
    },
    {

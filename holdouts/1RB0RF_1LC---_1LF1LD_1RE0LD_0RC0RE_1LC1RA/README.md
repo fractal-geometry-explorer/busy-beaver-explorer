@@ -58,6 +58,12 @@ bits per half-phase, so 2^40 half-phases mean numbers of 10^12 bits and about 10
   composed with `zig`); then halts_iff for the orbit within those states.
 * Understand w as a counter (its states look like binary words growing by carries).
 
+## Remainder classes (family survey)
+
+- **Rounds between end events, by remainder class** (trusted). Sample the run whenever the head is in state A reading 0 with only 0s to its right. Read leftwards from the head, the tape is then `A U^m B`: one long periodic block between two short context words. For each class (A, U, B, m mod 2) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3·10^9 steps (21 events) the class map predicts the next event in all 15 rounds it applies to. This is an extrapolation checked by computation, not a proof. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA R A 0 check 3e9`
+- **321,951 rounds of the class map without a halt** (heuristic). Iterated with exact integers from the event at step 9,772 of the run (A = `(empty)`, U = `01`, m = 86, B = `0^3 1`): 321,951 rounds without meeting a halting class; m then has 188,336 bits (about 10^113,389 steps of the machine). 25 distinct contexts occur, the longest of 8 cells. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA R A 0 orbit 321951`
+- **Some remainder classes halt** (heuristic). Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 5,000 contexts expanded, 5,013 found, to depth 920. **79 classes halt.** The nearest one is reached by the remainders 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0 (40 rounds, moduli as above), ending at B = `10 1^4`. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA R A 0 bfs 5000`
+
 ## Pages
 
 - [`pages/holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/explainer.html`](../../pages/holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/explainer.html)

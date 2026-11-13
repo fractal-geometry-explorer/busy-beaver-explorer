@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The run is a Collatz-like process: a big block on the left is converted back and forth between two words, growing by a factor about 4/3 per cycle, while a small counter at the right end keeps the remainders. Shift rules are proved in Lean; the cycle map is observed, not decoded exactly, and no reduction of the halting question is given yet."
  ],
@@ -76,6 +76,18 @@
    "where": "<code>tools/c/tm.h</code> (transition counts and windows)"
   },
   {
+   "level": "trusted",
+   "title": "Rounds between end events, by remainder class",
+   "text": "Sample the run whenever the head is in state B reading 1 with only 0s to its right. Read leftwards from the head, the tape is then <code>A U^m B</code>: one long periodic block between two short context words. For each class (A, U, B, m modulo 1 or 6 (the smallest modulus that works for the context)) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (111 events) the class map predicts the next event in all 63 rounds it applies to. This is an extrapolation checked by computation, not a proof.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RC_1LC1RF_1RE0LD_1LC1LA_---1RD_0RB0RA R B 1 check 3e9</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No halting class among 398 contexts",
+   "text": "Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 398 contexts expanded, 775 found, to depth 11. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. 5,888 classes could not be computed (their six simulations disagree or are too long). 128 contexts longer than 300 cells were not expanded.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RC_1LC1RF_1RE0LD_1LC1LA_---1RD_0RB0RA R B 1 bfs 398</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt?",
    "text": "Not known. The exact cycle map (how the remainder mod 3 of X and the tail combine) is not written down yet; with it the question should become a Collatz-like question about that map.",
@@ -91,7 +103,9 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RC_1LC1RF_1RE0LD_1LC1LA_---1RD_0RB0RA/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RC_1LC1RF_1RE0LD_1LC1LA_---1RD_0RB0RA 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RC_1LC1RF_1RE0LD_1LC1LA_---1RD_0RB0RA 1000000000",
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RC_1LC1RF_1RE0LD_1LC1LA_---1RD_0RB0RA R B 1 check 1e9",
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RC_1LC1RF_1RE0LD_1LC1LA_---1RD_0RB0RA R B 1 bfs 300"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
@@ -147,6 +161,15 @@
     "heading": "Only E on a 0",
     "html": [
      "<p>The only halt is E reading a 0, right after C has read a 0 and moved right. In 10<sup>9</sup> steps this setup happened almost six million times and the second cell was always a 1. The places where something irregular happens are the conversions of the big block, where the remainder mod 3 is handed to the tail; whether a tail state can ever put two 0s in front of C is the open question.</p>"
+    ]
+   },
+   {
+    "id": "classes",
+    "eyebrow": "Remainder classes",
+    "heading": "Does any remainder class halt?",
+    "html": [
+     "<p>A generic test used on the whole family: sample the run whenever the head is in state B reading 1 with only 0s to its right. Read leftwards from the head, the tape is then <code>A U<sup>m</sup> B</code>, one long periodic block between two short context words A and B. The <em>round</em> to the next sample is computed class by class: for a class (A, U, B, m modulo 1 or 6 (the smallest modulus that works for the context)) six values of m are simulated, and when they agree the round is taken to be an affine map of m. Against the direct run to 3&middot;10<sup>9</sup> steps the class map is right in all 63 rounds it applies to. It is an observed law, not a proved one.</p>",
+     "<p><b>Can any class halt?</b> Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 398 contexts expanded, 775 found, to depth 11. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. 5,888 classes could not be computed (their six simulations disagree or are too long). 128 contexts longer than 300 cells were not expanded.</p>"
     ]
    },
    {

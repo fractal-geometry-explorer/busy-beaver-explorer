@@ -95,6 +95,12 @@ phases and their step counts are the same for both; the right-end events differ.
   with `01` and blank pairs: that is the full macro machine, and the place to look for an invariant or for a halt.
 * A mirrored CTL certificate (left and right swapped) would make the confinement a Lean theorem.
 
+## Deep exact run
+
+No halt in the first 2.16x10^18 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 6 cells ran
+from blank tape to step 2,166,473,947,245,007,495. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,010,334 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html)

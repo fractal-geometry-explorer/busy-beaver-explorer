@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The tape is a list of blocks of a = 111110 and b = 111010. In each phase one block of a's is moved into another, one a at a time, while a block of b's grows; when it runs out the blocks are reorganised, several levels deep. Only the shape is known, from simulation; one sweep rule is proved in Lean. No halt in 10<sup>9</sup> steps."
  ],
@@ -70,10 +70,22 @@
    "where": "<code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA---</code>, saved in <code>screen.json</code> next to it"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 7&middot;10<sup>16</sup> steps",
+   "text": "The macro simulator of the family screen (blocks of 6 cells, runs of one word crossed at once, exact, checked against the direct simulator) runs from blank tape past step 7&middot;10<sup>16</sup> without a halt.",
+   "where": "<code>holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Proposed family: F01, periodic blocks driven by a bounded engine",
    "text": "The description is small: 8 to 35 level-2 tokens at every record from 2.6&middot;10<sup>8</sup> to 1.7&middot;10<sup>10</sup> steps, and 13 to 38 runs in the macro simulator (blocks of 6 cells) at the sampled records from 10<sup>6</sup> to 7&middot;10<sup>16</sup> steps. For example at step 5&middot;10<sup>12</sup> the macro tape is <code>000110 (111110)^130829 111011 (011111)^354778 011100 (101110)^52876 111010 (101110)^59089</code> and 12 more six-cell words. A few long periodic blocks that are transferred into one another, with a short tail, is the F01 shape. The number of blocks changes with the phase (between 3 and 7 long blocks at the sampled records above 10<sup>12</sup> steps) but did not grow.",
    "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
+   "level": "heuristic",
+   "title": "Eras of bouncer passes, growing by factors 1, 6 and 16",
+   "text": "Observed up to 10<sup>16</sup> steps: the run is a sequence of eras. In an era a wall of one word grows by one block per sweep and eats a run of n blocks while another run grows at the far end, a few passes of about n sweeps each. Two kinds of era alternate, and the main run has 7,389, 7,401, 118,265, 118,281, 709,541 and 4,257,168 blocks at the starts of the last six eras: factors of about 1, 16, 1, 6 and 6. The factor is decided between the passes by the short markers and the irregular tail at the right end; that rule is not known.",
+   "where": "README (tables), <code>py/phases_1e16.txt</code>, <code>c/msim_turns.c</code>, <code>py/phases.py</code>"
   },
   {
    "level": "open",
@@ -91,6 +103,11 @@
  "explainer": {
   "lede": "Nobody knows. This machine keeps a list of blocks made of two words, a = 111110 and b = 111010, and moves one block into another, one word at a time, while a third block grows. When a block runs out the list is reorganised. The shape is clear from simulation; the rules are still to be decoded.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "7&middot;10<sup>16</sup> steps",
+    "text": "No halt in the macro simulator."
+   },
    {
     "level": "kernel",
     "value": "1 sweep rule",
@@ -136,6 +153,17 @@
     ]
    },
    {
+    "id": "eras",
+    "eyebrow": "Phase table, 13 November 2026",
+    "heading": "Eras: a few bouncer passes, then a jump in size",
+    "html": [
+     "<p>Followed for 10<sup>16</sup> steps and read in blocks of six cells, the run falls into eras. An era starts when the head turns at the left end of the tape with no long run behind it. Everything in this section is observed in one run. None of it is proved.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>era starts at step</th><th>long run at the left end</th><th>copies</th></tr></thead><tbody><tr><td>3,226,696</td><td><code>100000</code></td><td>173</td></tr><tr><td>20,781,572</td><td><code>000010</code></td><td>633</td></tr><tr><td>733,253,862</td><td><code>100000</code></td><td>3,701</td></tr><tr><td>1,116,403,678</td><td><code>100000</code></td><td>7,389</td></tr><tr><td>6,800,106,750</td><td><code>000010</code></td><td>7,401</td></tr><tr><td>301,992,023,962</td><td><code>100000</code></td><td>118,265</td></tr><tr><td>1,758,349,347,884</td><td><code>000010</code></td><td>118,281</td></tr><tr><td>61,827,815,752,564</td><td><code>100000</code></td><td>709,541</td></tr><tr><td>393,284,449,924,170</td><td><code>000010</code></td><td>4,257,168</td></tr></tbody></table></div>",
+     "<p>Inside an era the machine is a bouncer. A wall of one word grows by one block per sweep and eats a run of n blocks, while a new run grows at the far end; one such pass takes about n sweeps, and an era has a few passes. For example, in the era that starts at step 301,992,023,962 a wall of <code>110111</code> grows from 332 to 117,663 blocks in 117,332 sweeps while a run of <code>100000</code> shrinks from 117,946 to 615.</p>",
+     "<p>From one era to the next the main run grows by a factor that is not constant: about 1, 16, 1, 6 and 6 for the last six eras. The short markers between the runs and an irregular tail of about a dozen blocks at the right end, which changes at every sweep, decide it. The rule for that is the missing piece: with it, the whole run would be a map from one era to the next.</p>"
+    ]
+   },
+   {
     "id": "screen",
     "eyebrow": "Family screen, 13 November 2026",
     "heading": "Which family it belongs to",
@@ -162,5 +190,5 @@
    }
   ]
  },
- "summary": "A list of blocks of a = 111110 and b = 111010: in each phase one a-block is moved into another, one a at a time, while a b-block grows; the phases nest several levels deep. One sweep rule proved; the phase rules not yet found."
+ "summary": "Eras of bouncer passes over a few long runs; the main run grows by factors of about 1, 6 or 16 from era to era, decided by short markers and an irregular tail at the right end; no halt in 7·10^16 steps; era map not found."
 }

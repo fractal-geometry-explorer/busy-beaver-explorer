@@ -38,6 +38,12 @@ Open. The only halt is D reading a 1; D is entered only from A1 = 0RD and C0 = 1
 - Catalogue the defects (their forms, speeds and phases), then what happens when two meet or one reaches the left
   end; a proof would show no meeting puts A on `11` or C on `01`.
 
+## Deep exact run
+
+No halt in the first 2.72x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 6 cells ran
+from blank tape to step 27,236,709,152,426,296,878. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,001,031 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB0RD_0LC0LF_1RD1LB_0RE---_1RA0LC_0LA1LF/explainer.html`](../../pages/holdouts/1RB0RD_0LC0LF_1RD1LB_0RE---_1RA0LC_0LA1LF/explainer.html)

@@ -81,6 +81,50 @@ A few long periodic blocks that are transferred into one another, with a short t
 
 Next step: Sample at the records where the tape is shortest (state D at the left end) and find the map on the block lengths and the tail; then the F01 closure.
 
+## Eras up to 10^16 steps (F09, 13 November 2026)
+
+The earlier sections describe one phase. `c/msim_turns.c` (the macro simulator with a line at every reversal of the head)
+and `py/phases.py` (which groups the left turns by the list of long runs on the tape) give the picture up to 10^16 steps:
+`py/phases_1e16.txt`, 51 groups of at least 30 left turns with the same runs of at least 300 copies (blocks of 6 cells).
+Everything in this section is observed in one run; none of it is proved.
+
+**No halt in the first 7·10^16 steps** (the macro simulator of the family screen, level: trusted).
+
+The run is a sequence of eras. An era starts when the head turns at the left end with no long run on its left; the
+tape right of it then starts with one long run. Eras found (runs of at least 50 copies before 10^9 steps, at least 300 after):
+
+| first step | long run at the left end | copies |
+|---|---|---|
+| 3,226,696 | `100000` | 173 |
+| 20,781,572 | `000010` | 633 |
+| 733,253,862 | `100000` | 3,701 |
+| 1,116,403,678 | `100000` | 7,389 |
+| 6,800,106,750 | `000010` | 7,401 |
+| 301,992,023,962 | `100000` | 118,265 |
+| 1,758,349,347,884 | `000010` | 118,281 |
+| 61,827,815,752,564 | `100000` | 709,541 |
+| 393,284,449,924,170 | `000010` | 4,257,168 |
+
+Two kinds of era alternate from step 1.1·10^9 on, one over the word `100000` and one over `000010`, and the main run grows
+by a factor that is not constant: about 1 (7,389 to 7,401; 118,265 to 118,281), 16 (7,401 to 118,265) and 6 (118,281 to
+709,541 to 4,257,168). Inside an era the machine is a bouncer making a few passes. In each pass a wall of `110111` (or
+`011111`) grows by one block per sweep and eats a run of n blocks, while a new run grows behind the far end, so a pass
+takes about n sweeps. The long phases of the era starting at step 301,992,023,962:
+
+| first step | left turns | what changes |
+|---|---|---|
+| 301,992,023,962 | 287 | `100000^n` 118,265 → 117,979; `010001^m` 59,111 → 58,982; nothing long left of the head |
+| 303,312,950,888 | 117,332 | wall `110111^k` 332 → 117,663; `100000^n` 117,946 → 615; a second run `100000` 300 → 117,630; `010001^m` 58,965 → 300 |
+| 743,670,569,254 | 117,635 | second wall `110111^k` 300 → 117,934 behind a finished `110111^118264`; `100000` 117,934 → 300; `100010` 302 → 117,932 |
+
+Between the passes the short markers and the irregular tail at the right end (about a dozen blocks that change at
+every sweep) decide what the next pass does. That is where the factors 1, 6 and 16 must come from; the rule is not
+known. Because the passes are plain bouncer passes, a proof would need only the map from one era to the next, including
+the tail. Reproduce (about 9 minutes):
+
+    gcc -O2 -o msim_turns c/msim_turns.c
+    ./msim_turns 1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA--- 6 1e16 - 1 t | grep " A> " | python3 py/phases.py /dev/stdin 300 30
+
 ## Pages
 
 - [`pages/holdouts/1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA---/explainer.html`](../../pages/holdouts/1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA---/explainer.html)

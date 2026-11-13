@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The macro words and the transfer phase are identified, and Lean proves the sweeps over <code>(10)^n</code>; the rule for a whole round is not known yet."
  ],
@@ -58,6 +58,18 @@
    "where": "<code>README.md</code>"
   },
   {
+   "level": "trusted",
+   "title": "Rounds between end events, by remainder class",
+   "text": "Sample the run whenever the head is in state A reading 0 with only 0s to its left. Read rightwards from the head, the tape is then <code>A U^m B</code>: one long periodic block between two short context words. For each class (A, U, B, m mod 6) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (112 events) the class map predicts the next event in all 45 rounds it applies to. This is an extrapolation checked by computation, not a proof.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE L A 0 check 3e9</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No halting class among 2,209 contexts",
+   "text": "Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 2,209 contexts expanded, 4,353 found, to depth 13. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. 13,120 classes could not be computed (their six simulations disagree or are too long). 26 contexts longer than 300 cells were not expanded.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE L A 0 bfs 2209</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known; no round rule has been found yet, so the question is not reduced to a map.",
@@ -73,7 +85,9 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE 1000000000",
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE L A 0 check 1e9",
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE L A 0 bfs 300"
  ],
  "explainer": {
   "lede": "Nobody knows. This machine keeps one long block at its right end that grows about 4/3 per round, re-encoded each time, and a list of counters on the left. Its round rule has not been found yet.",
@@ -112,6 +126,15 @@
      "<p>Between these phases the head works through a list of counters on the left, runs of a separated by runs of ones whose lengths are multiples of 6; only then does the tape grow on the left (the logarithmic side). The long block grows by about 4/3 per round, like the related machine 1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD, but here the counters on the left grow as well.</p>",
      "<table class=\"tbl\"><thead><tr><th>step</th><th>counters</th><th>ones</th></tr></thead><tbody><tr><td>81,124,580</td><td><code>a 1^2 a^14 1^6 a^7 1^24 a^8 1^24 a^656</code></td><td>8,750</td></tr><tr><td>547,364,700</td><td><code>a 1^18 a^20 1^12 a^26 1^12 a^174</code></td><td>29,966</td></tr><tr><td>962,962,904</td><td><code>a 1^14 a^20 1^36 a^14 1^48 a^354</code></td><td>39,758</td></tr><tr><td>5,363,706,536</td><td><code>a 1^26 a^26 1^12 a^26 1^18 a 1^36 a</code></td><td>97,478</td></tr></tbody></table>",
      "<p>The machine halts only on C reading 0, which needs B on a 0 with a 0 to its left. No rule for a whole round is known yet, so whether that ever happens is open.</p>"
+    ]
+   },
+   {
+    "id": "classes",
+    "eyebrow": "Remainder classes",
+    "heading": "Does any remainder class halt?",
+    "html": [
+     "<p>A generic test used on the whole family: sample the run whenever the head is in state A reading 0 with only 0s to its left. Read rightwards from the head, the tape is then <code>A U<sup>m</sup> B</code>, one long periodic block between two short context words A and B. The <em>round</em> to the next sample is computed class by class: for a class (A, U, B, m mod 6) six values of m are simulated, and when they agree the round is taken to be an affine map of m. Against the direct run to 3&middot;10<sup>9</sup> steps the class map is right in all 45 rounds it applies to. It is an observed law, not a proved one.</p>",
+     "<p><b>Can any class halt?</b> Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 2,209 contexts expanded, 4,353 found, to depth 13. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. 13,120 classes could not be computed (their six simulations disagree or are too long). 26 contexts longer than 300 cells were not expanded.</p>"
     ]
    },
    {

@@ -108,6 +108,12 @@ above.  `lean/Blank.lean`: the halting configurations (`step_none_iff`), no halt
   its README has the right-end map, the exhaustion cases, what did not work and the plan.  A non-halting proof
   for the twin's run from state B, combined with `twin`, decides this machine.
 
+## Deep exact run
+
+No halt in the first 1.99x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 6 cells ran
+from blank tape to step 19,952,976,721,474,659,050. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,023,252 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD/explainer.html`](../../pages/holdouts/1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD/explainer.html)

@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The machine is a counter that grows by a factor 3/2 per epoch (two moves proved in Lean), whose parities drive a growing stack of slower counters. Lean also proves that a halt can only happen past the right end of the tape, which would need the whole stack to be used up; through 83 epochs (10<sup>30</sup> steps) the stack only grows and its bottom has frozen."
  ],
@@ -76,6 +76,24 @@
    "where": "README, <code>py/epochs.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "Rounds between end events, by remainder class",
+   "text": "Sample the run whenever the head is in state D reading 1 with only 0s to its left. Read rightwards from the head, the tape is then <code>A U^m B</code>: one long periodic block between two short context words. For each class (A, U, B, m modulo 1 or 2 (the smallest modulus that works for the context)) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (59 events) the class map predicts the next event in all 25 rounds it applies to. This is an extrapolation checked by computation, not a proof.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 check 3e9</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "1,742 rounds of the class map without a halt",
+   "text": "Iterated with exact integers from the event at step 181,384 of the run (A = <code>(empty)</code>, U = <code>10</code>, m = 373, B = <code>1<sup>4</sup> (01)<sup>18</sup> 1<sup>3</sup> (01)<sup>4</sup> 1<sup>3</sup> 01</code>): 1,742 rounds without meeting a halting class; m then has 519 bits (about 10<sup>312</sup> steps of the machine). 1,742 distinct contexts occur, the longest of 2,729 cells.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 orbit 1742</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No halting class among 5,000 contexts",
+   "text": "Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 5,000 contexts expanded, 6,526 found, to depth 23. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 bfs 5000</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. A halt needs the stack to be emptied; the parities of m that drive it look random. The epoch-end cases (parity of m and the first items of the list) are read off the run, not proved.",
@@ -87,7 +105,10 @@
   "holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/lean/check.sh",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 1000000000",
   "cd holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA && python3 py/rules.py | diff - lean/Rules.lean",
-  "python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/epochs.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 2 1e30 E L \"pre:2 4 1^\""
+  "python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/epochs.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 2 1e30 E L \"pre:2 4 1^\"",
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 check 1e9",
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 orbit 1742",
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 bfs 300"
  ],
  "explainer": {
   "lede": "Nobody knows. This machine is a counter that multiplies itself by about 3/2, over and over; each time, whether the count is odd or even nudges a stack of slower counters next to it. It can only stop if that stack is ever used up. This page runs the real machine in your browser and explains the mechanism.",
@@ -164,6 +185,16 @@
     "html": [
      "<p>The machine stops only when state F reads a 0. A <em>closed tape language</em> (a finite description of every tape the run can produce, here from windows of 4 cells, checked by Lean) shows that this can only happen when F walks off the right end of the tape. Since the head works at the left end, that needs the whole stack to be used up in one cascade.</p>",
      "<p>Whether that ever happens depends on the sequence of parities of m, which looks random: a Collatz-like question. Nothing seen so far comes close: the stack grows by about one item every three epochs.</p>"
+    ]
+   },
+   {
+    "id": "classes",
+    "eyebrow": "Remainder classes",
+    "heading": "Does any remainder class halt?",
+    "html": [
+     "<p>A generic test used on the whole family: sample the run whenever the head is in state D reading 1 with only 0s to its left. Read rightwards from the head, the tape is then <code>A U<sup>m</sup> B</code>, one long periodic block between two short context words A and B. The <em>round</em> to the next sample is computed class by class: for a class (A, U, B, m modulo 1 or 2 (the smallest modulus that works for the context)) six values of m are simulated, and when they agree the round is taken to be an affine map of m. Against the direct run to 3&middot;10<sup>9</sup> steps the class map is right in all 25 rounds it applies to. It is an observed law, not a proved one.</p>",
+     "<p><b>The orbit.</b> Iterated with exact integers from the event at step 181,384 of the run (A = <code>(empty)</code>, U = <code>10</code>, m = 373, B = <code>1<sup>4</sup> (01)<sup>18</sup> 1<sup>3</sup> (01)<sup>4</sup> 1<sup>3</sup> 01</code>): 1,742 rounds without meeting a halting class; m then has 519 bits (about 10<sup>312</sup> steps of the machine). 1,742 distinct contexts occur, the longest of 2,729 cells.</p>",
+     "<p><b>Can any class halt?</b> Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 5,000 contexts expanded, 6,526 found, to depth 23. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself.</p>"
     ]
    },
    {

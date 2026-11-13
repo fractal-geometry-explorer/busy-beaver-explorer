@@ -67,6 +67,12 @@ Open. Lean: the halting configurations and no halt in 10^7 steps (`lean/Blank.le
 python3 holdouts/1RB0RE_1LC0RE_1LA1LD_0LB1LF_1RC1RA_1LB---/lean/rules.py | diff - holdouts/1RB0RE_1LC0RE_1LA1LD_0LB1LF_1RC1RA_1LB---/lean/Rules.lean
 ```
 
+## Deep exact run
+
+No halt in the first 2.11x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 8 cells ran
+from blank tape to step 21,152,114,940,677,496,051. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,014,521 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB0RE_1LC0RE_1LA1LD_0LB1LF_1RC1RA_1LB---/explainer.html`](../../pages/holdouts/1RB0RE_1LC0RE_1LA1LD_0LB1LF_1RC1RA_1LB---/explainer.html)

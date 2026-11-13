@@ -39,6 +39,12 @@ with widths 2..6, plain and with `-H 2`, `-H 3`, `-U`.
   fuel y of each segment), check it for many sweeps, then find what happens when a fuel runs out.
 - Look at which marker configuration would put F on a 1 followed by `10101`/`10110`.
 
+## Deep exact run
+
+No halt in the first 2.48x10^18 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 4 cells ran
+from blank tape to step 2,488,717,087,384,664,057. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,010,382 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB0LC_1RC0RC_1LD0RB_1LA0LE_1LD1LF_1LD---/explainer.html`](../../pages/holdouts/1RB0LC_1RC0RC_1LD0RB_1LA0LE_1LD1LF_1LD---/explainer.html)

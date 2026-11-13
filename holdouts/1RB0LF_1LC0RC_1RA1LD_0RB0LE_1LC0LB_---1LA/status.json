@@ -88,6 +88,12 @@
    "where": "<code>py/digits.py far</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 4.48&times;10<sup>19</sup> steps (exact macro run)",
+   "text": "A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 44,851,509,440,286,316,893 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,027,050 steps. This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Why it probably never halts",
    "text": "Every event seen (sweeps, mergers, overflows, the T walk, the top's cycle, the first run being used up) is one of a small catalogue of local rewrites of digits, none of which passes the halting shape <code>0 1 F&gt; 1</code>; the catalogue stopped growing except for longer carry chains. A proof needs that catalogue closed under the rules.",

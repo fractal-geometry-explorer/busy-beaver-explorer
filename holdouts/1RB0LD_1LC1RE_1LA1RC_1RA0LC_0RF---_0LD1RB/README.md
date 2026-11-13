@@ -75,6 +75,12 @@ python3 holdouts/1RB0LD_1LC1RE_1LA1RC_1RA0LC_0RF---_0LD1RB/py/gen_rules.py   # r
 gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LD_1LC1RE_1LA1RC_1RA0LC_0RF---_0LD1RB 30000000 records
 ```
 
+## Deep exact run
+
+No halt in the first 5.30x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 9 cells ran
+from blank tape to step 53,075,697,817,764,149,403. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,071,532 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB0LD_1LC1RE_1LA1RC_1RA0LC_0RF---_0LD1RB/explainer.html`](../../pages/holdouts/1RB0LD_1LC1RE_1LA1RC_1RA0LC_0RF---_0LD1RB/explainer.html)

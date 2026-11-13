@@ -131,6 +131,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 9.30&times;10<sup>17</sup> steps (exact macro run)</h3>
+        <p>A macro simulator (blocks of 4 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 930,714,372,877,348,461 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,000,349 steps. This is a bounded run and says nothing about later steps.</p>
+        <p class="where"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code></p>
+      </div>
+      <div class="card">
         <h3>Where a halt can happen (closed tape language, 5-cell windows)</h3>
         <p>The closure search of <code>bbtools.ctl</code> with windows of 5 cells is closed but allows halts; the halting abstract configurations constrain the neighbourhood of a halt: a halt (F reading 1) needs <code>01001</code>, <code>0101x</code> or <code>01010</code> to the left and a right side starting <code>10</code>. A Python check, not a Lean certificate (the Lean library only has the right-edge and no-halt corollaries, which do not apply).</p>
         <p class="where"><code>python3 -m bbtools.ctl 1RB0RF_1LC0RA_0LD0LB_1RD1LE_0RC0RA_1RA--- 5</code></p>

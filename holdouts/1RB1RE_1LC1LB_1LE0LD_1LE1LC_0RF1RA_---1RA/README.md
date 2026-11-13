@@ -76,6 +76,12 @@ Enumerate the epoch-end cases with `bbtools.symtm` (a long run `(11)^x`, the par
 two or three items of L as symbolic runs), which would make the map on (m, L) exact; then look for an invariant of
 the stack that rules out its being emptied.
 
+## Remainder classes (family survey)
+
+- **Rounds between end events, by remainder class** (trusted). Sample the run whenever the head is in state D reading 1 with only 0s to its left. Read rightwards from the head, the tape is then `A U^m B`: one long periodic block between two short context words. For each class (A, U, B, m modulo 1 or 2 (the smallest modulus that works for the context)) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3·10^9 steps (59 events) the class map predicts the next event in all 25 rounds it applies to. This is an extrapolation checked by computation, not a proof. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 check 3e9`
+- **1,742 rounds of the class map without a halt** (heuristic). Iterated with exact integers from the event at step 181,384 of the run (A = `(empty)`, U = `10`, m = 373, B = `1^4 (01)^18 1^3 (01)^4 1^3 01`): 1,742 rounds without meeting a halting class; m then has 519 bits (about 10^312 steps of the machine). 1,742 distinct contexts occur, the longest of 2,729 cells. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 orbit 1742`
+- **No halting class among 5,000 contexts** (heuristic). Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 5,000 contexts expanded, 6,526 found, to depth 23. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 bfs 5000`
+
 ## Pages
 
 - [`pages/holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/explainer.html`](../../pages/holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/explainer.html)

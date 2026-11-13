@@ -76,6 +76,12 @@ start, 24,470 right), 23,567 ones.
 - `py/analyse.py image`: the defect picture `pages/holdouts/1RB0LB_1RC1LD_1LD0RD_1LE0RC_1LF---_0LA1RF/defects.png`; `py/analyse.py records`: the bursts of growth at the slow end (up to 3·10^9 steps, several minutes).
 - `py/mirror.py`: checks that the table is the mirror image of 1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB's.
 
+## Deep exact run
+
+No halt in the first 5.32x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 10 cells ran
+from blank tape to step 53,217,975,838,539,444,064. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,034,504 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB0LB_1RC1LD_1LD0RD_1LE0RC_1LF---_0LA1RF/explainer.html`](../../pages/holdouts/1RB0LB_1RC1LD_1LD0RD_1LE0RC_1LF---_0LA1RF/explainer.html)

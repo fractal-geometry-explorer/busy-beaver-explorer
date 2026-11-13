@@ -124,11 +124,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA--- / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 13 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA---</p>
   <div class="col"><p class="lede">Nobody knows. This machine keeps a list of blocks made of two words, a = 111110 and b = 111010, and moves one block into another, one word at a time, while a third block grows. When a block runs out the list is reorganised. The shape is clear from simulation; the rules are still to be decoded.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev c">Computed</span><b>7&middot;10<sup>16</sup> steps</b><span class="small">No halt in the macro simulator.</span></div>
     <div class="fact"><span class="ev k">Kernel</span><b>1 sweep rule</b><span class="small">The b-block is crossed unchanged (Lean).</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>x + y fixed</b><span class="small">Within a phase one a-block feeds another.</span></div>
     <div class="fact"><span class="ev o">Open</span><b>phase map</b><span class="small">Not yet found.</span></div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Blocks feeding blocks</a><a href="#halt">Open</a><a href="#screen">Which family it belongs to</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Blocks feeding blocks</a><a href="#halt">Open</a><a href="#eras">Eras: a few bouncer passes, then a jump in size</a><a href="#screen">Which family it belongs to</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -222,6 +223,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Open</h2>
 <p>The machine halts exactly when the head in state B reads <code>1 1</code>. Whether a reorganisation can produce that depends on rules that have not been found yet.</p>
 </section>
+<section id="eras">
+  <span class="eyebrow">Phase table, 13 November 2026</span>
+  <h2>Eras: a few bouncer passes, then a jump in size</h2>
+<p>Followed for 10<sup>16</sup> steps and read in blocks of six cells, the run falls into eras. An era starts when the head turns at the left end of the tape with no long run behind it. Everything in this section is observed in one run. None of it is proved.</p>
+<div style="overflow-x:auto"><table><thead><tr><th>era starts at step</th><th>long run at the left end</th><th>copies</th></tr></thead><tbody><tr><td>3,226,696</td><td><code>100000</code></td><td>173</td></tr><tr><td>20,781,572</td><td><code>000010</code></td><td>633</td></tr><tr><td>733,253,862</td><td><code>100000</code></td><td>3,701</td></tr><tr><td>1,116,403,678</td><td><code>100000</code></td><td>7,389</td></tr><tr><td>6,800,106,750</td><td><code>000010</code></td><td>7,401</td></tr><tr><td>301,992,023,962</td><td><code>100000</code></td><td>118,265</td></tr><tr><td>1,758,349,347,884</td><td><code>000010</code></td><td>118,281</td></tr><tr><td>61,827,815,752,564</td><td><code>100000</code></td><td>709,541</td></tr><tr><td>393,284,449,924,170</td><td><code>000010</code></td><td>4,257,168</td></tr></tbody></table></div>
+<p>Inside an era the machine is a bouncer. A wall of one word grows by one block per sweep and eats a run of n blocks, while a new run grows at the far end; one such pass takes about n sweeps, and an era has a few passes. For example, in the era that starts at step 301,992,023,962 a wall of <code>110111</code> grows from 332 to 117,663 blocks in 117,332 sweeps while a run of <code>100000</code> shrinks from 117,946 to 615.</p>
+<p>From one era to the next the main run grows by a factor that is not constant: about 1, 16, 1, 6 and 6 for the last six eras. The short markers between the runs and an irregular tail of about a dozen blocks at the right end, which changes at every sweep, decide it. The rule for that is the missing piece: with it, the whole run would be a map from one era to the next.</p>
+</section>
 <section id="screen">
   <span class="eyebrow">Family screen, 13 November 2026</span>
   <h2>Which family it belongs to</h2>
@@ -244,7 +253,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 13 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -262,7 +271,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/events.c</code></div></div><div><b>Phases, observed</b><p>From step 8.3·10<sup>8</sup> to 10<sup>9</sup> the tape is <code>1^2 0 a^7 1^3 0 1^2 0 a^x 1^3 0 1^2 0 a^y b a b a b^2 a^5 b^5 a b^z ...</code> with x + y = 7388 fixed and z = x − 3716: one a moves from a^y to a^x, and b^z gains one, about every 6 new cells on the right. Earlier phases show the same pattern with more levels. Seen in simulation, not proved.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>Where it would halt</b><p>The only halting transition is F reading 1, and F is entered only from B reading 1, so the machine halts exactly when the head in state B reads <code>1 1</code> (from the transition table).</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA---</code>, saved in <code>screen.json</code> next to it</div></div><div><b>Size of the tape description (family screen)</b><p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.7&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 28,120 to 265,812 visited cells and compresses to 8 to 35 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c</code></div></div><div><b>No halt in the first 7&middot;10<sup>16</sup> steps</b><p>The macro simulator of the family screen (blocks of 6 cells, runs of one word crossed at once, exact, checked against the direct simulator) runs from blank tape past step 7&middot;10<sup>16</sup> without a halt.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">the README, section &ldquo;Family screen&rdquo;</div></div><div><b>Proposed family: F01, periodic blocks driven by a bounded engine</b><p>The description is small: 8 to 35 level-2 tokens at every record from 2.6&middot;10<sup>8</sup> to 1.7&middot;10<sup>10</sup> steps, and 13 to 38 runs in the macro simulator (blocks of 6 cells) at the sampled records from 10<sup>6</sup> to 7&middot;10<sup>16</sup> steps. For example at step 5&middot;10<sup>12</sup> the macro tape is <code>000110 (111110)^130829 111011 (011111)^354778 011100 (101110)^52876 111010 (101110)^59089</code> and 12 more six-cell words. A few long periodic blocks that are transferred into one another, with a short tail, is the F01 shape. The number of blocks changes with the phase (between 3 and 7 long blocks at the sampled records above 10<sup>12</sup> steps) but did not grow.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README (tables), <code>py/phases_1e16.txt</code>, <code>c/msim_turns.c</code>, <code>py/phases.py</code></div></div><div><b>Eras of bouncer passes, growing by factors 1, 6 and 16</b><p>Observed up to 10<sup>16</sup> steps: the run is a sequence of eras. In an era a wall of one word grows by one block per sweep and eats a run of n blocks while another run grows at the far end, a few passes of about n sweeps each. Two kinds of era alternate, and the main run has 7,389, 7,401, 118,265, 118,281, 709,541 and 4,257,168 blocks at the starts of the last six eras: factors of about 1, 16, 1, 6 and 6. The factor is decided between the passes by the short markers and the irregular tail at the right end; that rule is not known.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Only the shape of the run is known; the phase rules and the reorganisation between phases are not found (see "For later" in the README).</p></div></div>
 </section>
 <section id="check">

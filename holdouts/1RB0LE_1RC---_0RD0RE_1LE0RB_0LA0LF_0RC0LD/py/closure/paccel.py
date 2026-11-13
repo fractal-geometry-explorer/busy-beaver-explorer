@@ -68,6 +68,10 @@ class Undecided(Exception):
     pass
 
 
+class WallHit(Undecided):
+    """The head reached a wall cell (2 or 3)."""
+
+
 class NeedSplit(Undecided):
     """A cycle rule would apply a number of times that depends on the variable in a way that is not affine: the
     count it shrinks by d per application is k + c x with d not dividing c.  `d` says how to split the class."""
@@ -260,7 +264,7 @@ def one_right(q, u, w):
             if st == q and tuple(tape[lw:]) == tuple(u):
                 res = (tuple(tape[:lw]), n)
             break
-        t = T[(st, tape[p])]
+        t = T.get((st, tape[p]))        # None also for a wall cell
         if t is None:
             break
         tape[p] = t[0]
@@ -282,7 +286,7 @@ def one_left(q, u, w):
     while n < 5000:
         if p < 0 or p >= N:
             break
-        t = T[(st, tape[p])]
+        t = T.get((st, tape[p]))        # None also for a wall cell
         if t is None:
             break
         tape[p] = t[0]
@@ -421,6 +425,9 @@ class Sim:
         if s.try_cross():
             return 'x'
         r = s.popR()
+        if r >= 2:                       # a wall cell (2 right, 3 left) of bclosure.py: the tape beyond is not known
+            s.R.append(r)
+            raise WallHit("the head reached the wall")
         t = T[(s.st, r)]
         if t is None:
             s.R.append(r)

@@ -74,12 +74,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---</h1>
     <p class="machine">1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The tape is a fast counter (the last block, +4 per round, rounds doubling) and a slow list of blocks crossed by one walker per round; when a walker reaches the left end the list is rebuilt longer. Three rebuilds have been seen, the last at step 2.3·10<sup>10</sup>; their general rule is not known, so the run cannot be followed further.</p>
+      <p><b>The question is open, but the run is now understood up to its rebuilds.</b> Between rebuilds the machine is a binary counter that applies one fixed operation to a list of blocks once per tick, and the list is the binary expansion of the time it has left (checked against the machine, not proved). Rebuilds are still simulated cell by cell. With this the run passes 243 rebuilds, more than 10<sup>10,642</sup> steps, without a halt (before: three rebuilds, 3&middot;10<sup>10</sup> steps).</p>
+      <p><b>It can halt from tapes of its own shape.</b> A single block of 3k cells that meets the counter exactly at the start of a round halts (k = 3 to 9, direct simulation). Whether the run from blank tape ever produces such a coincidence is the open question.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -129,20 +130,35 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Direct simulation for 3·10<sup>10</sup> steps. At the moments the head is in C on the first 0 right of everything written the tape is a list of blocks of 1s separated by single 0s; the last block grows by 4 per round; in walking phases the rounds satisfy T′ = 2T + 4 exactly. Rebuilds of the list at steps 72,083, 11,004,261 and 22,558,329,283 (the table).</p>
         <p class="where"><code>tools/c/tmrun.c</code> (<code>at C R</code>)</p>
       </div>
+      <div class="card">
+        <h3>Between rebuilds: a binary counter that applies one list operation per tick</h3>
+        <p>At the moments the head is in C on a 0 just right of a 1, the tape is a list of blocks of 1s separated by single 0s (the interior), a last block l, and to the right of the head a zone of single 1s. Call it regular if the first block is a multiple of 3, the other interior blocks are 2 mod 3, l is 1 mod 4, and the gaps of the zone are 0 mod 4 (the first, counted from the head) and 3 mod 4 (the others). From one such moment to the next (a sub-round) a regular configuration changes in two independent ways. The interior takes one step W: (..., x, 3a + 2) becomes (..., x + 3, 2, ..., 2) with a blocks of 2. The last block and the zone are a binary counter: with segments s<sub>1</sub> = g<sub>1</sub>, s<sub>i</sub> = g<sub>i</sub> + 1, a last block l &ge; 5 becomes a new first segment l &minus; 1 and l = 1; with l = 1 the n leading segments equal to 4 are removed, the next segment loses 4 cells (blank tape supplies them if there is none) and l = 4n + 5. So l plus the segments is 4m + 1 for 2<sup>m</sup> sub-rounds (one round, what earlier notes called the fast counter), then m grows by 1. Checked against the machine one sub-round at a time: of the 300,000 sub-rounds after step 2,918 (12.6 million steps) the 299,954 regular ones all follow this; the other 46 are the transients of the first two rebuilds. Observed and checked, not proved.</p>
+        <p class="where"><code>holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py</code> (<code>check 300000</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The list is the binary expansion of the time it has left</h3>
+        <p>With digits a<sub>i</sub> = (b<sub>i</sub> &minus; 2)/3, W removes the last digit a, adds 1 to the digit before it and appends a zeros; the sum of all digits plus their number never changes. A tail (..., q, a) becomes (..., q + a + 1) after exactly 2<sup>a</sup> steps, so an interior with digits a<sub>1</sub>, ..., a<sub>k</sub> is a single block after exactly T = &Sigma;<sub>i</sub> 2<sup>a<sub>i</sub> + ... + a<sub>k</sub> + k &minus; i</sup> steps of W: the positions of the 1s in the binary expansion of T are the partial sums of the list read from the right. (This is arithmetic on the rule W, not on the machine.) Checked on the machine: the model predicts single blocks at sub-rounds 1,616 and 261,907 of that run and both are there; W steps and counter steps taken many at once agree with the machine in 28 test jumps; and after the third rebuild the lists at seven ends of rounds, up to step 2.8&middot;10<sup>10</sup>, are those of a direct run of the machine (<code>3 2^25 14 2 8 2 14 | 85</code> at step 22,558,329,286, ..., <code>3 2^12 20 2^6 14 2 8 2 14 | 109</code> at step 28,107,393,382).</p>
+        <p class="where"><code>holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py</code> (<code>check 300000</code>, <code>partial</code>, <code>rounds</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Tapes of the same shape that halt</h3>
+        <p>A rebuild starts when the interior is a single block. The tape 1<sup>3k</sup> 0 1<sup>4k&minus;3</sup> with the head in C on the 0 right of it, a single block of 3k cells meeting the counter exactly at the start of round k &minus; 1, halts for every k from 3 to 9 (after 311, 659, 1,343, 2,699, 5,399, 10,787 and 21,551 steps; direct simulation). So no property of the shape alone can show that the machine never halts: it depends on which single blocks and counter values the run from blank tape produces.</p>
+        <p class="where"><code>holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py</code> (<code>halting 9</code>), <code>c/trans.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Walkers and rebuilds</h3>
-        <p>Outside rebuilds, each round moves one walker one block to the left (<code>2 5 → 5 2</code> or <code>2 x → x+3</code>); a rebuild happens when a walker reaches the leading 3, and lengthens the list of 2s (13, then 26 blocks). Seen in all 116 sample moments of the first 3·10<sup>10</sup> steps; not shown for all sizes.</p>
-        <p class="where"><code>README.md</code></p>
+        <h3>243 rebuilds without a halt</h3>
+        <p>A run that takes the regular sub-rounds by arithmetic (any number at once, with the two rules above) and gives everything else to the machine itself, cell by cell: the transient after each single block, and the sub-rounds where the counter reaches an irregular gap of the zone. It passes 243 rebuilds; by then the counter has made more than 2<sup>35,353</sup> sub-rounds, so the machine more than 10<sup>10,642</sup> steps, and the single block has 106,062 cells. A halt could only be found by the direct part and none was. The arithmetic part rests on the two rules above for all sizes, which are checked, not proved.</p>
+        <p class="where"><code>holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py</code> (<code>run 243</code>), <code>c/trans.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. See the heuristic claims above for what a halt would need.</p>
+        <p>Not known. Between rebuilds the machine cannot halt if the model is right; a rebuild's transient can (tapes of the same shape do). What the transient does to the block and the counter has no rule yet, so the question is whether the single blocks and counter values of this run ever meet in a halting way. The halting family above needs the single block to arrive exactly when a round of the counter starts, a coincidence of two binary numbers that the run has avoided so far.</p>
       </div>
     </div>
   </section>
@@ -150,8 +166,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/lean/check.sh
-gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE--- 30000000000 at C R 100000
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE--- 1000000000</code></pre>
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE--- 30000000000 at C R 400      # 2 minutes; the round ends that py/model.py rounds compares with
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE--- 1000000000
+python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py check 300000     # machine against model, sub-round by sub-round
+python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py partial          # jumps of many sub-rounds against the machine
+python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py rounds           # round ends after the third rebuild against the direct run
+python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py halting 9        # the halting tapes 1^(3k) 0 1^(4k-3) C&gt;0
+python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py run 243          # the hybrid run (5 minutes)</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

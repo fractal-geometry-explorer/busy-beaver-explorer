@@ -80,6 +80,12 @@ start, 79 right), 32,888 ones.
 - left, step 970,984,257: `B>0 1 0 1 0 1 0 1^9 0 1^7 0 1^3 0 1 0 1^9 0 1 0 1^7 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1^9 0 1^7 0 1^9 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 `
 - left, step 986,716,693: `B>0 1 0 1 0 1 0 1^9 0 1^7 0 1^3 0 1 0 1^9 0 1 0 1^7 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1^9 0 1^7 0 1^9 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 `
 
+## Deep exact run
+
+No halt in the first 2.48x10^15 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 6 cells ran
+from blank tape to step 2,482,693,369,154,826 (the run stopped there because the tape no longer compresses into few enough runs of blocks). It is exact, and at this block size it agrees with the
+direct simulator after 2,000,009,883 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB---_1LC0LC_1RD1LB_1LE1RD_0LA1LF_1LD0RF/explainer.html`](../../pages/holdouts/1RB---_1LC0LC_1RD1LB_1LE1RD_0LA1LF_1LD0RF/explainer.html)

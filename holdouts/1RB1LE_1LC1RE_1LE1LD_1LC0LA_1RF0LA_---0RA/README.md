@@ -53,6 +53,12 @@ gcc -O2 -o tokrun tools/c/tokrun.c
 ./tokrun 1RB1LE_1LC1RE_1LE1LD_1LC0LA_1RF0LA_---0RA 400000000 x=0 LR 2000 | tail -4   # the tape each time the head extends it (x is a 0)
 ```
 
+## Deep exact run
+
+No halt in the first 7.19x10^18 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 6 cells ran
+from blank tape to step 7,191,166,652,716,873,648. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,036,035 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB1LE_1LC1RE_1LE1LD_1LC0LA_1RF0LA_---0RA/explainer.html`](../../pages/holdouts/1RB1LE_1LC1RE_1LE1LD_1LC0LA_1RF0LA_---0RA/explainer.html)

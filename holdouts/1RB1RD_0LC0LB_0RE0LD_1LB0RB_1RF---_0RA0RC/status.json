@@ -52,6 +52,12 @@
    "where": "<code>c/sim.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.24&times;10<sup>19</sup> steps (exact macro run)",
+   "text": "A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 12,428,929,969,419,733,536 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,010,402 steps. This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code>"
+  },
+  {
    "level": "kernel",
    "title": "The odometer step",
    "text": "At the left end the tape is <code>B&gt; [x] M_d [y] …</code> ([k] = (010)<sup>k</sup>) with markers M0..M6 = <code>0</code>, <code>001</code>, <code>00110</code>, <code>0010001</code>, <code>0[2]10</code>, <code>00101</code>, <code>0011</code>. One visit moves the first marker from M_d to M_(d+1), adds a copy to [x] and changes the next block by −1, −1, −1, −1, +1, 0 (d = 0..5), for every x, y and any tape beyond.",

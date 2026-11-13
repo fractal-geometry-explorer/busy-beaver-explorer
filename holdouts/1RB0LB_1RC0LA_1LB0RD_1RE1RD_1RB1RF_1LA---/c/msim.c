@@ -1,4 +1,4 @@
-/* msim MACHINE K MAXSTEPS [CFG|-] [EVERY] [r|l]
+/* msim MACHINE K MAXSTEPS [CFG|-] [EVERY] [r|l] [SECONDS]
  *
  * A macro simulator for machines whose tape is long runs of one repeated word that the head sweeps across.
  * The tape is two stacks of runs (block of K cells, count).  One macro step simulates the machine on a window of two
@@ -14,15 +14,19 @@
  * Output: a line each time the head enters a fresh blank block on the right (r, default) or left (l), every EVERY-th
  * time: "STEPS S> blocks | blocks" (S< when the head faces left), blocks as bits^count; "HALT ..." on a halt.
  * CFG: a start configuration "STATE HEADINDEX BITS" (head on BITS[HEADINDEX], facing right); "-" for blank tape.
+ * EVERY 0 prints no events.  SECONDS: stop after that much wall-clock time.  The run always ends with a line
+ * "END ms=MACROSTEPS STEPS ..." (the configuration reached), also when it stops on SECONDS or runs out of room for
+ * runs (then "END cap ms=...").
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <time.h>
 typedef unsigned __int128 u128;
 typedef struct { uint32_t v; uint64_t n; } run;
 static int K, NS; static int W[8][2], D[8][2], S[8][2];
-static run *L, *R; static long nl, nr, cap=1<<22;
+static run *L, *R; static long nl, nr, cap=1<<22; static int full=0;
 #define INF (1ULL<<62)
 typedef struct { uint8_t res; /*0 far,1 back,2 halt,3 loop*/ uint8_t ns; uint32_t nt, nb; uint32_t steps; } tr;
 static tr *T; /* index: ((s*2+dir)<<(2K)) | (top<<K) | behind */
@@ -48,7 +52,7 @@ static void build(){
     T[tix(s,dir,top,beh)]=t;
   }
 }
-static inline void push(run*S_,long*n,uint32_t v,uint64_t c){ if(*n&&S_[*n-1].v==v&&S_[*n-1].n<INF){S_[*n-1].n+=c;return;} if(*n==cap){fprintf(stderr,"cap\n");exit(1);} S_[*n].v=v;S_[*n].n=c;(*n)++; }
+static inline void push(run*S_,long*n,uint32_t v,uint64_t c){ if(*n&&S_[*n-1].v==v&&S_[*n-1].n<INF){S_[*n-1].n+=c;return;} if(*n==cap){full=1;return;} S_[*n].v=v;S_[*n].n=c;(*n)++; }
 static inline void pop1(run*S_,long*n){ if(S_[*n-1].n>=INF) return; if(S_[*n-1].n==1)(*n)--; else S_[*n-1].n--; }
 static void prbits(uint32_t v){ for(int i=K-1;i>=0;i--) putchar('0'+((v>>i)&1)); }
 static void prs(u128 x){ char b[50]; int i=49; b[i]=0; if(!x){putchar('0');return;} while(x){b[--i]='0'+(int)(x%10); x/=10;} fputs(b+i,stdout); }
@@ -73,9 +77,10 @@ int main(int argc,char**argv){
     for(long i=0;i<hidx;i+=K){ uint32_t v=0; for(int j=0;j<K;j++) v=v*2+(bb[i+j]-'0'); push(L,&nl,v,1);}
     for(long i=n-K;i>=hidx;i-=K){ uint32_t v=0; for(int j=0;j<K;j++) v=v*2+(bb[i+j]-'0'); push(R,&nr,v,1);}
   }
-  u128 steps=0; long ev=0; uint64_t ms=0;
+  u128 steps=0; long ev=0; uint64_t ms=0; double wall= argc>7? atof(argv[7]):1e30; time_t t0=time(0);
   while(steps<maxs){
-    ms++;
+    if(nl>cap-8||nr>cap-8){ printf("END cap ms=%llu ",(unsigned long long)ms); dump(steps,st,dir); return 0; }
+    ms++; if((ms&0xFFFFF)==0 && difftime(time(0),t0)>wall) break;
     run *F = dir? R:L, *B = dir? L:R; long *nf = dir? &nr:&nl, *nb = dir? &nl:&nr;
     uint32_t top=F[*nf-1].v, beh=B[*nb-1].v; uint64_t cnt=F[*nf-1].n;
     int fresh = (F[*nf-1].n>=INF);
@@ -100,7 +105,7 @@ int main(int argc,char**argv){
       /* head went back past the behind block: both blocks now on the facing side of the new direction */
       pop1(F,nf); pop1(B,nb); push(F,nf,t.nt,1); push(F,nf,t.nb,1); st=t.ns; dir=!dir;
     }
-    if(fresh && ((mode=='r'&&F==R)||(mode=='l'&&F==L))){ ev++; if(ev%every==0) dump(steps,st,dir); }
+    if(fresh && ((mode=='r'&&F==R)||(mode=='l'&&F==L))){ ev++; if(every>0&&ev%every==0) dump(steps,st,dir); }
   }
   printf("END ms=%llu ",(unsigned long long)ms); dump(steps,st,dir); return 0;
 }

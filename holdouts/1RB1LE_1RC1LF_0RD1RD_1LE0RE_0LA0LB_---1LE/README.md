@@ -146,6 +146,12 @@ steps; C (`c/runs.c`, direct simulation): no halt in 2·10^10 steps; `c/rmap.c`:
 - `holdouts/1RB1LE_0RC---_1RD0LA_1RE0RB_0LA0LF_0LD1LF` has the same kind of structure (blocks shrinking by 4,
   12, 48, 192 per round) and may share the analysis; not looked at in the second pass.
 
+## Deep exact run
+
+No halt in the first 1.99x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 6 cells ran
+from blank tape to step 19,991,980,548,116,890,254. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,018,533 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/explainer.html`](../../pages/holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/explainer.html)
