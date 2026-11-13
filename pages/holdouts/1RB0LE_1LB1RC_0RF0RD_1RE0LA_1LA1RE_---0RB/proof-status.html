@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>Open, probably never halting.</b> The tape is always a row of blocks of 1s separated by <code>00</code>, and the machine treats it as a stack. An exact model of what each sweep does, proved in Lean for all block sizes, shows: from P(n) = <code>E&gt; 00 1^n 01</code> an odd n leads straight to P((3n+7)/2); an even n starts a recursion that halves the number and pushes blocks on the stack, and ends in one of three ways: a halt (a block pattern (q, r) = (2, 2)), a provable infinite loop ((q, r) = (2, 3)), or a new P(n&prime;), sometimes enormously larger. Lean checks that the run from blank tape survives 80 P-rounds by the kernel (10<sup>100</sup> steps) and 650 with <code>native_decide</code> (10<sup>9,700</sup> steps), with no halt and no loop. For a random start of d digits the chance that the next round halts falls quickly with d, so a halt later on looks unlikely; nothing proves it.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Quadratic Mess</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>Open, and probably never halting.</b> From step 18 the run is the orbit of an explicit map on (tail, n). The tail is 1, X<sub>k</sub>, Y<sub>k</sub> or Z<sub>k</sub>, and n is multiplied by 3/2 or 9/8 per pass. <b>The map is proved in Lean's kernel</b> for every tail and every n, except Z<sub>k</sub> with n &lt; 12k+12, the only place where a halt can come from. Lean also checks the orbit: the first 3,000 passes from blank tape stay in the proved region (kernel; no halt in the first 10<sup>450</sup> steps), and so do the first 10<sup>5</sup> (native_decide; 10<sup>16000</sup> steps). The closest approach to the bad region was at pass 28 (n = 3,989, k = 5), still 55 times above the bound. A non-halting proof would need a bound on k in terms of n along the whole orbit, which is a Collatz-type question.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Bell-like</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

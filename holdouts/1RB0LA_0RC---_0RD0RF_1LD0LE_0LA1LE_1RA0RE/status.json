@@ -53,6 +53,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 3.56·10<sup>11</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 2 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 191,800,000 macro steps from blank tape without a halt. That is more than 3.56·10<sup>11</sup> machine steps; the tape then spans 27,928 cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE 2 191800000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "Every round starts on single holes",
    "text": "At all 668 times after step 7, up to step 10<sup>9</sup>, that the head is at the left end in state E on a 0, the tape is blocks of 1s separated by single 0s: 2 blocks 465 times, 3 blocks 165, 4 blocks 32, 5 blocks 6.",
    "where": "<code>tools/c/tmrun.c</code> (<code>at E L</code>), <code>py/rounds.py</code>"
@@ -99,7 +105,8 @@
   "holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE/lean/check.sh",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE 1000000000",
   "python3 holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE/py/rules.py | diff - holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE/lean/Rules.lean",
-  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE 1000000000 at E L 100000 > el.txt && python3 holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE/py/rounds.py el.txt"
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE 1000000000 at E L 100000 > el.txt && python3 holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE/py/rounds.py el.txt",
+  "python3 tools/py/bbtools/rleaccel.py 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE 2 191800000    # minutes"
  ],
  "explainer": {
   "lede": "Nobody knows. A pair of 0s rides right through the first block of 1s, leaving <code>1 0</code> pairs behind; at the end of the block it becomes a glider, and every two pairs make another one, each knocking a hole 3 cells left. Rounds cost about the square of the width and add a few cells, so the width grows like the cube root of the time.",

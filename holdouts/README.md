@@ -51,6 +51,17 @@ running the machines (10^7 steps each, `tools/c/cfgmatch.c`, `lockstep.c`, `tape
 `related.py check` (run by the tests) says whether they are current. Only the comparison of tables is exact;
 everything about runs is an observation.
 
+## Proofs and labels from outside
+
+`external.json` holds, for every machine, what is known from outside its own ledger: Rocq proofs in open pull requests
+of ccz181078/busycoq (46 machines, read on 12 November 2026; none merged, none compiled here), the one machine proved
+in busycoq's BB6 branch, the class and the cryptid label the community tracker gives it, and the five Coq proofs kept
+in this repository. `build_pages.py` shows it as a box on both pages of the machine and as the machine's standing on
+the index (decided here, proved elsewhere, outside proof awaiting review, cryptid, open). A machine's `status.json`
+stays the record of what this repository checked; an outside proof changes its `decision` only once it is compiled
+here. When a pull request is merged or a new one appears, edit `external.json` and run `python3 holdouts/build_pages.py`:
+no machine folder changes.
+
 ## Rebuilding everything
 
 ```sh

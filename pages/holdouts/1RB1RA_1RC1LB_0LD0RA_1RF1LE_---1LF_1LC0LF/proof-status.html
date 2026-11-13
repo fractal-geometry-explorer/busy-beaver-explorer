@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> The run is a nested counter on a list of blocks <code>[b<sub>1</sub>, …, b<sub>k</sub>]</code> (the tape <code>1^b<sub>1</sub> 0 … 0 1^b<sub>k</sub> C&gt;0</code>). The odd and even round laws are now proved in Lean for every size, by induction over the recursion that drives them. Built on those proved moves, an exact accelerated simulation follows the run through ten more overflows, past 10<sup>4300</sup> steps, without a halt. Whether an overflow cascade ever ends next to a block of length 1 (the only way to halt) is not known.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card report">
+        <h3>An outside proof is waiting for review: it never halts</h3>
+        <p><a href="https://github.com/ccz181078/busycoq/pull/50">busycoq pull request 50</a> (Alex Havrilla, 2026-11-03) contains a Rocq proof that this machine never halts (<code>verify/M_1RB1RA_1RC1LB_0LD0RA_1RF1LE_HHH1LF_1LC0LF.v</code>). As of 12 November 2026 it was open: not merged, not reviewed by the maintainer, and not compiled here unless the ledger below says so. The verdict on this page does not rely on it.</p>
+      </div>
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Counter Class 3</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

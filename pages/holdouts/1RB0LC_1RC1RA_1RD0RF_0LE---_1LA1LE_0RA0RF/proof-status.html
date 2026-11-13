@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> The tape holds a counter <code>(100)^n</code> and a list of runs of 1s of lengths 7, 13, 19, &hellip; (6k+1). The run goes in epochs: in each, the number of runs of every length is halved and they move up one length, half the counter becomes new runs of 7, and the new counter is about 5/2 times the old number of runs of 7; so everything grows by 5/4 every two epochs, and the step count by 25/16. These rules hold only up to small corrections (a run more or less, odd runs between the groups), which is why the community calls this a <em>chaotic Bell</em>. The machine halts exactly when state B reads <code>0 0 1</code> (B0 C0 put D on a 1; the path is proved in Lean). An exact accelerated simulator, validated against direct simulation, finds no halt in 10<sup>14</sup> steps. Machines a2, a3 and a4 share one orbit: the list of a3 at its visits of the right end is the list of a2 (82 of the 97 snapshots of a2 up to 10<sup>14</sup> steps are found literally in the run of a3, the simple comparison used does not match the rest, one of which lies beyond the end of the a3 run), each reached after 5/4 of the step count of a2, a ratio that settles to 1.2500 from 10<sup>10</sup> steps on (a3 does the step C0 of a2 by the detour C0 D0 E1).</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Chaotic Bell Class 1</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

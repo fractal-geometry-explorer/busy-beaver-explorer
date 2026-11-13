@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> The run is a walker and carry machine whose carries apply a 5/4 map to the length of the tail, a Collatz-like rule. The walker sweeps, the shallow carries and their step counts are exact (Lean proves the walker sweeps for all lengths); the deeper carries are run cell by cell. No halt in the first 3.2·10<sup>12</sup> steps (the run stopped inside a deep event with a tail of 853,485 groups).</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Quadratic Mess</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -129,6 +142,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The hybrid simulator ran 3.2·10<sup>12</sup> steps without a halt.</p>
         <p class="where"><code>c/walker.c</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 1.29·10<sup>14</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 167,200,000 macro steps from blank tape without a halt. That is more than 1.29·10<sup>14</sup> machine steps; the tape then spans 13,769,538 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA 6 167200000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -150,7 +168,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/lean/check.sh
 python3 holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/py/walker.py check
-gcc -O2 -o walker holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/c/walker.c &amp;&amp; ./walker 1e12 1</code></pre>
+gcc -O2 -o walker holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/c/walker.c &amp;&amp; ./walker 1e12 1
+python3 tools/py/bbtools/rleaccel.py 1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA 6 167200000    # minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

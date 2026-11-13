@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -79,8 +83,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open, but the run is now understood up to its rebuilds.</b> Between rebuilds the machine is a binary counter that applies one fixed operation to a list of blocks once per tick, and the list is the binary expansion of the time it has left (checked against the machine, not proved). Rebuilds are simulated cell by cell. With this the run passes 1,503 rebuilds, more than 10<sup>3,739</sup> steps, without a halt (before: 10<sup>9</sup> steps).</p>
+      <p><b>The question is open, but the run is now understood up to its rebuilds.</b> Between rebuilds the machine is a binary counter that applies one fixed operation to a list of blocks once per tick, and the list is the binary expansion of the time it has left (checked against the machine, not proved). Rebuilds are simulated cell by cell. With this the run passes 3,792 rebuilds, more than 10<sup>9,553</sup> steps, without a halt (before: 10<sup>9</sup> steps).</p>
       <p><b>Same skeleton as a sibling.</b> The machine <code>1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---</code> follows the same model with blocks of 3a + 2 cells instead of 2a + 1. There, tapes of the machine's own shape halt; here none was found, and the rebuilds have no rule yet.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Shift-overflow counter</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -144,16 +157,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>1,503 rebuilds without a halt</h3>
-        <p>A run that takes the regular sub-rounds by arithmetic (any number at once, with the two rules above) and gives everything else to the machine itself, cell by cell: the transient after each single block. It passes 1,503 rebuilds; by then the counter has made more than 2<sup>12,424</sup> sub-rounds, so the machine more than 10<sup>3,739</sup> steps. A halt could only be found by the direct part and none was. The arithmetic part rests on the two rules above for all sizes, which are checked, not proved. The run stops there for a practical reason: the transient after the 1,504th single block (25,096 cells) contains a second kind of regular stretch, in which the block before the last one is 2l/5 + 1 instead of 1 and a gap of the zone that is 4 mod 5 is used up 5 cells at a time. The model does not cover it yet and simulating it cell by cell takes too long.</p>
-        <p class="where"><code>holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py</code> (<code>run 1503</code>), <code>c/trans.c</code></p>
+        <h3>3,792 rebuilds without a halt</h3>
+        <p>A run that takes the regular sub-rounds by arithmetic (any number at once, with the two rules above) and gives everything else to the machine itself, cell by cell: the transient after each single block. It passes 3,792 rebuilds; by then the counter has made more than 2<sup>31,736</sup> sub-rounds, so the machine more than 10<sup>9,553</sup> steps. A halt could only be found by the direct part and none was. The arithmetic part rests on the two rules above for all sizes, which are checked, not proved. The run stops there for a practical reason. Some transients contain a second kind of regular stretch (observed, not modelled): the block before the last one is 2l/5 + 1 instead of 1, the list counts the sub-rounds upwards in binary instead of downwards, and a gap of the zone of 5q + 4 cells is used up in about 2<sup>q+1</sup> sub-rounds. The 1,504th transient has one with q = 24, which the run simulates cell by cell (about 10<sup>9</sup> steps); after rebuild 3,792 comes one that is too long for that.</p>
+        <p class="where"><code>holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py</code> (<code>run 3792</code>), <code>c/trans.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. Between rebuilds the machine cannot halt if the model is right; what the transient of a rebuild does has no rule yet, and a second kind of regular stretch inside the transients is not modelled. The sibling <code>1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---</code>, which follows the same model, has tapes of its own shape that halt, so the shape alone is unlikely to decide this machine either.</p>
+        <p>Not known. Between rebuilds the machine cannot halt if the model is right; what the transient of a rebuild does has no rule yet, and a second kind of regular stretch inside the transients, in which the list counts upwards, is not modelled. The sibling <code>1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---</code>, which follows the same model, has tapes of its own shape that halt, so the shape alone is unlikely to decide this machine either.</p>
       </div>
     </div>
   </section>
@@ -165,7 +178,7 @@ gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RF_1RC1LB_1LD1RE_1LB0
 python3 holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py check 400000     # machine against model, sub-round by sub-round
 python3 holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py rounds           # round ends after the first rebuild against a direct run
 gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA--- 20000000000 at C R 2000     # that direct run (1 minute)
-python3 holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py run 1503         # the hybrid run (1 minute)</code></pre>
+python3 holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py run 3792         # the hybrid run (2 minutes)</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

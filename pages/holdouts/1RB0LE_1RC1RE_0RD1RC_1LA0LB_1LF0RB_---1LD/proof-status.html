@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> The run is the iteration of a map f on the numbers N for which the tape is exactly 1<sup>N</sup> with F on its leftmost cell: 8, 22, 42, 58, 90, 148, 218, ... (the first ones proved in Lean). No starting value N &le; 6,000 makes the machine halt before it returns to an all-ones tape, so the machine halts only if some phase from 1<sup>N</sup> halts; none is known to.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card report">
+        <h3>Proved outside this repository: it never halts</h3>
+        <p>A Rocq proof that this machine never halts is merged in busycoq, BB6 branch (<a href="https://github.com/ccz181078/busycoq">ccz181078/busycoq</a>, commit <code>33209bc</code>, 2026-11-03), and the community's list of holdouts no longer includes it. It was not compiled here, so the ledger below, which holds only what this repository checked, still lists halting as open.</p>
+      </div>
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Fractal in Bouncer</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

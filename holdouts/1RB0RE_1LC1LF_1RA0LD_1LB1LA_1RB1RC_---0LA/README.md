@@ -79,3 +79,10 @@ gcc -O2 -o /tmp/hturn holdouts/1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA/c/hturn
 
 - [`pages/holdouts/1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA/explainer.html`](../../pages/holdouts/1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA/explainer.html)
 - [`pages/holdouts/1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA/proof-status.html`](../../pages/holdouts/1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA/proof-status.html)
+
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA 3 147200000` runs 147,200,000 macro steps from blank tape without a halt, more than 8.35·10^12
+machine steps (tape: 2,089,929 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).

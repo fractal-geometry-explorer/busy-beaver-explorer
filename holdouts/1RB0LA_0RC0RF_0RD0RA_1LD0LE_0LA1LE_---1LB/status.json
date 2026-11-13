@@ -59,6 +59,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 3.34·10<sup>11</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 2 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 194,600,000 macro steps from blank tape without a halt. That is more than 3.34·10<sup>11</sup> machine steps; the tape then spans 26,988 cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 2 194600000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "Every round starts on single holes",
    "text": "At the 660 times up to step 10<sup>9</sup> that the head is at the left end in state E on a 0, the tape is blocks of 1s separated by single 0s (except at steps 7 and 204): 2 blocks 593 times, 3 blocks 53, 4 blocks 10, 5 blocks 2. The shortest block at a round start is 3 (step 1,605); after step 2,136 it is never below 12.",
    "where": "<code>tools/c/tmrun.c</code> (<code>at E L</code>), <code>py/rounds.py</code>"
@@ -93,7 +99,8 @@
   "holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/lean/check.sh",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 1000000000",
   "python3 holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/py/rules.py | diff - holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/lean/Rules.lean",
-  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 1000000000 at E L 100000 > el.txt && python3 holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/py/rounds.py el.txt"
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 1000000000 at E L 100000 > el.txt && python3 holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/py/rounds.py el.txt",
+  "python3 tools/py/bbtools/rleaccel.py 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 2 194600000    # minutes"
  ],
  "explainer": {
   "lede": "Nobody knows. Like its twin 1RB0LA_0RC---…, this machine keeps a nearly solid block of 1s with one or two holes, and each round moves a hole: the first block becomes <code>0 1</code> pairs, and every two pairs come back as a glider that knocks the hole 3 cells left. Rounds cost about the square of the width and add a few cells, so the width grows like the cube root of the time.",

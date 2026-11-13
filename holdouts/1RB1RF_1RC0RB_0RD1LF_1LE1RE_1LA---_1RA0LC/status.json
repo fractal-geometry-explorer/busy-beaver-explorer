@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.05·10<sup>20</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 2 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 227,000,000 macro steps from blank tape without a halt. That is more than 1.05·10<sup>20</sup> machine steps; the tape then spans 55,996,144 cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC 2 227000000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: power/power",
    "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.284). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.348).",
@@ -96,7 +102,8 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC 1000000000",
   "python3 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/py/chains.py 1000000000",
   "python3 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/py/ends.py 1000000000",
-  "cc -O2 -o end0 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/c/end0.c && ./end0 1000000000"
+  "cc -O2 -o end0 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/c/end0.c && ./end0 1000000000",
+  "python3 tools/py/bbtools/rleaccel.py 1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC 2 227000000    # minutes"
  ],
  "explainer": {
   "lede": "Nobody knows yet. A block of 1s doubles in chains while a run of 10 pairs pays for it, as in a Collatz-like sibling; the chain step is proved, the end of a chain is still a puzzle.",

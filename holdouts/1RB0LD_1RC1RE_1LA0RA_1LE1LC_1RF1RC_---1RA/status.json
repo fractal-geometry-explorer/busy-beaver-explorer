@@ -52,6 +52,12 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.29·10<sup>14</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 167,200,000 macro steps from blank tape without a halt. That is more than 1.29·10<sup>14</sup> machine steps; the tape then spans 13,769,538 cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA 6 167200000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Collatz-like",
    "text": "The tail length is multiplied by about 5/4 at each carry and by about 3 at each walker pass; which branch a carry takes depends on q mod 4 and on how much the item before can give. Halting configurations exist among the deep carries (for example the items (0,1) (3,3) (1,1) with a tail of 10 groups halt after 1,164 steps; <code>py/walker.py check</code> runs it), so whether the run ever reaches one is a question about this map.",
@@ -68,7 +74,8 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/lean/check.sh",
   "python3 holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/py/walker.py check",
-  "gcc -O2 -o walker holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/c/walker.c && ./walker 1e12 1"
+  "gcc -O2 -o walker holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/c/walker.c && ./walker 1e12 1",
+  "python3 tools/py/bbtools/rleaccel.py 1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA 6 167200000    # minutes"
  ],
  "explainer": {
   "lede": "Nobody knows. A marker walks left across the tape one group at a time, and every group it passes reappears three times at the right end; when the marker is used up it borrows from the group before it with a <em>carry</em> that multiplies the tail by about 5/4. Rules like these, a mix of multiplications and remainders, are how Collatz-like problems look, and this one is no easier.",

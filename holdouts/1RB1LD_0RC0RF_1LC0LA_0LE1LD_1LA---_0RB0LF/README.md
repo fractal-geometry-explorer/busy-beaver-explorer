@@ -47,3 +47,10 @@ relevant). More than a day of work.
 
 - [`pages/holdouts/1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF/explainer.html`](../../pages/holdouts/1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF/explainer.html)
 - [`pages/holdouts/1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF/proof-status.html`](../../pages/holdouts/1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF/proof-status.html)
+
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF 6 158200000` runs 158,200,000 macro steps from blank tape without a halt, more than 2.51·10^11
+machine steps (tape: 31,350 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).

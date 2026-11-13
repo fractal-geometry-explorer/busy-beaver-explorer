@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open, and reduced to a counter with no assumption left.</b> Write <code>x = 1110</code> and <code>a = 10</code>. Most of the time the tape is <code>C&gt; 0 10 x^n0 [1 a^d1 x^n1] ... [1 a^dk x^nk] 1</code>: blocks of <code>x</code> with a ternary digit d in front of each. One round trip of the head is a ternary decrement: the first nonzero digit drops by one, the zeros below it become 2, every block the borrow passes loses one <code>x</code> and the first block gains one. When the counter runs out a new round starts with one more block. Every rule is proved in Lean for all sizes, and <b>the machine halts from blank tape if and only if the counter model reaches a halting pattern</b>: the borrow meeting an empty block followed by a block with digit 0 (<code>halts_iff_model</code>, kernel-checked). Since 12 November the theorem has no hypothesis: the model is a function defined on every list of blocks, including the patterns that never show up in the run, and each of its cases is proved to be what the machine does. The model has run 332,875 rounds (more than 10<sup>292</sup> steps) without halting. <b>A halt needs a charged pair of blocks</b>, two neighbours whose block length and digit do not match mod 3 (Lean, <code>good_not_halt</code>). The run has carried one such pair since round 49,668 (observed), and the model halts if that pair's block runs out before the block after it; sizes say this is not about to happen, but nothing is proved about the long run.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Skelet 1-like Class 1</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

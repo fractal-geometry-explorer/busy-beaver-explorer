@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>Open.</b> The tape is just two blocks, (10)<sup>x</sup> then 0<sup>y</sup>, but x moves irregularly from one visit of the right end to the next (no affine rule fits); the width is only 2,593 after 10<sup>9</sup> steps.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Cubic Mess</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +132,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 2,604 cells have been visited and 1,710 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 1.18·10<sup>11</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 2 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 196,000,000 macro steps from blank tape without a halt. That is more than 1.18·10<sup>11</sup> machine steps; the tape then spans 12,998 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE 2 196000000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -145,7 +163,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE 1000000000
+python3 tools/py/bbtools/rleaccel.py 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE 2 196000000    # minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

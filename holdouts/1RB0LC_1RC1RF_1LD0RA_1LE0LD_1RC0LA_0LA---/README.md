@@ -143,6 +143,13 @@ exact, the other a DFA, post* saturation) fails for every DFA with at most 6 sta
 - [`pages/holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/explainer.html`](../../pages/holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/explainer.html)
 - [`pages/holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/proof-status.html`](../../pages/holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/proof-status.html)
 
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- 6 35800000` runs 35,800,000 macro steps from blank tape without a halt, more than 5.95·10^781
+machine steps (tape: about 1.70·10<sup>391</sup> cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

@@ -64,6 +64,32 @@ header.hero{padding-block:48px 28px}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:26px}
 .fact{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 .fact b{font:700 1.4rem/1.15 var(--display)}
+.else{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:18px}
+.else>div{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--heur);border-radius:10px;padding:12px 16px;font-size:.93rem}
+.else>div.proof{border-left-color:var(--kernel)} .else>div.report{border-left-color:var(--native)}
+.else strong{display:block;font-family:var(--display);font-size:1rem;margin-bottom:.2rem}
+.sg{display:grid;grid-template-columns:minmax(0,420px) minmax(240px,1fr);gap:22px;align-items:start}
+@media (max-width:760px){ .sg{grid-template-columns:1fr} }
+.sg svg{width:100%;height:auto;display:block}
+.sg svg text{font-family:var(--mono);fill:var(--fg2)}
+.sg .node circle{fill:var(--surface);stroke:var(--line-strong);stroke-width:1.5}
+.sg .node text{font-weight:700;font-size:15px;fill:var(--fg)}
+.sg .node.on circle{fill:var(--head);stroke:var(--head)} .sg .node.on text{fill:var(--surface)}
+.sg .edge path{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+.sg .edge.s1 path{stroke-dasharray:5 3}
+.sg .edge text{font-size:10px}
+.sg .edge.next path{stroke:var(--head);stroke-width:3}
+.sg .edge.next text{fill:var(--head);font-weight:700}
+.sg .edge.halt path{stroke:var(--open)} .sg .edge.halt text{fill:var(--open);font-weight:700}
+.sg .edge.dim{opacity:.18}
+.use{display:grid;gap:3px;font-family:var(--mono);font-size:.8rem}
+.use div{display:grid;grid-template-columns:5.6em minmax(0,1fr) 6.5em;gap:8px;align-items:center;padding:1px 4px;border-radius:4px;cursor:default}
+.use div.next{background:var(--accent-soft)}
+.use div.halt span:first-child{color:var(--open);font-weight:600}
+.use i{display:block;height:9px;background:var(--accent);border-radius:2px;min-width:0}
+.use div.never i{background:transparent}
+.use .t{text-align:right;color:var(--fg2)}
+table.tt td.next{background:var(--accent-soft);outline:2px solid var(--head);outline-offset:-2px}
 .key{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:22px;align-items:center}
 .key div{display:flex;gap:8px;align-items:center;font-size:.86rem;color:var(--fg2)}
 nav.toc{margin-top:26px;display:flex;flex-wrap:wrap;gap:6px}
@@ -133,6 +159,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="fact"><span class="ev k">Kernel</span><b>8 sweep rules</b><span class="small">Proved in Lean for carry chains of any length.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>&minus;4 per cycle</b><span class="small">How fast the run between two walls shrinks: walls merge.</span></div>
   </div>
+  <div class="else" aria-label="Other proofs and outside reports">
+    <div class="label"><strong>Community label</strong>In the community's BB(6) tracker the machine's class is <b>Skelet 1-like Class 1</b>. These are labels read off the run by others, not results.</div>
+  </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
     <div><span class="ev n">native_decide</span> proved in Lean, one evaluation trusts the compiler</div>
@@ -153,13 +182,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="tw"><table class="tt" aria-label="Transition table">
       <thead><tr><th>state</th><th>reads 0</th><th>reads 1</th></tr></thead>
       <tbody>
-        <tr><th>A</th><td>1 R B</td><td>0 L F</td></tr>
-        <tr><th>B</th><td>1 L C</td><td>0 R C</td></tr>
-        <tr><th>C</th><td>1 R A</td><td>1 L D</td></tr>
-        <tr><th>D</th><td>0 R B</td><td>0 L E</td></tr>
-        <tr><th>E</th><td>1 L C</td><td>0 L B</td></tr>
-        <tr><th>F</th><td class="halt">halt</td><td>1 L A</td></tr>
+        <tr><th>A</th><td id="tt00">1 R B</td><td id="tt01">0 L F</td></tr>
+        <tr><th>B</th><td id="tt10">1 L C</td><td id="tt11">0 R C</td></tr>
+        <tr><th>C</th><td id="tt20">1 R A</td><td id="tt21">1 L D</td></tr>
+        <tr><th>D</th><td id="tt30">0 R B</td><td id="tt31">0 L E</td></tr>
+        <tr><th>E</th><td id="tt40">1 L C</td><td id="tt41">0 L B</td></tr>
+        <tr><th>F</th><td class="halt" id="tt50">halt</td><td id="tt51">1 L A</td></tr>
       </tbody></table></div>
+  </div>
+  <div class="panel">
+    <div class="sg">
+      <div><svg id="sg" viewBox="0 0 420 420" role="img" aria-label="State diagram of the machine"></svg><div class="cap">One circle per state. A solid arrow is taken on reading 0, a dashed one on reading 1; its label is <code>read:write move</code>. Red marks a halting transition. Hover a state or a row to single out its arrows.</div></div>
+      <div><div class="small"><b>Follows the simulator below.</b> The orange state is the current one and the thick arrow is the transition about to fire. The bars count how often each transition has fired since step 0, so the rare ones stand out.</div>
+        <div class="use" id="use" style="margin-top:10px"></div>
+        <div class="cap" id="useCap"></div></div>
+    </div>
   </div>
 </section>
 <section id="run">
@@ -368,8 +405,75 @@ if (typeof module !== "undefined") module.exports = BB;
   var css = function (v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); };
   var fmt = function (n) { return n.toLocaleString("en-US"); };
   // simulator
-  var r = new BB.Run(M), playing = false, raf = 0;
+  var r = new BB.Run(M), playing = false, raf = 0, cnt = new Float64Array(2 * M.n);
+  // state diagram: nodes on a circle; the arrow for (state, symbol) bends to the left of its direction of travel,
+  // more for symbol 1, so that the two directions between a pair of states and the two symbols never overlap
+  var SG = (function () {
+    var C = 210, R = 148, NR = 19, n = M.n, pos = [], svg = "", NS = BB.STATES;
+    for (var i = 0; i < n; i++) { var a = -Math.PI / 2 + 2 * Math.PI * i / n; pos.push([C + R * Math.cos(a), C + R * Math.sin(a), a]); }
+    svg += '<defs><marker id="sgA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">' +
+      '<path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs>';
+    function f(x) { return x.toFixed(1); }
+    for (var s = 0; s < n; s++) for (var y = 0; y < 2; y++) {
+      var tr = M.table[s][y], p = pos[s], cls = "edge s" + y, d, lx, ly, lab;
+      if (tr === null) {
+        var ha = p[2] + (y ? 0.32 : -0.32), x1 = p[0] + NR * Math.cos(ha), y1 = p[1] + NR * Math.sin(ha);
+        d = "M" + f(x1) + " " + f(y1) + "L" + f(p[0] + (NR + 20) * Math.cos(ha)) + " " + f(p[1] + (NR + 20) * Math.sin(ha));
+        lx = p[0] + (NR + 34) * Math.cos(ha); ly = p[1] + (NR + 34) * Math.sin(ha) + 3; lab = y + ":halt"; cls += " halt";
+      } else if (tr[2] === s) {
+        var oa = p[2], ox = p[0] + (NR + 15) * Math.cos(oa + (y ? 0.5 : -0.5)), oy = p[1] + (NR + 15) * Math.sin(oa + (y ? 0.5 : -0.5));
+        var b0 = oa + (y ? 0.5 : -0.5), sx = p[0] + NR * Math.cos(b0 - 0.45), sy = p[1] + NR * Math.sin(b0 - 0.45);
+        var ex = p[0] + NR * Math.cos(b0 + 0.45), ey = p[1] + NR * Math.sin(b0 + 0.45);
+        d = "M" + f(sx) + " " + f(sy) + "C" + f(sx + 30 * Math.cos(b0 - 0.5)) + " " + f(sy + 30 * Math.sin(b0 - 0.5)) + " " +
+          f(ex + 30 * Math.cos(b0 + 0.5)) + " " + f(ey + 30 * Math.sin(b0 + 0.5)) + " " + f(ex) + " " + f(ey);
+        lx = p[0] + (NR + 38) * Math.cos(b0); ly = p[1] + (NR + 38) * Math.sin(b0) + 3; lab = y + ":" + tr[0] + (tr[1] === 1 ? "R" : "L");
+      } else {
+        var q = pos[tr[2]], dx = q[0] - p[0], dy = q[1] - p[1], L = Math.sqrt(dx * dx + dy * dy), ux = dx / L, uy = dy / L;
+        var k = y ? 44 : 16, mx = (p[0] + q[0]) / 2 + uy * k, my = (p[1] + q[1]) / 2 - ux * k;
+        var a1 = Math.atan2(my - p[1], mx - p[0]), a2 = Math.atan2(my - q[1], mx - q[0]);
+        d = "M" + f(p[0] + NR * Math.cos(a1)) + " " + f(p[1] + NR * Math.sin(a1)) + "Q" + f(mx) + " " + f(my) + " " +
+          f(q[0] + (NR + 2) * Math.cos(a2)) + " " + f(q[1] + (NR + 2) * Math.sin(a2));
+        // the label sits a third of the way along, where arrows out of one state have not yet crossed the others
+        var t = 0.3, bx = (1 - t) * (1 - t) * p[0] + 2 * t * (1 - t) * mx + t * t * q[0], by = (1 - t) * (1 - t) * p[1] + 2 * t * (1 - t) * my + t * t * q[1];
+        lx = bx + uy * 9; ly = by - ux * 9 + 3; lab = y + ":" + tr[0] + (tr[1] === 1 ? "R" : "L");
+      }
+      svg += '<g class="' + cls + '" id="sgE' + s + y + '" data-s="' + s + '"><path d="' + d + '"' + (tr === null ? "" : ' marker-end="url(#sgA)"') +
+        '/><text x="' + f(lx) + '" y="' + f(ly) + '" text-anchor="middle">' + lab + "</text></g>";
+    }
+    for (i = 0; i < n; i++) svg += '<g class="node" id="sgN' + i + '" data-s="' + i + '"><circle cx="' + f(pos[i][0]) + '" cy="' + f(pos[i][1]) +
+      '" r="' + NR + '"/><text x="' + f(pos[i][0]) + '" y="' + f(pos[i][1] + 5) + '" text-anchor="middle">' + NS[i] + "</text></g>";
+    $("sg").innerHTML = svg;
+    var use = "";
+    for (s = 0; s < n; s++) for (y = 0; y < 2; y++) {
+      tr = M.table[s][y];
+      use += '<div id="useR' + s + y + '" data-s="' + s + '"' + (tr === null ? ' class="halt"' : "") + "><span>" + NS[s] + y + " " +
+        (tr === null ? "halt" : "&rarr; " + tr[0] + (tr[1] === 1 ? "R" : "L") + NS[tr[2]]) + '</span><span><i></i></span><span class="t">0</span></div>';
+    }
+    $("use").innerHTML = use;
+    function focus(s) {
+      document.querySelectorAll("#sg .edge").forEach(function (e) { e.classList.toggle("dim", s !== null && e.dataset.s !== s); });
+    }
+    document.querySelectorAll("#sg .node, #use div").forEach(function (e) {
+      e.onmouseenter = function () { focus(e.dataset.s); }; e.onmouseleave = function () { focus(null); };
+    });
+    var last = [];
+    return function () {
+      last.forEach(function (e) { e.classList.remove("on", "next"); }); last = [];
+      var max = 1, tot = 0, never = 0, i;
+      for (i = 0; i < cnt.length; i++) { if (cnt[i] > max) max = cnt[i]; tot += cnt[i]; }
+      for (i = 0; i < cnt.length; i++) {
+        var row = $("useR" + (i >> 1) + (i & 1)), sp = row.children;
+        sp[1].firstChild.style.width = (cnt[i] ? Math.max(1, 100 * cnt[i] / max) : 0) + "%"; sp[2].textContent = fmt(cnt[i]);
+        row.classList.toggle("never", !cnt[i]); if (!cnt[i] && M.table[i >> 1][i & 1] !== null) never++;
+      }
+      $("useCap").textContent = fmt(tot) + (tot === 1 ? " transition fired" : " transitions fired") + (never ? "; " + never + " of the machine's transitions not used yet" : "") + ".";
+      if (r.halted) return;
+      var y = r.get(r.head), ids = ["sgN" + r.state, "sgE" + r.state + y, "useR" + r.state + y, "tt" + r.state + y];
+      ids.forEach(function (id, j) { var e = $(id); if (e) { e.classList.add(j ? "next" : "on"); last.push(e); } });
+    };
+  })();
   function draw() {
+    SG();
     $("rStep").textContent = fmt(r.steps);
     $("rState").textContent = r.halted ? "halt" : BB.STATES[r.state];
     $("rWidth").textContent = fmt(r.hi - r.lo + 1);
@@ -386,9 +490,10 @@ if (typeof module !== "undefined") module.exports = BB;
   }
   function advance(n) {
     var target = r.steps + n;
-    while (!r.halted && r.steps < target) if (!r.step()) break;
+    while (!r.halted && r.steps < target) { cnt[2 * r.state + r.cells[r.head + r.off]]++; if (!r.step()) break; }
   }
-  function jump(t) { if (t < r.steps) r = new BB.Run(M); advance(t - r.steps); draw(); }
+  function fresh() { r = new BB.Run(M); cnt.fill(0); }
+  function jump(t) { if (t < r.steps) fresh(); advance(t - r.steps); draw(); }
   function loop() {
     if (!playing) return;
     advance(+$("speed").value); draw();
@@ -401,7 +506,7 @@ if (typeof module !== "undefined") module.exports = BB;
     if (playing) { stop(); return; }
     playing = true; $("play").textContent = "Pause"; loop();
   };
-  $("reset").onclick = function () { stop(); r = new BB.Run(M); draw(); };
+  $("reset").onclick = function () { stop(); fresh(); draw(); };
   $("jumpGo").onclick = function () {
     stop(); var t = parseInt($("jumpTo").value.replace(/[^0-9]/g, ""), 10);
     if (t >= 0 && t <= 1e9) jump(t);

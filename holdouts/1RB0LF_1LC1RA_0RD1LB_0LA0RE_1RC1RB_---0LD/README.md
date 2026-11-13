@@ -78,3 +78,10 @@ python3 holdouts/1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD/py/gen_rules.py > hol
   `holdouts/1RB0LD_1LC1RD_0LE1LA_0RB1RD_---0LF_1RA1LF/`.
 - Then find out where `0 A>1` can arise in that machine (which digit values would make it) and run the block machine
   far past 10^10 steps.
+
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 6 152800000` runs 152,800,000 macro steps from blank tape without a halt, more than 3.40·10^13
+machine steps (tape: 7,087,446 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).

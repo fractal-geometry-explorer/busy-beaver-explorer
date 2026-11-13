@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -82,6 +86,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>The question is open.</b> Lean proves the four passes over the regular parts of the tape and the halting situation (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
       <p><b>What it does.</b> The head sweeps the whole tape back and forth. Seen at the left end, the tape is <code>0 0 1</code>, a left part made of blocks <code>a = 0011</code> separated by short pieces (<code>b</code>, <code>0 1<sup>3</sup></code>, <code>0 1<sup>2</sup></code>, <code>0 1 0 1<sup>2</sup></code>), then a long run <code>b<sup>n</sup></code> of the word <code>b = 010111</code>, then the fixed end <code>0 1<sup>4</sup> b<sup>2</sup> 0 1</code>. The run b<sup>n</sup> gets one more copy on most round trips, so the tape grows like the square root of the step count; the left part is rewritten like the low digits of a counter.</p>
       <p><b>Where a halt would come from.</b> Only D reading a 1 halts, and D is entered only from C reading a 1; so <code>1 C&gt;1</code> halts (<code>halt_C</code>). In the run C reads a 1 only with a 0 to its left.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card report">
+        <h3>An outside proof is waiting for review: it never halts</h3>
+        <p><a href="https://github.com/ccz181078/busycoq/pull/52">busycoq pull request 52</a> (Alex Havrilla, 2026-11-03) contains a Rocq proof that this machine never halts (<code>verify/M_1RB0LC_1LC0RB_0LE0LD_1LCHHH_0RA1LF_1LA1LF.v</code>). As of 12 November 2026 it was open: not merged, not reviewed by the maintainer, and not compiled here unless the ledger below says so. The verdict on this page does not rely on it.</p>
+      </div>
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Bouncer + Chaotic Edge</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

@@ -56,3 +56,10 @@ gcc -O2 -o /tmp/tmrun tools/c/tmrun.c && /tmp/tmrun 1RB0LC_1RC0RF_1LA0LD_0LE0RA_
 python3 holdouts/1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA---/py/shape.py /tmp/rec.txt a=10
 python3 holdouts/1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA---/py/switches.py /tmp/rec.txt a=10
 ```
+
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA--- 6 173000000` runs 173,000,000 macro steps from blank tape without a halt, more than 2.25·10^11
+machine steps (tape: 21,666 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).

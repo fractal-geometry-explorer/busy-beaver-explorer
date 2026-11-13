@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open, but the run is now understood up to its rebuilds.</b> Between rebuilds the machine is a binary counter that applies one fixed operation to a list of blocks once per tick, and the list is the binary expansion of the time it has left (checked against the machine, not proved). Rebuilds are simulated cell by cell. With this the run passes 1,503 rebuilds, more than 10<sup>3,739</sup> steps, without a halt (before: 10<sup>9</sup> steps).",
+  "<b>The question is open, but the run is now understood up to its rebuilds.</b> Between rebuilds the machine is a binary counter that applies one fixed operation to a list of blocks once per tick, and the list is the binary expansion of the time it has left (checked against the machine, not proved). Rebuilds are simulated cell by cell. With this the run passes 3,792 rebuilds, more than 10<sup>9,553</sup> steps, without a halt (before: 10<sup>9</sup> steps).",
   "<b>Same skeleton as a sibling.</b> The machine <code>1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---</code> follows the same model with blocks of 3a + 2 cells instead of 2a + 1. There, tapes of the machine's own shape halt; here none was found, and the rebuilds have no rule yet."
  ],
  "claims": [
@@ -66,14 +66,14 @@
   },
   {
    "level": "heuristic",
-   "title": "1,503 rebuilds without a halt",
-   "text": "A run that takes the regular sub-rounds by arithmetic (any number at once, with the two rules above) and gives everything else to the machine itself, cell by cell: the transient after each single block. It passes 1,503 rebuilds; by then the counter has made more than 2<sup>12,424</sup> sub-rounds, so the machine more than 10<sup>3,739</sup> steps. A halt could only be found by the direct part and none was. The arithmetic part rests on the two rules above for all sizes, which are checked, not proved. The run stops there for a practical reason: the transient after the 1,504th single block (25,096 cells) contains a second kind of regular stretch, in which the block before the last one is 2l/5 + 1 instead of 1 and a gap of the zone that is 4 mod 5 is used up 5 cells at a time. The model does not cover it yet and simulating it cell by cell takes too long.",
-   "where": "<code>holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py</code> (<code>run 1503</code>), <code>c/trans.c</code>"
+   "title": "3,792 rebuilds without a halt",
+   "text": "A run that takes the regular sub-rounds by arithmetic (any number at once, with the two rules above) and gives everything else to the machine itself, cell by cell: the transient after each single block. It passes 3,792 rebuilds; by then the counter has made more than 2<sup>31,736</sup> sub-rounds, so the machine more than 10<sup>9,553</sup> steps. A halt could only be found by the direct part and none was. The arithmetic part rests on the two rules above for all sizes, which are checked, not proved. The run stops there for a practical reason. Some transients contain a second kind of regular stretch (observed, not modelled): the block before the last one is 2l/5 + 1 instead of 1, the list counts the sub-rounds upwards in binary instead of downwards, and a gap of the zone of 5q + 4 cells is used up in about 2<sup>q+1</sup> sub-rounds. The 1,504th transient has one with q = 24, which the run simulates cell by cell (about 10<sup>9</sup> steps); after rebuild 3,792 comes one that is too long for that.",
+   "where": "<code>holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py</code> (<code>run 3792</code>), <code>c/trans.c</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. Between rebuilds the machine cannot halt if the model is right; what the transient of a rebuild does has no rule yet, and a second kind of regular stretch inside the transients is not modelled. The sibling <code>1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---</code>, which follows the same model, has tapes of its own shape that halt, so the shape alone is unlikely to decide this machine either.",
+   "text": "Not known. Between rebuilds the machine cannot halt if the model is right; what the transient of a rebuild does has no rule yet, and a second kind of regular stretch inside the transients, in which the list counts upwards, is not modelled. The sibling <code>1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---</code>, which follows the same model, has tapes of its own shape that halt, so the shape alone is unlikely to decide this machine either.",
    "where": ""
   }
  ],
@@ -84,15 +84,15 @@
   "python3 holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py check 400000     # machine against model, sub-round by sub-round",
   "python3 holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py rounds           # round ends after the first rebuild against a direct run",
   "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA--- 20000000000 at C R 2000     # that direct run (1 minute)",
-  "python3 holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py run 1503         # the hybrid run (1 minute)"
+  "python3 holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py run 3792         # the hybrid run (2 minutes)"
  ],
  "explainer": {
   "lede": "Nobody knows. Between its rebuilds this machine is a binary counter that applies one small operation to a list of blocks at every tick, and the list is, read in binary, the time left until the next rebuild. This page runs the machine, lets you step the list and the counter, and lists what is known.",
   "facts": [
    {
     "level": "heuristic",
-    "value": "1,503 rebuilds",
-    "text": "No halt, more than 10<sup>3,739</sup> steps (model checked, not proved)."
+    "value": "3,792 rebuilds",
+    "text": "No halt, more than 10<sup>9,553</sup> steps (model checked, not proved)."
    },
    {
     "level": "trusted",
@@ -137,7 +137,7 @@
     "heading": "Why it is hard to settle",
     "html": [
      "<p>The machine halts only in state F reading a 1. In a regular sub-round that does not happen (in the model). What the irregular stretch after a single block does has no rule yet. For the sibling <code>1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---</code>, which follows the same model in another coding, some tapes of the machine's own shape halt; for this machine a search over small single blocks found none.</p>",
-     "<p>The run from blank tape has passed 1,503 rebuilds, more than 10<sup>3,739</sup> steps, without a halt. After that the irregular stretches contain a second kind of regular behaviour that is not modelled yet, and the run cannot be followed further for now.</p>"
+     "<p>The run from blank tape has passed 3,792 rebuilds, more than 10<sup>9,553</sup> steps, without a halt. After that comes a stretch in which the list counts upwards for too long to simulate cell by cell; it is not modelled yet, so the run cannot be followed further for now.</p>"
     ]
    },
    {
@@ -155,5 +155,5 @@
   ]
  },
  "family": "two-level block counter (fast tail, walking block in a unary list)",
- "summary": "Binary counter applying one list operation W per tick; the block list is the binary expansion of the time to the next rebuild (checked, not proved); rebuild transients simulated directly; no halt in 1,503 rebuilds (more than 10^3,739 steps); open."
+ "summary": "Binary counter applying one list operation W per tick; the block list is the binary expansion of the time to the next rebuild (checked, not proved); rebuild transients simulated directly; no halt in 3,792 rebuilds (more than 10^9,553 steps); open."
 }

@@ -41,6 +41,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 9.85·10<sup>277</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 167,200,000 macro steps from blank tape without a halt. That is more than 9.85·10<sup>277</sup> machine steps; the tape then spans about 9.09·10<sup>138</sup> cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0LC_1RC1RA_0LD0LF_0LB0LE_1LA1LD_---0RA 4 167200000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: power/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.453). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.131).",
@@ -98,7 +104,8 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LC_1RC1RA_0LD0LF_0LB0LE_1LA1LD_---0RA/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1RC1RA_0LD0LF_0LB0LE_1LA1LD_---0RA 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1RC1RA_0LD0LF_0LB0LE_1LA1LD_---0RA 1000000000",
+  "python3 tools/py/bbtools/rleaccel.py 1RB0LC_1RC1RA_0LD0LF_0LB0LE_1LA1LD_---0RA 4 167200000    # minutes"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",

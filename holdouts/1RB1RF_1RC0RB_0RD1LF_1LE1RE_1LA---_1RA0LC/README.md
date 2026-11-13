@@ -93,3 +93,10 @@ python3 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/py/chains.py 10000000
 python3 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/py/ends.py 1000000000     # how far back each transition reads
 cc -O2 -o end0 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/c/end0.c && ./end0 1000000000   # absorb0 / eat frames on the run
 ```
+
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC 2 227000000` runs 227,000,000 macro steps from blank tape without a halt, more than 1.05·10^20
+machine steps (tape: 55,996,144 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).

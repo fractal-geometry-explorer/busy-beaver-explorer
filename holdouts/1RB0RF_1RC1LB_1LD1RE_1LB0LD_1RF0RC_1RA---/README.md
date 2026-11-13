@@ -43,9 +43,11 @@ longer list. No rule is known for the transient. All of this is observed and che
 | 7 | 174 | more than 2^86 | `2 1^85 7 1^2 5` |
 | 8 | 190 | more than 2^94 | `2 1^93 7 1^2 5` |
 
-`py/model.py run` takes regular sub-rounds by arithmetic and everything else by direct simulation (`c/trans.c`): 1,503
-rebuilds, more than 2^12,424 sub-rounds, no halt. The transient after the 1,504th single block contains a second kind of
-regular stretch (the block before l is 2l/5 + 1 and grows with l) that the model does not cover yet.
+`py/model.py run` takes regular sub-rounds by arithmetic and everything else by direct simulation (`c/trans.c`): 3,792
+rebuilds, more than 2^31,736 sub-rounds, no halt. Some transients contain a second kind of regular stretch
+(the block before l is 2l/5 + 1, the list counts the sub-rounds upwards in binary, a zone gap of 5q + 4 cells is used up
+in about 2^(q+1) sub-rounds); the run simulates these cell by cell (q = 24 in transient 1,504) and stops after rebuild
+3,792 at one that is too long.
 
 ## What is established
 
@@ -65,14 +67,15 @@ regular stretch (the block before l is 2l/5 + 1 and grows with l) that the model
 
 **Computed (trusted C/Python)** — The list is the binary expansion of the time it has left: With digits a_i = (b_i − 1)/2, W removes the last digit a, adds 1 to the digit before it and appends a zeros. A tail (..., q, a) becomes (..., q + a + 1) after exactly 2^a steps, so an interior with digits a_1, ..., a_k is a single block after exactly T = Σ_i 2^(ai + ... + ak + k − i) steps of W. (This is arithmetic on the rule W, not on the machine.) Checked on the machine: the model predicts the single block at sub-round 7,964 of that run and it is there; and after the first rebuild the lists at six ends of rounds, up to step 1.07·10^10, are those of a direct run of the machine (`2 1^7 3 1^3 7 1^10 7 3 1^4 | 1 | 120` at step 335,864,993, ..., `2 1^6 3 15 1^10 7 3 1^4 | 1 | 145` at step 10,737,738,872). (`holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py` (`check 400000`, `rounds`))
 
-**Heuristic / observed** — 1,503 rebuilds without a halt: A run that takes the regular sub-rounds by arithmetic (any number at once, with the two rules above) and gives everything else to the machine itself, cell by cell: the transient after each single block. It passes 1,503 rebuilds; by then the counter has made more than 2^12,424 sub-rounds, so the machine more than 10^3,739 steps. A halt could only be found by the direct part and none was. The arithmetic part rests on the two rules above for all sizes, which are checked, not proved. The run stops there for a practical reason: the transient after the 1,504th single block (25,096 cells) contains a second kind of regular stretch, in which the block before the last one is 2l/5 + 1 instead of 1 and a gap of the zone that is 4 mod 5 is used up 5 cells at a time. The model does not cover it yet and simulating it cell by cell takes too long. (`holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py` (`run 1503`), `c/trans.c`)
+**Heuristic / observed** — 3,792 rebuilds without a halt: A run that takes the regular sub-rounds by arithmetic (any number at once, with the two rules above) and gives everything else to the machine itself, cell by cell: the transient after each single block. It passes 3,792 rebuilds; by then the counter has made more than 2^31,736 sub-rounds, so the machine more than 10^9,553 steps. A halt could only be found by the direct part and none was. The arithmetic part rests on the two rules above for all sizes, which are checked, not proved. The run stops there for a practical reason. Some transients contain a second kind of regular stretch (observed, not modelled): the block before the last one is 2l/5 + 1 instead of 1, the list counts the sub-rounds upwards in binary instead of downwards, and a gap of the zone of 5q + 4 cells is used up in about 2^(q+1) sub-rounds. The 1,504th transient has one with q = 24, which the run simulates cell by cell (about 10^9 steps); after rebuild 3,792 comes one that is too long for that. (`holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py` (`run 3792`), `c/trans.c`)
 
-**Open** — Does it halt from blank tape?: Not known. Between rebuilds the machine cannot halt if the model is right; what the transient of a rebuild does has no rule yet, and a second kind of regular stretch inside the transients is not modelled. The sibling `1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---`, which follows the same model, has tapes of its own shape that halt, so the shape alone is unlikely to decide this machine either.
+**Open** — Does it halt from blank tape?: Not known. Between rebuilds the machine cannot halt if the model is right; what the transient of a rebuild does has no rule yet, and a second kind of regular stretch inside the transients, in which the list counts upwards, is not modelled. The sibling `1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---`, which follows the same model, has tapes of its own shape that halt, so the shape alone is unlikely to decide this machine either.
 
 ## For later
 
-1. Model the second kind of regular stretch (block before l equal to 2l/5 + 1, a zone gap that is 4 mod 5 used up
-   5 cells at a time), so that the run can go on past rebuild 1,503.
+1. Model the second kind of regular stretch (block before l equal to 2l/5 + 1, the list counting upwards, a zone gap
+   that is 4 mod 5 used up 5 cells at a time; at the end the count becomes one block and the configuration is regular
+   again), so that the run can go on past rebuild 3,792.
 2. The transient: find its rule, so that the whole run becomes arithmetic.
 3. Lean: W and the counter step as rules for all sizes, then T by induction; shared with the sibling.
 
@@ -85,7 +88,7 @@ gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0R
 python3 holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py check 400000     # machine against model, sub-round by sub-round
 python3 holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py rounds           # round ends after the first rebuild against a direct run
 gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA--- 20000000000 at C R 2000     # that direct run (1 minute)
-python3 holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py run 1503         # the hybrid run (1 minute)
+python3 holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/py/model.py run 3792         # the hybrid run (2 minutes)
 ```
 
 Pages: [`explainer.html`](../../pages/holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/explainer.html), [`proof-status.html`](../../pages/holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---/proof-status.html).

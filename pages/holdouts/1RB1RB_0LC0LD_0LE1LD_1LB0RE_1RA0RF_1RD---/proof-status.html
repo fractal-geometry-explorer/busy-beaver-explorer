@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open,</b> but the run is now known in detail: it goes through <em>epochs</em> whose sizes follow T' = 2T + 5 exactly, with X = 6T + 17 copies of the word <code>baccaaa</code> at each epoch start, 72T + 290 visits of the right end per epoch and (from T = 91 on) exactly 16416T² + 151769T + 288000 steps. Three of the five phases of every epoch are proved in Lean for all counts; the other two, where an inner counter runs deep inside the tape, are exact cycles of 144 and 288 visits checked by symbolic computation but not yet in Lean.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card report">
+        <h3>An outside proof is waiting for review: it never halts</h3>
+        <p><a href="https://github.com/ccz181078/busycoq/pull/56">busycoq pull request 56</a> (Alex Havrilla, 2026-11-04) contains a Rocq proof that this machine never halts (<code>verify/M_1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RDHHH.v</code>). As of 12 November 2026 it was open: not merged, not reviewed by the maintainer, and not compiled here unless the ledger below says so. The verdict on this page does not rely on it.</p>
+      </div>
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Unknown</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

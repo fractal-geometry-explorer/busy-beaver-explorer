@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -81,6 +85,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="verdict">
       <p><b>Open; analysis only begun.</b> Sampled when the head is in E at the left end, the tape is a list of blocks of the words <code>0100</code>, <code>0010</code> and <code>0001</code>, as in <code>E&gt; (10)^2 (0100)^189 (10)^3 (0010)^633 (01)^2 (0001)^n</code> plus a short tail. All blocks but the last are frozen. The last one grows by a factor of about 1.4 per event: n = 13, 159, 363, &hellip;, 28,645, 40,230 up to step 1.9&middot;10<sup>10</sup>. From time to time a new level begins: 189 copies of <code>0100</code> froze at step 0.43&middot;10<sup>6</sup>, and 633 copies of <code>0010</code> at step 9.1&middot;10<sup>6</sup>. The exact map and the halting condition are further work.</p>
       <p><b>Third pass.</b> No halt in 10<sup>18</sup> steps (macro simulation); the third level froze at 40,231 copies and a fourth grows. The growth factor 1.40 is 7/5 (community tracker: a recursive counter).</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Unknown</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

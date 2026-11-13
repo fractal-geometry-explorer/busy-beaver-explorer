@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 2.32·10<sup>12</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 147,800,000 macro steps from blank tape without a halt. That is more than 2.32·10<sup>12</sup> machine steps; the tape then spans 1,768,764 cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0RA_1RC1RD_1LD1LB_0RF1LE_1LE0LC_---1RA 4 147800000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: power/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.583). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.301).",
@@ -74,7 +80,8 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RA_1RC1RD_1LD1LB_0RF1LE_1LE0LC_---1RA/lean/check.sh",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RA_1RC1RD_1LD1LB_0RF1LE_1LE0LC_---1RA 1000000000",
-  "python3 holdouts/1RB0RA_1RC1RD_1LD1LB_0RF1LE_1LE0LC_---1RA/py/rules.py | diff - holdouts/1RB0RA_1RC1RD_1LD1LB_0RF1LE_1LE0LC_---1RA/lean/Rules.lean   # the rules file is current"
+  "python3 holdouts/1RB0RA_1RC1RD_1LD1LB_0RF1LE_1LE0LC_---1RA/py/rules.py | diff - holdouts/1RB0RA_1RC1RD_1LD1LB_0RF1LE_1LE0LC_---1RA/lean/Rules.lean   # the rules file is current",
+  "python3 tools/py/bbtools/rleaccel.py 1RB0RA_1RC1RD_1LD1LB_0RF1LE_1LE0LC_---1RA 4 147800000    # minutes"
  ],
  "explainer": {
   "lede": "Nobody knows. The left side of the tape is long runs of 01, the right side a regular comb with a period of ten cells. The head crosses both by proved rules, but the lengths of the runs change irregularly.",

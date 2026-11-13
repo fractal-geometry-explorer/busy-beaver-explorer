@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -81,6 +85,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="verdict">
       <p><b>The question is open.</b> The mechanism is now known and partly proved. The head sweeps right in state A (every 0 moves one cell right) and left two cells at a time in states E and D: a pair of cells <code>01</code> becomes <code>11</code>, a pair <code>11</code> becomes <code>10</code>. On a tape of blocks of ones of odd length this only moves the content two cells to the right per round trip; the right end eats it and the left end adds a new word <code>1 3 1 5 5</code> (block lengths) every six round trips. Everything else comes from <em>defects</em>, places where the left sweep lands on a 0: the head turns round there and bounces between the defect and the right end, which rebuilds the tape to the right of the defect in a longer pattern.</p>
       <p>Lean proves (kernel) that a halt can only come from one pattern, state E on a 0 with <code>1 0 0</code> to its left, and that the machine never halts if that pattern never appears. The C simulator sees no halt in 6.1&middot;10<sup>10</sup> steps, and the pattern never: in that run E met two 0s in a row inside the tape 285 times, after step 3.6&middot;10<sup>7</sup> always in the same harmless surrounding. 3,600 real tapes with one or two cells changed do not halt either, but small tapes of blocks do (<code>111011</code> halts after 655 steps), so the shape of the tape alone does not prevent a halt. No closed set of configurations was found: the tape is nested to unbounded depth, so the closed-set method that found closed sets for two sibling machines does not apply as it stands, and four automatic searches for a regular invariant failed.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Unknown</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-s0">

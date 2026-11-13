@@ -48,6 +48,7 @@ class TestHoldouts(unittest.TestCase):
 
     def test_pages_current(self):
         for name, spec in build_pages.specs():
+            spec = build_pages.page_spec(spec)
             d = os.path.join(build_pages.PAGES, name)
             with open(os.path.join(d, "explainer.html")) as f:
                 self.assertEqual(f.read(), build_pages.build_explainer.build(spec, spec.get("home", "../index.html")),

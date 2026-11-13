@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -83,6 +87,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in the first 10<sup>11</sup> steps.</p>
       <p><b>What it does.</b> At each overflow of its counter the tape is <code>C&gt;0 (1 0)^z W</code>; z grows by one per overflow while the step count doubles, and a marker block <code>1^11</code> moves one block right through the periodic end <code>(1^5 0)^m</code> of W. When it reaches the end, W is rebuilt longer (at steps 17,682,600, 5,745,422,543 and 49,800,461,566).</p>
       <p><b>Why it is hard.</b> A halt can only come out of a restructure; similar configurations with random words halt quickly, so the run is kept safe by the particular words it writes, and nobody has worked out the restructure rule.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Shift-overflow counter</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

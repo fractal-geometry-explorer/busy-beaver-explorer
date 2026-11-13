@@ -62,6 +62,13 @@ gcc -O2 -o tokrun tools/c/tokrun.c
 . /etc/profile.d/lean.sh && holdouts/1RB1RE_0LC1RF_---1LD_1LE0LD_1LA1LB_1RF0RA/lean/check.sh
 ```
 
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB1RE_0LC1RF_---1LD_1LE0LD_1LA1LB_1RF0RA 4 154800000` runs 154,800,000 macro steps from blank tape without a halt, more than 1.67·10^12
+machine steps (tape: 1,519,984 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

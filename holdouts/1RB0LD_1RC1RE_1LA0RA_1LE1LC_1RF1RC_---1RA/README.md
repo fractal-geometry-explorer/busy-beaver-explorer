@@ -86,3 +86,10 @@ gcc -O2 -o walker holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/c/walker.c 
    much further.
 2. Prove the shallow carry in Lean (it needs an induction over k with the tail re-bracketed by 4).
 3. Look for a heuristic for how often deep events occur and whether the halting ones have positive density.
+
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA 6 167200000` runs 167,200,000 macro steps from blank tape without a halt, more than 1.29·10^14
+machine steps (tape: 13,769,538 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).

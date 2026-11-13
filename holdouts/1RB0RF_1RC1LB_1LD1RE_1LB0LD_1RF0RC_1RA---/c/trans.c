@@ -51,6 +51,12 @@ int main(int argc, char **argv) {
         if (head < 8 || head > size - 8) { printf("OUT %lld\n", k); return 0; }
         if (st == 2 && t[head] == 0 && t[head - 1] == 1) {
             long long a = lo, i, run = 0, nb = 0; int ok = 1;
+            /* a cheap test first, on the cells next to the head: the last block and the AUX block */
+            i = head - 1; while (i >= lo && t[i]) i--;
+            run = head - 1 - i;
+            if (run < L0 || (run - L0) % U != 0) continue;
+            if (AUX > 0) { long long j = i - 1; while (j >= lo && t[j]) j--; if (i - 1 - j != AUX) continue; }
+            run = 0;
             while (t[a] == 0) a++;
             long long prev = -1;                 /* the block before the current one, checked one block late */
             for (i = a; i < head && ok; i++) {

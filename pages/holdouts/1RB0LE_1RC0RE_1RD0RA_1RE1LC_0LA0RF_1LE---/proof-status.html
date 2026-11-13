@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -82,6 +86,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>The question is open.</b> Lean proves two crossings of the sweeps and the situations that lead to a halt (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
       <p><b>What it does.</b> The mirror image of a known family: at the <em>right</em> end the tape is dense, blocks of 1s of length 4j+3 separated by single 0s; at the <em>left</em> end it is sparse, the words <code>01</code>, <code>0001</code> and <code>00</code>. The sweeps translate between the two forms; going left, E with a 0 ahead turns each <code>11</code> into <code>10</code>. The list of block lengths is scrambled on every trip.</p>
       <p><b>Where a halt would come from.</b> Only F reading a 1 halts; <code>E&gt;1 1</code>, <code>1 F&gt;0</code>, <code>B&gt;1 1 1</code> and <code>D&gt;0 1 1</code> lead there. In 2&middot;10<sup>8</sup> steps F always reads a 0.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Chaotic 1dCA-like in bouncer</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

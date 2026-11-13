@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -83,6 +87,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>What Lean proves.</b> The whole phase map, every case for all sizes (E(x, z) = <code>E&gt;0 (10)^x 1^z</code>, A(x, y) = <code>(10)^x 1^y A&gt;0</code> and the bounce frame Q(m, j, t) = <code>(10)^m 1 D&gt;0 0 (1010)^j 1^t</code>), and <code>halts_iff</code>: the machine halts from blank tape if and only if the map, iterated from A(0, 0) (the blank tape), reaches E(x, 0) or E(x, 1). By <code>native_decide</code> the first 10<sup>8</sup> phases (about 4.1&middot;10<sup>21</sup> machine steps) do not. Lean also proves that the <em>even</em> phases lead only to even phases or to an all-ones tape, and checks, for every all-ones tape of length n &lt; 10<sup>5</sup>, that its run halts before the next even phase or all-ones tape exactly when n is 1 or 12&middot;2<sup>k</sup> &minus; 2k &minus; 9 (3, 13, 35, 81, 175, &hellip;). <code>lean/Fatal.lean</code> proves that list for every n, by the kernel (<code>ones_fatal_all</code>, <code>ones_safe_all</code>). What is not proved: that the run never lands on a fatal length.</p>
       <p><b>Where a halt would come from.</b> The halting transition F0 fires only when state E stands on the 0 at the left end with at most one 1 after the alternating block. Probing every two-block tape with x, y &lt; 150 shows that a parity rule keeps that from happening, except right after the tape has become all ones, <code>1^n</code>: from <code>1^n A&gt;0</code> the machine halts exactly for n = 1, 3, 6, 13, 35, 81, 175, 365, &hellip; (n = 12&middot;2<sup>k</sup> &minus; 2k &minus; 9 and two small values, checked up to n = 400).</p>
       <p><b>Why it has not halted.</b> All-ones moments are rare: eleven in the first 10<sup>9</sup> steps, at n = 5, 10, 14, 30, 61, 89, 169, 222, 382, 542 and 781, none of them in the halting list, and only five more by step 10<sup>15</sup> (n = 9705, 59501, 77694, 271974, 311881). A halt needs an all-ones moment to land exactly on a number of that sparse list, so the machine very probably never halts, but nothing here proves it.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Cubic Mess</b>. Its 3 November 2026 edition lists the machine as a <b>cryptid</b>: its halting is thought to come down to a Collatz-like question that no known method decides. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

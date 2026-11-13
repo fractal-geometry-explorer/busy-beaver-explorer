@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -82,6 +86,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>The question is open.</b> Lean proves the rightward pass for any block (kernel), no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
       <p><b>What it does.</b> The head sweeps the whole tape. At the left end the tape is <em>dense</em>: blocks of 1s, almost all of length 4j+3, separated by single 0s. A fast rightward pass rewrites every block <code>1<sup>4j+3</sup> 0</code> as the <em>sparse</em> word <code>(1010)<sup>j</sup> 1000</code>, the same length. A slow leftward zig-zag rebuilds dense blocks from the sparse words, but not the same ones: the list of block lengths is scrambled on every round trip, and a few cells are added at each end.</p>
       <p><b>Where a halt would come from.</b> Only A reading a 1 halts, which happens exactly after <code>A&gt;0 1</code> or <code>1 B&gt;1</code>. Neither has occurred; the content looks random, so a proof would need an invariant of the scrambling that nobody has found.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Chaotic 1dCA-like in bouncer</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">
