@@ -43,6 +43,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 5.64·10<sup>9</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 2 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 109,200,000 macro steps from blank tape without a halt. That is more than 5.64·10<sup>9</sup> machine steps; the tape then spans 9,928 cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1RA_1RC---_1RD0LD_1LE1RF_0RA1LD_0RC0LC 2 109200000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: sqrt/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.394). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.377).",
@@ -78,7 +84,8 @@
   "holdouts/1RB1RA_1RC---_1RD0LD_1LE1RF_0RA1LD_0RC0LC/lean/check.sh",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_1RC---_1RD0LD_1LE1RF_0RA1LD_0RC0LC 1000000000",
   ". /etc/profile.d/lean.sh && holdouts/1RB1RA_1RC---_1RD0LD_1LE1RF_0RA1LD_0RC0LC/lean/check.sh   # Rules.lean",
-  "python3 holdouts/1RB1RA_1RC---_1RD0LD_1LE1RF_0RA1LD_0RC0LC/py/queue.py 1e9   # the queue law"
+  "python3 holdouts/1RB1RA_1RC---_1RD0LD_1LE1RF_0RA1LD_0RC0LC/py/queue.py 1e9   # the queue law",
+  "python3 tools/py/bbtools/rleaccel.py 1RB1RA_1RC---_1RD0LD_1LE1RF_0RA1LD_0RC0LC 2 109200000    # minutes"
  ],
  "explainer": {
   "lede": "Nobody knows yet. This machine's tape is a queue. Blocks of ones wait in line; at each visit of the left end the first one is taken apart, every other block grows by six, and new small blocks join at the back. It looks like a tag system, a kind of process that can be very hard to predict.",

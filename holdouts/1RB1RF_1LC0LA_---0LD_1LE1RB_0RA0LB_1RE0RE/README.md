@@ -72,3 +72,10 @@ C (`tools/c/triage.c`): no halt in 1,000,000,000 steps. Python (`bbtools.cycles`
 . /etc/profile.d/lean.sh && holdouts/1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE/lean/check.sh
 python3 holdouts/1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE/py/cycles_run.py 1e10
 ```
+
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE 6 175400000` runs 175,400,000 macro steps from blank tape without a halt, more than 1.87·10^14
+machine steps (tape: 22,200,732 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).

@@ -151,6 +151,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.56·10<sup>11</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 145,200,000 macro steps from blank tape without a halt. That is more than 1.56·10<sup>11</sup> machine steps; the tape then spans 30,564 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0RB_1RC0LE_1LD1LA_---0LC_1RF1LE_1RA0RA 6 145200000</code></p>
+      </div>
+      <div class="card">
         <h3>No power of two in the first 121 chains</h3>
         <p>In the first 10<sup>9</sup> steps the run starts 121 halving chains (values up to about 1,900); none starts at a power of two ≥ 2. The number of halvings per chain is distributed like the 2-adic valuation of random integers (63, 32, 14, 8, 3, 1 chains with 0…5 halvings).</p>
         <p class="where"><code>tmrun … at E L</code>, README</p>
@@ -193,7 +198,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB0RB_1RC0LE_1LD1LA_---0LC_1RF1LE_1RA0RA/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RB_1RC0LE_1LD1LA_---0LC_1RF1LE_1RA0RA 1000000000
 python3 holdouts/1RB0RB_1RC0LE_1LD1LA_---0LC_1RF1LE_1RA0RA/py/halving.py
-python3 holdouts/1RB0RB_1RC0LE_1LD1LA_---0LC_1RF1LE_1RA0RA/py/rules.py  # regenerates lean/HalvingRules.lean</code></pre>
+python3 holdouts/1RB0RB_1RC0LE_1LD1LA_---0LC_1RF1LE_1RA0RA/py/rules.py  # regenerates lean/HalvingRules.lean
+python3 tools/py/bbtools/rleaccel.py 1RB0RB_1RC0LE_1LD1LA_---0LC_1RF1LE_1RA0RA 6 145200000    # minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RB_1RC0LE_1LD1LA_---0LC_1RF1LE_1RA0RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

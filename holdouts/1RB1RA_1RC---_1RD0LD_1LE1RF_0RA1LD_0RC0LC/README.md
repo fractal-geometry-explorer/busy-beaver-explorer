@@ -75,3 +75,10 @@ start, 2,602 right), 4,149 ones.
 . /etc/profile.d/lean.sh && holdouts/1RB1RA_1RC---_1RD0LD_1LE1RF_0RA1LD_0RC0LC/lean/check.sh
 python3 holdouts/1RB1RA_1RC---_1RD0LD_1LE1RF_0RA1LD_0RC0LC/py/queue.py 1e9
 ```
+
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB1RA_1RC---_1RD0LD_1LE1RF_0RA1LD_0RC0LC 2 109200000` runs 109,200,000 macro steps from blank tape without a halt, more than 5.64·10^9
+machine steps (tape: 9,928 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).

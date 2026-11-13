@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The run is a regular round structure (the total length of the blocks doubles each round, a round takes about four times as long as the one before); one round step is proved in Lean for all counts, the rounds are observed, not proved, and nothing found so far says whether the halting transition (F reading 1) can ever fire."
  ],
@@ -76,6 +76,18 @@
    "where": "<code>tools/c/tokrun.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "A round map for the whole block list, checked against the direct run",
+   "text": "Sample the run whenever the head is in state B reading 0 with only 0s to its left (about once or twice a round). The tape is cut into runs of repeated words and short literals; the next sample is computed from simulations in which every long run is short, one run at a time is lengthened, and two further instances check that the new counts are affine in the old ones. Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (18 samples) this map predicts all 17 next samples exactly. An extrapolation checked by computation, not a proof.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxmulti.py 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- L B 0 check 3e9</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "40 more samples past the direct run, no halt",
+   "text": "Iterated from the last sample of the direct run: 40 samples without a halt; the list then has about 50 blocks and the largest holds a count of 69 bits (the direct run reaches 14 bits). The blocks keep the shape <code>(10100)^n 1 000</code> and roughly double. The run was stopped by a time limit after round 40, not by an event of the machine; the classes change every round (a block is added), so each round costs new simulations. An earlier run with a fixed threshold stopped after 33 samples at a class whose simulations disagreed, when two blocks of about 20 words stood next to the left-end gadget; with the threshold raised for such rounds the iteration passes that point.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxmulti.py 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- L B 0 orbit 40</code> (about an hour)"
+  },
+  {
    "level": "open",
    "title": "Does it halt?",
    "text": "Not known. The machine halts only when F reads a 1; F is entered (from C reading a 1) about 2% of all steps and in the first 2&middot;10<sup>8</sup> steps (4,004,892 visits) it always had <code>0101</code> to its left. Whether a round can ever end in a configuration where it reads a 1 depends on the left-end gadget and on how blocks merge, which are not understood yet.",
@@ -91,7 +103,8 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- 1000000000",
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxmulti.py 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- L B 0 check 3e9"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
@@ -156,6 +169,16 @@
     "heading": "Only F reading a 1 stops it",
     "html": [
      "<p>The only halting transition is F on a 1. F is entered after C reads a 1, about once every 50 steps, and so far always with <code>0101</code> to its left and a 0 under the head. The regular part of a round (the block cycle above) never brings F onto a 1; a halt would have to come from the irregular moments: the turn at the left end, and the merging of blocks. These are not understood yet, so the question stays open; there is no probabilistic picture either way.</p>"
+    ]
+   },
+   {
+    "id": "roundmap",
+    "eyebrow": "Past the reach of simulation",
+    "heading": "A round map for the whole block list",
+    "html": [
+     "<p>A direct run needs about four times as many steps for each new round, so it stops near round 13. To go further, the tape at the left-end turn is cut into runs of repeated words, and the next turn is computed from small instances: every long run is made short, then lengthened one at a time, and the new counts are fitted as affine functions of the old ones, with two more instances as a check.</p>",
+     "<p>This map predicts all 17 of the left-end turns of the direct run to 3&middot;10<sup>9</sup> steps exactly. Iterated beyond it, 40 more turns pass without a halt; by then the list has about 50 blocks and the largest count has 69 bits. The computation was stopped by a time limit, not by anything the machine did.</p>",
+     "<p>This is an observed law, not a proved one, and 40 turns say little about a machine whose irregular moments (the gadget at the left end, blocks merging) are not understood. The question stays open.</p>"
     ]
    },
    {

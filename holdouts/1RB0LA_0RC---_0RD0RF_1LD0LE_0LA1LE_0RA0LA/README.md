@@ -94,3 +94,10 @@ python3 holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA/py/rounds.py /tmp/el.
 python3 holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA/py/classround.py 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA 24
 gcc -O2 -o /tmp/far holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA/py/far.c && /tmp/far 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA 8
 ```
+
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA 2 196400000` runs 196,400,000 macro steps from blank tape without a halt, more than 3.43·10^11
+machine steps (tape: 27,206 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).

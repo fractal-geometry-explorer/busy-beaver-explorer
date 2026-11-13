@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.87·10<sup>14</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 175,400,000 macro steps from blank tape without a halt. That is more than 1.87·10<sup>14</sup> machine steps; the tape then spans 22,200,732 cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE 6 175400000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.024). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.455).",
@@ -74,7 +80,8 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE/lean/check.sh",
   "python3 holdouts/1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE/py/cycles_run.py 1e10",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE 1000000000",
+  "python3 tools/py/bbtools/rleaccel.py 1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE 6 175400000    # minutes"
  ],
  "explainer": {
   "lede": "Nobody knows. Read in blocks of six cells, this machine's tape is one repeating word with a few places where the pattern slips; the head moves those slips around, and the longest block grows by about a third each time. That is the signature of a Collatz-like map, which has not been pinned down.",

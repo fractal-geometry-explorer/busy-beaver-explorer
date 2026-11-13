@@ -130,6 +130,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.96·10<sup>281</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 171,200,000 macro steps from blank tape without a halt. That is more than 1.96·10<sup>281</sup> machine steps; the tape then spans about 6.17·10<sup>140</sup> cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE 4 171200000</code></p>
+      </div>
+      <div class="card">
         <h3>The next level, observed</h3>
         <p>With first blocks a^p 0 a^m 0 x^q and m ≤ q, the left end goes (p, m, q) → (1, 3m + p + 1, q − m), e.g. (1, 11, 4023) → (1, 35, 4012) → (1, 107, 3977) → ... and (714, 1491, 6138) → (1, 5188, 4647). For m &gt; q the next level of the word is rewritten and the counter y^K at the right end sometimes gains one. Seen in simulation, not proved.</p>
         <p class="where"><code>c/events.c</code></p>
@@ -161,7 +166,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/lean/check.sh
 PYTHONPATH=tools/py python3 holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/py/gen_rules.py | diff - holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/lean/Rules.lean
-gcc -O2 -o events holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/c/events.c &amp;&amp; ./events 1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE 1000000000 L 1 a=10 x=1000 | grep &quot;E&gt; 0 a&quot;</code></pre>
+gcc -O2 -o events holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/c/events.c &amp;&amp; ./events 1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE 1000000000 L 1 a=10 x=1000 | grep &quot;E&gt; 0 a&quot;
+python3 tools/py/bbtools/rleaccel.py 1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE 4 171200000    # minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

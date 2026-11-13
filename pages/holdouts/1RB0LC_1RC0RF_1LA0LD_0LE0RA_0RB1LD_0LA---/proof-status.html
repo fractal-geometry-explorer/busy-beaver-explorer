@@ -120,6 +120,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2.25·10<sup>11</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 173,000,000 macro steps from blank tape without a halt. That is more than 2.25·10<sup>11</sup> machine steps; the tape then spans 21,666 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA--- 6 173000000</code></p>
+      </div>
+      <div class="card">
         <h3>Tape shape</h3>
         <p>At the side switches near 10<sup>9</sup> steps the tape is <code>(10)^n</code> with one or two marker 1s: at the right end <code>1 (10)^1776</code> (step 991,840,977), <code>1 (10)^890 1 (10)^888</code> (step 998,967,199), <code>1 (10)^665 1 (10)^662 1 (10)^441</code> (step 985,702,735); at the left end <code>0 10 0 (10)^1774 0 0 1</code> (step 991,844,534), <code>0 (10)^890 1 (10)^887 1</code> (step 998,960,084).</p>
         <p class="where"><code>py/shape.py</code>, <code>py/switches.py</code> on a <code>tmrun … records</code> log</p>
@@ -156,7 +161,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA---/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA--- 1000000000
-gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA--- 1000000000 records 100000 &gt; rec.txt &amp;&amp; python3 holdouts/1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA---/py/shape.py rec.txt a=10 &amp;&amp; python3 holdouts/1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA---/py/switches.py rec.txt a=10</code></pre>
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA--- 1000000000 records 100000 &gt; rec.txt &amp;&amp; python3 holdouts/1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA---/py/shape.py rec.txt a=10 &amp;&amp; python3 holdouts/1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA---/py/switches.py rec.txt a=10
+python3 tools/py/bbtools/rleaccel.py 1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA--- 6 173000000    # minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

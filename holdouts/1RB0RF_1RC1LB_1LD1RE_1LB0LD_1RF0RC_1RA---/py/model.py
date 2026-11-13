@@ -25,10 +25,10 @@ The model (observed; checked by `check` and `rounds`; not proved):
 
 `run` alternates arithmetic (W steps and counter steps, any number at once, while the interior and the near zone are
 regular) with direct simulation.  A halt can only be found by the direct part; "no halt" rests on the arithmetic part,
-which is checked but not proved.  From the 1504th single block on the transient contains a second kind of regular
-stretch (the block before l is 2 l / 5 + 1 instead of 1 and grows with l, while a gap of the zone that is 4 mod 5 is
-used up 5 cells at a time); the model does not cover it and the direct simulation of it takes too long, so
-`run` stops being useful there.
+which is checked but not proved.  Some transients contain a second kind of regular stretch (observed, not modelled):
+the block before l is 2 l / 5 + 1 instead of 1, the list counts the sub-rounds upwards in binary, and a gap of the
+zone of 5 q + 4 cells is used up in about 2^(q+1) sub-rounds.  `run` simulates these cell by cell (q = 24 in the
+1504th transient) and is stuck after rebuild 3792 at one that is too long.
 
 usage: python3 model.py check N         N sub-rounds after step 1399, machine against model, one by one (pure Python)
        python3 model.py partial         W steps and counter steps taken many at once against the machine

@@ -129,6 +129,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The hybrid simulator ran 3.2·10<sup>12</sup> steps without a halt.</p>
         <p class="where"><code>c/walker.c</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 1.29·10<sup>14</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 167,200,000 macro steps from blank tape without a halt. That is more than 1.29·10<sup>14</sup> machine steps; the tape then spans 13,769,538 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA 6 167200000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -150,7 +155,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/lean/check.sh
 python3 holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/py/walker.py check
-gcc -O2 -o walker holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/c/walker.c &amp;&amp; ./walker 1e12 1</code></pre>
+gcc -O2 -o walker holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/c/walker.c &amp;&amp; ./walker 1e12 1
+python3 tools/py/bbtools/rleaccel.py 1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA 6 167200000    # minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -74,7 +74,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---</h1>
     <p class="machine">1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -135,6 +135,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>tools/py/bbtools/ctl.py</code></p>
       </div>
       <div class="card">
+        <h3>A round map for the whole block list, checked against the direct run</h3>
+        <p>Sample the run whenever the head is in state B reading 0 with only 0s to its left (about once or twice a round). The tape is cut into runs of repeated words and short literals; the next sample is computed from simulations in which every long run is short, one run at a time is lengthened, and two further instances check that the new counts are affine in the old ones. Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (18 samples) this map predicts all 17 next samples exactly. An extrapolation checked by computation, not a proof.</p>
+        <p class="where"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxmulti.py 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- L B 0 check 3e9</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB1LF_1RC1LD_1LB1LE_1LE0LD_0LA0RE_1RD--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -157,6 +162,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The head reaches the far left only once per round, where the gadget (a small counter) gains about two cells; rounds take four times longer each, so the left reach grows like log<sub>4</sub> of the step count. The right side grows by 5 cells every two sweeps: a bouncer, square-root growth.</p>
         <p class="where"><code>tools/c/tokrun.c</code></p>
       </div>
+      <div class="card">
+        <h3>40 more samples past the direct run, no halt</h3>
+        <p>Iterated from the last sample of the direct run: 40 samples without a halt; the list then has about 50 blocks and the largest holds a count of 69 bits (the direct run reaches 14 bits). The blocks keep the shape <code>(10100)^n 1 000</code> and roughly double. The run was stopped by a time limit after round 40, not by an event of the machine; the classes change every round (a block is added), so each round costs new simulations. An earlier run with a fixed threshold stopped after 33 samples at a class whose simulations disagreed, when two blocks of about 20 words stood next to the left-end gadget; with the threshold raised for such rounds the iteration passes that point.</p>
+        <p class="where"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxmulti.py 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- L B 0 orbit 40</code> (about an hour)</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
@@ -170,7 +180,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- 1000000000
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxmulti.py 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- L B 0 check 3e9</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -129,6 +129,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 4,722 cells have been visited and 4,713 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 2.51·10<sup>11</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 158,200,000 macro steps from blank tape without a halt. That is more than 2.51·10<sup>11</sup> machine steps; the tape then spans 31,350 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF 6 158200000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -160,7 +165,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF 1000000000
+python3 tools/py/bbtools/rleaccel.py 1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF 6 158200000    # minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

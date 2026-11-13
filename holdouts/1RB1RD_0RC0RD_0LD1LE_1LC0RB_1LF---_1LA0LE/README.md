@@ -44,3 +44,10 @@ with widths 2..6, plain and with `-H 2`, `-H 3`, `-U`.
 
 - [`pages/holdouts/1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE/explainer.html`](../../pages/holdouts/1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE/explainer.html)
 - [`pages/holdouts/1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE/proof-status.html`](../../pages/holdouts/1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE/proof-status.html)
+
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE 2 196000000` runs 196,000,000 macro steps from blank tape without a halt, more than 1.18·10^11
+machine steps (tape: 12,998 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).

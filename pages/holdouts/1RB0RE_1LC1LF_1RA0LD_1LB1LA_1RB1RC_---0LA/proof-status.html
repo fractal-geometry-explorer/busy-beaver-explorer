@@ -125,6 +125,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 8.35·10<sup>12</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 3 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 147,200,000 macro steps from blank tape without a halt. That is more than 8.35·10<sup>12</sup> machine steps; the tape then spans 2,089,929 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA 3 147200000</code></p>
+      </div>
+      <div class="card">
         <h3>Lists at the ends</h3>
         <p>Right end, step 1,539,966,585: <code>10 (110)^1633 0 (110)^4080 0 (110)^1838 0 ... 0 (110)^3 1</code> (18 blocks, all separators 0). Left end, step 2,243,100,986: 2448, 1156, 1843, 364, 588, ... with separators 1 1 1 0 0 0 1 1 1 1 1 0 0 1 ... No halt in 3&middot;10<sup>9</sup> steps.</p>
         <p class="where">README</p>
@@ -154,7 +159,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA 1000000000
+python3 tools/py/bbtools/rleaccel.py 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA 3 147200000    # minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

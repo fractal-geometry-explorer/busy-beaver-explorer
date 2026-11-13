@@ -125,6 +125,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.87·10<sup>14</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 175,400,000 macro steps from blank tape without a halt. That is more than 1.87·10<sup>14</sup> machine steps; the tape then spans 22,200,732 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE 6 175400000</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in 9&middot;10<sup>11</sup> steps</h3>
         <p><code>bbtools.cycles</code> on 6-cell blocks, every jump k applications of a proved cycle rule, reaches 906,804,978,838 steps from blank tape without a halt.</p>
         <p class="where"><code>py/cycles_run.py</code></p>
@@ -156,7 +161,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE/lean/check.sh
 python3 holdouts/1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE/py/cycles_run.py 1e10
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE 1000000000
+python3 tools/py/bbtools/rleaccel.py 1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE 6 175400000    # minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

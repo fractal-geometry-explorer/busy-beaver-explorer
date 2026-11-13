@@ -121,6 +121,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.89·10<sup>870</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 39,400,000 macro steps from blank tape without a halt. That is more than 1.89·10<sup>870</sup> machine steps; the tape then spans about 2.03·10<sup>435</sup> cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD--- 6 39400000</code></p>
+      </div>
+      <div class="card">
         <h3>The quadrupling round</h3>
         <p><code>B&gt; 000 (100)^a (010)^(b+2a+1) 01</code> goes to <code>B&gt; 000 (100)^(4a) (010)^b 01</code> (e.g. a = 5: 1,604 steps; a = 10, b+2a+1 = 250: 6,169 steps).</p>
         <p class="where"><code>py/explore.py 5 30</code>, <code>py/explore.py 10 250</code></p>
@@ -198,7 +203,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD--- 1000000000
 python3 holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/py/listmap.py check
-python3 holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD--- 1e18</code></pre>
+python3 holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD--- 1e18
+python3 tools/py/bbtools/rleaccel.py 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD--- 6 39400000    # minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

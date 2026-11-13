@@ -73,6 +73,13 @@ round in Lean.
 - [`pages/holdouts/1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---/explainer.html`](../../pages/holdouts/1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---/explainer.html)
 - [`pages/holdouts/1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---/proof-status.html`](../../pages/holdouts/1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---/proof-status.html)
 
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD--- 6 39400000` runs 39,400,000 macro steps from blank tape without a halt, more than 1.89·10^870
+machine steps (tape: about 2.03·10<sup>435</sup> cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

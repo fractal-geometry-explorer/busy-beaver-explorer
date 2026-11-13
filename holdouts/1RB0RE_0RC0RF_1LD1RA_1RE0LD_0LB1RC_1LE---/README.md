@@ -44,8 +44,8 @@ longer list. No rule is known for the transient. All of this is observed and che
 | 7 | 306 | more than 2^101 | `3 2^95 14 5 2^2 5^2` |
 | 8 | 327 | more than 2^108 | `3 2^102 17 2^2 5 8 2 20 2^3 8 2^4 5 2^32` |
 
-`py/model.py run` takes regular sub-rounds by arithmetic and everything else by direct simulation (`c/trans.c`): 243
-rebuilds, more than 2^35,353 sub-rounds, no halt. Tapes of the same shape do halt: `1^(3k) 0 1^(4k-3) C>0`, k = 3..9.
+`py/model.py run` takes regular sub-rounds by arithmetic and everything else by direct simulation (`c/trans.c`): 986
+rebuilds, more than 2^105,958 sub-rounds, no halt. Tapes of the same shape do halt: `1^(3k) 0 1^(4k-3) C>0`, k = 3..9.
 
 ## What is established
 
@@ -67,7 +67,7 @@ rebuilds, more than 2^35,353 sub-rounds, no halt. Tapes of the same shape do hal
 
 **Computed (trusted C/Python)** — Tapes of the same shape that halt: A rebuild starts when the interior is a single block. The tape 1^3k 0 1^(4k−3) with the head in C on the 0 right of it, a single block of 3k cells meeting the counter exactly at the start of round k − 1, halts for every k from 3 to 9 (after 311, 659, 1,343, 2,699, 5,399, 10,787 and 21,551 steps; direct simulation). So no property of the shape alone can show that the machine never halts: it depends on which single blocks and counter values the run from blank tape produces. (`holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py` (`halting 9`), `c/trans.c`)
 
-**Heuristic / observed** — 243 rebuilds without a halt: A run that takes the regular sub-rounds by arithmetic (any number at once, with the two rules above) and gives everything else to the machine itself, cell by cell: the transient after each single block, and the sub-rounds where the counter reaches an irregular gap of the zone. It passes 243 rebuilds; by then the counter has made more than 2^35,353 sub-rounds, so the machine more than 10^10,642 steps, and the single block has 106,062 cells. A halt could only be found by the direct part and none was. The arithmetic part rests on the two rules above for all sizes, which are checked, not proved. (`holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py` (`run 243`), `c/trans.c`)
+**Heuristic / observed** — 986 rebuilds without a halt: A run that takes the regular sub-rounds by arithmetic (any number at once, with the two rules above) and gives everything else to the machine itself, cell by cell: the transient after each single block, and the sub-rounds where the counter reaches an irregular gap of the zone. It passes 986 rebuilds; by then the counter has made more than 2^105,958 sub-rounds, so the machine more than 10^31,896 steps, and the single block has 317,877 cells. A halt could only be found by the direct part and none was. The arithmetic part rests on the two rules above for all sizes, which are checked, not proved. (`holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py` (`run 986`), `c/trans.c`)
 
 **Open** — Does it halt from blank tape?: Not known. Between rebuilds the machine cannot halt if the model is right; a rebuild's transient can (tapes of the same shape do). What the transient does to the block and the counter has no rule yet, so the question is whether the single blocks and counter values of this run ever meet in a halting way. The halting family above needs the single block to arrive exactly when a round of the counter starts, a coincidence of two binary numbers that the run has avoided so far.
 
@@ -91,7 +91,7 @@ python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py check 300
 python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py partial          # jumps of many sub-rounds against the machine
 python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py rounds           # round ends after the third rebuild against the direct run
 python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py halting 9        # the halting tapes 1^(3k) 0 1^(4k-3) C>0
-python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py run 243          # the hybrid run (5 minutes)
+python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py run 986          # the hybrid run (87 minutes; run 243 takes 5)
 ```
 
 Pages: [`explainer.html`](../../pages/holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/explainer.html), [`proof-status.html`](../../pages/holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/proof-status.html).

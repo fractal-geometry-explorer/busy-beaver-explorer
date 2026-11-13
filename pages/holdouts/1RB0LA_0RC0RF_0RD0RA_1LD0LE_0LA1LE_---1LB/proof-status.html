@@ -135,6 +135,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 3.34·10<sup>11</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 2 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 194,600,000 macro steps from blank tape without a halt. That is more than 3.34·10<sup>11</sup> machine steps; the tape then spans 26,988 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 2 194600000</code></p>
+      </div>
+      <div class="card">
         <h3>Every round starts on single holes</h3>
         <p>At the 660 times up to step 10<sup>9</sup> that the head is at the left end in state E on a 0, the tape is blocks of 1s separated by single 0s (except at steps 7 and 204): 2 blocks 593 times, 3 blocks 53, 4 blocks 10, 5 blocks 2. The shortest block at a round start is 3 (step 1,605); after step 2,136 it is never below 12.</p>
         <p class="where"><code>tools/c/tmrun.c</code> (<code>at E L</code>), <code>py/rounds.py</code></p>
@@ -172,7 +177,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 1000000000
 python3 holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/py/rules.py | diff - holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/lean/Rules.lean
-gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 1000000000 at E L 100000 &gt; el.txt &amp;&amp; python3 holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/py/rounds.py el.txt</code></pre>
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 1000000000 at E L 100000 &gt; el.txt &amp;&amp; python3 holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/py/rounds.py el.txt
+python3 tools/py/bbtools/rleaccel.py 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 2 194600000    # minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

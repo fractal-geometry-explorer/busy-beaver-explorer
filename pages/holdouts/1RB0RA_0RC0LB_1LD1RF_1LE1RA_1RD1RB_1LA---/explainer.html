@@ -124,7 +124,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 13 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---</p>
   <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#words">Blocks of 10000 and 11010</a><a href="#bouncer">Two sweeps turn one b into an a</a><a href="#rounds">Each new block is the sum of the old ones</a><a href="#halting">Only F reading a 1 stops it</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#words">Blocks of 10000 and 11010</a><a href="#bouncer">Two sweeps turn one b into an a</a><a href="#rounds">Each new block is the sum of the old ones</a><a href="#halting">Only F reading a 1 stops it</a><a href="#roundmap">A round map for the whole block list</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -234,6 +234,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Only F reading a 1 stops it</h2>
 <p>The only halting transition is F on a 1. F is entered after C reads a 1, about once every 50 steps, and so far always with <code>0101</code> to its left and a 0 under the head. The regular part of a round (the block cycle above) never brings F onto a 1; a halt would have to come from the irregular moments: the turn at the left end, and the merging of blocks. These are not understood yet, so the question stays open; there is no probabilistic picture either way.</p>
 </section>
+<section id="roundmap">
+  <span class="eyebrow">Past the reach of simulation</span>
+  <h2>A round map for the whole block list</h2>
+<p>A direct run needs about four times as many steps for each new round, so it stops near round 13. To go further, the tape at the left-end turn is cut into runs of repeated words, and the next turn is computed from small instances: every long run is made short, then lengthened one at a time, and the new counts are fitted as affine functions of the old ones, with two more instances as a check.</p>
+<p>This map predicts all 17 of the left-end turns of the direct run to 3&middot;10<sup>9</sup> steps exactly. Iterated beyond it, 40 more turns pass without a halt; by then the list has about 50 blocks and the largest count has 69 bits. The computation was stopped by a time limit, not by anything the machine did.</p>
+<p>This is an observed law, not a proved one, and 40 turns say little about a machine whose irregular moments (the gadget at the left end, blocks merging) are not understood. The question stays open.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -252,7 +259,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 13 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -271,6 +278,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/ctl.py</code></div></div><div><b>No closed tape language from windows up to 7</b><p><code>bbtools.ctl</code> with windows of K = 2 to 6 cells closes but allows F to read a 1 (6 to 192 abstract halting configurations); with K = 7 it finds no closed set within its round limit. The n-gram CPS decider (widths 3 to 7, with history and LRU augmentations) also fails.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/rounds.py</code></div></div><div><b>Rounds: the new block is the sum of the old ones</b><p>At the start of each round the tape is a small gadget at the left end, then blocks <code>b^n1 c 00 b^n2 c 00 ... b^nk</code>. During the round the bouncer works from the right, turning each block into a's one b per pair of sweeps while a tail of a's at the right end grows by one per b; at the end of the round a pass from the left turns everything back into b's and the tail becomes a new block. So the new block is (up to a few cells) the sum of all the blocks, the total doubles: 3, 21, 61, 152, 341, 720, 1491, 3038, 6138, 12339, 24743, 49564, 99212. In some rounds (2&middot;10<sup>6</sup>, 2.6&middot;10<sup>9</sup> steps) the new block absorbs the previous largest one instead of standing next to it. Observed in the first 6.5&middot;10<sup>11</sup> steps, not proved.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tokrun.c</code></div></div><div><b>Why the left side grows like a logarithm</b><p>The head reaches the far left only once per round, where the gadget (a small counter) gains about two cells; rounds take four times longer each, so the left reach grows like log<sub>4</sub> of the step count. The right side grows by 5 cells every two sweeps: a bouncer, square-root growth.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxmulti.py 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- L B 0 check 3e9</code></div></div><div><b>A round map for the whole block list, checked against the direct run</b><p>Sample the run whenever the head is in state B reading 0 with only 0s to its left (about once or twice a round). The tape is cut into runs of repeated words and short literals; the next sample is computed from simulations in which every long run is short, one run at a time is lengthened, and two further instances check that the new counts are affine in the old ones. Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (18 samples) this map predicts all 17 next samples exactly. An extrapolation checked by computation, not a proof.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxmulti.py 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- L B 0 orbit 40</code> (about an hour)</div></div><div><b>40 more samples past the direct run, no halt</b><p>Iterated from the last sample of the direct run: 40 samples without a halt; the list then has about 50 blocks and the largest holds a count of 69 bits (the direct run reaches 14 bits). The blocks keep the shape <code>(10100)^n 1 000</code> and roughly double. The run was stopped by a time limit after round 40, not by an event of the machine; the classes change every round (a block is added), so each round costs new simulations. An earlier run with a fixed threshold stopped after 33 samples at a class whose simulations disagreed, when two blocks of about 20 words stood next to the left-end gadget; with the threshold raised for such rounds the iteration passes that point.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt?</b><p>Not known. The machine halts only when F reads a 1; F is entered (from C reading a 1) about 2% of all steps and in the first 2&middot;10<sup>8</sup> steps (4,004,892 visits) it always had <code>0101</code> to its left. Whether a round can ever end in a configuration where it reads a 1 depends on the left-end gadget and on how blocks merge, which are not understood yet.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1LF_1RC1LD_1LB1LE_1LE0LD_0LA0RE_1RD--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
@@ -279,7 +288,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- 1000000000
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxmulti.py 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- L B 0 check 3e9</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

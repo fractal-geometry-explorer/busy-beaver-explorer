@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.96·10<sup>281</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 171,200,000 macro steps from blank tape without a halt. That is more than 1.96·10<sup>281</sup> machine steps; the tape then spans about 6.17·10<sup>140</sup> cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE 4 171200000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.37). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.058).",
@@ -80,7 +86,8 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/lean/check.sh",
   "PYTHONPATH=tools/py python3 holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/py/gen_rules.py | diff - holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/lean/Rules.lean",
-  "gcc -O2 -o events holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/c/events.c && ./events 1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE 1000000000 L 1 a=10 x=1000 | grep \"E> 0 a\""
+  "gcc -O2 -o events holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/c/events.c && ./events 1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE 1000000000 L 1 a=10 x=1000 | grep \"E> 0 a\"",
+  "python3 tools/py/bbtools/rleaccel.py 1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE 4 171200000    # minutes"
  ],
  "explainer": {
   "lede": "Nobody knows. This machine works on the left end of a word made of blocks of two kinds, a = 10 and x = 1000: each trip of the head turns one x into three a. That much is proved; how the deeper blocks get rewritten is still being decoded.",

@@ -73,6 +73,13 @@ PYTHONPATH=tools/py python3 holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/p
 gcc -O2 -o events holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/c/events.c && ./events 1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE 1000000000 L 1 a=10 x=1000 | grep "E> 0 a"   # y shows as a^4 0
 ```
 
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE 4 171200000` runs 171,200,000 macro steps from blank tape without a halt, more than 1.96·10^281
+machine steps (tape: about 6.17·10<sup>140</sup> cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

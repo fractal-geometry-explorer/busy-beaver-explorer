@@ -129,6 +129,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tmrun</code> runs 10<sup>10</sup> steps without a halt; C visits the left end of the tape 139 times, and each time the tape reads as runs of <code>1 0^5</code> separated by T or S (at step 7,055,416,224: 20 runs, the longest 5436).</p>
         <p class="where"><code>py/digits.py</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 3.40·10<sup>13</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 152,800,000 macro steps from blank tape without a halt. That is more than 3.40·10<sup>13</sup> machine steps; the tape then spans 7,087,446 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 6 152800000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -150,7 +155,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD/lean/check.sh
-/home/user/w/tmrun 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 10000000000 at C L 1000000 | python3 holdouts/1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD/py/digits.py</code></pre>
+/home/user/w/tmrun 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 10000000000 at C L 1000000 | python3 holdouts/1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD/py/digits.py
+python3 tools/py/bbtools/rleaccel.py 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 6 152800000    # minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

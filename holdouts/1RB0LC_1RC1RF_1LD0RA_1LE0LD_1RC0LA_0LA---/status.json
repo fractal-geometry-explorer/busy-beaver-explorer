@@ -41,6 +41,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 5.95·10<sup>781</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 35,800,000 macro steps from blank tape without a halt. That is more than 5.95·10<sup>781</sup> machine steps; the tape then spans about 1.70·10<sup>391</sup> cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- 6 35800000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.461). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.094).",
@@ -124,7 +130,8 @@
   "holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/lean/check.sh",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- 1000000000",
   "python3 holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/py/listmap.py check",
-  "python3 holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- 1e18"
+  "python3 holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- 1e18",
+  "python3 tools/py/bbtools/rleaccel.py 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- 6 35800000    # minutes"
  ],
  "explainer": {
   "lede": "Nobody knows, but probably not. Seen from the left end, the tape is a list of runs of <code>100</code>; the first run quadruples and the second pays for it. The machine stops only if the second run is used up to the last copy at the wrong moment, an exact hit that has not happened in 10<sup>18</sup> steps.",

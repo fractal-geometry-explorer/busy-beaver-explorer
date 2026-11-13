@@ -130,6 +130,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.05·10<sup>20</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 2 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 227,000,000 macro steps from blank tape without a halt. That is more than 1.05·10<sup>20</sup> machine steps; the tape then spans 55,996,144 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC 2 227000000</code></p>
+      </div>
+      <div class="card">
         <h3>The run follows the chain rule</h3>
         <p>Sampling each time the head is in A at the right end on a 0, the first 10<sup>9</sup> steps contain 162 chain starts and 776 chain steps, all as the rule says (no mismatch); the other 406 transitions are chain ends.</p>
         <p class="where"><code>py/chains.py 1000000000</code></p>
@@ -167,7 +172,8 @@ holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC 1000000000
 python3 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/py/chains.py 1000000000
 python3 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/py/ends.py 1000000000
-cc -O2 -o end0 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/c/end0.c &amp;&amp; ./end0 1000000000</code></pre>
+cc -O2 -o end0 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/c/end0.c &amp;&amp; ./end0 1000000000
+python3 tools/py/bbtools/rleaccel.py 1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC 2 227000000    # minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

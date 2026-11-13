@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 8.35·10<sup>12</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 3 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 147,200,000 macro steps from blank tape without a halt. That is more than 8.35·10<sup>12</sup> machine steps; the tape then spans 2,089,929 cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA 3 147200000</code>"
+  },
+  {
    "level": "kernel",
    "title": "Shift rules of the sweeps",
    "text": "<code>a_right</code>: going right, A shifts a block of n words <code>110</code> by one cell (3n+1 steps). <code>d_left</code> and <code>c_left</code>: going left, D and C cross a block written as <code>110</code> or <code>101</code> words. All three hold for every n and every surrounding tape.",
@@ -73,7 +79,8 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA 1000000000",
+  "python3 tools/py/bbtools/rleaccel.py 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA 3 147200000    # minutes"
  ],
  "explainer": {
   "lede": "Nobody knows. The machine sweeps over a row of blocks. Crossing a block is a plain shift, but at each boundary something more complicated happens: the one-cell separator flips between 0 and 1, and the neighbouring blocks trade length in a way that is not understood yet.",

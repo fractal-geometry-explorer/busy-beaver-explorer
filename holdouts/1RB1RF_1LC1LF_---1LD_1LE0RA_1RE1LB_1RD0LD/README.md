@@ -90,3 +90,10 @@ the epoch events and the sizes N, so there is no macro map yet and no estimate o
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD/lean/check.sh
 ```
+
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD 6 169000000` runs 169,000,000 macro steps from blank tape without a halt, more than 9.71·10^13
+machine steps (tape: 12,705,084 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).

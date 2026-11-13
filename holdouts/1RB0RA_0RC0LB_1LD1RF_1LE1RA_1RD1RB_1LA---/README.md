@@ -53,6 +53,17 @@ understood. No probabilistic argument either way.
 - Then prove the round as a Lean rule (it is a composition of `sweep` and a few transitions) and look for an
   invariant that keeps F off a 1.
 
+## Round map for the whole block list (observed)
+
+`py/ctxmulti.py` in the folder of `1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---` samples the run at the left-end turn (state
+B reading 0 with only 0s to the left), cuts the tape into runs of repeated words, and computes the next turn from small
+instances (every long run short, then lengthened one at a time; new counts affine in the old; two check instances).
+It predicts all 17 next turns of the direct run to 3e9 steps. Iterated beyond it: 40 more turns without a halt, about
+50 blocks, largest count 69 bits; stopped by a time limit, not by the machine. An extrapolation, not a proof.
+
+    python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxmulti.py 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- L B 0 check 3e9
+    python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxmulti.py 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- L B 0 orbit 40
+
 ## Pages
 
 - [`pages/holdouts/1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---/explainer.html`](../../pages/holdouts/1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---/explainer.html)

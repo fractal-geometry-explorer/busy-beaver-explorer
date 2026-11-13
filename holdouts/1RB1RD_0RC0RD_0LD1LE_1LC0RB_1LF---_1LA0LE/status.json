@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.18·10<sup>11</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 2 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 196,000,000 macro steps from blank tape without a halt. That is more than 1.18·10<sup>11</sup> machine steps; the tape then spans 12,998 cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE 2 196000000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: power/sqrt",
    "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.314). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.367).",
@@ -62,7 +68,8 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE 1000000000",
+  "python3 tools/py/bbtools/rleaccel.py 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE 2 196000000    # minutes"
  ],
  "explainer": {
   "lede": "Nobody knows. This page runs the machine in your browser and describes the structure seen in its run.",
