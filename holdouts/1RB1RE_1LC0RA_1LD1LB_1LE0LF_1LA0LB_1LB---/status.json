@@ -77,10 +77,10 @@
    "where": "<code>c/prehalt.c</code>"
   },
   {
-   "level": "trusted",
+   "level": "kernel",
    "title": "The mirrored table of 1RB0RC_1LC1LA, a different start",
-   "text": "Mirroring left and right and renaming the states A, B, C, D, E, F of this machine to B, C, D, E, A, F gives the transition table of <code>1RB0RC_1LC1LA_1RD0LB_1RE1RC_1RA0RF_1RC---</code> exactly (read off the two tables, and checked by a script; there is no Lean theorem for it here). So this machine started on blank tape runs like the mirror image of that one started in state B instead of A. The shared table does not make the halting questions the same. The two machines start from different configurations, and their runs from blank tape never reach a common configuration (checked for the first 200,000 steps, up to the renaming). So one could halt and the other not; each is its own open question.",
-   "where": "the transition tables; <code>py/compare_starts.py</code> in the folder of 1RB0RC_1LC1LA"
+   "text": "Mirroring left and right and renaming the states A, B, C, D, E, F of this machine to B, C, D, E, A, F gives the transition table of <code>1RB0RC_1LC1LA_1RD0LB_1RE1RC_1RA0RF_1RC---</code> exactly (proved in <code>lean/Twin.lean</code>: the renaming commutes with every step, and <code>halts_iff</code> says this machine halts from blank tape exactly when that table halts from the other start). So this machine started on blank tape runs like the mirror image of that one started in state B instead of A. The shared table does not make the halting questions the same. The two machines start from different configurations, and their runs from blank tape never reach a common configuration (checked for the first 200,000 steps, up to the renaming). So one could halt and the other not; each is its own open question.",
+   "where": "<code>lean/Twin.lean</code> (step_tw, init_eq, halts_iff); the runs compared by <code>py/compare_starts.py</code> in the folder of 1RB0RC_1LC1LA"
   },
   {
    "level": "open",
