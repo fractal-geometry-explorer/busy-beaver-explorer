@@ -153,6 +153,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 3.08·10<sup>21</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 1 cell, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 2,048,000,000 macro steps from blank tape without a halt. That is more than 3.08·10<sup>21</sup> machine steps; the tape then spans 53,212,912 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1 2048000000</code></p>
+      </div>
+      <div class="card">
         <h3>10<sup>8</sup> frames are 300,362,311,724 steps</h3>
         <p>The same map in Python, with the step count of each case, reaches 300,362,311,724 machine steps after 10<sup>8</sup> frames (at most 16 blocks on the tape). Compared with the machine itself step by step for the first 3,000,000 steps: 42,875 frames, each reached at exactly the step the map says.</p>
         <p class="where"><code>py/blockmap.py run 100000000</code>, <code>py/blockmap.py check 3000000</code></p>
@@ -191,7 +196,8 @@ holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/lean/check.sh
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blocks.py &amp;&amp; git diff --exit-code holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/lean
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py check 3000000
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py run 100000000
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1000000000
+python3 tools/py/bbtools/rleaccel.py 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1 2048000000    # about two hours</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

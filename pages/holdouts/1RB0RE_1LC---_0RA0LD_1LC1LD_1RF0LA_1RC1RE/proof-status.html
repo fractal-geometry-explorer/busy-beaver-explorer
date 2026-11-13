@@ -158,6 +158,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>README.md</code></p>
       </div>
       <div class="card">
+        <h3>Regular-language deciders tried (F11)</h3>
+        <p>None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 18, history 1 up to width 18, history 2 up to width 16, history 3 up to width 16, LRU history up to width 14 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 16, p = 3 up to width 12, p = 4 up to width 20, p = 6 up to width 20. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets. Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..9; n = 10 not finished in 150 s.</p>
+        <p class="where">sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet</p>
+      </div>
+      <div class="card">
         <h3>No three 0s in a row where the rightward state reads</h3>
         <p>In the first 1.2·10<sup>11</sup> steps the rightward state F never reads <code>0 0 0</code> strictly inside the tape (only on blank cells past the ends); at none of the 448,994 sweep starts of the first 10<sup>9</sup> steps does <code>0 0 0</code> occur inside the tape.</p>
         <p class="where"><code>py/inside000.c</code>; counts in <code>README.md</code></p>

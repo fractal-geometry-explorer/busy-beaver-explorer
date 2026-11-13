@@ -126,20 +126,46 @@ Call two neighbouring groups `(d, n), (d', n')` **neutral** when `n ≡ d' + 2 (
   block is also fed from the left: the young groups born at the front run out sooner (the three to its left would last 10^7 rounds at
   round 255,000) and the last of them merge into it. The first event among the 213 groups to its right is due about 1.9·10^7 rounds
   later, when the second group from the right end (5.7·10^7, losing 3 per round) runs out. A round costs 3^m bounces
-  with m > 200 groups, and the present simulator does about 400 rounds a second, so none of this is within reach.
+  with m > 200 groups, and `py/charge.py` does about 400 rounds a second; the round-skipping simulator of the next
+  section follows it further.
 
 So the earlier guess, that a halt would have to come from the tail during an A phase, was wrong: the tail is
 harmless, and the A phases matter because their wraps empty the front of the list and can leave a charge there.
+
+## Round-skipping run to round 33,199,619 (13 November, trusted)
+
+`py/skip.py` keeps the state at the start of each round. Between events the group with q groups to its right
+loses exactly 3^q per round (the last group 2), so the groups at the right end are stored as "size at some round"
+and never touched; only the young groups at the front are run bounce by bounce, against a single counter that
+stands for all the groups behind them. When a group is about to run out, or anything other than a plain decrement
+happens, the round is done by the exact model (`py/model.py`). A halt is only ever reported by the exact model.
+
+- **Test.** `py/skip.py test 60000` compares every round start with the exact model from the first round to round
+  60,000 (59,997 agree, none differ; 58 rounds were handed to the exact model, among them the A phase of round
+  49,668). The same from saved exact states at rounds 49,660 and 100,000, 3,000 rounds each.
+- **Run (observed).** No halt up to round 33,199,619 (about 2.5 hours in all). The one event behind the front:
+  in round 19,080,842 the second group from the right end ran out, as forecast, and the last three groups merged
+  into one. This was not an A phase and it made no new charge. There is still exactly one charged pair, residue 1,
+  now 212th from the right end instead of 214th.
+- **What the event did to the race.** With two groups fewer on its right, the charged block and its neighbour
+  both lose 9 times less per round. At round 33,199,619 the charged block (114 digits) would last 2.7·10^12 more
+  rounds and its right neighbour 1.7·10^12, so the neighbour would still go first. The eight groups at the right
+  end have between 1.0·10^8 and 5.5·10^8 rounds left at their present rates, so events of this kind recur about
+  every 10^8 rounds, and each one that removes groups stretches the lifetimes again. On this one observation the
+  charged block's remaining life grows faster than the round count; nothing about that is proved.
+- **Speed.** The front that has to be simulated grows like the square root of the round count (6,034 groups at
+  the end), so the cost grows like rounds^1.5: 5·10^6 rounds took 8 minutes, 3.3·10^7 took 2.5 hours. Reaching
+  10^9 rounds needs the front in closed form as well.
 
 ## For later
 
 - `good` is preserved by every bounce as long as `n0 + d1 ≡ 1`, and that relation only breaks at a first-group
   merge: both are checked exhaustively on small states but not proved. A Lean proof needs an induction through
   `norm` with the passed groups; it would give "a halt needs an earlier bounce in which the first group ran out".
-- A simulator that skips whole rounds. Between events every group loses 3^(p−1) per round, so the groups behind
-  the charged block could be followed alone, event by event; the front needs a closed form for its two-round cycle
-  (a new first group, the one before it left with 2 and merged). With both, the fate of the charged block (and of
-  the charges that later A phases make) becomes computable.
+- The front in closed form. `py/skip.py` skips the groups at the right end but still simulates the young groups
+  bounce by bounce; a closed form for their cycle (a new first group, the one before it left with 2 and merged)
+  would take the run to the 10^8 to 10^12 rounds on which the charged block's fate (and the charges of later A
+  phases) is decided.
 
 ## Reproduce
 
@@ -152,6 +178,8 @@ python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/model.py far 880
 python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/counter.py      # the symbolic pieces of Counter.lean
 python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/charge.py exhaust   # neutral lists: no halt, and where a charge can be made
 python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/charge.py run 50000 # the charge made in round 49,668 (40 s)
+python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/skip.py test 60000    # round skipping against the exact model (45 s)
+python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/skip.py run 33200000 # the event of round 19,080,842 (about 2.5 hours)
 ```
 
 ## Pages

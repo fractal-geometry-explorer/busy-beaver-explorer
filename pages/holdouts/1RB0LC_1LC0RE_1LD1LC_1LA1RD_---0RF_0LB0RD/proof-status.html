@@ -133,6 +133,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2.00·10<sup>16</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 1 cell, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 2,048,000,000 macro steps from blank tape without a halt. That is more than 2.00·10<sup>16</sup> machine steps; the tape then spans 171,092,671 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0LC_1LC0RE_1LD1LC_1LA1RD_---0RF_0LB0RD 1 2048000000</code></p>
+      </div>
+      <div class="card">
         <h3>A list of blocks at every left-end visit</h3>
         <p>At all 12,927 moments in the first 10<sup>9</sup> steps when the head, in state A, is at the left end of the tape, the tape is <code>A&gt;0 1^a<sub>1</sub> 0 1^a<sub>2</sub> &hellip; 0 1^a<sub>k</sub></code> (10,342 times) or the same with the head on the first 1. At step 809,445,816 the list has 17 blocks, the largest 8,967.</p>
         <p class="where"><code>gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LC_1LC0RE_1LD1LC_1LA1RD_---0RF_0LB0RD 1000000000 at A L 50000000</code></p>
@@ -158,7 +163,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_1LC0RE_1LD1LC_1LA1RD_---0RF_0LB0RD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1LC0RE_1LD1LC_1LA1RD_---0RF_0LB0RD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1LC0RE_1LD1LC_1LA1RD_---0RF_0LB0RD 1000000000
+python3 tools/py/bbtools/rleaccel.py 1RB0LC_1LC0RE_1LD1LC_1LA1RD_---0RF_0LB0RD 1 2048000000    # about two hours</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_1LC0RE_1LD1LC_1LA1RD_---0RF_0LB0RD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

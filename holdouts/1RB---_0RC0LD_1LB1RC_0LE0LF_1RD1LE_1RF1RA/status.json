@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 3.08·10<sup>21</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 1 cell, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 2,048,000,000 macro steps from blank tape without a halt. That is more than 3.08·10<sup>21</sup> machine steps; the tape then spans 53,212,912 cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1 2048000000</code>"
+  },
+  {
    "level": "kernel",
    "title": "The block map",
    "text": "Write the tape as blocks of 1s, each followed by one 0 (a block may be empty, so <code>0 0</code> is an empty block). A frame is a state E, C, B or F and the lists of block lengths left and right of the head. The map <code>next</code> (16 cases, each a formula on the first one or two block lengths of each side) sends every frame to the next frame the machine reaches; this is proved for all block lists, each case by one symbolic run.",
@@ -100,7 +106,8 @@
   "python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blocks.py && git diff --exit-code holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/lean",
   "python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py check 3000000",
   "python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py run 100000000",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1000000000",
+  "python3 tools/py/bbtools/rleaccel.py 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1 2048000000    # about two hours"
  ],
  "explainer": {
   "lede": "Nobody knows. The tape is blocks of 1s separated by 0s, and the machine moves cells from block to block: a zigzag cuts a block to two thirds, a sweep shifts every 0 one cell left. Lean proves that this block arithmetic is all the machine does, and that it halts exactly if one of three small patterns ever turns up.",

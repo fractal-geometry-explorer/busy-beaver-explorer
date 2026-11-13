@@ -133,6 +133,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 3.02·10<sup>21</sup> steps (accelerated run)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 2 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 2,048,000,000 macro steps from blank tape without a halt. That is more than 3.02·10<sup>21</sup> machine steps; the tape then spans 88,969,302 cells.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA 2 2048000000</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10<sup>15</sup> steps</h3>
         <p>An exact macro simulator (blocks of 2 cells) runs 10<sup>15</sup> steps without a halt. The macro simulator cuts the tape into blocks of K cells, run-length codes them, and crosses a whole run at once when the head leaves it on the far side in the state it entered with; it agrees with the plain simulator <code>tools/c/tmrun</code> cell for cell.</p>
         <p class="where"><code>holdouts/1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA/c/mrun.c</code></p>
@@ -169,7 +174,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA 1000000000
-gcc -O2 -o mrun holdouts/1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA/c/mrun.c &amp;&amp; ./mrun 1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA 2 1000000000000000</code></pre>
+gcc -O2 -o mrun holdouts/1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA/c/mrun.c &amp;&amp; ./mrun 1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA 2 1000000000000000
+python3 tools/py/bbtools/rleaccel.py 1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA 2 2048000000    # about two hours</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

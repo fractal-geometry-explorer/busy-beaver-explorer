@@ -157,6 +157,15 @@ Tape samples (periodic notation, `w^k` is the word w repeated k times; `X>b` is 
 - step 100,000,000: `100110^2 110^4 100110^2 110^6 10 011^5 010 011^3 1011011^2 1011^3 0111^4 010011^3 0111^3998 011 A>1 1001^907 1`
 - step 1,000,000,000: `110^4 100110^3 110^6 10 011^11 0100 1^3 011^2 10^2 0111^3 011^2 1011^4 011^6 1011^1088 10 B>1 0110^14656 011`
 
+## Deciders tried (F11, 13 November 2026)
+
+None closes. Each reaches a halting configuration in its abstraction, which says nothing about halting.
+
+- n-gram CPS (`tools/c/ngramcps.c`), equal widths on both sides: a halting local configuration is reached with plain up to width 18, history 1 up to width 14, history 2 up to width 13, history 3 up to width 11, LRU history up to width 13 (larger widths ran out of the 150 s or 60 million configuration budget).
+- n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 16, p = 3 up to width 20, p = 4 up to width 20, p = 6 up to width 20.
+- Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4).
+- Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..8; n = 9 not finished in 150 s.
+
 ## Where a halt can come from
 
 `lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
