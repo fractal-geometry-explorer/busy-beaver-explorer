@@ -40,6 +40,8 @@ final 4.
 **Halting.** F1 halts; F is entered only from `1 D>1` (D from `C>0`: the pattern is `1 1 C>0`). In 10^9 steps D reads
 a 1 53,174,798 times, never with a 1 on its left (`c/prehalt.c`).
 
+**Relatives.** Mirroring left and right and renaming the states A, B, C, D, E, F to B, C, D, E, A, F gives the table of [`1RB0RC_1LC1LA_1RD0LB_1RE1RC_1RA0RF_1RC---`](../1RB0RC_1LC1LA_1RD0LB_1RE1RC_1RA0RF_1RC---/README.md) exactly. On blank tape this machine runs like the mirror image of that one started in state B instead of A. The shared table does not make the halting questions the same. The two machines start from different configurations, and their runs from blank tape never reach a common configuration (checked for the first 200,000 steps, up to the renaming). So one could halt and the other not; each is its own open question.
+
 ## For later
 
 1. The reader: state as rules what the right end does with `(100)^k 10000 (100)^m` (a shrink rule and an absorption
