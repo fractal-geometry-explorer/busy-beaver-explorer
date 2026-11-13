@@ -76,3 +76,15 @@ gcc -O2 -I tools/c -o sstat holdouts/1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA/c
 - Accelerate: the sweeps within a round are a linear regime (marker +1, counter +1); `bbtools.cycles` style jumps
   would reach far beyond 10^12.
 - The twin `1RB1RF_0RC0LB_1LD1RE_1LB1RF_---0RF_1RD0RA` probably has the same proof.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1RF_0RC0LB_1LD1RE_1LB1RF_---0RF_1RD0RA`](../1RB1RF_0RC0LB_1LD1RE_1LB1RF_---0RF_1RD0RA/README.md): rename A→F, B→D, C→B, D→C, E→E, F→A; it is this table started in state F
+
+<!-- end of related machines -->

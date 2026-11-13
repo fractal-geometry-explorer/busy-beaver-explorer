@@ -141,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#blocks">A list of blocks</a><a href="#counter">A binary counter in block lengths</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#blocks">A list of blocks</a><a href="#counter">A binary counter in block lengths</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -231,6 +231,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>Between the blocks of <code>10</code>s sit separators: a single <code>0</code> or a triple <code>0 0 0</code>. Read the blocks in pairs joined by a <code>1</code>, and the separator before each pair as a binary digit: <code>0</code> means 1 and <code>0 0 0</code> means 0. Each sweep adds one to this number, from the left. Every leading 1 becomes 0 and the first 0 becomes 1, exactly like counting in binary. The head only goes as far as the carry before turning back.</p>
 <p>The digits also keep a tally. Each time a digit goes from 0 to 1, its first block grows by one <code>10</code>; each time it goes from 1 to 0, its second block shrinks by one. When a second block runs out, the digit merges with its neighbour. When the carry runs off the end, the first block of the tape is cut off and becomes a new digit. Those rare events are where a halt could hide, and they are not yet fully described.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0LC_1RC0RC_1LD0RB_1LA0LE_1LD1LF_1LD---/explainer.html">1RB0LC_1RC0RC_1LD0RB_1LA0LE_1LD1LF_1LD---</a>: rename A→D, B→A, C→B, D→C, E→E, F→F and exchange left and right; it is this table started in state B, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -252,6 +258,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/blocks.c</code>, <code>py/ticks.py</code></div></div><div><b>One sweep is a binary increment</b><p>At each left turn the tape is <code>0^inf D&gt; 0 (10)^a</code> followed by digits <code>s (10)^b 1 (10)^c</code>, where the separator s is <code>0</code> for a 1 and <code>0 0 0</code> for a 0. A sweep turns the leading 1s into 0s (each loses one <code>10</code> from c), turns the first 0 into a 1 (it gains one <code>10</code> in b), and adds one to a. It takes exactly 6 + 4a + 8&Sigma;b + 4&Sigma;c + 8n steps over the n digits passed. This holds for 24,787 of the 25,117 sweeps in the first 3&middot;10<sup>8</sup> steps. The rest are the merge and end events.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code></div></div><div><b>A list of blocks with carries</b><p>The events: when the carry passes a digit whose c is 1 and the next digit is 0, the two digits merge into one digit 0, <code>(10)^(b+b'+2) 1 (10)^c'</code> (22 of 25 cases). When the carry passes every digit, the first block is cut off and becomes a new digit. Read off the simulation; the remaining cases are not yet described.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The block dynamics has not been reduced to a rule.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0LC_1RC0RC_1LD0RB_1LA0LE_1LD1LF_1LD--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

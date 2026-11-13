@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">Segments and a walking marker</a><a href="#halt">Open</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">Segments and a walking marker</a><a href="#halt">Open</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -229,6 +229,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Open</h2>
 <p>The halting transition is D reading 1. The cascade looks like a counter with several digits (the positions of the markers) plus a slow counter on the right; its rule, and the configuration that would trigger D1, have not been worked out.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/explainer.html">1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---</a>: rename A→D, B→A, C→B, D→F, E→C, F→E and exchange left and right; it is this table started in state B, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -250,6 +256,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>/home/user/w/bin/ev M 3e9 '*' L x=1110</code></div></div><div><b>The walking marker</b><p>Between steps 2.048·10<sup>9</sup> and 2.075·10<sup>9</sup> the tape is <code>… x^a 1 0 11 0 x^b 00 x^c 1 0 11 0 x^1939 1 0 11 0 x^78 00 x^5 111</code> with b falling by about 26 per visit of the left end (579 → 9) while c grows by the same (3766 → 4336) and a by about 3.5; then the marker restarts (<code>x^5405 00 x^5 …</code>) and the 00 marker of the last segment moves by 8 (<code>x^78 00 x^5</code> → <code>x^70 00 x^13</code>).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>/home/user/w/bin/side M 3e9 R 60</code></div></div><div><b>The counter on the right</b><p>The right side gains one cell at steps 3.0·10<sup>8</sup>, 4.9·10<sup>8</sup>, 7.6·10<sup>8</sup>, 1.11·10<sup>9</sup>, 1.61·10<sup>9</sup>, 2.41·10<sup>9</sup>: each record about 1.5 times later.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Open: the rule of the cascade is not proved and the halting transition (D reading 1) is not located in it.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

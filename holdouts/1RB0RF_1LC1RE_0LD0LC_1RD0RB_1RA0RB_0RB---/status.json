@@ -146,6 +146,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. What is missing, in order: (1) the remaining collision cases as Lean rules. Unlike in the 0LC machine, a collision here does not clear the misaligned gap: it shortens the next gap by 3 to 7 cells, which is misaligned in turn, so gaps of every small length occur and each needs its own case; in several cases the head also goes back into the word. A finer description (the configurations with an empty low part that follow an F event) would probably replace this case list by a few rules. (2) the one-unit anomaly and those rules inside the macro map, so that it follows the run from step 27. (3) the size argument: every cascade of collisions ends before the word runs out. For the 0LC machine, where (1) and (2) are done, (3) is the open part and looks like a Collatz-type question; the same is to be expected here.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same tapes at another pace, whatever the states, as 1 other holdout (listed on the explainer page).",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -261,6 +267,15 @@
      "<p>F is reached only from A reading a 1, and F halts on a 1. So a halt needs A to read <code>1 1</code>. Regular Q-steps never let A read a 1. Only transients do; such a moment is an <em>F event</em>. In the first 2&middot;10<sup>10</sup> steps this machine has 5 F events, and at every one the cell after the 1 is a 0.</p>",
      "<p>All the F events we saw happen in collisions. A collision starts when the counter's low part is one unit followed only by gaps of length 2 and then a misaligned gap of length 0 or 1. The head sweeps that part of the counter into the word, and the next gap becomes the misaligned one, shortened by a few cells. A halt needs a gap of length 0 right after such a gap. The gaps behind the misaligned one come from the counter as it was at the anomaly. In every run they have length &equiv; 2 (mod 3) and at least 2, so the halt never comes.</p>",
      "<p><b>Status: open.</b> Lean proves the regular dynamics, the anomaly and that the word-and-gap pattern alone does not prevent a halt. The collisions, the race and the alignment of the gaps are simulated, not proved.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same tapes at another pace (observed, not proved).</b> Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10<sup>7</sup> configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.</p><ul><li><a href=\"../1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RC---/explainer.html\">1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RC---</a>: 9,999,993 configurations, the last at step 9,999,992 here and step 10,000,000 there</li></ul>"
     ]
    }
   ]

@@ -80,6 +80,12 @@
       "title": "Does it halt from blank tape?",
       "text": "Not known. It halts exactly when C reads the 0 right of a block of length 1. Each epoch (even round, odd rounds, overflow) roughly squares the step count; the overflow cascades rewrite the front of the list in a pattern not yet understood, so no proof and no convincing heuristic in either direction.",
       "where": ""
+    },
+    {
+      "level": "trusted",
+      "title": "Related holdouts",
+      "text": "The same table as 1RB0RA_0RC0LD_1LA1RF_1LE1LD_1LB1RE_---1RA up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+      "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
     }
   ],
   "check": [
@@ -156,6 +162,15 @@
         "html": [
           "<p>Each epoch of the run is an even round, a run of odd rounds, and an overflow that takes about as long as everything before it, so the step count roughly squares each time. Because the moves above are proved and have exact step counts, a program can apply them instead of stepping, and follow the run exactly: through <code>[17, 97, 138]</code> at 1.8·10<sup>21</sup> steps, <code>[5, 53, 363, 682]</code> at 4.7·10<sup>85</sup>, <code>[5, 14, 40, 225, 1525, 8815, 12596]</code> at 8.9·10<sup>1803</sup>, and past 10<sup>4300</sup> steps, with no halt.</p>",
           "<p>The machine halts only when C reaches the 0 right of a block of length 1. Every overflow rewrites blocks near the front of the list (it starts with 4, 17, 17, 5, 20, 5, 20, 5, 5 in successive epochs), so whether that can ever happen depends on how the deepest levels of this counter behave forever. Nobody knows yet; the list keeps getting longer and its blocks larger, but the front blocks stay small.</p>"
+        ]
+      },
+      {
+        "id": "related-machines",
+        "eyebrow": "Family",
+        "heading": "Related machines",
+        "html": [
+          "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+          "<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB0RA_0RC0LD_1LA1RF_1LE1LD_1LB1RE_---1RA/explainer.html\">1RB0RA_0RC0LD_1LA1RF_1LE1LD_1LB1RE_---1RA</a>: rename A→D, B→E, C→B, D→C, E→F, F→A and exchange left and right; it is this table started in state F, in a mirror</li></ul>"
         ]
       }
     ]

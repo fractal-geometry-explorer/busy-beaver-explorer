@@ -54,3 +54,15 @@ halts remain; n-gram CPS 3..7 fails.
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB---_0RC0RB_1LD1LE_1LC1RF_1RB0LE_1RA0RD`](../1RB---_0RC0RB_1LD1LE_1LC1RF_1RB0LE_1RA0RD/README.md): rename A→F, B→A, C→B, D→C, E→D, F→E; it is this table started in state B
+
+<!-- end of related machines -->

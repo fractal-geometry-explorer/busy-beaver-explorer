@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#excursion">One excursion</a><a href="#counter">A counter with long digits</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#excursion">One excursion</a><a href="#counter">A counter with long digits</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -248,6 +248,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>What is proved</h2>
 <ul><li><b>Kernel</b>: <code>pass_left</code> and <code>pass_right</code> for all block lengths (<code>lean/Rules.lean</code>); no halt in 10,000 steps.</li><li><b>native_decide</b>: no halt in 10<sup>7</sup> steps.</li><li><b>Trusted computation</b>: no halt in 10<sup>11</sup> steps.</li><li><b>Open</b>: whether it ever halts.</li></ul>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/explainer.html">1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</a>: rename A→C, B→D, C→E, D→A, E→B, F→F and exchange left and right; it is this table started in state D, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -267,6 +273,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">README</div></div><div><b>No halt in the first 10<sup>11</sup> steps</b><p>A direct C simulation runs 10<sup>11</sup> steps without a halt; the tape is then 202,789 cells wide.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>One word per excursion, a counter on the left</b><p>Each excursion lengthens the <code>11010</code> block by one word (961, 962, … at 3·10<sup>7</sup> steps, 6,038 at 10<sup>9</sup>). The head turns inside the counter at depths in classes 25 cells apart, each class about 2.6 times rarer than the one before, the signature of a counter with 25-cell digits. Every digit has the form <code>11a0 11b0 1100 110c 0 11d0 11e0</code>: five bits, 28 of the 32 patterns seen. The first 1,260 cells of the tape are the same at steps 3·10<sup>7</sup> and 10<sup>9</sup>.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts exactly when C reads a 1 with a 1 on its right. The passes never do this; the counter work between them is not a closed rule yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

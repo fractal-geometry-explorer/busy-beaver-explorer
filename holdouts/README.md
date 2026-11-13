@@ -41,6 +41,16 @@ from the bbchallenge wiki.
    checks that everything is current. The index is generated, so on a merge conflict in it rebuild it with
    `python3 holdouts/build_pages.py --index-only`.
 
+## Related machines
+
+Many of the 608 are tied to one another, in four different ways that must not be confused: the same table started in
+another state (130 tables, 335 machines; a different run, so a separate halting question), the same run from
+different tables, a slowed-down copy, and the same tapes at another pace. `related.py compute` checks all of them by
+running the machines (10^7 steps each, `tools/c/cfgmatch.c`, `lockstep.c`, `tapehash.c`) and writes `related.json`;
+`related.py apply` writes the "Related machines" section of every README and `status.json` concerned, and
+`related.py check` (run by the tests) says whether they are current. Only the comparison of tables is exact;
+everything about runs is an observation.
+
 ## Rebuilding everything
 
 ```sh

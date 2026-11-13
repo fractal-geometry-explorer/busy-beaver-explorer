@@ -21,7 +21,7 @@ The tape between two sweeps is `1 (0010)^b0 m1 (0010)^b1 ... mk (0010)^bk 000` (
 
 The mirror image of the core; B1 (the core's D1) is 1RF and F0 is 1RE: at a merge where B reads a 1, F reads the next cell, and halts if it is a 1.
 
-**Same run as**: [`1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---/README.md), [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/README.md), [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---/README.md), [`1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---`](../1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---/README.md) (class I: the mirrored members have the same markers at every sweep end as the direct ones from sweep 157,376 on, with a different first block).
+**Same class as** (the same tapes at another pace for the direct members, the same markers for the mirrored ones; these are not the same run): [`1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---/README.md), [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/README.md), [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---/README.md), [`1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---`](../1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---/README.md) (class I: the mirrored members have the same markers at every sweep end as the direct ones from sweep 157,376 on, with a different first block).
 
 ## Results
 
@@ -51,3 +51,20 @@ start, 52 right), 28,474 ones.
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RE---/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA`](../1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA/README.md): rename A→C, B→F, C→D, D→E, E→B, F→A; it is this table started in state F
+- [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---/README.md): rename A→C, B→D, C→E, D→A, E→B, F→F and exchange left and right; it is this table started in state D, in a mirror
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB0LD_0LB1RC_0RD---_1RE0RF_1LF0RA_0LA0LF`](../1RB0LD_0LB1RC_0RD---_1RE0RF_1LF0RA_0LA0LF/README.md): 8,330,203 configurations, the last at step 8,330,214 here and step 10,000,000 there
+
+<!-- end of related machines -->

@@ -113,3 +113,15 @@ The next step is the `y ≡ 1` regime: write the secondary bouncer (`Q a_k Q a_m
 685,710 and 1,326,447) as a rule for all values, and the reset of a level whose `100`s run out (step 1.5·10^16 for
 the third level). With those, the level machine would be closed, and a halts-iff reduction (or a non-halting proof,
 if no rule can produce `1 1 C>1`) would follow the pattern of `cleanA`/`cleanB`.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---`](../1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---/README.md): rename A→C, B→A, C→B, D→D, E→E, F→F and exchange left and right; it is this table started in state B, in a mirror
+
+<!-- end of related machines -->

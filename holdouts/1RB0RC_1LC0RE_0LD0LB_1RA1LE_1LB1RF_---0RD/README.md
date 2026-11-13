@@ -33,7 +33,7 @@ Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no
   level too; it was not found in Phase 2.
 - **Halting.** Only F0 halts; F is entered only from E1 (`1RF`). In 10^8 steps F is entered 9,523,781 times, always
   onto a 1.
-- **Twin.** `1RB1LE_1RC0RD_1LD0RE_0LA0LC_1LC1RF_---0RA` is this machine with states renamed (A->D, B->A, C->B, D->C); at step 553,148,029 its tape
+- **Twin.** `1RB1LE_1RC0RD_1LD0RE_0LA0LC_1LC1RF_---0RA` is this table with states renamed (A->D, B->A, C->B, D->C), started in another state; at step 553,148,029 its tape
   equals this one's at step 553,148,106 except for the last two cells (`...1 0 1` instead of `...1 0 1^3`).
 
 ## Later
@@ -73,3 +73,15 @@ start, 22 right), 108 ones.
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0RC_1LC0RE_0LD0LB_1RA1LE_1LB1RF_---0RD/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1LE_1RC0RD_1LD0RE_0LA0LC_1LC1RF_---0RA`](../1RB1LE_1RC0RD_1LD0RE_0LA0LC_1LC1RF_---0RA/README.md): rename A→B, B→C, C→D, D→A, E→E, F→F; it is this table started in state D
+
+<!-- end of related machines -->

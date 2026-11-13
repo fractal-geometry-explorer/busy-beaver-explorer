@@ -74,6 +74,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. A proof would need the collision rules of Q with P, with the wall and with the left end, and an invariant on the lattices they build; the only halting transition (F reading 1) cannot occur in the proved bounce rules, which use only states A to D.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -164,6 +170,15 @@
     "heading": "What is proved",
     "html": [
      "<p><b>Lean, kernel only:</b> <code>bounce0</code>, <code>bounce1</code>, <code>bounce2</code>, <code>travel</code> (with <code>tcost_eq</code>) in <code>lean/Macro.lean</code>, from <code>bounce0_cells</code>, <code>bounce1_cells</code> (<code>lean/Rules.lean</code>, written by <code>py/gen_rules.py</code>); <code>reach_Q0</code>, <code>reach_travel</code>, <code>reach_P</code> (blank tape reaches <code>Q0 4 26 R1</code> at step 1,819) in <code>lean/Reach.lean</code>. <b>Computed:</b> no halt in 10<sup>10</sup> steps, the particle form of the tape. <b>Open:</b> the collision rules, and halting.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---/explainer.html\">1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---</a>: rename A→B, B→C, C→A, D→D, E→E, F→F; it is this table started in state C</li><li><a href=\"../1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/explainer.html\">1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---</a>: rename A→C, B→A, C→B, D→D, E→E, F→F and exchange left and right; it is this table started in state B, in a mirror</li></ul>"
     ]
    }
   ]

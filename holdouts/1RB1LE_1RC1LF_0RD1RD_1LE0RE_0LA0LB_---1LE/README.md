@@ -141,7 +141,8 @@ steps; C (`c/runs.c`, direct simulation): no halt in 2·10^10 steps; `c/rmap.c`:
   writes 6·4^m+4), and then find an invariant on block lists (residues mod 3 and 12, and a size order such as
   "each block is at least its decrement or is one of the known small shapes") that excludes a chain on a run 2 mod 3.
 - The invariant has to be numeric (see "What did not work"); a CTL with counter classes is unlikely to suffice.
-- The twin is the same machine started in state B (proved), so one proof should serve both.
+- The twin halts exactly when this machine, started in state B, halts (proved). That is not this machine's run from
+  blank tape, so the two holdouts are two questions; the same method should serve both.
 - `holdouts/1RB1LE_0RC---_1RD0LA_1RE0RB_0LA0LF_0LD1LF` has the same kind of structure (blocks shrinking by 4,
   12, 48, 192 per round) and may share the analysis; not looked at in the second pass.
 

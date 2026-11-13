@@ -94,3 +94,16 @@ gcc -O2 -o m6fast holdouts/1RB1LC_1LC0RF_0LF1LD_0LE---_1RF1LC_1LE0RA/c/m6fast.c 
 
 - [`explainer.html`](../../pages/holdouts/1RB1LC_1LC0RF_0LF1LD_0LE---_1RF1LC_1LE0RA/explainer.html)
 - [`proof-status.html`](../../pages/holdouts/1RB1LC_1LC0RF_0LF1LD_0LE---_1RF1LC_1LE0RA/proof-status.html)
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1LC_1LA0RD_0LB1LF_1RE1LC_1LC0RB_0LA---`](../1RB1LC_1LA0RD_0LB1LF_1RE1LC_1LC0RB_0LA---/README.md): rename A→D, B→E, C→C, D→F, E→A, F→B; it is this table started in state E
+- [`1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---`](../1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---/README.md): rename A→C, B→D, C→E, D→F, E→B, F→A and exchange left and right; it is this table started in state F, in a mirror
+
+<!-- end of related machines -->

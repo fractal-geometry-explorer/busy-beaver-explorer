@@ -128,3 +128,16 @@ python3 long15.py 3e13 long15.log                               # hours
   are block values ≡ 2 mod 4 away from the zone, and a single non-S separator after the first long run.
 - **A faster simulator.** Speeding the run up further needs level-2 acceleration: detect cycles in the run-length
   snapshots when the defect passes a run of equal blocks `4^k − 2`.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---`](../1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/README.md): rename A→D, B→E, C→A, D→B, E→C, F→F; it is this table started in state C
+- [`1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---`](../1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/README.md): rename A→B, B→C, C→D, D→E, E→A, F→F and exchange left and right; it is this table started in state E, in a mirror
+
+<!-- end of related machines -->

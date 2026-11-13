@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#seas">Two seas and the trains</a><a href="#eat">One sweep eats one word</a><a href="#counter">A counter that counts down and is reloaded</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#seas">Two seas and the trains</a><a href="#eat">One sweep eats one word</a><a href="#counter">A counter that counts down and is reloaded</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -249,6 +249,12 @@ L 1010 (10)^(b+1) 110 110 (10)^(a+2) 11 C&gt; 0^inf</code></pre>
   <h2>What is proved</h2>
 <p><b>Lean, kernel:</b> <code>halt_needs_A0111</code> (<code>lean/Halt.lean</code>); <code>sweep_train</code> (<code>lean/Rules.lean</code>, written by <code>py/gen_rules.py</code> with <code>bbtools.symtm</code>); no halt in 10<sup>4</sup> steps. <b>native_decide:</b> no halt in 10<sup>7</sup> steps. <b>C:</b> no halt in 10<sup>11</sup> steps; the near-miss count. <b>Heuristic:</b> the counter picture. <b>Open:</b> an exact macro machine and the halting question.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB---_1LC0LD_1RD0LB_0RF1RE_1RF0RA_0LE0RC/explainer.html">1RB---_1LC0LD_1RD0LB_0RF1RE_1RF0RA_0LE0RC</a>: rename A→C, B→D, C→F, D→E, E→A, F→B; it is this table started in state E</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -270,6 +276,7 @@ L 1010 (10)^(b+1) 110 110 (10)^(a+2) 11 C&gt; 0^inf</code></pre>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/a011.c</code></div></div><div><b>Near misses</b><p>In the first 3&middot;10<sup>8</sup> steps A reads a 0 followed by 1 1 about 8,500 times (then a 0: no halt), never followed by 1 1 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/trains.py</code></div></div><div><b>A counter that counts down and is reloaded</b><p>Sampled at the right-end records, the trains sit at fixed places and the head eats the nearest one word per sweep; trips that go further turn the sea they cross into trains, and at step 2,510,806 one trip to the left end reloaded the whole tape (trains of 397, 37, 69, ... words). Read off samples, not proved.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Open: it halts iff A ever steps onto the front of a train in the wrong phase. An exact macro machine for the trains is the next step.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB---_1LC0LD_1RD0LB_0RF1RE_1RF0RA_0LE0RC up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

@@ -141,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#halt">When it would halt</a><a href="#words">Visits and levels</a><a href="#levels">The level map</a><a href="#counter">A binary counter between the blocks</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#halt">When it would halt</a><a href="#words">Visits and levels</a><a href="#levels">The level map</a><a href="#counter">A binary counter between the blocks</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -257,6 +257,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>This is why the method that settles similar machines does not finish here. That method lists finitely many tape shapes with free block lengths and shows that each leads to another in the list. A counter passes through a different shape for every value, so a proof needs a different kind of invariant: a set of tapes that allows <em>any</em> string of the two digit words in the middle.</p>
 <p>No level start that was tried halts: all remainders for the common tails, about 25,000 random level starts, and the counter levels with small m. The evidence points to a machine that runs for ever, but it is evidence, not a proof.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/explainer.html">1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE</a>: rename A→C, B→E, C→A, D→B, E→D, F→F and exchange left and right; it is this table started in state C, in a mirror</li><li><a href="../1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/explainer.html">1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC</a>: rename A→B, B→C, C→D, D→A, E→E, F→F; it is this table started in state D</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -284,6 +290,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code>, section Do other classes halt?</div></div><div><b>No level start that was tried halts</b><p>About 25,000 random level starts of the 14 types (block counts 20 to 149) all reach a level start of one of the same 14 types; so do the counter levels with b = 400, m = 1..69; random level starts with counts below 20 (many more shapes) do not halt either. Scratch scripts, plain simulation.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/hsim2.cpp</code> with <code>LEVELS=1</code></div></div><div><b>Twelve levels of the real run</b><p>Level starts from blank tape: b = 13, 77, 83, 670, 674, 5,397, 10,798, 62,092, 279,420, 1,257,395, 5,658,282, 11,316,567 (the last at step 1.92&middot;10<sup>15</sup>), each step agreeing with the level map where the map is known. No configuration returns with only one or two counts grown, so there is no growth cycle to prove.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. A proof that it runs for ever needs a closed description of the counter levels: a set of tapes with an arbitrary string of the two digit words between the blocks. Nothing suggests a halt.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

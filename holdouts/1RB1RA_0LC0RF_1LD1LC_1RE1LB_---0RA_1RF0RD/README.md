@@ -61,3 +61,15 @@ cell in fifteen: on current evidence the run outgrows W for ever, but W's dynami
 cd holdouts/1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD/py && python3 rules.py > ../lean/Rules.lean && python3 runwatch.py 60 5000
 cd ../../../tools/py && python3 -m bbtools.ctl 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD 3 lean H81504 Blank | diff - ../../holdouts/1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD/lean/EdgeCert.lean
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB`](../1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB/README.md): rename A→D, B→E, C→A, D→B, E→C, F→F and exchange left and right; it is this table started in state C, in a mirror
+
+<!-- end of related machines -->

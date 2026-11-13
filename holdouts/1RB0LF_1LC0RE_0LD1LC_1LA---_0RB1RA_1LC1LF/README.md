@@ -57,3 +57,15 @@ gcc -O2 -o /tmp/tmrun tools/c/tmrun.c && /tmp/tmrun 1RB0LF_1LC0RE_0LD1LC_1LA---_
 python3 holdouts/1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_1LC1LF/py/shape.py /tmp/rec.txt f=11010,d=11000,a=10
 python3 holdouts/1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_1LC1LF/py/switches.py /tmp/rec.txt f=11010,d=11000,a=10
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_0LE1LF`](../1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_0LE1LF/README.md): 8,345,589 configurations, the last at step 8,345,588 here and step 10,000,000 there
+
+<!-- end of related machines -->

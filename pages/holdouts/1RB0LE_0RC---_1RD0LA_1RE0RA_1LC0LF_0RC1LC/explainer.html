@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#texture">A background with defects</a><a href="#proved">What is proved and what is missing</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#texture">A background with defects</a><a href="#proved">What is proved and what is missing</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -231,6 +231,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p><b>Lean</b>: the halting configurations (kernel), no halt in the first 10,000 steps (kernel) and 10<sup>7</sup> steps (native_decide). <b>C simulator</b>: no halt in 10<sup>9</sup> steps.</p>
 <p><b>Missing</b>: everything structural. A macro machine needs exact rules for how the head crosses the <code>0011</code> background, how it turns at a defect and moves it, how the right end grows, and how the counter changes when the head reaches the left end. The machine can halt only from <code>A&gt;0 1</code>.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0RF_1LC0RD_1LA0LD_1LE0RA_0LB---_0LB1RB/explainer.html">1RB0RF_1LC0RD_1LA0LD_1LE0RA_0LB---_0LB1RB</a>: rename A→D, B→E, C→B, D→C, E→A, F→F and exchange left and right; it is this table started in state E, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -250,6 +256,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/view.py</code></div></div><div><b>The shape of the tape</b><p><code>py/view.py</code> prints the tape each time the head, in state C, reads a 0 on the leftmost visited cell, cut into 4-cell words. After step 396,499 the cells right of the head read: a few cells, a run of <code>0110</code> and <code>0010</code> words (a counter whose pattern changes between visits), then <code>0011</code> words with isolated <code>0001</code> defects (<code>o</code>) and doubled ones (<code>oo</code>) at gaps that grow along the tape. Between such visits the head bounces between the right end, which moves right by a few cells each bounce, and turning points at the defects, which drift left. Before step 396,000 the tape is mostly 1s with scattered 0s, another regime.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts only on B reading 1, that is after A reads a 0 that has a 1 to its right (<code>A&gt;0 1</code>). The next step is to find exact rules for the head's bounce over the <code>0011</code> background and its defects, and for the counter.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0RF_1LC0RD_1LA0LD_1LE0RA_0LB---_0LB1RB up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

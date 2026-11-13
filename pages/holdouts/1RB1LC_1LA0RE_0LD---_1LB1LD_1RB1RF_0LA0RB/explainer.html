@@ -142,7 +142,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#big-picture">Sweeps that rewrite a periodic tape</a><a href="#sweeps">What one sweep does to the words it crosses</a><a href="#halting">The one pattern that halts, and why it has not appeared</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#big-picture">Sweeps that rewrite a periodic tape</a><a href="#sweeps">What one sweep does to the words it crosses</a><a href="#halting">The one pattern that halts, and why it has not appeared</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -243,6 +243,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p><b>Next step.</b> Describe the soup as blocks of <code>(01)<sup>k</sup></code> and find what one round trip does to k.</p>
 </div>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA/explainer.html">1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA</a>: rename A→B, B→A, C→D, D→E, E→C, F→F and exchange left and right; it is this table started in state B, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -264,6 +270,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_pred</code>, <code>halt_needs_pattern</code>, <code>lean/Halt.lean</code></div></div><div><b>The only way to a halt</b><p>The machine halts only when C reads a 1, and the only ways there are B or F reading a 0 with <code>1 1</code> just left of it (B writes 1 or F writes 0, steps left, A reads the first 1 and steps left again, and C meets the second 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/passes.py tape</code></div></div><div><b>What the tape looks like</b><p>At the left end there is a clean zone of the period-11 word (<code>(10100101010)<sup>91</sup></code> at the right end of a sweep after 4·10<sup>6</sup> steps) that grows; the rest of the tape is a soup of <code>(01)<sup>k</sup></code> with k = 4, 7, 10, 13, runs <code>1<sup>3</sup> 0 1<sup>4</sup></code> and short copies of the period-11 word.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. In 10<sup>9</sup> steps B read a 0 with a 1 on its left about 4.2·10<sup>7</sup> times, and every time the cell before that 1 was a 0; nothing known rules out a second 1 there.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

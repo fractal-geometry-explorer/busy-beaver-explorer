@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#blocks">A fast counter and a slow list</a><a href="#halt">Why it is hard to settle</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#blocks">A fast counter and a slow list</a><a href="#halt">Why it is hard to settle</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -230,6 +230,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>513,688,839</td><td><code>1^6 0 1^2 0 1^6 0 1^11 0 1^5 0 1^5 0 1^8 0 1^8 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^11 0 1^11 0 1^17 0 1^17 0 1^5 0 1^5 0 1^2 0 1^2 0 1^2 0 1^8 0 1^2 0 1^11 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^8 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 E&gt;0</code></td></tr><tr><td>right</td><td>849,298,942</td><td><code>1^6 0 1^2 0 1^12 0 1^5 0 1^5 0 1^5 0 1^8 0 1^8 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^11 0 1^11 0 1^17 0 1^17 0 1^5 0 1^5 0 1^2 0 1^2 0 1^2 0 1^8 0 1^2 0 1^11 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^8 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 E&gt;0</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB/explainer.html">1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB</a>: rename A→D, B→E, C→F, D→B, E→C, F→A; it is this table started in state F</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -250,6 +256,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code> (<code>at A R</code>)</div></div><div><b>No halt in 10<sup>9</sup> steps; rebuilds</b><p>Direct simulation. The fast counter is the run of blocks of length 2 at the right end, after the last 8: it grows by one block in every round, and each round takes about twice as long as the one before (T′ = 2T + 9 in the regular stretches). The slow list was rebuilt at about 2.0·10<sup>5</sup>, 1.06·10<sup>7</sup> and 1.78·10<sup>8</sup> steps; between rebuilds each round makes one local change in it.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code></div></div><div><b>Two-level counter</b><p>Left of it the slow list is made of blocks of length 2 mod 3 (5, 8, 11, 17, …) behind a fixed head <code>6 2 6</code>. In each round one walker, an 11, moves one block to the left through the 5s (<code>5 11 → 11 5</code>), sometimes merging (<code>8 11 → … 14</code>); when it reaches the head of the list the list is rebuilt: the 2s of the fast counter are absorbed into new 5s and a new walk starts with more blocks to cross. Not shown for all sizes.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. See the heuristic claims above for what a halt would need.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

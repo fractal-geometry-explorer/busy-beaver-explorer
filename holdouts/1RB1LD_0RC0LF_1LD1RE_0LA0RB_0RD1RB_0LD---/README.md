@@ -158,3 +158,19 @@ g++ -O2 -o transcount holdouts/1RB1RF_1RC0RA_1LD1RB_1LE0LD_0RA0LB_0RB---/c/trans
 
 - [`pages/holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/explainer.html`](../../pages/holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/explainer.html)
 - [`pages/holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/proof-status.html`](../../pages/holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/proof-status.html)
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---`](../1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---/README.md): 7,916,051 configurations, the last at step 9,165,688 here and step 10,000,000 there
+- [`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---`](../1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---/README.md): 7,916,520 configurations, the last at step 9,166,232 here and step 10,000,000 there
+- [`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---`](../1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---/README.md): 7,916,520 configurations, the last at step 9,166,232 here and step 10,000,000 there
+- [`1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---`](../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/README.md): 6,666,345 configurations, the last at step 9,165,397 here and step 9,999,999 there
+- [`1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---`](../1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---/README.md): 7,916,289 configurations, the last at step 9,165,962 here and step 10,000,000 there
+
+<!-- end of related machines -->

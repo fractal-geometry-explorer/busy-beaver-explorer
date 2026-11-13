@@ -94,3 +94,16 @@ python3 holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/phases.py 3e8     
 python3 holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/epochs.py run 6e9                    # ~40 s
 python3 holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/epochs.py table 400                  # ~40 s
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE`](../1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/README.md): rename A→B, B→C, C→E, D→A, E→D, F→F and exchange left and right; it is this table started in state D, in a mirror
+- [`1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB`](../1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/README.md): rename A→D, B→A, C→B, D→C, E→E, F→F; it is this table started in state B
+
+<!-- end of related machines -->

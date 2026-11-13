@@ -68,6 +68,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Open: it halts iff A ever steps onto the front of a train in the wrong phase. An exact macro machine for the trains is the next step.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB---_1LC0LD_1RD0LB_0RF1RE_1RF0RA_0LE0RC up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -160,6 +166,15 @@
     "heading": "What is proved",
     "html": [
      "<p><b>Lean, kernel:</b> <code>halt_needs_A0111</code> (<code>lean/Halt.lean</code>); <code>sweep_train</code> (<code>lean/Rules.lean</code>, written by <code>py/gen_rules.py</code> with <code>bbtools.symtm</code>); no halt in 10<sup>4</sup> steps. <b>native_decide:</b> no halt in 10<sup>7</sup> steps. <b>C:</b> no halt in 10<sup>11</sup> steps; the near-miss count. <b>Heuristic:</b> the counter picture. <b>Open:</b> an exact macro machine and the halting question.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB---_1LC0LD_1RD0LB_0RF1RE_1RF0RA_0LE0RC/explainer.html\">1RB---_1LC0LD_1RD0LB_0RF1RE_1RF0RA_0LE0RC</a>: rename A→C, B→D, C→F, D→E, E→A, F→B; it is this table started in state E</li></ul>"
     ]
    }
   ]

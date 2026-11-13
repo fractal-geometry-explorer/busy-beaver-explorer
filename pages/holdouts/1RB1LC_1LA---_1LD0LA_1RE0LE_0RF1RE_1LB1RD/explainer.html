@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#round">Rounds: two ones for two words</a><a href="#phase">Double or reset</a><a href="#halt">Where it could halt</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#round">Rounds: two ones for two words</a><a href="#phase">Double or reset</a><a href="#halt">Where it could halt</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -236,6 +236,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Where it could halt</h2>
 <p>The only halting transition is B reading 1. The rounds never halt (Lean), so a halt would come at a phase end, in the junk. Because the doubling chains make the phases exponentially long, simulation reaches far in steps but only a few hundred phases; understanding the junk is the next step.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA/explainer.html">1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA</a>: rename A→F, B→E, C→A, D→B, E→C, F→D and exchange left and right; it is this table started in state C, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -258,6 +264,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/phase_ends.py 36</code> (20 minutes)</div></div><div><b>What decides doubling or reset: how far the phase end reads</b><p>For each of the first 36 phases the tape after the rounds was copied and the phase end run on it alone, recording how far left of the block the head goes. There are two kinds. <em>Short</em> ends read at most 56 cells and give P&prime; = 2P + c, with c set by those cells: the context <code>1110 11111 0 1010</code> (14 cells) gives c = 11 and leaves the same 14 cells again, which is why the doublings 37, 85, 181, ... repeat; other contexts give c = 27, 15, 19, 5, &minus;11, 31, 19. <em>Long</em> ends cross the whole tape left of the block and run into the blank tape beyond (24 of the 36), and then P&prime; is 9, 29, 41, 65 or 169, whatever P was. So a phase doubles exactly when the few cells next to the block allow a short end; the long ends rewrite the whole left tape and are where its irregular words come from.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Why it is hard</b><p>What the next phase does depends on the cells next to the block (a short end, a doubling or near-doubling) or on the whole tape left of it (a long end, which crosses all of it and restarts with a small P). The long ends rewrite the left tape each time; no counter or regular structure has been found in what they leave.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Equivalent to: does some phase end ever bring the head to B reading 1, the only halting transition?</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

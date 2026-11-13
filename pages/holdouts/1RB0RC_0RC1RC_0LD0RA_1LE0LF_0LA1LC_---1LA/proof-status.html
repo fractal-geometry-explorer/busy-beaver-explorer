@@ -114,6 +114,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>collect2</code>, <code>collect_n</code>, <code>expand4</code>, <code>expand_n</code> in <code>lean/Phases.lean</code>; <code>collect_raw</code>, <code>expand_raw</code> in <code>lean/Rules.lean</code></p>
       </div>
       <div class="card">
+        <h3>The machine does not halt: a second proof, in Coq (busycoq)</h3>
+        <p>The same argument, ported to Coq on top of busycoq's definitions: <code>nonhalt : ~ halts tm c0</code>. The symbolic executor is proved sound against busycoq's <code>step</code>, and all runs are evaluated inside Coq's kernel by <code>vm_compute</code>; <code>Print Assumptions nonhalt</code> reports no axioms. Clean build with Coq 8.18.0: about 40 s.</p>
+        <p class="where"><code>coq/H65826.v</code>, <code>coq/SymExecN.v</code>; build: <code>sh coq/build_H65826.sh /path/to/busycoq</code></p>
+      </div>
+      <div class="card">
         <h3>A growth cycle implies non-halting</h3>
         <p>With C(r) = <code>E&gt; 0 (1011001)^59 1011 00000 1101100110110 (011)^16 001101100110 (011)^r</code>: if the run from blank tape reaches some C(65 + 2x), and every C(65 + 2x) reaches C(65 + 2(x + 160,521,464)) in at least one step, the machine does not halt from blank tape. The two hypotheses are proved by the replay below.</p>
         <p class="where"><code>nonhalting_of_growth_cycle</code>, <code>lean/Cycle.lean</code></p>

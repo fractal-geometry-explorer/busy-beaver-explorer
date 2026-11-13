@@ -48,3 +48,17 @@ Only the generated `lean/Blank.lean`: the halting configurations, no halt in 10^
   defects cycle); the rates 1/3, 1/6 per visit suggest the first counters are unary counters passing carries down.
 - Describe the rebuild when a counter reaches 0. That is where the irregular right-end words come from and where a
   halt would happen, if it does.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---`](../1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/README.md): rename A→E, B→A, C→B, D→C, E→D, F→F; it is this table started in state B
+- [`1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---`](../../bb6-1RB1RF_1LC0LB/README.md): rename A→D, B→B, C→C, D→E, E→A, F→F and exchange left and right; it is this table started in state E, in a mirror
+- [`1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---`](../1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/README.md): rename A→E, B→D, C→A, D→B, E→C, F→F and exchange left and right; it is this table started in state C, in a mirror
+
+<!-- end of related machines -->

@@ -62,6 +62,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. It halts only if the nested counters ever produce a shape that leads to E reading 1; which shapes do is not known.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB---_0RC0RD_1LD0RF_0LE0LC_1RA0LC_1RC0RA up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LD_1RC---_0RD0RE_1LE0RF_0LA0LD_1RD0RB up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -123,6 +129,15 @@
      "<p>A few million steps in, the tape reads <code>1^385 (10)^15 0 1^4 (10)^4 0 1^466 (10)^17 0 &hellip; 0 1^a (10)^b 0 1 0 0 (10)^c</code>. Each sweep eats four ones of the last block of ones, adds two <code>10</code> pairs after it and one at the end. Lean proves this for every size.</p>",
      "<p>When the last block of ones is gone, the segment before it ticks: it has four ones fewer and two <code>10</code> pairs more. The <code>10</code> blocks on the right are then rebuilt into a new block of ones, about three times longer than before. Earlier segments change more and more rarely, like the higher digits of a counter.</p>",
      "<p>Because the sweeps are proved rules with exact step counts, a simulator can do thousands of them at once and only step through the rare events by hand. That gets the run from blank tape to 1.4&middot;10<sup>16</sup> steps in ten seconds, still without a halt. By then the tape is 272 million cells long: a row of big counters, each holding millions of ones, each with a small companion of a few cells. A counter ticks four times, its companion changing shape each time, and then it freezes while a new counter about three times longer takes over at the end. The machine can halt only during one of these events, and what decides it is the exact shapes and residues of the counters.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB---_0RC0RD_1LD0RF_0LE0LC_1RA0LC_1RC0RA/explainer.html\">1RB---_0RC0RD_1LD0RF_0LE0LC_1RA0LC_1RC0RA</a>: rename A→F, B→C, C→D, D→E, E→A, F→B; it is this table started in state E</li><li><a href=\"../1RB0LD_1RC---_0RD0RE_1LE0RF_0LA0LD_1RD0RB/explainer.html\">1RB0LD_1RC---_0RD0RE_1LE0RF_0LA0LD_1RD0RB</a>: rename A→F, B→D, C→E, D→A, E→B, F→C; it is this table started in state D</li></ul>"
     ]
    }
   ]

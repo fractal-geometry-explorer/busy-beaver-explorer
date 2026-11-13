@@ -21,7 +21,7 @@ The tape between two sweeps is `1 (0010)^b0 m1 (0010)^b1 ... mk (0010)^bk 000`: 
 
 D1 is 1LF and F0 is 1LB: at a merge where D reads a 1, F reads the next cell to the left; a 1 there would halt the machine, a 0 lets F0 finish the merge.
 
-**Same run as**: [`1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---/README.md), [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/README.md), [`1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---`](../1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---/README.md), [`1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RE---`](../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RE---/README.md) (class I: the tape at every sweep end is the same as in `1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---`, `1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---` up to 10^11 steps; the mirrored members have the same markers at every sweep end as the direct ones from sweep 157,376 on, with a different first block).
+**Same class as** (the same tapes at another pace for the direct members, the same markers for the mirrored ones; these are not the same run): [`1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---/README.md), [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/README.md), [`1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---`](../1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---/README.md), [`1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RE---`](../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RE---/README.md) (class I: the tape at every sweep end is the same as in `1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---`, `1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---` up to 10^11 steps; the mirrored members have the same markers at every sweep end as the direct ones from sweep 157,376 on, with a different first block).
 
 ## Results
 
@@ -51,3 +51,20 @@ start, 61,860 right), 28,124 ones.
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA`](../1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA/README.md): rename A→E, B→B, C→C, D→F, E→D, F→A and exchange left and right; it is this table started in state F, in a mirror
+- [`1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RE---`](../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RE---/README.md): rename A→D, B→E, C→A, D→B, E→C, F→F and exchange left and right; it is this table started in state C, in a mirror
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/README.md): 9,999,997 configurations, the last at step 10,000,000 here and step 9,999,996 there
+
+<!-- end of related machines -->

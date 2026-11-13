@@ -50,3 +50,17 @@ entered 626,994 times, always on a 0 with `11001` to its right. A halt needs a l
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0RC_1LC0LD_1RA0LB_1LE0RA_1LB1LF_0LC---/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD---`](../1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD---/README.md): rename A→E, B→C, C→D, D→A, E→B, F→F and exchange left and right; it is this table started in state D, in a mirror
+- [`1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---`](../1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---/README.md): rename A→B, B→C, C→A, D→D, E→E, F→F; it is this table started in state C
+- [`1RB0RD_1LC0RA_1LA0LB_1RE0LC_1RA1RF_0RB---`](../1RB0RD_1LC0RA_1LA0LB_1RE0LC_1RA1RF_0RB---/README.md): rename A→C, B→A, C→B, D→D, E→E, F→F and exchange left and right; it is this table started in state B, in a mirror
+
+<!-- end of related machines -->

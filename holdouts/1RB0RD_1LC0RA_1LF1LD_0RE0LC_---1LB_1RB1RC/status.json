@@ -116,6 +116,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. It halts if and only if it halts from <code>post 8072508832</code>, the configuration right after the first end event, which does not halt.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -195,6 +201,15 @@
      "<p>The next sweep, starting from a wall of 8,072,508,833 pairs about 1.96&middot;10<sup>20</sup> steps in, runs into the last cell in state b. Lean proves what happens next, for every length of wall. The machine does not halt. It writes one new cell, and on its way back it turns every pair <code>10</code> of the wall into <code>11</code>. The old wall has become eight billion new counter digits, all ones.</p>",
      "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>right end of the counter</th><th>carry ends in a</th><th>in b</th><th>in c</th></tr></thead><tbody><tr><td>last cell a digit (first event)</td><td><b>halts</b></td><td>back in the normal mode</td><td>wall turned into 11s</td></tr><tr><td>last cell a 1 (after the first event)</td><td>1 new cell</td><td><b>halts</b></td><td>2 new cells</td></tr></tbody></table></div>",
      "<p>So, proved in Lean: the machine halts from blank tape exactly when it halts from the configuration right after that first event. From there the same automaton keeps ticking, now on about 8&middot;10<sup>9</sup> digits. The next end event needs a carry through all of them, which is far beyond simulation. Deciding it means computing a much larger power of the automaton, on a string of eight billion ones. That is where the problem stands.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/explainer.html\">1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC</a>: rename A→D, B→C, C→A, D→E, E→F, F→B and exchange left and right; it is this table started in state C, in a mirror</li></ul>"
     ]
    }
   ]

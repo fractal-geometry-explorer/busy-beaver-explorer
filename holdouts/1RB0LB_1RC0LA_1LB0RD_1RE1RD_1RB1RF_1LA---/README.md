@@ -17,9 +17,9 @@ A nested ternary counter: the tape is a list of segments of 111-blocks; an exact
 
 ## Equivalence
 
-`1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---` (b1, id 104106) and `1RB0LC_1LA0RD_1RA0LA_1RE1RD_1RA1RF_1LC---` (b2, id 44149) are the same machine: relabelling A->C, B->A, C->B turns b1's table
-into b2's, so b2 from blank is b1 started in state B. Their tapes at the right records are identical to 1e8 steps
-(the start-up differs), and the law below holds for both with one constant changed: c0 = 161 for b1, 38 for b2.
+`1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---` (b1, id 104106) and `1RB0LC_1LA0RD_1RA0LA_1RE1RD_1RA1RF_1LC---` (b2, id 44149) have the same table, started in different states: relabelling A->C, B->A, C->B turns b1's table
+into b2's, so b2 from blank is b1 started in state B. That is another run of the same table, not the same run: the two share no configuration in 10^7 steps (see Related
+machines). At the right records the right ends of their tapes agree (the rest of the tape differs), and the law below holds for both with one constant changed: c0 = 161 for b1, 38 for b2.
 This analysis (and its scripts, in `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/`) covers both.
 
 ## What it does
@@ -126,3 +126,15 @@ python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/rules.py --check
 
 - [`pages/holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/explainer.html`](../../pages/holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/explainer.html)
 - [`pages/holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/proof-status.html`](../../pages/holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/proof-status.html)
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LC_1LA0RD_1RA0LA_1RE1RD_1RA1RF_1LC---`](../1RB0LC_1LA0RD_1RA0LA_1RE1RD_1RA1RF_1LC---/README.md): rename A→C, B→A, C→B, D→D, E→E, F→F; it is this table started in state B
+
+<!-- end of related machines -->

@@ -142,6 +142,12 @@
    "title": "Does it halt from blank tape?",
    "text": "A normal tick cannot halt (the clock theorem). Halting needs <code>B&gt; 1 0 1</code>, which would have to be built at the end of a phase or inside the second regime. Open: a proof of the second-regime tick, a closed form for P, and what a phase end does to the word.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -239,6 +245,15 @@
      "<p>Watch the tape at the moments the head, in state C, stands on a 0 just right of <code>1^L 0</code> at the right end. Along a <em>phase</em> L grows by four per visit and each visit takes twice as long as the previous one. Seen in the mirror (left and right swapped), the step from one visit to the next is a tick: the head sweeps the block into 0s, makes 2<sup>k</sup> trips through the word (each one application of a map P), and merges the block back four cells longer. That tick is proved in Lean for every k and every word, then carried to the machine itself by a mirror lemma.</p>",
      "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>first visit</th><th>block</th><th>last visit</th><th>block</th><th>ticks</th></tr></thead><tbody><tr><td>5.7718·10<sup>8</sup></td><td>1^1</td><td>3.7457·10<sup>13</sup></td><td>1^161</td><td>40</td></tr><tr><td>2.0070·10<sup>22</sup></td><td>1^1</td><td>6.5767·10<sup>26</sup></td><td>1^337</td><td>84</td></tr><tr><td>6.7309·10<sup>26</sup></td><td>1^5</td><td>1.6673·10<sup>57</sup></td><td>1^741</td><td>184</td></tr><tr><td>8.0977·10<sup>140</sup></td><td>1^1</td><td>7.7989·10<sup>245</sup></td><td>1^3245</td><td>811</td></tr></tbody></table></div>",
      "<p>Between phases a second clock runs one block further in (<code>1^N 0 1 0 C&gt;0</code>, N growing by four per visit); it is not covered by the proof yet. The run was stopped at step 2.39·10<sup>248</sup>, inside the second clock.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---/explainer.html\">1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---</a>: rename A→F, B→B, C→C, D→A, E→D, F→E and exchange left and right; it is this table started in state D, in a mirror</li><li><a href=\"../1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---/explainer.html\">1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---</a>: rename A→F, B→A, C→B, D→C, E→D, F→E; it is this table started in state B</li><li><a href=\"../1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD/explainer.html\">1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD</a>: rename A→B, B→C, C→D, D→E, E→F, F→A; it is this table started in state F</li></ul>"
     ]
    }
   ]

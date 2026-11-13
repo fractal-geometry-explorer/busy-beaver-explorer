@@ -68,3 +68,15 @@ Find the block structure of the soup (pieces between `00` pairs) and the round-t
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RF_1LC0RF_1LE0LD_1RC0LB_---1RA_1LB1RA/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE`](../1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/README.md): rename A→D, B→F, C→B, D→A, E→C, F→E; it is this table started in state D
+
+<!-- end of related machines -->

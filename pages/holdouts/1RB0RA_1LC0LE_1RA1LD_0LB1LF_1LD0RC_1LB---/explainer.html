@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#sweep">One sweep</a><a href="#counter">A counter that multiplies by 4/3</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#sweep">One sweep</a><a href="#counter">A counter that multiplies by 4/3</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -251,6 +251,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>What is proved</h2>
 <ul><li><b>Kernel</b>: the sweep, the phase (any number of sweeps), the two clean phase ends and the 4/3 map (<code>lean/Rules.lean</code>, <code>lean/Macro.lean</code>).</li><li><b>native_decide</b>: blank tape reaches the clean regime after 58,429 steps; four clean phases then reach step 399,523 (<code>lean/Start.lean</code>).</li><li><b>Trusted computation</b>: no halt in 10<sup>1000</sup> steps (exact cycle accelerator).</li><li><b>Open</b>: whether it ever halts.</li></ul>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---/explainer.html">1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---</a>: rename A→C, B→A, C→B, D→D, E→E, F→F and exchange left and right; it is this table started in state B, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -273,6 +279,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/run_accel.py 1000</code></div></div><div><b>No halt in the first 10<sup>1000</sup> steps</b><p>The shared cycle accelerator (<code>bbtools.cycles</code> on 3-cell blocks; every jump applies a cycle rule proved symbolically) runs 10<sup>1000</sup> steps in about seven minutes, with 5,609 rules and 3,726 jumps, and no halt.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>A Collatz-like counter</b><p>The residue of y mod 3 at the end of each phase looks irregular; y ≡ 1 starts a secondary bouncer that rebuilds the left part, and the run returns to the clean form with p = 0. Levels further right are reset in turn, each a bit longer than before.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts exactly when D reads a 1 with a 1 to its left (C at <code>1 1 C&gt;1</code> or E at <code>1 1 E&gt;0</code>); the proved rules never do that, but the y ≡ 1 regime and the deep resets are not closed rules yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

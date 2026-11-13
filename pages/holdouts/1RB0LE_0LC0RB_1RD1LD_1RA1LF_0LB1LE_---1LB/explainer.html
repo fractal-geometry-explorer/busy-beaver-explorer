@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#clock">A clock and a word</a><a href="#example">The first ticks of the run</a><a href="#phases">Phases</a><a href="#halt">Where a halt could come from</a><a href="#open">Open</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#clock">A clock and a word</a><a href="#example">The first ticks of the run</a><a href="#phases">Phases</a><a href="#halt">Where a halt could come from</a><a href="#open">Open</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -253,6 +253,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Open</h2>
 <p>Missing: a description of P<sup>2<sup>k</sup></sup> on the words that occur, and a rule for what a phase end builds. With both, one could decide whether some phase end ever reaches the halting configuration; today only the long exact run says it has not yet.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF/explainer.html">1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF</a>: rename A→C, B→D, C→A, D→B, E→F, F→E; it is this table started in state C</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -277,6 +283,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>clock.py 1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB run …</code></div></div><div><b>No halt in 6.04·10<sup>187</sup> steps</b><p>The exact accelerated run goes through 65 phases (a phase: ticks with the block growing by 3; it ends when a trip into the word does not return, the block is partly dissolved and a new phase starts from a somewhat shorter block). Last block followed: 1<sup>1858</sup>.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Growth</b><p>Phase after phase the block at a phase end and the word grow (blocks 34, 82, 139, 208, … at the ends of the first phases); a phase end shortens the block only a little. Nothing suggests a halt, but there is no formula for the phase end.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>The phase end</b><p>What a failed trip does to the block and the word, and so whether some phase end ever reaches the halting configuration, is not known.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

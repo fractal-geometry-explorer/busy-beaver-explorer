@@ -63,3 +63,15 @@ gcc -O2 -o /tmp/tmrun tools/c/tmrun.c && /tmp/tmrun 1RB0LA_1LC1RF_---1LD_1RE0LA_
 python3 holdouts/1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF/py/counter.py /tmp/al.txt
 gcc -O2 -o /tmp/ecensus holdouts/1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF/py/ecensus.c && /tmp/ecensus 1000000000
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0RA_1RC0RD_1RD0LC_1LE1RA_---1LF_1RB0LC`](../1RB0RA_1RC0RD_1RD0LC_1LE1RA_---1LF_1RB0LC/README.md): rename A→C, B→D, C→E, D→F, E→B, F→A; it is this table started in state F
+
+<!-- end of related machines -->

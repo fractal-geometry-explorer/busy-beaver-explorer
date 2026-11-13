@@ -52,3 +52,16 @@ A non-halting proof looks within reach but is more than a day of work: describe 
 . /etc/profile.d/lean.sh && holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1LB---/lean/check.sh
 python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD---/py/walls.py 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1LB--- 1000000000
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1RA---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1RA---/README.md): rename A→E, B→A, C→B, D→C, E→D, F→F and exchange left and right; it is this table started in state B, in a mirror
+- [`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1LD---`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1LD---/README.md): rename A→C, B→D, C→E, D→A, E→B, F→F; it is this table started in state D
+
+<!-- end of related machines -->

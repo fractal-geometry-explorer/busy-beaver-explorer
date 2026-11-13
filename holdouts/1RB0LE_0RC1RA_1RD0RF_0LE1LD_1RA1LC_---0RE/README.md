@@ -63,3 +63,16 @@ gcc -O2 -o tokrun tools/c/tokrun.c
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0LE_0RC1RA_1RD0RF_0LE1LD_1RA1LC_---0RE/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0RF_0LC1LB_1RD1LA_1RE0LC_0RA1RD_---0RC`](../1RB0RF_0LC1LB_1RD1LA_1RE0LC_0RA1RD_---0RC/README.md): rename A→D, B→E, C→A, D→B, E→C, F→F; it is this table started in state C
+- [`1RB1LD_1RC0LA_0RD1RB_1RE0RF_0LA1LE_---0RA`](../1RB1LD_1RC0LA_0RD1RB_1RE0RF_0LA1LE_---0RA/README.md): rename A→B, B→C, C→D, D→E, E→A, F→F; it is this table started in state E
+
+<!-- end of related machines -->

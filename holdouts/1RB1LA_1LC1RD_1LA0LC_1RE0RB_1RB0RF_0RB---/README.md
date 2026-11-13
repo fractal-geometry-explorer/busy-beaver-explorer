@@ -98,3 +98,13 @@ gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0
 ## For later
 
 More than a day of work remains. The counter is proved (`lean/Counter.lean`), so what is left is the transitions. Next steps: (1) prove the transition events as symtm rules (floor pop, the cut that leaves a defect, the gap-collapse and defect-passing events; the event patterns need an explicit continuation after the gap or symtm stops with TouchContext); (2) define a defect-aware configuration (counter plus at most one defect, with its position and type) and try to show it is closed under a countdown followed by a cascade; if two-defect configurations are unreachable this gives non-halting with Lean, combined with `init_counter`; (3) failing that, log (E, N, defect) at each counter start from `py/jump2.py` and look for a closed form of the transition map, which would turn the question into a number-theoretic one.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Almost the same run as [`1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---`](../1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---/README.md) (observed, not proved).** Tape and head are the same at all but 12 of the first 10^7 steps from blank tape. The two runs part 6 times, each time for a step or two and by one cell, first at step 9 and last at step 4,072,133, and come together again. The tables differ and are not renamings of each other. While the runs agree, the states pair up as A–A, B–B, C–C, D–D, E–E, F–F (this machine first).
+
+<!-- end of related machines -->

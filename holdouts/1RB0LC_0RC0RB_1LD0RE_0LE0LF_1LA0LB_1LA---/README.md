@@ -21,7 +21,7 @@ The tape between two sweeps is `1 (0010)^b0 m1 (0010)^b1 ... mk (0010)^bk 000`: 
 
 D1 is 0LF and F0 is 1LA: at a merge where D reads a 1, F reads the next cell to the left; a 1 there would halt the machine, a 0 lets F0 finish the merge.
 
-**Same run as**: [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---/README.md), [`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC---`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC---/README.md), [`1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0LA---`](../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0LA---/README.md) (class III: the tape at every sweep end is the same as in `1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---` up to 10^11 steps; the mirrored members have the same markers at every sweep end as the direct ones from sweep 109,645 on, with a different first block).
+**Same class as** (the same tapes at another pace for the direct members, the same markers for the mirrored ones; these are not the same run): [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---/README.md), [`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC---`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC---/README.md), [`1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0LA---`](../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0LA---/README.md) (class III: the tape at every sweep end is the same as in `1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---` up to 10^11 steps; the mirrored members have the same markers at every sweep end as the direct ones from sweep 109,645 on, with a different first block).
 
 ## Results
 
@@ -51,3 +51,15 @@ start, 69,921 right), 26,173 ones.
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LA---/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---/README.md): 9,999,961 configurations, the last at step 9,999,960 here and step 10,000,000 there
+
+<!-- end of related machines -->

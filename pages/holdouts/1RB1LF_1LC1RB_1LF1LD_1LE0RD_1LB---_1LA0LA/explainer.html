@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#pairs">Pairs of cells: X = 10, Y = 11</a><a href="#counter">A counter in base 4, level after level</a><a href="#events">When the head reaches the right end</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#pairs">Pairs of cells: X = 10, Y = 11</a><a href="#counter">A counter in base 4, level after level</a><a href="#events">When the head reaches the right end</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -232,6 +232,12 @@ G(Y^a)           = X^a Y Y                     the blank right end, reached in B
 <p>When the last level overflows the head arrives at the blank right end in state D, and the recursion no longer applies. In the first 2·10<sup>10</sup> steps this happened at steps 1,937, 57,942, 61,755, 63,313, 83,647, 125,133, 48,737,226. Some of these events only rewrite the last few digits; others are resets: a stretch of blank pairs is left inside the tape, a new counter starts to its right and uses the stretch as its wall, and the old blocks stay frozen until the stretch is used up.</p>
 <p>The machine stops only when E reads a 1. The counter never brings that about, but some words of pairs do: on the tape <code>X Y^7 X X</code> a single wall visit halts after 253 steps (a Lean theorem; this tape does not occur in the run from blank). So whether the machine halts depends on the words that the right-end events leave behind, and nobody knows a rule for them.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1LA_1RC1RE_1RD0RD_1LA1RC_1RF0LE_1RA---/explainer.html">1RB1LA_1RC1RE_1RD0RD_1LA1RC_1RF0LE_1RA---</a>: rename A→D, B→A, C→B, D→E, E→F, F→C and exchange left and right; it is this table started in state B, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -257,6 +263,7 @@ G(Y^a)           = X^a Y Y                     the blank right end, reached in B
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in direct simulation</b><p>The C simulator runs 2·10<sup>10</sup> steps from blank tape without a halt; the head reaches the right end of the tape at steps 1,937, 57,942, 61,755, 63,313, 83,647, 125,133, 48,737,226.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w">README</div></div><div><b>Does it halt from blank tape?</b><p>Not known. The counter cannot halt; a right-end event could leave a halting word, and no rule for these events is known.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w">README, Next steps</div></div><div><b>The right-end events</b><p>When the last level of the counter overflows the head reaches the blank right end in D; what follows (parity changes, blank stretches inside the tape, resets of the counter) has no known rule, and it decides whether a halting word ever appears.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1LA_1RC1RE_1RD0RD_1LA1RC_1RF0LE_1RA--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

@@ -103,3 +103,16 @@ gcc -O2 -o evw holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/c/evw.c && ./e
 gcc -O2 -o longrun holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/c/longrun.c && ./longrun 1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA--- 100000000000   # 15-40 min
 gcc -O2 -o st holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/c/st.c && ./st 1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA--- 30000000 1500 st.pgm && python3 holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/py/img.py st.pgm pages/holdouts/1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA---/defects.png 1400 1500 3
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0RD_0LC0LF_1RD1LB_0RE---_1RA0LC_0LA1LF`](../1RB0RD_0LC0LF_1RD1LB_0RE---_1RA0LC_0LA1LF/README.md): rename A→E, B→A, C→B, D→C, E→F, F→D; it is this table started in state B
+- [`1RB1LE_0RC---_1RD0LA_1RE0RB_0LA0LF_0LD1LF`](../1RB1LE_0RC---_1RD0LA_1RE0RB_0LA0LF_0LD1LF/README.md): rename A→C, B→D, C→E, D→A, E→F, F→B; it is this table started in state D
+
+<!-- end of related machines -->

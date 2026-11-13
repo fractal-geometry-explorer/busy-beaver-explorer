@@ -43,3 +43,15 @@ a CTL over that alphabet. Same plan as for 1RB1LE_1RC1RF_0RD0LB_1LD0RA_0LA0LE_0R
 
 - [`pages/holdouts/1RB0LF_0RC0LC_1LA1LD_1RE1LC_---1RA_0LC0RD/explainer.html`](../../pages/holdouts/1RB0LF_0RC0LC_1LA1LD_1RE1LC_---1RA_0LC0RD/explainer.html)
 - [`pages/holdouts/1RB0LF_0RC0LC_1LA1LD_1RE1LC_---1RA_0LC0RD/proof-status.html`](../../pages/holdouts/1RB0LF_0RC0LC_1LA1LD_1RE1LC_---1RA_0LC0RD/proof-status.html)
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1RD_1LC0RF_0LA0RA_1LE1RA_---1LB_0RA0LD`](../1RB1RD_1LC0RF_0LA0RA_1LE1RA_---1LB_0RA0LD/README.md): rename A→B, B→C, C→A, D→D, E→E, F→F and exchange left and right; it is this table started in state C, in a mirror
+
+<!-- end of related machines -->

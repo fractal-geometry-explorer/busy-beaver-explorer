@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#increment">One increment</a><a href="#counter">A counter that pays for itself</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#increment">One increment</a><a href="#counter">A counter that pays for itself</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -248,6 +248,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>What is proved</h2>
 <ul><li><b>Kernel</b>: the increments <code>half_sweep</code>, <code>inc_d0</code>, <code>inc_d1</code> for all run lengths (<code>lean/Rules.lean</code>); no halt in 10,000 steps.</li><li><b>native_decide</b>: no halt in 10<sup>7</sup> steps.</li><li><b>Trusted computation</b>: no halt in 2·10<sup>11</sup> steps; the increment rule matches 2,282 increments.</li><li><b>Open</b>: whether it ever halts.</li></ul>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/explainer.html">1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---</a>: rename A→D, B→B, C→C, D→A, E→E, F→F and exchange left and right; it is this table started in state D, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -268,6 +274,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/check_increments.py</code></div></div><div><b>The increment rule, checked</b><p>Low 1-digits become 0, the next 0 becomes 1, its block and the lowest block gain two <code>10</code>s each, the reservoir loses two. A direct simulation of 3·10<sup>7</sup> steps finds 2,282 increments that match and none that disagree; 141 carries run into higher separators and 17 reservoir refills fall outside the rule.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>A second region of <code>1100</code>s</b><p>Beyond the counter the machine builds runs of <code>1100</code> at the right end (half the tape at step 2·10<sup>9</sup>) and later turns them back into reservoir <code>10</code>s. Higher separators such as <code>1101</code>, <code>0101</code>, <code>000</code> appear between long blocks.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts exactly when C or E reads a 0 that has a 1 on its left and <code>(10)^k 1 1</code> on its right. The increments never do this; the refills, long carries and the <code>1100</code> region are not closed rules yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

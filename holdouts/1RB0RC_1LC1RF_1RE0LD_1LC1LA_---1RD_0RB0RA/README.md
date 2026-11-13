@@ -53,3 +53,15 @@ Open. The only halt is E reading a 0, right after C read a 0 and moved right; in
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0RC_1LC1RF_1RE0LD_1LC1LA_---1RD_0RB0RA/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE`](../1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE/README.md): rename A→E, B→A, C→B, D→D, E→C, F→F and exchange left and right; it is this table started in state B, in a mirror
+
+<!-- end of related machines -->

@@ -96,3 +96,15 @@ The structure is closed and the reduction is proved; what is left is the orbit i
 orbit further with a base-3 representation (each step is a multiplication by 4/3 with a small carry, so z mod 3^j for
 the next j steps depends only on the last j digits); and analyse what the exit configurations `C z 0` (z = 4k + 8)
 do, to turn `not_halts_of_orbit` into an exact "halts iff" statement.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB`](../1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB/README.md): rename A→B, B→C, C→A, D→E, E→F, F→D and exchange left and right; it is this table started in state C, in a mirror
+
+<!-- end of related machines -->

@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">Blocks, separators and one defect</a><a href="#sweep">One sweep: left to the defect and back</a><a href="#events">Events and a counter of blocks 4&lt;sup&gt;k&lt;/sup&gt; &amp;minus; 2</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">Blocks, separators and one defect</a><a href="#sweep">One sweep: left to the defect and back</a><a href="#events">Events and a counter of blocks 4&lt;sup&gt;k&lt;/sup&gt; &amp;minus; 2</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -250,6 +250,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p><b>Computed</b>: the macro simulator (symbolic window rules) checked tape for tape against the machine at every E-record of the first 2&middot;10<sup>8</sup> steps and at samples to 4&middot;10<sup>9</sup>; then run to 2.96&middot;10<sup>13</sup> steps with no halt.</p>
 <p><b>Open</b>: the events are not in Lean, and no closed set of configurations excluding a halting turn is known.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/explainer.html">1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---</a>: rename A→D, B→E, C→A, D→B, E→C, F→F; it is this table started in state C</li><li><a href="../1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/explainer.html">1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---</a>: rename A→B, B→C, C→D, D→E, E→A, F→F and exchange left and right; it is this table started in state E, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -273,6 +279,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 88,351 cells have been visited and 43,124 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code></div></div><div><b>Why it does not halt soon</b><p>The machine can only stop with <code>D&gt;1 0 1 1</code> on the tape, which within a sweep means a turn at the defect with the first right block Y &le; 1. In a zone of two or more blocks Y = y + 2 &ge; 2, so the generic rules never halt; in a zone of one block Y = z, and in the runs z only comes back as 2 after an event and then grows. No reachable window rule halts. The block sizes settle into values 4<sup>k</sup> &minus; 2 (2, 14, 62, 254, &hellip;), each made by the n &rarr; 4n + 6 growth of a block as the defect passes, so the tape behaves like a counter whose digits are blocks; nothing in it is seen to drift toward a halting turn.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. A proof would need a closed set of macro configurations covering the events (the end of the zone running out, the defect reaching a frozen separator or the left edge), with the generic rules already in Lean.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

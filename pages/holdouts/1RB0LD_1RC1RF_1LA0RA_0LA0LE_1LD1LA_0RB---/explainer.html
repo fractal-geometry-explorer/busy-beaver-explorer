@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#sweep">One sweep eats three 0s</a><a href="#rebuild">When the wall is gone it is rebuilt longer</a><a href="#collatz">A Collatz-like map with a counter</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#sweep">One sweep eats three 0s</a><a href="#rebuild">When the wall is gone it is rebuilt longer</a><a href="#collatz">A Collatz-like map with a counter</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -262,6 +262,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p><b>Computed</b>: the map checked against the machine at every wall of the first 10<sup>9</sup> steps (<code>py/check.py</code>); 10<sup>6</sup> macro steps of the orbit (<code>py/orbit.py</code>).</p>
 <p><b>Open</b>: whether the orbit ever exits.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB/explainer.html">1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB</a>: rename A→B, B→C, C→A, D→E, E→F, F→D and exchange left and right; it is this table started in state C, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -287,6 +293,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/orbit.py</code>, <code>README.md</code></div></div><div><b>Why an exit looks hopeless</b><p>If z mod 3 behaves like a fair die, y is a random walk with steps +4, +6, &minus;1 (drift +3). From height y it ever reaches 0 with probability about 0.335<sup>y</sup>; y is 2,999,377 after 10<sup>6</sup> steps and was never below 4. Every exit would still have to halt from <code>C z 0</code>, which only some do (C 92 0 halts after 54,805 steps; C 8 0 does not in 10<sup>6</sup>).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.5). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does the orbit ever exit?</b><p>Not known: whether the orbit of (0, 0) ever has y = 0 with z not a multiple of 3 is a Collatz-type question about the digits of z in base 3, like Antihydra.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

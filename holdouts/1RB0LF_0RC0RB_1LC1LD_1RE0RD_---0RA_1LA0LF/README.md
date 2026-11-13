@@ -3,8 +3,8 @@
 bbchallenge id 147837, a six-state holdout of group G05 (growth class fixed/sqrt). **Open.** The tape is a sea of
 `1010...` carrying a dozen *particles* (short defects) that the head pushes around like a counter with carries;
 halting needs a *D-run*, which in the first 10^9 steps happened only four times, all at the right end of the tape.
-Its twin `1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB` (bbchallenge id 29825) is the same machine mirrored, started
-one step later, and runs the same tape with one extra 1 at the far wall (see
+Its twin `1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB` (bbchallenge id 29825) has the same table mirrored and starts in another state: it
+runs the same tape with one extra 1 at the far wall, a different run and a separate question (see
 [its folder](../1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB/README.md)).
 
 | state | read 0 | read 1 |
@@ -119,3 +119,15 @@ the rule for a deep trip (which particles it passes, how each moves, where it tu
 cycle rule in `lean/Rules.lean` is the first entry of that table. With it, the question becomes whether the
 rare trips that reach the wall ever find it in a halting shape, which may be a counter-like or Collatz-like
 question in its own right.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB`](../1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB/README.md): rename A→B, B→C, C→D, D→E, E→F, F→A and exchange left and right; it is this table started in state F, in a mirror
+
+<!-- end of related machines -->

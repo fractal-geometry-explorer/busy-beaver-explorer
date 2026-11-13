@@ -82,3 +82,15 @@ gcc -O2 -o runhist runhist.c && ./runhist 1RB0LF_1RC0RB_0RD1LE_0LE0RA_1LC1LA_0LD
 gcc -O2 -o trfreq trfreq.c && ./trfreq 1RB0LF_1RC0RB_0RD1LE_0LE0RA_1LC1LA_0LD--- 100000000
 gcc -O2 -o ctx ctx.c && ./ctx 1RB0LF_1RC0RB_0RD1LE_0LE0RA_1LC1LA_0LD--- 2000000000 E 1 2
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC---`](../1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC---/README.md): rename A→E, B→A, C→B, D→C, E→D, F→F; it is this table started in state B
+
+<!-- end of related machines -->

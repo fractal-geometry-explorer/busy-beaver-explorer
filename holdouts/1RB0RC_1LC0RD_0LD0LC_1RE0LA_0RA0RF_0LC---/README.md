@@ -155,3 +155,16 @@ The next step towards a proof would be a model of the collisions: a closed descr
 then an invariant on the gaps that rules out the crowded collisions in which `D` reads `0 1 1`. The gaps are
 driven by the counter's own history (a gap shrinks by 2 W per 5^i visits, and collisions reset them), so such an
 invariant would have to follow the whole multi-scale dynamics; nothing simpler is known to work.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---/README.md): rename A→E, B→A, C→B, D→C, E→D, F→F and exchange left and right; it is this table started in state B, in a mirror
+- [`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LE---`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LE---/README.md): rename A→C, B→D, C→E, D→A, E→B, F→F; it is this table started in state D
+
+<!-- end of related machines -->

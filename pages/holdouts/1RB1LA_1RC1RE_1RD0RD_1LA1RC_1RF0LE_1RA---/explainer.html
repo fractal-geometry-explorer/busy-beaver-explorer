@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#blocks">Blocks four times apart</a><a href="#halt">What the markers do</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#blocks">Blocks four times apart</a><a href="#halt">What the markers do</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -230,6 +230,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>What the markers do</h2>
 <p>The markers cycle through a few shapes and seem to act as base-4 digits, each moving the next block on. The only halting transition is F reading 1. Working out the markers would turn the run into a counter whose behaviour could be followed much further, or proved.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html">1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA</a>: rename A→B, B→C, C→F, D→A, E→D, F→E and exchange left and right; it is this table started in state D, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -250,6 +256,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/rec.c M 300000000 R</code>, sampled every 3,000 records</div></div><div><b>Blocks in the ratio 1 : 4 : 16 : ...</b><p>The lengths of the long blocks (at least five words) at records of the head at the right end: [5, 20, 83, 345] at step 3.5&middot;10<sup>6</sup>, [16, 67, 271, 1,095] at 3.4&middot;10<sup>7</sup>, [5, 22, 91, 364, 1,470] at 6.1&middot;10<sup>7</sup>, [11, 46, 184, 739, 2,970] at 2.5&middot;10<sup>8</sup>. Between samples the largest block gains 375 words and each smaller one about a quarter of what the next one gains.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>A counter in the markers</b><p>The markers between the blocks (such as <code>a^4 u 1^4</code>, <code>a^7</code>, <code>a 1^6 a^4</code>, with a = 10) cycle through a few shapes; the 1 : 4 rates suggest that each marker is a base-4 digit that moves the next block on by one word per cycle.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The only halting transition is F reading 1.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

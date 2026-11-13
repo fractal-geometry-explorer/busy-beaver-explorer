@@ -199,3 +199,7 @@ python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/check_even
 python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/accel.py prove      # finds the cycle without being told (15 s)
 python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/rules.py > holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/lean/Rules.lean
 ```
+
+## Coq (busycoq) proof
+
+`coq/` holds a second, independent-kernel proof of the same statement on top of [busycoq](https://github.com/meithecatte/busycoq): `nonhalt : ~ halts tm c0` in `coq/H65826.v`, no axioms (`Print Assumptions` says closed under the global context), all runs evaluated by `vm_compute`. Build: `sh coq/build_H65826.sh /path/to/busycoq` (Coq 8.18.0, about 40 s). Details: [coq/README.md](coq/README.md).

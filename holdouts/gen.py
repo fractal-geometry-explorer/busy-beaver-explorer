@@ -29,6 +29,9 @@ sys.path.insert(0, os.path.join(REPO, "tools", "pages"))
 from bbtools.leangen import machine_lean  # noqa: E402
 from bbtools.machine import STATES, Machine  # noqa: E402
 
+sys.path.insert(0, HERE)
+import related  # noqa: E402
+
 KERNEL_STEPS = 10000
 NATIVE_STEPS = 10 ** 7
 
@@ -190,7 +193,7 @@ def describe(row):
     return " ".join(a)
 
 
-def status_spec(row, m):
+def base_spec(row, m):
     M = m.text
     folder = f"holdouts/{M}"
     n_steps = row["steps"]
@@ -275,6 +278,11 @@ def status_spec(row, m):
     }
 
 
+def status_spec(row, m):
+    """The generated ledger, with the machine's relations to other holdouts (holdouts/related.json)."""
+    return related.with_related(row["machine"], base_spec(row, m))
+
+
 def readme(row, m, spec):
     M = m.text
     rows = []
@@ -344,7 +352,7 @@ def generate(row):
     m = Machine.parse(M)
     spec = status_spec(row, m)
     write(sp, json.dumps(spec, indent=1, ensure_ascii=False) + "\n")
-    write(os.path.join(d, "README.md"), readme(row, m, spec))
+    write(os.path.join(d, "README.md"), related.readme_with(M, readme(row, m, spec)))
     write(os.path.join(d, "lean", "Machine.lean"),
           machine_lean(M, ns_of(row), f"BB(6) holdout {M} (bbchallenge id {row['id']}); whether it halts from blank "
                                       f"tape is open."))

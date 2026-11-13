@@ -208,3 +208,20 @@ cc -O2 -o family holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/c/family.c
 
 - [`pages/holdouts/1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA/explainer.html`](../../pages/holdouts/1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA/explainer.html)
 - [`pages/holdouts/1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA/proof-status.html`](../../pages/holdouts/1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA/proof-status.html)
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---/README.md): rename A→F, B→B, C→C, D→E, E→A, F→D and exchange left and right; it is this table started in state E, in a mirror
+- [`1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RE---`](../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RE---/README.md): rename A→F, B→E, C→A, D→C, E→D, F→B; it is this table started in state C
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0LE1RF_0RA---`](../1RB0RC_1LC0RD_0LD0LC_1RE0LA_0LE1RF_0RA---/README.md): 8,330,405 configurations, the last at step 8,330,419 here and step 10,000,000 there
+
+<!-- end of related machines -->

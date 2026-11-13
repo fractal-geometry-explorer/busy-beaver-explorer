@@ -76,3 +76,15 @@ close within its round limit. The bad event needs `B> 1 0`, i.e. a factor `1 0 1
 in 3·10^8 steps the tape right of the head is made of `1 0^2`, `1 0^3`, `1^2 0^2`, `1^2 0^3` (no `1 0 1` factor)
 except next to the head, so a hand-made CTL whose right automaton is that word language plus a few cells near the
 head is the next thing to try.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB1RF_1RC0RF_0RD0LC_1LE1RA_1LC---_0LD0RE`](../1RB1RF_1RC0RF_0RD0LC_1LE1RA_1LC---_0LD0RE/README.md): 9,444,317 configurations, the last at step 9,444,316 here and step 9,999,998 there
+
+<!-- end of related machines -->

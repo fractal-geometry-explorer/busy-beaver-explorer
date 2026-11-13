@@ -45,3 +45,19 @@ fails; no invariant mod 2..12; no halt in 10^9 steps.
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---`](../1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---/README.md): rename A→D, B→A, C→B, D→C, E→E, F→F and exchange left and right; it is this table started in state B, in a mirror
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA`](../1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA/README.md) (in a mirror): 9,999,977 configurations, the last at step 10,000,000 here and step 9,999,986 there
+
+<!-- end of related machines -->

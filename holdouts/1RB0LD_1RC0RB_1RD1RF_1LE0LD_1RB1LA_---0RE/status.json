@@ -99,6 +99,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. C reads a 1 only inside the words <code>0110</code>/<code>1110</code> of the long run or in the counter at the left end, and so far always with a 1 after it; a proof would need the rule of the counter and of how far the sweeps reach.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB0RA_1RC1RF_1LD0LC_1RA1LE_1RA0LC_---0RD up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -179,6 +185,15 @@
     "heading": "What a proof would need",
     "html": [
      "<p>A description of the sweeps as a rule on (counter, length of the run), from which one would read that C never meets <code>1 0</code>. The long run is crossed by shift rules (proved in <code>lean/Rules.lean</code>), so the counter at the left end is the missing piece.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB0RA_1RC1RF_1LD0LC_1RA1LE_1RA0LC_---0RD/explainer.html\">1RB0RA_1RC1RF_1LD0LC_1RA1LE_1RA0LC_---0RD</a>: rename A→E, B→A, C→B, D→C, E→D, F→F; it is this table started in state B</li><li><a href=\"../1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/explainer.html\">1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC</a>: rename A→D, B→E, C→A, D→B, E→C, F→F; it is this table started in state C</li></ul>"
     ]
    }
   ]

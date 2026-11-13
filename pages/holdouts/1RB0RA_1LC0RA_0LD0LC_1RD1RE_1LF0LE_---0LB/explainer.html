@@ -127,7 +127,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB</p>
-  <div class="col"><p class="lede">Nobody knows yet, but it is not a new question: this machine is <a href="../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a> seen in a mirror and started one step later, and it runs the same tape with one extra 1 at the far end. Lean proves it can only halt during an <em>E-run</em>, which so far has only happened at the far wall.</p></div>
+  <div class="col"><p class="lede">Nobody knows yet. The question is close to another holdout's, but separate: this machine is <a href="../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a> seen in a mirror and started one step later, and it runs the same tape with one extra 1 at the far end. Lean proves it can only halt during an <em>E-run</em>, which so far has only happened at the far wall.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev k">Kernel</span><b>halt &rArr; E-run</b><span class="small">A halt needs E erasing 1s (Lean, kernel).</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>twin</b><span class="small">Same tape as the other machine plus one 1, for 10<sup>9</sup> steps.</span></div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#twin">The same machine as another holdout</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#twin">The same table as another holdout</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -220,10 +220,16 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 </section>
 <section id="twin">
   <span class="eyebrow">Structure</span>
-  <h2>The same machine as another holdout</h2>
+  <h2>The same table as another holdout</h2>
 <p>Write the table, swap L and R, and rename the states A, B, C, D, E, F to F, A, B, C, D, E. The result is exactly the table of <a href="../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a>. The only difference is where it starts: this machine starts in what is there state F. Its first step writes a 1 and moves into state A of the other machine, so from then on it is the other machine started on a tape with one extra 1.</p>
 <p>The extra 1 drifts to the far wall of 1s and stays there. Running both side by side for 10<sup>9</sup> steps, the tapes are equal except for that one 1 at every moment the head makes a new record, and this machine is always 57 steps behind (56 since step 4,194,242, plus its first step). The two runs could only part ways on one of the rare trips of the head that reach the wall.</p>
 <p>So the story of this machine, the sea of <code>1010</code>, the particles, the little counter at one end and the carries, is told on the page of <a href="../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a>. Lean proves here the mirror of its halting condition: two steps before a halt, E must be erasing a 1 (<code>halt_needs_erun</code>).</p>
+</section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a>: rename A→F, B→A, C→B, D→C, E→D, F→E and exchange left and right; it is this table started in state B, in a mirror</li></ul>
 </section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
@@ -241,9 +247,10 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_needs_erun</code>, <code>lean/Halt.lean</code></div></div><div><b>A halt needs an E-run</b><p>Two steps before a halt the head is in state E reading a 1: F (halting on a 0) is entered only from E0, and E from D1 (then F reads the 1 that D wrote) or from E1.</p></div></div>
-    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/twin.c</code></div></div><div><b>The same run as 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</b><p>Mirror this machine and rename A..F to F, A, B, C, D, E: the table is the other machine's, started in its state F, whose first step writes a 1 and enters its state A. Run from that tape side by side with the other machine from blank tape, at all 32,539 left-end records of the first 10<sup>9</sup> steps the tapes agree except for one extra 1 at the end of the far wall, and the step counts differ by 56 (57 with the first step), constant since step 4,194,242.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/twin.c</code></div></div><div><b>The run of 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF from a tape with one extra 1</b><p>Mirror this machine and rename A..F to F, A, B, C, D, E: the table is the other machine's, started in its state F, whose first step writes a 1 and enters its state A. Run from that tape side by side with the other machine from blank tape, at all 32,539 left-end records of the first 10<sup>9</sup> steps the tapes agree except for one extra 1 at the end of the far wall, and the step counts differ by 56 (57 with the first step), constant since step 4,194,242.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/README.md</code></div></div><div><b>The analysis</b><p>Everything in the analysis of <a href="../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a> applies in the mirror: a sea of 1010 with particles pushed by a 2-bit gadget like a counter with carries; the machines could only differ on a trip that reaches the wall.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Open, as for the other machine.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

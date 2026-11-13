@@ -99,6 +99,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. The irregular part is where the work and any halt happen; it grows without bound and its rules are not known beyond the four sweep rules. Since neighbouring tapes halt, the next step is to find what the real tapes have in common (for example the run lengths divisible by 3).",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB0LE_1LC0RA_1RD0RC_1LA0LD_1LB0LF_1LC--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -175,6 +181,15 @@
      "<p>The machine stops only when state F reads a 1, and F is entered only when state A reads a 1 and moves right. So it halts exactly when A stands on a 1 with another 1 to its right (<code>A&gt;1 1</code>); Lean proves this, and that the machine runs forever if the pattern never appears.</p>",
      "<p>In the run from blank tape A reads a 1 about 390,000 times in 10<sup>9</sup> steps, never with a 1 on its right. But the margin is thin: take a tape of the real run, flip one cell, and let the machine go on. In 83 of 600 such trials it halts; with two cells flipped, in 148 of 600. The real tapes avoid the halt by their exact structure, not by their general shape.</p>",
      "<p>What is missing: the rules by which the irregular part is rewritten, and a property of the real tapes that those rules preserve and that keeps <code>A&gt;1 1</code> away. A hint: between single 0s the runs of <code>01</code> mostly come in multiples of three.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB0LE_1LC0RA_1RD0RC_1LA0LD_1LB0LF_1LC---/explainer.html\">1RB0LE_1LC0RA_1RD0RC_1LA0LD_1LB0LF_1LC---</a>: rename A→E, B→B, C→C, D→D, E→A, F→F and exchange left and right; it is this table started in state E, in a mirror</li></ul>"
     ]
    }
   ]

@@ -74,6 +74,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known; the tail update has not been put in closed form.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1LB_1RC1LD_1LA1RE_1RD0LA_0RB0RF_0RA--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -140,6 +146,15 @@
     "heading": "The tail decides, and it is not understood yet",
     "html": [
      "<p>The machine halts exactly when it is in state C on a 0 with three 1s to its left. The main block alone never does this; the end of a cycle reads and writes the tail, which is itself built of the same pieces (a block of 3j ones that is later turned into pairs) and grows very slowly: it is a second, slower counter fed by the first. Which tails could lead to the halting pattern is the open part. None tried (all tails of at most three blocks of at most 9 ones, every X mod 6) halts within one cycle, and the run has gone 10<sup>13</sup> steps.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/explainer.html\">1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC</a>: rename A→B, B→C, C→A, D→F, E→D, F→E and exchange left and right; it is this table started in state C, in a mirror</li><li><a href=\"../1RB1LB_1RC1LD_1LA1RE_1RD0LA_0RB0RF_0RA---/explainer.html\">1RB1LB_1RC1LD_1LA1RE_1RD0LA_0RB0RF_0RA---</a>: rename A→C, B→A, C→B, D→D, E→E, F→F and exchange left and right; it is this table started in state B, in a mirror</li></ul>"
     ]
    }
   ]

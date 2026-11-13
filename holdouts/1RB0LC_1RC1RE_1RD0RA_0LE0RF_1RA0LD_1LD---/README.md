@@ -30,7 +30,7 @@ whole nested run, so the proof does not close.
   2,121,320,341 sweeps, to step 1.8·10¹⁹, and never meets an uncovered sweep. So **no halt in the first 1.8·10¹⁹
   steps** (trusted).
 
-The other machine of this pair, `1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---`, **is this machine**: its table is this
+The other machine of this pair, `1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---`, **has this machine's table**: its table is this
 one with the states renamed A→B, B→C, C→D, D→E, E→A (F stays). It starts on blank tape in the state that is E here,
 so it runs the same counter from a different start.
 
@@ -180,3 +180,16 @@ configuration. A closed invariant on macro configurations would have to describe
 nested runs; generic closed tape languages (cell windows up to 6, and run-length windows) fail early because they
 lose the block lengths mod 3. A direct cell simulation of the next nested run is out of reach (it is not due before
 10¹⁹ steps).
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD`](../1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD/README.md): rename A→D, B→E, C→F, D→B, E→C, F→A and exchange left and right; it is this table started in state F, in a mirror
+- [`1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---`](../1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---/README.md): rename A→B, B→C, C→D, D→E, E→A, F→F; it is this table started in state E
+
+<!-- end of related machines -->

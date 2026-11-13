@@ -1,6 +1,6 @@
 # 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---
 
-bbchallenge id 16113. Group G01. **Doubling counter paid by a block** (structure found, map not yet): Y(n) = (101)^n 10 A> recurs; in between a (110)^b counter doubles while the (101)s last. Open. **Same machine as 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD--- with the states renamed** (another start state); the quadrupling round is now exact.
+bbchallenge id 16113. Group G01. **Doubling counter paid by a block** (structure found, map not yet): Y(n) = (101)^n 10 A> recurs; in between a (110)^b counter doubles while the (101)s last. Open. **Same table as 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD--- with the states renamed** (another start state); the quadrupling round is now exact.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -28,10 +28,10 @@ The `110` counter doubles in each round (b → 2b or 2b + 4; from synthetic star
 421,588 steps). This is the same idea as the doubling counter of 1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE; the
 cost of a round and the endings are not yet worked out.
 
-## Same machine as 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---
+## Same table as 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---
 
 Renaming the states (A→D, B→E, C→B, D→C, E→A, F→F) turns this transition table into the one of `1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---`; only the start state differs.
-So both holdouts are runs of one machine and every rule below holds for both (tape words are unchanged; this
+So both holdouts are runs of one table from two different starts (two separate halting questions) and every rule below holds for both (tape words are unchanged; this
 machine's state C is the other's B).
 
 ## The quadrupling round (exact)
@@ -142,3 +142,15 @@ exact, the other a DFA, post* saturation) fails for every DFA with at most 6 sta
 
 - [`pages/holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/explainer.html`](../../pages/holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/explainer.html)
 - [`pages/holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/proof-status.html`](../../pages/holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/proof-status.html)
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---`](../1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---/README.md): rename A→D, B→E, C→B, D→C, E→A, F→F; it is this table started in state E
+
+<!-- end of related machines -->

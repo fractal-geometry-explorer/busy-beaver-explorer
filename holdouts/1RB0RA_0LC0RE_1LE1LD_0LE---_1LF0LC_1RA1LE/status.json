@@ -86,6 +86,12 @@
    "title": "Does it halt from blank tape?",
    "text": "A normal tick cannot halt (the clock theorem). Halting needs a P-step that does not come back — that happens only at the end of a phase — followed by C on a 1 with a 1 to its left (<code>1 C&gt;1</code>). Open: what P does over 2<sup>k</sup> trips (a counter in the word), what a phase end builds, and whether one ever reaches the halting configuration.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB1RF_1RC0RA_1LD1RB_1LE0LD_0RA0LB_0RB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RE_1LC1RA_1LD0LC_0RE0LA_1RA1RF_0RA--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -162,6 +168,15 @@
     "html": [
      "<p>The only halting transition is D on 1, and D is entered only from C on 1 (1LD): the machine halts exactly when C reads a 1 whose left neighbour is a 1, <code>1 C&gt;1</code>.</p>",
      "<p>A normal tick never halts: the Lean theorem says it reaches its end. So a halt can only come at the end of a phase, in the trip that does not come back or in what follows it before the next visit of the left end. The accelerated run simulates exactly those parts cell by cell, and none of the 30 phase ends halted. Whether a later one does depends on the word the earlier phases built, which looks irregular: the question is open.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB1RF_1RC0RA_1LD1RB_1LE0LD_0RA0LB_0RB---/explainer.html\">1RB1RF_1RC0RA_1LD1RB_1LE0LD_0RA0LB_0RB---</a>: rename A→D, B→E, C→A, D→F, E→B, F→C and exchange left and right; it is this table started in state C, in a mirror</li><li><a href=\"../1RB0RE_1LC1RA_1LD0LC_0RE0LA_1RA1RF_0RA---/explainer.html\">1RB0RE_1LC1RA_1LD0LC_0RE0LA_1RA1RF_0RA---</a>: rename A→C, B→D, C→E, D→F, E→A, F→B and exchange left and right; it is this table started in state E, in a mirror</li></ul>"
     ]
    }
   ]

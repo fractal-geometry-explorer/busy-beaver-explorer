@@ -51,3 +51,20 @@ Only C1 halts; C is entered only from B (moving right): halts iff `B> x 1`. CTL 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**A slowed-down copy of [`1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF`](../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/README.md) (observed, not proved).** Read this machine's states A as A, B as B, D as C, E as E, F as F of the other machine. Then 4,995,966 of this machine's first 10^7 configurations (tape, head position and state) are configurations of the other machine, in the same order. The last one is step 9,999,982 here and step 6,664,008 there, so this machine takes about 1.5 times as many steps. At most 229 steps pass here between two such configurations. The tables are not renamings of each other. Lean proves (`lean/Twin.lean` here, `sim_or_break`, `not_halts_of_noBreak`) that each step of the faster machine is matched by one or three steps of the slower one up to the first break, a configuration where the paired states act differently, and that neither machine halts if no break ever comes. A halt of either machine is itself a break, and the halting transitions of the two do not correspond, so the two are not known to halt together.
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD`](../1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/README.md): rename A→F, B→C, C→A, D→B, E→D, F→E and exchange left and right; it is this table started in state C, in a mirror
+- [`1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD`](../1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD/README.md): rename A→F, B→A, C→B, D→C, E→D, F→E; it is this table started in state B
+- [`1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA`](../1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA/README.md): rename A→C, B→D, C→E, D→F, E→A, F→B; it is this table started in state E
+- [`1RB1RA_1RC0RF_1RD0RD_1LE---_0LC1LF_1RA0LE`](../1RB1RA_1RC0RF_1RD0RD_1LE---_0LC1LF_1RA0LE/README.md): rename A→B, B→C, C→D, D→E, E→F, F→A; it is this table started in state F
+
+<!-- end of related machines -->

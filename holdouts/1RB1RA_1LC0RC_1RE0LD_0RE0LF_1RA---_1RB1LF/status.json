@@ -83,6 +83,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Open: equivalent (Lean) to whether the digit iteration ever delivers 2<sup>t</sup>&minus;1 to the left end, a Collatz-like question about the binary digits of the carried values.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same tapes at another pace, whatever the states, as 1 other holdout (listed on the explainer page).",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -158,7 +164,7 @@
    {
     "id": "twin",
     "eyebrow": "A twin",
-    "heading": "The same machine under another name",
+    "heading": "The same tapes from another table",
     "html": [
      "<div class=\"col\"><p><code>1RB1RC_1LC0LE_1RD1RC_1LB0RA_---0LF_1RD1LF</code> is another holdout of the same group. Its table is different, but at every cycle start it has exactly the same tape (in state A instead of C, and a few hundred steps earlier). Its folder has the same reduction, proved in Lean with its own pieces: the same digit map decides both machines.</p></div>"
     ]
@@ -173,6 +179,15 @@
      "<p>After 10<sup>9</sup> steps the tape spans 42,663 cells (17 left of the start, 30,165 right), with a density of 1s of 1.0.</p>",
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>629,305,352</td><td><code>1^893 0 1^896 0 1^1787 0 1^3574 0 1^11945 0 1^13112 0 1^2633 0 1^975 0 1^965 0 1^283 0 1^219 0 1^148 0 1^64 0 1^14 0 1^7 0 1^6 0 1^4 0 1 A&gt;0</code></td></tr><tr><td>right</td><td>644,996,484</td><td><code>1^893 0 1^896 0 1^1787 0 1^3574 0 1^11945 0 1^14970 0 1^3170 0 1^572 0 1^396 0 1^395 0 1^220 0 1^148 0 1^64 0 1^14 0 1^7 0 1^6 0 1^4 0 1 A&gt;0</code></td></tr><tr><td>right</td><td>841,506,314</td><td><code>1^893 0 1^896 0 1^1787 0 1^3574 0 1^21173 0 1^9231 0 1^1632 0 1^1406 0 1^682 0 1^396 0 1^220 0 1^148 0 1^64 0 1^14 0 1^7 0 1^6 0 1^4 0 1 A&gt;0</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same tapes at another pace (observed, not proved).</b> Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10<sup>7</sup> configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.</p><ul><li><a href=\"../1RB1RC_1LC0LE_1RD1RC_1LB0RA_---0LF_1RD1LF/explainer.html\">1RB1RC_1LC0LE_1RD1RC_1LB0RA_---0LF_1RD1LF</a>: 9,942,119 configurations, the last at step 10,000,000 here and step 9,945,848 there</li></ul>"
     ]
    }
   ]

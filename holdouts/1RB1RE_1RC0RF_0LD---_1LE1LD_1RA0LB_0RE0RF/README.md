@@ -63,3 +63,22 @@ start, 394 right), 25,123 ones.
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF`](../1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF/README.md): rename A→E, B→A, C→B, D→C, E→D, F→F; it is this table started in state B
+- [`1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF`](../1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF/README.md): rename A→C, B→D, C→E, D→A, E→B, F→F and exchange left and right; it is this table started in state D, in a mirror
+- [`1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA0RF`](../1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA0RF/README.md): rename A→B, B→C, C→D, D→E, E→A, F→F; it is this table started in state E
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---`](../1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---/README.md): 8,004,077 configurations, the last at step 10,000,000 here and step 8,004,076 there
+- [`1RB1RD_1LC0RE_1LD1LC_1RA0LE_1LC0RF_0RD---`](../1RB1RD_1LC0RE_1LD1LC_1RA0LE_1LC0RF_0RD---/README.md): 8,004,077 configurations, the last at step 10,000,000 here and step 8,004,076 there
+
+<!-- end of related machines -->

@@ -87,6 +87,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. The record-to-record map and the map of the left-end rebuilds have not been derived, so there is no accelerated simulation beyond direct runs.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB0RE_1LC1RA_1LD0LC_0RE0LA_1RA1RF_0RA--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -172,6 +178,15 @@
      "<p>The entry fires when D, erasing 1s leftwards, reads a 0 with another 0 on its left: four steps later (D0, E0, A1, F0) the cells read <code>0 1 0</code> and B is on the next cell to the right. In the neighbours the same moment writes a 1 there instead and carries on differently (to the left for <code>1L</code>, to the right for <code>1R</code>).</p>",
      "<p>The entry is used 24 times in the first 10<sup>10</sup> steps (10 in the first 10<sup>3</sup>, 18 in 10<sup>4</sup>, 20 in 10<sup>5</sup>, 22 in 10<sup>6</sup>, 23 in 10<sup>7</sup>, 24 in 10<sup>9</sup>). So the proof cannot be carried over by showing the entry is never reached. The neighbours' proofs are long inductions over a word-and-counter description of each machine's own run (about 1,200 to 1,700 lines of Coq each); they depend on what this entry leaves at the left end of the word, and we did not find a replacement invariant for this machine. The tracker says the same in its own words: the rare entry keeps changing the head of the word.</p>",
      "<p>What Lean adds here is small: the effect of the entry, and the two local patterns from which the machine halts (C reading a 0 with two 0s on its left (<code>0 0 C&gt;0</code>); B reading <code>1 1 1</code>).</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB0RE_1LC1RA_1LD0LC_0RE0LA_1RA1RF_0RA---/explainer.html\">1RB0RE_1LC1RA_1LD0LC_0RE0LA_1RA1RF_0RA---</a>: rename A→E, B→A, C→B, D→C, E→D, F→F; it is this table started in state B</li><li><a href=\"../1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/explainer.html\">1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE</a>: rename A→C, B→E, C→F, D→A, E→B, F→D and exchange left and right; it is this table started in state D, in a mirror</li></ul>"
     ]
    }
   ]

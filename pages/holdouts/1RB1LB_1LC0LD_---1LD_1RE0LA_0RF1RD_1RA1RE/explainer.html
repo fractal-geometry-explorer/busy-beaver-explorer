@@ -142,7 +142,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#big-picture">Sweeps that rewrite a periodic tape</a><a href="#sweeps">What one sweep does to the words it crosses</a><a href="#halting">The one pattern that halts, and why it has not appeared</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#big-picture">Sweeps that rewrite a periodic tape</a><a href="#sweeps">What one sweep does to the words it crosses</a><a href="#halting">The one pattern that halts, and why it has not appeared</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -244,6 +244,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p><b>Twin.</b> <a href="../1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE/explainer.html"><code>1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE</code></a> is this table with the states renamed (A→B, B→C, C→D, D→E, E→F, F→A); it starts in the state this machine calls F. The two runs from blank tape are different (no common configuration at the left end in their first 300,000 steps), but they use the same sweeps, words and halting pattern, and every rule here holds there after renaming.</p>
 </div>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE/explainer.html">1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE</a>: rename A→B, B→C, C→D, D→E, E→F, F→A; it is this table started in state F</li><li><a href="../1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA/explainer.html">1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA</a>: rename A→D, B→E, C→F, D→A, E→B, F→C; it is this table started in state D</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -266,6 +272,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>README.md</code></div></div><div><b>Same table as its twin</b><p><code>1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE</code> is this table with the states renamed (A→B, B→C, C→D, D→E, E→F, F→A); it starts in the state this machine calls F. The two runs from blank tape are different (no common configuration at the left end in their first 300,000 steps), but they use the same sweeps, words and halting pattern, and every rule here holds there after renaming.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/passes.py tape</code></div></div><div><b>What the tape looks like</b><p>Seen at the left end (after a leftward sweep) the tape is a soup of runs <code>1<sup>4</sup></code> to <code>1<sup>9</sup></code>, pieces <code>0 0 1 0 1 0 (01)<sup>3</sup></code> and blocks <code>(00101)<sup>k</sup></code>; seen at the right end (after a rightward sweep) it is blocks <code>(10110)<sup>k</sup></code>, <code>(01101)<sup>k</sup></code>, <code>(10101)<sup>k</sup></code>, <code>(101)<sup>k</sup></code>. Unlike the other machines of this group there is no long clean zone: the whole tape stays irregular.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The shallow near miss (D on a 1 with <code>1 0 1</code> on its left) happens tens of millions of times, so the safety comes from the order of pieces, not from a rare event. No invariant is known.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

@@ -71,3 +71,19 @@ condition. C (`tools/c/tmrun.c`): no halt in 100,000,000,000 steps.
 gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA 100000000000
 ./tmrun 1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA 1600000000 every 400000000 > every.txt && python3 holdouts/1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA/py/regions.py every.txt
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC`](../1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC/README.md): rename A→C, B→D, C→E, D→B, E→A, F→F; it is this table started in state E
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---`](../1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---/README.md) (in a mirror): 9,999,977 configurations, the last at step 9,999,986 here and step 10,000,000 there
+
+<!-- end of related machines -->

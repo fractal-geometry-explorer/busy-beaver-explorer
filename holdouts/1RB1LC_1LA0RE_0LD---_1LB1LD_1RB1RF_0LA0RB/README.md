@@ -67,3 +67,15 @@ Describe the soup as blocks of `(01)^k` and find what one round trip does to k.
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1LC_1LA0RE_0LD---_1LB1LD_1RB1RF_0LA0RB/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA`](../1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA/README.md): rename A→B, B→A, C→D, D→E, E→C, F→F and exchange left and right; it is this table started in state B, in a mirror
+
+<!-- end of related machines -->

@@ -88,3 +88,17 @@ gcc -O2 -o sweeps holdouts/1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---/c/sweeps.c 
   `holdouts/1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD/py/segsim.py` runs this machine but finds no cycles to jump,
   about 7·10⁸ steps in 40 s).
 - The Q runs at the right (`Q^269 010101 Q^542`): how they are made, and whether they form a second counter.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same run as [`1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC`](../1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC/README.md) (observed, not proved).** At every one of the first 10^7 steps from blank tape the two machines have the same tape and the head on the same cell. Their tables differ, and no renaming of the states turns one into the other. While they run, the states pair up as A–A, A–E, B–B, C–C, D–D, E–F, F–F (this machine first), which is not one to one. Transitions not used in these steps: this machine never uses F1 and the other never uses A1. Lean proves (`lean/Twin.lean` in the other machine's folder, `lock_or_break`, `not_halts_of_noBreak`) that the two runs have the same tape, the same head position and paired states up to the first break, a configuration where the paired states act differently, and that neither machine halts if no break ever comes. A halt of either machine is itself a break, and the halting transitions of the two do not correspond, so the two are not known to halt together.
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---`](../1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---/README.md): rename A→B, B→C, C→D, D→A, E→E, F→F and exchange left and right; it is this table started in state D, in a mirror
+
+<!-- end of related machines -->

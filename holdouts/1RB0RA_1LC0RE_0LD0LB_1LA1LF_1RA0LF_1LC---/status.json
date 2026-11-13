@@ -138,6 +138,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. A proof needs the transfer as a rule (saturation, nesting, merges, entry and exit), the regular trips for the residue classes that follow a transfer, and an invariant that bounds each moved run from below by the size of the tail behind it; a halt would need several long runs to be short at the same time.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LF_1RC0RB_1LD0RA_0LE0LC_1LB1LF_1LD--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -282,6 +288,15 @@
     "html": [
      "<p>The only halting transition is F on a 1. F comes from E (on a cell B has just made 0, so F reads that 0) or from D, and D only from C on a 0. So the machine halts exactly when D reads a 1 whose left neighbour is also a 1: the head, going left, steps onto a run <code>1 0</code> of exactly two cells between a <code>11</code> and a <code>00</code> (<code>loc_halt</code>). In the proved trips that never happens. In the first 10<sup>14</sup> steps D read a 1 about 63 million times; the alternating stretch ending at D's cell was 2 cells long 218 times and 3 cells long 21 times (a halt needs 1).</p>",
      "<p>So a halt, if any, would come from a transfer. The exact simulator finds none in 10<sup>14</sup> steps.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../../1RB1RF_1LC0LB/explainer.html\">1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---</a>: rename A→B, B→C, C→E, D→A, E→D, F→F and exchange left and right; it is this table started in state D, in a mirror</li><li><a href=\"../1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/explainer.html\">1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---</a>: rename A→D, B→A, C→B, D→C, E→E, F→F and exchange left and right; it is this table started in state B, in a mirror</li><li><a href=\"../1RB0LF_1RC0RB_1LD0RA_0LE0LC_1LB1LF_1LD---/explainer.html\">1RB0LF_1RC0RB_1LD0RA_0LE0LC_1LB1LF_1LD---</a>: rename A→B, B→C, C→D, D→E, E→A, F→F; it is this table started in state E</li></ul>"
     ]
    }
   ]
