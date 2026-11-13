@@ -17,8 +17,26 @@ What is about one machine only goes in the optional "explainer" object of the JS
   spacetime   {steps, rows}: the default range of the space-time diagram
   (top level) elsewhere  [{kind, title, text}]: proofs and labels from outside the machine's own ledger, shown
               in a box under the headline cards (kind "proof", "report" or "label"); see build_status.py
+  (top level) standing   {kind, label, text}: one line under the title saying where the machine stands (kind: here,
+              merged, pr, cryptid, open), written by holdouts/build_pages.py
+  (top level) compare    [{machine, relation, mirror}]: related machines; gives a section that draws this run and a
+              related one side by side
   sections    [{id, eyebrow, heading, html}]: hand-written sections (HTML) placed after the generated ones, for the
               macro structure once it is found; `html` may be a list of strings, joined with newlines
+
+A section may carry, besides its `html`, a "stepper": a panel that applies the machine's macro rules to numbers.
+
+  stepper     {tape, vars, counters, rules, note}
+    tape      the tape form as text, with {name} where a variable goes: "A> 0 (1010001000100)^{k} X"
+    vars      [{name, label, start}]: the numbers of the form (start is a decimal string; any size)
+    counters  [{name, label, start}]: running totals such as the step count (optional)
+    rules     [{name, text, level, guard, set, add}]: `set` gives each changed variable, and `add` each counter's
+              increment, as a linear form {"k": 184, "_": 3029040} (184k + 3,029,040) in the values before the
+              rule; `guard` is a list of {form, text}, each form having to be >= 0 for the rule to apply; `level`
+              is the evidence level of the rule, as in the ledger
+    note      a closing remark (HTML)
+  The stepper does arithmetic only: it is as right as the rules typed into it, which is why each rule shows its
+  evidence level and should name the Lean theorem in `text`.
 
 The generated parts are the transition table, the state diagram (which follows the simulator and counts how
 often each transition has fired), the halting analysis (which transitions lead into each halting
@@ -80,7 +98,7 @@ h1{font-size:clamp(2rem,5vw,3.3rem);font-weight:700;letter-spacing:-.01em}
 h2{font-size:clamp(1.45rem,3vw,1.95rem);font-weight:700;margin-bottom:.6rem}
 h3{font-size:1.12rem;font-weight:700;margin:1.4rem 0 .4rem}
 p{margin:.65rem 0}
-a{color:var(--accent)}
+a{color:var(--accent);overflow-wrap:anywhere}
 code,.mono{font-family:var(--mono);font-size:.86em}
 code{background:var(--sunk);padding:.08em .32em;border-radius:4px;overflow-wrap:anywhere}
 section{padding-block:44px 8px;border-top:1px solid var(--line)}
@@ -100,6 +118,36 @@ header.hero{padding-block:48px 28px}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:26px}
 .fact{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 .fact b{font:700 1.4rem/1.15 var(--display)}
+.stand{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:baseline;margin:18px 0 0;padding:10px 14px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--muted);max-width:68ch}
+.stand b{font-family:var(--display);font-size:1.02rem;white-space:nowrap}
+.stand.here{border-left-color:var(--kernel)} .stand.here b{color:var(--kernel)}
+.stand.merged{border-left-color:var(--native)} .stand.pr{border-left-color:var(--computed)}
+.stand.cryptid{border-left-color:var(--heur)} .stand.open{border-left-color:var(--open)}
+.blocks{display:flex;flex-wrap:wrap;gap:3px;align-items:center;margin-top:10px;font-family:var(--mono);font-size:.78rem;max-height:9.5em;overflow:auto}
+.blocks .bk{border-radius:4px;padding:1px 5px;border:1px solid var(--line-strong);white-space:nowrap;background:var(--surface)}
+.blocks .bk sup{font-weight:700;font-size:.9em}
+.blocks .bk.b0{background:var(--kernel-bg);border-color:var(--kernel)} .blocks .bk.b1{background:var(--native-bg);border-color:var(--native)}
+.blocks .bk.b2{background:var(--computed-bg);border-color:var(--computed)} .blocks .bk.b3{background:var(--heur-bg);border-color:var(--heur)}
+.blocks .bk.b4{background:var(--open-bg);border-color:var(--open)} .blocks .bk.b5{background:var(--sunk);border-color:var(--fg2)}
+.blocks .lit{color:var(--fg2);overflow-wrap:anywhere}
+.blocks .hd{color:var(--surface);background:var(--head);border-radius:4px;padding:1px 5px;font-weight:700}
+#st{cursor:crosshair}
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:12px}
+.cmp>div{min-width:0} .cmp .stwrap{max-height:520px;overflow:auto}
+.cmp h3{margin:0 0 .3rem;font:600 .78rem var(--mono);overflow-wrap:anywhere}
+.stp .tapeform{font-family:var(--mono);font-size:.92rem;background:var(--sunk);border-radius:8px;padding:12px;overflow-wrap:anywhere;margin:10px 0}
+.stp .tapeform b{color:var(--head)}
+.stp .vars{display:grid;gap:6px;margin:10px 0;font-size:.9rem}
+.stp .vars div{display:grid;grid-template-columns:minmax(6em,14em) minmax(0,1fr);gap:10px;align-items:center}
+.stp .vars i{display:block;height:10px;border-radius:3px;background:var(--accent);min-width:2px}
+.stp .vars span b{font-family:var(--mono);overflow-wrap:anywhere}
+.stp .rule{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.stp .rule .controls{justify-content:flex-end}
+.stp .rule p{margin:.2rem 0;font-size:.92rem}
+.stp button:disabled{opacity:.4;cursor:not-allowed}
+.stp .log div{grid-template-columns:3em minmax(0,1fr)}
+@media (max-width:560px){ .stp .rule{grid-template-columns:1fr} .stp .rule .controls{justify-content:flex-start} }
 .else{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:18px}
 .else>div{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--heur);border-radius:10px;padding:12px 16px;font-size:.93rem}
 .else>div.proof{border-left-color:var(--kernel)} .else>div.report{border-left-color:var(--native)}
@@ -353,6 +401,35 @@ UI = r"""
     box.innerHTML = html;
     var width = r.hi - r.lo + 1;
     $("config").textContent = width <= 4000 ? r.configStr() : "(" + fmt(width) + " cells: too wide to print here)";
+    $("blocks").innerHTML = width <= 60000 ? blocksHtml() : '<span class="lit">(' + fmt(width) + " cells: too wide to group here)</span>";
+  }
+  // the tape as repeated words: greedily, at each cell, the word of up to 8 cells whose repeats cover the most cells
+  function group(w) {
+    var out = [], i = 0, n = w.length, lit = "";
+    while (i < n) {
+      var bestP = 0, bestK = 0;
+      for (var p = 1; p <= 8 && i + 2 * p <= n; p++) {
+        var k = 1, j = i + p;
+        while (j + p <= n) { var ok = true; for (var t = 0; t < p; t++) if (w[j + t] !== w[i + t]) { ok = false; break; } if (!ok) break; k++; j += p; }
+        if (k >= (p === 1 ? 4 : 3) && k * p > bestK * bestP) { bestP = p; bestK = k; }
+      }
+      if (bestP) { if (lit) { out.push([lit, 0]); lit = ""; } out.push([w.slice(i, i + bestP).join(""), bestK]); i += bestP * bestK; }
+      else lit += w[i++];
+    }
+    if (lit) out.push([lit, 0]);
+    return out;
+  }
+  var blkColor = {}, blkN = 0;
+  function blocksHtml() {
+    var w = r.word(r.lo, r.hi), h = r.head - r.lo;
+    function side(cells) {
+      return group(cells).map(function (g) {
+        if (!g[1]) return '<span class="lit">' + g[0] + "</span>";
+        if (!(g[0] in blkColor)) blkColor[g[0]] = blkN++ % 6;
+        return '<span class="bk b' + blkColor[g[0]] + '">' + (g[0].length > 1 ? "(" + g[0] + ")" : g[0]) + "<sup>" + fmt(g[1]) + "</sup></span>";
+      }).join("");
+    }
+    return side(w.slice(0, h)) + '<span class="hd">' + (r.halted ? "halt" : BB.STATES[r.state]) + "&gt;" + w[h] + "</span>" + side(w.slice(h + 1));
   }
   function advance(n) {
     var target = r.steps + n;
@@ -383,9 +460,8 @@ UI = r"""
   window.addEventListener("resize", draw);
   draw();
   // space-time diagram: one row per sample, the visited tape across
-  function spacetime() {
-    var mode = $("stMode").value, steps = Math.min(+$("stSteps").value, 1e9), rows = 600;
-    var q = new BB.Run(M), snaps = [];
+  function drawST(mach, mode, steps, cv, mirror) {
+    var rows = 600, q = new BB.Run(mach), snaps = [];
     function snap() { snaps.push([q.steps, q.lo, q.word(q.lo, q.hi), q.head, q.halted]); }
     snap();
     if (mode === "time") {
@@ -393,29 +469,45 @@ UI = r"""
       while (q.steps < steps && !q.halted) { q.run(Math.min(steps, q.steps + every)); snap(); }
     } else {
       while (q.steps < steps && snaps.length < rows) {
-        var lo = q.lo, hi = q.hi;
+        var lo0 = q.lo, hi0 = q.hi;
         if (!q.step()) { snap(); break; }
-        if (q.lo < lo || q.hi > hi) snap();
+        if (q.lo < lo0 || q.hi > hi0) snap();
       }
     }
     var lo = Math.min.apply(null, snaps.map(function (s) { return s[1]; }));
     var hi = Math.max.apply(null, snaps.map(function (s) { return s[1] + s[2].length - 1; }));
     var W = hi - lo + 1, cw = Math.max(1, Math.min(12, Math.floor(1000 / W))), ch = Math.max(1, Math.min(8, Math.floor(600 / snaps.length)));
-    var cv = $("st"), dpr = window.devicePixelRatio || 1;
+    var dpr = window.devicePixelRatio || 1;
     cv.width = W * cw * dpr; cv.height = snaps.length * ch * dpr;
     cv.style.width = W * cw + "px"; cv.style.height = snaps.length * ch + "px";
     var g = cv.getContext("2d"); g.scale(dpr, dpr);
+    var X = mirror ? function (c) { return (hi - c) * cw; } : function (c) { return (c - lo) * cw; };
     g.fillStyle = css("--cell0"); g.fillRect(0, 0, W * cw, snaps.length * ch);
     g.fillStyle = css("--sunk");
-    snaps.forEach(function (s, i) { g.fillRect((s[1] - lo) * cw, i * ch, s[2].length * cw, ch); });
+    snaps.forEach(function (s, i) { g.fillRect(mirror ? X(s[1] + s[2].length - 1) : X(s[1]), i * ch, s[2].length * cw, ch); });
     g.fillStyle = css("--ink");
-    snaps.forEach(function (s, i) { s[2].forEach(function (c, j) { if (c) g.fillRect((s[1] - lo + j) * cw, i * ch, cw, ch); }); });
+    snaps.forEach(function (s, i) { s[2].forEach(function (c, j) { if (c) g.fillRect(X(s[1] + j), i * ch, cw, ch); }); });
     g.fillStyle = css("--head");
-    snaps.forEach(function (s, i) { g.fillRect((s[3] - lo) * cw, i * ch, cw, ch); });
+    snaps.forEach(function (s, i) { g.fillRect(X(s[3]), i * ch, cw, ch); });
     var last = snaps[snaps.length - 1];
-    $("stCap").textContent = snaps.length + " rows, steps 0 to " + fmt(last[0]) + ", " + fmt(W) + " cells" +
-      (last[4] ? "; the machine halted" : "") + ". Time runs down, the tape runs left to right; dark = 1, orange = the head.";
+    return { snaps: snaps, ch: ch, W: W, run: q, text: snaps.length + " rows, steps 0 to " + fmt(last[0]) + ", " + fmt(W) + " cells" + (last[4] ? "; the machine halted" : "") };
   }
+  var stInfo = null;
+  function spacetime() {
+    stInfo = drawST(M, $("stMode").value, Math.min(+$("stSteps").value, 1e9), $("st"), false);
+    $("stCap").textContent = stInfo.text + ". Time runs down, the tape runs left to right; dark = 1, orange = the head. Click a row to go to its step.";
+  }
+  function stRow(e) {
+    if (!stInfo) return null;
+    var b = $("st").getBoundingClientRect(), i = Math.floor((e.clientY - b.top) / stInfo.ch);
+    return stInfo.snaps[Math.max(0, Math.min(stInfo.snaps.length - 1, i))];
+  }
+  $("st").onmousemove = function (e) { var s = stRow(e); if (s) $("st").title = "step " + fmt(s[0]) + ": click to send the simulator there"; };
+  $("st").onclick = function (e) {
+    var s = stRow(e); if (!s) return;
+    stop(); $("jumpTo").value = s[0]; jump(s[0]);
+    document.getElementById("run").scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   $("stGo").onclick = spacetime;
   spacetime();
   // records
@@ -431,6 +523,74 @@ UI = r"""
   }
   $("recGo").onclick = showRecords;
   showRecords();
+  // steppers: the machine's macro rules applied to numbers (BigInt), one panel per section that has one
+  document.querySelectorAll("[data-stepper]").forEach(function (box) {
+    var S = spec.steppers[box.dataset.stepper], vals, hist, n;
+    var big = function (x) { return BigInt(x); };
+    var show = function (v) { return v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
+    function ev(form) { var t = big(form._ || 0); for (var k in form) if (k !== "_") t += big(form[k]) * vals[k]; return t; }
+    function ok(rule) { return (rule.guard || []).every(function (g) { return ev(g.form) >= 0n; }); }
+    function apply(rule) {
+      if (!ok(rule)) return false;
+      var nv = {}, k;
+      for (k in vals) nv[k] = vals[k];
+      for (k in rule.set || {}) nv[k] = ev(rule.set[k]);
+      for (k in rule.add || {}) nv[k] = vals[k] + ev(rule.add[k]);
+      vals = nv; n++; return true;
+    }
+    function reset() {
+      vals = {}; hist = []; n = 0;
+      S.vars.concat(S.counters || []).forEach(function (v) { vals[v.name] = big(v.start); });
+      render();
+    }
+    function line() { return S.vars.map(function (v) { return v.name + " = " + show(vals[v.name]); }).join(", "); }
+    function render() {
+      var h = '<div class="tapeform">' + S.tape.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\{(\w+)\}/g, function (_, k) { return "<b>" + show(vals[k]) + "</b>"; }) + "</div>";
+      var maxd = 1; S.vars.forEach(function (v) { maxd = Math.max(maxd, vals[v.name].toString().length); });
+      h += '<div class="vars">';
+      S.vars.forEach(function (v) {
+        var d = vals[v.name] > 0n ? vals[v.name].toString().length : 0;
+        h += "<div><span>" + v.label + " <b>" + show(vals[v.name]) + '</b></span><span><i style="width:' + (100 * d / maxd) + '%"></i></span></div>';
+      });
+      (S.counters || []).forEach(function (v) { h += "<div><span>" + v.label + "</span><span><b>" + show(vals[v.name]) + "</b></span></div>"; });
+      h += '</div><div class="cap">The bars show the number of digits of each count. Rules applied so far: ' + show(n) + ".</div>";
+      S.rules.forEach(function (r, i) {
+        var lv = spec.levels[r.level || "trusted"], can = ok(r);
+        h += '<div class="rule"><div><span class="ev ' + lv[0] + '">' + lv[1] + "</span> <b>" + r.name + "</b><p>" + r.text + "</p>" +
+          (can ? "" : '<p class="small">Does not apply now: needs ' + (r.guard || []).map(function (g) { return g.text; }).join(" and ") + ".</p>") + "</div>" +
+          '<div class="controls">' + [1, 10, 1000].map(function (k) { return '<button type="button" data-r="' + i + '" data-k="' + k + '"' + (can ? "" : " disabled") + ">" + (k === 1 ? "Apply" : "&times;" + show(k)) + "</button>"; }).join("") + "</div></div>";
+      });
+      h += '<div class="controls" style="margin-top:8px"><button type="button" data-reset="1">Start over</button></div>';
+      h += '<div class="log">' + (hist.length ? hist.slice(-8).map(function (x) { return '<div><span class="t">' + x[0] + "</span><span>" + x[1] + "</span></div>"; }).join("") : "") + "</div>";
+      if (S.note) h += '<div class="cap">' + S.note + "</div>";
+      box.innerHTML = h;
+      box.querySelectorAll("button[data-r]").forEach(function (b) {
+        b.onclick = function () {
+          var r = S.rules[+b.dataset.r], k = +b.dataset.k, done = 0;
+          while (done < k && apply(r)) done++;
+          if (done) hist.push([show(n), r.name + (done > 1 ? " &times;" + show(done) : "") + ": " + line()]);
+          render();
+        };
+      });
+      box.querySelector("[data-reset]").onclick = reset;
+    }
+    reset();
+  });
+  // side by side with a related machine
+  if (spec.compare && $("cmpGo")) {
+    var cmpDraw = function () {
+      var c = spec.compare[+$("cmpM").value], steps = Math.min(+$("cmpSteps").value, 1e7), other = BB.parse(c.machine);
+      var a = drawST(M, "rec", steps, $("cmpA"), false), b = drawST(other, "rec", steps, $("cmpB"), $("cmpMirror").checked);
+      $("cmpName").innerHTML = '<a href="../' + c.machine + '/explainer.html">' + c.machine + "</a> (" + c.relation + ")";
+      $("cmpCapA").textContent = a.text + "; " + fmt(a.run.ones()) + " ones at the end.";
+      $("cmpCapB").textContent = b.text + "; " + fmt(b.run.ones()) + " ones at the end.";
+      $("cmpCap").textContent = "Rows are taken at each new cell, at most 600 of them, so the two diagrams may stop at different steps; the captions give the range each one covers.";
+    };
+    $("cmpM").onchange = function () { $("cmpMirror").checked = !!spec.compare[+$("cmpM").value].mirror; cmpDraw(); };
+    $("cmpGo").onclick = cmpDraw; $("cmpMirror").onchange = cmpDraw;
+    $("cmpMirror").checked = !!spec.compare[0].mirror;
+    cmpDraw();
+  }
   // ledger
   document.querySelectorAll(".lfilter button").forEach(function (b) {
     b.onclick = function () {
@@ -516,9 +676,11 @@ def build(spec, home="../index.html"):
     st_steps = int(st.get("steps", 2000))
     presets = ex.get("presets", [])
     sections = ex.get("sections", [])
+    cmp_ = spec.get("compare", [])
     short = spec.get("crumb", m.text)
     toc = [("machine", "The machine"), ("run", "Watch it run"), ("glance", "The run at a glance")]
-    toc += [(s["id"], s["heading"]) for s in sections] + [("ledger", "What is known"), ("check", "Check it")]
+    toc += [(s["id"], s["heading"]) for s in sections] + ([("compare", "Side by side")] if cmp_ else [])
+    toc += [("ledger", "What is known"), ("check", "Check it")]
     title = ex.get("title", "Does this machine ever halt?")
     o = ["<!doctype html>", '<html lang="en">', "<head>", '<meta charset="utf-8">',
          '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
@@ -530,6 +692,9 @@ def build(spec, home="../index.html"):
          f'  <p class="crumb"><a href="{home}">Busy Beaver Explorer</a> / {html.escape(short)} / explained</p>',
          f'  <span class="eyebrow">A {m.n}-state Busy Beaver machine · {spec.get("asof", "")}</span>',
          f"  <h1>{title}</h1>", f'  <p class="machine-id">{html.escape(m.text)}</p>']
+    sd = spec.get("standing")
+    if sd:
+        o.append(f'  <p class="stand {html.escape(sd["kind"])}"><b>{sd["label"]}</b><span>{sd["text"]}</span></p>')
     if ex.get("lede"):
         o.append(f'  <div class="col"><p class="lede">{ex["lede"]}</p></div>')
     if ex.get("facts"):
@@ -592,13 +757,20 @@ def build(spec, home="../index.html"):
           '</span></span><span>cells visited <b id="rWidth">1</b></span><span>ones <b id="rOnes">0</b></span></div>',
           '    <div class="cellwrap"><div class="cells" id="cells" aria-label="Tape cells around the head"></div></div>',
           '    <div class="cap">Cells around the head (dark = 1, dashed = never visited).</div>',
-          '    <div class="config" id="config" aria-live="polite"></div>', "  </div>", "</section>"]
+          '    <div class="config" id="config" aria-live="polite"></div>',
+          '    <div class="blocks" id="blocks" aria-label="The tape as repeated words"></div>',
+          '    <div class="cap">The same tape, grouped into repeated words: <code>(10)</code><sup>7</sup> is the word '
+          "<code>10</code> seven times in a row, and the orange tag is the head. The grouping is found afresh at "
+          "every step by looking for the longest repeat of a word of up to 8 cells, so it shows the counts a "
+          "machine keeps on its tape without anyone having to decode them first; it is a display, not a result.</div>",
+          "  </div>", "</section>"]
     o += ['<section id="glance">', '  <span class="eyebrow">The run at a glance</span>',
           "  <h2>Space-time diagram and records</h2>",
           '  <div class="col"><p>The diagram stacks the tape at many moments. Sampling at each new cell shows the '
           "shape of the run as the visited region grows; sampling evenly in time shows where the head spends its "
           "time. The records list every step at which the head reaches a cell no earlier step reached, with the "
-          "side, the width so far and the whole tape: the first place to look for a repeating macro structure.</p></div>",
+          "side, the width so far and the whole tape: the first place to look for a repeating macro structure. "
+          "<b>Click a row of the diagram</b> to send the simulator above to that step.</p></div>",
           '  <div class="panel">', '    <div class="controls">',
           '      <label class="small" for="stMode">Rows</label>',
           '      <select id="stMode"><option value="rec" selected>at each new cell</option>'
@@ -612,10 +784,41 @@ def build(spec, home="../index.html"):
           f'      <select id="recSteps">{_steps_options(max(st_steps, 10000))}</select>',
           '      <button id="recGo" class="primary" type="button">List</button>', "    </div>",
           '    <div class="cap" id="recCap"></div>', '    <div class="log" id="recs"></div>', "  </div>", "</section>"]
+    steppers = {}
     for s in sections:
         body = s["html"] if isinstance(s["html"], str) else "\n".join(s["html"])
         o += [f'<section id="{html.escape(s["id"])}">', f'  <span class="eyebrow">{s.get("eyebrow", "")}</span>',
-              f'  <h2>{s["heading"]}</h2>', body, "</section>"]
+              f'  <h2>{s["heading"]}</h2>', body]
+        if s.get("stepper"):
+            for r in s["stepper"]["rules"]:
+                if r.get("level", "trusted") not in LEVEL:
+                    raise ValueError(f"unknown level {r['level']!r} in stepper rule {r['name']!r}")
+            steppers[s["id"]] = s["stepper"]
+            o.append(f'  <div class="panel stp" data-stepper="{html.escape(s["id"])}"></div>')
+        o.append("</section>")
+    if cmp_:
+        opts = "".join(f'<option value="{i}">{html.escape(c["machine"])} ({html.escape(c["relation"])})</option>'
+                       for i, c in enumerate(cmp_))
+        o += ['<section id="compare">', '  <span class="eyebrow">Side by side</span>',
+              "  <h2>This run next to a related machine</h2>",
+              '  <div class="col"><p>The two machines run for the same number of steps and are drawn the same way, a row '
+              "each time the head reaches a new cell. Where the relation involves a mirror image, the second diagram "
+              "is flipped left to right so that the two can be compared directly. Look for where the pictures agree "
+              "and where they part: the text under each relation in the section on related machines says which of "
+              "it is proved and which is only observed.</p></div>",
+              '  <div class="panel">', '    <div class="controls">',
+              '      <label class="small" for="cmpM">Compare with</label>',
+              f'      <select id="cmpM" style="max-width:100%">{opts}</select>',
+              '      <label class="small" for="cmpSteps">up to step</label>',
+              f'      <select id="cmpSteps">{_steps_options(st_steps)}</select>',
+              '      <label class="small"><input type="checkbox" id="cmpMirror"> mirror the second</label>',
+              '      <button id="cmpGo" class="primary" type="button">Draw</button>', "    </div>",
+              '    <div class="cmp">',
+              f'      <div><h3>{html.escape(m.text)} (this machine)</h3><div class="stwrap"><canvas id="cmpA"></canvas></div>'
+              '<div class="cap" id="cmpCapA"></div></div>',
+              '      <div><h3 id="cmpName"></h3><div class="stwrap"><canvas id="cmpB"></canvas></div>'
+              '<div class="cap" id="cmpCapB"></div></div>',
+              "    </div>", '    <div class="cap" id="cmpCap"></div>', "  </div>", "</section>"]
     o += ['<section id="ledger">', '  <span class="eyebrow">What is known</span>',
           "  <h2>Every result, by what it rests on</h2>",
           f'  <div class="col"><p>{spec.get("asof", "")} The same list as the <a href="proof-status.html">proof-status '
@@ -634,7 +837,9 @@ def build(spec, home="../index.html"):
           "</code>; edit that file and rebuild rather than editing this page.</p>",
           '  <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">'
           "github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>", "</footer>", "</div>"]
-    data = json.dumps({"machine": m.text}).replace("</", "<\\/")
+    data = json.dumps({"machine": m.text, **({"compare": cmp_} if cmp_ else {}),
+                       **({"steppers": steppers, "levels": {k: list(v) for k, v in LEVEL.items()}} if steppers else {})},
+                      ensure_ascii=False).replace("</", "<\\/")
     o += [f'<script type="application/json" id="spec">{data}</script>',
           f'<script id="engine">{ENGINE}</script>', f"<script>{UI}</script>", "</body>", "</html>"]
     return "\n".join(o) + "\n"

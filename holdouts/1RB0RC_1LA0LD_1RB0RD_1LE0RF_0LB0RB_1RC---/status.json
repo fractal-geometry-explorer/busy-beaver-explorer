@@ -165,6 +165,58 @@
     ]
    },
    {
+    "id": "try-period",
+    "eyebrow": "Try it",
+    "heading": "Apply the period yourself",
+    "html": "<div class=\"col\"><p>The whole proof after step 16,730,681,219 is one rule applied again and again. Here it is applied to the numbers alone: each press adds one block and adds the rule's step count. Nothing else on the tape changes, which is why the machine can never meet the pattern that halts it.</p></div>",
+    "stepper": {
+     "tape": "0^inf A> 0 (1010001000100)^{k} X 0^inf",
+     "vars": [
+      {
+       "name": "k",
+       "label": "blocks k",
+       "start": "7"
+      }
+     ],
+     "counters": [
+      {
+       "name": "t",
+       "label": "step",
+       "start": "16730681219"
+      }
+     ],
+     "rules": [
+      {
+       "name": "One period",
+       "level": "native",
+       "text": "C k reaches C (k+1) in exactly 184k + 3,029,040 steps, for every k &ge; 1 (<code>period</code>, <code>lean/Period.lean</code>; the passes by the kernel, the two excursions through X by <code>native_decide</code>).",
+       "guard": [
+        {
+         "form": {
+          "k": 1,
+          "_": -1
+         },
+         "text": "k &ge; 1"
+        }
+       ],
+       "set": {
+        "k": {
+         "k": 1,
+         "_": 1
+        }
+       },
+       "add": {
+        "t": {
+         "k": 184,
+         "_": 3029040
+        }
+       }
+      }
+     ],
+     "note": "Starts at C 7, where the run from blank tape arrives (<code>reach_C7</code>, <code>lean/Reach.lean</code>). X is the fixed stretch of 222,182 cells. The stepper does the arithmetic of the rule; it does not simulate the machine."
+    }
+   },
+   {
     "id": "history",
     "eyebrow": "The long run",
     "heading": "How it gets there: five epochs",

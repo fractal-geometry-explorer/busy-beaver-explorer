@@ -13,7 +13,8 @@ The page sorts every claim by what it rests on, so that a reader never mistakes 
 
 The JSON has: title, machine, crumb (text after the site name), intro (list of paragraphs), asof, verdict (list of
 paragraphs), sections (optional list of {heading, paragraphs}), claims (list of {level, title, text, where}), and
-check (shell lines), and optionally elsewhere (list of {kind, title, text}: proofs and labels from outside the
+check (shell lines), and optionally standing ({kind, label, text}: one line under the title saying where the machine
+stands) and elsewhere (list of {kind, title, text}: proofs and labels from outside the
 machine's own ledger, shown in a box of their own under the verdict; kind is "proof", "report" or "label").  Text fields may hold inline HTML (code, b, i, a).  The design is the one of
 pages/proof-status.html (same colours, fonts and tags), written out here so that new pages share it without editing
 that page.
@@ -94,6 +95,10 @@ CSS_ELSE = """.else { display: grid; gap: 10px; }
 .else .card { border-left: 4px solid var(--heur); }
 .else .card.proof { border-left-color: var(--kernel); }
 .else .card.report { border-left-color: var(--native); }
+.stand { background: var(--surface); border: 1px solid var(--rule); border-left: 5px solid var(--muted); border-radius: var(--r); padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.stand b { font-family: var(--font-display); font-size: 0.9rem; }
+.stand.here { border-left-color: var(--kernel); } .stand.here b { color: var(--kernel); }
+.stand.merged, .stand.pr { border-left-color: var(--native); } .stand.cryptid { border-left-color: var(--comp); } .stand.open { border-left-color: var(--open); }
 """
 
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
@@ -112,10 +117,13 @@ def build(spec, home="../index.html"):
            '<meta name="viewport" content="width=device-width,initial-scale=1">',
            f"<title>{html.escape(spec['title'])}</title>",
            f'<meta name="description" content="{html.escape(spec.get("description", spec["title"]))}">',
-           FONTS, f"<style>{CSS}{CSS_ELSE if spec.get('elsewhere') else ''}</style>", "</head>", "<body>",
+           FONTS, f"<style>{CSS}{CSS_ELSE if spec.get('elsewhere') or spec.get('standing') else ''}</style>", "</head>", "<body>",
            '<main class="wrap">', '  <header class="top">',
            f'    <p class="crumb"><a href="{home}">Busy Beaver Explorer</a> / {spec.get("crumb", "")}</p>',
            f"    <h1>{spec['title']}</h1>", f'    <p class="machine">{html.escape(spec["machine"])}</p>']
+    sd = spec.get("standing")
+    if sd:
+        out.append(f'    <p class="stand {html.escape(sd["kind"])}"><b>{sd["label"]}</b><span>{sd["text"]}</span></p>')
     out += [f"    <p>{p}</p>" for p in spec.get("intro", [])]
     if spec.get("asof"):
         out.append(f'    <p class="asof">{spec["asof"]}</p>')
