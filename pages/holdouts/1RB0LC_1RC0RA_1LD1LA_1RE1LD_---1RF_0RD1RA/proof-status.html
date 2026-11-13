@@ -69,6 +69,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 .else .card { border-left: 4px solid var(--heur); }
 .else .card.proof { border-left-color: var(--kernel); }
 .else .card.report { border-left-color: var(--native); }
+.stand { background: var(--surface); border: 1px solid var(--rule); border-left: 5px solid var(--muted); border-radius: var(--r); padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.stand b { font-family: var(--font-display); font-size: 0.9rem; }
+.stand.here { border-left-color: var(--kernel); } .stand.here b { color: var(--kernel); }
+.stand.merged, .stand.pr { border-left-color: var(--native); } .stand.cryptid { border-left-color: var(--comp); } .stand.open { border-left-color: var(--open); }
 </style>
 </head>
 <body>
@@ -77,6 +81,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA</p>
     <h1>What is known about 1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA</h1>
     <p class="machine">1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA</p>
+    <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p><p>Seen at the moments the head, in state B, reaches a new cell on the right, the tape is mostly a row of digits: blocks <code>1^(4m+1) 0</code>, one more than a multiple of four ones each followed by a single 0, read as the numbers m. In the run of 2·10<sup>10</sup> steps 74 of the 103 such moments have exactly this form (the others hold a block of 4m+2 ones, which appears at the visits to the left end and lingers). Most digits are 0. Near the right end a big block grows by four ones at every second new right cell, and the time between new right cells doubles; meanwhile a digit 1 walks left through the 0s, one place per record. It is the same kind of machine as <a href="../1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF/explainer.html">1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF</a>.</p></p>
     <p><p>At each new cell on the right in state B the tape is mostly a list of digits <code>1^(4m+1) 0</code>, most of them 0, then a big block of ones, then <code>0 1 0 1 B&gt;0</code>. The new cells come in pairs a few steps apart and then a long pause, during which the head runs to the left end, rewrites the list (in the middle of a period the digits look scrambled and the big block is cut into pieces) and comes back with the list restored and the big block four 1s longer. The pause doubles from one period to the next.</p></p>

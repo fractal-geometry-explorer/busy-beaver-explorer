@@ -69,6 +69,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 .else .card { border-left: 4px solid var(--heur); }
 .else .card.proof { border-left-color: var(--kernel); }
 .else .card.report { border-left-color: var(--native); }
+.stand { background: var(--surface); border: 1px solid var(--rule); border-left: 5px solid var(--muted); border-radius: var(--r); padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.stand b { font-family: var(--font-display); font-size: 0.9rem; }
+.stand.here { border-left-color: var(--kernel); } .stand.here b { color: var(--kernel); }
+.stand.merged, .stand.pr { border-left-color: var(--native); } .stand.cryptid { border-left-color: var(--comp); } .stand.open { border-left-color: var(--open); }
 </style>
 </head>
 <body>
@@ -77,6 +81,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB</p>
     <h1>What is known about 1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB</h1>
     <p class="machine">1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB</p>
+    <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. This page records what is established about it, sorted by what each result rests on.</p>
     <p>At its core the machine is a binary counter. The number is written twice, once on each side of a fixed cell: on the right least significant bit first in 4-cell words <code>1011</code> (1) and <code>1111</code> (0), on the left most significant bit first in words <code>1111</code> (1) and <code>1010</code> (0). Each increment is one trip of the head out and back, and the two increment rules are proved in Lean for every number. The counter runs in <em>rounds</em>: from 1 to 2<sup>w</sup> - 1, then the block at the right end grows by four cells and the count restarts one bit wider, so each round takes twice as long as the one before. Slower counters on the left are driven by the carries out of the counter's left half; how they end is what decides halting, and that is not known.</p>
     <p class="asof">Status as of 9 November 2026.</p>

@@ -69,6 +69,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 .else .card { border-left: 4px solid var(--heur); }
 .else .card.proof { border-left-color: var(--kernel); }
 .else .card.report { border-left-color: var(--native); }
+.stand { background: var(--surface); border: 1px solid var(--rule); border-left: 5px solid var(--muted); border-radius: var(--r); padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.stand b { font-family: var(--font-display); font-size: 0.9rem; }
+.stand.here { border-left-color: var(--kernel); } .stand.here b { color: var(--kernel); }
+.stand.merged, .stand.pr { border-left-color: var(--native); } .stand.cryptid { border-left-color: var(--comp); } .stand.open { border-left-color: var(--open); }
 </style>
 </head>
 <body>
@@ -77,6 +81,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF</p>
     <h1>What is known about 1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF</h1>
     <p class="machine">1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF</p>
+    <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p><p>Seen at the moments the head, in state E, reaches a new cell on the right, the tape is a row of digits: <code>1^a 0 1^(4m<sub>1</sub>+1) 0 1^(4m<sub>2</sub>+1) 0 &hellip; 1^(4m<sub>k</sub>+1) 0 1^b E&gt;0</code>, blocks of 1s one more than a multiple of four, each followed by a single 0 (and a last run of b ones, b = 1 since step 877,024,800). In the 10<sup>11</sup>-step run 73 of the 82 such moments have exactly this form. Most digits are 0 or 1. The last digit grows by one at each new right cell (its block by four ones), and the time to the next new right cell doubles; meanwhile a 1 or a 2 walks left through the 0s, one digit per record. When it reaches the left part of the tape, the head visits the left end, the digits are rewritten and a new phase starts, with a new last digit.</p></p>
     <p><p>At each new cell on the right in state E the tape reads <code>1^2 0</code>, then digits <code>1^(4m+1) 0</code> (most of them 0 or 1), then a last digit that grows by one at each record, then <code>0 1 E&gt;0</code>. Between two records the head runs over the list many times; the time between records doubles. The visible change from one record to the next is a disturbance that moves one digit to the left: in the current phase a single digit 1 walking left through 0s.</p></p>
