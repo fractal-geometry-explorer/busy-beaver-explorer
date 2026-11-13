@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</h1>
     <p class="machine">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The leftward half of every sweep is proved in Lean to compute a running parity over a word of 4-cell letters; the run is organised in epochs that grow the tape by a factor about 1.75 (seen to 3·10<sup>9</sup> steps). The machine halts only on <code>F&gt; 1 0 1</code>; whether the rightward half of a sweep or the turns ever produce it is not settled.</p>
+      <p><b>The question is open.</b> The machine acts on a list of blocks of 1s: Lean proves every rule by which the head meets a block or a separator, and that it halts exactly on <code>F&gt; 0 0 1</code>. A leftward pass computes a running parity, and the run is organised in epochs that grow the tape by a factor about 1.75. In 10<sup>10</sup> steps F met two 0s in a row only at the right end of the tape, with blank tape beyond (observed). Whether that always holds is not settled.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -108,6 +108,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>With the head in D (even) or C (odd) on the last cell of a 4-cell word <code>111x</code>: D on <code>u = 1110</code> leaves <code>0101</code> and goes to C; D on <code>v = 1111</code> leaves <code>1111</code> and stays D; C on <code>u</code> leaves <code>1111</code> and goes to D; C on <code>v</code> leaves <code>0101</code> and stays C. So the word written behind the head is the running XOR (from the right) of the u's, as 1111 (even) or 0101 (odd). Plus the runs <code>(1111)<sup>n</sup></code> for D, E and F.</p>
         <p class="where"><code>d_u0</code> ... <code>c_v1</code>, <code>d_run</code>, <code>e_run</code>, <code>f_run</code>, <code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
       </div>
+      <div class="card">
+        <h3>The machine on blocks of 1s</h3>
+        <p>Going right, F crosses a block; at a separator followed by a block of one cell it fills the separator, erases the cell and fills the next separator (the blocks on both sides gain a cell); at a separator followed by a longer block it turns, moving two cells from that block to the one on its left; three 0s before a 1 are filled; at four 0s it writes <code>1011</code> and turns. Going left, D crosses a block and fills the separator after it; E erases every second cell of the next block and, if the block's length is odd, the pass goes on in D, otherwise the head turns. Each statement holds for any tape around the pattern.</p>
+        <p class="where"><code>f_block</code>, <code>f_single</code>, <code>f_turn</code>, <code>f_three_zeros</code>, <code>f_end</code>, <code>d_block</code>, <code>d_sep</code>, <code>e_pairs</code>, <code>e_last</code>, <code>c_last</code>, <code>c_sep</code>, <code>e_turn</code>, <code>turn_two</code>, <code>lean/Blocks.lean</code> (from <code>py/blocks_rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Where it can halt</h3>
+        <p>Only B reading 1 halts; B is entered only from A reading 0, and A only from F reading 0. So the machine halts exactly on <code>F&gt; 0 0 1</code>: F on that pattern halts within two steps (<code>halt_F</code>), and two steps before any halt the machine is in F on <code>0 0 1</code> (<code>halt_route</code>). An earlier version of this page gave the pattern as <code>F&gt; 1 0 1</code>, which was wrong.</p>
+        <p class="where"><code>halt_F</code>, <code>lean/Blocks.lean</code>; <code>halt_route</code>, <code>lean/Route.lean</code> (from <code>py/route.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -120,9 +130,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>Where it can halt</h3>
-        <p>Only B reading 1 halts; B is entered only from A reading 0 and A only from F reading 1, so the machine halts exactly on <code>F&gt; 1 0 1</code>. Read off the table.</p>
-        <p class="where">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+        <h3>Every turn of F is at a block of odd length, except at the right end (10<sup>10</sup> steps)</h3>
+        <p>In the first 10<sup>10</sup> steps F turned 139,833 times. The block it turned at had odd length every time (3 cells 36,463 times, 5 cells 46,436, 7 cells 19,254, 9 cells 20,280, and longer), except 22 turns at a block of exactly two cells, each of which was the last block of the tape. A turn at a block of two with another block after it would leave <code>0 0 1</code> (<code>turn_two</code>). F met two 0s in a row 42 times, each time at the right end with only blank cells beyond. No halt.</p>
+        <p class="where"><code>c/turns.c</code></p>
       </div>
       <div class="card">
         <h3>Epochs to 3·10<sup>9</sup> steps</h3>
@@ -153,9 +163,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>How an epoch works</h3>
-        <p>Inside an epoch the head bounces between the left end of the tape and an inner wall that moves left; between the two the word is replaced by its running parity on every bounce, which draws Sierpinski triangles; to the right of the wall the tape is frozen. When the wall reaches the left end the head crosses the whole tape and a new epoch starts. Observed, not proved.</p>
-        <p class="where">README</p>
+        <h3>Two phases in an epoch</h3>
+        <p>Followed turn by turn through one epoch (steps 4,104 to 7,890): first the head bounces between the left end and a turning place that moves right, eating the blocks beyond it two cells at a time; at each right turn the zone is a list of blocks <code>1<sup>4k+3</sup></code>, at each left turn blocks <code>1<sup>4k+1</sup></code> separated by odd numbers of one-cell blocks. When the turning place reaches the right end the head crosses back to the left end in short bounces, leaving blocks of 3 and pairs 1, 5 (the words <code>1110</code> and <code>1011</code>) for the next epoch to eat. Observed on that epoch, not proved.</p>
+        <p class="where"><code>py/blocks.py</code></p>
       </div>
       <div class="card">
         <h3>Growth shape: exp/sqrt</h3>
@@ -167,7 +177,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The rightward half of a sweep and the turns at the two walls were not decoded into word rules; halting needs <code>F&gt; 1 0 1</code>, so the question is whether the turns ever leave that pattern in front of F.</p>
+        <p>Not known. Halting needs <code>F&gt; 0 0 1</code>. In the run so far two 0s in a row appear in front of F only at the right end of the tape, with blank tape beyond. A proof would need an invariant that keeps every block at which F turns odd, and a description of what the right end does once per epoch.</p>
       </div>
     </div>
   </section>
@@ -175,6 +185,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/check.sh
+python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/blocks_rules.py &gt; holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/Blocks.lean
+python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/route.py        # rewrites lean/Route.lean
+gcc -O2 -o turns holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c/turns.c &amp;&amp; ./turns 10000000000
+python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/blocks.py 100000 4016 70
 python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/rules.py &gt; holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/Rules.lean
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF 1000000000</code></pre>
   </section>

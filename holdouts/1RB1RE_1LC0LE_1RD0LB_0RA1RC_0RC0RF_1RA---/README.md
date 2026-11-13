@@ -19,6 +19,24 @@ built on them runs 8,000 epochs (about 10^8021 steps) from blank tape without a 
 is a complete, closed set of rules: one recursive case (an active run of 2 directly after a run of 2) is not
 written out in general.
 
+## Symbolic class search (13 November 2026)
+
+The engine with several free counts of `holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/closure/` (programs, not Lean), with the tape
+mirrored so that the right end is the near end:
+
+```sh
+D=holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/closure
+export BBM=1RB1RE_1LC0LE_1RD0LB_0RA1RC_0RC0RF_1RA--- BBEV=0 BBMIRROR=1 BBNODE='^00 \(1\)\^n' BBMOD=1
+python3 $D/pclosure.py bfs /tmp/c116343.json 5 900
+```
+
+A node is the tape `... 1^n 0 0 A>` with n >= 20 (the active run at the right end, no units); a class is such a tape
+with n and every other run or block of at least 20 words free. Each class is run symbolically to the next node, for
+all values at once and every residue. In 15 minutes: 2,517 classes cut into 67,561 pieces; every piece reaches a
+node, **none halts**, none is undecided. The set is not closed (555 classes still queued; the list of runs left of
+the active one keeps getting longer), as for the relative 1RB---_1RC1RE_1LD0LE_1RF0LC_0RD0RA_0RB1RD. A plain simulator
+agrees on a random sample of 200 classes (8,165 piece runs, 0 problems).
+
 ## What it does
 
 Read the tape, at the moments the head is in state A just right of the last written cell, as a list of **runs of

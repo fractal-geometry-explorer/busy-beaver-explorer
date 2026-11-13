@@ -45,3 +45,9 @@ Only the generated `lean/Blank.lean`: the halting configurations, no halt in 10^
   defects produce when they meet). If the set of defect types is finite and closed, a closed-language argument with
   the background as `(10)*` could prove non-halting.
 - This is the least structured of the machines in this batch; it was given only a first look.
+
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: B with 1 under the head, 1 right, 1 two right; C with 0 under the head, 1 right, 1 two right.
+

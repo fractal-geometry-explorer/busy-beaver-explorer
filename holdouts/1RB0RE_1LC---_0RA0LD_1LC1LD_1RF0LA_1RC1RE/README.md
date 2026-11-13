@@ -118,6 +118,11 @@ Write the frozen stretch as a regular language of particles (resting runner in e
 - `py/passes.py blocks K | cross | back D | tape STEPS N`: two-cell behaviour of every state, the words crossed whole, the way back from a halt, run-length tapes.
 - `py/rules.py`: writes `lean/Rules.lean` and `lean/Halt.lean`.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: C with 0 under the head, 0 right, 1 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RE_1LC---_0RA0LD_1LC1LD_1RF0LA_1RC1RE/explainer.html`](../../pages/holdouts/1RB0RE_1LC---_0RA0LD_1LC1LD_1RF0LA_1RC1RE/explainer.html)

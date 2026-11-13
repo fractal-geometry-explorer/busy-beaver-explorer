@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The leftward half of every sweep is proved in Lean to compute a running parity over a word of 4-cell letters; the run is organised in epochs that grow the tape by a factor about 1.75 (seen to 3·10<sup>9</sup> steps). The machine halts only on <code>F&gt; 1 0 1</code>; whether the rightward half of a sweep or the turns ever produce it is not settled."
+  "<b>The question is open.</b> The machine acts on a list of blocks of 1s: Lean proves every rule by which the head meets a block or a separator, and that it halts exactly on <code>F&gt; 0 0 1</code>. A leftward pass computes a running parity, and the run is organised in epochs that grow the tape by a factor about 1.75. In 10<sup>10</sup> steps F met two 0s in a row only at the right end of the tape, with blank tape beyond (observed). Whether that always holds is not settled."
  ],
  "claims": [
   {
@@ -40,22 +40,34 @@
    "where": "<code>d_u0</code> ... <code>c_v1</code>, <code>d_run</code>, <code>e_run</code>, <code>f_run</code>, <code>lean/Rules.lean</code> (from <code>py/rules.py</code>)"
   },
   {
+   "level": "kernel",
+   "title": "The machine on blocks of 1s",
+   "text": "Going right, F crosses a block; at a separator followed by a block of one cell it fills the separator, erases the cell and fills the next separator (the blocks on both sides gain a cell); at a separator followed by a longer block it turns, moving two cells from that block to the one on its left; three 0s before a 1 are filled; at four 0s it writes <code>1011</code> and turns. Going left, D crosses a block and fills the separator after it; E erases every second cell of the next block and, if the block's length is odd, the pass goes on in D, otherwise the head turns. Each statement holds for any tape around the pattern.",
+   "where": "<code>f_block</code>, <code>f_single</code>, <code>f_turn</code>, <code>f_three_zeros</code>, <code>f_end</code>, <code>d_block</code>, <code>d_sep</code>, <code>e_pairs</code>, <code>e_last</code>, <code>c_last</code>, <code>c_sep</code>, <code>e_turn</code>, <code>turn_two</code>, <code>lean/Blocks.lean</code> (from <code>py/blocks_rules.py</code>)"
+  },
+  {
    "level": "trusted",
+   "title": "Every turn of F is at a block of odd length, except at the right end (10<sup>10</sup> steps)",
+   "text": "In the first 10<sup>10</sup> steps F turned 139,833 times. The block it turned at had odd length every time (3 cells 36,463 times, 5 cells 46,436, 7 cells 19,254, 9 cells 20,280, and longer), except 22 turns at a block of exactly two cells, each of which was the last block of the tape. A turn at a block of two with another block after it would leave <code>0 0 1</code> (<code>turn_two</code>). F met two 0s in a row 42 times, each time at the right end with only blank cells beyond. No halt.",
+   "where": "<code>c/turns.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Two phases in an epoch",
+   "text": "Followed turn by turn through one epoch (steps 4,104 to 7,890): first the head bounces between the left end and a turning place that moves right, eating the blocks beyond it two cells at a time; at each right turn the zone is a list of blocks <code>1<sup>4k+3</sup></code>, at each left turn blocks <code>1<sup>4k+1</sup></code> separated by odd numbers of one-cell blocks. When the turning place reaches the right end the head crosses back to the left end in short bounces, leaving blocks of 3 and pairs 1, 5 (the words <code>1110</code> and <code>1011</code>) for the next epoch to eat. Observed on that epoch, not proved.",
+   "where": "<code>py/blocks.py</code>"
+  },
+  {
+   "level": "kernel",
    "title": "Where it can halt",
-   "text": "Only B reading 1 halts; B is entered only from A reading 0 and A only from F reading 1, so the machine halts exactly on <code>F&gt; 1 0 1</code>. Read off the table.",
-   "where": "the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+   "text": "Only B reading 1 halts; B is entered only from A reading 0, and A only from F reading 0. So the machine halts exactly on <code>F&gt; 0 0 1</code>: F on that pattern halts within two steps (<code>halt_F</code>), and two steps before any halt the machine is in F on <code>0 0 1</code> (<code>halt_route</code>). An earlier version of this page gave the pattern as <code>F&gt; 1 0 1</code>, which was wrong.",
+   "where": "<code>halt_F</code>, <code>lean/Blocks.lean</code>; <code>halt_route</code>, <code>lean/Route.lean</code> (from <code>py/route.py</code>)"
   },
   {
    "level": "trusted",
    "title": "Epochs to 3·10<sup>9</sup> steps",
    "text": "Sweeps across 80% of the tape begin epochs at steps 2,284, 5,873, 13,248, 47,799, 145,962, 487,979, 1,427,948, 4,277,179, 13,419,889, 40,483,837, 124,076,294, 383,276,545 and 1,162,585,978, with the left end at 56, 103, 172, 374, 703, 1,319, 2,265, 4,020, 7,237, 12,641, 22,085, 38,918 and 68,091 cells; the right end grows by about 10 cells per epoch (130 at the end). Ratio per epoch: about 1.75 in length, 3 in time.",
    "where": "<code>c/epochs.c</code> (copy of the tool in the first machine of this batch)"
-  },
-  {
-   "level": "heuristic",
-   "title": "How an epoch works",
-   "text": "Inside an epoch the head bounces between the left end of the tape and an inner wall that moves left; between the two the word is replaced by its running parity on every bounce, which draws Sierpinski triangles; to the right of the wall the tape is frozen. When the wall reaches the left end the head crosses the whole tape and a new epoch starts. Observed, not proved.",
-   "where": "README"
   },
   {
    "level": "trusted",
@@ -84,7 +96,7 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The rightward half of a sweep and the turns at the two walls were not decoded into word rules; halting needs <code>F&gt; 1 0 1</code>, so the question is whether the turns ever leave that pattern in front of F.",
+   "text": "Not known. Halting needs <code>F&gt; 0 0 1</code>. In the run so far two 0s in a row appear in front of F only at the right end of the tape, with blank tape beyond. A proof would need an invariant that keeps every block at which F turns odd, and a description of what the right end does once per epoch.",
    "where": ""
   },
   {
@@ -97,6 +109,10 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/check.sh",
+  "python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/blocks_rules.py > holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/Blocks.lean",
+  "python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/route.py        # rewrites lean/Route.lean",
+  "gcc -O2 -o turns holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c/turns.c && ./turns 10000000000",
+  "python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/blocks.py 100000 4016 70",
   "python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/rules.py > holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/Rules.lean",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF 1000000000"
  ],
@@ -150,15 +166,18 @@
     "eyebrow": "The emergent behavior",
     "heading": "Epochs, each about 1.75 times longer",
     "html": [
-     "<p>The head does not always cross the whole tape. Inside an epoch it bounces between the left end and an inner wall; the wall moves left a little on each bounce, and the zone between them is rewritten by the parity rule while the tape right of the wall stays frozen. When the zone has shrunk away, a full crossing starts a new epoch. Epochs began at steps 47,799, 145,962, 487,979, 1,427,948, 4,277,179, 13,419,889, 40,483,837, 124,076,294, 383,276,545 and 1,162,585,978, with the tape's left end at 374, 703, 1,319, 2,265, 4,020, 7,237, 12,641, 22,085, 38,918 and 68,091 cells.</p>"
+     "<p>The head does not always cross the whole tape. Inside an epoch it bounces between the left end and an inner wall; the wall moves left a little on each bounce, and the zone between them is rewritten by the parity rule while the tape right of the wall stays frozen. When the zone has shrunk away, a full crossing starts a new epoch. Epochs began at steps 47,799, 145,962, 487,979, 1,427,948, 4,277,179, 13,419,889, 40,483,837, 124,076,294, 383,276,545 and 1,162,585,978, with the tape's left end at 374, 703, 1,319, 2,265, 4,020, 7,237, 12,641, 22,085, 38,918 and 68,091 cells.</p>",
+     "<p>Followed turn by turn, an epoch has two phases (observed on the epoch from step 4,104 to 7,890). In the first the head bounces between the left end and a turning place that moves right by 2 to 20 cells per bounce, eating the blocks beyond it two cells at a time. When the turning place reaches the right end of the tape, the head crosses back to the left end in short bounces 8 to 28 cells wide, leaving blocks of 3 and pairs 1, 5 behind it, which the next epoch eats.</p>"
     ]
    },
    {
     "id": "halt",
     "eyebrow": "Can it stop?",
-    "heading": "Only on F> 1 0 1",
+    "heading": "Only on F> 0 0 1",
     "html": [
-     "<p>The machine stops only when B reads a 1; B is entered only from A reading 0, and A only from F reading 1. So it stops exactly when state F stands on <code>1 0 1</code>. F runs right over <code>1111</code> (proved), so the danger is at the letters it meets on the way right and at the two walls. The parity rule itself never stops the machine; the open part is the rightward sweep and the turns, which were not decoded.</p>"
+     "<p>The machine stops only when B reads a 1; B is entered only from A reading 0, and A only from F reading 0. So it stops exactly when state F stands on <code>0 0 1</code> (proved in Lean, both directions). An earlier version of this page said <code>1 0 1</code>, which was wrong.</p>",
+     "<p>Read the tape as blocks of 1s separated by single 0s. Going right, F crosses blocks; a block of one cell is erased and its two separators filled; at a longer block F <em>turns</em>, moving two cells from that block to the block on its left. A turn at a block of exactly two cells erases it, and if another block follows, the tape now reads <code>0 0 1</code> there: the next visit of F would stop the machine. All of these rules are Lean theorems.</p>",
+     "<p>In the first 10<sup>10</sup> steps F turned 139,833 times, always at a block of odd length, except 22 times at a block of two that was the last block on the tape, with nothing but blank cells after it. F met two 0s in a row 42 times, always at that right end. So far, then, the question is decided at the right end of the tape, about twice per epoch. This is what the run shows, not a proof: nothing yet shows that a block of even length can never be turned at in the middle of the tape.</p>"
     ]
    },
    {

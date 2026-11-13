@@ -23,6 +23,12 @@
   },
   {
    "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: B with 0 under the head, 0 right, 1 two right. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
@@ -107,7 +113,8 @@
   "python3 holdouts/1RB1RF_0RC0LE_1RD0RF_1LB---_1LB1LE_1RA0LC/py/cycles.py       # regenerates lean/Cycles.lean (the particle rules)",
   "python3 holdouts/1RB1RF_0RC0LE_1RD0RF_1LB---_1LB1LE_1RA0LC/py/particles.py 10069300 1 64   # the tape in block notation at each sweep start",
   "python3 holdouts/1RB1RF_0RC0LE_1RD0RF_1LB---_1LB1LE_1RA0LC/py/passes.py blocks 2   # how each state handles two cells",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RF_0RC0LE_1RD0RF_1LB---_1LB1LE_1RA0LC 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RF_0RC0LE_1RD0RF_1LB---_1LB1LE_1RA0LC 1000000000",
+  "python3 holdouts/1RB1RF_0RC0LE_1RD0RF_1LB---_1LB1LE_1RA0LC/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
   "lede": "Nobody knows yet. A particle system on the background (1110)^n: walls drift left and become runners at the left end, the head shuttles between the left end and the first runner, runners pass walls and merge in pairs into new walls; a halt needs three 0s in a row inside the tape, never seen in 1.2·10<sup>11</sup> steps. This page runs the real machine, explains the particles and the rules they follow, and lists what is proved.",

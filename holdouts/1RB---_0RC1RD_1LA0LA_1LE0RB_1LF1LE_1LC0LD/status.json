@@ -23,6 +23,12 @@
   },
   {
    "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: F with 1 two left, 0 under the head. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
@@ -95,7 +101,8 @@
   "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/rules.py      # rewrites lean/Rules.lean",
   "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/analyse.py image   # the defect picture",
   "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/rules.py      # rewrites lean/Rules.lean",
-  "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/analyse.py image   # the defect picture"
+  "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/analyse.py image   # the defect picture",
+  "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
   "lede": "Nobody knows. This machine runs a chaotic cellular automaton on its own tape: each sweep of the head is one generation. Chaos spreads over the tape in waves, each about three times longer than the last.",

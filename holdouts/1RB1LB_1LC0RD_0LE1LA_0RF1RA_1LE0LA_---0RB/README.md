@@ -35,6 +35,11 @@ little progress (the string is rewritten, not shifted, so there are no linear re
   110/111 (with carry states); then identify the number it acts on (a base-2/base-3 reading of the string).
 * Then the right-end structure: when the sweep reaches it, and what F1 needs there.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: B with 1 under the head, 0 right, 0 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/explainer.html`](../../pages/holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/explainer.html)

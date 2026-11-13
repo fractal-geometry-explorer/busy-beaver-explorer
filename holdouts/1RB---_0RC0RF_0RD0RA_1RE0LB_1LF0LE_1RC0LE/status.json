@@ -23,6 +23,12 @@
   },
   {
    "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: B with 0 under the head, 1 right, 1 two right; F with 0 under the head, 1 right, 1 two right. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
@@ -67,7 +73,8 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE/lean/check.sh",
-  "python3 holdouts/1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE/py/view.py   # the views of the run quoted in the README"
+  "python3 holdouts/1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE/py/view.py   # the views of the run quoted in the README",
+  "python3 holdouts/1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
   "lede": "Nobody knows. Each sweep of the head lengthens a block of the background 1010&hellip; at the left end by one cell; behind it, a slowly growing region of defects is rearranged a cell at a time, and nobody has found the rule it follows.",

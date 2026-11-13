@@ -55,6 +55,11 @@ chaotic.
 | `c/trfreq.c` | how often each transition is used |
 | `c/ctx.c` | counts the tape windows around the head each time a given state reads a given symbol |
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: A with 0 under the head, 1 right, 1 two right.
+
 ## Check
 
 ```sh

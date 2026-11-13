@@ -24,6 +24,12 @@
   },
   {
    "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: E with 1 under the head, 1 right, 1 two right. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
@@ -113,7 +119,8 @@
   "holdouts/1RB0RF_1RC0LE_1LD0LC_1RE0RD_1LB0RA_1RC---/lean/check.sh      # Machine, Blank, Rules, Halt",
   "gcc -O2 -o dump holdouts/1RB0RF_1RC0LE_1LD0LC_1RE0RD_1LB0RA_1RC---/c/dump.c && ./dump 1e9 > d.txt && python3 holdouts/1RB0RF_1RC0LE_1LD0LC_1RE0RD_1LB0RA_1RC---/py/words.py d.txt 200 | cut -c1-300",
   "gcc -O2 -o pert holdouts/1RB0RF_1RC0LE_1LD0LC_1RE0RD_1LB0RA_1RC---/c/pert.c && awk '$5==\"D\" && ($1==300||$1==1000||$1==2000)' d.txt > sel.txt && ./pert sel.txt 200 3e6 11 0   # modes 0..4",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RF_1RC0LE_1LD0LC_1RE0RD_1LB0RA_1RC--- 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RF_1RC0LE_1LD0LC_1RE0RD_1LB0RA_1RC--- 1000000000",
+  "python3 holdouts/1RB0RF_1RC0LE_1LD0LC_1RE0RD_1LB0RA_1RC---/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",

@@ -83,6 +83,63 @@ Two or three long runs of one three-cell word and a handful of markers is the F0
 
 Next step: List the marker configurations between the runs as a finite set of tails and try the F01 closure; if the set of tails does not close, the machine moves to the cryptids.
 
+## Accelerated run to 10^1000 steps (F09, 13 November 2026)
+
+`py/lvl2.py` is an exact simulator with two levels of acceleration. Level 1 is the macro simulator used in the family
+screen (blocks of 3 cells, a run of one word crossed at once). Level 2 looks for a stretch of macro steps after which
+the tape has the same shape and only the lengths of some runs have changed by fixed amounts; it replays the stretch
+with those lengths as unknowns, which proves the stretch for all lengths satisfying a list of inequalities, and then
+applies it as many times as the inequalities allow. Nothing is extrapolated: a repeat is applied only when the replay
+covers every one of its cycles. The docstring of `py/lvl2.py` has the details.
+
+Result: **no halt in the first 10^1000 steps.** The run stops at the first macro-step boundary after 10^1000, at step
+1.0963…·10^1000 (a number of 1,001 digits), after 10,912,556 macro steps and 18,888 applied repeats (of at least 12 cycles
+each). The tape then has 10 runs. Output: `py/lvl2_1e1000.txt` (about 4 minutes).
+
+Checks: `py/check_lvl2.py` compares `lvl2.py` with the macro simulator `msim` (itself checked cell for cell against
+the direct simulator). For this machine the state, the head side, the whole tape, the step count and all right-end
+records agree at 1.0·10^12 steps (59 records), 1.1·10^15 steps (84 records) and 3.3·10^17 steps (104 records); the
+same comparison passes for all 22 machines of family F09 at 3·10^6 steps. Beyond
+that the result rests on the simulator alone (level: trusted).
+
+### What the run shows (observed, not proved)
+
+The tape is a short fixed-looking prefix, two to four very long runs of one three-cell word (`100`, `010`, `001` on
+the left of the head; `011`, `101`, `110` on the right) and short markers between them. Almost all the time goes
+into repeats in which the runs trade words at fixed rates. An example, at step 262,317,335,904,169:
+
+    D> 101 010^2 000 001 000^2 100^5 101 | 111^2 011^2147627 110 001 101^1343390 100
+
+A cycle of 105 macro steps takes 8 words off the run `011^…`, adds 8 words to the run `101^…` and adds 2 words to the
+run `100^…` left of the head. It repeats 268,453 times, until the `011` run is used up (2,147,627 = 8·268,453 + 3); the
+remainder 3 is left in the markers, and it decides which repeat comes next. So each repeat divides a run length by
+a small number and the remainder steers the machine, which is the shape of a Collatz-like map.
+
+The repeats applied up to 10^1000 steps, by macro steps per cycle (p) and changes of the run lengths (d), most frequent first:
+
+| times | p | d |
+|---|---|---|
+| 1,919 | 8 | -1, 1 |
+| 1,757 | 7 | -1, 1 |
+| 1,062 | 114 | 2, 8, -8 |
+| 1,047 | 104 | 2, 8, -8 |
+| 1,043 | 105 | 2, 8, -8 |
+| 854 | 208 | 2, 16, -16 |
+| 849 | 217 | 2, 16, -16 |
+| 831 | 242 | 2, 16, -16 |
+| 522 | 52 | -2, 4 |
+| 501 | 50 | -2, 4 |
+| 480 | 49 | -2, 4 |
+| 474 | 49 | 4, -2 |
+
+In all 63 kinds (p, d) and 391 tape shapes occur. The kinds come in threes with the same d (p = 104, 105, 114; 208, 217, 242;
+720, 729, 802; 49, 50, 52; 177, 180, 190), one for each of the three words. The rates form a ladder: 8, 16, 32, 64
+and, 13 times, 256 (cycles of 2,777 to 2,960 macro steps). New kinds were still appearing late in the run, so the run
+gives no finite table of rules, and the closed-set test planned in the family screen has nothing finite to close over yet.
+What would settle the machine is not known: either a description of the whole ladder as one rule with a parameter, or an
+argument about the remainders. Until then the family assignment F01 is doubtful, and the machine may belong with the
+Collatz-like machines (cryptids).
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_0LC0RE_1LA1RD_0LB1LB_1RC1RD_0LD---/explainer.html`](../../pages/holdouts/1RB1LF_0LC0RE_1LA1RD_0LB1LB_1RC1RD_0LD---/explainer.html)

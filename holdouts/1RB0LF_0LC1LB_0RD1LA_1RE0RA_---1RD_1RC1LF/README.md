@@ -57,3 +57,9 @@ Only the generated `lean/Blank.lean`: the halting configurations, no halt in 10^
   to 10^9 steps, n = 7166 at step 952,948,534; the losses get rarer).
 - The left-part round trip could be proved by symtm as a rule only once the right end is treated as a context the
   head enters and leaves in a known way, which is exactly what is not known.
+
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: C with 0 under the head, 0 right, 0 two right; E with 1 under the head, 0 right, 0 two right.
+

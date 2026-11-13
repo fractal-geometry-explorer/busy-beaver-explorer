@@ -255,6 +255,7 @@ A&gt;0 0 1 1 ...   →   1 B&gt;0 1 1   (B turns back left)</pre>
     <button type="button" data-f="open" aria-pressed="false">Open</button>
   </div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (E1); the generated statement covers every configuration.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)</div></div><div><b>Where a halt can come from</b><p>If the machine halts on its third step from a configuration, that configuration is one of: B with 1 under the head, 0 right, 1 two right. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_E</code>, <code>halt_D</code>, <code>halt_B</code>, <code>enter_E</code>, <code>enter_D</code>, <code>lean/Halt.lean</code></div></div><div><b>How a halt comes about</b><p>E reading 1 is the only halt. E is entered from C reading 1 and D reading 0 (<code>enter_E</code>); the first is harmless (<code>via_C_safe</code>); D is entered only from B reading 1 (<code>enter_D</code>). So a halt is exactly <code>B&gt;1 0 1</code> (<code>halt_B</code>), three steps before the end.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>enter_C</code>, <code>via_C_safe</code>, <code>lean/Halt.lean</code></div></div><div><b>The way in through C is harmless</b><p>C is entered only from A reading 1, moving left; A has just written 0 on the cell to C's right, so when C reads 1 and moves right, E reads that 0 and goes on. For every surrounding tape.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>fright</code>, <code>fright10</code>, <code>aleft</code>, <code>cleft</code>, <code>bleft</code>, <code>lean/Rules.lean</code></div></div><div><b>Shift rules</b><p>For every n and every surrounding tape: F crosses <code>1^n</code> and <code>(1 0)^n</code> to the right; moving left, A shifts <code>(1 0)^n</code>, C shifts <code>(0 1)^n</code> and B shifts <code>(0 1 1)^n</code> one cell.</p></div></div>
@@ -271,7 +272,8 @@ A&gt;0 0 1 1 ...   →   1 B&gt;0 1 1   (B turns back left)</pre>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_0LA1RD_1LA0RE_1RE0RF_1LF---_1LB1RF/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_0LA1RD_1LA0RE_1RE0RF_1LF---_1LB1RF 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_0LA1RD_1LA0RE_1RE0RF_1LF---_1LB1RF 1000000000
+python3 holdouts/1RB0LC_0LA1RD_1LA0RE_1RE0RF_1LF---_1LB1RF/py/route.py        # rewrites lean/Route.lean</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LC_0LA1RD_1LA0RE_1RE0RF_1LF---_1LB1RF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

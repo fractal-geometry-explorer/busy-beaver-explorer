@@ -54,6 +54,11 @@ gcc -O2 -o tokrun tools/c/tokrun.c
 ./tokrun 1RB0LF_1RC1RB_1LD0RA_1LA0LE_0LC1LC_1LE--- 400000000 x=0 LR 2000 | tail -4   # the tape each time the head extends it (x is a 0)
 ```
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: D with 1 two left, 1 left, 0 under the head.
+
 ## Pages
 
 - [`pages/holdouts/1RB0LF_1RC1RB_1LD0RA_1LA0LE_0LC1LC_1LE---/explainer.html`](../../pages/holdouts/1RB0LF_1RC1RB_1LD0RA_1LA0LE_0LC1LC_1LE---/explainer.html)

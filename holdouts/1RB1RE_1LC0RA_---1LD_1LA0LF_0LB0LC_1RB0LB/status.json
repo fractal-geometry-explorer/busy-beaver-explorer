@@ -23,6 +23,12 @@
   },
   {
    "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: E with 0 two left, 0 left, 0 under the head; F with 0 two left, 0 left, 1 under the head. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
@@ -80,7 +86,8 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RE_1LC0RA_---1LD_1LA0LF_0LB0LC_1RB0LB/lean/check.sh",
   "python3 holdouts/1RB1RE_1LC0RA_---1LD_1LA0LF_0LB0LC_1RB0LB/py/rules.py | diff - holdouts/1RB1RE_1LC0RA_---1LD_1LA0LF_0LB0LC_1RB0LB/lean/Rules.lean   # Rules.lean is current",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC0RA_---1LD_1LA0LF_0LB0LC_1RB0LB 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC0RA_---1LD_1LA0LF_0LB0LC_1RB0LB 1000000000",
+  "python3 holdouts/1RB1RE_1LC0RA_---1LD_1LA0LF_0LB0LC_1RB0LB/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
   "lede": "Nobody knows. The tape is a list of pairs of numbers, each written as a block of ones followed by a stretch of 01s; every round trip the two numbers of a pair change roles and the list is rewritten. This page shows the encoding, the proved rules and what a halt would need.",

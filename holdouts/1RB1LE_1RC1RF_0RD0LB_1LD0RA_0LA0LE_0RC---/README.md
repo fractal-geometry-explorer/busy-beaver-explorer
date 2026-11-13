@@ -42,6 +42,11 @@ least as long as the period (24) and a defect alphabet might work and is the nat
 . /etc/profile.d/lean.sh && holdouts/1RB1LE_1RC1RF_0RD0LB_1LD0RA_0LA0LE_0RC---/lean/check.sh
 ```
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: A with 0 under the head, 1 right, 1 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LE_1RC1RF_0RD0LB_1LD0RA_0LA0LE_0RC---/explainer.html`](../../pages/holdouts/1RB1LE_1RC1RF_0RD0LB_1LD0RA_0LA0LE_0RC---/explainer.html)

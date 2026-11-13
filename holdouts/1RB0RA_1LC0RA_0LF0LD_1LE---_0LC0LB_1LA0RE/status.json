@@ -23,6 +23,12 @@
   },
   {
    "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: B with 1 two left, 1 left, 0 under the head; E with 1 two left, 1 left, 0 under the head. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
@@ -74,7 +80,8 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE/lean/check.sh",
   "python3 holdouts/1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE/py/gen_rules.py   # rewrites lean/Rules.lean",
-  "gcc -O2 -o sweeps holdouts/1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE/c/sweeps.c && ./sweeps 103079215104"
+  "gcc -O2 -o sweeps holdouts/1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE/c/sweeps.c && ./sweeps 103079215104",
+  "python3 holdouts/1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
   "lede": "Nobody knows. The tape is a row of blocks of 10s. Each sweep adds a 1 to the newest block, which therefore counts the sweeps, and makes one small change further back, at a place chosen by the binary digits of the sweep number: the old blocks behave like the digits of a binary counter. Lean proves the sweep rules for the common block patterns; the simulator finds no halt in 1.03&middot;10<sup>11</sup> steps.",

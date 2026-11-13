@@ -41,6 +41,11 @@ This needs more than a day of work.
 - The lengths look geometric; check whether the list encodes a known process (a binary counter, a
   Collatz-like map) before looking for an invariant.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: B with 0 under the head, 1 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RA_1RC0RF_1RD0RD_1LE---_0LC1LF_1RA0LE/explainer.html`](../../pages/holdouts/1RB1RA_1RC0RF_1RD0RD_1LE---_0LC1LF_1RA0LE/explainer.html)

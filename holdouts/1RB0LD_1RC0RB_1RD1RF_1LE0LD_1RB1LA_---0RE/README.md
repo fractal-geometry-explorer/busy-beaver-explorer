@@ -46,6 +46,11 @@ steps C never read `1 0` ahead (`ctxcount M 1e9 C 3`).
 
 The sweeps over the long run and the counter at the left end are the structure; the events at cell 135 are only the local work between sweeps. Next: the sweep rule (0110 <-> 1110 over the whole run) and the law of the left-end counter, as a macro machine.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: B with 0 under the head, 1 right, 0 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB0LD_1RC0RB_1RD1RF_1LE0LD_1RB1LA_---0RE/explainer.html`](../../pages/holdouts/1RB0LD_1RC0RB_1RD1RF_1LE0LD_1RB1LA_---0RE/explainer.html)

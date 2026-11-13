@@ -255,6 +255,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <button type="button" data-f="open" aria-pressed="false">Open</button>
   </div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (B1); the generated statement covers every configuration.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)</div></div><div><b>Where a halt can come from</b><p>If the machine halts on its third step from a configuration, that configuration is one of: F with 0 under the head, 1 two right. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>left_pass</code>, <code>right_D</code>, <code>right_E</code>, <code>right_ones</code>, <code>lean/Rules.lean</code></div></div><div><b>The passes, for every length</b><p>Going left, <code>(11)^n C&gt; 1</code> becomes <code>C&gt; 1 (01)^n</code> in 2n steps; going right, <code>D&gt; (0101)^n</code> becomes <code>(1110)^n D&gt;</code> and <code>E&gt; (0101)^n</code> becomes <code>(1011)^n E&gt;</code> in 4n steps, and E crosses <code>1^n</code> unchanged; each for every n and every tape around.</p></div></div>
@@ -272,7 +273,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD 1000000000
+python3 holdouts/1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD/py/route.py        # rewrites lean/Route.lean</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

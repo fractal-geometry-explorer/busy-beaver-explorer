@@ -37,6 +37,11 @@ with widths 2..6, plain and with `-H 2`, `-H 3`, `-U`.
 - Find a word set that makes the defect region regular (try `bbtools.explore tokens` with the 9-cell words and
   their rotations), then look for a rule at the left-end samples.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: D with 0 two left, 1 left, 0 under the head.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_1LC0LC_---0RA/explainer.html`](../../pages/holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_1LC0LC_---0RA/explainer.html)

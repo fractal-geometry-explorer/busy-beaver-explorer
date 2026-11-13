@@ -33,6 +33,11 @@ The question itself; no macro structure for the defects is known.
 
 **Later**: set aside after the first pass.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: E with 0 two left, 0 left, 1 under the head.
+
 ## Check
 
 ```sh

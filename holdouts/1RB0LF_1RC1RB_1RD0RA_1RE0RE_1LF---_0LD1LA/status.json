@@ -23,6 +23,12 @@
   },
   {
    "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: C with 0 under the head, 1 two right. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
@@ -92,7 +98,8 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA/lean/check.sh",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA 1000000000",
-  "gcc -O2 -o tok holdouts/1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA/c/tok.c && ./tok 1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA 1000000000 C 0 R 0 1000 0 | cut -c1-120"
+  "gcc -O2 -o tok holdouts/1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA/c/tok.c && ./tok 1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA 1000000000 C 0 R 0 1000 0 | cut -c1-120",
+  "python3 holdouts/1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",

@@ -256,6 +256,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <button type="button" data-f="open" aria-pressed="false">Open</button>
   </div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (A1); the generated statement covers every configuration.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)</div></div><div><b>Where a halt can come from</b><p>If the machine halts on its third step from a configuration, that configuration is one of: C with 1 two left, 0 left, 1 under the head; E with 0 under the head, 0 right. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>enter_A</code>, <code>enter_F</code>, <code>halt_F</code>, <code>halt_B</code>, <code>halt_E</code>, <code>lean/Halt.lean</code></div></div><div><b>How a halt comes about</b><p>A is entered only from F reading 0, so the machine halts exactly when F reads a 0 with a 1 on its left (<code>1 F&gt;0</code>). F is entered only from C reading 1 and E reading 0, and the two short ways in are <code>1 B&gt;0 1</code> (B meets an isolated 0; halt 4 steps later) and <code>E&gt;0 0</code> (E meets two 0s; halt 3 steps later).</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>bsweep</code>, <code>fsweep</code>, <code>dfill</code>, <code>efill</code>, <code>lean/Rules.lean</code></div></div><div><b>The sweep rules</b><p>For every n and every surrounding tape: moving right, B turns <code>(1 1)^n</code> into <code>(1 0)^n</code> in 2n steps; moving left, F does the same to a solid block; D and E, moving left, fill an alternating stretch <code>(0 1)^n</code> or <code>(1 0)^n</code> back into solid 1s.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
@@ -271,7 +272,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC 1000000000
+python3 holdouts/1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC/py/route.py        # rewrites lean/Route.lean</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

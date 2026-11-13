@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The tape's words are identified; no macro rule is known yet."
+  "<b>The question is open.</b> No halt in the first 10<sup>1000</sup> steps (accelerated simulator). The long runs trade words at fixed rates and the remainders steer, like a Collatz-like map; no finite table of rules is known."
  ],
  "claims": [
   {
@@ -64,10 +64,22 @@
    "where": "<code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB1LF_0LC0RE_1LA1RD_0LB1LB_1RC1RD_0LD---</code>, saved in <code>screen.json</code> next to it"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>1000</sup> steps",
+   "text": "An exact simulator with two levels of acceleration runs from blank tape to step 1.0963&hellip;&middot;10<sup>1000</sup> without a halt. It crosses a run of one word at once, and it applies a stretch of the run many times at once only after replaying the stretch with the run lengths as unknowns, which proves the stretch for every cycle it is applied to. It agrees with the macro simulator of the family screen on the whole tape, the step count and all right-end records at 1.0&middot;10<sup>12</sup>, 1.1&middot;10<sup>15</sup> and 3.3&middot;10<sup>17</sup> steps.",
+   "where": "<code>py/lvl2.py</code>, <code>py/lvl2_1e1000.txt</code>, <code>py/check_lvl2.py</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Proposed family: F01, periodic blocks driven by a bounded engine",
    "text": "The description is small and does not grow: 10 to 23 level-2 tokens at every record from 2.6&middot;10<sup>8</sup> to 1.8&middot;10<sup>10</sup> steps, and 9 to 19 runs in the macro simulator (blocks of 3 cells) at the sampled right-end records up to 10<sup>18</sup> steps. For example at the right-end records the tape is <code>(10)^3 001 (010)^3 (100)^3703 00101 0^6 1 0^4 (100)^19078 1010</code> at step 6,897,736,719 and <code>(10)^3 001 (010)^3 (100)^6716 (10)^3 (010)^26894 10</code> at step 17,594,309,535. Two or three long runs of one three-cell word and a handful of markers is the F01 shape. The engine is not known: in the macro simulator (blocks of 3 cells) the left end is extended only 3,666 times in the first 3&middot;10<sup>8</sup> steps and the shape of the markers differs from one extension to the next, so there is no single round to iterate yet.",
    "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
+   "level": "heuristic",
+   "title": "The long runs trade words at fixed rates, and remainders steer",
+   "text": "Observed up to 10<sup>1000</sup> steps: almost all the time is spent in repeats in which two to four long runs of one three-cell word trade words at fixed rates, for example 8 words from one run to another and 2 to a third per cycle. A repeat ends when a run is used up, and the remainder of the division decides which repeat follows, as in a Collatz-like map. 63 kinds of repeat occurred in 18,888 repeats, with rates 8, 16, 32, 64 and (13 times) 256, and new kinds were still appearing late in the run. No finite table of rules is known, so the closed-set test of family F01 has nothing finite to close over yet; the machine may belong with the Collatz-like machines instead.",
+   "where": "README (table), <code>py/lvl2_1e1000.txt</code>"
   },
   {
    "level": "open",
@@ -79,15 +91,16 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LF_0LC0RE_1LA1RD_0LB1LB_1RC1RD_0LD---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LF_0LC0RE_1LA1RD_0LB1LB_1RC1RD_0LD--- 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LF_0LC0RE_1LA1RD_0LB1LB_1RC1RD_0LD--- 1000000000",
+  "python3 holdouts/1RB1LF_0LC0RE_1LA1RD_0LB1LB_1RC1RD_0LD---/py/lvl2.py 1RB1LF_0LC0RE_1LA1RD_0LB1LB_1RC1RD_0LD--- 3 1e1000 t   # about 4 minutes"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this machine fills its tape with the word 110, in a few long runs separated by small markers that move and change. This page runs the real machine and shows what its tape is made of.",
+  "lede": "Nobody knows. Started on a blank tape, this machine keeps a few very long runs of one three-cell word and lets them trade words at fixed rates; when a run is used up, the remainder decides what happens next. It has been followed for 10<sup>1000</sup> steps without a halt. This page runs the real machine and shows what its tape is made of.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator."
+    "value": "10<sup>1000</sup> steps",
+    "text": "No halt in the accelerated simulator."
    },
    {
     "level": "heuristic",
@@ -104,6 +117,20 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "trade",
+    "eyebrow": "Accelerated run, 13 November 2026",
+    "heading": "Long runs that trade words",
+    "html": [
+     "<p>Read in blocks of three cells, the tape is a short prefix, two to four very long runs of one word (<code>100</code>, <code>010</code> or <code>001</code> left of the head; <code>011</code>, <code>101</code> or <code>110</code> right of it) and short markers between them. Everything in this section except the step bound is observed in one run. None of it is proved.</p>",
+     "<p>An example, at step 262,317,335,904,169 (the head is at <code>|</code>, in state D, moving right):</p>",
+     "<div style=\"overflow-x:auto\"><pre>101 010^2 000 001 000^2 100^5 101 | 111^2 011^2147627 110 001 101^1343390 100</pre></div>",
+     "<p>From here a cycle of 105 macro steps takes 8 words off the run of <code>011</code>, adds 8 words to the run of <code>101</code> and adds 2 words to the run of <code>100</code>. The cycle repeats 268,453 times, until the run of <code>011</code> is used up: 2,147,627 = 8 &times; 268,453 + 3. The remainder 3 stays in the markers and decides which kind of cycle comes next. Dividing a length and branching on the remainder is what a Collatz-like map does, and nobody knows how to predict such maps in general.</p>",
+     "<p>An exact simulator that applies such a cycle many times at once (after replaying it with the run lengths as unknowns, so that every applied cycle is covered) followed the machine to step 1.0963&hellip;&middot;10<sup>1000</sup> without a halt. It applied 18,888 repeats of 63 kinds. The most frequent kinds:</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>times</th><th>macro steps per cycle</th><th>changes of the run lengths</th></tr></thead><tbody><tr><td>1,919</td><td>8</td><td>&minus;1, 1</td></tr><tr><td>1,757</td><td>7</td><td>&minus;1, 1</td></tr><tr><td>1,062</td><td>114</td><td>2, 8, &minus;8</td></tr><tr><td>1,047</td><td>104</td><td>2, 8, &minus;8</td></tr><tr><td>1,043</td><td>105</td><td>2, 8, &minus;8</td></tr><tr><td>854</td><td>208</td><td>2, 16, &minus;16</td></tr><tr><td>849</td><td>217</td><td>2, 16, &minus;16</td></tr><tr><td>831</td><td>242</td><td>2, 16, &minus;16</td></tr><tr><td>522</td><td>52</td><td>&minus;2, 4</td></tr></tbody></table></div>",
+     "<p>The rates form a ladder: 8, 16, 32, 64 and, 13 times in this run, 256. New kinds were still appearing late in the run, so there is no finite table of rules yet, and it is not known whether one exists.</p>"
+    ]
+   },
    {
     "id": "screen",
     "eyebrow": "Family screen, 13 November 2026",
@@ -141,6 +168,6 @@
    }
   ]
  },
- "summary": "A few long runs of 110 separated by short markers that swap material from sweep to sweep; no regular round isolated yet; halts exactly at 1 1 C>0.",
+ "summary": "A few long runs of three-cell words that trade words at fixed rates; remainders steer, like a Collatz-like map; no halt in 10^1000 steps; no finite rule table known.",
  "decision": "open"
 }

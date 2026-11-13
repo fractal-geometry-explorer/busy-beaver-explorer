@@ -64,6 +64,11 @@ start, 14,974 right), 38,421 ones.
 - right, step 976,656,073: `1^22800 0 1^5 0 1^3 0^3 1^5 0 1^3 0^3 1^5 0^3 1^5 0^5 1^9 0^7 1^3 0^3 1^5 0 1^3 0 1^3 0^7 1^3 0 1^3 0 1^3 0 1^5 0^3 1^15 0^3 1^3 0^3 1^3 0^3 1^5 0 1^3 0 1^7 0 1^7 0 1^7 0^9 1^13 0 1^3 0 1^7 0^3 1^5 0^13 1^3 0^3 1^13 0 1^3 0^3 1^5 0 1^3 0^3 1^5 0 1^3 0^3 1^5 0^3 1^3 0 1^3 0 1^3 0 1^3 0 1^5 0^3 1^9 0 `
 - right, step 992,324,112: `1^22876 0 1^3 0^3 1^5 0^3 1^5 0^5 1^5 0 1^5 0 1^3 0^3 1^7 0 1^5 0^5 1^5 0^5 1^7 0^3 1^3 0 1^3 0^3 1^5 0 1^3 0 1^3 0 1^7 0 1^9 0^3 1^3 0 1^3 0 1^3 0^9 1^3 0^3 1^9 0 1^13 0 1^3 0 1^3 0 1^3 0^5 1^7 0^9 1^5 0^9 1^5 0^3 1^3 0 1^3 0^7 1^3 0^5 1^5 0 1^7 0 1^3 0 1^7 0^5 1^5 0^5 1^3 0^3 1^3 0 1^5 0 1^9 0 1^3`
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: A with 0 under the head, 0 right, 1 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RF_1RC1RE_0LD---_1LE1LD_1RF0RF_0RA0LB/explainer.html`](../../pages/holdouts/1RB0RF_1RC1RE_0LD---_1LE1LD_1RF0RF_0RA0LB/explainer.html)

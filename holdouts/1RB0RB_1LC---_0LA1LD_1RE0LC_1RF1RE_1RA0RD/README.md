@@ -45,6 +45,11 @@ the tape ahead of a right-moving E.
   compare consecutive samples at the left end in D).
 - Look for an invariant excluding `00` inside the tape (it is not a K <= 7 window language).
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: F with 0 under the head, 1 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD/explainer.html`](../../pages/holdouts/1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD/explainer.html)
