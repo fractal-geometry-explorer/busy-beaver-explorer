@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB</h1>
     <p class="machine">1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The head sweeps a long block of a = 111110 once per increment of a small counter, which eats a block of c = 1<sup>11</sup>0; when the c's run out the tape is rebuilt and the next c-block is about 4/3 as long (24, 36, 50, 72, 116, ..., 2628). The sweeps are proved in Lean; the counter and the rebuild are only observed. No halt in 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The head sweeps a long block of a = 111110 once per increment of a small counter, which eats a block of c = 1<sup>11</sup>0; when the c's run out the tape is rebuilt and the next c-block is about 4/3 as long. The sweeps and the counter's twelve-trip cycle are proved in Lean for all lengths. A closed-set search with all remainders allowed found no halting class in 1.4 million rounds, but did not close: the short tail left of each rebuild takes more than 238,000 forms.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -113,6 +113,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The only halting transition is E reading 0, and E is entered only from D reading 0, so the machine halts exactly when the head in state D reads 0 with a 0 to its left (from the transition table).</p>
         <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The counter's cycle</h3>
+        <p>With a = 111110, c = 1<sup>11</sup>0 and the engine word X = 7 a a 7 a a 7 a a 7 a 1<sup>4</sup> (7 = 1<sup>7</sup>0): twelve round trips take 0<sup>&infin;</sup> F&gt; 0 a<sup>N</sup> X c<sup>M+6</sup> R to 0<sup>&infin;</sup> F&gt; 0 a<sup>N+16</sup> X c<sup>M</sup> R, for every N &ge; 2, every M and any tape R. The counter eats 6 c and makes 16 a.</p>
+        <p class="where"><code>engine_cycle_even</code>, <code>engine_cycle_odd</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -134,6 +139,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>At the left end the tape is <code>F&gt; 0 a^N [counter] c^M ...</code>; each round trip increments the counter, which consumes c's. The values of M when a round starts: 24, 36, 50, 72, 116, 170, 248, 342, 454, 613, 814, 1100, 1466, 1967, 2628, a ratio of about 4/3. Seen in simulation, not proved.</p>
         <p class="where"><code>c/events.c</code></p>
       </div>
+      <div class="card">
+        <h3>No remainder class halts (sampled)</h3>
+        <p>Every round starts as 0<sup>&infin;</sup> F&gt; 0 PRE c<sup>M</sup> TAIL with a fixed PRE. The next M is (4M + k)/3 and the next tail depends on the tail and on M mod 6. Following every residue from every tail found, the C simulator ran about 1.4 million rounds from more than 238,000 tails without a halt. The set of tails did not close: 50,000 were still unexplored.</p>
+        <p class="where"><code>c/round.c</code>, <code>py/tails.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -141,6 +151,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Growth shape: exp/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.53). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.067).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Why the closed-set method does not finish</h3>
+        <p>The tails are not a few families with a free count, and a pushdown closure of the tape language (one half summarised, the other an exact stack) either reports halts the real run does not have or runs out of memory. A proof needs a regular description of all tails that is closed under the round map.</p>
+        <p class="where"><code>c/pds.cpp</code>, README</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

@@ -2,8 +2,11 @@
 
 bbchallenge id 32883. Open. An exact **ternary counter**, least significant digit at the left end, whose digits are
 pairs of long runs of alternating cells; each trip of the head from the left end and back adds one. The increment is
-proved in Lean for every carry depth (kernel). What is not proved: what happens when a run that the counter keeps
-shrinking runs out (a *transfer*, which moves a long run to the right end), and the right end itself.
+proved in Lean for every carry depth (kernel). When a run that the counter keeps shrinking runs out, a *transfer*
+moves a long run to the right end, two cells per shuttle of the head; the shuttle is proved in Lean for every tail
+and any number of shuttles (kernel), and so are the events at a run boundary. Not proved: the transfer as a whole
+(it nests) and an invariant. Tapes with the residues of a real configuration but short runs do halt, so the
+invariant must bound lengths from below; see "Why the gap does not close yet".
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -86,37 +89,183 @@ digit the carry passes, x >= 4, y >= 6 (stop at 1) or x >= 6, y >= 7 and the nex
 simulator on the step of all 17,669 trip starts in the first 4·10^9 steps. Classifying every trip start in the first
 3·10^12 steps (726,270 trips): 725,254 (99.86%) are one of the four proved kinds (242,079 `inc0`, 242,079 `inc1`,
 120,552 stop at 0, 120,544 stop at 1; `py/classify.py`). The other 1,016: the carry reaches the right end (98), a
-run is too short for the theorems (269), or a digit has residues outside the table (648), and one is the first trip. They come, as far as we
-have looked, with two irregular events (observed only):
+run is too short for the theorems (269), or a digit has residues outside the table (648), and one is the first trip.
+They belong to the irregular events of the next two sections.
 
-* **Transfers.** x_k shrinks by 4 per cycle of its digit, so it runs out (to 2 or 1 cells). The next carry that
-  reaches it does not bounce through: the head shuttles between the right end of y_(k-1) and the right end of the
-  tape, taking two cells off y_(k-1) and adding two at the far right on every shuttle. y_(k-1), a long run, is moved
-  to the right end, the digits past it are re-paired, and the counter goes on with fewer digits. Example, step
-  39,282: `187 97 2 31 25 7 7` becomes `186 43 27 5 13 177`. These are the long gaps between trips (no trip starts between steps 8.6·10^11 and
-  10^12, for instance) and the reason the right side of the tape grows.
-* **The right end**, where new digits are made from short runs (`... 7`, `... 7 7`, `11 5`, `14 4`, `19 31`, ...).
+## The events at a run boundary (Lean, kernel, `lean/Transfer.lean`)
+
+Both passes flip every cell they cross (going right A0→1, B1→0, E0→1, A1→0; going left B0→1, C1→0), so the list of
+runs changes only where the head turns or crosses a boundary going left. Write e for the number of cells of a run
+that A crosses starting on a 0 (the run's length, minus one if the run starts with a 1, which A just erases). For
+every surrounding tape:
+
+| theorem | going | case | what happens |
+|---|---|---|---|
+| `loc_pass0` | right | e = 0 mod 4 | A takes the first cell (a 1) of the next run and goes on |
+| `loc_pass3` | right | e = 3 mod 4 | A starts afresh on the first cell (a 0) of the next run |
+| `loc_turn1` | right | e = 1 mod 4 | the head turns; the run is 1 longer, the next run 1 shorter |
+| `loc_turn2` | right | e = 2 mod 4 | the head turns; the next run loses its first cell |
+| `loc_cross` | left | B on a 0 with `0 1 0 1 0` to its left | the head goes on; the doubled cell moves 2 cells left |
+| `loc_bounce` | left | C on a 1 with a 1 to its left | the head turns right (this is the carry's bounce); the left run loses its last cell |
+| `loc_halt`, `loc_halt_stops` | left | B on a 0 with `1 1 0` to its left | F reads a 1 three steps later: **halt** |
+
+The last line is the only way to halt: a run `1 0` of length exactly 2 between a `11` and a `00`, met from the right.
+(Left runs of length 1 and 3 before a `00` behave differently again and are not in the table.)
+
+## Transfers
+
+x_k loses 4 cells per cycle of its digit, so it runs out. When a carry arrives at a digit whose x-run is down to 2
+cells, the bounce does not go through: the head **shuttles** between the right end of y_(k-1) and the right end of
+the tape. Example, the trip that starts at step 22,430 with `187 97 2 31 25 7 7` (`py/runs.py trace "187 97 2 31
+25 7 7"` prints every turn):
+
+    186 97 1 [A] 33 24  7  7        first shuttle: A enters the tail on a 1, i.e. with the phase shifted by one
+    186 95 1 [A] 36 23  7  7        each shuttle takes 2 cells from the run 97 ...
+    186 93 1 [A] 36 26  6  7        ... and turns at the first run of the tail that is not yet "saturated"
+    186 91 1 [A] 36 29  5  7
+    186 89 1 [A] 36 29  5  7  7     the right end makes a new run
+    186 87 1 [A] 36 29  5 10  6
+    186 85 1 [A] 36 29  5 13  5
+    186 83 1 [A] 36 29  5 13  9     saturated: from here on only the last run changes, + 4 per shuttle
+    ...
+    186  1 1 [A] 36 29  5 13 173
+    186 43 27 5 13 177               next trip start: the run 97 is gone, the digits are paired anew
+
+(`[A]` stands for the head's cell, a 1, which is the first cell of the run written after it; the `1` before it is
+a single 0 cell.) A run of the tail is
+**saturated** when it starts with a 1 and its length is 1 mod 4 (`1 (0101)^a`): by `loc_pass0` A crosses it and
+arrives at the next run in the same way. A run that starts with 1 and has length 2 mod 4 turns the shuttle once
+(`loc_turn1`) and is then saturated (length + 3, the next run − 1); length 3 mod 4 takes two shuttles. At the right
+end `7` becomes `7 7`, `10 6`, `13 5`, `13 9`, and then grows by 4.
+
+**The shuttle lemma (Lean, kernel).** For every list of saturated runs `1 (0101)^(a_i+1)` (each at least 5 cells),
+every last run `1 (0101)^z`, every m and every tape L to the left:
+
+    L (10)^m 0 A> 1(0101)^(a_1+1) ... 1(0101)^(a_n+1) 1(0101)^z 0^inf
+      -->  L 0 A> 1(0101)^(a_1+1) ... 1(0101)^(a_n+1) 1(0101)^(z+m) 0^inf
+
+in exactly m (2S + 8z + 8) + 4m(m − 1) steps, S the total length of the n runs: 2m cells leave the moved run, 4m
+arrive at the right end, nothing in between changes. `shuttle` is one shuttle (pieces `sh_right`, `sh_end`,
+`sh_left`, `sh_turn`, chained by induction over the list in `right_chain`, `left_chain`, with the re-bracketing
+`back_runs`); `shuttles` is the induction over m and `scst_eq` the step count. `py/transfer.py` writes the file.
+Against a plain cell simulator: 200 of 200 random cases; five mutated statements (wrong z, step count, m, a longer
+run, an unsaturated run) fail in 40 of 40 cases each (`py/validate.py`); in the real run the shuttle from step 1948
+to 2156 of the trip above (runs 37 29 5 13, z = 4) takes 2·84 + 32 + 8 = 208 steps.
+
+What is **not** a theorem: the shuttles before saturation as one rule for an arbitrary tail, the first and the last
+shuttle (how the transfer is entered and how the digits are paired afterwards), and these complications, all seen
+in the real run:
+
+* **Transfers nest.** A shuttle of an outer transfer can turn at an inner run and become a complete inner
+  transfer. Trip 2,225,395 (it ends at step 23,871,965,983,406) starts `... 93 109 2 31 21614 4 13 2824993`: the
+  outer transfer moves the run 109 (about 55 shuttles); after five of them an inner transfer moves all of 21614
+  (10,807 shuttles); then the outer one finishes, its last 44 shuttles saturated.
+* **Merges.** A carry that arrives at an x-run of 1 cell joins three runs: `340 39 1 201 9 217` → `342 243 9 217`.
+* After a transfer the pairs (x_k, y_k) have residues outside the table above (`186 43 | 27 5 | 13 177`) and return to
+  it within a few carries. Over the first 10^14 steps the pairs take 14 of the 16 residue classes mod 4, and digit 0
+  is at (2,3) or (3,2) for 16 trips each.
+
+**The right end is the same counter one level deeper** (observed). The runs after a freshly deposited run go
+through exactly the states the whole tape went through from the start: after trip 143 (`378 239 519`) the runs after
+position 3 are `7`, `7 7`, `6 7`, `11 5`, ..., the first 125 states of the runs after position 1 from trip 1 on;
+the same holds after position 5 from trip 571 (69 states) and after position 9 from trip 7,088 (35 states), three
+times slower per level. So there is no separate right-end mechanism to describe; what is missing is the transfer.
+
+## Do nearby tapes halt? Yes
+
+The method of the sibling proofs (keep long counts free, track remainders, close the set) starts with this test.
+`py/runs.py` builds a trip start from a list of run lengths (checked against the real run: 14,387 consecutive trip
+starts, same next list and step count).
+
+| change to a real trip start | tapes that halt |
+|---|---|
+| one run ± 2 (not the last two runs) | 90 of 2,510 (3.6%) |
+| one run ± 1 (shifts the phase of everything to its right) | 74 of 1,698 (4.4%) |
+| one run ± 4, ± 8, − 12, ± 40 | 1 of about 10,000 (a run of 5 cells cut to 1) |
+| every run ≥ 8 replaced by a random length of the same residue mod 4, 8 to 56 | 0 of 1,834 |
+| every run ≥ 4 replaced by the *smallest* length ≥ 4 of its residue | 20 of 2,692 |
+| the same with 5 / with 6 (first 6,000 trips) | 13 of 3,114 / 2 of 3,463 |
+| the same with 6 / 8 / 10 / 12 / 16 (all 14,388 trips of the first 10^9 steps, `py/minimal_test.py`) | 3 of 7,119 / 0 of 9,155 / 0 of 9,908 / 0 of 10,513 / 0 of 11,209 |
+
+(Each tape is run for 20,000 to 100,000 moves of the run-length simulator, a move being a step or a whole sweep
+of a run; "does not halt" means within that budget.) So the residues mod 4 are essential, and the lengths are
+almost, but not quite, free: tapes with exactly the residues of a real trip start halt when several runs are at
+their smallest values at once. With every long run at 8 to 11 cells none halted. Two examples, confirmed step by step on
+a plain simulator (`py/validate.py`):
+
+* `6 6 4 6 5 5 5 5 6 7` (the real `3106 1606 56 506 429 93 5 29 26 7` shortened) halts at step 5,943 after 27
+  trips. Several x-runs are down to their minimum together, so transfers at different levels follow each other
+  closely; one of them moves a run of only 13 cells, ends before the tail is saturated and leaves a last run of 5
+  cells; later carries shrink it to 2, and the next transfer meets `... 18 2` and halts.
+* `6 6 2 7 9 6 6 7 7 7 5` (the start of the real transfer at trip 2,205, `5870 1790 2 511 3425 326 110 39 23 11 5`,
+  shortened) halts at step 1,005. With the real lengths elsewhere it halts only if the moved run 1790 **and** the
+  run 326 are both cut to 6 cells; 10 cells for either is enough to avoid it.
+
+A tape built from the digit table above alone can halt as well (`py/small_halts.py`: 56 of 3,456 two-digit tapes
+at short lengths, the smallest `4 7 1 6 2 7`, which has an x-run of a single cell; none of 729 one-digit tapes).
+
+## Why the gap does not close yet
+
+1. **No invariant on residues alone.** A closed set of the kind "these residue patterns, all long runs free" does
+   not exist in the simple form: the shortened tapes above have the residues of real trip starts and halt. An
+   invariant has to bound lengths from below, and the bound is not a constant per run: in a transfer the moved run
+   must outlast the saturation of the tail, and the number of shuttles that takes grows with the tail (up to 2 per
+   run, plus whole inner transfers).
+2. **A regular invariant did not stabilise.** Abstracting each run to its length if shorter than 8 and to its
+   residue mod 4 otherwise, the set of windows of 3 consecutive runs at trip starts has 263 members after 10^14
+   steps; new ones still appear at 1.4·10^12, 1.6·10^12 and 3.9·10^13 steps, each time a transfer happens in a new
+   phase. A closed-tape-language search on windows of K runs (`py/closure/runcps.py`; the automaton format of
+   `tools/lean/TM/CTL.lean`) reaches a halting abstract configuration for K = 2, 3 (thresholds 4 to 8) and
+   exceeds 3 million configurations for K = 4: windows of runs forget which phase the far part of the tape is in.
+3. **What holds in the real run** (`py/monitor.py`, every trip of the first 10^14 steps, 3,153,668 trips, 7
+   minutes): no halt; D reads a 1 with a stretch of 2 cells 218 times and of 3 cells 21 times, never of 1; there
+   are 168 transfers or nested levels of transfers with at least 3 shuttles, and every one ends with saturated
+   shuttles (condition Q: at least 6, in the 84 replays of the first transfer `31 17 2 7`, which has 9 shuttles; at
+   most 20 unsaturated shuttles in a level, 60 in one level that contains two inner transfers). Heuristically the moved
+   runs are long because a y-run gains 4 cells per cycle of its digit while the x-run to its right, three times
+   slower, has to lose all of its cells before the transfer happens.
+4. **What a proof needs.** (a) The transfer as a rule: the shuttles before saturation are a second counter-like
+   action on the tail (each shuttle changes one run by the `loc_` rules above), including nesting and merges, and the
+   entry and exit; (b) the regular trips for the residue classes that occur after a transfer (the 648 trips above);
+   (c) an invariant that says which lists occur, with the lower bound of point 1 in it, i.e. a statement that
+   relates the length of each y-run to the size of the tail behind it; (d) its preservation by all of these. The
+   self-similarity of the tail suggests an induction over levels. None of (a) to (d) is done; the smallest
+   counterexamples show that (c) cannot be dropped.
+
+Can the real run reach one of the halting tapes above? Not by anything seen: they need two or more long runs at
+5 to 13 cells at the same time, while in the real run the moved run of every transfer of the first 10^14 steps is at
+least 2·(unsaturated shuttles) + 12 cells long and the larger ones are thousands of cells long. That is evidence,
+not a proof.
 
 ## Halting
 
 The only halting transition is F on a 1. F comes from E on a 1 (after B wrote a 0 just left of it, so F reads that 0)
 or from D on a 1, and D only from C on a 0. So the machine halts exactly if D reads a 1 whose left neighbour is a 1:
-C, moving left, meets `1 1 0`. Call k the length of the alternating stretch that ends at D's cell; a halt needs
-k = 1. In the first 3·10^12 steps D read a 1 6,032,756 times: k = 2 158 times, k = 3 17 times, never k = 1; the
-small cases we looked at came near the right end or in transfers. The regular trips cannot halt: the theorems above give their whole run.
+C, moving left, meets `1 1 0` (`loc_halt`). Call k the length of the alternating stretch that ends at D's cell; a
+halt needs k = 1. In the first 10^14 steps D read a 1 63,281,275 times: k = 2 218 times, k = 3 21 times, never
+k = 1. The regular trips cannot halt: the theorems above give their whole run.
 
 ## Status
 
 Open. Kernel: halting configurations, 10,000 steps, the sweep moves (`lean/Rules.lean`), the counter's increment
-for every carry depth (`lean/Counter.lean`). Native: 10^7 steps. Trusted: no halt in the first 10^14 steps (3,153,668 trips, 23,850,932 cells,
-6 minutes, `py/rsim.py`). Heuristic: the counter reading, the transfers, the right end.
+for every carry depth (`lean/Counter.lean`), the run-boundary events and the shuttle lemma for every list of
+saturated runs and every number of shuttles (`lean/Transfer.lean`). Native: 10^7 steps. Trusted: no halt in the
+first 10^14 steps (3,153,668 trips, 23,850,932 cells, `py/rsim.py`); nearby tapes that halt (`py/validate.py`).
+Heuristic: the counter reading, the description of transfers, nesting, merges, the self-similar right end,
+condition Q.
 
 ## For later
 
-* State a transfer as a rule (a shuttle lemma with the run y_(k-1) and the digits it passes as parameters) and the
-  re-pairing it leaves; then the right end. With both, the counter would close up into a proof (or show a halt).
-* A closed tape language with run lengths kept mod 4 is a natural target; a first try (n-grams of run classes)
-  grew without bound.
+* The saturation phase as a rule: a transducer over the list of runs (per run: residue and first bit decide 0, 1 or
+  2 turning shuttles and what the next run loses), with the nested case, then entry and exit of a transfer.
+* The regular trips for the residue classes that follow a transfer (same generator as `py/counter.py`).
+* The invariant of point 4(c); a first step is to measure, per level, the moved run against the number of runs and
+  the inner moved runs behind it over a long run (`py/monitor.py` has the per-level numbers).
+* The closed-language search with a sharper abstraction (keep the phase of the far tape, e.g. the last state that
+  crossed each run): real tapes with every long run cut to 8 to 11 cells never halted in the test above, so a
+  regular invariant with "long" meaning 8 or more is not excluded.
+
+Working notes with every step and number: `/mnt/project-files/g09-ternary/notes.md` (outside the repository).
 
 ## First look
 
@@ -139,6 +288,13 @@ start, 15,538 right), 38,338 ones.
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/lean/check.sh
 python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/counter.py > /tmp/Counter.lean   # regenerates lean/Counter.lean
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/transfer.py > /tmp/Transfer.lean   # regenerates lean/Transfer.lean
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/validate.py                      # 2 minutes: tools vs the real run, mutations, halting tapes
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/runs.py trace "187 97 2 31 25 7 7"   # a transfer, turn by turn
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/monitor.py 1e14 /tmp/mon.json     # 7 minutes: transfers, windows, D reads
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/minimal_test.py 1e9 30000 6 8    # 8 minutes: shortened real tapes
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/small_halts.py 2                  # tapes from the digit table
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/closure/runcps.py 3 6            # closed-language search on windows of runs
 python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/rsim.py 1e12 100000
 python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/classify.py 3e12   # about a minute
 gcc -O2 -o ev holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/c/ev.c && ./ev 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- 2000000000 L B 1 100000 12 | awk 'NR%100==0'

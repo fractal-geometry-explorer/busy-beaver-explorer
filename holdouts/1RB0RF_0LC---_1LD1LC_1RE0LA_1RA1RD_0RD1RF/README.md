@@ -2,7 +2,7 @@
 
 bbchallenge id 83242. One of the six-state holdouts whose halting from blank tape is open (group G09, visited tape growing like the square root of the step count on both sides).
 
-**In one sentence.** Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a growing period-3 zone at the left end, a period-12 zone after it, a soup of short runs on the right; a halt needs a rightward sweep to meet 0001.
+**In one sentence.** Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a period-3 zone at the left end, then a few huge blocks of longer words (12, 15, 30 cells) that are built up and eaten in turn, and a short tail on the right; a halt needs a rightward sweep to meet 0001.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -17,7 +17,7 @@ bbchallenge id 83242. One of the six-state holdouts whose halting from blank tap
 
 The head sweeps right and left, turning wherever the local pattern sends it back, and every sweep rewrites what it crosses. Rightward (D and E, with F and A) the tape is put into a *rightward form*: D turns each `011` into `100` and each `01` into `11`, E turns `110` into `001` and `10` into `11`, and a period-12 word such as `101101011010` becomes `110011100111`. Leftward (C with D, A, B making small zigzags) the tape goes back to its *leftward form*.
 
-Seen at the left end the tape has three zones: a clean zone `(011)^n` (or `(101)^n`) that grows by about one copy per long sweep, then a zone of the period-12 word `(101011010110)^m`, also growing, then a soup of short pieces such as `(10)^a 1 (10)^b 1` and `(110)^3 (10)^3`, where the irregular events happen. In the rightward form the soup reads as runs of 1s separated by `0 0`.
+Seen at the left end the tape is a clean zone `(011)^a` (or `(101)^a`), then a block of the period-12 word `(101011010110)^B` that grows by one copy per visit of the left end, then one or two more huge blocks of longer words and a short tail such as `(10)^a 1 (10)^b 1`, `(110)^3 (10)^3`, where the irregular events happen (see the next section; an earlier version of this page said that the clean zone grows: it does not, it shrinks). In the rightward form the soup reads as runs of 1s separated by `0 0`.
 
 ## Sweep rules (Lean, kernel)
 
@@ -43,18 +43,54 @@ Inside the tape, separators of two 0s are common in the rightward form, so a thi
 
 **Twin.** [`1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF`](../1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF/README.md) is this table with the states renamed (A→B, B→C, C→D, D→E, E→A, F→F); it starts in the state this machine calls E. The two runs from blank tape are different (no common configuration at the left end in their first 300,000 steps), but they use the same sweeps, words and halting pattern, and every rule here holds there after renaming.
 
+## Blocks, tail and phases (accelerated run)
+
+Event: state A arrives at the left end. Then the tape is
+
+    A> 0 (011)^a 101101 (101011010110)^B junk (U)^C tail
+
+with B and C huge, U a word of 15, 21, 24 or 30 cells (`101010101101101`, `101101101010101010101011010101`, ...), junk and
+tail short (tail up to about 200 cells). E.g. step 695,167,838: `0 (011)^170 101101 (101011010110)^2150 10101 (10)^4 11011010110 (101010101101101)^792 T`, T 164 cells. A visit of the left end is two such arrivals (the second
+reads `0 (011)^(a+1) 001101 ...`); every visit adds one word to the left block and the tail eats the block (U)^C. This is the shape of the two solved machines of the group
+(1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA: blocks + a tail from a finite set), and part of it can be done the same way:
+
+* **A tail cycle as a rule (trusted).** From 2.5·10^8 to 2.3·10^9 steps the tail right of the block `(101010101101101)^C` takes exactly 118 values and repeats every 118 visits of the left end (plain run, 5,368 visits, all 5,250 re-occurrences at distance 118); per cycle B + 118 and C − 25. `screen.py cycle` proves it as a rule with all three counts free: `(a, B, C) = (42 + 3x0, 748 + 3x1, 190 + 3x2)` goes to `(a, B + 354, C − 75)` in 708 events and 40,185,624 + 21,240 x0 + 106,200 x1 + 127,440 x2 steps (one symbolic run; re-checked on numbers).
+* **The accelerated simulator** `py/closure/accel.py` (the engine of 1RB0RD_1RC0LF with words up to 32 cells).
+  `screen.py checkpoints ./at 3e10 20`: 20 of 20 checkpoints up to step 30,001,084,280 (six cycle-rule jumps before the last ones) agree with the plain C simulator `c/at.c`: state, head, tape, step count.
+  `screen.py rules 3e13 900`: no halt in the first 30,000,000,585,416 steps (1,568,417 events; 17 cycle rules, each proved by a symbolic run and each passing the numeric re-check; 17 jumps).
+
+But the recipe "closed set of (tail, block size mod m)" does not apply as it stands:
+
+* **More than two blocks and several words.** When (U)^C is used up another phase starts, with another word U; there are phases
+  with three big blocks (left block + 1, middle − 2, right + 1 per visit), phases that eat a block `1^n` (B + 3, n − 18 per three
+  visits), and conversions that turn the whole left block into a block of another word.
+* **A doubling cascade.** Some phases build a row of blocks `(10)^k` with k doubling from block to block (e.g.
+  `(10)^20 .. (10)^40 .. (10)^80 .. (10)^163 .. (10)^325 .. (10)^652 .. (10)^1304` at 2.5·10^9 steps of
+  1RB0RF_0LC---, again at 2.5·10^11): the number of blocks grows like the logarithm of the tape, so the description is not
+  bounded there; the separators between the blocks vary like digits.
+* **The clean zone is a third counter.** It changes only at conversions of the left block and mostly shrinks (by 2 to 6 copies each time): a = 180 (10^6 steps), 172 (6·10^7), 170 (2·10^9), 165 (2.5·10^9 to 1.1·10^10), 161 (1.8·10^10), 155 (2.5·10^11), about 150 (3·10^13).
+* **The tails do not always cycle**: in the period-15 phase of 1RB1RE_1RC0RF_0LD--- (1.3·10^8 to 6.9·10^8 steps) 2,400 visits pass without a repeat.
+
+So a proof along these lines needs classes with at least three free counts, a lemma for the cascade (an induction over its
+length), and a finite description of the tails that has not been found.
+
+In the twin the clean zone is nearly used up by 2·10^12 steps; see its README for what happens then (no halt, the zone is rebuilt or stays empty).
+
 ## Status
 
-Open. Proved in Lean, kernel only: the halting configurations (`step_none_iff`, `lean/Blank.lean`), no halt in 10,000 steps, the 9 sweep rules (`lean/Rules.lean`), and that every halt from blank tape passes through the pattern above (`halt_needs_pattern`, `lean/Halt.lean`). With `native_decide`: no halt in 10,000,000 steps. C: no halt in 1,000,000,000 steps.
+Open. Proved in Lean, kernel only: the halting configurations (`step_none_iff`, `lean/Blank.lean`), no halt in 10,000 steps, the 9 sweep rules (`lean/Rules.lean`), and that every halt from blank tape passes through the pattern above (`halt_needs_pattern`, `lean/Halt.lean`). With `native_decide`: no halt in 10,000,000 steps. C: no halt in 1,000,000,000 steps. Trusted (tools in `py/closure/`, not verified): the accelerated simulator agrees with the plain one at 20 checkpoints; one tail cycle proved as a rule by a symbolic run; no halt in the accelerated run (3·10^13 steps).
 
 ## For later
 
-Write the soup as a sequence of blocks (the runs between `00` separators) and find the block rewriting done by one round trip; then look for an invariant on blocks that keeps separators at most two 0s wide.
+List the phases (which word, which blocks, what a visit does to the counts) and the transitions between them as a map on a few counts; prove the doubling cascade as a rule by induction; decide whether the tails of each phase come from a finite set. Write the soup as a sequence of blocks (the runs between `00` separators) and find the block rewriting done by one round trip; then look for an invariant on blocks that keeps separators at most two 0s wide.
 
 ## Scripts
 
 - `py/passes.py blocks K | cross | back D | tape STEPS N`: two-cell behaviour of every state, the words crossed whole, the way back from a halt, run-length tapes.
 - `py/rules.py`: writes `lean/Rules.lean` and `lean/Halt.lean`.
+- `py/closure/accel.py`: accelerated simulator (shift rules, cycle rules proved by symbolic runs).
+- `py/closure/screen.py rules MAXSTEPS SECONDS | cycle ['CFG'] | checkpoints AT MAXSTEPS N`: the accelerated run and its rules, a tail cycle proved from a configuration, the comparison with `c/at.c`.
+- `c/at.c`: plain simulator that prints the tape at given step counts.
 
 ## Pages
 
@@ -65,4 +101,7 @@ Write the soup as a sequence of blocks (the runs between `00` separators) and fi
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/lean/check.sh
+python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/closure/screen.py cycle                      # 10 s
+python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/closure/screen.py rules 3e13 900             # the accelerated run (stops at 3e13 steps or after 900 s; 15 min here)
+gcc -O2 -o at holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/c/at.c && python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/closure/screen.py checkpoints ./at 3e10 20     # 5 min
 ```

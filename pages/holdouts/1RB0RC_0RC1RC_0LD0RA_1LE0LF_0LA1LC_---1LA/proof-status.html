@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA</p>
     <h1>What is known about 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA</h1>
     <p class="machine">1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p>This six-state, two-symbol Turing machine is one of the holdouts left open by the bbchallenge project. It does not halt when started on a blank tape; the proof is in Lean, with its two long computations evaluated by compiled code. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The run alternates two long phases that move a block of seven-cell words into a block of three-cell words and back, about seven times larger each round. The sweeps over the blocks are proved in Lean (kernel); the turnaround at the right end is an inner zigzag that is not yet stated as a rule.</p>
+      <p><b>It does not halt (Lean theorem <code>nonhalt</code>, level native).</b> From step 1,818,198,163,340,705 on, the configuration <code>E&gt; 0 (1011001)^59 1011 00000 1101100110110 (011)^16 001101100110 (011)^r</code> comes back with r larger by 321,042,928 after 116,320,154 arrivals at the left end, for every odd r &ge; 65. In Lean, a symbolic executor whose every move is proved to be a run of the machine (kernel) replays the arrival from blank tape and one period with r = 65 + 2x, x free; the two replays and the twelve cycle rules they use are evaluated by <code>native_decide</code>, so the result rests on the Lean kernel and the Lean compiler. The exact step and visit counts are computed by the Python and C++ simulators (trusted), not part of the Lean statement.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -108,6 +108,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>L A&gt;(0011011)^n R</code> &rarr; <code>L (1100110)^n A&gt; R</code> (13n steps), <code>L (1011001)^n D&gt;1 R</code> &rarr; <code>L D&gt;1 (0110110)^n R</code> (23n steps), <code>L A&gt;(011)^n R</code> &rarr; <code>L (110)^n A&gt; R</code> (3n steps), for every n, L, R.</p>
         <p class="where"><code>a_right</code>, <code>d_left</code>, <code>a_right3</code> in <code>lean/Rules.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The two long phases, any number of cycles</h3>
+        <p>Collecting: <code>E&gt; 0 (1011001)^p (101)^5 10 (011)^q 000 (011)^r</code> (q even, r odd) becomes the same with p + 2n, q &minus; 2n. Expanding: <code>E&gt; 0 (1011001)^p 1011 0^5 110110011010 (101)^m 1000 (011)^r</code> (m even, r odd) becomes the same with p &minus; 2n, m + 14n. One cycle each with its exact step count (48a + 48b + 72p + 476 and 240b + 240c + 144p + 2812), n cycles by induction.</p>
+        <p class="where"><code>collect2</code>, <code>collect_n</code>, <code>expand4</code>, <code>expand_n</code> in <code>lean/Phases.lean</code>; <code>collect_raw</code>, <code>expand_raw</code> in <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A growth cycle implies non-halting</h3>
+        <p>With C(r) = <code>E&gt; 0 (1011001)^59 1011 00000 1101100110110 (011)^16 001101100110 (011)^r</code>: if the run from blank tape reaches some C(65 + 2x), and every C(65 + 2x) reaches C(65 + 2(x + 160,521,464)) in at least one step, the machine does not halt from blank tape. The two hypotheses are proved by the replay below.</p>
+        <p class="where"><code>nonhalting_of_growth_cycle</code>, <code>lean/Cycle.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A symbolic executor, proved sound</h3>
+        <p>Tapes are lists of cells and blocks <code>(w)^n</code> with n = c + a<sub>0</sub>x<sub>0</sub> + a<sub>1</sub>x<sub>1</sub> + &hellip;, the x free. A move is a shift rule from a table (a block crossed at once, one or two copies at a time), or one machine step, and at each arrival of state E at the left end a re-bracketing of the tape and a cycle rule applied N times at once. Any step that would depend on a variable fails. Theorem: if the executor goes from S to S&prime; in k moves and its tables are valid, the machine goes from S to S&prime; for every value of the variables. The 31 shift rules are proved by evaluation in the kernel; the N-fold application of a cycle rule by induction.</p>
+        <p class="where"><code>run_sound</code>, <code>run_pos</code>, <code>rule_instN</code>, <code>ruleOK_of_run</code> in <code>lean/Exec.lean</code>; <code>shRTbl_ok</code>, <code>shLTbl_ok</code> in <code>lean/ExecData.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,6 +130,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The machine does not halt</h3>
+        <p>From blank tape the machine never reaches a halting configuration: <code>nonhalt : &not; HaltsFromBlank</code>. It combines the three claims below with <code>nonhalting_of_growth_cycle</code>. Axioms used: <code>propext</code>, <code>Quot.sound</code> and 14 compiled evaluations (<code>native_decide</code>): the two replays and the twelve cycle rules.</p>
+        <p class="where"><code>nonhalt</code>, <code>lean/Replay.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Twelve cycle rules, for all values of their counts</h3>
+        <p>Each rule says: this tape with counts b<sub>i</sub> + 2x<sub>i</sub> comes back with counts b<sub>i</sub> + D<sub>i</sub> + 2x<sub>i</sub>, for all x<sub>i</sub> (eleven are collect or expand, plain or with inert zones in between, 2 or 4 visits; one is the drain, 72 visits, 201,007 executor moves). Each is one run of the executor without cycle rules, evaluated by <code>native_decide</code>.</p>
+        <p class="where"><code>rule0_ok</code> &hellip; <code>rule11_ok</code>, <code>lean/ExecData.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Blank tape reaches C(16,797,709)</h3>
+        <p>5,037,044 moves of the executor from blank tape end at C(16,797,709) (<code>arrive_run</code>, <code>native_decide</code>, 13 s); by soundness the machine reaches that configuration.</p>
+        <p class="where"><code>reach_cyc</code>, <code>lean/Replay.lean</code>; <code>arrive_run</code>, <code>lean/Arrive.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>C(65 + 2x) reaches C(65 + 2(x + 160,521,464)), for every x</h3>
+        <p>5,581,714 moves of the executor from C(65 + 2x), x a free variable, end at C(321,042,993 + 2x) (<code>period_run</code>, <code>native_decide</code>, 14 s); by soundness the machine does so for every x, in at least one step.</p>
+        <p class="where"><code>grow_cyc</code>, <code>lean/Replay.lean</code>; <code>period_run</code>, <code>lean/Period.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -124,6 +159,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 43,491 cells have been visited and 26,502 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The growth cycle: visit and step counts</h3>
+        <p>C(r) reaches C(r + 321,042,928) after 116,320,154 arrivals at the left end and 650,373,336,347,246,654 + 4,382,930,856 (r &minus; 65) steps. That C(r) reaches C(r + 321,042,928) is a Lean theorem (above); the counts come from two symbolic simulators that agree (<code>py/closure/accel.py</code> and the model of the Lean executor, <code>py/replay/engine.py</code>), checked against numeric runs from C(65), C(67), C(79) and three periods of the real run; 17 injected defects are all reported.</p>
+        <p class="where"><code>py/closure/cycle.py check</code>, <code>mutate</code>, <code>instance</code>; <code>py/replay/gen.py --check</code></p>
+      </div>
+      <div class="card">
+        <h3>Blank tape reaches the cycle: step counts</h3>
+        <p>That blank tape reaches C(16,797,709) is a Lean theorem (above). The step counts are computed: the run is at C(16,797,709) after 1,818,198,163,340,705 steps (event 6,086,451), and at C(337,840,637) after 725,814,446,706,290,623 steps. The word-level engine agrees with a plain C simulator at all 24,646 events of the first 10<sup>10</sup> steps (step count and CRC of the tape).</p>
+        <p class="where"><code>py/closure/cycle.py reach</code>, <code>py/closure/check_events.py</code>, <code>c/events.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Neighbouring classes halt</h3>
+        <p>The same pattern with 61 words in the left block halts for every odd r &ge; 65, after 1,772,276 + 5,220 (r &minus; 65) steps (confirmed by plain simulation for r = 65, 67, 71); C(r) with r even &ge; 64 halts at its 21,362,421st event. So the real run is safe only because of the exact orbit it is on.</p>
+        <p class="where"><code>py/closure/classes.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Independent check of the growth cycle</h3>
+        <p>A second accelerated simulator, written from scratch without reading the first (<code>verify/sim3.cpp</code>, validated against plain simulation to 10<sup>10</sup> steps), lands exactly on C(16,797,709) at step 1,818,198,163,340,705 from blank tape, and takes C(r) exactly to C(r + 321,042,928) at the predicted step for r = 65, 67, &hellip;, 85 and r = 16,797,709. It also confirms that C(r) halts for the even r tried (the halting transition is one step after the count stated in the notes: that count excludes the halting step). It checks listed values only; &ldquo;for every odd r&rdquo; is the Lean theorem <code>grow_cyc</code>.</p>
+        <p class="where"><code>verify/README.md</code>, <code>verify/run_all.sh</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -132,27 +187,23 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.498). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.478).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
-      <div class="card">
-        <h3>Rounds</h3>
-        <p>Collect phase (q into p, 1 for 1): p = 602 at step 1.3&middot;10<sup>7</sup>, 4,374 at 6.2&middot;10<sup>8</sup>; expand phase (p into q, 1 for 7): q = 4,134 at 1.1&middot;10<sup>8</sup>, 30,497 at 5.6&middot;10<sup>9</sup>.</p>
-        <p class="where">C run, <code>c/ev.c</code></p>
-      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
-    <div class="cards">
-      <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The phase rules are measured, not proved: each visit of the right end runs an inner zigzag whose length grows with the block, which the automatic prover does not compress.</p>
-      </div>
-    </div>
+    <p class="empty">Nothing yet.</p>
   </section>
   <section aria-labelledby="h-check">
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
-holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/lean/check.sh
+holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/lean/check.sh      # Machine, Blank, Rules, Phases, Cycle, Exec, ExecData, Arrive, Period, Replay (1 min)
+python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/replay/gen.py --check      # the model of the Lean executor: tables, move counts, events and steps as claimed (40 s)
+python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/cycle.py check      # the growth cycle from the claim alone (20 s)
+python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/cycle.py reach      # blank tape reaches C(16797709) (5 s)
+python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/cycle.py instance   # numeric runs from C(65), C(67), C(79) (40 s)
+python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/cycle.py mutate     # 17 defects, all reported (6 min)
+python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/classes.py          # neighbouring classes (4 min)
+gcc -O2 -o events holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/c/events.c &amp;&amp; ./events 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA 10000000000 &gt; ev10.txt &amp;&amp; python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/check_events.py ev10.txt --plain
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA 1000000000
-. /etc/profile.d/lean.sh &amp;&amp; holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/lean/check.sh   # Rules.lean
-gcc -O2 -o ev holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/c/ev.c &amp;&amp; ./ev 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA 2000000000 L E 1 100000 12 | awk &#x27;NR%300==0&#x27;</code></pre>
+holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/verify/run_all.sh      # independent simulator: arrival and one period for several r (about 2 min)</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

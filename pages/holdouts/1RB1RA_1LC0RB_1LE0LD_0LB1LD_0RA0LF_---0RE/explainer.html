@@ -124,7 +124,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 13 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE</p>
   <div class="col"><p class="lede">Nobody knows yet. This machine keeps a few long blocks on its tape and works like a nested counter: it pours blocks of <code>010</code> into one big block of <code>01011</code>, a little per sweep, and each time everything is poured it copies the big block back out as new <code>010</code> blocks, about eight times larger than the last round.</p></div>
@@ -142,7 +142,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#words">Long blocks of 010 and one block of 01011</a><a href="#phases">Three kinds of phase</a><a href="#levels">Levels</a><a href="#halting">The one way it could stop</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#words">Long blocks of 010 and one block of 01011</a><a href="#phases">Three kinds of phase</a><a href="#levels">Levels</a><a href="#halting">The one way it could stop</a><a href="#levelmap">Levels: what is known for every block size</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -246,10 +246,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>The one way it could stop</h2>
 <p>The machine stops only one way: state E reads a 1 whose left neighbour is a 0 (E writes 0, steps left into state F, and F has no move on a 0). That pattern has not appeared in 10<sup>15</sup> simulated steps: every phase seen so far keeps those neighbourhoods out of reach. Proving that the phases always follow one another the same way would prove the machine runs forever; that is the missing piece.</p><p>At 1.05&middot;10<sup>15</sup> steps the whole tape is <code>(011101)^1503867 (001)^6015471 01110 (10110)^6015471</code>: three long blocks, the shape the machine returns to at every level.</p>
 </section>
+<section id="levelmap">
+  <span class="eyebrow">Level map</span>
+  <h2>Levels: what is known for every block size</h2>
+<p>Call a <em>level</em> the moment the final block has just been rewritten as <code>(01111)^b</code>, with a tail T of other cells to its left. A symbolic run with b left free gives the next level for each kind of tail:</p>
+<table><thead><tr><th>tail</th><th>next b</th></tr></thead><tbody><tr><td>plain (P)</td><td>b + 4, and a copy <code>(100)^(b−5)</code> joins the tail</td></tr><tr><td>with a copy <code>(100)^c</code></td><td>about 4.5 b + 3.5 c (exact formula per residue of b and c mod 4)</td></tr><tr><td>five short tails</td><td>b = 4k + r → 18k + const (× 4.5); r picks the next tail</td></tr><tr><td>doubling tail</td><td>2b + 1, and a block of m ≈ b/2 six-cell words appears</td></tr><tr><td>with <code>(011110)^m</code> or <code>(110011)^m</code></td><td>not known in general: a counter runs between the blocks</td></tr></tbody></table>
+<p>None of the 89 cases halts. The last row is why the machine is still open: with b = 400, the lengths m = 13, 14, 15 give b = 2048, 2441, 1862 next, so the result depends on the digits of m and no finite list of shapes covers it. From blank tape the run passes b = 906, 910, 7,265, 14,531, about 83,546, 375,960, 375,965, 3,007,734, 6,015,471 in 1.6 × 10<sup>15</sup> steps.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 13 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -269,7 +276,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/hsim2.cpp</code>, <code>py/cmpc.py</code></div></div><div><b>No halt in the first 10<sup>15</sup> steps</b><p><code>c/hsim2.cpp</code>, a block macro simulator that takes a linear jump over k cycles only after checking the cycle symbolically for every larger count (step count summed exactly), runs to 1.05&middot;10<sup>15</sup> steps without a halt. At 5&middot;10<sup>10</sup> steps its state and every cell agree with plain simulation (<code>py/cmpc.py</code>).</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/rules.py</code> (history)</div></div><div><b>The feed round</b><p>A fourth phase feeds the block <code>(110101)^c</code> back into the final block at about 5.08 words per word, through a small counter of 3-cell digits. One round, for every c, d, b, is a symbolic trace of 32b+34c+24d+3813 steps found by <code>bbtools.symtm</code>; it is too long for the Lean kernel to check in reasonable time and memory, so it is not in <code>Rules.lean</code>.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">C run, <code>c/ev.c</code></div></div><div><b>The level sequence</b><p>Final-block size at each copy, from the accelerated simulator: 13 (5.4&middot;10<sup>3</sup> steps), 108 (2.8&middot;10<sup>5</sup>), 907 (2.0&middot;10<sup>7</sup>), 7,265 (1.26&middot;10<sup>9</sup>), 14,531 after a split (6.1&middot;10<sup>9</sup>), 33,000 (1.67&middot;10<sup>10</sup>), 83,545 (1.66&middot;10<sup>11</sup>), 375,963 (3.37&middot;10<sup>12</sup>), about 3.0&middot;10<sup>6</sup> (2.15&middot;10<sup>14</sup>), about 6.0&middot;10<sup>6</sup> after a split (5.4&middot;10<sup>14</sup>), 6,015,471 (1.05&middot;10<sup>15</sup>). The ratios (about 8, 4.5, 2 at a split) depend on which phase starts, so the level map looks like a Collatz-style map on residues; its exact form is not derived.</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The phases are regular and two of them are proved, but the transitions between phases and a small counter that appears in the third phase type are not, so a non-halting proof is not in reach yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>pour1</code>..<code>pour20</code>, <code>lean/Visits.lean</code></div></div><div><b>The pour cycle, visit by visit</b><p>Twenty one-visit theorems: <code>0^∞ 1 (100111)^3 (001)^(d+4) 1 1 1 0 (01110)^(a+2) 0 1 1 1 B&gt; 0^∞</code> returns after 20 visits of the right end with d − 2 and a + 10, for every a and d.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/closure.py</code></div></div><div><b>The level map for twelve of fourteen level types; no halting case</b><p>A level starts when the final block has just been rewritten as <code>(01111)^b</code>. A symbolic run with b and the other block counts free (residue splits on demand, every assumption recorded) gives the next level for 89 cases of 14 types, e.g. b = 4k+r → 18k + const on the short tails; no case halts. Two cases fail: the levels with a long block <code>(011110)^m</code> or <code>(110011)^m</code>, where a counter runs between the blocks.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/hsim2.cpp</code> with LEVELS=1, <code>py/lvx.py</code></div></div><div><b>No halt in 1.6 × 10<sup>15</sup> steps; nine levels</b><p>The accelerated simulator (jumps only over symbolically verified cycles; cell-checked against plain simulation at 5 × 10<sup>10</sup> steps) follows the run through levels b = 906, 910, 7,265, 14,531, about 83,546, 375,960, 375,965, 3,007,734 and 6,015,471.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/levels.py</code></div></div><div><b>No exact growth cycle; counter levels depend on digits</b><p>The second round of levels repeats the types of the first, but growth is multiplicative and the next type depends on b mod 4 and, after a counter level, on the digits of the counter length m: with b = 400 and m = 1..48 every level reaches a next one without halting, but the new b is not monotone in m.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The level structure is exact for twelve level types and none of their cases halts, but two level types contain a counter whose outcome depends on the digits of a block length, so the set of level types does not close; the machine is Collatz-like with a counter inside.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
@@ -279,7 +290,9 @@ holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE 1000000000
 . /etc/profile.d/lean.sh &amp;&amp; holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/lean/check.sh   # Rules.lean (about 30 s)
 gcc -O2 -o ev holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/c/ev.c &amp;&amp; ./ev 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE 2000000000 L B 1 100000 12 | awk &#x27;NR%200==0&#x27;
-python3 holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/py/cmpc.py 5e10      # hsim2 against plain simulation, cell for cell (about 4 min)</code></pre>
+python3 holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/py/cmpc.py 5e10      # hsim2 against plain simulation, cell for cell (about 4 min)
+python3 holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/py/closure.py   # level map, about 1 min: 14 types, 89 cases, 2 failed, NOT CLOSED
+python3 holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/py/visits.py    # writes lean/Visits.lean</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

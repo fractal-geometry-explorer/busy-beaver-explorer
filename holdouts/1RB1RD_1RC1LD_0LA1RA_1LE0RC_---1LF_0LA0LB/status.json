@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The head sweeps a long block of a = 111110 once per increment of a small counter, which eats a block of c = 1<sup>11</sup>0; when the c's run out the tape is rebuilt and the next c-block is about 4/3 as long (24, 36, 50, 72, 116, ..., 2628). The sweeps are proved in Lean; the counter and the rebuild are only observed. No halt in 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The head sweeps a long block of a = 111110 once per increment of a small counter, which eats a block of c = 1<sup>11</sup>0; when the c's run out the tape is rebuilt and the next c-block is about 4/3 as long. The sweeps and the counter's twelve-trip cycle are proved in Lean for all lengths. A closed-set search with all remainders allowed found no halting class in 1.4 million rounds, but did not close: the short tail left of each rebuild takes more than 238,000 forms."
  ],
  "claims": [
   {
@@ -62,6 +62,24 @@
    "title": "Where it would halt",
    "text": "The only halting transition is E reading 0, and E is entered only from D reading 0, so the machine halts exactly when the head in state D reads 0 with a 0 to its left (from the transition table).",
    "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The counter's cycle",
+   "text": "With a = 111110, c = 1<sup>11</sup>0 and the engine word X = 7 a a 7 a a 7 a a 7 a 1<sup>4</sup> (7 = 1<sup>7</sup>0): twelve round trips take 0<sup>&infin;</sup> F&gt; 0 a<sup>N</sup> X c<sup>M+6</sup> R to 0<sup>&infin;</sup> F&gt; 0 a<sup>N+16</sup> X c<sup>M</sup> R, for every N &ge; 2, every M and any tape R. The counter eats 6 c and makes 16 a.",
+   "where": "<code>engine_cycle_even</code>, <code>engine_cycle_odd</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No remainder class halts (sampled)",
+   "text": "Every round starts as 0<sup>&infin;</sup> F&gt; 0 PRE c<sup>M</sup> TAIL with a fixed PRE. The next M is (4M + k)/3 and the next tail depends on the tail and on M mod 6. Following every residue from every tail found, the C simulator ran about 1.4 million rounds from more than 238,000 tails without a halt. The set of tails did not close: 50,000 were still unexplored.",
+   "where": "<code>c/round.c</code>, <code>py/tails.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Why the closed-set method does not finish",
+   "text": "The tails are not a few families with a free count, and a pushdown closure of the tape language (one half summarised, the other an exact stack) either reports halts the real run does not have or runs out of memory. A proof needs a regular description of all tails that is closed under the round map.",
+   "where": "<code>c/pds.cpp</code>, README"
   },
   {
    "level": "open",
@@ -146,5 +164,5 @@
    }
   ]
  },
- "summary": "A long block a^N, a counter and a block c^M that the counter consumes; when the c's run out the tape is rebuilt with M about 4/3 larger. Sweep rules proved in Lean; counter and rebuild map not yet found."
+ "summary": "A long block a^N, a counter and a block c^M that the counter consumes; rebuilt with M about 4/3 larger. Sweeps and the counter's 12-trip cycle proved in Lean. Closed-set search: no halting class in 1.4 million rounds, but more than 238,000 tails, not closed."
 }

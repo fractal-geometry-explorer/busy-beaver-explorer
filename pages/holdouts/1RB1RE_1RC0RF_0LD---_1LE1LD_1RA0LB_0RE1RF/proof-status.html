@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF</h1>
     <p class="machine">1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a growing period-3 zone at the left end, a period-12 zone after it, a soup of short runs on the right; a halt needs a rightward sweep to meet 0001. Lean proves the sweep rules over the background words and the only local pattern that leads to a halt; no halt in 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a period-3 zone at the left end, then a few huge blocks of longer words (12, 15, 30 cells) that are built up and eaten in turn, and a short tail on the right; a halt needs a rightward sweep to meet 0001. Lean proves the sweep rules over the background words and the only local pattern that leads to a halt; no halt in 10<sup>9</sup> steps of the plain simulator, none in 2.3&middot;10<sup>12</sup> steps of an accelerated one (not verified).</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -139,6 +139,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>This is the table of <code>1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF</code> with the states renamed (A→B, B→C, C→D, D→E, E→A, F→F); this machine starts in the state that one calls E. The two runs from blank tape are different (no common configuration at the left end in their first 300,000 steps), but they use the same sweeps, words and halting pattern, and every rule there holds here after renaming.</p>
         <p class="where"><code>README.md</code></p>
       </div>
+      <div class="card">
+        <h3>The accelerated simulator agrees with the plain one</h3>
+        <p>At 20 arrivals at the left end between 1.5&middot;10<sup>9</sup> and 1.0&middot;10<sup>11</sup> steps (ten of them after a cycle-rule jump from 1.5&middot;10<sup>10</sup> to 1.0&middot;10<sup>11</sup>) the accelerated simulator and the plain C simulator <code>c/at.c</code> give the same state, head position, tape and step count.</p>
+        <p class="where"><code>py/closure/screen.py checkpoints</code>, <code>c/at.c</code></p>
+      </div>
+      <div class="card">
+        <h3>A tail cycle, proved for all block sizes</h3>
+        <p>Around 1.5&middot;10<sup>10</sup> steps the tail next to the period-30 block repeats every 83 visits of the left end (B + 83, C &minus; 8). One symbolic run of the accelerated simulator with both big counts free proves the rule (B, C) = (538 + 3x<sub>0</sub>, 89 + 3x<sub>1</sub>) &rarr; (B + 249, C &minus; 24) in 498 events for all x &ge; 0; the plain engine confirms it on numbers. The run to 2.3&middot;10<sup>12</sup> steps found and used 3 such rules (two of 498 events, one of 6 events: B + 3 and a block <code>1^n</code> &minus; 18), all re-checked on numbers. In the phase with the period-15 block (1.3&middot;10<sup>8</sup> to 6.9&middot;10<sup>8</sup> steps, 2,400 visits) no tail occurs twice: the tails do not always cycle.</p>
+        <p class="where"><code>py/closure/screen.py cycle</code>, <code>py/closure/accel.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 2.3&middot;10<sup>12</sup> steps (accelerated run)</h3>
+        <p>The accelerated simulator runs 2,321,689,940,690 steps from blank tape without a halt (470,332 arrivals at the left end; 3 cycle rules, each proved by a symbolic run with its counts free and re-checked on numbers). The tool is not verified; it agrees with the plain simulator at 20 of 20 checkpoints up to 1.0&middot;10<sup>11</sup> steps. A longer run of the same engine, restarted once from a printed configuration, reached 1.0&middot;10<sup>16</sup> steps without a halt (not reproduced by a script here).</p>
+        <p class="where"><code>py/closure/screen.py rules 2e12 420</code></p>
+      </div>
+      <div class="card">
+        <h3>Nine tapes with a short clean zone: none halts</h3>
+        <p>The clean zone <code>(011)^a</code> at the left end loses copies whenever the left block is converted, and in this run it is nearly used up after 2&middot;10<sup>12</sup> steps. Experiment: the configuration of the real run at step 3,368,614,121 (<code>B&gt; 0 (011)^8 001101 (101011010110)^7448 ...</code>, just before a conversion) with the 8 replaced by 8, 7, ..., 0, each run for 6&middot;10<sup>9</sup> plain steps. None of the nine halts. With 8 to 4 the zone comes out shorter (<code>(100)^6</code> to <code>(100)^2</code> in its rightward form), with 3 and 2 it is gone or one copy, and with 1 and 0 the conversion writes a new zone of at least 42 copies. Nine samples, not a proof.</p>
+        <p class="where"><code>py/closure/screen.py zone</code>, <code>c/runfrom.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -149,8 +169,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>What the tape looks like</h3>
-        <p>Seen at the left end the tape has three zones: a clean zone <code>(011)<sup>n</sup></code> (or <code>(101)<sup>n</sup></code>) that grows by about one copy per long sweep, then a zone of the period-12 word <code>(101011010110)<sup>m</sup></code>, also growing, then a soup of short pieces such as <code>(10)<sup>a</sup> 1 (10)<sup>b</sup> 1</code> and <code>(110)<sup>3</sup> (10)<sup>3</sup></code>, where the irregular events happen. In the rightward form the soup reads as runs of 1s separated by <code>0 0</code>.</p>
+        <p>Seen at the left end the tape is a clean zone <code>(011)<sup>a</sup></code> (or <code>(101)<sup>a</sup></code>), then a block of the period-12 word <code>(101011010110)<sup>B</sup></code> that grows by one copy per visit of the left end, then one or two more huge blocks of longer words and a short tail such as <code>(10)<sup>a</sup> 1 (10)<sup>b</sup> 1</code> and <code>(110)<sup>3</sup> (10)<sup>3</sup></code>, where the irregular events happen. The clean zone does not grow: it shrinks at each conversion of the left block. In the rightward form the soup reads as runs of 1s separated by <code>0 0</code>.</p>
         <p class="where"><code>py/passes.py tape</code></p>
+      </div>
+      <div class="card">
+        <h3>Blocks and phases; why the closed-set recipe does not apply yet</h3>
+        <p>At arrivals at the left end the tape is <code>0 (011)^a 101101 (101011010110)^B junk (U)^C tail</code> with B, C huge and U a word of 15, 21, 24 or 30 cells: the shape of the solved machines of this group. But there are phases with three big blocks, conversions of the whole left block, phases with a row of blocks <code>(10)^k</code>, k doubling from block to block (their number grows like the logarithm of the tape), the clean zone <code>(011)^a</code> is a third counter that shrinks at conversions, and the tails do not always cycle. Observed in plain runs to 6&middot;10<sup>10</sup> steps and accelerated runs beyond.</p>
+        <p class="where"><code>README.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
@@ -167,7 +192,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF/lean/check.sh
 python3 holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF/py/rules.py       # regenerates lean/Rules.lean and lean/Halt.lean
 python3 holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF/py/passes.py blocks 2   # how each state handles two cells
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF 1000000000
+python3 holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF/py/closure/screen.py cycle     # a tail cycle proved as a rule
+python3 holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF/py/closure/screen.py rules 2e12 420     # the accelerated run and its rules
+gcc -O2 -o at holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF/c/at.c &amp;&amp; python3 holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF/py/closure/screen.py checkpoints ./at 3e10 20     # 6 min, the plain run goes to 1e11 steps
+gcc -O2 -o runfrom holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF/c/runfrom.c &amp;&amp; python3 holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF/py/closure/screen.py zone ./runfrom     # 5 min</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -74,13 +74,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB</h1>
     <p class="machine">1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 9 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> A few huge blocks of 1s; an odd block is split by a bouncer that moves 4 ones per round, 1 to the left neighbour and 3 to the right, and an even block at the left end is folded into its neighbour 2 for 3 (both proved in Lean for every size); a Collatz-like map with factors 1/4, 3/4 and 3/2; open.</p>
-      <p>Lean proves no halt in the first 10<sup>7</sup> steps (the first 10,000 by the kernel alone), the quarter split, the fold for every size and the first steps of the split endings; the rest of the description below is observation of the run, marked as such.</p>
+      <p><b>The question is open.</b> The tape is a few huge blocks of 1s, and everything the machine does is arithmetic on their lengths: an even block is split, a quarter going left and three quarters going right; odd blocks are glued to their neighbours; an odd block at the left end is folded, every 2 ones becoming 3.</p>
+      <p>Lean proves these rules for every size, proves that the machine halts if and only if the orbit of the resulting map reaches a halting configuration, and proves that there is no halt in the first 10<sup>130</sup> steps (10<sup>13179</sup> by compiled evaluation). Whether the rules go on for ever is not known: it depends on remainders modulo 4 of numbers that keep being multiplied by 3/4 and 3/2.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -105,6 +105,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
+        <h3>The event rules</h3>
+        <p>At an anchor (state D on a single 0 between two blocks of 1s) the machine reaches the next anchor by one of the rules split, odd, fold, shift, zero, one, two (and their variants), each proved for every block length and every surrounding tape.</p>
+        <p class="where"><code>c_split</code>, <code>c_odd</code>, <code>c_fold</code>, &hellip;, <code>evT_sem</code>, <code>lean/Events.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting is a question about the event map</h3>
+        <p>The machine halts from blank tape if and only if the orbit of the blank tape under the map F (a rule at every anchor that has one, one machine step otherwise) reaches a halting configuration. If the rules alone can be applied for ever from the first anchor, the machine never halts.</p>
+        <p class="where"><code>halts_iff</code>, <code>events_forever</code>, <code>lean/Events.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>130</sup> steps</h3>
+        <p>The event orbit is evaluated for 30,000 events by Lean's kernel; the right block is then longer than 10<sup>130</sup>, and a machine started on blank tape needs at least that many steps to write it.</p>
+        <p class="where"><code>no_halt_kernel</code>, <code>lean/Far.lean</code></p>
+      </div>
+      <div class="card">
         <h3>One round of the quarter split</h3>
         <p>For every odd M ≥ 11, every b and every tape around: <code>1 E&gt; 0 0 1^M 0 0 1^b 0</code> becomes <code>1 1 E&gt; 0 0 1^(M−4) 0 0 1^(b+3) 0</code> (three theorems for M mod 6 = 5, 1, 3).</p>
         <p class="where"><code>quarter1</code>, <code>quarter3</code>, <code>quarter5</code>, <code>lean/Rules.lean</code></p>
@@ -127,6 +142,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>13179</sup> steps</h3>
+        <p>The same, for 2,999,957 events, evaluated by compiled code.</p>
+        <p class="where"><code>no_halt_native</code>, <code>lean/Far.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
@@ -134,6 +154,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 12,322 cells have been visited and 12,317 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
+      </div>
+      <div class="card">
+        <h3>The explainer's event map agrees with the machine</h3>
+        <p>The JavaScript of the explainer page (a transcription of the Lean definitions) is run against the plain machine: every example of the rule viewer over its whole range, and the first 457 events of the run (4&middot;10<sup>8</sup> steps).</p>
+        <p class="where"><code>node holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB/explainer/test.js 4e8</code></p>
       </div>
       <div class="card">
         <h3>The quarter round for odd M from 5; the small and even cases</h3>
@@ -153,22 +178,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.398). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.121).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
-      <div class="card">
-        <h3>Macro structure: Collatz-like: blocks split 1:3 by quarters</h3>
-        <p>After the start the tape is always a handful of long blocks of 1s, separated by gaps of one, two or four 0s, e.g. <code>1^1840 0 1^1387 0 1^1041 0^2 1^780 0^4 1^2338 0 1</code> at step 298,989,466. Everything the machine does is arithmetic on these block lengths.</p>
-        <p class="where">README; <code>tmrun</code>, <code>tokrun</code> runs</p>
-      </div>
-      <div class="card">
-        <h3>Parity pattern in the run</h3>
-        <p>In the first 3·10<sup>8</sup> steps every block that a split starts on is odd (23,443 split rounds start, 14,388 with M ≡ 3 and 9,055 with M ≡ 1 mod 4), every block folded at the left end is even (7,115 zig-zags), and every round that starts at the left end with <code>A&gt;1^K</code> has K odd. A split on an even block is what halts (it ends at M = 0, 2 or 4 and E meets three 0s), so a proof that this parity pattern is preserved by the split endings would prove the machine never halts. The endings depend on the neighbouring blocks (the carrier <code>0 1</code> runs right to the next gap, then a left sweep, then a new split or fold), and that case analysis is not written down yet.</p>
-        <p class="where"><code>ev3</code> event log (scratch), README</p>
-      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. F reading 0 halts. On small examples the split halts when it ends with M = 0, 2 or 4 in the shape above (the head meets three 0s in state E: E0 → C0 → F0), so halting is a question about remainders mod 4 of the blocks met by the splits: open, Collatz-like.</p>
+        <p>Not known. A halt needs the event orbit to reach an anchor that no rule covers (a right block that is too short, or the carrier meeting a lone 1) and the machine to stop from there. That has not happened in the first 2,999,957 events.</p>
       </div>
     </div>
   </section>
@@ -177,7 +192,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB 1000000000
-python3 holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB/py/split.py</code></pre>
+python3 holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB/py/split.py
+node holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB/explainer/test.js 4e8</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

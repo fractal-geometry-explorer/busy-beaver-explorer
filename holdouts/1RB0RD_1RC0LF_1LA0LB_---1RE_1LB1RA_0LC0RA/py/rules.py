@@ -26,6 +26,28 @@ RULES = [
      "L E> (101100)^n R",
      "L (100101)^n E> R",
      "Going right, E crosses the same words, turning each into `100101` (12 steps per word)."),
+    # The five sweeps of one visit of the left end (py/closure/accel.py finds the same ones), on words of three
+    # pairs: the left block `(01)^a` and the big block `(01)^b` are crossed three pairs at a time.
+    ("c_right6",
+     "L 1 C> (010101)^n R",
+     "L (011001)^n 1 C> R",
+     "A visit, sweep 1: going right, C crosses a block of pairs `01` three pairs at a time, leaving `011001` (14 steps per word)."),
+    ("a_left6",
+     "L (011001)^n A> 110 R",
+     "L A> 110 (010101)^n R",
+     "A visit, sweep 2: going left, A (carrying `110`) turns the words `011001` back into three pairs `01` (22 steps per word)."),
+    ("b_right6",
+     "L 1 B> (010101)^n R",
+     "L (010110)^n 1 B> R",
+     "A visit, sweep 3: going right, B crosses the pairs three at a time, leaving `010110` (14 steps per word)."),
+    ("b_left6",
+     "L (010110)^n B> 000 R",
+     "L B> 000 (010101)^n R",
+     "A visit, sweep 4: going left, B (carrying `000`) turns the words `010110` back into three pairs `01` (22 steps per word)."),
+    ("f_left6",
+     "L (011001)^n F> 0 R",
+     "L F> 0 (010101)^n R",
+     "A visit, sweep 5: going left, F turns the words `011001` of the left block back into three pairs `01` (22 steps per word)."),
 ]
 
 

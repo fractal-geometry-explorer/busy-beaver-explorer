@@ -63,6 +63,66 @@ allow, the steps summed in closed form. So the run is exact (same tape and step 
 mismatches (with and without `ACCEL_X`). From blank tape: 10^100 steps in 47 s, 1.2·10^300 steps in 140 s, no
 halt; the number of distinct verified periods levels off (183 by 10^21, 245 by 10^251).
 
+## A closed set of phase nodes, under size assumptions (`py/closure2/`)
+
+Level: trusted (a Python search; nothing here is in Lean), and conditional: it assumes A1-A3, R1, R2 below,
+which are observed in the run but not proved. So the machine stays open.
+
+*Nodes.* A node is a phase seen at one point of its period: the block shape (the words and the cells between
+them), the small constant blocks, and for every long block a count that is either *free* (any value from a
+threshold up) or *huge* (free, and assumed large, see A1). The big counts are never fixed.
+
+*Lemma A (period).* For each node, one period run symbolically returns to the same shape with the counts changed
+by the node's delta, for all values of the counts from the thresholds up. These are statements of the kind proved
+in `lean/Phases*.lean`; here they are re-derived by `py/accel.py` for each node.
+
+*Lemma B (phase end).* A phase ends when a shrinking block falls below its threshold. For every shrinking block
+allowed to run out, and every remainder r below the threshold, one symbolic run from "this block has r copies,
+the other counts free" leads to the next node; the new counts are the old ones plus constants.
+
+*Result.* Starting from the exact run at step 211338013153481599020, the search closes: 261 nodes, 1,579 edges,
+38,902 symbolic branches, 54 s; no branch reaches the halting transition and no branch is left open. The nodes
+are exactly the six phases of the run: absorb (4,-2) 156 nodes, feed (30,-18,1) 36, cross (-6,6,1) 31, cross
+(-12,6,6,1) 24, drain (-18,18,36,-11) 12, double cross (-12,12,-6,6,1) 2. Phase-level transitions: drain -> cross
+or double cross; double cross -> cross (-12,6,6,1) -> absorb; cross -> absorb, cross; absorb -> absorb, drain,
+feed, cross; feed -> drain, absorb.
+
+*Assumptions* (each is counted when the search uses it):
+
+* A1. A block tagged huge has at least 1000 copies whenever a period lemma needs its threshold (at most 19 in the
+  closed set) or the head takes one more copy of it outside a period (at most 840 times per branch).
+* A2. A block that grows during a phase that uses up a huge block is huge afterwards.
+* A3. When one shrinking block of a phase runs out, the other huge shrinking blocks are still huge.
+* R1 (ratio). In the drain the final block runs out before the first block (18 Y < 11 X). In the run to
+  1.2e300: always, with a factor of at least 6.47 to spare.
+* R2 (ratio). In the double cross (-12,12,-6,6,1) the -6 block runs out before the -12 block. In the run:
+  always (35 times), with a factor of only 1.40 to spare.
+
+R1 and R2 come from `witness.py`, which records which block runs out first in the exact run. Without them the
+search does not close (it follows both alternatives and meets phases the run never shows); without A2 it does
+not close either. Without any size assumption (all counts free, from the blank tape) the search explored
+125,453 branches and 1,394 nodes in 540 s without closing; no branch reached the halting transition there either.
+
+*Validation* (`validate.py`). The exact run from the blank tape to 1.2e300 steps is followed through the node
+graph from the start step on: it moves along edges of the graph 1,726 times, visits 235 of the 261 nodes, and
+all 1,658 phase jumps of at least 1000 periods happen inside a node with the same delta. The smallest block
+that a node calls huge (and that is not shrinking there) has 384,854,155 copies.
+
+*Mutation test* (`mutate.py`, `mutation_results.txt`). Dropping one remainder class, swapping R1, or removing the
+ratio rules is detected (the search no longer closes, or hundreds of jumps fall outside the graph). Three planted
+defects change nothing because the closed run never uses the code they break. One is not detected and is a real
+blind spot: crediting growing huge blocks with one period too many; the real blocks are far above every
+threshold, so the run cannot show such an error.
+
+*What a Lean replay needs.* (1) Lemma A for the 261 nodes: `bbtools.symtm` rules like those in `Phases*.lean`
+(six of them are proved; the others differ in the junction cells). (2) Lemma B for the 1,579 edges: one
+symbolic rule each, with the remainder fixed and the other counts free. (3) The induction: an invariant that
+contains the node, the thresholds and inequalities implying A1-A3, R1, R2, shown to be preserved by every edge.
+This is the missing mathematics, not only missing formalisation. (4) Reaching the start configuration at step
+2.1e20, which needs the accelerated run replayed as rule applications, or an earlier entry point.
+
+Notes with the problems met on the way: `g09-absorb-traverse/notes.md` in the project files.
+
 ## Halting
 
 The only halting transition is F on a 1; F is entered only from A on a 1. In every phase rule the cell F reads is
@@ -75,13 +135,15 @@ Open. Kernel: halting configurations, 10,000 steps, the six phase periods of `Ph
 `Rules.lean`. Native: 10^7 steps. Trusted: no halt in 10^10 steps (`c/ev.c`), and in 1.2·10^300 steps by the exact
 accelerated simulator (Python, checked against C up to 1.6·10^10). The phase ends (which branch, what junction) are
 from the simulation only.
+Trusted and conditional: the closed node set of `py/closure2/` (no halting transition reachable if the long blocks
+stay long and keep their order of size, A1-A3, R1, R2 above); these size assumptions are open.
 
 ## For later
 
-* A closure proof: `py/closure.py` runs the phases symbolically with all counts abstract, splitting on remainders
-  when a block runs out; as written it forgets the relations between counts (Y < X/10), explores spurious cases
-  and its queue grows (thousands of branches, hundreds of templates). Tracking the inequality between the first and
-  final block, or abstracting at round starts with residues, might close it.
+* The size invariant that the closed node set (above) assumes: a set of inequalities between the long blocks that
+  every edge map of `py/closure2/nodes.json` preserves and that implies A1-A3, R1, R2. R2 has only a factor 1.40 to
+  spare in the run. With it, and a Lean replay of the node set, the machine would be proved non-halting.
+* `py/closure.py` is the first, superseded attempt (all counts abstract, no thresholds); it does not close.
 * State the round map with exact residues (each branch is an affine map on residue classes).
 * Same family as 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE and 1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB.
 
@@ -112,4 +174,8 @@ python3 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/check_accel.py 1RB
 ACCEL_X=1 python3 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/phase_rules.py 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 1e20 1e60
 python3 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/phases.py      # regenerates lean/Phases*.lean
 gcc -O2 -o ev holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/c/ev.c && ./ev 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 2000000000 L D 1 100000 12 | awk 'NR%300==0'
+python3 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/closure2/witness.py 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 1e300 /tmp/witness.json      # which block runs out first (80 s)
+RATIO=holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/closure2/witness_1e300.json START=1e20 python3 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/closure2/search.py 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 50000 /tmp/nodes.json   # CLOSED, 261 nodes (1 min)
+python3 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/closure2/validate.py 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 1e300      # VALIDATION OK (3 min)
+python3 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/closure2/mutate.py 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 1e300 /tmp/mutation_results.txt      # 7 defects, about 25 min
 ```

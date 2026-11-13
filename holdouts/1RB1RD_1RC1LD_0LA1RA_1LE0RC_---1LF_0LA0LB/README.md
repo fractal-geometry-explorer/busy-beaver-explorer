@@ -45,12 +45,46 @@ log side of the tape.
 **Halting.** The only halting transition is E reading 0, and E is entered only from D reading 0 (D0 → 1LE). So the
 machine halts exactly when the head in state D reads 0 with a 0 to its left.
 
+## Closed-set attempt (13 November 2026)
+
+An attempt to prove non-halting the way the Discord proof of `1RB0RE_1LC0LB_…` (id 31480) works: big counts free,
+only remainders tracked, a finite closed set of nodes. **It does not close in that form, and no halting class was
+found.**
+
+- **The tape is a list of runs.** Every time the head is at the left end the tape is runs of ones separated by single
+  zeros: `a` = 5, `c` = 11, other odd runs 7, 9, 13, 15, 17, 19, …, one even run where the last trip turned, and an even
+  last run. One round trip rewrites a prefix of the list after `a^N`.
+- **Engine cycle, proved in Lean for all lengths** (`engine_cycle_even`, `engine_cycle_odd` in `lean/Rules.lean`):
+  with `X = 7 a a 7 a a 7 a a 7 a 1^4` (7 = `1^7 0`),
+
+      0^inf F> 0 a^N X c^(M+6) R   ->   0^inf F> 0 a^(N+16) X c^M R      (twelve round trips, 600n + 4226 steps for N = 2n+2)
+
+  for every N >= 2, every M and any tape R: the counter eats 6 c and makes 16 a (lemma A of the method).
+- **Round starts.** Each round starts as `0^inf F> 0 PRE c^M TAIL` with the same
+  `PRE = 9 a c 9 a 9 a 7` (`py/PRE.txt`) and a short `TAIL`. The next start has `M' = (4M + k)/3` and a new tail, and
+  both depend only on (TAIL, M mod 6) (`c/round.c`; checked for M = 200..235 on the first tails).
+- **The tail set does not stay small.** Allowing every residue of M, `py/tails.py` found more than 238,000 different
+  tails (16 to about 270 cells) with 50,000 still unexplored when stopped; the number of unexplored tails was still
+  rising, slowly. In about 1.4 million rounds **no residue class halts**. The tails are not a few families with a
+  free count: compressing repeats leaves 63,000 shapes for 68,000 tails.
+- **Trip rules** (`py/trip_rules.py`): given N mod 2, a round trip is a deterministic rewriting of a prefix of the
+  list; the real run to 3·10^8 steps uses 124 rules, sampled tails 12,800 and rising (the long trips read the whole
+  counter).
+- **Pushdown closure** (`c/pds.cpp`): a decider that summarises one half of the tape (last n cells, last r runs, or
+  last r groups of equal runs with capped counts) and keeps the other half as an exact stack, closed by post*
+  saturation (the "direct" finite-automata-reduction method with the automaton built on the fly). From blank tape
+  every setting tried reports a halt that the real run does not have (small early tapes get mixed). Started from the
+  real round start at step 10,037,178 the false halts of the fine settings disappear, but the search did not finish
+  in 10 GB (160 million transitions).
+
+What this says: the remainder M mod 6 is not where the difficulty is; the tail carries an unbounded amount of
+information from round to round. A proof needs a description of all tails (a regular language closed under the
+round map) rather than a finite list.
+
 ## For later
 
-Stopped after the sweep rules and the observed round sequence. Missing: (1) the counter between a^N and c^M
-(its digits are the words between the `1^2`/`1^4` separators; its increments repeat with period 6); (2) the
-exact rebuild when the c's run out, which gives the map M -> M' (about 4M/3, with a remainder that decides the
-details). The halting question is presumably whether the rebuild ever reaches the pattern `0 D>0` for some
+Done since: the counter cycle (above). Still missing: the rebuild when the c's run out as a rule on run lists (the
+counter first eats the tail, then one trip to the right end turns pairs `a a` into `c`). The halting question is presumably whether the rebuild ever reaches the pattern `0 D>0` for some
 remainder, which would make this a Collatz-like (4/3) map. Next: sample the round boundaries with `c/events.c`
 (L events around the steps where c^M disappears), fit M' as a function of M mod a small number, and prove each
 case with `symtm.prove`.
@@ -58,7 +92,7 @@ case with `symtm.prove`.
 ## Status
 
 Open. Lean: the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel and in 10,000,000
-by `native_decide` (`lean/Blank.lean`); the two sweeps for all lengths (`lean/Rules.lean`). C
+by `native_decide` (`lean/Blank.lean`); the two sweeps and the twelve-trip engine cycle for all lengths (`lean/Rules.lean`). C
 (`tools/c/triage.c`): no halt in 1,000,000,000 steps.
 
 ## Pages
@@ -71,5 +105,6 @@ by `native_decide` (`lean/Blank.lean`); the two sweeps for all lengths (`lean/Ru
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB/lean/check.sh
 PYTHONPATH=tools/py python3 holdouts/1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB/py/gen_rules.py | diff - holdouts/1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB/lean/Rules.lean
+g++ -O2 -o pds holdouts/1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB/c/pds.cpp    # ./pds MACHINE R H 2 1 16 8 1 14 6 -i TAPE F
 gcc -O2 -o events holdouts/1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB/c/events.c && ./events 1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB 30000000 L 20 a=111110 c=111111111110
 ```

@@ -1,8 +1,8 @@
 {
  "generated": false,
  "group": "G09",
- "family": "nested drain/copy counter",
- "summary": "A nested counter with three long blocks: each visit of the left end turns one word 10111 of the right block into a 00111 and a 100 on the left (proved), then the 100-block is poured into a new right block at 2:1 (proved), and the left block is recycled as the next right block, about twice as long each round (641, 5,368, 10,769, ...).",
+ "family": "level machine with a binary counter (nested drain/copy)",
+ "summary": "Works in levels: a block (10111)^b is moved word by word to the left end, drained, and recycled as the next block, 2 to 6.6 times as long. For the four short tails the level map is exact (b' = (9b+c)/2 with the next tail chosen by b mod 4; proved visit by visit in Lean, composed symbolically for all b). Other levels count in binary between the blocks, and the next level then depends on the digits. No growth cycle; no halt in 5.6e15 steps (12 levels); open.",
  "decision": "open",
  "title": "What is known about 1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB.",
@@ -13,9 +13,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The run is a sequence of phases on three long blocks; the two main phases are proved in Lean as one-cycle rules for every block size (kernel). The recycling between rounds and a small counter that appears in later rounds are known from simulation only."
+  "<b>The question is open.</b> The run is a sequence of <em>levels</em>, each about 2 to 6.6 times as long as the one before. Every single visit of the left end in the common phases is a Lean theorem for all block sizes, and for the four common level types the map from one level to the next is an exact formula. But some levels contain a binary counter, and what follows them depends on the binary digits of a block length; no closed description of those levels has been found. The machine halts exactly when the head, in state A, stands on a 0 followed by 1 0; that has not happened in 5.6&middot;10<sup>15</sup> steps."
  ],
  "claims": [
   {
@@ -38,9 +38,9 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 52,423 cells have been visited and 28,979 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 5.6&middot;10<sup>15</sup> steps",
+   "text": "An exact accelerated simulator (blocks of 30 cells, run-length coded; a repeated cycle is skipped only after it has been re-run with the counts as free variables) runs 5,608,376,993,382,856 steps without a halt. Its tape was compared with plain step-by-step simulation at 50,000,050,596 steps: same state, all 399,483 cells equal. The shared C simulator <code>tools/c/triage.c</code> independently runs 10<sup>9</sup> steps (52,423 cells visited, 28,979 ones).",
+   "where": "<code>c/hsim2.cpp</code>, <code>py/cmpc.py</code>, <code>c/dump.c</code>; <code>holdouts/triage.json</code>"
   },
   {
    "level": "heuristic",
@@ -49,59 +49,98 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "Exact halting condition",
+   "text": "The machine halts exactly when a configuration <code>A&gt; 0 1 0</code> occurs: state A on a 0 whose right neighbours are 1 then 0. (F is entered only from B reading 1; if F reads 1 it steps back onto the 0 that B wrote. So only B reading 1 followed by 0 halts, and B gets there from A reading 0.) A hand argument from the table, not in Lean.",
+   "where": "<code>README.md</code>, section When it halts"
+  },
+  {
    "level": "kernel",
-   "title": "Phase A, one visit",
+   "title": "Grow phase, one visit",
    "text": "<code>0^∞ D&gt;0 0 1^5 (00111)^a (100)^(a+1) (10111)^(b+1) R</code> reaches <code>0^∞ D&gt;0 0 1^5 (00111)^(a+1) (100)^(a+2) (10111)^b R</code> in 28a + 55 steps, for every a, b and every tape R further right.",
    "where": "<code>grow</code>, <code>lean/Rules.lean</code>"
   },
   {
    "level": "kernel",
-   "title": "Phase B, two visits",
-   "text": "<code>0^∞ D&gt;0 0 1^5 (00111)^a (100)^(c+4) (111100)^e 0 0^∞</code> reaches the same with a+2, c+2, e+1 in 32a + 24c + 50e + 178 steps.",
+   "title": "Pour phase, two visits",
+   "text": "<code>0^∞ D&gt;0 0 1^5 (00111)^a (100)^(c+4) (111100)^e 0 0^∞</code> reaches <code>0^∞ D&gt;0 0 1^5 (00111)^(a+2) (100)^(c+2) (111100)^(e+1) 0 0^∞</code> in 32a + 24c + 50e + 178 steps.",
    "where": "<code>pour</code>, <code>lean/Rules.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "120 one-visit rules for the other phases",
+   "text": "Each visit of the left end in the phases of the four common level types is a theorem for every block size: entering the drain phase (tails P, Q, R, S), the 14-visit drain cycle that removes four words <code>100</code>, the four endings according to the block length mod 4 up to the recycling of the left block, and the pour phase of tail S. Each rule is one visit: from one tape with the head at the left end to the next.",
+   "where": "<code>lean/Visits.lean</code>, generated by <code>py/rules.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The rules cover whole levels; the level map for b = 12..27",
+   "text": "Plain simulation of 64 levels (tails P, Q, R, S, b from 12 to 27): every visit is an instance of one of the Lean rules, and the next level is the one the formulas give: for tail P, b' = (9b+10)/2, (9b+11)/2, (9b+10)/2, (9b+9)/2 with next tail P, Q, R, S for b = 0, 1, 2, 3 mod 4; for Q the constants are 12, 13, 12, 11; for R, b' = b+4; for S, b' = 2b+3 or 2b+4.",
+   "where": "<code>py/levelmap.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The level map for every b (12 of 14 level types)",
+   "text": "A symbolic run with the block counts as free variables, which stores a cycle only after re-running it with free counts and splits into cases by remainder when a jump needs it, follows a level from start to the next level start. For 12 of the 14 level types that occur, every case ends in a level start of one of the 14 types (91 cases), with the next block length a linear form such as 18k+113 from 4k+24. The check fails for the two types that contain the binary counter (2 cases), so the set is <em>not</em> closed. Python, not checked by Lean.",
+   "where": "<code>py/closure.py</code>"
+  },
+  {
    "level": "heuristic",
-   "title": "Rounds",
-   "text": "The left block is recycled into the next right block: 566 words at step 3.37&middot;10<sup>6</sup>, 5,368 at 2.85&middot;10<sup>8</sup>, 10,769 at 1.75&middot;10<sup>9</sup>; in later rounds a small counter between the blocks slows phase B down.",
-   "where": "C run, <code>c/ev.c</code>"
+   "title": "A binary counter inside some levels",
+   "text": "In a level whose tail is <code>(100111)^m</code> the tape between the blocks is a string of the words <code>100</code> (digit 0) and <code>11100</code> (digit 1). Read as a binary number it goes up by one each time the tail loses one word, from 0 to m&minus;1 (six runs, m up to 100). The next level depends on the digits of m: for b = 400 and m = 1..69 the next block length lies between 1,205 and 2,657 and the tail takes nine shapes.",
+   "where": "<code>py/counter.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No level start that was tried halts",
+   "text": "About 25,000 random level starts of the 14 types (block counts 20 to 149) all reach a level start of one of the same 14 types; so do the counter levels with b = 400, m = 1..69; random level starts with counts below 20 (many more shapes) do not halt either. Scratch scripts, plain simulation.",
+   "where": "<code>README.md</code>, section Do other classes halt?"
+  },
+  {
+   "level": "heuristic",
+   "title": "Twelve levels of the real run",
+   "text": "Level starts from blank tape: b = 13, 77, 83, 670, 674, 5,397, 10,798, 62,092, 279,420, 1,257,395, 5,658,282, 11,316,567 (the last at step 1.92&middot;10<sup>15</sup>), each step agreeing with the level map where the map is known. No configuration returns with only one or two counts grown, so there is no growth cycle to prove.",
+   "where": "<code>c/hsim2.cpp</code> with <code>LEVELS=1</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. Two phases are proved; the phase changes, and a small counter that drives the later rounds, are not.",
+   "text": "Not known. A proof that it runs for ever needs a closed description of the counter levels: a set of tapes with an arbitrary string of the two digit words between the blocks. Nothing suggests a halt.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
-  "holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB 1000000000",
-  ". /etc/profile.d/lean.sh && holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/lean/check.sh   # Rules.lean",
-  "gcc -O2 -o ev holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/c/ev.c && ./ev 1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB 2000000000 L D 1 100000 12 | awk 'NR%300==0'"
+  "holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/lean/check.sh   # Machine, Blank, Rules, Visits: ALL CHECKED in under a minute",
+  "python3 holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/py/levelmap.py   # ALL OK",
+  "python3 holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/py/counter.py    # ALL OK",
+  "python3 holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/py/closure.py 300   # 91 cases pass, 2 fail, NOT CLOSED (about 1 min)",
+  "python3 holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/py/cmpc.py 50000000000   # EQUAL (about 4 min)",
+  "g++ -O2 -o hsim2 holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/c/hsim2.cpp && LEVELS=1 ./hsim2 1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB 30 6000000000000000 540 100",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows yet. Three long blocks on this machine's tape trade cells like the digits of a slow counter: at each visit of the left end one word moves from the right block to the left, then the middle block is poured to the far right, and the left block is recycled as the next right block, about twice as long.",
+  "lede": "Nobody knows yet. This machine works in levels: it moves a long block of the tape to the left one word at a time, drains what it built, and starts again with a block 2 to 6.6 times as long. Most levels follow an exact formula; some contain a binary counter and are not understood.",
   "facts": [
    {
     "level": "kernel",
-    "value": "2 phases",
-    "text": "Phase A and phase B, proved in Lean for every block size."
+    "value": "122 rules",
+    "text": "One visit of the left end in each phase, proved in Lean for every block size."
    },
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 52,423 cells visited."
+    "value": "5.6&middot;10<sup>15</sup> steps",
+    "text": "No halt in an exact accelerated simulation, checked cell by cell against plain simulation at 5&middot;10<sup>10</sup>."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "12 of 14",
+    "text": "Level types whose next level is computed for every block length."
    },
    {
-    "level": "heuristic",
-    "value": "sqrt/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "open",
+    "value": "2 types",
+    "text": "Levels with a binary counter inside: no closed description."
    }
   ],
   "presets": [
@@ -126,24 +165,53 @@
     ]
    },
    {
-    "id": "words",
-    "eyebrow": "Tape as words",
-    "heading": "Three long blocks",
+    "id": "halt",
+    "eyebrow": "The only way out",
+    "heading": "When it would halt",
     "html": [
-     "<p>Each time the head reaches the left end of the tape in state D, the tape reads</p>",
-     "<p style='text-align:center'><code>0 0 1^5 (00111)^a (100)^c (10111)^b &middot; tail</code></p>",
-     "<p>for instance at step 315,712,461: <code>0 0 1^5 (00111)^1475 (100)^1476 (10111)^3922 1 0 0 1^4 0 1^4 0 0 1 0</code>. On the way right the words show up rotated (<code>11001</code>, <code>001</code>, <code>01111</code>).</p>"
+     "<p>The machine has one halting instruction: state F reading a 0. F is reached only from state B reading a 1, and B then leaves a 0 behind and moves right. If F finds a 1 it steps back onto that 0, and nothing happens. So the machine stops only if B finds a 1 with a 0 right after it, and B gets to such a place only from state A reading a 0.</p>",
+     "<p style='text-align:center'><b>It halts exactly when the head, in state A, is on a 0 and the next two cells are 1 and 0.</b></p>",
+     "<p>In the whole run so far the head in state A on a 0 has always found either another 0 or two 1s to its right.</p>"
     ]
    },
    {
-    "id": "phases",
-    "eyebrow": "Macro rules",
-    "heading": "Two phases and a recycling step",
+    "id": "words",
+    "eyebrow": "Tape as words",
+    "heading": "Visits and levels",
     "html": [
-     "<table><thead><tr><th>phase</th><th>per visit</th><th>steps</th><th>proof</th></tr></thead><tbody><tr><td>A: <code>(00111)^a (100)^(a+1) (10111)^b</code></td><td>a+1, c+1, b&minus;1: one word 10111 (5 cells) becomes 00111 + 100 (8 cells)</td><td>28a + 55</td><td>Lean <code>grow</code></td></tr><tr><td>B: <code>(00111)^a (100)^c (111100)^e 0</code></td><td>per two visits a+2, c&minus;2, e+1</td><td>32a + 24c + 50e + 178</td><td>Lean <code>pour</code></td></tr></tbody></table>",
-     "<p>In phase A the head does not even reach the right part of the tape: it shuttles between the left end and the right block, and the tape grows only at the left. When the right block is empty, phase B pours the middle block into a new block at the far right, two words for one. When the middle block is empty the left block is rewritten as <code>(01111)^a</code>, which becomes the right block of the next phase A, and the cycle restarts with a and c near 0.</p>",
-     "<p>So each round the left block takes the size of the old right block plus what the round adds, and the run grows like a counter whose digits are block lengths: the recycled block had 566 words at step 3.37&middot;10<sup>6</sup>, 5,368 at 2.85&middot;10<sup>8</sup> and 10,769 at 1.75&middot;10<sup>9</sup>. From then on the far-right block of the previous round stays on the tape, and phase B becomes slower: a small counter of short <code>(001)</code> and <code>1 1 1</code> pieces forms between the middle and right blocks and the far-right block is eaten a word per few visits.</p>",
-     "<p>The machine halts only on F reading a 0, and F is entered only from B reading a 1 (B writes a 0 and moves right). In the phases above the cell F then reads is always a 1 inside the words; a halt would need a phase change to put a 0 there.</p>"
+     "<p>Look at the tape only at the moments when the head reaches a new cell at the far left. It then reads</p>",
+     "<p style='text-align:center'><code>0 0 1^5 (00111)^a &middot; X</code></p>",
+     "<p>where <code>(00111)^a</code> means the word 00111 written a times. Between two such moments the head sweeps to the right and comes back: one <em>visit</em>. A visit adds one word 00111 at the left and changes the rest X in a way that does not depend on a.</p>",
+     "<p>Now and then a visit rewrites the whole left block as <code>(10111)^a</code>. The tape is then</p>",
+     "<p style='text-align:center'><code>0 0 1^5 100 (10111)^b &middot; tail</code></p>",
+     "<p>and a new <em>level</em> starts. A level is described by the block length b and the short tail after the block. During a level the block is moved to the left one word per visit (the <em>grow</em> phase), then the pile of words <code>100</code> that this leaves is removed four words per 14 visits (the <em>drain</em> phase), and the left block is recycled.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>phase</th><th>tape at the left end</th><th>one cycle</th><th>Lean rule</th></tr></thead><tbody><tr><td>grow</td><td><code>(00111)^a (100)^(a+1) (10111)^(b+1)</code></td><td>1 visit: one word of the block becomes 00111 and 100; 28a+55 steps</td><td><code>grow</code></td></tr><tr><td>drain</td><td><code>(00111)^a (100)^c 111 00 111</code></td><td>14 visits: four words 100 disappear</td><td><code>drain_1</code> to <code>drain_14</code></td></tr><tr><td>end</td><td>the same with 4 to 7 words 100 left</td><td>10 to 20 visits, ending with the recycling</td><td><code>end0_*</code> to <code>end3_*</code></td></tr><tr><td>pour</td><td><code>(00111)^a (100)^(c+4) (111100)^e</code></td><td>2 visits: two words 100 become one word 111100</td><td><code>pour</code></td></tr></tbody></table></div>"
+    ]
+   },
+   {
+    "id": "levels",
+    "eyebrow": "From one level to the next",
+    "heading": "The level map",
+    "html": [
+     "<p>Four short tails keep coming back; call them P = <code>100 1111 0 1111 00 111</code>, Q = <code>100 1111 0 1111 0 111</code>, R = <code>100 1111 0 11111 0 111</code>, S = <code>100 1111 0 1111 00 1</code>. For P and Q the next level is given by the remainder of b when divided by 4:</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>tail</th><th>b = 4k</th><th>b = 4k+1</th><th>b = 4k+2</th><th>b = 4k+3</th></tr></thead><tbody><tr><td>P</td><td>(9b+10)/2, tail P</td><td>(9b+11)/2, tail Q</td><td>(9b+10)/2, tail R</td><td>(9b+9)/2, tail S</td></tr><tr><td>Q</td><td>(9b+12)/2, tail P</td><td>(9b+13)/2, tail Q</td><td>(9b+12)/2, tail R</td><td>(9b+11)/2, tail S</td></tr></tbody></table></div>",
+     "<p>So such a level multiplies the block by 4.5, and the remainder mod 4 picks the next tail, as in a Collatz-type problem. Tail R gives b+4 and leaves a second long block on the tape; tail S doubles b and leaves a block of six-cell words whose length m is about b/2.</p>",
+     "<p>These formulas are checked in two ways: by plain simulation for b = 12 to 27, where every visit is an instance of a Lean rule, and by a symbolic run with b as a free variable (a Python program, not Lean) for every b.</p>",
+     "<p>The run from a blank tape has started twelve levels so far:</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>level</th><th>step</th><th>b</th><th>tail</th></tr></thead><tbody><tr><td>1</td><td>3,870</td><td>13</td><td>longer early tail</td></tr><tr><td>2</td><td>64,858</td><td>77</td><td>longer early tail</td></tr><tr><td>3</td><td>168,596</td><td>83</td><td>nested</td></tr><tr><td>4</td><td>4,433,865</td><td>670</td><td>R</td></tr><tr><td>5</td><td>10,851,172</td><td>674</td><td>nested block of 667 words</td></tr><tr><td>6</td><td>285,193,236</td><td>5,397</td><td>S</td></tr><tr><td>7</td><td>1,750,755,956</td><td>10,798</td><td><code>(100111)^2702</code>: counter level</td></tr><tr><td>8</td><td>3.77&middot;10<sup>10</sup></td><td>62,092</td><td>Q</td></tr><tr><td>9</td><td>7.66&middot;10<sup>11</sup></td><td>279,420</td><td>P</td></tr><tr><td>10</td><td>1.55&middot;10<sup>13</sup></td><td>1,257,395</td><td>P</td></tr><tr><td>11</td><td>3.14&middot;10<sup>14</sup></td><td>5,658,282</td><td>S</td></tr><tr><td>12</td><td>1.92&middot;10<sup>15</sup></td><td>11,316,567</td><td>block of 2,829,143 six-cell words</td></tr></tbody></table></div>",
+     "<p>For example 279,420 is divisible by 4, and (9&middot;279,420+10)/2 = 1,257,395.</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "The hard part",
+    "heading": "A binary counter between the blocks",
+    "html": [
+     "<p>After a level with tail S the tape carries a block <code>(100111)^m</code>. In the next level the machine does something new. Between the pile of words <code>100</code> and that block a string of two kinds of words appears: <code>100</code> and <code>11100</code>. Read <code>100</code> as the digit 0 and <code>11100</code> as the digit 1: the string is a number in binary. Each time the block at the right loses one word, the number goes up by one:</p>",
+     "<p style='text-align:center'><code>1000 &rarr; 1001 &rarr; 1010 &rarr; 1011 &rarr; 1100 &rarr; &hellip;</code></p>",
+     "<p>until the block is used up and the number is m&minus;1. Then the digits are consumed from the right, and how the level ends depends on them. With b = 400 and m from 1 to 69, the next block length takes values from 1,205 to 2,657 and the next tail nine different shapes, in no order that we can see.</p>",
+     "<p>This is why the method that settles similar machines does not finish here. That method lists finitely many tape shapes with free block lengths and shows that each leads to another in the list. A counter passes through a different shape for every value, so a proof needs a different kind of invariant: a set of tapes that allows <em>any</em> string of the two digit words in the middle.</p>",
+     "<p>No level start that was tried halts: all remainders for the common tails, about 25,000 random level starts, and the counter levels with small m. The evidence points to a machine that runs for ever, but it is evidence, not a proof.</p>"
     ]
    }
   ]

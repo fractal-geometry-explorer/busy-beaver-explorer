@@ -74,12 +74,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---</h1>
     <p class="machine">1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The tape is an exact ternary counter: its digits are pairs of runs of alternating cells, valued by their lengths mod 4, and each trip of the head adds one. That increment is proved in Lean (kernel) for every carry depth, and it covers 99.86% of the trips in the first 3&middot;10<sup>12</sup> steps. The counter keeps shrinking one run of each digit; when such a run runs out, a <em>transfer</em> moves a long run to the right end of the tape. Transfers and the right end are not yet described by rules, so non-halting is not proved.</p>
+      <p><b>The question is open.</b> The tape is an exact ternary counter: its digits are pairs of runs of alternating cells, valued by their lengths mod 4, and each trip of the head adds one. That increment is proved in Lean (kernel) for every carry depth, and it covers 99.86% of the trips in the first 3&middot;10<sup>12</sup> steps. The counter keeps shrinking one run of each digit; when such a run runs out, a <em>transfer</em> moves a long run to the right end of the tape, two cells per shuttle of the head. The shuttle itself is now proved in Lean for every list of runs in between and any number of shuttles, and so are the events at a run boundary, including the one pattern that halts.</p>
+      <p>What is missing is the transfer as a whole (the shuttles before the tail is &ldquo;saturated&rdquo;, transfers nested inside transfers, the pairing of the digits afterwards) and an invariant. The invariant cannot be about residues alone: tapes with exactly the residues of a real configuration but several short runs <em>do halt</em> (for example <code>6 6 4 6 5 5 5 5 6 7</code> at step 5,943). In the real run every transfer of the first 10<sup>14</sup> steps has long runs to spare, but that is an observation, not a proof.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -118,6 +119,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>By induction over the list of digits a carry passes: from the start of a trip with digit 0 at 2, any number of digits at 2, then a digit at 1 (or at 0), the machine reaches the start of the next trip with the exact tape and step count stated. With <code>inc0</code> and <code>inc1</code> this is every kind of trip while the runs involved are long enough (r0 &ge; 7, r1 &ge; 5, a passed digit x &ge; 9, y &ge; 5, the stopping digit x &ge; 4, y &ge; 6 or x &ge; 6, y &ge; 7).</p>
         <p class="where"><code>carry_chain</code>, <code>home_chain</code>, <code>trip_stop1</code>, <code>trip_stop0</code>, <code>lean/Counter.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The events at a run boundary</h3>
+        <p>For every surrounding tape: going right, A passes a boundary (run length 0 or 3 mod 4, counted from A on a 0) or turns (1 or 2 mod 4); going left, the head crosses a <code>00</code> boundary and moves it two cells, bounces at a <code>11</code> boundary, or, on a run <code>1 0</code> of exactly two cells between <code>11</code> and <code>00</code>, halts four steps later. Both passes flip every cell they cross.</p>
+        <p class="where"><code>loc_pass0</code>, <code>loc_pass3</code>, <code>loc_turn1</code>, <code>loc_turn2</code>, <code>loc_cross</code>, <code>loc_bounce</code>, <code>loc_halt</code>, <code>loc_halt_stops</code>, <code>lean/Transfer.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The shuttle of a transfer, for every tail and any number of shuttles</h3>
+        <p><code>L (10)^m 0 A&gt; 1(0101)^(a<sub>1</sub>+1) &hellip; 1(0101)^(a<sub>n</sub>+1) 1(0101)^z 0^inf</code> becomes the same tape with <code>(10)^m</code> removed and the last run <code>1(0101)^(z+m)</code>, in exactly m(2S + 8z + 8) + 4m(m &minus; 1) steps (S = total length of the n runs in between): 2m cells leave the moved run, 4m arrive at the right end, nothing in between changes. By induction over the list of runs and over m.</p>
+        <p class="where"><code>shuttle</code>, <code>shuttles</code>, <code>scst_eq</code>, <code>right_chain</code>, <code>left_chain</code>, <code>lean/Transfer.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -149,6 +160,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>py/rsim.py</code> runs 10<sup>14</sup> steps without a halt (3,153,668 trips).</p>
         <p class="where"><code>py/rsim.py</code></p>
       </div>
+      <div class="card">
+        <h3>Tapes with the same residues and short runs halt</h3>
+        <p>Real trip starts with every long run replaced by the smallest length of the same residue mod 4 halt in 20 of 2,692 cases (threshold 4): <code>6 6 4 6 5 5 5 5 6 7</code> halts at step 5,943 and <code>6 6 2 7 9 6 6 7 7 7 5</code> at step 1,005, both confirmed on a plain cell-by-cell simulator. With every long run cut to its shortest length of 8 or more cells none halted (0 of 9,155 shortened tapes at threshold 8, and none at 10, 12, 16; 3 of 7,119 at threshold 6). One run changed by &plusmn;1 or &plusmn;2 halts in about 4% of the cases; long runs replaced by random lengths of the same residue never did (0 of 3,829). So an invariant must fix the residues and bound lengths from below.</p>
+        <p class="where"><code>py/validate.py</code>, <code>py/minimal_test.py</code>, <code>py/small_halts.py</code>, README</p>
+      </div>
+      <div class="card">
+        <h3>Tools checked against the real run and by mutation</h3>
+        <p>Building a trip start from a list of runs and running to the next one reproduces 14,387 consecutive trip starts of the real run (list and step count). The shuttle statement agrees with a plain simulator in 200 of 200 random cases, and five mutated statements fail in 40 of 40 cases each.</p>
+        <p class="where"><code>py/validate.py</code>, <code>py/runs.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -167,12 +188,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The machine halts exactly when D reads a 1 whose left neighbour is a 1. Of the 6,032,756 times D read a 1 in the first 3&middot;10<sup>12</sup> steps, the alternating stretch ending at D's cell had length 2 158 times and length 3 17 times (a halt needs length 1); those we looked at were near the right end or in transfers.</p>
         <p class="where"><code>py/classify.py</code>, README</p>
       </div>
+      <div class="card">
+        <h3>Transfers nest, and the right end is the same counter one level deeper</h3>
+        <p>A shuttle of a transfer can become a whole inner transfer (trip 2,225,395: an inner transfer of 10,807 shuttles inside an outer one of about 55). The runs behind a freshly deposited run go through exactly the states the whole tape went through from the start (125, 69 and 35 states compared, all equal), three times slower per level; after a transfer the digit pairs take residues outside the table for a few carries (14 of the 16 classes occur).</p>
+        <p class="where"><code>py/runs.py</code>, <code>py/monitor.py</code>, README</p>
+      </div>
+      <div class="card">
+        <h3>Every transfer of the first 10<sup>14</sup> steps ends saturated</h3>
+        <p>In 3,153,668 trips there are 168 transfers or nested levels with at least 3 shuttles; each ends with at least 6 saturated shuttles (the proved kind), after at most 20 unsaturated ones (60 in one level containing two inner transfers). D read a 1 63,281,275 times; the alternating stretch ending there was 2 cells long 218 times and 3 cells 21 times, never 1 (a halt). A candidate regular invariant (windows of 3 runs, lengths below 8 exact, else mod 4) did not stabilise: 263 windows, new ones still at 3.9&middot;10<sup>13</sup> steps.</p>
+        <p class="where"><code>py/monitor.py</code>, README</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The increment is proved; transfers and the right end are only observed. A halt could only come from them.</p>
+        <p>Not known. A proof needs the transfer as a rule (saturation, nesting, merges, entry and exit), the regular trips for the residue classes that follow a transfer, and an invariant that bounds each moved run from below by the size of the tail behind it; a halt would need several long runs to be short at the same time.</p>
       </div>
     </div>
   </section>
@@ -182,10 +213,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- 1000000000
 gcc -O2 -o ev holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/c/ev.c &amp;&amp; ./ev 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- 2000000000 L B 1 100000 12 | awk &#x27;NR%100==0&#x27;
-. /etc/profile.d/lean.sh &amp;&amp; holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/lean/check.sh   # Rules.lean, Counter.lean
 python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/counter.py &gt; Counter.lean   # regenerates lean/Counter.lean
 python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/rsim.py 1e12 100000
-python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/classify.py 3e12</code></pre>
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/classify.py 3e12
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/transfer.py &gt; Transfer.lean   # regenerates lean/Transfer.lean
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/validate.py   # about 2 minutes
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/monitor.py 1e14 out.json   # about 7 minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

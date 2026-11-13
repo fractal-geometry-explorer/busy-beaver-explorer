@@ -11,6 +11,27 @@ bbchallenge id 170561, group G10 (one side grows like √t, the other like a sma
 | E | 1RC | 0LA |
 | F | --- | 0RB |
 
+## The event map (proved, exact)
+
+At an **anchor** `Y 1^m D> 0 1^c Z` (state D on a single 0, m ones on its left, c ones on its right) the machine reaches the next anchor by one of these rules, each proved in `lean/Events.lean` for every block length and every surrounding tape:
+
+| event | when | effect |
+|---|---|---|
+| split | m even, ≥ 4, two or more 0s left of the block | `Y 0 0 1^m D> 0 1^c` → `Y 1^(m/4) 0 0 1^(m%4) D> 0 1^(c+3(m/4))` |
+| odd | m odd, ≥ 3, Y not empty | `Y 0 1^m D> 0 1^c` → `Y 1^(m-2) D> 0 1^(c+3)` |
+| fold | m odd, ≥ 3, at the left end of the tape | `1^m D> 0 1^c` → `1 D> 0 1^(c+3(m-1)/2)` |
+| shift | m even, too few 0s on its left for a split | `Y 0 1^m D> 0 1^c` → `Y D> 0 1^(m-1) 0 0 1^c` |
+| two | m = 2 | `Y 0 0 1 1 D> 0 1^c` → `Y 1 0 0 0 0 1^(c-2)` + carrier |
+| zero, one, oneE, oneO | m = 0 or 1 | the remainder is handed across the gap; in most cases the head runs right behind a carrier `0 1`, which passes blocks that follow a single 0 and becomes `1 1 1` at the first `0 0` or at the end of the tape |
+
+Theorems: `event_sem` (an event is a run of the machine), `F_sem` and `halts_iff` (the machine halts from blank tape iff the orbit of the map F, an event where one applies and one machine step otherwise, reaches a halting configuration), `events_forever` (if the events alone can be iterated for ever from the first anchor, the machine never halts), and in `lean/Far.lean` `no_halt_kernel` (no halt in the first 10^130 steps, 30,000 events evaluated by the kernel) and `no_halt_native` (no halt in the first 10^13179 steps, 2,999,957 events, compiled).
+
+Shape of the run: after a fold the tape is `1 D> 0 1^N`; splits cut the block into pieces (a quarter left, three quarters right, again and again), odd rounds glue the pieces back together, and a fold at the left end turns every 2 ones into 3. Which of these happens depends on the block lengths mod 4 and their parities: Collatz-like, open. A halt needs an anchor that no rule covers (a right block that is too short, or the carrier meeting a lone 1); none occurs in the first 2,999,957 events.
+
+The explainer page replays this map in the browser (rule viewer on the real machine, event-by-event stepper). Its sources are in `holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB/explainer/` (`core.js`, `spec.js`, `widget.js`, `build.py` for both machines of the pair); `node holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB/explainer/test.js 4e8` checks the JavaScript against the plain machine (every viewer example; the first 457 events of this machine's run).
+
+The sections below are the earlier, partial description (a different phase of the same rounds); the event map above supersedes it.
+
 ## What it does
 
 After the start the tape is always a handful of long blocks of 1s, separated by gaps of one, two or four 0s, e.g. `1^1840 0 1^1387 0 1^1041 0^2 1^780 0^4 1^2338 0 1` at step 298,989,466. Everything the machine does is arithmetic on these block lengths.

@@ -12,6 +12,7 @@
  ],
  "asof": "Status as of 9 November 2026.",
  "verdict": [
+  "<b>Proved by others, not yet independently rebuilt.</b> A complete non-halting proof by Hubert Chilczuk has been published outside this repository (Rocq 8.20 on busycoq, <code>Theorem nonhalt : ~ halts tm c0</code>, github.com/hubertchilczuk/BB6-1RB0RE_1LC0LB_1RD0LB_1RF0LA_1RC---_0RA0LD, head 830debc of 11 November 2026). It finds a finite closed set: 385 nodes of (engine pattern, remainder, parity) with the stack size left free, so the epoch map is <b>not</b> a Collatz-type problem as guessed here. Spot checks made in this project agree with it (the start node at step 226,258,281 and two engine cycles), but the Rocq build (about 225 CPU-hours) has not been rebuilt independently here. The decision recorded here stays open until the proof is rebuilt or replayed in Lean.",
   "<b>The question is open.</b> Each epoch is now understood exactly: the engine eats the stack of 20-cell half-units from the left in one of three exact cycles (1,744 round trips per 100 half-units, 704 per 40, 2,336 per 132), each round trip adds one word to the block, and the block becomes the next stack, 8.72, 8.80 or 8.85 times larger. Following the epochs with exact symbolic round trips (Python) gives 30 epochs and about 7·10<sup>61</sup> steps without a halt. Which cycle and which junction the next epoch gets depends on residues of the stack size, a Collatz-like map; the search for a finite closed set of epoch classes, which would prove non-halting, was started but did not close. Lean proves the sweep rules, the shift rules of the epoch transition, one engine lemma and the right part of a round trip."
  ],
  "claims": [
@@ -118,9 +119,15 @@
    "where": "<code>py/decide/bfs_partial.log</code>"
   },
   {
+   "level": "heuristic",
+   "title": "A published non-halting proof (not rebuilt here)",
+   "text": "A complete non-halting proof by Hubert Chilczuk has been published outside this repository (Rocq 8.20 on busycoq, <code>Theorem nonhalt : ~ halts tm c0</code>, github.com/hubertchilczuk/BB6-1RB0RE_1LC0LB_1RD0LB_1RF0LA_1RC---_0RA0LD, head 830debc of 11 November 2026). It finds a finite closed set: 385 nodes of (engine pattern, remainder, parity) with the stack size left free, so the epoch map is <b>not</b> a Collatz-type problem as guessed here. Spot checks made in this project agree with it (the start node at step 226,258,281 and two engine cycles), but the Rocq build (about 225 CPU-hours) has not been rebuilt independently here.",
+   "where": "<code>/mnt/project-files/tracker/discord-repo-31480-crosscheck.md</code> (project notes)"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The epochs are followed exactly, but a proof needs every epoch class: show that the classes (engine content at the stack end, residue of the stack size, junction, parity of the block) form a finite closed set under the epoch map with no halting transition. The map is affine per residue class and the next class depends on residues, so this may be a Collatz-type problem; the first search did not close.",
+   "text": "Proved non-halting by others in Rocq (see above); open here only in the sense that the proof has not been rebuilt or replayed in Lean in this repository.",
    "where": ""
   }
  ],
@@ -216,7 +223,7 @@
    }
   ]
  },
- "summary": "An exponential counter with epochs: a small engine eats a stack of 20-cell half-units from its left end in one of three exact cycles (1,744 round trips per 100 half-units, 704 per 40, 2,336 per 132) while one 10-cell word is added to a block per round trip; the block then becomes the next stack, 8.72, 8.80 or 8.85 times larger. An exact symbolic simulation follows 30 epochs (about 7·10^61 steps) without a halt; the epoch map is affine per residue class, Collatz-like, and not enumerated completely.",
+ "summary": "Proved non-halting by others (Chilczuk, Rocq; not yet rebuilt here): an epoch counter whose stack grows about 8.8x per epoch; a finite closed set of 385 (pattern, remainder, parity) nodes covers every epoch.",
  "family": "epoch counter: unit stack, growing block, small engine (Collatz-like epoch map)",
  "decision": "open"
 }

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Left of the start the tape is <code>0^inf c^n J d^m T</code> with c = <code>1100</code>, d = <code>10110110</code>, a junction J and a tail T. Lean proves that one <em>period</em> (84 trips to the left end) trades five d's for 31 c's, in 448n + 6952 steps, whatever lies right of the d's, and by induction any number of periods. A phase ends when fewer than five d's are left (r = m mod 5); a reset then either adds a few c's or turns the c's into about n/2 d's and starts a new phase at n = 10. Jumping over the periods, the run is followed exactly to 4.5&middot;10<sup>17</sup> steps without a halt. From step 3.7&middot;10<sup>8</sup> on the tail is <code>10 (1110)^t 1</code>; each reset uses 1 to 4 of its words, and the reset rules are an exact table in (n mod 2, r) that reproduces every phase end of the run. Iterated, it gives no halt for 2,176 more phases (about 10<sup>1541</sup> steps), until fewer than six tail words are left; what happens then is a reset of a different kind that rebuilds a longer tail, the next level of the same structure, and is out of reach.</p>
+      <p><b>The question is open, and it is a Collatz-like one.</b> The first level of the run is decoded (the period rule is proved in Lean, the resets are measured). When the tail the resets feed on runs out it is rebuilt, and on the second level there are remainder classes that halt, classes that loop forever and classes that build a third level, all checked by direct simulation. Which one the real run meets is decided after about 10<sup>770</sup> phases by the last digit of a number that triples every phase.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -144,6 +144,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>At a phase end <code>0^inf B&gt; 0 0 1 (1100)^n (10110110)^r 10 (1110)^t 1 0^inf</code> (r &lt; 5), measured on constructed tapes (n = 100 to 300, both parities, t = 20, 40, 41):<table class="tbl"><thead><tr><th>r</th><th>next</th><th>t</th><th>steps</th></tr></thead><tbody><tr><td>0</td><td>new phase, m&prime; = &lceil;(n+4)/2&rceil;</td><td>t&minus;4</td><td>151n + 1560 (n even), 151n + 1605 (odd)</td></tr><tr><td>1</td><td>(n+12, 0)</td><td>t&minus;1</td><td>192n + 1374</td></tr><tr><td>2</td><td>(n+32, 0)</td><td>t&minus;4</td><td>512n + 8840</td></tr><tr><td>3</td><td>new phase, m&prime; = &lfloor;(n+25)/2&rfloor;</td><td>t&minus;3</td><td>471n + 8170 (even), 471n + 8215 (odd)</td></tr><tr><td>4</td><td>new phase, m&prime; = &lfloor;(n+26)/2&rfloor;</td><td>t&minus;2</td><td>471n + 8286 (even), 471n + 8241 (odd)</td></tr></tbody></table>A new phase starts at (10, m&prime;) and its &lfloor;m&prime;/5&rfloor; periods end at n = 10 + 31&lfloor;m&prime;/5&rfloor;, r = m&prime; mod 5. The steps do not depend on t. Iterated from (17, 0, 6805) at step 374,475,636, the table gives all 19 phase ends of the run above, with their exact step counts.</p>
         <p class="where"><code>py/m7map.py</code>; <code>c/m7fast.c 7 N R T</code> for the constructed tapes</p>
       </div>
+      <div class="card">
+        <h3>With a nearly empty second-level tail, one remainder class halts</h3>
+        <p>From <code>0^inf B&gt; 0 0 1 (1100)^n (10110110)^2 10 (1110)^2 1001101011001</code> the machine halts, for every n tried (60 to 69, 80, 101; 31,436 steps at n = 60). The class is reachable from larger tails: with six words <code>1110</code> left, r = 0 and n &equiv; 0 or 9 (mod 10), the next phase ends in it and halts (n = 60, 69, 160, 1009 checked by direct simulation). With the first-level tail (ending in a single 1) no class with 0 to 7 words left halts.</p>
+        <p class="where"><code>c/reset.c</code>, <code>py/classes.py</code>, <code>runs/classes_tail2.txt</code></p>
+      </div>
+      <div class="card">
+        <h3>Other classes loop forever or rebuild the tail</h3>
+        <p>With an empty or nearly empty tail the other classes either enter a loop that adds five words <code>1100</code> per round without end (seen for 3,000 rounds; for example r = 1 with the tail <code>101</code>), or rebuild a tail of about 3.1 n words <code>1110</code> with the suffix <code>1001101011001</code>, or reach a short tail (<code>1</code>, <code>1001</code>, <code>1011101</code>). The tables list every class with 0 to 7 words left for both tails, n = 60 to 69.</p>
+        <p class="where"><code>runs/classes_tail1.txt</code>, <code>runs/classes_tail2.txt</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -151,6 +161,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>2,176 more phases without a halt</h3>
         <p>Taking the table to hold for all n (it was measured for n up to 300 and matches the run up to n = 2.4&middot;10<sup>8</sup>), the map runs 2,176 more phases, to about 10<sup>1541</sup> steps and n of about 10<sup>770</sup>, without a halt, until t falls below 6. With t this small the constructed tapes show other resets, which rebuild a tail of about n words followed by a new suffix (<code>1001101011001</code>): a second level of the same kind, beyond any simulation.</p>
         <p class="where"><code>py/m7map.py 17 0 6805 374475636 100000 6</code></p>
+      </div>
+      <div class="card">
+        <h3>Where the real run stands</h3>
+        <p>Iterating the reset table (measured, not proved, for all n) the first level ends after 2,176 more phases at r = 3 with three words left and n &equiv; 11 (mod 100), a number of 771 digits. For n &equiv; 1 (mod 10) that reset builds the second-level tail with 31(n&minus;1)/10 + 92 words (checked for n = 61 to 211). The second level then lasts about 10<sup>770</sup> phases, n roughly tripling in each, and how it ends (halt, loop or a third level) depends on n mod 10 and r at that moment, which nobody can compute. So the closed-set method does not apply: a halting class is reachable, and this is a Collatz-like question.</p>
+        <p class="where"><code>py/m7map.py</code>, README</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

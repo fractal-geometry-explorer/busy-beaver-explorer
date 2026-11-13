@@ -74,12 +74,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA</h1>
     <p class="machine">1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> The machine's two bulk phases are proved in Lean for every length (<code>growth_phase</code>, <code>stall_phase</code> in <code>lean/Phase.lean</code>): they cannot halt. What is left is the short zone at the left end of the tape, which the head rewrites at the end of every phase; it is the only place a halt could happen, and its rule (as a function of the residue of the tape length) has not been worked out. Direct simulation follows 32 phases (1.5&middot;10<sup>10</sup> steps, length 104,205) without a halt.</p>
+      <p>A closed-set search with all remainders of the length allowed (13 November) found no halting class but did not close: the zone is not a finite engine.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -143,6 +144,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Accelerated run</h3>
         <p>The macro simulator with unproved linear-cycle jumps (<code>py/fastsim.py</code>) follows the run to about 6&middot;10<sup>15</sup> steps (tape length 7&middot;10<sup>7</sup>) with no halt; its lengths agree with the direct run where both exist.</p>
         <p class="where"><code>py/fastsim.py</code>, <code>py/zones.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No remainder class halts (sampled)</h3>
+        <p>From the start of a growth phase, 0<sup>&infin;</sup> Z (110)<sup>n</sup> 01 A&gt;, the next zone and length depend on the zone Z and on n mod 8, with n' = (3n + k)/2. Following every residue from 1,513 zones, the C simulator found no halt. The set of zones did not close: zones contain inner segments (110)<sup>k</sup> that are rescaled every round, so they grow without bound once all residues are allowed.</p>
+        <p class="where"><code>c/round.c</code>, <code>py/zones_bfs.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>

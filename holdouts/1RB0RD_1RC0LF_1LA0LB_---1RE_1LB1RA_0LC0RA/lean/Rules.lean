@@ -33,4 +33,49 @@ theorem e_right (n : Nat) (L R : Tape) :
     cross_r trans c0 (n) (L) (R)
   exact steps_congr trans hn (h0)
 
+/-- A visit, sweep 1: going right, C crosses a block of pairs `01` three pairs at a time, leaving `011001` (14 steps per word). -/
+theorem c_right6 (n : Nat) (L R : Tape) :
+    steps (14 * n) ⟨cons true (L), rep (n) [false, true, false, true, false, true] (R), .C⟩ = some ⟨cons true (rep (n) [true, false, false, true, true, false] (L)), R, .C⟩ := by
+  have hn : (n) * 14 = 14 * n := by omega
+  have c0 : ∀ L R : Tape, steps 14 ⟨app [true] L, app [false, true, false, true, false, true] R, .C⟩ = some ⟨app [true] (app [true, false, false, true, true, false] L), R, .C⟩ := fun _ _ => rfl
+  have h0 : steps ((n) * 14) ⟨cons true (L), rep (n) [false, true, false, true, false, true] (R), .C⟩ = some ⟨cons true (rep (n) [true, false, false, true, true, false] (L)), R, .C⟩ :=
+    cross_r trans c0 (n) (L) (R)
+  exact steps_congr trans hn (h0)
+
+/-- A visit, sweep 2: going left, A (carrying `110`) turns the words `011001` back into three pairs `01` (22 steps per word). -/
+theorem a_left6 (n : Nat) (L R : Tape) :
+    steps (22 * n) ⟨rep (n) [true, false, false, true, true, false] (L), cons true (cons true (cons false (R))), .A⟩ = some ⟨L, cons true (cons true (cons false (rep (n) [false, true, false, true, false, true] (R)))), .A⟩ := by
+  have hn : (n) * 22 = 22 * n := by omega
+  have c0 : ∀ L R : Tape, steps 22 ⟨app [true, false, false, true, true, false] L, app [true, true, false] R, .A⟩ = some ⟨L, app [true, true, false] (app [false, true, false, true, false, true] R), .A⟩ := fun _ _ => rfl
+  have h0 : steps ((n) * 22) ⟨rep (n) [true, false, false, true, true, false] (L), cons true (cons true (cons false (R))), .A⟩ = some ⟨L, cons true (cons true (cons false (rep (n) [false, true, false, true, false, true] (R)))), .A⟩ :=
+    cross_l trans c0 (n) (L) (R)
+  exact steps_congr trans hn (h0)
+
+/-- A visit, sweep 3: going right, B crosses the pairs three at a time, leaving `010110` (14 steps per word). -/
+theorem b_right6 (n : Nat) (L R : Tape) :
+    steps (14 * n) ⟨cons true (L), rep (n) [false, true, false, true, false, true] (R), .B⟩ = some ⟨cons true (rep (n) [false, true, true, false, true, false] (L)), R, .B⟩ := by
+  have hn : (n) * 14 = 14 * n := by omega
+  have c0 : ∀ L R : Tape, steps 14 ⟨app [true] L, app [false, true, false, true, false, true] R, .B⟩ = some ⟨app [true] (app [false, true, true, false, true, false] L), R, .B⟩ := fun _ _ => rfl
+  have h0 : steps ((n) * 14) ⟨cons true (L), rep (n) [false, true, false, true, false, true] (R), .B⟩ = some ⟨cons true (rep (n) [false, true, true, false, true, false] (L)), R, .B⟩ :=
+    cross_r trans c0 (n) (L) (R)
+  exact steps_congr trans hn (h0)
+
+/-- A visit, sweep 4: going left, B (carrying `000`) turns the words `010110` back into three pairs `01` (22 steps per word). -/
+theorem b_left6 (n : Nat) (L R : Tape) :
+    steps (22 * n) ⟨rep (n) [false, true, true, false, true, false] (L), cons false (cons false (cons false (R))), .B⟩ = some ⟨L, cons false (cons false (cons false (rep (n) [false, true, false, true, false, true] (R)))), .B⟩ := by
+  have hn : (n) * 22 = 22 * n := by omega
+  have c0 : ∀ L R : Tape, steps 22 ⟨app [false, true, true, false, true, false] L, app [false, false, false] R, .B⟩ = some ⟨L, app [false, false, false] (app [false, true, false, true, false, true] R), .B⟩ := fun _ _ => rfl
+  have h0 : steps ((n) * 22) ⟨rep (n) [false, true, true, false, true, false] (L), cons false (cons false (cons false (R))), .B⟩ = some ⟨L, cons false (cons false (cons false (rep (n) [false, true, false, true, false, true] (R)))), .B⟩ :=
+    cross_l trans c0 (n) (L) (R)
+  exact steps_congr trans hn (h0)
+
+/-- A visit, sweep 5: going left, F turns the words `011001` of the left block back into three pairs `01` (22 steps per word). -/
+theorem f_left6 (n : Nat) (L R : Tape) :
+    steps (22 * n) ⟨rep (n) [true, false, false, true, true, false] (L), cons false (R), .F⟩ = some ⟨L, cons false (rep (n) [false, true, false, true, false, true] (R)), .F⟩ := by
+  have hn : (n) * 22 = 22 * n := by omega
+  have c0 : ∀ L R : Tape, steps 22 ⟨app [true, false, false, true, true, false] L, app [false] R, .F⟩ = some ⟨L, app [false] (app [false, true, false, true, false, true] R), .F⟩ := fun _ _ => rfl
+  have h0 : steps ((n) * 22) ⟨rep (n) [true, false, false, true, true, false] (L), cons false (R), .F⟩ = some ⟨L, cons false (rep (n) [false, true, false, true, false, true] (R)), .F⟩ :=
+    cross_l trans c0 (n) (L) (R)
+  exact steps_congr trans hn (h0)
+
 end H11019
