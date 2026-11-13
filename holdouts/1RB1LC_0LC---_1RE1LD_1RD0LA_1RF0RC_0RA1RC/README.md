@@ -68,6 +68,12 @@ python3 holdouts/1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC/py/rules.py          
 python3 holdouts/1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC/py/observe.py 1e7 B 6  # the tape at the last moments each end grew
 ```
 
+## Deep exact run
+
+No halt in the first 5.93x10^18 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 6 cells ran
+from blank tape to step 5,931,313,351,842,280,547. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,038,489 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC/explainer.html`](../../pages/holdouts/1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC/explainer.html)

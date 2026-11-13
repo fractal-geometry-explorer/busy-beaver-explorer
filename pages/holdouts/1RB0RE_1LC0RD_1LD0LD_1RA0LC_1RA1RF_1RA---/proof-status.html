@@ -130,6 +130,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 8.94&times;10<sup>17</sup> steps (exact macro run)</h3>
+        <p>A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 894,791,425,702,082,512 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,001,530 steps. This is a bounded run and says nothing about later steps.</p>
+        <p class="where"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code></p>
+      </div>
+      <div class="card">
         <h3>One sweep is a binary increment</h3>
         <p>At each left turn the tape is <code>0^inf D&gt; 0 (10)^a</code> followed by digits <code>s (10)^b 1 (10)^c</code>, where the separator s is <code>0</code> for a 1 and <code>0 0 0</code> for a 0. A sweep turns the leading 1s into 0s (each loses one <code>10</code> from c), turns the first 0 into a 1 (it gains one <code>10</code> in b), and adds one to a. It takes exactly 6 + 4a + 8&Sigma;b + 4&Sigma;c + 8n steps over the n digits passed. This holds for 24,787 of the 25,117 sweeps in the first 3&middot;10<sup>8</sup> steps. The rest are the merge and end events.</p>
         <p class="where"><code>c/blocks.c</code>, <code>py/ticks.py</code></p>

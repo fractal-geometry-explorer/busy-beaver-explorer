@@ -46,6 +46,12 @@ Open. Lean: `lean/Blank.lean` (halting configurations, no halt in 10^4 steps by 
 gcc -O2 -o rec holdouts/1RB1LA_1RC1RE_1RD0RD_1LA1RC_1RF0LE_1RA---/c/rec.c && ./rec 1RB1LA_1RC1RE_1RD0RD_1LA1RC_1RF0LE_1RA--- 300000000 R 100000 | awk 'NR%3000==0'
 ```
 
+## Deep exact run
+
+No halt in the first 7.71x10^15 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 6 cells ran
+from blank tape to step 7,719,586,442,759,989 (the run stopped there because the tape no longer compresses into few enough runs of blocks). It is exact, and at this block size it agrees with the
+direct simulator after 2,000,132,067 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`explainer.html`](../../pages/holdouts/1RB1LA_1RC1RE_1RD0RD_1LA1RC_1RF0LE_1RA---/explainer.html)

@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The run is a sequence of cycles. Cycle n starts at <code>P 1^3 0^K 1 E&gt;0</code> with a gap of K &asymp; 3&middot;2<sup>n</sup> zeros. Sweeps then fill the gap from the right, four 0s per sweep; one pass to the left end and one back rewrite the prefix P and open the next gap, K' = 2K &minus; c. Lean proves the fill sweep and any number of them at once (kernel), and that the run from blank tape follows them. A C simulator that jumps over the fill sweeps runs 28 cycles, 1.06&middot;10<sup>17</sup> steps, with no halt; it agrees exactly with direct simulation through cycle 12. The prefix holds smaller gaps that grow by factors near 1.36 to 1.5 per cycle, an irregular hierarchy with no visible closed form."
  ],
@@ -64,6 +64,18 @@
    "where": "<code>README.md</code>"
   },
   {
+   "level": "trusted",
+   "title": "Rounds between end events, by remainder class",
+   "text": "Sample the run whenever the head is in state A reading 0 with only 0s to its left. Read rightwards from the head, the tape is then <code>A U^m B</code>: one long periodic block between two short context words. For each class (A, U, B, m modulo 1 or 2 (the smallest modulus that works for the context)) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (24 events) the class map predicts the next event in all 15 rounds it applies to. This is an extrapolation checked by computation, not a proof.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA--- L A 0 check 3e9</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No halting class among 785 contexts",
+   "text": "Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 785 contexts expanded, 785 found, to depth 23. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. 355 contexts longer than 300 cells were not expanded.",
+   "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA--- L A 0 bfs 785</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The fill phase is understood and proved. The passes that rewrite the prefix are not: they act like a hierarchy of counters whose gaps grow at incommensurate rates, and no invariant is known that keeps <code>B&gt;1 1</code> away.",
@@ -75,7 +87,9 @@
   "holdouts/1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA---/lean/check.sh",
   "python3 holdouts/1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA---/py/gen_gadgets.py      # rewrites lean/Gadgets.lean",
   "gcc -O2 -o cyc17 holdouts/1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA---/c/cyc17.c && ./cyc17 2000000 12 nojump && ./cyc17 2000000 12",
-  "./cyc17 1500000000 60      # 28 cycles, about 2 minutes, 1.5 GB"
+  "./cyc17 1500000000 60      # 28 cycles, about 2 minutes, 1.5 GB",
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA--- L A 0 check 1e9",
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA--- L A 0 bfs 300"
  ],
  "explainer": {
   "lede": "Nobody knows yet. The machine works in cycles. Each cycle fills a long gap of 0s four cells at a time, then opens a new gap about twice as long and rewrites a short prefix that holds smaller gaps. Lean proves the filling. A simulator that jumps over it ran 28 cycles, 10<sup>17</sup> steps, without a halt.",
@@ -105,6 +119,15 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "classes",
+    "eyebrow": "Remainder classes",
+    "heading": "Does any remainder class halt?",
+    "html": [
+     "<p>A generic test used on the whole family: sample the run whenever the head is in state A reading 0 with only 0s to its left. Read rightwards from the head, the tape is then <code>A U<sup>m</sup> B</code>, one long periodic block between two short context words A and B. The <em>round</em> to the next sample is computed class by class: for a class (A, U, B, m modulo 1 or 2 (the smallest modulus that works for the context)) six values of m are simulated, and when they agree the round is taken to be an affine map of m. Against the direct run to 3&middot;10<sup>9</sup> steps the class map is right in all 15 rounds it applies to. It is an observed law, not a proved one.</p>",
+     "<p><b>Can any class halt?</b> Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 785 contexts expanded, 785 found, to depth 23. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. 355 contexts longer than 300 cells were not expanded.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",

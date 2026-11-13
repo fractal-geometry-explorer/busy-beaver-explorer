@@ -144,6 +144,12 @@ helpers used by the other G01 folders too.
 - Nothing short of ~10¹² passes is expected to settle it; beyond 2^33 passes the low bits of n alone exceed memory.
 - The sibling `1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LA---` differs in F0 (1LA instead of 1LC).
 
+## Remainder classes (family survey)
+
+- **Rounds between end events, by remainder class** (trusted). Sample the run whenever the head is in state D reading 0 with only 0s to its right. Read leftwards from the head, the tape is then `A U^m B`: one long periodic block between two short context words. For each class (A, U, B, m mod 2) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3·10^9 steps (21 events) the class map predicts the next event in all 15 rounds it applies to. This is an extrapolation checked by computation, not a proof. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC--- R D 0 check 3e9`
+- **285,323 rounds of the class map without a halt** (heuristic). Iterated with exact integers from the event at step 8,732 of the run (A = `0`, U = `01`, m = 82, B = `(empty)`): 285,323 rounds without meeting a halting class; m then has 169,300 bits (about 10^101,928 steps of the machine). 30 distinct contexts occur, the longest of 9 cells. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC--- R D 0 orbit 285323`
+- **Some remainder classes halt** (heuristic). Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 5,000 contexts expanded, 5,014 found, to depth 922. **85 classes halt.** The nearest one is reached by the remainders 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1^3 0 1^3 (42 rounds, moduli as above), ending at B = `1^4`. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC--- R D 0 bfs 5000`
+
 ## Pages
 
 - [`pages/holdouts/1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC---/explainer.html`](../../pages/holdouts/1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC---/explainer.html)

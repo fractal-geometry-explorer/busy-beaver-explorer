@@ -124,7 +124,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 12 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 13 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA</p>
   <div class="col"><p class="lede">Nobody knows yet, but its map is now fully known: a run of 1s grows by 4/3 every round while a short list after it is rewritten. In 100,000 rounds, far beyond any computer's reach of direct simulation, it never stops.</p></div>
@@ -141,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#what">A 4/3 counter and a short list</a><a href="#run">Exact far beyond simulation</a><a href="#halt">No way to stop has been found</a><a href="#drain">How it could halt: a second counter drains the first</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#what">A 4/3 counter and a short list</a><a href="#run">Exact far beyond simulation</a><a href="#halt">No way to stop has been found</a><a href="#drain">How it could halt: a second counter drains the first</a><a href="#classes">Does any remainder class halt?</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -235,6 +235,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <table class="tbl"><thead><tr><th>m mod 3</th><th>what happens to the first run a</th><th>halts when</th></tr></thead><tbody><tr><td>1</td><td>swallowed: m&prime; = (4m + 3a + 8)/3</td><td>never</td></tr><tr><td>0</td><td>grows to about 4a/3, m&prime; = (4m &minus; a)/3 (or swallowed)</td><td>a &ge; 4m + 14</td></tr><tr><td>2</td><td>the same</td><td>a &ge; 4m</td></tr></tbody></table>
 <p>A new run starts with 2 to 17 ones, while m is in the millions after 40 rounds and keeps growing. It would have to survive hundreds of thousands of rounds in a row, each a coin flip. That is why the machine almost certainly never halts, and also why no simple pattern-based proof (a regular invariant) can exist: such a proof cannot compare the sizes of two counters, and it would have to show that the second counter stays small.</p>
 </section>
+<section id="classes">
+  <span class="eyebrow">Remainder classes</span>
+  <h2>Does any remainder class halt?</h2>
+<p>A generic test used on the whole family: sample the run whenever the head is in state D reading 1 with only 0s to its left. Read rightwards from the head, the tape is then <code>A U<sup>m</sup> B</code>, one long periodic block between two short context words A and B. The <em>round</em> to the next sample is computed class by class: for a class (A, U, B, m mod 3) six values of m are simulated, and when they agree the round is taken to be an affine map of m. Against the direct run to 3&middot;10<sup>9</sup> steps the class map is right in all 22 rounds it applies to. It is an observed law, not a proved one.</p>
+<p><b>The orbit.</b> Iterated with exact integers from the event at step 7,961 of the run (A = <code>110</code>, U = <code>1</code>, m = 117, B = <code>011</code>): 376,892 rounds without meeting a halting class; m then has 156,432 bits (about 10<sup>94,180</sup> steps of the machine). 23 distinct contexts occur, the longest of 790 cells.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -247,7 +253,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 12 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 13 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -271,6 +277,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>bb6-1RB0LF_1RC0LB/c/pds.c</code></div></div><div><b>No pushdown certificate with a DFA of at most 6 states</b><p>The pushdown reduction of <code>bb6-1RB0LF_1RC0LB/c/pds.c</code> (one side of the tape kept exactly, the other abstracted by a DFA, reachability by post* saturation) reaches a halt for every DFA with at most 6 states, on either side: <code>TM=1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA ./pds 6 L</code> and <code>R</code>.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/pdsx.py</code>; README</div></div><div><b>No regular invariant can exclude the halt</b><p>The first run of the list is unbounded along the run unless the residues m mod 3 conspire; a regular set that contains the run then contains, by pumping, configurations with a &ge; 4m + 14, which halt. The pushdown reduction also fails with windows of up to 4 cells with counters mod 3 and with DFAs learned from the run (up to 16,638 states).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>Probviously non-halting</b><p>A halt needs a first run to survive about 4m/a rounds in a row, each with probability about 1/2; with m &gt; 2&middot;10<sup>6</sup> from round 40 on and growing by 4/3 per round, the total chance is below 2<sup>&minus;100,000</sup>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA L D 1 check 3e9</code></div></div><div><b>Rounds between end events, by remainder class</b><p>Sample the run whenever the head is in state D reading 1 with only 0s to its left. Read rightwards from the head, the tape is then <code>A U^m B</code>: one long periodic block between two short context words. For each class (A, U, B, m mod 3) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (31 events) the class map predicts the next event in all 22 rounds it applies to. This is an extrapolation checked by computation, not a proof.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA L D 1 orbit 376892</code></div></div><div><b>376,892 rounds of the class map without a halt</b><p>Iterated with exact integers from the event at step 7,961 of the run (A = <code>110</code>, U = <code>1</code>, m = 117, B = <code>011</code>): 376,892 rounds without meeting a halting class; m then has 156,432 bits (about 10<sup>94,180</sup> steps of the machine). 23 distinct contexts occur, the longest of 790 cells.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not proved either way; a proof would describe the tail runs symbolically (a in residue classes) and show that no round halts.</p></div></div>
 </section>
 <section id="check">
@@ -280,7 +288,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/lean/check.sh
 python3 holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/py/roundmap.py check 5e9
 python3 holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/py/roundmap.py iterate 100000
-python3 holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/py/drain.py halt 30 200 &amp;&amp; python3 holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/py/drain.py law 110</code></pre>
+python3 holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/py/drain.py halt 30 200 &amp;&amp; python3 holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/py/drain.py law 110
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA L D 1 check 1e9
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA L D 1 orbit 5000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -46,6 +46,12 @@
    "where": "<code>tools/c/tmrun.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 5.30&times;10<sup>19</sup> steps (exact macro run)",
+   "text": "A macro simulator (blocks of 9 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 53,075,697,817,764,149,403 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,071,532 steps. This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Blocks of 3d+2, defects in a background of 1^8",
    "text": "At the right-end moments of the first 3&middot;10<sup>7</sup> steps every block right of the start cell but the first (cut at the start cell) and the last (3) has 3d+2 ones; 1^8 (d = 2) is the background: its 3 pairs plus segment end regroup to 1^5 plus 3 = 1^8 again. A handful of defects (digit groups such as <code>4 1</code>, <code>7</code>, <code>1 5</code>, <code>3 1</code>, <code>6</code>, <code>1 2 1</code>) sit between long runs of 8s; the runs to their left shrink and those to their right grow by one per pass, so the defects drift left, and the leftmost group of digits changes slowly, like the top digits of a counter.",

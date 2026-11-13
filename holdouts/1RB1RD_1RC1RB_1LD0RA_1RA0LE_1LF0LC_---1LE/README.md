@@ -61,6 +61,12 @@ gcc -O2 -o tok holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/c/tok.c
 ./tok 1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE 1e15 A R 1000000     # the tape every 10^6 visits, ~4 min
 ```
 
+## Deep exact run
+
+No halt in the first 6.64x10^18 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 6 cells ran
+from blank tape to step 6,645,949,135,344,911,319. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,031,220 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/explainer.html`](../../pages/holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/explainer.html)

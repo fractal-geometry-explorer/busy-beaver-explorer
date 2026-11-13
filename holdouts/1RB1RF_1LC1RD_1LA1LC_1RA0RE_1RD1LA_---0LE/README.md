@@ -91,6 +91,12 @@ enough to halt drops with every epoch; like Antihydra, a proof would need contro
 - Find the shortest residue sequence that would lead to a halt from the current R (a lower bound on how improbable a
   halt is).
 
+## Remainder classes (family survey)
+
+- **Rounds between end events, by remainder class** (trusted). Sample the run whenever the head is in state A reading 1 with only 0s to its left. Read rightwards from the head, the tape is then `A U^m B`: one long periodic block between two short context words. For each class (A, U, B, m modulo 1 or 4 (the smallest modulus that works for the context)) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3·10^9 steps (48 events) the class map predicts the next event in all 22 rounds it applies to. This is an extrapolation checked by computation, not a proof. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE L A 1 check 3e9`
+- **960 rounds of the class map without a halt** (heuristic). Iterated with exact integers from the event at step 352,750 of the run (A = `11`, U = `0`, m = 839, B = `1^11 0^20 1^4 0^18 1^8 0^28 1^4 00 1^4`): 960 rounds without meeting a halting class; m then has 291 bits (about 10^174 steps of the machine). 960 distinct contexts occur, the longest of 3,098 cells. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE L A 1 orbit 960`
+- **No halting class among 5,000 contexts** (heuristic). Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 5,000 contexts expanded, 8,184 found, to depth 14. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE L A 1 bfs 5000`
+
 ## Pages
 
 - [`pages/holdouts/1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE/explainer.html`](../../pages/holdouts/1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE/explainer.html)

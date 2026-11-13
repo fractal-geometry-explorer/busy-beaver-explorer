@@ -64,11 +64,36 @@ big blocks, such as `1^a (01)^b 1 (01)^c 1 (01)^d ...` in the tape's orientation
 growing. Checked against a plain simulator on a random sample of 400 classes of the first row: 16,900 piece runs and
 2,400 class points, 0 problems.
 
-A second search (a scratch program, not in the repo) that keeps the top two blocks of the stack and abstracts everything below by a successor relation on
-blocks (a wall cell stops the run when the head goes below the known part) did not close either: phases walk down
-arbitrarily long chains `(10)^b 1 (10)^c 1 ...`, comparing the counts on the way, so the stack is not used like a
-pushdown store. A closed set needs a better description of these chains (probably: a `(01)` region with isolated
-defects `11`, the gaps free), which is the next thing to try.
+**Two-sided search for chains of any length** (`py/closure/bclosure.py`). The class is a window around the head:
+at most DEPTH big blocks on each side, exact cells between them, and beyond the window on each side "whatever may
+follow this block", given by a successor relation on blocks that the search builds (a regular over-approximation of
+the tape on both sides, so chains of big blocks of any length are covered). A class is run symbolically, with a wall
+cell where a side is open, until the head reaches a wall, a phase start or a halt.
+
+```sh
+export BBM=1RB---_1RC1RE_1LD0LE_1RF0LC_0RD0RA_0RB1RD BBEV=0 BBMIRROR=1 BBNODE='^001010 \(1\)\^n' BBMOD=1
+export BBBIG=7 BBTBASE=4 BBMODULI=1,2,3 BBDEPTH=1
+python3 holdouts/1RB---_1RC1RE_1LD0LE_1RF0LC_0RD0RA_0RB1RD/py/closure/bclosure.py /tmp/b.json 300
+```
+
+Result: **no halting piece, and it does not close.** (This search has not been compared with a plain simulator; only its
+engine has, in the one-sided search above.) With DEPTH 1, in 280 s: 7,011 classes explored, none halts,
+none undecided, 97,624 queued and growing (DEPTH 2: 3,197 classes, no halt, 52,724 queued). The big blocks are not
+the obstacle any more. What explodes is the exact part: blocks shorter than the threshold (7 words) are kept cell by
+cell, and the tape holds chains of such short blocks (`0 (01)^5 0 (01)^6 0 (01)^5 ...`) of any length and with many
+combinations of sizes. Lowering the threshold to 4 does not work with this engine: its cycle rules (needed to drain
+the counter in one symbolic step) are not found from so small a base, and every class runs out of pieces.
+**Two thresholds** (`BBLOW`, tried the same day). The engine keeps its threshold (7) and the classes use a lower
+one: `BBLOW=4 BBDEPTH=1` makes every repeat of 4 or more words free, so short blocks are abstracted too and the
+engine peels the small values off by itself. This stalls as well. In the first 890 classes no piece halts, but the
+queue grows about seven classes for each one explored, and the coarser relation now produces tapes the machine
+never makes (for example `(01010)^n 1 1010101 D> (10)^n ...`), on which a symbolic run does not come to an end
+(3,000 pieces and 410 s for one class, then given up as undecided). A successor relation that only remembers one
+block is too coarse once short blocks are free; remembering two or three blocks multiplies the number of classes.
+
+So no class description of this kind closes the machine. What is left to try is an alphabet made of the machine's
+own units instead of cells: the run/unit rule system of the relative 1RB1RE_1LC0LE_1RD0LB_0RA1RC_0RC0RF_1RA---,
+with a closed set of rule-level configurations.
 
 The accelerated simulator alone follows the run from blank tape to 3.8·10^60 steps without a halt (tape then:
 `1^23 0 (10)^13 1^45 (01)^N B>` with N of 31 digits).

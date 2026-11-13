@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 12 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>Open; analysis only begun.</b> Sampled when the head is in E at the left end, the tape is a list of blocks of the words <code>0100</code>, <code>0010</code> and <code>0001</code>, as in <code>E&gt; (10)^2 (0100)^189 (10)^3 (0010)^633 (01)^2 (0001)^n</code> plus a short tail. All blocks but the last are frozen. The last one grows by a factor of about 1.4 per event: n = 13, 159, 363, &hellip;, 28,645, 40,230 up to step 1.9&middot;10<sup>10</sup>. From time to time a new level begins: 189 copies of <code>0100</code> froze at step 0.43&middot;10<sup>6</sup>, and 633 copies of <code>0010</code> at step 9.1&middot;10<sup>6</sup>. The exact map and the halting condition are further work.",
   "<b>Third pass.</b> No halt in 10<sup>18</sup> steps (macro simulation); the third level froze at 40,231 copies and a fourth grows. The growth factor 1.40 is 7/5 (community tracker: a recursive counter)."
@@ -65,6 +65,12 @@
    "where": "the README, section &ldquo;Family screen&rdquo;"
   },
   {
+   "level": "heuristic",
+   "title": "Ten blocks have stopped growing by 1.45&middot;10<sup>18</sup> steps, and some of them drift",
+   "text": "Observed: by step 1.45&middot;10<sup>18</sup> ten blocks have stopped growing, at 189, 633, 40,231, 8,119, 92,784, 5,890,876, 1,188,875, 19,851,057, 48,010,873 and 11,795,336 copies, in that order. Each grew by a factor of at least 7/5 per lap for 1 to about 15 laps before it stopped; what stops a block is not known. The stopped blocks are not all frozen: the fifth gains one copy every second lap (92,784 to 92,808) and the seventh loses copies slowly (1,188,875 to 1,188,870).",
+   "where": "README (table), <code>py/laps_1e16.txt</code>"
+  },
+  {
    "level": "open",
    "title": "The map and the halting condition",
    "text": "The growth ratio of the last block is not constant (1.44 falling to 1.40), and the tail changes from event to event, so the event map has more structure than a single number. During a sweep 14 copies of the middle block move at a time. No halting configuration of a high-level map has been identified yet.",
@@ -117,6 +123,16 @@
     "html": [
      "<p>When the head is in state E at the left end, the tape reads, from left to right, <code>(10)^2 (0100)^189 (10)^3 (0010)^633 (01)^2 (0001)^n</code> and a short tail. Only <i>n</i> changes: 13, 159, 363, 649, 1,050, 1,612, 2,398, 3,499, 5,039, 7,197, 10,215, 14,443, 20,361, 28,645, 40,230, a factor of about 1.4 per sweep.</p>",
      "<p>The frozen blocks are what is left of earlier levels. The block of <code>0100</code> grew to 189 copies and froze at step 432,110, and the block of <code>0010</code> grew to 633 copies and froze at step 9.1 million. At step 1.9&middot;10<sup>10</sup> the tail <code>0^2 (10)^2 (0010)^7 0^2 1^2</code> may be the start of the next level.</p>"
+    ]
+   },
+   {
+    "id": "levels",
+    "eyebrow": "Lap table, 13 November 2026",
+    "heading": "Ten blocks that stopped growing",
+    "html": [
+     "<p>Followed to 1.45&middot;10<sup>18</sup> steps, the list of blocks has ten members that stopped growing. Each block grew by a factor of at least 7/5 per lap of the head for a while (between 1 and about 15 laps) and then stopped, and a new block started behind it. Everything in this section is observed in one run. None of it is proved.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>copies when it stopped growing</th><th>about step</th><th>later</th></tr></thead><tbody><tr><td>189</td><td>432,110</td><td>exact so far</td></tr><tr><td>633</td><td>9.1&middot;10<sup>6</sup></td><td>exact so far</td></tr><tr><td>40,231</td><td>1.9&middot;10<sup>10</sup></td><td>exact so far</td></tr><tr><td>8,119</td><td>3.4&middot;10<sup>10</sup></td><td>exact so far</td></tr><tr><td>92,784</td><td>2.5&middot;10<sup>11</sup></td><td>92,784 at 3.7&middot;10<sup>11</sup>, 92,799 at 9.3&middot;10<sup>15</sup>, 92,808 at 1.45&middot;10<sup>18</sup></td></tr><tr><td>5,890,876</td><td>4.2&middot;10<sup>14</sup></td><td>5,890,876 to 5,890,878, back and forth</td></tr><tr><td>1,188,875</td><td>1.1&middot;10<sup>15</sup></td><td>1,188,875 at 1.1&middot;10<sup>15</sup>, 1,188,870 at 1.45&middot;10<sup>18</sup></td></tr><tr><td>19,851,057</td><td>8.5&middot;10<sup>15</sup></td><td>19,851,057 or 19,851,058</td></tr><tr><td>48,010,873</td><td>before 5.8&middot;10<sup>17</sup></td><td>same at both samples</td></tr><tr><td>11,795,336</td><td>before 5.8&middot;10<sup>17</sup></td><td>11,795,335 at 1.45&middot;10<sup>18</sup></td></tr></tbody></table></div>",
+     "<p>The blocks that stopped are not all frozen: the fifth gains one copy every second lap and the seventh slowly loses copies. And the sizes at which blocks stop have no visible order. What stops a block is the missing rule. If it is a remainder of the block length, as the factor 7/5 suggests, the machine is a Collatz-like counter that adds one digit per level.</p>"
     ]
    },
    {

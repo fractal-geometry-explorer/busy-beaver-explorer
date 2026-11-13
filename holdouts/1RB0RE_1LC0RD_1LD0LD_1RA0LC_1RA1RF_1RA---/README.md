@@ -95,6 +95,12 @@ python3 holdouts/1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---/py/ticks.py blocks.tx
 . /etc/profile.d/lean.sh && holdouts/1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---/lean/check.sh
 ```
 
+## Deep exact run
+
+No halt in the first 8.94x10^17 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 6 cells ran
+from blank tape to step 894,791,425,702,082,512. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,001,530 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---/explainer.html`](../../pages/holdouts/1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---/explainer.html)

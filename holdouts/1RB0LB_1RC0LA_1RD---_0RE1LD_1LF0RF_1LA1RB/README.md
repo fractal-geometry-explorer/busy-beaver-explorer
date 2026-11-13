@@ -96,6 +96,12 @@ start, 133 right), 22,841 ones.
 - `py/analyse.py image`: the defect picture `pages/holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/defects.png`; `py/analyse.py records`: the bursts of growth at the slow end (up to 3·10^9 steps, several minutes).
 - `c/snap.c`, `py/sweeps.py`: the snapshot simulator and helpers shared by the six G01 machines studied together (see the docstring of `sweeps.py`).
 
+## Deep exact run
+
+No halt in the first 8.12x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 10 cells ran
+from blank tape to step 81,296,466,142,732,374,722. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,097,599 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/explainer.html`](../../pages/holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/explainer.html)

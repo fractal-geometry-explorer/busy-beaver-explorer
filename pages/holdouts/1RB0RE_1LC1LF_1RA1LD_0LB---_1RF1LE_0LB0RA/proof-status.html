@@ -125,6 +125,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.68&times;10<sup>19</sup> steps (exact macro run)</h3>
+        <p>A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 16,848,971,644,337,937,408 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,004,826 steps. This is a bounded run and says nothing about later steps.</p>
+        <p class="where"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code></p>
+      </div>
+      <div class="card">
         <h3>Lists at the left end</h3>
         <p>At the left end the tape reads <code>10 (110)^x0 1010 (110)^x1 1010 ... (110)^xr 10 11</code>. The lists are [11,3], [9,19], [8,15,15], [7,10,67], [6,6,51,63], [5,2,34,259], [3,19,199,143,191], ... and, at steps 1,369,502,933 and 1,488,296,050, [117,336,50,715,5582,17411] and [116,332,34,651,5326,18435]: differences &minus;1, &minus;4, &minus;16, &minus;64, &minus;256, +1024.</p>
         <p class="where">README</p>

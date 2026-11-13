@@ -74,7 +74,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---</h1>
     <p class="machine">1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -139,6 +139,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Iterating the phase map from the first phase start (assuming the linear extrapolation, checked as above): resets of the counter at phases 5, 29, 92, 332 stay in the family (cycles of length 11, 35, 107, 323); at phase 1001 (Z has 178 digits) the word leaves it and a second-level counter starts. No halt up to phase 1,500.</p>
         <p class="where"><code>py/phases.py 1500</code></p>
       </div>
+      <div class="card">
+        <h3>Rounds between end events, by remainder class</h3>
+        <p>Sample the run whenever the head is in state B reading 1 with only 0s to its right. Read leftwards from the head, the tape is then <code>A U^m B</code>: one long periodic block between two short context words. For each class (A, U, B, m modulo 1 or 4 (the smallest modulus that works for the context)) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (48 events) the class map predicts the next event in all 28 rounds it applies to. This is an extrapolation checked by computation, not a proof.</p>
+        <p class="where"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- R B 1 check 3e9</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -146,6 +151,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Halting words exist</h3>
         <p>With the residue Z mod 4 chosen freely at every phase, 23,305 words of at most 24 cells are reachable from the first phase start, and 7,145 of the (word, residue) pairs met halt, for example <code>0 1 0 0 1 1 1 0 1</code> with Z &equiv; 3. So halting is not excluded by the words alone; it depends on the residues along the real orbit.</p>
         <p class="where"><code>py/search.py 24</code></p>
+      </div>
+      <div class="card">
+        <h3>2,930 rounds of the class map without a halt</h3>
+        <p>Iterated with exact integers from the event at step 29,339 of the run (A = <code>11</code>, U = <code>0</code>, m = 171, B = <code>101 0<sup>101</sup></code>): 2,930 rounds without meeting a halting class; m then has 865 bits (about 10<sup>520</sup> steps of the machine). 1,410 distinct contexts occur, the longest of 1,428 cells.</p>
+        <p class="where"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- R B 1 orbit 2930</code></p>
+      </div>
+      <div class="card">
+        <h3>Some remainder classes halt</h3>
+        <p>Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 5,000 contexts expanded, 7,830 found, to depth 17. <b>169 classes halt.</b> The nearest one is reached by the remainders 3 2 3 2 3<sup>2</sup> (6 rounds, moduli as above), ending at B = <code>10 1<sup>3</sup> 0<sup>101</sup></code>.</p>
+        <p class="where"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- R B 1 bfs 5000</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
@@ -160,7 +175,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/lean/check.sh
-python3 holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/py/phases.py</code></pre>
+python3 holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/py/phases.py
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- R B 1 check 1e9
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- R B 1 orbit 2930
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- R B 1 bfs 300</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

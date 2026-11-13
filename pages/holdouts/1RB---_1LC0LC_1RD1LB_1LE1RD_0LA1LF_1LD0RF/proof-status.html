@@ -140,6 +140,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2.48&times;10<sup>15</sup> steps (exact macro run)</h3>
+        <p>A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 2,482,693,369,154,826 without a halt (the run stopped there because the tape no longer compresses into few enough runs of blocks). At this block size it gives the same state, head position and tape as the direct simulator after 2,000,009,883 steps. This is a bounded run and says nothing about later steps.</p>
+        <p class="where"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code></p>
+      </div>
+      <div class="card">
         <h3>Runs growing at powers of 4</h3>
         <p>At the left-end visits in state B, the run <code>(110101)^a</code> grows from 2,464 to 6,464 words between 1.9&middot;10<sup>8</sup> and 1.26&middot;10<sup>9</sup> steps (one per 4 rounds), <code>(011101)^c</code> from 604 to 1,604 (one per 16) and a second <code>(110101)^b</code> from 143 to 393 (one per 64).</p>
         <p class="where"><code>python3 py/view.py 2e9 2000</code></p>

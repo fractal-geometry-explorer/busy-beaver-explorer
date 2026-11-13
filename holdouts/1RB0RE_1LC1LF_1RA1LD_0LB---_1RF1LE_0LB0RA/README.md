@@ -94,6 +94,12 @@ sweep (`lean/Rules.lean`). C: no halt in 10^9 steps. The base-4 picture is a heu
 python3 holdouts/1RB0RE_1LC1LF_1RA1LD_0LB---_1RF1LE_0LB0RA/lean/rules.py | diff - holdouts/1RB0RE_1LC1LF_1RA1LD_0LB---_1RF1LE_0LB0RA/lean/Rules.lean
 ```
 
+## Deep exact run
+
+No halt in the first 1.68x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 6 cells ran
+from blank tape to step 16,848,971,644,337,937,408. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,004,826 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB0RE_1LC1LF_1RA1LD_0LB---_1RF1LE_0LB0RA/explainer.html`](../../pages/holdouts/1RB0RE_1LC1LF_1RA1LD_0LB---_1RF1LE_0LB0RA/explainer.html)

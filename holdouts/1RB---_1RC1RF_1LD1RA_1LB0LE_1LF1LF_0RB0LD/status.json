@@ -76,6 +76,12 @@
    "where": "<code>python3 py/far.py 3.2e15</code> (8 minutes)"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.28&times;10<sup>19</sup> steps (exact macro run)",
+   "text": "A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 12,898,417,544,340,449,177 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,030,112 steps. This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "What an overflow does to the blocks",
    "text": "Between two overflows with the same digits and no collision, the block before END loses 1 period and the j-th block from the right loses 4<sup>j</sup> (1, 4, 16, 64, 256 at the overflows of steps 1.6&middot;10<sup>7</sup> to 4.4&middot;10<sup>7</sup>). The block before END went 8, 7, &hellip;, 1 and END then absorbed the last digit over six overflows (clusters 1,1,1 &rarr; 3,1 &rarr; 1,0,1 &rarr; 3 &rarr; 1,0 &rarr; 2 &rarr; 1), during which no new digit is made and the first block keeps growing; the next block before END went 42, 41, &hellip;, 29 by 10<sup>10</sup> steps and is at 9 after 3.16&middot;10<sup>15</sup>.",

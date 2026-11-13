@@ -39,6 +39,12 @@ a CTL over that alphabet. Same plan as for 1RB1LE_1RC1RF_0RD0LB_1LD0RA_0LA0LE_0R
 . /etc/profile.d/lean.sh && holdouts/1RB0LF_0RC0LC_1LA1LD_1RE1LC_---1RA_0LC0RD/lean/check.sh
 ```
 
+## Deep exact run
+
+No halt in the first 1.53x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 7 cells ran
+from blank tape to step 15,389,580,310,361,805,578. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,029,329 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB0LF_0RC0LC_1LA1LD_1RE1LC_---1RA_0LC0RD/explainer.html`](../../pages/holdouts/1RB0LF_0RC0LC_1LA1LD_1RE1LC_---1RA_0LC0RD/explainer.html)

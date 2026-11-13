@@ -113,6 +113,12 @@ python3 py/longrun.py 3000 verify                                     # the map 
 gcc -O2 -o /tmp/turns c/turns.c && /tmp/turns 1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE--- 200000000 100000000 30 | python3 py/check_countdown.py
 ```
 
+## Deep exact run
+
+No halt in the first 2.77x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 8 cells ran
+from blank tape to step 27,751,167,773,191,845,858. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,062,706 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/explainer.html`](../../pages/holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/explainer.html)

@@ -125,6 +125,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 8.12&times;10<sup>19</sup> steps (exact macro run)</h3>
+        <p>A macro simulator (blocks of 10 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 81,296,466,142,732,374,722 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,097,599 steps. This is a bounded run and says nothing about later steps.</p>
+        <p class="where"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code></p>
+      </div>
+      <div class="card">
         <h3>The right end grows in rare events</h3>
         <p>Up to 3&middot;10<sup>9</sup> steps the right end of the tape grows in 33 short bursts after the start-up (at steps 3029, 7914, 14085, 27710, &hellip;, 536503257, 802505958, 1259208777), each adding 3 or 4 cells with the same local pattern (<code>&hellip;(011)^5 E&gt;00</code> then <code>F&gt;000</code>, <code>E&gt;1100</code>); between 1.26&middot;10<sup>9</sup> and 3&middot;10<sup>9</sup> there is none.</p>
         <p class="where"><code>py/analyse.py records</code></p>

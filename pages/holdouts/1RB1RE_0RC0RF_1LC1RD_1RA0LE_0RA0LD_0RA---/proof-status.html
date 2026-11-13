@@ -74,7 +74,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA---</h1>
     <p class="machine">1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -139,6 +139,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.7&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 28,120 to 265,812 visited cells and compresses to 8 to 35 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
         <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA---</code>, saved in <code>screen.json</code> next to it</p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 7&middot;10<sup>16</sup> steps</h3>
+        <p>The macro simulator of the family screen (blocks of 6 cells, runs of one word crossed at once, exact, checked against the direct simulator) runs from blank tape past step 7&middot;10<sup>16</sup> without a halt.</p>
+        <p class="where"><code>holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -151,6 +156,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Proposed family: F01, periodic blocks driven by a bounded engine</h3>
         <p>The description is small: 8 to 35 level-2 tokens at every record from 2.6&middot;10<sup>8</sup> to 1.7&middot;10<sup>10</sup> steps, and 13 to 38 runs in the macro simulator (blocks of 6 cells) at the sampled records from 10<sup>6</sup> to 7&middot;10<sup>16</sup> steps. For example at step 5&middot;10<sup>12</sup> the macro tape is <code>000110 (111110)^130829 111011 (011111)^354778 011100 (101110)^52876 111010 (101110)^59089</code> and 12 more six-cell words. A few long periodic blocks that are transferred into one another, with a short tail, is the F01 shape. The number of blocks changes with the phase (between 3 and 7 long blocks at the sampled records above 10<sup>12</sup> steps) but did not grow.</p>
         <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
+      </div>
+      <div class="card">
+        <h3>Eras of bouncer passes, growing by factors 1, 6 and 16</h3>
+        <p>Observed up to 10<sup>16</sup> steps: the run is a sequence of eras. In an era a wall of one word grows by one block per sweep and eats a run of n blocks while another run grows at the far end, a few passes of about n sweeps each. Two kinds of era alternate, and the main run has 7,389, 7,401, 118,265, 118,281, 709,541 and 4,257,168 blocks at the starts of the last six eras: factors of about 1, 16, 1, 6 and 6. The factor is decided between the passes by the short markers and the irregular tail at the right end; that rule is not known.</p>
+        <p class="where">README (tables), <code>py/phases_1e16.txt</code>, <code>c/msim_turns.c</code>, <code>py/phases.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

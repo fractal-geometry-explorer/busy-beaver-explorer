@@ -97,6 +97,12 @@ the halting words.
 python3 holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/py/phases.py
 ```
 
+## Remainder classes (family survey)
+
+- **Rounds between end events, by remainder class** (trusted). Sample the run whenever the head is in state B reading 1 with only 0s to its right. Read leftwards from the head, the tape is then `A U^m B`: one long periodic block between two short context words. For each class (A, U, B, m modulo 1 or 4 (the smallest modulus that works for the context)) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3·10^9 steps (48 events) the class map predicts the next event in all 28 rounds it applies to. This is an extrapolation checked by computation, not a proof. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- R B 1 check 3e9`
+- **2,930 rounds of the class map without a halt** (heuristic). Iterated with exact integers from the event at step 29,339 of the run (A = `11`, U = `0`, m = 171, B = `101 0^101`): 2,930 rounds without meeting a halting class; m then has 865 bits (about 10^520 steps of the machine). 1,410 distinct contexts occur, the longest of 1,428 cells. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- R B 1 orbit 2930`
+- **Some remainder classes halt** (heuristic). Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 5,000 contexts expanded, 7,830 found, to depth 17. **169 classes halt.** The nearest one is reached by the remainders 3 2 3 2 3^2 (6 rounds, moduli as above), ending at B = `10 1^3 0^101`. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- R B 1 bfs 5000`
+
 ## Pages
 
 - [`pages/holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/explainer.html`](../../pages/holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/explainer.html)

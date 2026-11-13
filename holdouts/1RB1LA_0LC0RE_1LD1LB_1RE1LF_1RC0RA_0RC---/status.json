@@ -76,6 +76,12 @@
    "where": "<code>py/digits.py far</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.77&times;10<sup>19</sup> steps (exact macro run)",
+   "text": "A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 17,748,289,296,345,434,315 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,017,009 steps. This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Why it probably never halts",
    "text": "Every event seen is one of a small catalogue of local rewrites of digits, each a Lean rule, none of which reaches F on a 1. The dangerous mergers (an S1 of run 0 after S0 or S1, which would leave the vocabulary) never occur, because of a mod-4 relation: for neighbouring digits y x, phase(y) + run(x) + [x is S2 or S3] mod 4 is fixed while both live, and is 2 or 3 in 2,091,564 of 2,092,788 neighbour pairs over the first 3&middot;10<sup>5</sup> sweeps (the rest inside S[0]S0 compounds).",

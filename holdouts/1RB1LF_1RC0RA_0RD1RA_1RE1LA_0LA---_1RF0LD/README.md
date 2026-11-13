@@ -106,6 +106,12 @@ and three borrows.  Next:
 - `c/pert.c`: the perturbation test.
 - `c/zeroruns.c`: how often runs of zeros grow, and to what length.
 
+## Deep exact run
+
+No halt in the first 7.44x10^18 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 6 cells ran
+from blank tape to step 7,445,689,167,405,862,579. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,010,627 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD/explainer.html`](../../pages/holdouts/1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD/explainer.html)

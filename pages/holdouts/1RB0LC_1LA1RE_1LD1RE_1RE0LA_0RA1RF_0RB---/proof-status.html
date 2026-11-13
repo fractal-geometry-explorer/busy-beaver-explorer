@@ -74,7 +74,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---</h1>
     <p class="machine">1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 12 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -146,13 +146,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>bb6-1RB0LF_1RC0LB/c/pds.c</code></p>
       </div>
       <div class="card">
+        <h3>Rounds between end events, by remainder class</h3>
+        <p>Sample the run whenever the head is in state A reading 1 with only 0s to its left. Read rightwards from the head, the tape is then <code>A U^m B</code>: one long periodic block between two short context words. For each class (A, U, B, m mod 4) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (23 events) the class map predicts the next event in all 13 rounds it applies to. This is an extrapolation checked by computation, not a proof.</p>
+        <p class="where"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- L A 1 check 3e9</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB1LC_1LA0RD_0LB1LF_1RE1LC_1LC0RB_0LA--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1LC_1LC0RF_0LF1LD_0LE---_1RF1LC_1LE0RA up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
-    <p class="empty">Nothing yet.</p>
+    <div class="cards">
+      <div class="card">
+        <h3>438 rounds of the class map without a halt</h3>
+        <p>Iterated with exact integers from the event at step 65,159 of the run (A = <code>1</code>, U = <code>010</code>, m = 111, B = <code>1</code>): 438 rounds without meeting a halting class; m then has 199 bits (about 10<sup>120</sup> steps of the machine). 36 distinct contexts occur, the longest of 6,269 cells. The iteration stops there, at a context too large for the six simulations (a second long block has formed); this is a limit of the tool, not an event of the machine.</p>
+        <p class="where"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- L A 1 orbit 438</code></p>
+      </div>
+      <div class="card">
+        <h3>No halting class among 22 contexts</h3>
+        <p>Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 22 contexts expanded, 22 found, to depth 10. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. 8 contexts longer than 300 cells were not expanded.</p>
+        <p class="where"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- L A 1 bfs 22</code></p>
+      </div>
+    </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
@@ -166,7 +182,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---/lean/check.sh
 python3 holdouts/1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---/py/emap.py blank 4e10
-python3 holdouts/1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---/py/emap.py search 40</code></pre>
+python3 holdouts/1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---/py/emap.py search 40
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- L A 1 check 1e9
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- L A 1 orbit 438
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- L A 1 bfs 22</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

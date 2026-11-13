@@ -39,6 +39,12 @@ and order. More than a day.
 . /etc/profile.d/lean.sh && holdouts/1RB0RE_0RC1RE_1RD1LE_0LE---_1RA1LF_1RF0LC/lean/check.sh
 ```
 
+## Deep exact run
+
+No halt in the first 5.10x10^18 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 4 cells ran
+from blank tape to step 5,108,939,772,420,755,088. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,015,467 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB0RE_0RC1RE_1RD1LE_0LE---_1RA1LF_1RF0LC/explainer.html`](../../pages/holdouts/1RB0RE_0RC1RE_1RD1LE_0LE---_1RA1LF_1RF0LC/explainer.html)

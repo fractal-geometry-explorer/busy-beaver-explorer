@@ -73,6 +73,12 @@ python3 holdouts/1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA---/py/items.py check
 gcc -O2 -o items holdouts/1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA---/c/items.c && ./items 1e9 1e8     # 2·10^18 steps in about 15 s
 ```
 
+## Deep exact run
+
+No halt in the first 2.12x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 8 cells ran
+from blank tape to step 21,232,769,995,818,091,144. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,014,160 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA---/explainer.html`](../../pages/holdouts/1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA---/explainer.html)

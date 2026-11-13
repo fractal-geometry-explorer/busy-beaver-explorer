@@ -108,6 +108,11 @@ The macro simulator `c/msim.c` (a copy of the one in holdouts/1RB0LB_1RC0LA_1LB0
 `../1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/`; blocks of 6 cells; checked against the direct simulator at 10⁹ steps by `check_msim.py check`) runs
 10¹⁸ steps from blank tape without a halt: `python3 ../1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA 1e18` (2 to 5 minutes).
 
+## Remainder classes (family survey)
+
+- **Rounds between end events, by remainder class** (trusted). Sample the run whenever the head is in state D reading 1 with only 0s to its left. Read rightwards from the head, the tape is then `A U^m B`: one long periodic block between two short context words. For each class (A, U, B, m mod 3) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3·10^9 steps (31 events) the class map predicts the next event in all 22 rounds it applies to. This is an extrapolation checked by computation, not a proof. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA L D 1 check 3e9`
+- **376,892 rounds of the class map without a halt** (heuristic). Iterated with exact integers from the event at step 7,961 of the run (A = `110`, U = `1`, m = 117, B = `011`): 376,892 rounds without meeting a halting class; m then has 156,432 bits (about 10^94,180 steps of the machine). 23 distinct contexts occur, the longest of 790 cells. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA L D 1 orbit 376892`
+
 ## Pages
 
 - [`pages/holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/explainer.html`](../../pages/holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/explainer.html)

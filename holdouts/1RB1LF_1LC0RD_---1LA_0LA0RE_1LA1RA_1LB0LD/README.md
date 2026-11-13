@@ -119,6 +119,11 @@ steps.
 * Characterise the halting tails (all found so far contain `2, 1, 1, ..., 1, 2`) and compute the excursion
   halting probability exactly (the pruned DP in `py/roundmap.py`-style code is a start).
 
+## Remainder classes (family survey)
+
+- **Rounds between end events, by remainder class** (trusted). Sample the run whenever the head is in state A reading 0 with only 0s to its right. Read leftwards from the head, the tape is then `A U^m B`: one long periodic block between two short context words. For each class (A, U, B, m mod 3) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3·10^9 steps (31 events) the class map predicts the next event in all 20 rounds it applies to. This is an extrapolation checked by computation, not a proof. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD R A 0 check 3e9`
+- **200 rounds of the class map without a halt** (heuristic). Iterated with exact integers from the event at step 70,452 of the run (A = `01001`, U = `0110`, m = 77, B = `0101`): 200 rounds without meeting a halting class; m then has 75 bits (about 10^46 steps of the machine). 9 distinct contexts occur, the longest of 13 cells. The iteration stops there, at a context too large for the six simulations (a second long block has formed); this is a limit of the tool, not an event of the machine. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD R A 0 orbit 200`
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD/explainer.html`](../../pages/holdouts/1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD/explainer.html)

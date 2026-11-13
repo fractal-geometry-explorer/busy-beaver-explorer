@@ -66,11 +66,16 @@ class Plain:
             subprocess.run(['gcc', '-O2', '-o', exe, os.path.join(here, '..', '..', 'c', 'round.c')], check=True)
         self.p = subprocess.Popen([exe, machine, state, pre, word, suf], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
     def run(self, cells, maxsteps=2 * 10 ** 9):
-        self.p.stdin.write('%d %s\n' % (maxsteps, cells)); self.p.stdin.flush()
-        f = self.p.stdout.readline().split()
-        if f[0] == 'NODE':
-            return ('node', f[2].rstrip('0'))
-        return (f[0].lower(),)
+        for _ in range(20):
+            self.p.stdin.write('%d %s\n' % (maxsteps, cells)); self.p.stdin.flush()
+            f = self.p.stdout.readline().split()
+            if f[0] != 'NODE':
+                return (f[0].lower(),)
+            cells = f[2].rstrip('0')
+            # the plain simulator's node (prefix, word, suffix) can be wider than the pattern on canonical texts
+            if pclosure.NODE.match(canon_cells(cells)[0]):
+                return ('node', cells)
+        return ('end',)
 
 def expect(leaf, x):
     if leaf['kind'] == 'halt':
@@ -81,7 +86,7 @@ def main():
     cert = json.load(gzip.open(sys.argv[1]) if sys.argv[1].endswith('.gz') else open(sys.argv[1])); mode = sys.argv[2]
     random.seed(int(sys.argv[3]) if len(sys.argv) > 3 else 1)
     per = int(sys.argv[4]) if len(sys.argv) > 4 else 4
-    pl = Plain(cert['machine'], 'ABCDEF'[pclosure.accel.EVSTATE], *cert['plain'])
+    pl = Plain(cert.get('mirrored_machine', cert['machine']), 'ABCDEF'[pclosure.accel.EVSTATE], *cert['plain'])
     n = bad = 0
     mod = cert['mod']
     for text, res, leaves in cert['classes']:

@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The run is understood exactly up to 2.8&times;10<sup>17</sup> steps: at each new cell on the right the tape is <code>2 3^16 5 3 5 3^a1 5 3^a2 ... 5 3^am TAIL</code> (lengths of runs of 1s), and the counts a<sub>i</sub> follow a closed-form law P<sub>n</sub> &rarr; Q<sub>n</sub> &rarr; R<sub>n</sub> &rarr; P<sub>n+1</sub>. The law is checked against direct simulation on every event to 10<sup>9</sup> steps and against an accelerated simulator to P<sub>13</sub>; it predicts that the oldest segment runs out at P<sub>14</sub>, near 2.5&times;10<sup>18</sup> steps. Simulations of reduced configurations get through that collapse without halting and into a second regime whose next collapse is around 10<sup>46</sup> steps, but no rule for the collapses is known, so halting is undecided."
+  "<b>The question is open.</b> At each new cell on the right the tape is <code>2 3^16 5 3 5 3^a1 5 3^a2 ... 5 3^am TAIL</code> (lengths of runs of 1s), and the counts a<sub>i</sub> follow a closed-form law P<sub>n</sub> &rarr; Q<sub>n</sub> &rarr; R<sub>n</sub> &rarr; P<sub>n+1</sub>. The law is checked against direct simulation on every event to 10<sup>9</sup> steps and against an exact accelerated simulator all the way to P<sub>14</sub> (step 2.5&times;10<sup>18</sup>), where the oldest segment runs out as the law says. The same exact run then passes the collapse without halting and goes on to 2.28&times;10<sup>20</sup> steps in a second regime (end counter 81), as simulations of shortened tapes had forecast. Those forecasts put the next collapse around 10<sup>46</sup> steps. No rule for the collapses is known, so halting is undecided."
  ],
  "claims": [
   {
@@ -59,20 +59,20 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 2.79&times;10<sup>17</sup> steps",
-   "text": "A macro simulator (blocks of 4 cells, crossing long runs of equal blocks in one go; it agrees with the direct simulator at 2&times;10<sup>9</sup> steps) runs to P<sub>13</sub> at step 279,473,455,907,774,113 without a halt, and every snapshot on the way lies on the law.",
-   "where": "<code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c</code>; <code>py/bmap.py b2 saved data/b2_msim.txt</code>; <code>py/check_msim.py</code>"
+   "title": "No halt in the first 2.28&times;10<sup>20</sup> steps, through the first collapse",
+   "text": "The macro simulator (blocks of 4 cells, crossing long runs of equal blocks in one go; exact, and it agrees with the direct simulator at 2&times;10<sup>9</sup> steps) ran 55 minutes from blank tape to step 227,980,806,246,614,777,399 without a halt. Every right-end event up to P<sub>14</sub> lies on the law, and P<sub>14</sub>, at step 2,515,258,871,431,259,069, is exactly the predicted list: the oldest segment is down to 0 and the end counter is 10. The run then leaves the law, as predicted, passes the collapse without halting, and the next new cell on the right comes at step 16,989,897,072,297,794,501 with the end counter at 81; 4 such events are recorded after the collapse.",
+   "where": "<code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c MACHINE 4 1e36 - 1 r 3300</code>; output in <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/b2_far.txt</code>; <code>py/check_msim.py</code>"
   },
   {
    "level": "heuristic",
-   "title": "The collapse at P<sub>14</sub> and after",
-   "text": "The law needs every count to stay non-negative; the oldest segment y<sub>n</sub>(0) = 9(17&minus;n)&minus;27 loses 9 per generation and reaches 0 at P<sub>14</sub> (about 2.5&times;10<sup>18</sup> steps). The law only looks at a segment's distance from the right end, so the right end of P<sub>13</sub> can be simulated from a shortened tape: with 3, 4 or 5 kept segments the run passes P<sub>14</sub> and the collapse without halting, and the right end settles into a second regime (the end counter jumps from 12 to about 81). There the oldest segment (321 blocks) loses about 9 per cycle, so the next collapse is some 36 generations later, near 10<sup>46</sup> steps; the end counter (&minus;2 per cycle) runs out at about the same time, so the outcome of that second collapse is unclear.",
+   "title": "After the collapse: the next one (forecast)",
+   "text": "The law only looks at a segment's distance from the right end, so the right end of P<sub>13</sub> was simulated beforehand from a shortened tape with 3, 4 or 5 kept segments. That forecast said the run would pass the collapse at P<sub>14</sub> without halting and that the end counter would jump from 10 to 81; the full exact run has now done exactly that (previous claim). The same shortened runs say that in the second regime the oldest segment (321 blocks) loses about 9 per cycle, so the next collapse would be some 36 generations later, near 10<sup>46</sup> steps; for this machine the end counter (&minus;2 per cycle) runs out at about the same time, so the outcome of that second collapse is unclear. The second regime has no law yet, and nothing is known about that second collapse.",
    "where": "<code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/bcollapse.py b2 4</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. Halting needs the head in state D on a 0 with <code>1 1</code> to its right (D0 &rarr; 1RE, E1 &rarr; 1RF, F1 halts), which the law never produces; whether a collapse can produce it needs a rule for the collapses, which is not known yet.",
+   "text": "Not known. Halting needs the head in state D on a 0 with <code>1 1</code> to its right (D0 &rarr; 1RE, E1 &rarr; 1RF, F1 halts), which the law never produces. The first collapse did not produce it either (exact run). Whether a later collapse can needs a rule for the collapses, which is not known yet.",
    "where": ""
   },
   {
@@ -88,12 +88,12 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1LA0RD_1RA0LA_1RE1RD_1RA1RF_1LC--- 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows yet, but its first 2.8&times;10<sup>17</sup> steps are understood exactly. The tape is a list of counters that drain at rates 3, 9, 27, &hellip; while new ones are born at the far end, and the oldest one runs out near 2.5&times;10<sup>18</sup> steps. This page explains the counters, the law they follow and what is proved.",
+  "lede": "Nobody knows yet, but its first 2.5&times;10<sup>18</sup> steps are understood exactly. The tape is a list of counters that drain at rates 3, 9, 27, &hellip; while new ones are born at the far end. The oldest one ran out at step 2.5&times;10<sup>18</sup>, exactly when the law said, and the machine carried on without halting. This page explains the counters, the law they follow and what is proved.",
   "facts": [
    {
     "level": "trusted",
-    "value": "2.8&times;10<sup>17</sup> steps",
-    "text": "No halt (accelerated simulator); the exact law holds all the way."
+    "value": "2.28&times;10<sup>20</sup> steps",
+    "text": "No halt (exact accelerated simulator), through the first collapse."
    },
    {
     "level": "trusted",
@@ -101,9 +101,9 @@
     "text": "The law matches direct simulation on every event to 10<sup>9</sup> steps."
    },
    {
-    "level": "heuristic",
-    "value": "P<sub>14</sub> &asymp; 2.5&times;10<sup>18</sup>",
-    "text": "Where the law ends: the oldest counter runs out."
+    "level": "trusted",
+    "value": "P<sub>14</sub> = 2.5&times;10<sup>18</sup>",
+    "text": "Where the law ends: the oldest counter runs out there, as predicted, and the run goes on."
    }
   ],
   "presets": [
@@ -140,7 +140,7 @@
     "eyebrow": "Where it gets hard",
     "heading": "The oldest counter is a fuse",
     "html": [
-     "<p>The oldest segment y<sub>n</sub>(0) = 9(17&minus;n)&minus;27 shrinks by 9 every generation: 126, 117, 108, &hellip;, 9 at P<sub>13</sub>, 0 at P<sub>14</sub> (about 2.5&times;10<sup>18</sup> steps). One event later the law would need a negative count, so the pattern has to change: a <em>collapse</em>. Simulating just the right end (the law says the left part does not matter there) shows the machine surviving the collapse and settling into a new regime of the same kind with new numbers, whose own fuse burns out roughly 36 generations later, near 10<sup>46</sup> steps.</p>",
+     "<p>The oldest segment y<sub>n</sub>(0) = 9(17&minus;n)&minus;27 shrinks by 9 every generation: 126, 117, 108, &hellip;, 9 at P<sub>13</sub>, 0 at P<sub>14</sub> (step 2.5&times;10<sup>18</sup>). One event later the law would need a negative count, so the pattern has to change: a <em>collapse</em>. Simulating just the right end beforehand (the law says the left part does not matter there) showed the machine surviving the collapse and settling into a new regime of the same kind with new numbers. <b>On 13 November the full exact run got there</b>: P<sub>14</sub> came at step 2,515,258,871,431,259,069 with the oldest segment at 0, as predicted; the machine did not halt, and the next new cell on the right came at step 16,989,897,072,297,794,501 with the end counter at 81, the forecast value. The run has been followed to 2.28&times;10<sup>20</sup> steps. The forecast for the new regime is that its own fuse burns out roughly 36 generations later, near 10<sup>46</sup> steps.</p>",
      "<p>The machine halts only if the head ever stands in state D on a 0 with <code>1 1</code> to its right. Inside a regime that never happens, so the question is what the collapses do: a halting proof or a non-halting proof needs a rule for them, and none is known yet.</p>"
     ]
    },
@@ -167,6 +167,6 @@
    }
   ]
  },
- "summary": "A nested ternary counter: the tape is a list of segments of 111-blocks; an exact three-step law (verified on every event to 10<sup>9</sup> steps and on macro snapshots to 2.8&times;10<sup>17</sup>) drains the oldest segment by 9 per generation until it runs out at P<sub>14</sub> (about 2.5&times;10<sup>18</sup> steps); what happens after that is not proved.",
+ "summary": "A nested ternary counter: the tape is a list of segments of 111-blocks; an exact three-step law drains the oldest segment by 9 per generation until it runs out at P<sub>14</sub> (step 2.5&times;10<sup>18</sup>). An exact run confirms the law up to there, passes that collapse without a halt and continues to 2.28&times;10<sup>20</sup> steps; the next collapse is forecast near 10<sup>46</sup> steps and is not understood.",
  "family": "Nested ternary counter with an exact regime law (segments drained by 3^j per event)"
 }

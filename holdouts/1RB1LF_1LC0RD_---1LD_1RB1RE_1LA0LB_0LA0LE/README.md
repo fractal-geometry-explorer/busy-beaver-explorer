@@ -64,6 +64,11 @@ starts above. Next: sample the run at each `A> 0 0` at the left end, find the ru
 in `py/roundmap.py` of 1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD (`N` mod 3 and the shape of `P`), check it against
 the run, then prove the transfer phase with `symtm` / `cycles` and iterate the map.
 
+## Remainder classes (family survey)
+
+- **Rounds between end events, by remainder class** (trusted). Sample the run whenever the head is in state A reading 0 with only 0s to its left. Read rightwards from the head, the tape is then `A U^m B`: one long periodic block between two short context words. For each class (A, U, B, m mod 6) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3·10^9 steps (112 events) the class map predicts the next event in all 45 rounds it applies to. This is an extrapolation checked by computation, not a proof. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE L A 0 check 3e9`
+- **No halting class among 2,209 contexts** (heuristic). Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 2,209 contexts expanded, 4,353 found, to depth 13. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. 13,120 classes could not be computed (their six simulations disagree or are too long). 26 contexts longer than 300 cells were not expanded. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE L A 0 bfs 2209`
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE/explainer.html`](../../pages/holdouts/1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE/explainer.html)

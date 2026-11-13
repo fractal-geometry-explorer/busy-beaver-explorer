@@ -101,6 +101,40 @@ Within a level this is the F01 shape: one growing periodic block, a short tail, 
 
 Next step: The cheap test of F01: run the growing block symbolically, n = r + m·x with the tail from the finite set seen, and ask whether a class halts or freezes; the levels would then be a map on (tail, n mod m).
 
+## The list of blocks up to 1.45·10^18 steps (F09, 13 November 2026)
+
+The list of blocks, followed further with `c/msim_turns.c` and `py/phases.py` of `holdouts/1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA---`
+(left turns grouped by the long runs on the tape; `py/laps_1e16.txt` has the 144 groups up to 1.3·10^16 steps in which the
+head turns at the left end with every long run on its right) and with two samples of the macro simulator at 5.8·10^17 and
+1.45·10^18 steps. Everything here is observed in one run; none of it is proved.
+
+Blocks in the order in which they stopped growing (copies of a four-cell word; the word of a block rotates as the head passes):
+
+| copies when it stopped growing | about step | later |
+|---|---|---|
+| 189 | 432,110 | exact so far |
+| 633 | 9.1·10^6 | exact so far |
+| 40,231 | 1.9·10^10 | exact so far |
+| 8,119 | 3.4·10^10 | exact so far |
+| 92,784 | 2.5·10^11 | 92,784 at 3.7·10^11, 92,799 at 9.3·10^15, 92,808 at 1.45·10^18 |
+| 5,890,876 | 4.2·10^14 | 5,890,876 to 5,890,878, back and forth |
+| 1,188,875 | 1.1·10^15 | 1,188,875 at 1.1·10^15, 1,188,870 at 1.45·10^18 |
+| 19,851,057 | 8.5·10^15 | 19,851,057 or 19,851,058 |
+| 48,010,873 | before 5.8·10^17 | same at both samples |
+| 11,795,336 | before 5.8·10^17 | 11,795,335 at 1.45·10^18 |
+
+Two things are new compared with the sections above. First, the blocks that stopped growing are not all frozen: the fifth one
+gains one copy every second lap, and the seventh loses copies slowly. So the earlier blocks are not constants of the run, and a
+proof cannot treat them as fixed parameters. Second, the sizes at which blocks stop growing have no visible order (40,231, then
+8,119, then 92,784, then 5,890,876, then 1,188,875): a block grows by a factor of at least 7/5 per lap for 1 to about 15 laps
+and then stops. What makes it stop is not known; if it is a remainder of the block length, as the factor 7/5 suggests, the
+machine is a Collatz-like counter with one more digit per level.
+
+Reproduce the lap table (stopped by hand at 1.3·10^16 steps after 30 minutes):
+
+    D=holdouts/1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA---; gcc -O2 -o msim_turns $D/c/msim_turns.c
+    ./msim_turns 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB--- 4 1.3e16 - 1 t | grep "[A-F]> " | python3 $D/py/phases.py /dev/stdin 200 20 | grep -E "^[0-9]+ x[0-9]+ [A-F]> \|"
+
 ## Pages
 
 - [`pages/holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/explainer.html`](../../pages/holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/explainer.html)

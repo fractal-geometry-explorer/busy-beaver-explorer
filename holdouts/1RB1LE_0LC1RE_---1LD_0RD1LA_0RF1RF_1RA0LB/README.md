@@ -76,6 +76,12 @@ and in D, not in B. So the question is in which state the rare visits that cross
   reset leaves possible for the next arrival: a halt needs B on the edge.
 * A mirrored CTL certificate would make the left-end confinement a Lean theorem.
 
+## Deep exact run
+
+No halt in the first 6.00x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 10 cells ran
+from blank tape to step 60,000,783,412,981,265,560. It is exact, and at this block size it agrees with the
+direct simulator after 2,000,002,519 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
 ## Pages
 
 - [`pages/holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/explainer.html`](../../pages/holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/explainer.html)

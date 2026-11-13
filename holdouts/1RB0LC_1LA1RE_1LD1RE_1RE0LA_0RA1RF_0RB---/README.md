@@ -95,6 +95,12 @@ No pushdown certificate with a small DFA exists: the reduction of `bb6-1RB0LF_1R
 exact, the other a DFA, post* saturation) reaches a halt for every DFA with at most 6 states, on either side
 (`TM=1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- ./pds 6 L`, then `R`; 1.5 minutes each).
 
+## Remainder classes (family survey)
+
+- **Rounds between end events, by remainder class** (trusted). Sample the run whenever the head is in state A reading 1 with only 0s to its left. Read rightwards from the head, the tape is then `A U^m B`: one long periodic block between two short context words. For each class (A, U, B, m mod 4) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3·10^9 steps (23 events) the class map predicts the next event in all 13 rounds it applies to. This is an extrapolation checked by computation, not a proof. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- L A 1 check 3e9`
+- **438 rounds of the class map without a halt** (heuristic). Iterated with exact integers from the event at step 65,159 of the run (A = `1`, U = `010`, m = 111, B = `1`): 438 rounds without meeting a halting class; m then has 199 bits (about 10^120 steps of the machine). 36 distinct contexts occur, the longest of 6,269 cells. The iteration stops there, at a context too large for the six simulations (a second long block has formed); this is a limit of the tool, not an event of the machine. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- L A 1 orbit 438`
+- **No halting class among 22 contexts** (heuristic). Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 22 contexts expanded, 22 found, to depth 10. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. 8 contexts longer than 300 cells were not expanded. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- L A 1 bfs 22`
+
 ## Pages
 
 - [`pages/holdouts/1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---/explainer.html`](../../pages/holdouts/1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---/explainer.html)
