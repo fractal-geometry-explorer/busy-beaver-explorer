@@ -299,12 +299,13 @@ def _near(S):
 
 
 CROSS_EVENTS = [os.environ.get('ACCEL_X') == '1']   # also count the crossing of a long block as an event (for interior zig-zag phases)
+CROSS_MIN = [8]
 
 
 def _xev(c):
     if CROSS_EVENTS[0] and not c.ev:
         n = c.xn
-        if (n >= 8) if isinstance(n, int) else (not n.is_const() or n.k >= 8):
+        if (n >= CROSS_MIN[0]) if isinstance(n, int) else (not n.is_const() or n.k >= CROSS_MIN[0]):
             c.ev = 'X'
 
 
@@ -324,6 +325,7 @@ def move(c):
 
 # ------------------------------------------------------------------ compression
 MAXW = 12
+GREEDY = [False]   # closure2 sets this: a canonical (left-greedy) parse of adjacent blocks
 
 
 def _compress_lits(lits):
@@ -390,6 +392,25 @@ def _merge(seq):
                 out.append(z)
                 i += 1
         seq = out
+        if not GREEDY[0]:
+            continue
+        # left-greedy parse: "(w)^n x (u)^m" with x + u starting with w gives one copy of u to the left block
+        # (only when m is a constant), so that e.g. (101)^n 1 0 (100)^m is always read as (101)^(n+1) 0 0 (100)^(m-1)
+        for i, z in enumerate(seq):
+            if not isinstance(z, Rep):
+                continue
+            p = len(z.w)
+            j = i + 1
+            while j < len(seq) and j - i - 1 < p and isinstance(seq[j], int):
+                j += 1
+            k = j - i - 1
+            if j < len(seq) and k < p and isinstance(seq[j], Rep):
+                u = seq[j]
+                m = u.n if isinstance(u.n, int) else (u.n.k if u.n.is_const() else None)
+                if m is not None and m >= 1 and k + len(u.w) >= p and tuple(seq[i + 1:j]) + u.w[:p - k] == z.w:
+                    seq = seq[:i] + [Rep(z.w, z.n + 1)] + list(u.w[p - k:]) + ([Rep(u.w, m - 1)] if m > 1 else []) + seq[j + 1:]
+                    changed = True
+                    break
     return seq
 
 

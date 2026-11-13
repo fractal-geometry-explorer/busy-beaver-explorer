@@ -1,8 +1,10 @@
 # 1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA
 
-bbchallenge id 11019. Open. A **two-block transfer with a tail counter**: two long blocks `(01)^a` and `(10)^b`; at each visit of the
-left end a drops by about 1.5 and b grows by about 3.2, paced by a small counter of short blocks at the right end;
-when a is used up the right block becomes the new left block, so each round is about 2.2 times longer.
+bbchallenge id 11019. **It does not halt: Lean theorem `nonhalt` (`lean/Replay.lean`), level native** (the kernel plus
+16 evaluations by `native_decide`: one symbolic round for each of 1,144 classes of round ends, the arrival from blank
+tape, six cycle rules). A **two-block transfer with a tail counter**: two long blocks of pairs `01`; every visit of the left end
+takes 3 pairs from the left block and adds about 6.6 to the big one, paced by a short tail that runs in one of four
+cycles; when the left block is used up the big block takes its place, so each round is 2.06 to 2.2 times longer.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -15,39 +17,133 @@ when a is used up the right block becomes the new left block, so each round is a
 
 ## The tape as words
 
-At the left end (state A): `0 1 0 (01)^a 0 0 0 0 (10)^b` + tail, the tail being short blocks `(10)^k` separated by
-`000`; e.g. step 9,932,715,748:
-`0 1 0 (01)^2110 0000 (10)^56419 000 (10)^4 000 (10)^13 000 (10)^16 000 (10)^20 111 0 1`.
-The tail changes at every visit and keeps returning to the same patterns, like the low digits of a counter.
+Event: state A arrives at the left end of the tape. Then the tape is
 
-## Rounds
+    A> 010 (01)^a 000 (01)^b T
 
-Per visit a falls by 1 or 2 and b grows by about 3.2, depending on the tail; over the round from step 2.45e9 to
-9.93e9 a went 27,610 -> 2,110 and b 1,942 -> 56,419. When a is used up the right block becomes the new left block (in
-state C the tape reads `000 (10)^a 000 (10)^b ...`) and the transfer restarts. New left blocks: 851 (3.2e6),
-2,392 (1.9e7), 5,837 (1.0e8), 12,514 (5.0e8), 28,096 (2.3e9); ratio about 2.2.
+with T, the tail, a short word: small blocks `(10)^k` (k < 70) separated by `000` or `111`. E.g. step
+9,932,715,748: `010 (01)^2110 0000 (10)^56419 000 (10)^4 000 (10)^13 000 (10)^16 000 (10)^20 111 0 1`.
+One visit takes 3 pairs from the left block (five sweeps, three pairs at a time, in Lean) and rewrites the tail.
 
-## Sweeps (Lean, kernel, `lean/Rules.lean`)
+## The tail cycles (one symbolic run each, both counts free; in Lean: `rule0_ok` ... `rule5_ok`, native)
 
-| rule | statement | steps |
+The tail is a finite engine. After a start-up it repeats:
+
+| visits | left block a | big block b | tails |
+|---|---|---|---|
+| 15 | - 45 | + 99 | three variants |
+| 16 | - 48 | + 99 | one |
+| 22 | - 66 | + 141 | one |
+| 9 | - 27 | + 57 | one |
+
+## Rounds and classes
+
+A round ends at a *node* `A> 01001000 (01)^B T`; two visits later the left block is B + 3 and a new round starts.
+Nodes of the real run: B = 586, 1291, 2827, 6280, 12967, 28531 (step 2,340,515,329), ...
+
+The next node depends only on T and on the remainder of B modulo what a period of T's cycle eats (45, 48, 66, 27):
+with B = r + m x the next node has B' = k + c x (c = 99, 141, 57). This looks like a Collatz-type map on B, but the
+question "which remainder comes next" need not be answered: **all** remainders that B' can have are allowed.
+
+**Closed set** (`py/closure/cert.json`, found by `py/closure/closure.py bfs`): 1,144 classes (T, B mod m, B >= 20000)
+over 62 tails (m = 66: 682 classes, 45: 300, 48: 144, 27: 18). For every class one symbolic round with x free ends
+at a node all of whose possible remainders are classes of the set; no class reaches the halting transition and none
+is undecided. The real run is in the set from step 2,340,515,329 on (B = 28531 = 19 mod 66).
+
+How the symbolic round works (`py/closure/accel.py`, the engine of 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA with
+one addition): counts are numbers or k + c x; comparisons, divisions and decrements are answered only when the
+answer is the same for every x >= 0, otherwise the run stops. The addition: a cycle rule that shrinks a count
+n = k + c x by d per application is applied N = (k - base) div d + 1 + (c / d) x times, which needs d | c; if d does
+not divide c the class is split (that is where the moduli 45, 48, 66, 27 come from).
+
+## Evidence for the tool (all in `py/closure/`)
+
+* `closure.py check cert.json`: re-runs the 1,144 classes with a fresh rule cache and tests coverage with separate
+  code: CHECKED.
+* `validate.py real 120`: 1,302 consecutive rounds of the real run (numbers, B up to 437 digits) against their
+  classes: next tail, next B, and the step polynomial, all exact; 684 classes and all 62 tails occur.
+* `validate.py plain`: 5 classes at x = 0, 1 against the bit-level simulator `c/round.c` (4.1e9 to 4.3e9 steps each):
+  state, head, tape and step count exact.
+* `validate.py mutate cert|engine|engine2`: 12 certificate defects and 8 engine defects, 20 of 20 reported.
+
+## Do neighbouring classes halt? Yes, some
+
+* Other remainders of B for the 62 tails (every 12th, split by the engine into 1,722 classes): none halts, all are
+  in the closed set after one round.
+* Tails with one block one pair longer or shorter (every 7th, 1,141 classes with B = 1 mod 3): 1,136 reach the closed
+  set after one round, **5 halt for every B**. Example: T = `0000 (10)^10 000 (10)^4 000 (10)^12 111 0000 101`
+  (the set has it with 11 in the last block), B = 20002 + 3x: halts after 815,565 + 122 x steps; confirmed bit by bit
+  at x = 0, 1, 3.
+
+So a domain "every tail" cannot close; the proof needs the exact 62 tails.
+
+## Lean (`lean/`)
+
+| file | level | content |
 |---|---|---|
-| `f_left` | `L (01)^n F>0 R` -> `L F>0 (01)^n R` | 8n |
-| `b_right` | `L 1 B>(101100)^n R` -> `L (010110)^n 1 B> R` | 42n |
-| `e_right` | `L E>(101100)^n R` -> `L (100101)^n E> R` | 12n |
+| `Rules.lean` (generated by `py/rules.py`) | kernel | eight shift rules, any number of words: the five sweeps of a visit (`c_right6`, `a_left6`, `b_right6`, `b_left6`, `f_left6`) and `f_left`, `b_right`, `e_right` |
+| `Closed.lean` | kernel | `nonhalting_of_closed_set`: a set of round ends that the run enters and that is closed under "next round end" implies non-halting |
+| `Exec.lean` | kernel | the symbolic executor (adapted from 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA) and `run_sound`, `run_pos`, `rule_instN`, `ruleOK_of_run` |
+| `Classes.lean` | kernel | `Cls`, the two tests `clsRun` and `covers` with `clsRun_sound`, `covers_sound`; `closed_of_checks`; `arrives_sound`, `inSetB_sound` |
+| `ExecData.lean` (generated by `py/replay/gen.py`) | kernel, native | 8 + 7 shift rules by `rfl`; 6 cycle rules, each one executor run by `native_decide` (`rule0_ok` ... `rule5_ok`); the tables `T`, `T_ok` |
+| `ClassData.lean` (generated) | data | the 1,144 classes of `py/closure/cert.json` (tail, r0, m, next tail, k, c) with the length of their runs, in 8 chunks |
+| `Chunk0.lean` ... `Chunk7.lean` (generated) | native | `chunkN_ok`: both tests for the 143 classes of the chunk |
+| `Arrive.lean` (generated) | native | `arrive_ok`: 527,489 moves from blank tape end at `node 28531 startTail`; `start_ok`: it is in a class |
+| `Replay.lean` (generated, fixed text) | native | `reach_set`, `closed_set`, and **`nonhalt : ¬ HaltsFromBlank`** |
+
+`lean/check.sh` takes 6 to 7 minutes on one core from a clean `lean/out` (the chunks 35 to 56 s each, everything
+else under 15 s). `#print axioms nonhalt`: `propext`, `Classical.choice`, `Quot.sound` and the 16 `native_decide`
+evaluations; `run_sound` and `closed_of_checks` use `propext` and `Quot.sound` only.
+
+### How the replay works
+
+The set is `InSet classes B T`: some class d of the list has tail T and B = d.r0 + d.m x for some x (r0 >= 20000 is
+the smallest member, so the bound B >= 20000 is part of the class).
+
+* *One round per class.* `clsRun T c` starts the executor at `A> 01001000 (01)^(r0 + m x) tail` with x a free
+  variable, checks that the first move is a machine step, runs K + 1 moves and compares the result with
+  `A> 01001000 (01)^(k + c x) to` (both sides brought to the form `canon`, a proved re-bracketing). By `run_pos`
+  the machine does the same for every x, in at least one step.
+* *The cycle rule inside a round.* The left block is `r0' + m x`; a tail cycle eats d = 27, 45, 48 or 66 words of it
+  per application, so it is applied N = N0 + (m / d) x times: N is a count with a variable. `appTok` computes
+  `count - (M d0) N` coefficient by coefficient and fails if a coefficient would be negative; the proof
+  (`app_inst`) instantiates the N-fold rule (`rule_instN`, by induction) at N = N.eval x. After the jump the left
+  block is a number and x sits in the big block only.
+* *Coverage.* `covers classes c`: with l the classes of tail `c.to` and P a common multiple of their moduli, for
+  every j < P some d in l has d.r0 <= k + c j, (k + c j) mod d.m = d.r0 mod d.m, and d.m | c P. `covers_sound`
+  turns this into: for every x, k + c x = d.r0 + d.m y for some class d and some y.
+* *Arrival.* `arrives T 527489 28531 startTail`, the run from blank tape with numbers only.
+
+The executor's choices (which rule, N, the re-bracketing) are not trusted; `py/replay/engine.py` is its Python
+model and `py/replay/gen.py` finds the tables and the move counts (discovery pass on one member of each class, then
+a static pass with x free, which is what Lean replays). Changing k, c, r0, the tail or the move count of a class,
+or the arrival, makes the Lean test evaluate to false.
+
+What Lean does not state: step counts (only "reaches, in at least one step"), and nothing at the kernel-only level
+for the long runs (that would need the rounds cut at checkpoints; not done).
 
 ## Halting
 
 The only halting transition is D on a 0; D is entered only from A on a 1 (A writes 0, moves right).
 
+## Independent check
+
+`verify/` holds a second accelerated simulator written from scratch (`accel.cpp`), not derived from `py/closure/`.
+It confirms the arrival from blank tape and, for each of the 1,144 classes, four members plus 7,000 random ones:
+no halt, next round end exactly as the certificate predicts, 0 mismatches. It samples B; "for every B" is the Lean
+theorem `closed_set`. See `verify/README.md`.
+
 ## Status
 
-Open. Kernel: halting configurations, 10,000 steps, the three shift rules. Native: 10^7 steps. Trusted: no halt in
-10^10 steps (`c/ev.c`). The transfer rates and the tail counter are from simulation only.
+Decision: **nonhalting** (`nonhalt`, level native). Kernel: the executor's soundness and the class tests, the shift
+rules, closed set => no halt, halting configurations, 10,000 steps. Native: the six cycle rules, the arrival, the
+1,144 rounds and their coverage, 10^7 steps. Trusted: step counts, the 1,302 later rounds of the real run, the
+halting neighbours.
 
 ## For later
 
-* Find the tail counter's rules (which patterns, in which order) and the exact cells moved per visit; then the
-  round map a -> b is a sum over the counter's states.
+* The start-up of each tail and the round ends are not decoded by hand; the executor treats them as a black box.
+* A kernel-only replay (no `native_decide`).
 
 ## First look
 
@@ -68,6 +164,11 @@ start, 18,839 right), 19,487 ones.
 ## Check
 
 ```sh
-. /etc/profile.d/lean.sh && holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/lean/check.sh
+. /etc/profile.d/lean.sh && holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/lean/check.sh     # all Lean files, 6 to 7 min
+python3 holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/py/replay/gen.py --check     # model of the Lean executor, 6 min; without --check rewrites the generated Lean files
+python3 holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/py/closure/closure.py check holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/py/closure/cert.json     # 5 min
+python3 holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/py/closure/validate.py real 120
+gcc -O2 -o round holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/c/round.c && python3 holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/py/closure/validate.py plain ./round 5
+python3 holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/py/closure/validate.py mutate cert      # also: mutate engine, mutate engine2, tails 420 7, neighbours 500 12
 gcc -O2 -o ev holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/c/ev.c && ./ev 1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA 2000000000 L A 1 100000 12 | awk 'NR%300==0'
 ```

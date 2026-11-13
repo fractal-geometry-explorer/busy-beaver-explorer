@@ -2,7 +2,7 @@
  "generated": false,
  "group": "G09",
  "family": "nested drain/copy counter",
- "summary": "A nested counter: blocks (010)^a are drained one by one into a final block (01011)^b at 7 cells per 2 pairs (proved cycle), and when all are drained the final block is copied back into new (010) blocks, so b grows about eightfold per level (13, 108, 907, 7265, 14531, ...).",
+ "summary": "A nested drain/copy counter: levels (b, tail) with b -> about 4.5b, 8b or 2b by residue classes (symbolic level map, no halting case), but two level types run a counter whose outcome depends on the digits of a block length; no halt in 1.6e15 steps.",
  "decision": "open",
  "title": "What is known about 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE.",
@@ -13,9 +13,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The run is a sequence of phases on a few long blocks. The drain, split and copy phases are proved in Lean as one-cycle rules for all block sizes (kernel). An accelerated simulator whose jumps are checked symbolically, and which agrees cell for cell with plain simulation at 5&middot;10<sup>10</sup> steps, finds no halt up to 1.05&middot;10<sup>15</sup> steps. The level-to-level map is not derived exactly."
+  "<b>The question is open.</b> The run is a sequence of levels (b, tail); the level map is known symbolically for twelve of the fourteen level types met (trusted code, no halting case), the four cycles it uses are proved in Lean, and the run from blank tape passes nine levels in 1.6 × 10<sup>15</sup> steps without halting. Two level types contain a counter, and there the next level depends on the digits of a block length."
  ],
  "claims": [
   {
@@ -85,9 +85,33 @@
    "where": "C run, <code>c/ev.c</code>"
   },
   {
+   "level": "kernel",
+   "title": "The pour cycle, visit by visit",
+   "text": "Twenty one-visit theorems: <code>0^∞ 1 (100111)^3 (001)^(d+4) 1 1 1 0 (01110)^(a+2) 0 1 1 1 B&gt; 0^∞</code> returns after 20 visits of the right end with d − 2 and a + 10, for every a and d.",
+   "where": "<code>pour1</code>..<code>pour20</code>, <code>lean/Visits.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The level map for twelve of fourteen level types; no halting case",
+   "text": "A level starts when the final block has just been rewritten as <code>(01111)^b</code>. A symbolic run with b and the other block counts free (residue splits on demand, every assumption recorded) gives the next level for 89 cases of 14 types, e.g. b = 4k+r → 18k + const on the short tails; no case halts. Two cases fail: the levels with a long block <code>(011110)^m</code> or <code>(110011)^m</code>, where a counter runs between the blocks.",
+   "where": "<code>py/closure.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 1.6 × 10<sup>15</sup> steps; nine levels",
+   "text": "The accelerated simulator (jumps only over symbolically verified cycles; cell-checked against plain simulation at 5 × 10<sup>10</sup> steps) follows the run through levels b = 906, 910, 7,265, 14,531, about 83,546, 375,960, 375,965, 3,007,734 and 6,015,471.",
+   "where": "<code>c/hsim2.cpp</code> with LEVELS=1, <code>py/lvx.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No exact growth cycle; counter levels depend on digits",
+   "text": "The second round of levels repeats the types of the first, but growth is multiplicative and the next type depends on b mod 4 and, after a counter level, on the digits of the counter length m: with b = 400 and m = 1..48 every level reaches a next one without halting, but the new b is not monotone in m.",
+   "where": "<code>py/levels.py</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The phases are regular and two of them are proved, but the transitions between phases and a small counter that appears in the third phase type are not, so a non-halting proof is not in reach yet.",
+   "text": "Not known. The level structure is exact for twelve level types and none of their cases halts, but two level types contain a counter whose outcome depends on the digits of a block length, so the set of level types does not close; the machine is Collatz-like with a counter inside.",
    "where": ""
   }
  ],
@@ -97,7 +121,9 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE 1000000000",
   ". /etc/profile.d/lean.sh && holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/lean/check.sh   # Rules.lean (about 30 s)",
   "gcc -O2 -o ev holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/c/ev.c && ./ev 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE 2000000000 L B 1 100000 12 | awk 'NR%200==0'",
-  "python3 holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/py/cmpc.py 5e10      # hsim2 against plain simulation, cell for cell (about 4 min)"
+  "python3 holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/py/cmpc.py 5e10      # hsim2 against plain simulation, cell for cell (about 4 min)",
+  "python3 holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/py/closure.py   # level map, about 1 min: 14 types, 89 cases, 2 failed, NOT CLOSED",
+  "python3 holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/py/visits.py    # writes lean/Visits.lean"
  ],
  "explainer": {
   "lede": "Nobody knows yet. This machine keeps a few long blocks on its tape and works like a nested counter: it pours blocks of <code>010</code> into one big block of <code>01011</code>, a little per sweep, and each time everything is poured it copies the big block back out as new <code>010</code> blocks, about eight times larger than the last round.",
@@ -184,6 +210,16 @@
     "eyebrow": "Where a halt would come from",
     "heading": "The one way it could stop",
     "html": "<p>The machine stops only one way: state E reads a 1 whose left neighbour is a 0 (E writes 0, steps left into state F, and F has no move on a 0). That pattern has not appeared in 10<sup>15</sup> simulated steps: every phase seen so far keeps those neighbourhoods out of reach. Proving that the phases always follow one another the same way would prove the machine runs forever; that is the missing piece.</p><p>At 1.05&middot;10<sup>15</sup> steps the whole tape is <code>(011101)^1503867 (001)^6015471 01110 (10110)^6015471</code>: three long blocks, the shape the machine returns to at every level.</p>"
+   },
+   {
+    "id": "levelmap",
+    "eyebrow": "Level map",
+    "heading": "Levels: what is known for every block size",
+    "html": [
+     "<p>Call a <em>level</em> the moment the final block has just been rewritten as <code>(01111)^b</code>, with a tail T of other cells to its left. A symbolic run with b left free gives the next level for each kind of tail:</p>",
+     "<table><thead><tr><th>tail</th><th>next b</th></tr></thead><tbody><tr><td>plain (P)</td><td>b + 4, and a copy <code>(100)^(b−5)</code> joins the tail</td></tr><tr><td>with a copy <code>(100)^c</code></td><td>about 4.5 b + 3.5 c (exact formula per residue of b and c mod 4)</td></tr><tr><td>five short tails</td><td>b = 4k + r → 18k + const (× 4.5); r picks the next tail</td></tr><tr><td>doubling tail</td><td>2b + 1, and a block of m ≈ b/2 six-cell words appears</td></tr><tr><td>with <code>(011110)^m</code> or <code>(110011)^m</code></td><td>not known in general: a counter runs between the blocks</td></tr></tbody></table>",
+     "<p>None of the 89 cases halts. The last row is why the machine is still open: with b = 400, the lengths m = 13, 14, 15 give b = 2048, 2441, 1862 next, so the result depends on the digits of m and no finite list of shapes covers it. From blank tape the run passes b = 906, 910, 7,265, 14,531, about 83,546, 375,960, 375,965, 3,007,734, 6,015,471 in 1.6 × 10<sup>15</sup> steps.</p>"
+    ]
    }
   ]
  }

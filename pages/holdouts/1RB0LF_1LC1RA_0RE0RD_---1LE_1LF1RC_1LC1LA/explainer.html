@@ -141,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#sweeps">A bouncer trading 01s for 1s</a><a href="#reset">The reset: an explicit map, proved</a><a href="#halting">What halting would require</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#sweeps">A bouncer trading 01s for 1s</a><a href="#reset">The reset: an explicit map, proved</a><a href="#fmap">F in full: what the next block is</a><a href="#halting">What halting would require</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -225,6 +225,49 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <pre>Z(16): no halt          Z(17): halts after 453 steps
 blank -> Z(19) -> Z(44) -> Z(67) -> Z(99) -> Z(115) -> Z(190) -> Z(288) -> ... -> Z(3236)</pre>
 <p>All of this is a Lean theorem now: thirteen leaf rules found and proved by the symbolic simulator (<code>lean/Leaves.lean</code>), and hand-written inductions over the sweeps, the steps of a round and the rounds that assemble them into the map F (<code>lean/Reset.lean</code>, <code>F_sem</code>).</p>
+</section>
+<section id="fmap">
+  <span class="eyebrow">The map F</span>
+  <h2>F in full: what the next block is</h2>
+<div class="col"><p>F takes the length t of a solid block of 1s, the tape <code>1<sup>t</sup> A&gt;</code> written Z(t), and gives the length of the next solid block the machine produces, or says that the machine halts. The run from blank tape is F applied again and again: 0 &rarr; 19 &rarr; 44 &rarr; 67 &rarr; 99 &rarr; 115 &rarr; 190 &rarr; 288 &rarr; 433 &rarr; &hellip;</p>
+<p><b>If t is even</b> (t &ge; 6), the block is turned into pairs and swept back into 1s. The result is</p></div>
+<pre>F(t) = 3t/2 + 1   if t is a multiple of 4          F(44)  = 67
+F(t) = 3t/2 + 3   otherwise                        F(190) = 288</pre>
+<div class="col"><p><b>If t is odd</b> (t &ge; 7), the doubling rounds run. Keep two numbers: a, the size of the growing block of pairs, and d, half the 1s still to be eaten. Start with a = 1 and d = (t + 3)/2, and repeat:</p></div>
+<pre>if d = 0        the machine HALTS
+if d &lt; a        F(t) = S(a - 1 - d, 2d + 2)        (a smaller bouncer is left; S sweeps it, see below)
+if d = a        F(t) = 4a + 4
+if d = a + 1    restart: run this same loop again from a = 1, d = 2a + 3
+otherwise       a becomes 2a + 3,  d becomes d - a - 2   (one doubling round: a = 1, 5, 13, 29, 61, ...)
+
+S(x, y) = 2y + 1 + 3x  if x is even,   2y + 3 + 3x  if x is odd
+          (the block 1^t that the bouncer (10)^x 1^(2y+1) is swept into)</pre>
+<div class="col"><p>Two worked examples. For t = 67: (a, d) goes (1, 35) &rarr; (5, 32) &rarr; (13, 25) &rarr; (29, 10); now d &lt; a, so F(67) = S(18, 22) = 99. For t = 17: (1, 10) &rarr; (5, 7) &rarr; (13, 0), and d = 0, so the machine halts from Z(17).</p>
+<p>The six smallest blocks are special cases checked directly: F(0) = F(1) = 19, F(2) = 6, F(4) = 7, F(5) = 20, and Z(3) halts. In Lean, F is the function <code>F</code> in <code>lean/Reset.lean</code> (the loop is <code>chainF</code>, S is <code>sweepv</code>, a restart is the state <code>rs</code>), and the theorem <code>F_sem</code> says that the machine really goes from Z(t) to Z(F(t)), or halts when F says so, for every t.</p>
+<p><b>Try it.</b> Enter a block length and follow F. The run from blank tape passes through 44.</p></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0"><label for="fmap-t">t =</label> <input id="fmap-t" type="text" inputmode="numeric" value="44" style="font:inherit;padding:4px 8px;width:14ch"> <label for="fmap-n">steps</label> <input id="fmap-n" type="number" min="1" max="200" value="12" style="font:inherit;padding:4px 8px;width:7ch"> <button type="button" id="fmap-go" style="font:inherit;padding:4px 12px">Apply F</button></div>
+<pre id="fmap-out" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre>
+<script>
+(function(){
+  function S(x,y){return x%2n===0n?2n*y+1n+3n*x:2n*y+3n+3n*x;}
+  function chain(a,d,log){for(;;){log.push('('+a+', '+d+')');
+    if(d===0n)return null; if(d<a)return S(a-1n-d,2n*d+2n); if(d===a)return 4n*a+4n;
+    if(d===a+1n){log.push('restart');a=1n;d=2n*(d-1n)+3n;continue;}
+    var na=2n*a+3n;d=d-a-2n;a=na;}}
+  var small={0:19n,1:19n,2:6n,4:7n,5:20n};
+  function F(t,log){ if(t===3n)return null; if(t<6n)return small[Number(t)];
+    if(t%2n===0n){log.push(t%4n===0n?'even, multiple of 4: 3t/2 + 1':'even: 3t/2 + 3');return t%4n===0n?3n*t/2n+1n:3n*t/2n+3n;}
+    return chain(1n,(t+3n)/2n,log);}
+  function run(){var out=document.getElementById('fmap-out'),t,n=Math.max(1,Math.min(200,parseInt(document.getElementById('fmap-n').value)||12));
+    try{t=BigInt(document.getElementById('fmap-t').value.trim());}catch(e){out.textContent='Enter a whole number.';return;}
+    if(t<0n){out.textContent='Enter a whole number, 0 or more.';return;}
+    var lines=[];for(var i=0;i<n;i++){var log=[],r=F(t,log);var why=log.length>8?log.slice(0,3).join(' -> ')+' -> ... ('+log.length+' rounds) ... -> '+log[log.length-1]:log.join(' -> ');
+      if(r===null){lines.push('Z('+t+')  HALTS    '+why);break;}
+      lines.push('Z('+t+') -> Z('+r+')    '+why);t=r;}
+    out.textContent=lines.join('\n');}
+  document.getElementById('fmap-go').addEventListener('click',run);run();
+})();
+</script>
 </section>
 <section id="halting">
   <span class="eyebrow">Halting</span>

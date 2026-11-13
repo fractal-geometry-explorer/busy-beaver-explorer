@@ -34,6 +34,23 @@ Following the counts, an odd block halts iff `t + 2s + 11 = 2^(s+3)` for some s,
 `t = H_j = 2^(j+1) - 2j - 7` (3, 17, 47, 109, 235, 489, 999, ...). From blank tape (= Z(0)):
 `Z(0) -> Z(19) -> Z(44) -> 67 -> 99 -> 115 -> 190 -> 288 -> 433 -> 478 -> 720 -> 1081 -> 1572 -> 2359 -> 3236 -> ...`
 
+## The map F, in full
+
+F takes the length t of a solid block `1^t A>` (written Z(t)) to the length of the next solid block, or says the machine halts.
+
+- t even, t >= 6: F(t) = 3t/2 + 1 if 4 divides t, else 3t/2 + 3.
+- t odd, t >= 7: start with a = 1, d = (t + 3)/2 and repeat:
+  - d = 0: the machine halts;
+  - d < a: F(t) = S(a - 1 - d, 2d + 2), where S(x, y) = 2y + 1 + 3x for x even and 2y + 3 + 3x for x odd;
+  - d = a: F(t) = 4a + 4;
+  - d = a + 1: restart the loop from a = 1, d = 2a + 3 (the state `rs` in Lean);
+  - otherwise a <- 2a + 3, d <- d - a - 2 (with the old a).
+- Small cases: F(0) = F(1) = 19, F(2) = 6, F(4) = 7, F(5) = 20, Z(3) halts.
+
+Examples: F(44) = 67; for t = 67, (a, d) = (1, 35), (5, 32), (13, 25), (29, 10), so F(67) = S(18, 22) = 99; for t = 17,
+(1, 10), (5, 7), (13, 0): halt. In Lean: `F`, `chainF`, `sweepv` in `lean/Reset.lean`; `F_sem` proves it for every t.
+The explainer page has a calculator for F.
+
 ## What is proved (Lean, kernel unless said otherwise)
 
 - `lean/Leaves.lean` (written by `py/gen_reset.py` with `bbtools.symtm.prove`): the 13 leaf rules above, for all

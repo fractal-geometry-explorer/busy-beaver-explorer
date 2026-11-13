@@ -124,7 +124,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 13 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA</p>
   <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
@@ -245,7 +245,7 @@ stall:   L (110)^(n+4) (111)^j 11 0111 D&gt; 0^&infin;  &rarr;  L (110)^n (111)^
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 13 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -264,6 +264,7 @@ stall:   L (110)^(n+4) (111)^j 11 0111 D&gt; 0^&infin;  &rarr;  L (110)^n (111)^
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>growth_phase</code>, <code>stall_phase</code>, <code>lean/Phase.lean</code></div></div><div><b>Whole phases, by induction</b><p>For every i, 4i units are eaten in 2i sweeps of either phase without a halt, whatever the zone L holds.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA/c/phases.c</code></div></div><div><b>Rounds: growth then stall, length &times; about 3/2</b><p>In a direct C simulation to 1.5&middot;10<sup>10</sup> steps the run is a strict alternation of growth phases and stall phases (32 phases); at the start of each round the tape is a zone of under 50 cells followed by (110)<sup>k</sup>, and the length goes 252, 372, 546, 817, 1221, 1824, 2731, 4087, 6114, 9162, 13727, 20592, 30881, 46319, 69474, 104203 at the stall-phase starts: L&prime; = 3L/2 minus a few cells taken by the zone.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/fastsim.py</code>, <code>py/zones.py</code></div></div><div><b>Accelerated run</b><p>The macro simulator with unproved linear-cycle jumps (<code>py/fastsim.py</code>) follows the run to about 6&middot;10<sup>15</sup> steps (tape length 7&middot;10<sup>7</sup>) with no halt; its lengths agree with the direct run where both exist.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/round.c</code>, <code>py/zones_bfs.py</code></div></div><div><b>No remainder class halts (sampled)</b><p>From the start of a growth phase, 0<sup>&infin;</sup> Z (110)<sup>n</sup> 01 A&gt;, the next zone and length depend on the zone Z and on n mod 8, with n' = (3n + k)/2. Following every residue from 1,513 zones, the C simulator found no halt. The set of zones did not close: zones contain inner segments (110)<sup>k</sup> that are rescaled every round, so they grow without bound once all residues are allowed.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w">README, &ldquo;For later&rdquo;</div></div><div><b>The zone and the halting question</b><p>A halt needs the right-moving zigzag (states A, B, C, E, F) to find <code>1 1</code> where the 3-periodic tape has its 0; in the body the proved rules exclude it. The zone at the left end (a few walls such as <code>1110</code> and runs of ones, rewritten at each phase end, depending on how the front arrives, i.e. on the residue of the length) is not decoded, so whether it can ever present that pattern is open.</p></div></div>
 </section>
 <section id="check">

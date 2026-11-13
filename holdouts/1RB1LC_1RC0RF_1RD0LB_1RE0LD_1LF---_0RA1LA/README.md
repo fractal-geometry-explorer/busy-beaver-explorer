@@ -59,6 +59,30 @@ With t < 6 the constructed tapes show other resets: the tail is rebuilt with abo
 (`1001101011001`), as the reset of (6799, 1) built a tail of 6805 words. So the run is a nested structure, the same
 kind of counter one level up, and the next level starts with numbers of about 770 digits.
 
+## Remainder classes at a nearly empty tail (closed-set test, 13 Nov)
+
+The method that closed another holdout (keep the big counts free, track only remainders; it proves non-halting if no
+class can halt) was tried here: n free, every r < 5, every tail `10 (1110)^t S` with t = 0..7 and t = 20, for the
+first-level suffix S = `1` and the second-level suffix S = `1001101011001`, n = 60..69 (`c/reset.c` runs the plain
+machine to the next record `B> 0 0 1 (1100)^n (10110110)^m 10...`; `py/classes.py` tabulates; output in `runs/`).
+
+* The generic rows of the reset table hold with either suffix (t = 20).
+* **A halting class exists** on the second level: `cfg n 2` with the tail `10 (1110)^2 1001101011001` halts for every
+  n tried (60..69, 80, 101; 31,436 steps at n = 60); so does t = 1, r = 2 with n = 6, 7 mod 10. It is reachable: t = 6,
+  r = 0, n = 0 or 9 mod 10 starts a phase that ends there (n = 60, 69, 160, 1009 halt by direct simulation).
+  With S = `1` no class with t <= 7 halts.
+* **Looping classes exist**: e.g. r = 1 with the tail `101` enters a cycle that adds five words `1100` per round
+  (junction `11011011011001` again and again; followed for 3,000 rounds, not proved).
+* Other classes rebuild the tail (about 3.1 n words `1110`, suffix `1001101011001`) or leave a short tail (`1`,
+  `1001`, `1011101`).
+* The real run (table iterated, heuristic) ends level 1 at r = 3, t = 3, n = 11 mod 100 (771 digits); for n = 1 mod 10
+  that reset gives `cfg 17 0` with the tail `10 (1110)^(31(n-1)/10+92) 1001101011001` (n = 61..211 checked). Level 2
+  then takes about 10^770 phases; its end depends on r and n mod 10 there.
+
+Assumptions: the outcome of a class is taken from n = 60..69 only (plus the spot checks named); "loops" is a run cut
+off at 2*10^9 steps; nothing in this section is proved in Lean. Conclusion: no closed set exists, the question is
+Collatz-like (the tracker's "cryptid" label is right).
+
 ## Status
 
 Open.
@@ -71,7 +95,9 @@ Open.
 
 * Prove the resets as rules (each is a bounded number of trips; one per row of the table and parity), which would
   make the whole first level a Lean theorem.
-* Decode the resets at a nearly empty tail (t < 6), which build the next level, and the map one level up.
+* Prove the halting class and one looping class in Lean (bounded runs with n symbolic), so that "some class halts,
+  some class never does" is a theorem.
+* The resets at a nearly empty tail are tabulated above; a third level (after `1001101011001` is used up) is not.
 
 ## Check
 

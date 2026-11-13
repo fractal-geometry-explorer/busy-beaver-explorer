@@ -1,6 +1,8 @@
 # 1RB0RF_1RC0LE_1LD0LC_1RE0RD_1LB0RA_1RC---
 
-Three zones: a growing periodic sea of `10` on the left, a block sliding 18 cells to the right per round trip on the right, and a chaotic zone of about 470 cells between them where the head zigzags. Halting is open.
+A sea of `10` grows at the left end (3 copies per left turn) next to an irregular part of runs of `01` and `10` that the head
+zigzags through and rewrites; the irregular part grows too. It halts only from `A>1 1` (proved in Lean), never seen in the
+run, but tapes one flipped cell away from the real ones often halt. Halting is open.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -13,8 +15,22 @@ Three zones: a growing periodic sea of `10` on the left, a block sliding 18 cell
 
 ## What it does
 
-**The tape.** At a left turn: blocks of one or two ones separated by single 0s (600 blocks `1` and 21 blocks `11` at
-2.9·10^6 steps): a sea of `10` with occasional `110`. At a right turn: `1 0 1 0^3 1^2 0 1 0^3 … (1^2 0 1 0^2)^k …`.
+**The tape** each time the head steps off the left end (state C, then D one cell further; `c/dump.c`, `py/words.py`):
+
+    1 000 (10)^3 010 (01)^5 (10)^N  [irregular part]
+
+| left turn | steps | N | irregular part (cells) |
+|---|---|---|---|
+| 31 | 3.8·10^5 | 66 | 375 |
+| 151 | 1.7·10^7 | 426 | 2,275 |
+| 601 | 2.6·10^8 | 1,776 | 8,433 |
+| 1,241 | 10^9 | 3,696 | 15,560 |
+
+N grows by 3 per left turn (the left end by 2 cells), the irregular part by about 12.5 cells per left turn. The earlier
+description "a chaotic middle zone of about 470 cells" was one moment (2.9·10^6 steps): the zone is not bounded.
+The irregular part is runs `(01)^k` and `(10)^k` with a single extra 0 or 1 between them and a few longer words
+(`1011010`, `0100101010`, `0010101`); at 10^9 steps 490 of the 530 runs `(01)^k`, k ≥ 3, have k divisible by 3.
+At a right turn the tape reads `1 0 1 0^3 1^2 0 1 0^3 … (1^2 0 1 0^2)^k …`.
 
 **The zigzags (proved, `lean/Rules.lean`).**
 
@@ -25,31 +41,61 @@ Three zones: a growing periodic sea of `10` on the left, a block sliding 18 cell
 | `r_word` | `L D> (010101)^n R` | `L (110100)^n D> R` | Rightward: D turns each 010101 into 110100. |
 | `l_word` | `L (1011010)^n B> 01 R` | `L B> 01 (0100101)^n R` | Leftward: B, carrying 01, turns each 1011010 into 0100101. |
 
-**Emergent behaviour (observed, `py/observe.py shift 3000000 L`).** Compared with the previous left turn: cells 0..448
-are unchanged (the left end gains 2 cells), cells 924..1,330 are the old ones moved 18 cells right, and the zone between
-them was rewritten. The head reaches the left end only 46 times in 3·10^6 steps: it zigzags inside the tape.
+Between two left turns the left part of the tape is unchanged and the far right part is the old one moved 18 cells right
+(`py/observe.py shift 3000000 L`); the head reaches the left end only 1,241 times in 10^9 steps.
 
-**Halting.** F1 halts; F is entered only from `A>1 1`. In 10^9 steps A reads a 1 only 388,832 times, never with a 1 on
-its right; in the first 3·10^7 steps 14,908 of 15,434 such moments are more than 99 cells from both ends.
+## Halting
+
+Proved (kernel, `lean/Halt.lean`): F1 is the halting transition and F is entered only by A1 (0RF), so one step before any
+halt the machine is in state A on a 1 with a 1 to its right (`prehalt`); if the run never shows `A>1 1` the machine never
+halts (`nonhalting_of_no_A11`); `A>1 1` halts (`halts_of_A11`).
+
+Measured: no halt in 5·10^10 steps (`c/dump.c`). In 10^9 steps A reads a 1 388,832 times, never with a 1 on its right
+(`c/prehalt.c`).
+
+First test of the closed-set method, "do neighbours halt?" (`c/pert.c`): **yes.** Real tapes at left turns 150, 500, 1000,
+200 random changes of each kind on each, 3·10^6 steps:
+
+| change | halts of 600 |
+|---|---|
+| one cell flipped | 83 |
+| one cell deleted | 15 |
+| a 0 inserted | 1 |
+| a 1 inserted | 13 |
+| two cells flipped | 148 |
+
+So a domain "all tapes of this shape" cannot be closed; a proof has to use the exact structure of the real tapes.
+
+## What was tried, and what was not
+
+- The closed tape language over windows of runs (`py/rlectl.py` of the sibling folder
+  `1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---`), K = 2..7 runs: a halting abstract configuration every time.
+- Not done: an accelerated simulator, the rules of the irregular part, a node-and-remainder search. There is no bounded
+  zone to use as a node (see the table), so the closed-set method of ids 65826 and 11019 does not apply as it stands.
 
 ## For later
 
-Describe the middle zone: its width over long runs (`c/`-style scanner as in 1RB0RC_1LC0RB_…/c/engine.c, with the two
-shifts 2 and −18) and what crosses from the sea into it and out of it into the sliding block.
+Find the rules that rewrite the irregular part (what a zigzag does to runs `(01)^k 0 (01)^m`), and the property the real
+tapes share (run lengths divisible by 3 is the first candidate). Then see whether the irregular part is a stack of regions
+that each follow a few counters.
 
 ## Files
 
 | path | what it is |
 |---|---|
 | `lean/Rules.lean` | the sweep rules, generated by `py/rules.py` (kernel-checked) |
+| `lean/Halt.lean` | the halting pattern `A>1 1` (kernel, hand-written) |
 | `py/rules.py` | writes `lean/Rules.lean` with `tools/py/bbtools/symtm.py` |
-| `py/observe.py` | the observations above: turn tapes, block lists, shifted comparisons, head path, pre-halt counts |
+| `py/observe.py` | turn tapes, block lists, shifted comparisons, head path, pre-halt counts |
+| `c/dump.c`, `py/words.py` | the tape at every left-end event, with repeated words bracketed |
+| `c/pert.c` | halting test on perturbed real tapes |
 | `c/prehalt.c` | entries into the halting state over 10^9 steps |
 
 ## Status
 
-Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by
-the kernel, in 10,000,000 by `native_decide`; `lean/Rules.lean`: the sweep rules, kernel only. C (`tools/c/triage.c`): no halt in 1,000,000,000 steps.
+Open. Lean, kernel only (`lean/check.sh`): the halting configurations (`step_none_iff`), no halt in 10,000 steps
+(10,000,000 by `native_decide`), four sweep rules, and "halt only from `A>1 1`". C: no halt in 5·10^10 steps.
+Notes: project file `g09-resets/notes.md`.
 
 ## First look
 

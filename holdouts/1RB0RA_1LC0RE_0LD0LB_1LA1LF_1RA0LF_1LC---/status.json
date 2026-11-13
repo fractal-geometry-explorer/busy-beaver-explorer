@@ -2,7 +2,7 @@
  "generated": false,
  "group": "G09",
  "family": "ternary counter on runs of alternating cells",
- "summary": "An exact ternary counter, least significant digit at the left end, whose digits are pairs of long runs of alternating cells read mod 4; every trip of the head adds one, and the increment is proved in Lean for every carry depth. Open: the transfers that happen when a shrinking run runs out, and the right end.",
+ "summary": "An exact ternary counter, least significant digit at the left end, whose digits are pairs of long runs of alternating cells read mod 4; the increment is proved in Lean for every carry depth, and so is the shuttle that moves a run to the right end when a shrinking run runs out. Open: the whole transfer (it nests) and an invariant; tapes with the same residues and short runs do halt.",
  "decision": "open",
  "title": "What is known about 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---.",
@@ -13,9 +13,10 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The tape is an exact ternary counter: its digits are pairs of runs of alternating cells, valued by their lengths mod 4, and each trip of the head adds one. That increment is proved in Lean (kernel) for every carry depth, and it covers 99.86% of the trips in the first 3&middot;10<sup>12</sup> steps. The counter keeps shrinking one run of each digit; when such a run runs out, a <em>transfer</em> moves a long run to the right end of the tape. Transfers and the right end are not yet described by rules, so non-halting is not proved."
+  "<b>The question is open.</b> The tape is an exact ternary counter: its digits are pairs of runs of alternating cells, valued by their lengths mod 4, and each trip of the head adds one. That increment is proved in Lean (kernel) for every carry depth, and it covers 99.86% of the trips in the first 3&middot;10<sup>12</sup> steps. The counter keeps shrinking one run of each digit; when such a run runs out, a <em>transfer</em> moves a long run to the right end of the tape, two cells per shuttle of the head. The shuttle itself is now proved in Lean for every list of runs in between and any number of shuttles, and so are the events at a run boundary, including the one pattern that halts.",
+  "What is missing is the transfer as a whole (the shuttles before the tail is &ldquo;saturated&rdquo;, transfers nested inside transfers, the pairing of the digits afterwards) and an invariant. The invariant cannot be about residues alone: tapes with exactly the residues of a real configuration but several short runs <em>do halt</em> (for example <code>6 6 4 6 5 5 5 5 6 7</code> at step 5,943). In the real run every transfer of the first 10<sup>14</sup> steps has long runs to spare, but that is an observation, not a proof."
  ],
  "claims": [
   {
@@ -97,9 +98,45 @@
    "where": "<code>py/classify.py</code>, README"
   },
   {
+   "level": "kernel",
+   "title": "The events at a run boundary",
+   "text": "For every surrounding tape: going right, A passes a boundary (run length 0 or 3 mod 4, counted from A on a 0) or turns (1 or 2 mod 4); going left, the head crosses a <code>00</code> boundary and moves it two cells, bounces at a <code>11</code> boundary, or, on a run <code>1 0</code> of exactly two cells between <code>11</code> and <code>00</code>, halts four steps later. Both passes flip every cell they cross.",
+   "where": "<code>loc_pass0</code>, <code>loc_pass3</code>, <code>loc_turn1</code>, <code>loc_turn2</code>, <code>loc_cross</code>, <code>loc_bounce</code>, <code>loc_halt</code>, <code>loc_halt_stops</code>, <code>lean/Transfer.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The shuttle of a transfer, for every tail and any number of shuttles",
+   "text": "<code>L (10)^m 0 A&gt; 1(0101)^(a<sub>1</sub>+1) &hellip; 1(0101)^(a<sub>n</sub>+1) 1(0101)^z 0^inf</code> becomes the same tape with <code>(10)^m</code> removed and the last run <code>1(0101)^(z+m)</code>, in exactly m(2S + 8z + 8) + 4m(m &minus; 1) steps (S = total length of the n runs in between): 2m cells leave the moved run, 4m arrive at the right end, nothing in between changes. By induction over the list of runs and over m.",
+   "where": "<code>shuttle</code>, <code>shuttles</code>, <code>scst_eq</code>, <code>right_chain</code>, <code>left_chain</code>, <code>lean/Transfer.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Tapes with the same residues and short runs halt",
+   "text": "Real trip starts with every long run replaced by the smallest length of the same residue mod 4 halt in 20 of 2,692 cases (threshold 4): <code>6 6 4 6 5 5 5 5 6 7</code> halts at step 5,943 and <code>6 6 2 7 9 6 6 7 7 7 5</code> at step 1,005, both confirmed on a plain cell-by-cell simulator. With every long run cut to its shortest length of 8 or more cells none halted (0 of 9,155 shortened tapes at threshold 8, and none at 10, 12, 16; 3 of 7,119 at threshold 6). One run changed by &plusmn;1 or &plusmn;2 halts in about 4% of the cases; long runs replaced by random lengths of the same residue never did (0 of 3,829). So an invariant must fix the residues and bound lengths from below.",
+   "where": "<code>py/validate.py</code>, <code>py/minimal_test.py</code>, <code>py/small_halts.py</code>, README"
+  },
+  {
+   "level": "trusted",
+   "title": "Tools checked against the real run and by mutation",
+   "text": "Building a trip start from a list of runs and running to the next one reproduces 14,387 consecutive trip starts of the real run (list and step count). The shuttle statement agrees with a plain simulator in 200 of 200 random cases, and five mutated statements fail in 40 of 40 cases each.",
+   "where": "<code>py/validate.py</code>, <code>py/runs.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Transfers nest, and the right end is the same counter one level deeper",
+   "text": "A shuttle of a transfer can become a whole inner transfer (trip 2,225,395: an inner transfer of 10,807 shuttles inside an outer one of about 55). The runs behind a freshly deposited run go through exactly the states the whole tape went through from the start (125, 69 and 35 states compared, all equal), three times slower per level; after a transfer the digit pairs take residues outside the table for a few carries (14 of the 16 classes occur).",
+   "where": "<code>py/runs.py</code>, <code>py/monitor.py</code>, README"
+  },
+  {
+   "level": "heuristic",
+   "title": "Every transfer of the first 10<sup>14</sup> steps ends saturated",
+   "text": "In 3,153,668 trips there are 168 transfers or nested levels with at least 3 shuttles; each ends with at least 6 saturated shuttles (the proved kind), after at most 20 unsaturated ones (60 in one level containing two inner transfers). D read a 1 63,281,275 times; the alternating stretch ending there was 2 cells long 218 times and 3 cells 21 times, never 1 (a halt). A candidate regular invariant (windows of 3 runs, lengths below 8 exact, else mod 4) did not stabilise: 263 windows, new ones still at 3.9&middot;10<sup>13</sup> steps.",
+   "where": "<code>py/monitor.py</code>, README"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The increment is proved; transfers and the right end are only observed. A halt could only come from them.",
+   "text": "Not known. A proof needs the transfer as a rule (saturation, nesting, merges, entry and exit), the regular trips for the residue classes that follow a transfer, and an invariant that bounds each moved run from below by the size of the tail behind it; a halt would need several long runs to be short at the same time.",
    "where": ""
   }
  ],
@@ -108,13 +145,15 @@
   "holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/lean/check.sh",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- 1000000000",
   "gcc -O2 -o ev holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/c/ev.c && ./ev 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- 2000000000 L B 1 100000 12 | awk 'NR%100==0'",
-  ". /etc/profile.d/lean.sh && holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/lean/check.sh   # Rules.lean, Counter.lean",
   "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/counter.py > Counter.lean   # regenerates lean/Counter.lean",
   "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/rsim.py 1e12 100000",
-  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/classify.py 3e12"
+  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/classify.py 3e12",
+  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/transfer.py > Transfer.lean   # regenerates lean/Transfer.lean",
+  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/validate.py   # about 2 minutes",
+  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/monitor.py 1e14 out.json   # about 7 minutes"
  ],
  "explainer": {
-  "lede": "Nobody knows yet. This machine counts in base 3, least significant digit at the left end. Its tape is a row of long runs of alternating cells; each pair of neighbouring runs is a digit, valued by the run lengths mod 4, and every trip of the head from the left end and back adds one. The increment is proved; what happens when a shrinking run runs out is not.",
+  "lede": "Nobody knows yet. This machine counts in base 3, least significant digit at the left end. Its tape is a row of long runs of alternating cells; each pair of neighbouring runs is a digit, valued by the run lengths mod 4, and every trip of the head from the left end and back adds one. The increment is proved, and so is the shuttle that carries a run to the far end when a digit's run is used up; the full transfer and an invariant are not.",
   "facts": [
    {
     "level": "kernel",
@@ -122,9 +161,19 @@
     "text": "The increment of the counter, for any carry, proved in Lean."
    },
    {
+    "level": "kernel",
+    "value": "any tail, any m",
+    "text": "The shuttle of a transfer: 2m cells leave, 4m arrive, proved in Lean."
+   },
+   {
     "level": "heuristic",
     "value": "99.86%",
     "text": "Share of the trips in 3&middot;10<sup>12</sup> steps that are the proved kinds."
+   },
+   {
+    "level": "trusted",
+    "value": "step 5,943",
+    "text": "A tape with the residues of a real one but short runs halts."
    },
    {
     "level": "trusted",
@@ -197,11 +246,33 @@
    },
    {
     "id": "drift",
-    "eyebrow": "Why it is not a proof yet",
+    "eyebrow": "What breaks the regular counting",
     "heading": "Runs that run out",
     "html": [
-     "<p>Over one cycle of digit k (3<sup>k+1</sup> trips) x<sub>k</sub> loses 4 cells and y<sub>k</sub> gains 4, so every x<sub>k</sub> eventually runs out. Then the next carry does not bounce through: the head shuttles between the end of y<sub>k&minus;1</sub> and the right end of the tape, moving y<sub>k&minus;1</sub> two cells at a time to the far right (a <em>transfer</em>; these are the long pauses of the run and the reason the right side grows). Afterwards the digits past it are paired anew and counting goes on. For example at step 39,282 the runs <code>187 97 2 31 25 7 7</code> become <code>186 43 27 5 13 177</code>. New digits are made at the right end from short runs.</p>",
-     "<p>In the first 3&middot;10<sup>12</sup> steps 99.86% of the 726,270 trips are the proved kinds; the rest come with transfers or the right end, which are only observed.</p>"
+     "<p>Over one cycle of digit k (3<sup>k+1</sup> trips) x<sub>k</sub> loses 4 cells and y<sub>k</sub> gains 4, so every x<sub>k</sub> eventually runs out. Then the next carry does not bounce through: the head shuttles between the end of y<sub>k&minus;1</sub> and the right end of the tape, moving y<sub>k&minus;1</sub> two cells at a time to the far right (a <em>transfer</em>; these are the long pauses of the run and the reason the right side grows). Afterwards the digits past it are paired anew and counting goes on. For example at step 39,282 the runs <code>187 97 2 31 25 7 7</code> have become <code>186 43 27 5 13 177</code>.</p>",
+     "<p>In the first 3&middot;10<sup>12</sup> steps 99.86% of the 726,270 trips are the proved kinds; the rest come with transfers. The right end is not a separate mechanism: the runs behind a freshly deposited run replay the whole tape's own history, three times slower per level.</p>"
+    ]
+   },
+   {
+    "id": "transfer",
+    "eyebrow": "The irregular event",
+    "heading": "A transfer, shuttle by shuttle",
+    "html": [
+     "<p>During a transfer the head enters the runs behind the moved run one cell out of phase. A run that starts with a 1 and has length 1 mod 4 lets it through (it is <em>saturated</em>); any other run turns it back and is changed, so the first shuttles each repair one run:</p>",
+     "<table><thead><tr><th>moved run</th><th>runs behind it (after the head's cell)</th><th></th></tr></thead><tbody><tr><td>97</td><td>33 24 7 7</td><td>first shuttle</td></tr><tr><td>95</td><td>36 23 7 7</td><td>2 cells taken per shuttle</td></tr><tr><td>93</td><td>36 26 6 7</td><td></td></tr><tr><td>91</td><td>36 29 5 7</td><td></td></tr><tr><td>89</td><td>36 29 5 7 7</td><td>a new run at the right end</td></tr><tr><td>87</td><td>36 29 5 10 6</td><td></td></tr><tr><td>85</td><td>36 29 5 13 5</td><td></td></tr><tr><td>83</td><td>36 29 5 13 9</td><td>saturated: only the last run changes now, +4 per shuttle</td></tr><tr><td>1</td><td>36 29 5 13 173</td><td>the moved run is used up</td></tr></tbody></table>",
+     "<p>The saturated shuttle is proved in Lean for every list of runs in between and every number m of shuttles: <code>L (10)^m 0 A&gt; 1(0101)^(a+1) &hellip; 1(0101)^z</code> becomes <code>L 0 A&gt; 1(0101)^(a+1) &hellip; 1(0101)^(z+m)</code> in m(2S + 8z + 8) + 4m(m &minus; 1) steps (<code>shuttles</code>, <code>scst_eq</code> in <code>lean/Transfer.lean</code>, by induction over the list and over m). The events at a single run boundary are proved too (<code>loc_pass0</code> &hellip; <code>loc_halt</code>).</p>",
+     "<p>Not proved: the shuttles before saturation for an arbitrary tail, and two complications seen in the real run. Transfers <em>nest</em>: a shuttle can turn at an inner digit whose own run is used up and become a complete inner transfer (at trip 2,225,395 an inner transfer of 10,807 shuttles runs inside an outer one of about 55). And a carry that meets a run of a single cell <em>merges</em> three runs into one.</p>"
+    ]
+   },
+   {
+    "id": "nearby",
+    "eyebrow": "Why it is not a proof yet",
+    "heading": "Nearby tapes halt",
+    "html": [
+     "<p>The sibling proofs in this group keep the long counts free and track only remainders. The first test for that is whether nearby tapes halt. Here they do:</p>",
+     "<table><thead><tr><th>change to a real configuration</th><th>tapes that halt</th></tr></thead><tbody><tr><td>one run &plusmn;2</td><td>90 of 2,510</td></tr><tr><td>one run &plusmn;1</td><td>74 of 1,698</td></tr><tr><td>every long run replaced by a random length of the same residue mod 4</td><td>0 of 3,829</td></tr><tr><td>every run of 4 or more cells replaced by the shortest length of its residue</td><td>20 of 2,692</td></tr></tbody></table>",
+     "<p>So the residues are essential, and the lengths are almost free but not quite: <code>6 6 4 6 5 5 5 5 6 7</code> has the residues of the real <code>3106 1606 56 506 429 93 5 29 26 7</code> and halts at step 5,943. Several runs are used up at nearly the same time, a transfer moves a run of only 13 cells and ends before the tail is saturated, and the short run it leaves is later worn down to 2 cells, the halting pattern. With every long run cut to its shortest length of 8 or more cells none halted (0 of 9,155 shortened tapes at threshold 8, and none at 10, 12, 16; 3 of 7,119 at threshold 6).</p>",
+     "<p>An invariant therefore has to bound lengths from below, and not by a constant: the moved run must outlast the saturation of the tail behind it, which can contain whole inner transfers. In the real run every transfer of the first 10<sup>14</sup> steps ends with at least 6 saturated shuttles and usually thousands; that is why it has not halted, but it is not yet a proof.</p>"
     ]
    },
    {
@@ -209,8 +280,8 @@
     "eyebrow": "Halting",
     "heading": "What a halt would need",
     "html": [
-     "<p>The only halting transition is F on a 1. F comes from E (on a cell B has just made 0, so F reads that 0) or from D, and D only from C on a 0. So the machine halts exactly when D reads a 1 whose left neighbour is also a 1. In the proved trips that never happens. In the first 3&middot;10<sup>12</sup> steps D read a 1 about six million times; the alternating stretch ending at D's cell was 2 cells long 158 times and 3 cells long 17 times (a halt needs 1), in the cases we looked at near the right end or in a transfer.</p>",
-     "<p>So a halt, if any, would come from a transfer or from the right end. The exact simulator finds none in 10<sup>14</sup> steps.</p>"
+     "<p>The only halting transition is F on a 1. F comes from E (on a cell B has just made 0, so F reads that 0) or from D, and D only from C on a 0. So the machine halts exactly when D reads a 1 whose left neighbour is also a 1: the head, going left, steps onto a run <code>1 0</code> of exactly two cells between a <code>11</code> and a <code>00</code> (<code>loc_halt</code>). In the proved trips that never happens. In the first 10<sup>14</sup> steps D read a 1 about 63 million times; the alternating stretch ending at D's cell was 2 cells long 218 times and 3 cells long 21 times (a halt needs 1).</p>",
+     "<p>So a halt, if any, would come from a transfer. The exact simulator finds none in 10<sup>14</sup> steps.</p>"
     ]
    }
   ]

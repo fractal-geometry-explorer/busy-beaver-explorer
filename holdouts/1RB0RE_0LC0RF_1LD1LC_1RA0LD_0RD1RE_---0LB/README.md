@@ -1,9 +1,11 @@
 # 1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB
 
-bbchallenge id 180438. Open. A **nested drain/copy counter** on three long blocks: at each visit of the left end one word `10111` of the
-right block becomes a `00111` and a `100` on the left (phase A, proved); then the `100` block is poured into a new
-block at the far right, two words for one (phase B, proved); then the left block is recycled as the next right
-block. Each round the blocks are about twice as long.
+bbchallenge id 180438. **Open.** A machine that works in *levels*. A level starts with one long block `(10111)^b`
+and a short tail; the head visits the left end again and again, each visit moving one word of the block to the left
+part of the tape; a slower phase then drains what was built, and the left part is rewritten as the block of the next
+level, 2 to 6.6 times as long. Which tail comes next depends on b mod 4, and after some levels on the binary digits
+of a second count: one phase of the machine is a binary counter. No halt in 5.6 * 10^15 steps (12 levels). No proof
+either way.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -14,46 +16,124 @@ block. Each round the blocks are about twice as long.
 | E | 0RD | 1RE |
 | F | --- | 0LB |
 
-## The tape as words
+## When it halts
 
-At the left end, in state D, the tape reads `0 0 1^5 (00111)^a (100)^c (10111)^b` + a short tail, e.g. step
-315,712,461: `0 0 1^5 (00111)^1475 (100)^1476 (10111)^3922 1 0 0 1^4 0 1^4 0 0 1 0`. Moving right the same blocks
-appear rotated (`11001`, `001`, `01111`).
+The only halting transition is F reading 0. F is entered only from B reading 1; B writes 0 there and moves right. If
+F reads 1 it writes 0 and steps back left onto the 0 that B wrote, and B reading 0 goes on. B is entered from A
+reading 0 (moving right) or from F. So:
 
-## Phases
+**the machine halts exactly when a configuration `A> 0 1 0` occurs** (A on a 0, the next two cells 1 then 0).
 
-| phase | tape | change | steps | proof |
+`A> 0 0` and `A> 0 1 1` are the two ordinary turn-arounds at the right. (By hand from the table.)
+
+## Samples, visits, levels
+
+* A *sample* is `0^inf D> 0 0 1^5 (00111)^a X 0^inf`: state D on a new leftmost cell. Between two samples the head
+  sweeps right once and comes back (a *visit*). A visit adds one word: a+1, and turns X into f(X); f does not depend
+  on a (compared on 2,076 cases).
+* At certain X the whole block `(00111)^a` is rewritten as `(10111)^a` on the way (a *recycle*). The next sample is a
+  *level start*: `0^inf D> 0 0 1^5 100 (10111)^b T 0^inf`. A level is (b, tail T).
+
+Phases inside a level (one-visit rules, Lean, for every block size):
+
+| phase | sample | per cycle | Lean |
+|---|---|---|---|
+| grow | `(00111)^a (100)^(a+1) (10111)^(b+1) R` | 1 visit: a+1, one more `100`, b-1; 28a+55 steps; any R | `grow` |
+| enter | block `(10111)` used up, tail meets the `100` block | 5 visits (tails P, R, S), 18 (Q) | `enterP_*`, `enterQ_*`, `enterR_*`, `enterS_*` |
+| drain | `(00111)^a (100)^c 111 00 111` | 14 visits: four words `100` go, a+14 | `drain_1` .. `drain_14` |
+| end | the same with c = 4, 5, 6, 7 left | 10 to 20 visits, then recycle | `end0_*` .. `end3_*` |
+| pour | `(00111)^a (100)^(c+4) (111100)^e 0` | 2 visits: two words `100` go, e+1, a+2 | `pour`, `pourS_*`, `endS*` |
+
+## The level map
+
+Short tails: P = `100 1111 0 1111 00 111`, Q = `100 1111 0 1111 0 111`, R = `100 1111 0 11111 0 111`,
+S = `100 1111 0 1111 00 1`. From `(b, tail)` the next level is:
+
+| tail | b = 0 mod 4 | 1 mod 4 | 2 mod 4 | 3 mod 4 |
 |---|---|---|---|---|
-| A | `0^inf D>0 0 1^5 (00111)^a (100)^(a+1) (10111)^(b+1) R` | a+1, c+1, b-1 per visit | 28a+55 | `grow` |
-| B | `0^inf D>0 0 1^5 (00111)^a (100)^(c+4) (111100)^e 0 0^inf` | a+2, c-2, e+1 per two visits | 32a+24c+50e+178 | `pour` |
+| P | (9b+10)/2, P | (9b+11)/2, Q | (9b+10)/2, R | (9b+9)/2, S |
+| Q | (9b+12)/2, P | (9b+13)/2, Q | (9b+12)/2, R | (9b+11)/2, S |
 
-(Lean, kernel, for all values and, in `grow`, any tape R: in phase A the head never goes past the first word of the
-right block, so the tape grows at the left only.)
+* R: b' = b+4 and a long tail `100 1^5 000 111 (001)^(b-3) 100 1111 00 1111 0 1^5 0 111` (an early recycle that
+  leaves the `100` block on the tape). The level after that drains the nested block and ends in P, Q, R or S with
+  b'' = 18i + 14j + constant when the two counts are 4i + r and 4j + s.
+* S, b odd: b' = 2b+4 with tail `(100111)^m`, m = (b+7)/2. S, b even: b' = 2b+3 with tail
+  `100 1^5 (001111)^m 0 111`, m = (b+4)/2.
+* Tail `(100111)^m` (and the level after the other S case): **a binary counter**. After the grow phase the samples
+  read `(00111)^a (100)^c J (100111)^k` where J is a string of the words `100` (digit 0) and `11100` (digit 1).
+  `(100)^c J` is a number V in binary; each step k-1, V+1, from V = 0 to V = m-1; then the digits are used up from the
+  right. The next level depends on the digits of m: for b = 400 and m = 1..69 the next b is between 1,205 and
+  2,657 and the next tail one of nine shapes, without a visible rule.
 
-When the right block is empty, phase B starts; when the middle block is empty, the left block is rewritten as
-`(01111)^a` and becomes the right block of the next phase A. Recycled blocks: 566 words (step 3.37e6), 5,368
-(2.85e8), 10,769 (1.75e9). From the 1.75e9 round on the far-right block of the previous round stays on the tape
-(`(100111)^2702`), and phase B is replaced by a slower one in which a small counter of short `(001)` and `1 1 1`
-pieces forms between the middle block and `(111001)^e`, which is eaten a word every few visits (step 4.6e9:
-`(00111)^14275 (100)^10789 1 1 1 0 0 1 0 0 1 1 1 0 0 (10011)^3 (100)^4 (111001)^2005`).
+How each part is known:
 
-## Halting
+* Lean (kernel): each visit of each phase above as a rule for every block size (`lean/Rules.lean`, 2 rules;
+  `lean/Visits.lean`, 120 rules; generated by `py/rules.py`).
+* `py/levelmap.py` (plain simulation, every step): for b = 12..27 and the tails P, Q, R, S every visit of the level is
+  an instance of one of those Lean rules, and the formulas above hold.
+* `py/closure.py` (symbolic runs with the block counts free; trusted, not Lean): the same formulas for *every* b
+  above a small bound, and the levels that follow R and S. It follows 14 level types; 91 cases pass, 2 fail. The
+  two that fail are the binary-counter levels with m above the first two values tried.
+* `py/counter.py` (plain simulation): the counter reading above, for six (b, m) with m up to 100.
 
-The only halting transition is F on a 0; F is entered only from B on a 1 (B writes 0 and moves right). In all phases
-seen the cell F reads is a 1 inside the words.
+## The run from blank tape
+
+`c/hsim2.cpp` is an exact accelerated simulator (macro blocks of K cells, run-length coded; a repeated cycle is jumped
+only after it has been re-run with free counts). `py/cmpc.py` compares it with plain simulation: at 50,000,050,596
+steps the state and all 399,483 cells agree. With K = 30 it reaches 5,608,376,993,382,856 steps in 540 s, no halt.
+Level starts:
+
+| level | step | b | tail |
+|---|---|---|---|
+| 0 | 718 | 2 | `100 1^5 00 111 00 11 00 1111 00 1` (too small for the map) |
+| 1 | 3,870 | 13 | `100 1111 0 1111 00 1111 0 1111 0 1111 00 111` |
+| 2 | 64,858 | 77 | `100 1111 0 11111 00 1111 0 111` |
+| 3 | 168,596 | 83 | nested |
+| 4 | 4,433,865 | 670 | R |
+| 5 | 10,851,172 | 674 | nested, `(001)^667` |
+| 6 | 285,193,236 | 5,397 | S |
+| 7 | 1,750,755,956 | 10,798 | `(100111)^2702` (binary counter level) |
+| 8 | 3.77 * 10^10 | 62,092 | Q |
+| 9 | 7.66 * 10^11 | 279,420 | P |
+| 10 | 1.55 * 10^13 | 1,257,395 | P |
+| 11 | 3.14 * 10^14 | 5,658,282 | S |
+| 12 | 1.92 * 10^15 | 11,316,567 | `100 1^5 (001111)^2829143 0 111` |
+
+Checks against the map: 670 -> 674 (R), 5,397 -> 10,798 = 2b+4 with m = 2,702 = (b+7)/2, 62,092 -> 279,420 =
+(9b+12)/2, 279,420 -> 1,257,395 = (9b+10)/2, 1,257,395 -> 5,658,282 = (9b+9)/2, 5,658,282 -> 11,316,567 = 2b+3 with
+m = 2,829,143. There is no configuration that comes back with only one or two counts grown: the residue of b picks
+the next tail and the counter levels scramble it, so the run does not sit on a growth cycle.
+
+## Do other classes halt?
+
+Tested before looking for a proof. No level start that was tried halts:
+
+* every residue of b for the tails P, Q, R, S and the nested tails after R (symbolic, all b, `py/closure.py`);
+* random level starts of the 14 types, block counts 20..149: about 25,000 levels by plain simulation, all reach a
+  level of one of the same 14 types;
+* tail `(100111)^m`, b = 400, m = 1..69: all reach a next level;
+* small block counts 1..19 (many more tail shapes turn up there): no halt.
 
 ## Status
 
-Open. Kernel: halting configurations, 10,000 steps (`lean/Blank.lean`), phases A and B (`lean/Rules.lean`, from
-`py/rules.py`). Native: 10^7 steps. Trusted: no halt in 10^10 steps (`c/ev.c`). The recycling step and the slow
-phase B of later rounds are from simulation only.
+Open.
+
+* Kernel (Lean): halting configurations; 10,000 steps; `grow`, `pour` and 120 one-visit rules.
+* Native: 10^7 steps.
+* Trusted (code here, tested): no halt in 5.6 * 10^15 steps (`c/hsim2.cpp`, checked against plain simulation at
+  5 * 10^10); the level map for P, Q, R, S for all b and ten more level types (`py/closure.py`); the map for
+  b = 12..27 tied to the Lean rules (`py/levelmap.py`).
+* Heuristic: the 14 level types are closed under the map (sampling); the binary counter reading (six runs).
+* Open: whether it halts. The symbolic closure stops at the binary counter levels.
 
 ## For later
 
-* Prove the recycling step (it crosses the whole left block) and the end of phase B as rules; then the round map.
-* Find the rules of the small counter in the later rounds.
-* This machine and 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE work the same way (drain one block into another,
-  recycle, repeat at a larger size, with a small counter appearing at the fourth level).
+* A closed set for the counter levels needs a node with a free string J of the words `100` and `11100`: rules "sweep
+  across any J", "increment with j carries" for every j, and the phase that uses up the digits. That is a
+  regular-language invariant (CTL style), not a finite list of shapes with counts.
+* With that, `py/closure.py`'s graph (14 types, every residue) would be a non-halting proof at the trusted level;
+  Lean would need the level map as theorems (the one-visit rules are there, the composition by induction is not).
+* The sibling 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE drains and recycles blocks the same way.
 
 ## First look
 
@@ -74,6 +154,12 @@ start, 6,210 right), 28,979 ones.
 ## Check
 
 ```sh
-. /etc/profile.d/lean.sh && holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/lean/check.sh
-gcc -O2 -o ev holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/c/ev.c && ./ev 1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB 2000000000 L D 1 100000 12 | awk 'NR%300==0'
+. /etc/profile.d/lean.sh && holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/lean/check.sh        # ALL CHECKED, under 1 min
+python3 holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/py/rules.py --list | head               # the rules; without --list it rewrites the Lean files
+python3 holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/py/levelmap.py                          # ALL OK, 1 s
+python3 holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/py/counter.py                           # ALL OK, 1 s
+python3 holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/py/closure.py 300                       # 1 min; 91 cases pass, 2 fail, NOT CLOSED
+python3 holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/py/cmpc.py 50000000000                  # EQUAL; about 4 min
+g++ -O2 -o hsim2 holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/c/hsim2.cpp
+LEVELS=1 ./hsim2 1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB 30 6000000000000000 540 100             # level starts up to 5.6e15 steps, 9 min
 ```

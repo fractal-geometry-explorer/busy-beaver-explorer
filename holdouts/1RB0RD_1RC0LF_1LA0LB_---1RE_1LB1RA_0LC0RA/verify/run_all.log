@@ -1,0 +1,87 @@
+== arrival from blank: plain, then accel (default; -K 12; -nojump)
+NODE 57 2 -
+NODE 994 12 1101
+NODE 4143 13 000010101010000101010101010101010101011101
+NODE 9638 21 11010101010101010101010101000010101010000101010101010101010101011101
+NODE 28067 55 00001010101000010101010000101010101010101010100001010101000010101010101010101010101110000101
+NODE 85484 103 00001000010101010101010101010101010101010000101010101010101010101010100001010101010101010101010101010101010101010101000010101
+NODE 302979 255 1101010101010101010101010101010100001010101010101010101010101010101010101010101010101010101010101010101010101000010000101
+NODE 1159136 586 00001010101000010101010101010101010000101010101010101010100001010101000010000101
+NODE 5071799 1291 00001010101010101010101000010101010000101010100001010101010101010101000010000101
+NODE 23475366 2827 000010000101010101010101010101010101010101010101010101010101010100001010101010101000010101010101110000101
+NODE 112594039 6280 000010101010101010101010000101010101010101010100001010101010101000010101010101110000101
+NODE 519514680 12967 000010101010101010101010101010101010101010101010101010101010101010101110101010101010000101
+NODE 2340515329 28531 0000101010101010100001010101010101000010000101010101010101010101010101010101011101
+accel : identical to plain
+accel -K 12: identical to plain
+accel -nojump: identical to plain
+== check.py static
+static: classes 1144 tails 62 moduli {48: 144, 66: 682, 45: 300, 27: 18} growth {(48, 99): 144, (66, 141): 682, (45, 99): 300, (27, 57): 18} least k 41224 problems 0
+== check.py diff 400 1 3 300 100000000
+  opts -nojump          400 inputs, agrees with plain: True, cycle jumps 0
+  opts default          400 inputs, agrees with plain: True, cycle jumps 0
+  opts -big 4           400 inputs, agrees with plain: True, cycle jumps 62
+  opts -K 12 -big 5     400 inputs, agrees with plain: True, cycle jumps 17
+  opts -K 2 -big 9      400 inputs, agrees with plain: True, cycle jumps 0
+  opts -K 4 -big 6      400 inputs, agrees with plain: True, cycle jumps 0
+  opts -K 8 -big 4      400 inputs, agrees with plain: True, cycle jumps 0
+  opts -K 18            400 inputs, agrees with plain: True, cycle jumps 0
+diff: 400 inputs (B in [3,300)), plain outcomes {'NODE': 341, 'HALT': 59}, option sets disagreeing: 0
+== check.py diff 150 2 300 2500 1000000000
+  opts -nojump          150 inputs, agrees with plain: True, cycle jumps 0
+  opts default          150 inputs, agrees with plain: True, cycle jumps 114
+  opts -big 4           150 inputs, agrees with plain: True, cycle jumps 65
+  opts -K 12 -big 5     150 inputs, agrees with plain: True, cycle jumps 104
+  opts -K 2 -big 9      150 inputs, agrees with plain: True, cycle jumps 0
+  opts -K 4 -big 6      150 inputs, agrees with plain: True, cycle jumps 0
+  opts -K 8 -big 4      150 inputs, agrees with plain: True, cycle jumps 0
+  opts -K 18            150 inputs, agrees with plain: True, cycle jumps 77
+diff: 150 inputs (B in [300,2500)), plain outcomes {'NODE': 131, 'HALT': 19}, option sets disagreeing: 0
+== check.py classes
+classes (4 members each): 4576 members run, 0 mismatches, 4576 cycle jumps, 1.6 s (opts default)
+== check.py classes -K 12
+classes (4 members each): 4576 members run, 0 mismatches, 4576 cycle jumps, 2.6 s (opts -K 12)
+== check.py classes -big 500
+classes (4 members each): 4576 members run, 0 mismatches, 4576 cycle jumps, 3.6 s (opts -big 500)
+== check.py classes -K 18 -big 20
+classes (4 members each): 4576 members run, 0 mismatches, 4576 cycle jumps, 3.7 s (opts -K 18 -big 20)
+== check.py nojump
+classes, x = 0 and 1, no cycle jumps: 2288 members run, 0 mismatches, 0 cycle jumps, 14.0 s (opts -nojump)
+== check.py random 2000 7
+random members, B < 10^9: 2000 members run, 0 mismatches, 2000 cycle jumps, 0.7 s (opts default)
+== check.py random 2000 8 -K 12 -big 30
+random members, B < 10^9: 2000 members run, 0 mismatches, 2000 cycle jumps, 1.1 s (opts -K 12 -big 30)
+== check.py small 3000 9
+random members, x < 200: 3000 members run, 0 mismatches, 3000 cycle jumps, 1.1 s (opts default)
+== check.py real
+real: 39 consecutive rounds from the start node (B 28531 -> 194734221384095350, step 112609650757702977806617725141055714), classes used 39, mismatches 0
+== check.py halting /home/user/wt-d/holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/verify/halting_tails_from_notes.txt
+  tail 00001010101010101010..(111 cells) in set: False; accel at x=[0, 1, 3, 1000, 333333, 100000000]: ['HALT 574239', 'HALT 574325', 'HALT 574497', 'HALT 660239', 'HALT 29240877', 'HALT 8600574239']; plain at x=0,1,3: ['HALT 574239', 'HALT 574325', 'HALT 574497']; notes: 574239+86*x0  -> OK
+  tail 00001010101010101010..(124 cells) in set: False; accel at x=[0, 1, 3, 1000, 333333, 100000000]: ['HALT 816931', 'HALT 817053', 'HALT 817297', 'HALT 938931', 'HALT 41483557', 'HALT 12200816931']; plain at x=0,1,3: ['HALT 816931', 'HALT 817053', 'HALT 817297']; notes: 816931+122*x0  -> OK
+  tail 00001010101010101010..(142 cells) in set: False; accel at x=[0, 1, 3, 1000, 333333, 100000000]: ['HALT 817189', 'HALT 817311', 'HALT 817555', 'HALT 939189', 'HALT 41483815', 'HALT 12200817189']; plain at x=0,1,3: ['HALT 817189', 'HALT 817311', 'HALT 817555']; notes: 817189+122*x0  -> OK
+  tail 00001010101010101010..(72 cells) in set: False; accel at x=[0, 1, 3, 1000, 333333, 100000000]: ['HALT 815565', 'HALT 815687', 'HALT 815931', 'HALT 937565', 'HALT 41482191', 'HALT 12200815565']; plain at x=0,1,3: ['HALT 815565', 'HALT 815687', 'HALT 815931']; notes: 815565+122*x0  -> OK
+  tail 00001010101000010101..(180 cells) in set: False; accel at x=[0, 1, 3, 1000, 333333, 100000000]: ['HALT 575879', 'HALT 575965', 'HALT 576137', 'HALT 661879', 'HALT 29242517', 'HALT 8600575879']; plain at x=0,1,3: ['HALT 575879', 'HALT 575965', 'HALT 576137']; notes: 575879+86*x0  -> OK
+halting: 5 tails, mismatches 0
+== check.py selftest
+selftest: 30 altered classes, 30 reported
+ALL CHECKS PASSED
+
+real	1m35.625s
+user	1m34.089s
+sys	0m0.719s
+
+== check.py plainclass 14 31 0   (run separately, 4 min 49 s; same as "bash run_all.sh full")
+  tail 000010101010101010101010.. r=7 m=45 B=20032: plain NODE 4341643499 44074, OK
+  tail 000010101010000101010101.. r=37 m=66 B=20035: plain NODE 4244144039 42820, OK   (drawn twice)
+  tail 000010101010101010101010.. r=58 m=66 B=20056: plain NODE 4252436299 42849, OK
+  tail 000010101010000101010101.. r=13 m=45 B=20038: plain NODE 4344914765 44101, OK
+  tail 000010000101010101010101.. r=40 m=48 B=20008: plain NODE 4126172883 41305, OK
+  tail 000010101010000101010101.. r=1 m=45 B=20026: plain NODE 4339717223 44065, OK
+  tail 110101010101010101010101.. r=12 m=66 B=20010: plain NODE 4243857639 42793, OK
+  tail 000010101010101010101010.. r=34 m=45 B=20014: plain NODE 4331257159 44017, OK
+  tail 000010101010000101010101.. r=4 m=45 B=20029: plain NODE 4341015709 44068, OK
+  tail 000010101010101010000101.. r=7 m=66 B=20005: plain NODE 4225760725 42700, OK
+  tail 000010000101010101010101.. r=43 m=66 B=20041: plain NODE 4257008363 42852, OK
+  tail 000010000101010101010101.. r=7 m=45 B=20032: plain NODE 4349831255 44116, OK
+  (one more line scrolled off; summary:)
+plainclass: 14 classes at x=0 against plain simulation, mismatches 0

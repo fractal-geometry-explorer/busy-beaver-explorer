@@ -46,4 +46,86 @@ theorem d_11 (n : Nat) (L R : Tape) :
     cross_l trans c0 (n) (L) (R)
   exact steps_congr trans (a := (n) * 4) (by omega) (h0)
 
+/-- Rightward over the left zone (blocks 1 3 1 5 5): every 0 moves one cell right. -/
+theorem a_w0 (n : Nat) (L R : Tape) :
+    steps (20 * n) ⟨L, rep (n) [false, true, false, true, true, true, false, true, false, true, true, true, true, true, false, true, true, true, true, true] (R), .A⟩ = some ⟨rep (n) [true, true, true, true, false, true, true, true, true, true, false, true, false, true, true, true, false, true, false, true] (L), R, .A⟩ := by
+  have c0 : ∀ L R : Tape, steps 20 ⟨app [] L, app [false, true, false, true, true, true, false, true, false, true, true, true, true, true, false, true, true, true, true, true] R, .A⟩ = some ⟨app [] (app [true, true, true, true, false, true, true, true, true, true, false, true, false, true, true, true, false, true, false, true] L), R, .A⟩ := fun _ _ => rfl
+  have h0 : steps ((n) * 20) ⟨L, rep (n) [false, true, false, true, true, true, false, true, false, true, true, true, true, true, false, true, true, true, true, true] (R), .A⟩ = some ⟨rep (n) [true, true, true, true, false, true, true, true, true, true, false, true, false, true, true, true, false, true, false, true] (L), R, .A⟩ :=
+    cross_r trans c0 (n) (L) (R)
+  exact steps_congr trans (a := (n) * 20) (by omega) (h0)
+
+/-- Leftward over the left zone: blocks 1 3 1 5 5 become 5 5 1 3 1 (pairs 01 -> 11, 11 -> 10). -/
+theorem d_w0 (n : Nat) (L R : Tape) :
+    steps (30 * n) ⟨rep (n) [true, true, true, true, true, false, true, true, true, true, true, false, true, false, true, true, true, false, true, false] (L), cons false (R), .D⟩ = some ⟨L, cons false (rep (n) [true, true, true, true, false, true, true, true, true, true, false, true, false, true, true, true, false, true, false, true] (R)), .D⟩ := by
+  have c0 : ∀ L R : Tape, steps 30 ⟨app [true, true, true, true, true, false, true, true, true, true, true, false, true, false, true, true, true, false, true, false] L, app [false] R, .D⟩ = some ⟨L, app [false] (app [true, true, true, true, false, true, true, true, true, true, false, true, false, true, true, true, false, true, false, true] R), .D⟩ := fun _ _ => rfl
+  have h0 : steps ((n) * 30) ⟨rep (n) [true, true, true, true, true, false, true, true, true, true, true, false, true, false, true, true, true, false, true, false] (L), cons false (R), .D⟩ = some ⟨L, cons false (rep (n) [true, true, true, true, false, true, true, true, true, true, false, true, false, true, true, true, false, true, false, true] (R)), .D⟩ :=
+    cross_l trans c0 (n) (L) (R)
+  exact steps_congr trans (a := (n) * 30) (by omega) (h0)
+
+set_option maxRecDepth 20000 in
+/-- Rightward over the second zone (15 blocks 3 1 3 1 3 5 5 3 5 5 3 1 3 1 3): every 0 moves one cell right. -/
+theorem a_w1 (n : Nat) (L R : Tape) :
+    steps (60 * n) ⟨L, rep (n) [false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true] (R), .A⟩ = some ⟨rep (n) [true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true] (L), R, .A⟩ := by
+  have c0 : ∀ L R : Tape, steps 60 ⟨app [] L, app [false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true] R, .A⟩ = some ⟨app [] (app [true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true] L), R, .A⟩ := fun _ _ => rfl
+  have h0 : steps ((n) * 60) ⟨L, rep (n) [false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true] (R), .A⟩ = some ⟨rep (n) [true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true] (L), R, .A⟩ :=
+    cross_r trans c0 (n) (L) (R)
+  exact steps_congr trans (a := (n) * 60) (by omega) (h0)
+
+set_option maxRecDepth 20000 in
+/-- Leftward over the second zone: pairs 01 -> 11, 11 -> 10. -/
+theorem d_w1 (n : Nat) (L R : Tape) :
+    steps (90 * n) ⟨rep (n) [true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false] (L), cons false (R), .D⟩ = some ⟨L, cons false (rep (n) [true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true] (R)), .D⟩ := by
+  have c0 : ∀ L R : Tape, steps 90 ⟨app [true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false] L, app [false] R, .D⟩ = some ⟨L, app [false] (app [true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true] R), .D⟩ := fun _ _ => rfl
+  have h0 : steps ((n) * 90) ⟨rep (n) [true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false] (L), cons false (R), .D⟩ = some ⟨L, cons false (rep (n) [true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, false, true, false, true, true, true, false, true, false, true, true, true, false, true, true, true, true, true, false, true, true, true, true, true, false, true] (R)), .D⟩ :=
+    cross_l trans c0 (n) (L) (R)
+  exact steps_congr trans (a := (n) * 90) (by omega) (h0)
+
+/-- Rightward: a single 0 moves one cell right. -/
+theorem a_zero (L R : Tape) :
+    steps (2) ⟨L, cons false (cons true (R)), .A⟩ = some ⟨cons false (cons true (L)), R, .A⟩ := by
+  have h0 : steps 2 ⟨L, cons false (cons true (R)), .A⟩ = some ⟨cons false (cons true (L)), R, .A⟩ := rfl
+  exact steps_congr trans (a := 2) (by omega) (h0)
+
+/-- Rightward: the head steps over the first of two 0s (7 steps, nothing changes). -/
+theorem a_z2 (L R : Tape) :
+    steps (7) ⟨cons true (L), cons false (cons false (R)), .A⟩ = some ⟨cons false (cons true (L)), cons false (R), .A⟩ := by
+  have h0 : steps 7 ⟨cons true (L), cons false (cons false (R)), .A⟩ = some ⟨cons false (cons true (L)), cons false (R), .A⟩ := rfl
+  exact steps_congr trans (a := 7) (by omega) (h0)
+
+/-- Right turn at three 0s (the right end of the tape, or three 0s inside it): the block grows by one cell. -/
+theorem a_turn (L R : Tape) :
+    steps (11) ⟨cons true (cons true (L)), cons false (cons false (cons false (R))), .A⟩ = some ⟨cons true (L), cons true (cons true (cons false (cons false (R)))), .E⟩ := by
+  have h0 : steps 11 ⟨cons true (cons true (L)), cons false (cons false (cons false (R))), .A⟩ = some ⟨cons true (L), cons true (cons true (cons false (cons false (R)))), .E⟩ := rfl
+  exact steps_congr trans (a := 11) (by omega) (h0)
+
+/-- Defect, pair 10: it becomes 01 and the head turns right. -/
+theorem e_bounce (L R : Tape) :
+    steps (2) ⟨cons true (L), cons false (R), .E⟩ = some ⟨cons false (L), cons true (R), .A⟩ := by
+  have h0 : steps 2 ⟨cons true (L), cons false (R), .E⟩ = some ⟨cons false (L), cons true (R), .A⟩ := rfl
+  exact steps_congr trans (a := 2) (by omega) (h0)
+
+/-- Defect, pairs 01 00: they become 10 01 (after D's next step) and the left sweep goes on. -/
+theorem e_z2_pass (L R : Tape) :
+    steps (3) ⟨cons false (cons true (cons false (L))), cons false (R), .E⟩ = some ⟨L, cons false (cons false (cons false (cons true (R)))), .D⟩ := by
+  have h0 : steps 3 ⟨cons false (cons true (cons false (L))), cons false (R), .E⟩ = some ⟨L, cons false (cons false (cons false (cons true (R)))), .D⟩ := rfl
+  exact steps_congr trans (a := 3) (by omega) (h0)
+
+/-- Defect, pairs 11 00: they become 10 10 and the head turns right. -/
+theorem e_z2_bounce (L R : Tape) :
+    steps (9) ⟨cons false (cons true (cons true (L))), cons false (R), .E⟩ = some ⟨cons false (cons true (cons false (cons true (L)))), R, .A⟩ := by
+  have h0 : steps 9 ⟨cons false (cons true (cons true (L))), cons false (R), .E⟩ = some ⟨cons false (cons true (cons false (cons true (L)))), R, .A⟩ := rfl
+  exact steps_congr trans (a := 9) (by omega) (h0)
+
+/-- Pairs 00 00 (the left end of the tape): they become 10 10 and the head turns right. -/
+theorem e_end (L R : Tape) :
+    steps (7) ⟨cons false (cons false (cons false (L))), cons false (R), .E⟩ = some ⟨cons false (cons true (cons false (cons true (L)))), R, .A⟩ := by
+  have h0 : steps 7 ⟨cons false (cons false (cons false (L))), cons false (R), .E⟩ = some ⟨cons false (cons true (cons false (cons true (L)))), R, .A⟩ := rfl
+  exact steps_congr trans (a := 7) (by omega) (h0)
+
+/-- Pairs 10 00: three steps later F reads a 1, the halting transition. -/
+theorem e_prehalt (L R : Tape) :
+    steps (3) ⟨cons false (cons false (cons true (L))), cons false (R), .E⟩ = some ⟨L, cons true (cons true (cons false (cons true (R)))), .F⟩ := by
+  have h0 : steps 3 ⟨cons false (cons false (cons true (L))), cons false (R), .E⟩ = some ⟨L, cons true (cons true (cons false (cons true (R)))), .F⟩ := rfl
+  exact steps_congr trans (a := 3) (by omega) (h0)
+
 end H54596

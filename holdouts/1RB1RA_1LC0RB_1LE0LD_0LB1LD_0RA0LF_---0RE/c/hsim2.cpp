@@ -14,6 +14,8 @@
 // usage: hsim2 MACHINE K MAXSTEPS MAXSECONDS THR [statefile_in|-] [statefile_out]
 //   prints, at left-end turn-arounds, a line each time the skeleton (canonical blocks of runs with count >= THR)
 //   changes:  steps state dir secs jumps | left runs (far end first) | right runs (head side first)
+//   with LEVELS=1 in the environment it also prints a line "LV steps state | tape" for each level: the tape at a
+//   turn-around while the block of `01111` words is at its longest (py/lvx.py reads these lines)
 #include <bits/stdc++.h>
 using namespace std;
 typedef __int128 i128; typedef long long ll; typedef unsigned long long u64;
@@ -231,11 +233,13 @@ void load(const char* fn) {
   for (size_t i = 0; i < nr; i++) { Run r; if (fscanf(f, "%llu %lld", &r.x, &r.c) != 2) exit(3); R.push_back(r); }
   fclose(f);
 }
+bool LV; ll maxc = 20; u64 lvc; string pend;
 int main(int argc, char** argv) {
   if (argc < 6) { fprintf(stderr, "usage: hsim2 MACHINE K MAXSTEPS MAXSECONDS THR [in|-] [out]\n"); return 1; }
   const char* M = argv[1]; K = atoi(argv[2]); long double maxs = strtold(argv[3], 0); double maxt = atof(argv[4]); ll thr = atoll(argv[5]);
   for (int s = 0; s < 6; s++) for (int r = 0; r < 2; r++) { const char* t = M + 7 * s + 3 * r; if (t[2] == '-') { NS[s][r] = -1; continue; } NW[s][r] = t[0] - '0'; MV[s][r] = t[1] == 'R' ? 1 : -1; NS[s][r] = t[2] - 'A'; }
   L.push_back({0, 1}); R.push_back({0, 1});
+  LV = getenv("LEVELS") != 0; { u64 x = 0; const char* w = "01111"; for (int i = 0; i < K; i++) if (w[i % 5] == '1') x |= 1ULL << i; lvc = canon(x); }
   if (argc > 6 && strcmp(argv[6], "-")) load(argv[6]);
   maxsteps = (i128)maxs; auto t0 = chrono::steady_clock::now(); int lastdir = dir; vector<u64> prevsk; bool first = true; ll samples = 0;
   while (steps < maxsteps) {
@@ -250,6 +254,16 @@ int main(int argc, char** argv) {
           double el = chrono::duration<double>(chrono::steady_clock::now() - t0).count();
           printf("%s %c %d %.0f %lld |", i128s(steps).c_str(), 'A' + st, dir, el, jumps); printtape(stdout); printf("\n"); fflush(stdout);
         }
+      }
+      if (LV) {
+        ll cur = -1;
+        for (size_t i = 1; i < L.size(); i++) if (canon(L[i].x) == lvc && L[i].c > cur) cur = L[i].c;
+        if (cur >= maxc && cur >= 20 && (cur > maxc || !pend.empty())) {
+          maxc = cur; pend = "LV " + i128s(steps) + " " + char('A' + st) + " |";
+          char buf[64];
+          for (size_t i = 1; i < L.size(); i++) { snprintf(buf, 64, " %s:%lld", bits(L[i].x).c_str(), L[i].c); pend += buf; }
+          pend += " |"; for (size_t i = R.size() - 1; i >= 1; i--) { snprintf(buf, 64, " %s:%lld", bits(R[i].x).c_str(), R[i].c); pend += buf; }
+        } else if (cur < maxc - 1) { if (!pend.empty()) { printf("%s\n", pend.c_str()); fflush(stdout); pend.clear(); } maxc = cur < 20 ? 20 : cur; }
       }
       sample();
       if ((samples & 1023) == 0) { double el = chrono::duration<double>(chrono::steady_clock::now() - t0).count(); if (el > maxt) break; }

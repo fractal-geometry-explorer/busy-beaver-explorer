@@ -74,20 +74,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---</h1>
     <p class="machine">1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> At a left turn the tape is blocks of ones of lengths 1, 3, 5 separated by single 0s, arranged in long periodic stretches. Next to the left end a stretch <code>(1 3 1 5 5)^n</code> (as block lengths) grows by about one copy per left turn; it was reset to nothing at about 1.08&middot;10<sup>6</sup> and 1.17&middot;10<sup>7</sup> steps, and regrew to 106 copies by 2.6&middot;10<sup>7</sup>. The sweep rules are proved in Lean; the resets are not understood.</p>
-      <p>Lean proves no halt in the first 10<sup>7</sup> steps (10,000 by the kernel alone); the C simulator finds none in 10<sup>9</sup>.</p>
+      <p><b>The question is open.</b> The mechanism is now known and partly proved. The head sweeps right in state A (every 0 moves one cell right) and left two cells at a time in states E and D: a pair of cells <code>01</code> becomes <code>11</code>, a pair <code>11</code> becomes <code>10</code>. On a tape of blocks of ones of odd length this only moves the content two cells to the right per round trip; the right end eats it and the left end adds a new word <code>1 3 1 5 5</code> (block lengths) every six round trips. Everything else comes from <em>defects</em>, places where the left sweep lands on a 0: the head turns round there and bounces between the defect and the right end, which rebuilds the tape to the right of the defect in a longer pattern.</p>
+      <p>Lean proves (kernel) that a halt can only come from one pattern, state E on a 0 with <code>1 0 0</code> to its left, and that the machine never halts if that pattern never appears. The C simulator sees no halt in 6.1&middot;10<sup>10</sup> steps, and the pattern never: in that run E met two 0s in a row inside the tape 285 times, after step 3.6&middot;10<sup>7</sup> always in the same harmless surrounding. 3,600 real tapes with one or two cells changed do not halt either, but small tapes of blocks do (<code>111011</code> halts after 655 steps), so the shape of the tape alone does not prevent a halt. No closed set of configurations was found: the tape is nested to unbounded depth, so the closed-set method that found closed sets for two sibling machines does not apply as it stands, and four automatic searches for a regular invariant failed.</p>
     </div>
   </section>
   <section aria-labelledby="h-s0">
     <h2 id="h-s0">How it works</h2>
     <div class="prose">
-      <p>The tape is blocks of ones of lengths 1, 3 and 5, in long periodic stretches. Next to the left end a stretch of the word <code>1 3 1 5 5</code> (block lengths) grows by about one copy per left turn, until something wipes it out; then it grows again. The intervals between these resets grow roughly tenfold.</p>
-      <p>C reading a 0 with a 1 on its left would halt. C reads a 0 only about 10,000 times in 10<sup>9</sup> steps, almost always at the very ends of the tape where the next cell is blank.</p>
+      <p>Going right (state A) every 0 moves one cell right. Going left (states E, D) the tape is rewritten in pairs of cells: <code>01</code> becomes <code>11</code>, <code>11</code> becomes <code>10</code>. On blocks of ones of odd length the two sweeps together only move the content two cells to the right; the right end consumes it, the left end adds the word <code>1 3 1 5 5</code> every six round trips.</p>
+      <p>When the left sweep lands on a 0 (an even block or two 0s: a defect) the head turns round inside the tape and bounces between the defect and the right end; the defect moves left and leaves a longer pattern behind. Defects nest, which gives zones of growing pattern and the irregular resets.</p>
+      <p>A halt needs the left sweep to land on the last 0 of <code>1 0 0 0</code> (proved in Lean). That never happened in 6.1&middot;10<sup>10</sup> steps, nor on 3,600 real tapes with a cell or two changed; small tapes of blocks do reach it, so the shape alone does not protect the run. A proof that it cannot happen is missing.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -112,9 +113,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
-        <h3>The sweep rules</h3>
-        <p>Shift rules of the two sweeps, for every repeat count and any tape around: A going right turns each <code>1101</code> into <code>1110</code> and each <code>110111</code> into <code>111011</code>; D going left turns each <code>1101</code> into <code>0111</code>, each <code>110111</code> into <code>011101</code> and each <code>11</code> into <code>01</code>.</p>
-        <p class="where"><code>a_1101</code>, <code>d_1101</code>, <code>a_110111</code>, <code>d_110111</code>, <code>d_11</code>, <code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</p>
+        <h3>The sweep rules and the single events</h3>
+        <p>17 rules, for every repeat count and any tape around. Sweeps: A going right moves every 0 one cell right, D going left rewrites pairs, over the words <code>1101</code>, <code>110111</code>, <code>11</code>, the 20-cell word of the left zone (blocks 1 3 1 5 5) and the 60-cell word of the second zone (blocks 3 1 3 1 3 5 5 3 5 5 3 1 3 1 3). Events: a single 0 moving right, the head stepping over two 0s, the right turn at three 0s, and the five cases of the left sweep landing on a 0 (<code>e_bounce</code>, <code>e_z2_pass</code>, <code>e_z2_bounce</code>, <code>e_end</code>, <code>e_prehalt</code>).</p>
+        <p class="where"><code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The regular left sweep, for any tape of pairs</h3>
+        <p>State E on the right cell of a pair, the pair being <code>01</code> or <code>11</code>: after 2 or 4 steps the pair is <code>11</code> or <code>10</code> and E stands on the right cell of the next pair to the left. By induction the same holds for any list of such pairs, so on blocks of ones of odd length the left sweep is a fixed rewriting and never stops.</p>
+        <p class="where"><code>e_pair</code>, <code>sweep</code>, <code>lean/Sweep.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A halt comes from exactly one pattern</h3>
+        <p>Three steps before any halt the machine is in state E on a 0 with <code>1 0 0</code> to its left (E0, B0, C0, then F reads the 1). So if the run from blank tape never shows <code>1 0 0 E&gt;0</code>, the machine never halts; and from that pattern it does halt.</p>
+        <p class="where"><code>prehalt</code>, <code>pre_of_halts</code>, <code>nonhalting_of_no_1000</code>, <code>halts_of_1000</code>, <code>lean/Sweep.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -133,9 +144,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>Resets of the left zone</h3>
+        <p>The word <code>1 3 1 5 5</code> is added at the left end once per six round trips; at a reset the zone is rebuilt as copies of the 15-block word <code>3 1 3 1 3 5 5 3 5 5 3 1 3 1 3</code> (7, 33, 66, 65, 254 copies at the resets up to 10<sup>9</sup> steps). Resets (tape starts <code>1 00 11</code> when E steps off the left end) at steps 6,443; 52,596; 65,233; 1,072,500; 42,678,053; 106,638,874; 201,754,341; 921,618,056; 18,930,310,428; 61,568,762,133. No regular spacing; the last one ends a single stay of 7.4&middot;10<sup>9</sup> steps away from the left end.</p>
+        <p class="where"><code>c/resets.c</code>, <code>c/dump.c</code> with <code>py/blocks.py</code></p>
+      </div>
+      <div class="card">
         <h3>The halt needs <code>1 C&gt;0</code></h3>
-        <p>The only halting transition F1 is reached only from <code>1 C&gt;0</code>. In the first 10<sup>9</sup> steps C reads a 0 only 10,252 times; in the first 3&middot;10<sup>7</sup> steps 1,959 of the 2,053 times are at the two ends of the tape, next to blank cells.</p>
+        <p>The only halting transition F1 is reached only from <code>1 C&gt;0</code>. In the first 10<sup>9</sup> steps C reads a 0 only 10,252 times, mostly at the ends of the tape. The kernel claim below sharpens this to one pattern three steps earlier.</p>
         <p class="where"><code>c/prehalt.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 6.1&middot;10<sup>10</sup> steps, and the pattern never close</h3>
+        <p>Plain C simulation to step 61,568,762,133 (the tenth reset; 57,758 cells left of the start, 42,418 right). E read a 0 with another 0 on its left, inside the tape, 285 times; from step 3.6&middot;10<sup>7</sup> on always as <code>0111 00</code> followed by <code>10</code>, the case of rule <code>e_z2_bounce</code>, where the two 0s disappear. The halting surrounding <code>1 0 0</code> never occurred.</p>
+        <p class="where"><code>c/resets.c</code> (560 s)</p>
+      </div>
+      <div class="card">
+        <h3>Perturbed real tapes do not halt; small tapes of blocks do</h3>
+        <p>Tapes of the real run at three moments (3.8&middot;10<sup>6</sup>, 4.5&middot;10<sup>7</sup>, 2.3&middot;10<sup>8</sup> steps) with one cell flipped, one cell deleted, a 0 or a 1 inserted, two cells flipped, or a 1 cleared next to a 0: 3,600 tapes, none halts within 2&middot;10<sup>6</sup> steps. Tapes made of blocks of ones separated by single 0s are not safe in general: blocks 3, 2 (<code>111011</code>, state A on the first cell) halt after 655 steps, and of 2,000 random tapes of n blocks of lengths 1 to 5 those that halt within 3&middot;10<sup>6</sup> steps number 62, 14, 0, 4, 2, 0, 1, 1 for n = 2, 3, 4, 6, 8, 12, 20, 30 (odd lengths 1, 3, 5, 7 only: 0, 29, 0, 3, 3, 0, 0, 0). Random bit strings halt often and early (they contain three 0s in a row). So, as for the two sibling machines, tapes of the same shape can halt; a proof has to use more of the real tape than its shape.</p>
+        <p class="where"><code>c/pert.c</code>, <code>c/rnd.c</code>, <code>py/small.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No closed set found (four searches)</h3>
+        <p>(1) The closed-set method of the sibling machines needs a tape <code>zone w^N T u^M tail</code> with a bounded zone; here the number of zones grows, so there is no finite list of nodes. (2) Finite-automata reduction with a DFA that tracks parity and the last k &le; 6 cells, on either side: the blank start is accepted as possibly halting. (3) A closed tape language whose states are windows of K runs (lengths exact up to a cap, then parity): K = 2, 3, 4 reach a halting abstract configuration, K = 5 exceeds 3&middot;10<sup>6</sup> abstract configurations. Reason in both: a window forgets what lies beyond it, and windows from the left end get glued to inner ones (the real run visits 4,821 abstract configurations where the closure has 406,469). (4) The same with the far end of the tape, the number of even blocks and a parity added to the state: small sizes reach a halting abstract configuration, larger ones exceed 3&middot;10<sup>6</sup> configurations; the abstraction cannot tell the long real tape from short block tapes, which do halt.</p>
+        <p class="where"><code>py/far.py</code>, <code>py/rlectl.py</code>, <code>py/realabs.py</code>, <code>py/rlectl2.py</code>, <code>py/realabs2.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
@@ -146,24 +177,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
       <div class="card">
-        <h3>A growing periodic stretch with resets</h3>
-        <p>Number of copies of <code>1 3 1 5 5</code> after the left end <code>1 4</code>, at left turns: 16 at 1.6&middot;10<sup>5</sup> steps, 28 at 7.0&middot;10<sup>5</sup>, none at 1.08&middot;10<sup>6</sup>, 82 at 9.1&middot;10<sup>6</sup>, none at 1.17&middot;10<sup>7</sup>, 87 at 1.8&middot;10<sup>7</sup>, 69 at 2.4&middot;10<sup>7</sup>, 106 at 2.6&middot;10<sup>7</sup>.</p>
-        <p class="where"><code>py/observe.py blocks 30000000 L</code></p>
+        <h3>Content drifts right; defects start inner bounces; the tape is nested</h3>
+        <p>Right sweep and regular left sweep together complement the pairs and shift them by one pair, so the content moves two cells right per round trip against a right end that stands still and consumes it. A defect (the left sweep landing on a 0: an even block or two 0s) is an inner left wall: the head bounces between it and the right end, the defect moves left one block per bounce, and what is to its right becomes new content with longer runs of blocks of 3. Defects nest, so at 10<sup>9</sup> steps the tape is a sequence of zones: <code>(1 3 1 5 5)^a</code>, the 15-block word 254 times, a 45-block word (the three words have 20, 60 and 180 cells), then runs <code>(3)^k</code> separated by a 1 or a 5 with k growing to the right. Composition of the proved rules, checked against traces; not formalised.</p>
+        <p class="where"><code>py/turns.py</code>, <code>py/micro.py</code>, <code>py/blocks.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The rare moments when C reads a 0 away from the ends are where a halt could come from; what triggers the resets of the periodic stretch, and a closed description of the phases, are open.</p>
+        <p>Not known. What is missing is an invariant that excludes <code>1 0 0 E&gt;0</code>: two 0s in a row arise inside the tape only when the left sweep lands on the 0 after a block of length 1, and they are removed again by the next bounce unless a third 0 is adjacent. A proof has to control where the grid of pairs (fixed by the right end) stands relative to such places; a regular language with windows does not do it.</p>
       </div>
     </div>
   </section>
   <section aria-labelledby="h-check">
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
-python3 holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/py/rules.py &gt; holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/lean/Rules.lean   # regenerate the sweep rules
-holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/lean/check.sh
+python3 holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/py/rules.py &gt; holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/lean/Rules.lean   # regenerate the rules
+holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/lean/check.sh      # Machine, Blank, Rules, Sweep
+gcc -O2 -o resets holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/c/resets.c &amp;&amp; ./resets 1e9     # resets, long events, E on 00 inside the tape
+gcc -O2 -o dump holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/c/dump.c &amp;&amp; ./dump 1e8 &gt; d.txt &amp;&amp; python3 holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/py/blocks.py d.txt | cut -c1-300
+gcc -O2 -o pert holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/c/pert.c &amp;&amp; awk &#x27;$1==200||$1==700&#x27; d.txt &gt; sel.txt &amp;&amp; ./pert sel.txt 200 2e6 7 0     # modes 0..5
+gcc -O2 -o rnd holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/c/rnd.c &amp;&amp; ./rnd 1 300 30 3e6 3
+python3 holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/py/rlectl.py 1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB--- 4,5,3     # no certificate
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB--- 1000000000</code></pre>
   </section>
   <footer>

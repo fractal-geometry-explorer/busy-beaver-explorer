@@ -1,9 +1,9 @@
 {
  "generated": false,
  "group": "G09",
- "family": "collect/expand counter (×7 per round)",
- "summary": "A left block of seven-cell words (1011001)^p and a right block (011)^q trade places: q is collected into p one for one, then p is expanded back into q seven for one, so each round is about 7 times longer (602, 4,374, 30,497 words); a third block at the far right grows in steps (95, 209, 403, 1,111).",
- "decision": "open",
+ "family": "collect/expand counter with drains; growth cycle",
+ "summary": "Two blocks trade places, about 7 times longer each round, until the left one is drained into the block at the right end; from step 1.8&middot;10<sup>15</sup> on the run repeats exactly every 116,320,154 visits of the left end with the right block 321,042,928 words longer, so it never halts. Proved in Lean: a symbolic executor with a soundness proof replays the arrival and one period for every odd length (compiled evaluation, <code>native_decide</code>).",
+ "decision": "nonhalting",
  "title": "What is known about 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA.",
  "machine": "1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA",
@@ -11,11 +11,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "This six-state, two-symbol Turing machine is one of the holdouts left open by the bbchallenge project. It does not halt when started on a blank tape; the proof is in Lean, with its two long computations evaluated by compiled code. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The run alternates two long phases that move a block of seven-cell words into a block of three-cell words and back, about seven times larger each round. The sweeps over the blocks are proved in Lean (kernel); the turnaround at the right end is an inner zigzag that is not yet stated as a rule."
+  "<b>It does not halt (Lean theorem <code>nonhalt</code>, level native).</b> From step 1,818,198,163,340,705 on, the configuration <code>E&gt; 0 (1011001)^59 1011 00000 1101100110110 (011)^16 001101100110 (011)^r</code> comes back with r larger by 321,042,928 after 116,320,154 arrivals at the left end, for every odd r &ge; 65. In Lean, a symbolic executor whose every move is proved to be a run of the machine (kernel) replays the arrival from blank tape and one period with r = 65 + 2x, x free; the two replays and the twelve cycle rules they use are evaluated by <code>native_decide</code>, so the result rests on the Lean kernel and the Lean compiler. The exact step and visit counts are computed by the Python and C++ simulators (trusted), not part of the Lean statement."
  ],
  "claims": [
   {
@@ -55,47 +55,112 @@
    "where": "<code>a_right</code>, <code>d_left</code>, <code>a_right3</code> in <code>lean/Rules.lean</code>"
   },
   {
-   "level": "heuristic",
-   "title": "Rounds",
-   "text": "Collect phase (q into p, 1 for 1): p = 602 at step 1.3&middot;10<sup>7</sup>, 4,374 at 6.2&middot;10<sup>8</sup>; expand phase (p into q, 1 for 7): q = 4,134 at 1.1&middot;10<sup>8</sup>, 30,497 at 5.6&middot;10<sup>9</sup>.",
-   "where": "C run, <code>c/ev.c</code>"
+   "level": "kernel",
+   "title": "The two long phases, any number of cycles",
+   "text": "Collecting: <code>E&gt; 0 (1011001)^p (101)^5 10 (011)^q 000 (011)^r</code> (q even, r odd) becomes the same with p + 2n, q &minus; 2n. Expanding: <code>E&gt; 0 (1011001)^p 1011 0^5 110110011010 (101)^m 1000 (011)^r</code> (m even, r odd) becomes the same with p &minus; 2n, m + 14n. One cycle each with its exact step count (48a + 48b + 72p + 476 and 240b + 240c + 144p + 2812), n cycles by induction.",
+   "where": "<code>collect2</code>, <code>collect_n</code>, <code>expand4</code>, <code>expand_n</code> in <code>lean/Phases.lean</code>; <code>collect_raw</code>, <code>expand_raw</code> in <code>lean/Rules.lean</code>"
   },
   {
-   "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The phase rules are measured, not proved: each visit of the right end runs an inner zigzag whose length grows with the block, which the automatic prover does not compress.",
-   "where": ""
+   "level": "native",
+   "title": "The machine does not halt",
+   "text": "From blank tape the machine never reaches a halting configuration: <code>nonhalt : &not; HaltsFromBlank</code>. It combines the three claims below with <code>nonhalting_of_growth_cycle</code>. Axioms used: <code>propext</code>, <code>Quot.sound</code> and 14 compiled evaluations (<code>native_decide</code>): the two replays and the twelve cycle rules.",
+   "where": "<code>nonhalt</code>, <code>lean/Replay.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A growth cycle implies non-halting",
+   "text": "With C(r) = <code>E&gt; 0 (1011001)^59 1011 00000 1101100110110 (011)^16 001101100110 (011)^r</code>: if the run from blank tape reaches some C(65 + 2x), and every C(65 + 2x) reaches C(65 + 2(x + 160,521,464)) in at least one step, the machine does not halt from blank tape. The two hypotheses are proved by the replay below.",
+   "where": "<code>nonhalting_of_growth_cycle</code>, <code>lean/Cycle.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A symbolic executor, proved sound",
+   "text": "Tapes are lists of cells and blocks <code>(w)^n</code> with n = c + a<sub>0</sub>x<sub>0</sub> + a<sub>1</sub>x<sub>1</sub> + &hellip;, the x free. A move is a shift rule from a table (a block crossed at once, one or two copies at a time), or one machine step, and at each arrival of state E at the left end a re-bracketing of the tape and a cycle rule applied N times at once. Any step that would depend on a variable fails. Theorem: if the executor goes from S to S&prime; in k moves and its tables are valid, the machine goes from S to S&prime; for every value of the variables. The 31 shift rules are proved by evaluation in the kernel; the N-fold application of a cycle rule by induction.",
+   "where": "<code>run_sound</code>, <code>run_pos</code>, <code>rule_instN</code>, <code>ruleOK_of_run</code> in <code>lean/Exec.lean</code>; <code>shRTbl_ok</code>, <code>shLTbl_ok</code> in <code>lean/ExecData.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "Twelve cycle rules, for all values of their counts",
+   "text": "Each rule says: this tape with counts b<sub>i</sub> + 2x<sub>i</sub> comes back with counts b<sub>i</sub> + D<sub>i</sub> + 2x<sub>i</sub>, for all x<sub>i</sub> (eleven are collect or expand, plain or with inert zones in between, 2 or 4 visits; one is the drain, 72 visits, 201,007 executor moves). Each is one run of the executor without cycle rules, evaluated by <code>native_decide</code>.",
+   "where": "<code>rule0_ok</code> &hellip; <code>rule11_ok</code>, <code>lean/ExecData.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "Blank tape reaches C(16,797,709)",
+   "text": "5,037,044 moves of the executor from blank tape end at C(16,797,709) (<code>arrive_run</code>, <code>native_decide</code>, 13 s); by soundness the machine reaches that configuration.",
+   "where": "<code>reach_cyc</code>, <code>lean/Replay.lean</code>; <code>arrive_run</code>, <code>lean/Arrive.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "C(65 + 2x) reaches C(65 + 2(x + 160,521,464)), for every x",
+   "text": "5,581,714 moves of the executor from C(65 + 2x), x a free variable, end at C(321,042,993 + 2x) (<code>period_run</code>, <code>native_decide</code>, 14 s); by soundness the machine does so for every x, in at least one step.",
+   "where": "<code>grow_cyc</code>, <code>lean/Replay.lean</code>; <code>period_run</code>, <code>lean/Period.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The growth cycle: visit and step counts",
+   "text": "C(r) reaches C(r + 321,042,928) after 116,320,154 arrivals at the left end and 650,373,336,347,246,654 + 4,382,930,856 (r &minus; 65) steps. That C(r) reaches C(r + 321,042,928) is a Lean theorem (above); the counts come from two symbolic simulators that agree (<code>py/closure/accel.py</code> and the model of the Lean executor, <code>py/replay/engine.py</code>), checked against numeric runs from C(65), C(67), C(79) and three periods of the real run; 17 injected defects are all reported.",
+   "where": "<code>py/closure/cycle.py check</code>, <code>mutate</code>, <code>instance</code>; <code>py/replay/gen.py --check</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Blank tape reaches the cycle: step counts",
+   "text": "That blank tape reaches C(16,797,709) is a Lean theorem (above). The step counts are computed: the run is at C(16,797,709) after 1,818,198,163,340,705 steps (event 6,086,451), and at C(337,840,637) after 725,814,446,706,290,623 steps. The word-level engine agrees with a plain C simulator at all 24,646 events of the first 10<sup>10</sup> steps (step count and CRC of the tape).",
+   "where": "<code>py/closure/cycle.py reach</code>, <code>py/closure/check_events.py</code>, <code>c/events.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Neighbouring classes halt",
+   "text": "The same pattern with 61 words in the left block halts for every odd r &ge; 65, after 1,772,276 + 5,220 (r &minus; 65) steps (confirmed by plain simulation for r = 65, 67, 71); C(r) with r even &ge; 64 halts at its 21,362,421st event. So the real run is safe only because of the exact orbit it is on.",
+   "where": "<code>py/closure/classes.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Independent check of the growth cycle",
+   "text": "A second accelerated simulator, written from scratch without reading the first (<code>verify/sim3.cpp</code>, validated against plain simulation to 10<sup>10</sup> steps), lands exactly on C(16,797,709) at step 1,818,198,163,340,705 from blank tape, and takes C(r) exactly to C(r + 321,042,928) at the predicted step for r = 65, 67, &hellip;, 85 and r = 16,797,709. It also confirms that C(r) halts for the even r tried (the halting transition is one step after the count stated in the notes: that count excludes the halting step). It checks listed values only; &ldquo;for every odd r&rdquo; is the Lean theorem <code>grow_cyc</code>.",
+   "where": "<code>verify/README.md</code>, <code>verify/run_all.sh</code>"
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
-  "holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/lean/check.sh",
+  "holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/lean/check.sh      # Machine, Blank, Rules, Phases, Cycle, Exec, ExecData, Arrive, Period, Replay (1 min)",
+  "python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/replay/gen.py --check      # the model of the Lean executor: tables, move counts, events and steps as claimed (40 s)",
+  "python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/cycle.py check      # the growth cycle from the claim alone (20 s)",
+  "python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/cycle.py reach      # blank tape reaches C(16797709) (5 s)",
+  "python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/cycle.py instance   # numeric runs from C(65), C(67), C(79) (40 s)",
+  "python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/cycle.py mutate     # 17 defects, all reported (6 min)",
+  "python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/classes.py          # neighbouring classes (4 min)",
+  "gcc -O2 -o events holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/c/events.c && ./events 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA 10000000000 > ev10.txt && python3 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/py/closure/check_events.py ev10.txt --plain",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA 1000000000",
-  ". /etc/profile.d/lean.sh && holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/lean/check.sh   # Rules.lean",
-  "gcc -O2 -o ev holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/c/ev.c && ./ev 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA 2000000000 L E 1 100000 12 | awk 'NR%300==0'"
+  "holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/verify/run_all.sh      # independent simulator: arrival and one period for several r (about 2 min)"
  ],
  "explainer": {
-  "lede": "Nobody knows yet. This machine moves a block back and forth between two forms: one word of seven cells for each word of three cells when it collects, seven words of three cells for each word of seven when it expands. Each round is about seven times longer than the last.",
+  "lede": "It never halts, and Lean proves it. Two blocks of the tape trade places, about seven times longer each round; now and then the left block is poured into a third block at the far right. After 1.8&middot;10<sup>15</sup> steps the whole pattern repeats exactly, with only that third block longer each time.",
   "facts": [
    {
-    "level": "kernel",
-    "value": "3 sweeps",
-    "text": "Shift rules over the long blocks, proved in Lean."
+    "level": "native",
+    "value": "no halt",
+    "text": "Lean theorem <code>nonhalt</code>; two replays and twelve rules evaluated by compiled code."
    },
    {
-    "level": "heuristic",
-    "value": "&times;7",
-    "text": "Growth from one round to the next."
+    "level": "kernel",
+    "value": "executor",
+    "text": "The symbolic executor that does the replays is proved sound in Lean."
    },
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 43,491 cells visited."
+    "value": "cycle",
+    "text": "From step 1.8&middot;10<sup>15</sup> the run repeats every 116,320,154 visits of the left end, the right block 321,042,928 words longer (the counts are computed, the return is proved)."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "cycle &rArr; no halt",
+    "text": "The last step of the argument, proved in Lean."
+   },
+   {
+    "level": "trusted",
+    "value": "17 / 17",
+    "text": "Injected defects reported by the cycle checker."
    },
    {
     "level": "heuristic",
@@ -127,21 +192,40 @@
    {
     "id": "words",
     "eyebrow": "Tape as words",
-    "heading": "Two blocks that trade places",
+    "heading": "Seven-cell words on the left, three-cell words on the right",
     "html": [
-     "<p>At the left end (state E) the tape reads</p><p style='text-align:center'><code>0 (1011001)^p (101)^5 1 0 (011)^q 0000 (110)^r</code></p>",
-     "<p>(collect phase, e.g. step 5,800,574,389: <code>0 (1011001)^211 (101)^5 1 0 (011)^30578 0000 (110)^1111</code>) or</p><p style='text-align:center'><code>0 (1011001)^p 1 0 1 1 0^5 1 1 0 1 1 0 0 1 (10)^3 (110)^q 000 (110)^r</code></p><p>(expand phase, e.g. step 708,092,141: p = 4,290, q = 740, r = 1,111).</p>"
+     "<p>Look at the tape each time the head, in state E, reaches the left end. It is a block of seven-cell words <code>1011001</code>, a short irregular zone, and then blocks of the three-cell word <code>011</code> separated by a few zeros. The last block, <code>(011)^r</code>, ends the tape.</p>",
+     "<p>Going right, the head shifts a block of three-cell words by one cell. Going left, it crosses two words at a time. So what happens at the end of a block depends only on whether its length is even or odd: every rule found has the form &ldquo;for all lengths of this parity&rdquo;.</p>"
     ]
    },
    {
     "id": "phases",
     "eyebrow": "Macro behaviour",
-    "heading": "Collect and expand",
+    "heading": "Collect, expand, drain",
     "html": [
-     "<table><thead><tr><th>phase</th><th>change</th><th>per</th></tr></thead><tbody><tr><td>collect</td><td>p + 1, q &minus; 1</td><td>visit of the left end</td></tr><tr><td>expand</td><td>p &minus; 2, q + 14</td><td>four visits</td></tr></tbody></table>",
-     "<p>Collecting turns three cells into seven, so the tape grows at the left end; expanding turns one seven-cell word into seven three-cell words. Each phase runs until its source block is empty, so the round map is roughly q &rarr; 7q:</p>",
-     "<table><thead><tr><th>step</th><th>block</th></tr></thead><tbody><tr><td>13,427,273</td><td>p = 602 (collected)</td></tr><tr><td>112,813,341</td><td>q = 4,134 (expanded)</td></tr><tr><td>617,145,533</td><td>p = 4,374</td></tr><tr><td>5,639,901,953</td><td>q = 30,497</td></tr></tbody></table>",
-     "<p>Between rounds, a short pump phase moves part of the left block into the third block <code>(110)^r</code> at the far right (95 &rarr; 209 &rarr; 403 &rarr; 665 &rarr; 1,111). At each visit of the right end the head runs an inner zigzag along the end of the right block, which is why the per-visit rule is not yet proved. The only halting transition is F on a 0; F is entered only from D on a 1 (D writes 0 and moves left).</p>"
+     "<p>Three regular phases take almost all the time. p counts the seven-cell words, q or m the three-cell words of the middle block, r those of the last block.</p>",
+     "<table><tr><th>phase</th><th>tape when state E reaches the left end</th><th>one cycle</th></tr><tr><td>collect</td><td><code>0 (1011001)^p (101)^5 10 (011)^q 000 (011)^r</code></td><td>2 visits: p + 2, q &minus; 2</td></tr><tr><td>expand</td><td><code>0 (1011001)^p 1011 0^5 110110011010 (101)^m 1000 (011)^r</code></td><td>4 visits: p &minus; 2, m + 14</td></tr><tr><td>drain</td><td><code>0 (1011001)^p 1011 0^5 1101100110110 (011)^16 001101100110 (011)^r</code></td><td>72 visits: p &minus; 52, r + 414</td></tr></table>",
+     "<p>Collecting turns three-cell words into seven-cell words one for one; expanding gives seven three-cell words back for each seven-cell word. So each round the blocks are about seven times longer: about 600, 4,370, 30,750, 215,000, 1,506,000 words. Collect and expand are proved in Lean for any number of cycles, by hand and again, with the drain, by the executor.</p>",
+     "<p>Between the phases there are short irregular stretches where the separators collide. Usually the next round starts. Sometimes the stretch ends in the drain pattern: then the whole left block is poured into the last block (414 words for 52), and the left part starts again from a small state, in front of a much longer last block.</p>"
+    ]
+   },
+   {
+    "id": "cycle",
+    "eyebrow": "Why it never halts",
+    "heading": "The left part comes back to the same state",
+    "html": [
+     "<p>The left part of the tape never needs more of the last block than the parity of its length, and a drain adds an even number of words. After the second drain the left part reaches a state that it meets again, exactly, two drains later:</p><p style='text-align:center'><code>E&gt; 0 (1011001)^59 1011 00000 1101100110110 (011)^16 001101100110 (011)^r</code></p><p>first with r = 16,797,709 (step 1,818,198,163,340,705), then with r = 337,840,637 (step 725,814,446,706,290,623), then 658,883,565, and so on: 321,042,928 more each time, 116,320,154 visits of the left end apart.</p>",
+     "<p>To prove that this goes on for ever, one period is run with r replaced by <code>65 + 2x</code>, x unknown. Whenever a step would depend on the value of x the run stops; it never had to. It ends in the same configuration with <code>65 + 321,042,928 + 2x</code>. So every odd r &ge; 65 leads to a larger odd r, and no halting step occurs on the way. A configuration that keeps coming back, larger, never halts.</p>",
+     "<p>All of this is a Lean proof. The program that runs the period (a <em>symbolic executor</em>: it moves over whole blocks at once and applies a proved cycle many times in one go) is written in Lean and proved correct once: whatever it does, the machine does, for every x. Lean then runs it: 5.0 million moves from blank tape to the first C(r), 5.6 million moves for one period. Those two runs are done by compiled code (<code>native_decide</code>), which is the one thing trusted beyond Lean's kernel. The exact step counts quoted above come from separate simulators, which agree with each other and with a plain simulator on the first 10<sup>10</sup> steps.</p>"
+    ]
+   },
+   {
+    "id": "near",
+    "eyebrow": "A narrow escape",
+    "heading": "Almost the same tape halts",
+    "html": [
+     "<p>With 61 words instead of 59 in the left block, the same pattern halts after about 1.8 million steps, for every odd r. With r even instead of odd, it halts too, much later. Tapes of the same general shape with other counts halt in a few percent of random trials.</p>",
+     "<p>So there is no simple description of &ldquo;safe tapes&rdquo; that contains the run: it is safe because it sits on one exact orbit. That is why the automatic deciders, which look for such descriptions, left this machine open, and why the proof follows the orbit itself.</p>"
     ]
    }
   ]

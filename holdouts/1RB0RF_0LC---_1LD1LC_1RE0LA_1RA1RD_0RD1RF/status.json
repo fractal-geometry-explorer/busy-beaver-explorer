@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a growing period-3 zone at the left end, a period-12 zone after it, a soup of short runs on the right; a halt needs a rightward sweep to meet 0001. Lean proves the sweep rules over the background words and the only local pattern that leads to a halt; no halt in 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a period-3 zone at the left end, then a few huge blocks of longer words (12, 15, 30 cells) that are built up and eaten in turn, and a short tail on the right; a halt needs a rightward sweep to meet 0001. Lean proves the sweep rules over the background words and the only local pattern that leads to a halt; no halt in 10<sup>9</sup> steps of the plain simulator, none in 3&middot;10<sup>13</sup> steps of an accelerated one (not verified)."
  ],
  "claims": [
   {
@@ -72,8 +72,32 @@
   {
    "level": "heuristic",
    "title": "What the tape looks like",
-   "text": "Seen at the left end the tape has three zones: a clean zone <code>(011)<sup>n</sup></code> (or <code>(101)<sup>n</sup></code>) that grows by about one copy per long sweep, then a zone of the period-12 word <code>(101011010110)<sup>m</sup></code>, also growing, then a soup of short pieces such as <code>(10)<sup>a</sup> 1 (10)<sup>b</sup> 1</code> and <code>(110)<sup>3</sup> (10)<sup>3</sup></code>, where the irregular events happen. In the rightward form the soup reads as runs of 1s separated by <code>0 0</code>.",
+   "text": "Seen at the left end the tape is a clean zone <code>(011)<sup>a</sup></code> (or <code>(101)<sup>a</sup></code>), then a block of the period-12 word <code>(101011010110)<sup>B</sup></code> that grows by one copy per visit of the left end, then one or two more huge blocks of longer words and a short tail such as <code>(10)<sup>a</sup> 1 (10)<sup>b</sup> 1</code> and <code>(110)<sup>3</sup> (10)<sup>3</sup></code>, where the irregular events happen. The clean zone does not grow: it shrinks at each conversion of the left block. In the rightward form the soup reads as runs of 1s separated by <code>0 0</code>.",
    "where": "<code>py/passes.py tape</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The accelerated simulator agrees with the plain one",
+   "text": "At 20 arrivals at the left end between 1.5&middot;10<sup>9</sup> and 3.0&middot;10<sup>10</sup> steps (the later ones after six cycle-rule jumps) the accelerated simulator and the plain C simulator <code>c/at.c</code> give the same state, head position, tape and step count.",
+   "where": "<code>py/closure/screen.py checkpoints</code>, <code>c/at.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A tail cycle, proved for all block sizes",
+   "text": "In the phase from 2.5&middot;10<sup>8</sup> to 2.3&middot;10<sup>9</sup> steps the tail repeats every 118 visits of the left end (B + 118, C &minus; 25 words of the period-15 block per cycle; 5,250 re-occurrences in the plain run). One symbolic run of the accelerated simulator with the three big counts free proves the rule (a, B, C) = (42 + 3x<sub>0</sub>, 748 + 3x<sub>1</sub>, 190 + 3x<sub>2</sub>) &rarr; (a, B + 354, C &minus; 75) in 708 events for all x &ge; 0; the plain engine confirms it on numbers. The run to 3&middot;10<sup>13</sup> steps found and used 17 other rules of this kind (15 of 6 events: B + 3 and a block <code>1^n</code> &minus; 18; 2 of 498 events: B + 249 and a period-30 block &minus; 24), all 17 re-checked on numbers.",
+   "where": "<code>py/closure/screen.py cycle</code>, <code>py/closure/accel.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 3&middot;10<sup>13</sup> steps (accelerated run)",
+   "text": "The accelerated simulator runs 30,000,000,585,416 steps from blank tape without a halt (1,568,417 arrivals at the left end; 17 cycle rules, each proved by a symbolic run with its counts free and re-checked on numbers). The tool is not verified; it agrees with the plain simulator at 20 of 20 checkpoints up to 3.0&middot;10<sup>10</sup> steps.",
+   "where": "<code>py/closure/screen.py rules 3e13 900</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Blocks and phases; why the closed-set recipe does not apply yet",
+   "text": "At arrivals at the left end the tape is <code>0 (011)^a 101101 (101011010110)^B junk (U)^C tail</code> with B, C huge and U a word of 15, 21, 24 or 30 cells: the shape of the solved machines of this group. But there are phases with three big blocks, conversions of the whole left block, phases with a row of blocks <code>(10)^k</code>, k doubling from block to block (their number grows like the logarithm of the tape), the clean zone <code>(011)^a</code> is a third counter that shrinks at conversions, and the tails do not always cycle. Observed in plain runs to 6&middot;10<sup>10</sup> steps and accelerated runs beyond.",
+   "where": "<code>README.md</code>"
   },
   {
    "level": "open",
@@ -87,15 +111,23 @@
   "holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/lean/check.sh",
   "python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/rules.py       # regenerates lean/Rules.lean and lean/Halt.lean",
   "python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/passes.py blocks 2   # how each state handles two cells",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF 1000000000",
+  "python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/closure/screen.py cycle     # a tail cycle proved as a rule",
+  "python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/closure/screen.py rules 3e13 900     # the accelerated run and its rules",
+  "gcc -O2 -o at holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/c/at.c && python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/closure/screen.py checkpoints ./at 3e10 20     # 5 min"
  ],
  "explainer": {
-  "lede": "Nobody knows yet. Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a growing period-3 zone at the left end, a period-12 zone after it, a soup of short runs on the right; a halt needs a rightward sweep to meet 0001. This page runs the real machine, explains its sweeps and the words they rewrite, and lists what is proved.",
+  "lede": "Nobody knows yet. Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a period-3 zone at the left end, then a few huge blocks of longer words (12, 15, 30 cells) that are built up and eaten in turn, and a short tail on the right; a halt needs a rightward sweep to meet 0001. This page runs the real machine, explains its sweeps and the words they rewrite, and lists what is proved.",
   "facts": [
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
     "text": "No halt in the C simulator; 46,120 cells visited."
+   },
+   {
+    "level": "trusted",
+    "value": "3&middot;10<sup>13</sup> steps",
+    "text": "No halt in the accelerated simulator (tool not verified; 20 checkpoints against the plain one)."
    },
    {
     "level": "native",
@@ -146,7 +178,7 @@
     "html": [
      "<div class=\"col\">",
      "<p>The head sweeps right and left, turning wherever the local pattern sends it back, and every sweep rewrites what it crosses. Rightward (D and E, with F and A) the tape is put into a <em>rightward form</em>: D turns each <code>011</code> into <code>100</code> and each <code>01</code> into <code>11</code>, E turns <code>110</code> into <code>001</code> and <code>10</code> into <code>11</code>, and a period-12 word such as <code>101101011010</code> becomes <code>110011100111</code>. Leftward (C with D, A, B making small zigzags) the tape goes back to its <em>leftward form</em>.</p>",
-     "<p>Seen at the left end the tape has three zones: a clean zone <code>(011)<sup>n</sup></code> (or <code>(101)<sup>n</sup></code>) that grows by about one copy per long sweep, then a zone of the period-12 word <code>(101011010110)<sup>m</sup></code>, also growing, then a soup of short pieces such as <code>(10)<sup>a</sup> 1 (10)<sup>b</sup> 1</code> and <code>(110)<sup>3</sup> (10)<sup>3</sup></code>, where the irregular events happen. In the rightward form the soup reads as runs of 1s separated by <code>0 0</code>.</p>",
+     "<p>Seen at the left end the tape is a clean zone <code>(011)<sup>a</sup></code> (or <code>(101)<sup>a</sup></code>), then a block of the period-12 word <code>(101011010110)<sup>B</sup></code> that grows by one copy per visit of the left end, then one or two more huge blocks of longer words and a short tail such as <code>(10)<sup>a</sup> 1 (10)<sup>b</sup> 1</code> and <code>(110)<sup>3</sup> (10)<sup>3</sup></code>, where the irregular events happen. The clean zone does not grow: it shrinks at each conversion of the left block. In the rightward form the soup reads as runs of 1s separated by <code>0 0</code>.</p>",
      "</div>"
     ]
    },
@@ -157,6 +189,20 @@
     "html": [
      "<div class=\"col\"><p>A <em>shift rule</em> says that a sweep crosses any number n of copies of a word in one state and leaves n copies of another word behind. These are proved in Lean for every n and every tape around them (<code>lean/Rules.lean</code>); <code>S&gt;</code> is the head in state S on the next cell, <code>L</code> and <code>R</code> the rest of the tape.</p></div>",
      "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>sweep</th><th>from</th><th>to</th><th>steps</th></tr></thead><tbody><tr><td>right</td><td><code>L D&gt; (011)^n R</code></td><td><code>L (100)^n D&gt; R</code></td><td><code>5*n</code></td></tr><tr><td>right</td><td><code>L E&gt; (110)^n R</code></td><td><code>L (001)^n E&gt; R</code></td><td><code>5*n</code></td></tr><tr><td>right</td><td><code>L E&gt; (10)^n R</code></td><td><code>L (11)^n E&gt; R</code></td><td><code>2*n</code></td></tr><tr><td>right</td><td><code>L D&gt; (01)^n R</code></td><td><code>L (11)^n D&gt; R</code></td><td><code>2*n</code></td></tr><tr><td>right</td><td><code>L E&gt; (101101011010)^n R</code></td><td><code>L (110011100111)^n E&gt; R</code></td><td><code>16*n</code></td></tr><tr><td>right</td><td><code>L D&gt; (010110101101)^n R</code></td><td><code>L (111001110011)^n D&gt; R</code></td><td><code>16*n</code></td></tr><tr><td>left</td><td><code>L (110011100111)^n C&gt; 0 R</code></td><td><code>L C&gt; 0 (101011010110)^n R</code></td><td><code>34*n</code></td></tr><tr><td>left</td><td><code>L (011100111110)^n C&gt; 1 R</code></td><td><code>L C&gt; 1 (011010110101)^n R</code></td><td><code>34*n</code></td></tr><tr><td>left</td><td><code>L (111001111100)^n D&gt; 1 R</code></td><td><code>L D&gt; 1 (110101101010)^n R</code></td><td><code>34*n</code></td></tr></tbody></table></div>"
+    ]
+   },
+   {
+    "id": "blocks",
+    "eyebrow": "Blocks",
+    "heading": "A few huge blocks and a short tail",
+    "html": [
+     "<div class=\"col\">",
+     "<p>Look at the tape each time state A arrives at the left end. It is a short clean zone, a huge block of one 12-cell word, some junk, a second huge block of a longer word, and a short tail:</p>",
+     "<p><code>A&gt; 0 (011)^a 101101 (101011010110)^B junk (U)^C tail</code></p>",
+     "<p>Every visit adds one word to the left block; the tail, a small engine of at most about 200 cells, eats the block <code>(U)^C</code>. This is the shape of two machines of this group that have been settled (two blocks and a tail from a finite set), and part of the same method works here.</p>",
+     "<p>From 2.5&middot;10<sup>8</sup> to 2.3&middot;10<sup>9</sup> steps the tail right of the block <code>(101010101101101)^C</code> takes exactly 118 values and repeats every 118 visits of the left end (5,250 re-occurrences in the plain run); per cycle B + 118 and C &minus; 25. The symbolic simulator proves it as a rule with all three counts free: (a, B, C) = (42 + 3x<sub>0</sub>, 748 + 3x<sub>1</sub>, 190 + 3x<sub>2</sub>) goes to (a, B + 354, C &minus; 75) in 708 events.</p>",
+     "<p>The method does not finish the job, for four reasons. When a block is used up another phase starts with another word, sometimes with three big blocks. Some phases build a row of blocks <code>(10)^k</code> in which each block is twice as long as the one before, so the number of blocks grows (slowly) with the tape. The clean zone at the left end is a third counter that shrinks whenever the left block is converted. And in some phases the tail does not repeat at all.</p>",
+     "</div>"
     ]
    },
    {
@@ -174,6 +220,6 @@
    }
   ]
  },
- "summary": "Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a growing period-3 zone at the left end, a period-12 zone after it, a soup of short runs on the right; a halt needs a rightward sweep to meet 0001.",
+ "summary": "Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a period-3 zone at the left end, then a few huge blocks of longer words (12, 15, 30 cells) that are built up and eaten in turn, and a short tail on the right; a halt needs a rightward sweep to meet 0001.",
  "family": "sweeping transducer: a sweep rewrites the tape into a second form and the next sweep rewrites it back"
 }

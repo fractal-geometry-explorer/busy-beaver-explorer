@@ -48,6 +48,23 @@ come from the zone. The zone's successor depends on how the front arrives, i.e. 
 same zone word (`1110 (110)^5 1110`) has led to different successors at lengths 371 and 69,473. It is a
 Collatz-like problem whose map has not been extracted. **Open.**
 
+## Closed-set attempt (13 November 2026)
+
+Same method as for id 31480 (big count free, remainders only, finite set of nodes). **It does not close, and no
+halting class was found.**
+
+- Checkpoint: the start of a growth phase, `0^inf Z (110)^n 01 A> 0^inf`, Z the zone. `c/round.c` runs one round
+  (growth + stall) from such a tape.
+- The next zone and the next length depend on (Z, n mod 8), and `n' = (3n + k)/2` with k between -28 and 23 in the
+  cases seen (checked for n = 240..287 on the first zones).
+- With every residue allowed the zones are unbounded: a zone is walls (`1110`, runs of ones) around inner segments
+  `(110)^k`, and a round rescales the inner segments too (k = 8 becomes 11, 15, 16 or 22 for n even, and is absorbed
+  into the body for n odd). `py/zones_bfs.py`: 1,513 zones x 8 residues without a halt and without closing; with
+  inner segments of 4 or more units replaced by a wildcard, 3,900 templates and 14,500 unexplored when stopped.
+- So the real run keeps its zone under 50 cells only because of the particular residues it meets; the map on
+  (zone, n mod 8) with n -> 3n/2 is a Collatz-like problem on a growing structure. The n-gram and run-length
+  pushdown closures of `../1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB/c/pds.cpp` report false halts at every size tried.
+
 ## For later
 
 Stopped at: the bulk phases are proved; the zone is described only empirically. Next steps:

@@ -8,7 +8,10 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "tools", "py"))
+from bbtools import symtm  # noqa: E402
 from bbtools.symtm import prove, rules_file  # noqa: E402
+
+symtm.MAX_CARRY = 6     # the left-going shift rules of this machine carry up to five cells
 
 M = "1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA"
 NS = next(l.split()[1] for l in open(os.path.join(HERE, "..", "lean", "Machine.lean")) if l.startswith("namespace "))
@@ -26,6 +29,19 @@ RULES = [
      "L A> (011)^n R",
      "L (110)^n A> R",
      "Going right, A crosses the right block (words `011`) in 3 steps a word."),
+    # The two long phases, one cycle each, between two arrivals of state E at the left end of the tape.  The blocks
+    # of three-cell words are written with six-cell words: only the parity of their lengths matters.  The end
+    # configuration is the one the run reaches; `lean/Phases.lean` re-brackets it into the start form.
+    ("collect_raw",
+     "0^inf E> 0 (1011001)^p+1 101101101101101 10 0110110 (110110)^a+1 000 (110110)^b+1 110 0^inf",
+     "0^inf E> 0 (1011001)^p+3 101101101101101 10 0110110 (110110)^a 000 (110110)^b+1 110 0^inf",
+     "Collecting, two visits: the left block gains two words of seven cells, the middle block loses two words of "
+     "three (`0 (1011001)^p (101)^5 10 (011)^q 000 (011)^r` with q even and r odd)."),
+    ("expand_raw",
+     "0^inf E> 0 (1011001)^p+3 1011 00000 110110011010 10 (110110)^c+1 000 (110110)^b+1 110 0^inf",
+     "0^inf E> 0 (1011001)^p+1 1011 00000 110110011010 10 (110110)^c+8 000 (110110)^b+1 110 0^inf",
+     "Expanding, four visits: the left block loses two words of seven cells, the middle block gains fourteen words "
+     "of three (`0 (1011001)^p 1011 0^5 110110011010 (101)^m 1000 (011)^r` with m even and r odd)."),
 ]
 
 

@@ -1,5 +1,14 @@
 # 1RB0RE_1LC0LB_1RD0LB_1RF0LA_1RC---_0RA0LD
 
+> **13 November 2026: proved by others, not yet independently rebuilt.** Hubert Chilczuk published a complete
+> Rocq proof that this machine never halts (`Theorem nonhalt`, busycoq, repo
+> `hubertchilczuk/BB6-1RB0RE_1LC0LB_1RD0LB_1RF0LA_1RC---_0RA0LD`, head 830debc). It closes a finite set of 385
+> (engine pattern, remainder, parity) nodes with the stack size left free, so the epoch map below is *not*
+> Collatz-hard; our closure search failed because it tracked residues of the stack size and used an unsound
+> threshold. Our spot checks agree with it (start node at step 226,258,281, two engine cycles). The Rocq build
+> (~225 CPU-hours) has not been rebuilt here, so `decision` stays `open`. The closure search in `py/decide/` is
+> stopped.
+
 bbchallenge id 31480. One of the six-state holdouts whose halting from blank tape is open (group G09: the visited tape grows like the square root of the step count on both sides).
 
 **What it does.** An exponential counter with epochs. At every left crossing of the stack the tape is an engine *P*, a stack of n identical 20-cell half-units `U = 10101010101010101110`, a junction, a block of m words `V = 1011101110` (10 cells), and a fixed tail. The engine eats the stack from its **left** end (not the right end, as an earlier version of this note said) and falls into one of three exact cycles: 1,744 round trips per 100 half-units, 704 per 40, or 2,336 per 132; every round trip adds exactly one V. When the stack is empty the block is re-read as the next stack, one half-unit per two V's, so n' = (R/2C)·n + O(1) with R/C the cycle of the epoch: n' ≈ 8.72 n, 8.80 n or 8.85 n. Which cycle the next epoch takes depends on residues of n and on the junction left over, a Collatz-like dependence. An exact accelerated simulation (Python, symbolic) follows 30 epochs, to about 7·10^61 steps, without a halt. The sweep rules, the shift rules of an epoch transition, one engine lemma and the right part of a round trip are proved in Lean. Decision: open.

@@ -87,10 +87,63 @@ halt. Final-block size at each copy (heuristic reading of its output):
 At 1.05e15 the tape is `(011101)^1503867 (001)^6015471 01110 (10110)^6015471`. The ratios depend on which phase
 starts, so the level map looks Collatz-like; its exact form is not derived.
 
+## Levels and the level map (13 November 2026)
+
+Checkpoint: state B on the first blank cell right of the tape. A **level** starts at a checkpoint
+`T (01111)^b B> 0^inf` (the final block has just been rewritten as `(01111)^b`); the level is (b, T).
+`py/closure.py` (the sibling's closure engine on the mirror image of this machine) runs each level type
+symbolically, b and the other block counts free, splitting on residues only when needed. Result (59 s): 14 types,
+89 cases pass, 2 fail, **no case halts**; not closed.
+
+Short tails (real orientation; P = `0 111 0 11111 0 1111 0`):
+
+| level | next level |
+|---|---|
+| (b, P) | b+4, with a block `(100)^(b-5)` in T (the copy) |
+| (b, T with `(100)^c`) | 18k0 + 14k1 + const for b = 4k0+r, c = 4k1+s; about 4.5b + 3.5c; next tail by the residues (16 cases) |
+| b, tail `1 00 1111 0 1111 00` | doubling: b even -> 2b+1 with `(001111)^m`, m = b/2+1; b odd -> 2b+1 with `(011110)^m`, m = (b+5)/2 |
+| b, four other short tails | b = 4k+r -> 18k + const (x 4.5), next tail by r |
+
+(Exact constants: `py/closure.py` prints them, e.g. `4k+216 -> 18k+971`.)
+
+The two types that fail hold a long block of six-cell words `(011110)^m` or `(110011)^m` next to the final block:
+proved for the first two values of m only, then "a phase with no linear cycle". That is the feed phase with its
+small counter. With made-up counts (`py/levels.py 6 400 1 48`, `py/levels.py 7 400 1 40 300`) every m reaches a next
+level and none halts, but b' is not monotone in m (b = 400: m = 13 -> 2048, 14 -> 2441, 15 -> 1862) and the next
+tail takes at least nine shapes, two of them outside the 14 types: the outcome depends on the digits of m, as for the
+sibling 1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB (whose counter is binary). So the type list does not close with
+finitely many count-parametrised shapes.
+
+The run from blank tape as levels (`c/hsim2.cpp` with LEVELS=1, `py/lvx.py`; 570 s, 1.646e15 steps, no halt):
+
+| step | b | type |
+|---|---|---|
+| 8.05e6 | 906 | P |
+| 1.97e7 | 910, `(100)^901` | copy done |
+| 5.16e8 | 7,265 | doubling |
+| 3.17e9 | 14,531, m = 3,635 | counter |
+| 6.82e10 | about 83,546 | short tail |
+| 1.39e12 | about 375,960 | P |
+| 3.37e12 | about 375,965, `(100)^375959` | copy done |
+| 8.85e13 | about 3,007,734 | doubling |
+| 5.43e14 | 6,015,471, m about 1,503,869 | counter (still inside at 1.646e15) |
+
+("about": read while the block is being rewritten, a few words short.) The second round repeats the types of the
+first, but there is **no exact growth cycle** `C(r) -> C(r + const)`: growth is multiplicative, the next type is
+chosen by b mod 4 (or mod 2) and after a counter level by the digits of m, and `4k+r -> 18k+c` does not preserve
+b mod 4. Whether the type sequence stays periodic is open.
+
+Halting, exactly: the machine halts iff `0 1 [C on 0]` occurs (C on a 0 with `0 1` to its left): C writes 1 and
+steps left, E reads that 1 and steps left, F reads the 0.
+
+Lean: `lean/Visits.lean` (from `py/visits.py`) proves the fourth cycle the closure run uses, the **pour** cycle, as 20
+one-visit theorems `pour1`..`pour20`: `0^inf 1 (100111)^3 (001)^(d+4) 1 1 1 0 (01110)^(a+2) 0 1 1 1 B> 0^inf` returns
+with d-2, a+10. (The other three cycles are `copy`, `drain`, `split`.) Notes: `/mnt/project-files/g09-drain-copy-1/notes.md`.
+
 ## Status
 
 Open. Kernel: halting configurations and 10,000 steps (`lean/Blank.lean`), the drain and split cycles
-and the copy cycle (`lean/Rules.lean`). Native: 10^7 steps. Trusted: no halt in 10^15 steps (`c/hsim2.cpp`, checked
+and the copy cycle (`lean/Rules.lean`), the pour cycle visit by visit (`lean/Visits.lean`). Native: 10^7 steps. Trusted: no halt in 1.6*10^15 steps; the level map for twelve of fourteen level types, no halting case (`py/closure.py`). The simulator is `c/hsim2.cpp` (checked
 cell for cell at 5e10 by `py/cmpc.py`). The feed phase and the transitions between phases are described from
 simulation only.
 
