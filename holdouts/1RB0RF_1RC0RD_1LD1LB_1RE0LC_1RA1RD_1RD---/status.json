@@ -82,10 +82,10 @@
    "where": "direct simulation"
   },
   {
-   "level": "trusted",
+   "level": "kernel",
    "title": "The same table as 1RB0RC_1LC1LA, a different start",
-   "text": "Renaming the states A, B, C, D, E, F of this machine to E, A, B, C, D, F gives the transition table of <code>1RB0RC_1LC1LA_1RD0LB_1RE1RC_1RA0RF_1RC---</code> exactly (read off the two tables in their <code>lean/Machine.lean</code>, and checked by a script; there is no Lean theorem for it here). So this machine started on blank tape runs like that one started in state E instead of A. The shared table does not make the halting questions the same. The two machines start from different configurations, and their runs from blank tape never reach a common configuration (checked for the first 200,000 steps, up to the renaming). So one could halt and the other not; each is its own open question. What the two do share is every rule about the table: the sweeps, the background and the way defects move.",
-   "where": "the transition tables; <code>py/compare_starts.py</code> in the folder of 1RB0RC_1LC1LA"
+   "text": "Renaming the states A, B, C, D, E, F of this machine to E, A, B, C, D, F gives the transition table of <code>1RB0RC_1LC1LA_1RD0LB_1RE1RC_1RA0RF_1RC---</code> exactly (proved in <code>lean/Twin.lean</code>: the renaming commutes with every step, and <code>halts_iff</code> says this machine halts from blank tape exactly when that table halts from the other start). So this machine started on blank tape runs like that one started in state E instead of A. The shared table does not make the halting questions the same. The two machines start from different configurations, and their runs from blank tape never reach a common configuration (checked for the first 200,000 steps, up to the renaming). So one could halt and the other not; each is its own open question. What the two do share is every rule about the table: the sweeps, the background and the way defects move.",
+   "where": "<code>lean/Twin.lean</code> (step_tw, init_eq, halts_iff); the runs compared by <code>py/compare_starts.py</code> in the folder of 1RB0RC_1LC1LA"
   },
   {
    "level": "open",
