@@ -56,6 +56,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. The machine halts only when state F reads a 1. The sweeps and turns proved in Lean never do; a halt could only come from the work at the left turn, on the counter, whose exact rule has not been found.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same tape and head as 1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC at every one of the first 10<sup>7</sup> steps (the tables differ). The same table as 1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -151,6 +157,16 @@
     "html": [
      "<p><b>Lean, kernel:</b> the halting configurations; no halt in 10,000 steps; the sweeps, the turns at the right end and the two round-trip halves for every n (<code>lean/Sweep.lean</code>). <b>Lean, native_decide:</b> no halt in 10<sup>7</sup> steps.</p>",
      "<p><b>Computed (trusted):</b> no halt in 10<sup>11</sup> steps on the plain simulator. <b>Observed:</b> the counter of groups and the runs of <code>Q</code> that it eats.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same run as <a href=\"../1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC/explainer.html\">1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC</a> (observed, not proved).</b> At every one of the first 10<sup>7</sup> steps from blank tape the two machines have the same tape and the head on the same cell. Their tables differ, and no renaming of the states turns one into the other. While they run, the states pair up as A–A, A–E, B–B, C–C, D–D, E–F, F–F (this machine first), which is not one to one. Transitions not used in these steps: this machine never uses F1 and the other never uses A1. Lean proves (<code>lean/Twin.lean</code> in the other machine's folder, <code>lock_or_break</code>, <code>not_halts_of_noBreak</code>) that the two runs have the same tape, the same head position and paired states up to the first break, a configuration where the paired states act differently, and that neither machine halts if no break ever comes. A halt of either machine is itself a break, and the halting transitions of the two do not correspond, so the two are not known to halt together.</p>",
+     "<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---/explainer.html\">1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---</a>: rename A→B, B→C, C→D, D→A, E→E, F→F and exchange left and right; it is this table started in state D, in a mirror</li></ul>"
     ]
    }
   ]

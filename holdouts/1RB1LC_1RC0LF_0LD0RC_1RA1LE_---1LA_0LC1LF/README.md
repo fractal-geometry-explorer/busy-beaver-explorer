@@ -52,3 +52,15 @@ Reduces to T started in state B: the same decoding work as for T, then rerun fro
 holdouts/1RB1LC_1RC0LF_0LD0RC_1RA1LE_---1LA_0LC1LF/lean/check.sh
 gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LC_1RC0LF_0LD0RC_1RA1LE_---1LA_0LC1LF 100000000000 records 1000000
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF`](../1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF/README.md): rename A→B, B→C, C→D, D→A, E→E, F→F; it is this table started in state D
+
+<!-- end of related machines -->

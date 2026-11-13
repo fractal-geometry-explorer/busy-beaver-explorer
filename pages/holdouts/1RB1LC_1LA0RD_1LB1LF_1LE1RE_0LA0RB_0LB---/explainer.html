@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">Two big blocks of ones</a><a href="#rule">Four in, three out</a><a href="#halt">Open</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">Two big blocks of ones</a><a href="#rule">Four in, three out</a><a href="#halt">Open</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -234,6 +234,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Open</h2>
 <p>The only halting transition is F reading 1. As for its twin, the end-of-regime map (how the remainder mod 3 changes the short tail) has not been extracted, so the question is not yet reduced. The accelerated run reaches 10<sup>40</sup> steps without a halt.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB---/explainer.html">1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB---</a>: rename A→C, B→B, C→A, D→D, E→E, F→F and exchange left and right; it is this table started in state C, in a mirror</li><li><a href="../1RB1LB_0RC0LD_1LD1RE_1RC0LA_1RD1RF_0RD---/explainer.html">1RB1LB_0RC0LD_1LD1RE_1RC0LA_1RD1RF_0RD---</a>: rename A→C, B→D, C→E, D→A, E→B, F→F and exchange left and right; it is this table started in state D, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -255,6 +261,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 -m bbtools.cycles M 3 1e40</code></div></div><div><b>No halt up to 10<sup>40</sup> steps</b><p><code>bbtools.cycles</code> with blocks of 3 cells: 146 jumps, 78 proved rules, no halt by 10<sup>40</sup> steps.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/cycles_rules.py</code> (the jumps)</div></div><div><b>The 4/3 map</b><p>Cycles per regime: 3, 7, 10, 14, 18, 23, …, 75496, 100978, 134640, 179519, 239361, 319153, 425537, 567383, 756508, 1008656, 1344830, 1793083, 2390779, 3187809, 4250412, 5667216: each about 4/3 of the last. The small blocks that come and go at the end of the tape (<code>111^13</code>, <code>111^24</code>, <code>111^45</code>, <code>111^192</code>, <code>111^459</code>, <code>111^597</code>, …) are the same numbers as in the run of <code>1RB1LB_0RC0LD_1LD1RE_1RC0LA_1RD1RF_0RD---</code>, which suggests the two machines simulate the same map.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Open: the end-of-regime rule is not extracted, so the halting transition (F reading 1) is not reduced to a condition on the map.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1LB_0RC0LD_1LD1RE_1RC0LA_1RD1RF_0RD--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

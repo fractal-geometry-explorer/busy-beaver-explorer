@@ -126,6 +126,12 @@
    "title": "Independent check of the closed set",
    "text": "A second accelerated simulator written from scratch, without the first tool's engine (<code>verify/accel.cpp</code>, validated against plain simulation up to 4.4&middot;10<sup>9</sup> steps), confirms the arrival from blank tape at step 2,340,515,329 and, for every one of the 1,144 classes, four members (the two smallest, one B near 10<sup>6</sup>, one near 10<sup>11</sup>) plus 7,000 random members: no halt, the next round end is exactly the predicted tail, B and step count, and lies in a listed class. 0 mismatches; the five neighbouring tails said to halt do halt. It samples B; that every B of a class behaves so is the Lean theorem <code>closed_set</code>.",
    "where": "<code>verify/README.md</code>, <code>verify/run_all.sh</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -249,6 +255,15 @@
     "html": [
      "<p>The shape <code>01001000 (01)^B T</code> alone does not keep the machine running. Take one of the 62 tails and make one of its small blocks one pair longer or shorter: of 1,141 such classes tried, 1,136 fall back into the closed set after one round, but <b>5 halt</b>, for every size B. One of them, checked cell by cell: with the tail <code>0000 (10)^10 000 (10)^4 000 (10)^12 111 0000 101</code> (the last block has 12 pairs; the real run has this tail with 11) and B = 20,002 the machine halts after 815,565 steps.</p>",
      "<p>So the argument really needs the exact list of 62 tails; a statement about all tails would be false. Other remainders of B for the 62 tails are harmless: all 1,722 classes tried fall into the closed set.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC/explainer.html\">1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC</a>: rename A→C, B→A, C→B, D→D, E→E, F→F; it is this table started in state B</li></ul>"
     ]
    }
   ]

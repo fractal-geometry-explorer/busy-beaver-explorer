@@ -92,6 +92,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. It is the question whether the orbit of the left-end map ever reaches D(n, (n+7)/2) with n odd: a Collatz-like question. The map and this reduction are computed, not yet proved in Lean (the doubling stage, a nested zig-zag, is the missing part).",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -162,6 +168,15 @@
     "html": [
      "<p>The only halt is state B reading 1; Lean proves the kind of sweep that does it: state D over an even block of ones that ends in <code>0 111</code>. On the map the halt comes from a state with n odd and k = 1, and it can only come from a doubling in D: D(n, k) with 2k = n+7 goes to D(2n+7, 1) and stops. (A doubling in A leaves n even; a failed doubling leaves k even.) For example the tape of 26 ones halts: D(26,0) &rarr; A(29,0) &rarr; D(1,15) &rarr; D(9,12) &rarr; D(25,5) &rarr; A(21,10) &rarr; D(7,20) &rarr; D(21,14) &rarr; D(49,1) &rarr; halt.</p>",
      "<p>From blank tape the map has been followed through 8,598 epochs, more than 10<sup>3,100</sup> steps, and 2k = n+7 never occurred in state D. Each doubling stage leaves a remainder that looks random between 0 and n/2, so the chance of hitting exactly 1 shrinks like 2/n while n grows geometrically: the machine almost certainly never halts. Proving it would mean controlling exact remainders along an exponentially growing orbit, as for the Collatz-like cryptids.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/explainer.html\">1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD</a>: rename A→F, B→A, C→B, D→E, E→C, F→D and exchange left and right; it is this table started in state B, in a mirror</li></ul>"
     ]
    }
   ]

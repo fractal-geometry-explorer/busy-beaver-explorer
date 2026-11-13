@@ -109,3 +109,15 @@ python3 gmodel.py 3000000                                      # the recursion a
 gcc -O2 -o tmrun ../../../tools/c/tmrun.c && TMRUN=./tmrun python3 bscheck.py 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 111010 F L 2000000
 cd ../../../tools/py && python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 6
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1LA_1RC1RE_1RD0RD_1LA1RC_1RF0LE_1RA---`](../1RB1LA_1RC1RE_1RD0RD_1LA1RC_1RF0LE_1RA---/README.md): rename A→D, B→A, C→B, D→E, E→F, F→C and exchange left and right; it is this table started in state B, in a mirror
+
+<!-- end of related machines -->

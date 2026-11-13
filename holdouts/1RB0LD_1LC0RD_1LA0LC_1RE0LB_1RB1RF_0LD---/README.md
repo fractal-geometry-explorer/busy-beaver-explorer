@@ -1,6 +1,6 @@
 # 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---
 
-bbchallenge id 26463. Group G01. **Quadrupling counter with nested lists** (one rule known): B> 000 (100)^a (010)^(b+2a+1) 01 → B> 000 (100)^(4a) (010)^b 01. Open. **Same machine as 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- with the states renamed** (another start state); the quadrupling round is now exact.
+bbchallenge id 26463. Group G01. **Quadrupling counter with nested lists** (one rule known): B> 000 (100)^a (010)^(b+2a+1) 01 → B> 000 (100)^(4a) (010)^b 01. Open. **Same table as 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- with the states renamed** (another start state); the quadrupling round is now exact.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -22,10 +22,10 @@ In the run: (100)^10 (010)^250 → (100)^40 (010)^229 → (100)^160 (010)^148 �
 (100)^5647 (010)^2686 01 (step 255,057,568). When b < 2a + 1 the outcome depends on b and on the blocks to the
 right, and gives shapes like `(100)^x 1^2 (001)^y`, `(1001)^2 (001)^y`, `(100)^10 (0100100)^2 (100)^y`.
 
-## Same machine as 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---
+## Same table as 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---
 
 Renaming the states (A→E, B→C, C→D, D→A, E→B, F→F) turns this transition table into the one of `1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---`; only the start state differs.
-So both holdouts are runs of one machine and every rule below holds for both (tape words are unchanged; this
+So both holdouts are runs of one table from two different starts (two separate halting questions) and every rule below holds for both (tape words are unchanged; this
 machine's state B is the other's C).
 
 ## The quadrupling round (exact)
@@ -72,3 +72,15 @@ round in Lean.
 
 - [`pages/holdouts/1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---/explainer.html`](../../pages/holdouts/1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---/explainer.html)
 - [`pages/holdouts/1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---/proof-status.html`](../../pages/holdouts/1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---/proof-status.html)
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---`](../1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/README.md): rename A→E, B→C, C→D, D→A, E→B, F→F; it is this table started in state D
+
+<!-- end of related machines -->

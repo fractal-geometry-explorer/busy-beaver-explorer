@@ -86,6 +86,12 @@
    "title": "Does it halt from blank tape?",
    "text": "The only halting transition is F reading 0: a left sweep (C keeps a cell, D erases a 1, alternately) that finds <code>0 1 0</code> just left of a cell C passed, for example C arriving on the right end of <code>(10)^2 1^m</code> with m odd. Whether that can happen is a question about parities at the joints of the units, for which there is no macro machine yet.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -195,6 +201,15 @@
     "heading": "What is proved",
     "html": [
      "<p><b>Lean (kernel):</b> the cycle with six blank cells, the cycle against a wall of 1s, k cycles of either at once with the exact step count, the turn and the return, each for every size and every tape around it (<code>lean/Gap.lean</code>, <code>lean/Levels.lean</code>); the cycle and phase at the left end (<code>lean/Rules.lean</code>, <code>lean/Phase.lean</code>). <b>Lean (native_decide):</b> blank tape reaches the first three main phases (steps 173, 1,225, 5,625) and each reaches its wall (<code>lean/Reach.lean</code>); no halt in 10<sup>7</sup> steps (<code>lean/Blank.lean</code>). <b>Computed:</b> no halt in 5.1&middot;10<sup>36</sup> steps (<code>c/macro.c</code>, tested against the plain simulator). <b>Heuristic:</b> the main phase table, the account of the 18th phase, the 387 kinds of joint. <b>Open:</b> the rules of the joints and the halting question.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/explainer.html\">1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB</a>: rename A→E, B→A, C→B, D→C, E→D, F→F and exchange left and right; it is this table started in state B, in a mirror</li></ul>"
     ]
    }
   ]

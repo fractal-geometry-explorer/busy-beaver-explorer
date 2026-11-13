@@ -113,6 +113,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. The level structure is exact for twelve level types and none of their cases halts, but two level types contain a counter whose outcome depends on the digits of a block length, so the set of level types does not close; the machine is Collatz-like with a counter inside.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -219,6 +225,15 @@
      "<p>Call a <em>level</em> the moment the final block has just been rewritten as <code>(01111)^b</code>, with a tail T of other cells to its left. A symbolic run with b left free gives the next level for each kind of tail:</p>",
      "<table><thead><tr><th>tail</th><th>next b</th></tr></thead><tbody><tr><td>plain (P)</td><td>b + 4, and a copy <code>(100)^(b−5)</code> joins the tail</td></tr><tr><td>with a copy <code>(100)^c</code></td><td>about 4.5 b + 3.5 c (exact formula per residue of b and c mod 4)</td></tr><tr><td>five short tails</td><td>b = 4k + r → 18k + const (× 4.5); r picks the next tail</td></tr><tr><td>doubling tail</td><td>2b + 1, and a block of m ≈ b/2 six-cell words appears</td></tr><tr><td>with <code>(011110)^m</code> or <code>(110011)^m</code></td><td>not known in general: a counter runs between the blocks</td></tr></tbody></table>",
      "<p>None of the 89 cases halts. The last row is why the machine is still open: with b = 400, the lengths m = 13, 14, 15 give b = 2048, 2441, 1862 next, so the result depends on the digits of m and no finite list of shapes covers it. From blank tape the run passes b = 906, 910, 7,265, 14,531, about 83,546, 375,960, 375,965, 3,007,734, 6,015,471 in 1.6 × 10<sup>15</sup> steps.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/explainer.html\">1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC</a>: rename A→D, B→A, C→B, D→E, E→C, F→F and exchange left and right; it is this table started in state B, in a mirror</li><li><a href=\"../1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB/explainer.html\">1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB</a>: rename A→C, B→D, C→A, D→E, E→B, F→F and exchange left and right; it is this table started in state C, in a mirror</li></ul>"
     ]
    }
   ]

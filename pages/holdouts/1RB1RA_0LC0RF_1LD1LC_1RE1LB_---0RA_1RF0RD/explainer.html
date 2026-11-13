@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#counter">A run of ones that counts, and a word that eats</a><a href="#halt">Only past the end of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#counter">A run of ones that counts, and a word that eats</a><a href="#halt">Only past the end of the run</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -229,6 +229,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Only past the end of the run</h2>
 <p>Lean proves (from a closed tape language with windows of 3 cells) that the machine halts exactly when state E reaches the blank region at the right. The only state that walks right over ones without changing them is A, and A arriving at the top just adds a 1. So E can get there only after W has eaten the whole run. Whether W's appetite ever catches up with a run that grows by one each visit is the open question; on the evidence it does not.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB/explainer.html">1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB</a>: rename A→D, B→E, C→A, D→B, E→C, F→F and exchange left and right; it is this table started in state C, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -251,6 +257,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/blocksim.py</code>, <code>py/runwatch.py</code></div></div><div><b>An exact accelerated simulator</b><p><code>py/blocksim.py</code> crosses the run at once; at every visit to 3·10<sup>6</sup> steps its tape equals the C simulator's (<code>py/bscheck.py</code>). Over the first 31,803 visits (9.7·10<sup>8</sup> steps) the run got shorter, by 1 to 6 cells, at 2,634 visits, and W grew to about 2,000 cells.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>Only A crosses the run</b><p>A is the only state that moves right over a 1 and stays the same (B and F erase the 1 they step on and D turns back), so E can reach the right edge only once W has eaten the whole run. The run grows by one per visit and W eats about one cell in fifteen: the run outgrows W, as long as W's appetite stays bounded.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w">README, next steps</div></div><div><b>Does it halt from blank tape?</b><p>Not known: it halts iff W ever eats the whole run, and W's dynamics (a sequence of local rewrites at the foot of the run) are not yet decoded.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

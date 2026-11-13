@@ -66,3 +66,15 @@ gcc -O2 -I tools/c -o sstat holdouts/1RB0RA_1RC0RD_1RD0LC_1LE1RA_---1LF_1RB0LC/c
 - Work out how the marker's cut point moves from round to round (it is not monotone: 236, 188, 169, 251, 214,
   173, 158 at the right-end moments between steps 9.3*10^7 and 10^8).
 - Then whether D can meet `0 D>0`.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF`](../1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF/README.md): rename A→F, B→E, C→A, D→B, E→C, F→D; it is this table started in state C
+
+<!-- end of related machines -->

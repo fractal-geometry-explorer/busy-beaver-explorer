@@ -79,3 +79,17 @@ start, 38,610 right), 37,690 ones.
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same run as [`1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---`](../1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---/README.md) (observed, not proved).** At every one of the first 10^7 steps from blank tape the two machines have the same tape and the head on the same cell. Their tables differ, and no renaming of the states turns one into the other. While they run, the states pair up as A–A, B–B, C–C, D–D, E–A, F–E, F–F (this machine first), which is not one to one. Transitions not used in these steps: this machine never uses A1 and the other never uses F1. Lean proves (`lean/Twin.lean` here, `lock_or_break`, `not_halts_of_noBreak`) that the two runs have the same tape, the same head position and paired states up to the first break, a configuration where the paired states act differently, and that neither machine halts if no break ever comes. A halt of either machine is itself a break, and the halting transitions of the two do not correspond, so the two are not known to halt together.
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA`](../1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA/README.md): rename A→E, B→D, C→A, D→B, E→C, F→F; it is this table started in state C
+
+<!-- end of related machines -->

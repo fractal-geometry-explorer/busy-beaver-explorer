@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#story">A word rewritten at every sweep</a><a href="#chain">The transfer and the doubling chain</a><a href="#shape">The shape of the run</a><a href="#why">Finding the transducer</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#story">A word rewritten at every sweep</a><a href="#chain">The transfer and the doubling chain</a><a href="#shape">The shape of the run</a><a href="#why">Finding the transducer</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -242,6 +242,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Finding the transducer</h2>
 <p>To get further one would write the effect of a full sweep on the token word as rules (symtm can prove each once found), find what invariant the word keeps between giant blocks, and so reduce the run to a map on a few numbers. None of that has been done.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1LC_1LA---_1LD0LA_1RE0LE_0RF1RE_1LB1RD/explainer.html">1RB1LC_1LA---_1LD0LA_1RE0LE_0RF1RE_1LB1RD</a>: rename A→C, B→D, C→E, D→F, E→B, F→A and exchange left and right; it is this table started in state F, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -263,6 +269,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>double7</code> (<code>lean/Rules.lean</code>), <code>chain7</code>, <code>chain</code>, <code>dbl_eq</code> (<code>lean/Transfer.lean</code>)</div></div><div><b>The doubling chain</b><p><code>G 10 1^x (10)^3 1^5 0 1^7 0 R</code> with x = 2n+2 becomes <code>G 10 1^(2x+12) (10)^3 1^5 0 R</code>: the transfer empties the block of ones, one more pass turns the 2n+1 copies of <code>10</code> into 4n+16 ones, and the item <code>1^7 0</code> is used up. With c items in a row the block grows to 2<sup>c</sup>(x+12)&minus;12 ones.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA/c/transfer.c</code> with <code>10000000000000 150 1000</code>; <code>holdouts/1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA/py/check_transfer.py</code></div></div><div><b>No halt in the first 7.3&middot;10<sup>12</sup> steps</b><p>A C simulator that applies the transfer in closed form and steps the machine cell by cell otherwise reaches step 7,298,767,517,608 (tape 5,146,290 cells) without a halt. Its left-end configurations are checked against the plain machine for the first 3&middot;10<sup>8</sup> steps (122 configurations, all on the plain run). Chains seen: blocks of 181, 373, &hellip;, 24,565 ones (ending at step 2.8&middot;10<sup>9</sup>), then up to 786,429 ones (step 2.9&middot;10<sup>12</sup>) and 786,421 ones (step 5.8&middot;10<sup>12</sup>); every long chain so far passes through 3,061, 6,133, 12,277 ones.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>The chain at the left end is understood, but its length is set by how many items <code>1^7 0</code> stand in a row after the block, and these are made by the sweeps over the rest of the word, which act like a transducer that has not been decoded. Halting needs the head in D on a 0 followed by <code>1</code> or by <code>0 0</code>; whether the word can ever present that is not known.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1LC_1LA---_1LD0LA_1RE0LE_0RF1RE_1LB1RD up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

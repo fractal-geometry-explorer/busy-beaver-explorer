@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">A pile of segments of one word</a><a href="#sweep">Rewrite going right, rewrite back going left</a><a href="#halt">Not yet reduced</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">A pile of segments of one word</a><a href="#sweep">Rewrite going right, rewrite back going left</a><a href="#halt">Not yet reduced</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -234,6 +234,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Not yet reduced</h2>
 <p>The only halting transition is E reading 1. A small closed language (windows of 3–5 cells) still allows it, and the macro rule of the separators is not known, so the halting question has not been turned into a statement about a map. This machine is left with notes for later.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC/explainer.html">1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC</a>: rename A→E, B→C, C→D, D→A, E→B, F→F and exchange left and right; it is this table started in state D, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -255,6 +261,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>/home/user/w/bin/ev M 3e9 '*' L x=10111110</code></div></div><div><b>The pile of segments</b><p>At step 2,266,312,097 the left side is 112 segments x<sup>k</sup> with lengths falling from 218 to 1 towards the start, separated mostly by <code>1010</code> or <code>(10)^4</code> and by a few longer markers (<code>1 0 1^9 0</code>, <code>1 0 1^13 0</code>). Each sweep adds one x to the leading segment (about 148,000 steps a sweep at that width); when it reaches about 218 a new segment starts.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>python3 -m bbtools.ctl M K</code></div></div><div><b>No small closed tape language</b><p><code>bbtools.ctl</code> with windows K = 3, 4, 5 leaves a halt (E reading 1) reachable in the abstraction.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Open: the rule that moves the separators and the right-end counter are not decoded, so the question is not yet reduced to a map.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

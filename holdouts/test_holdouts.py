@@ -56,6 +56,11 @@ class TestHoldouts(unittest.TestCase):
                 self.assertEqual(f.read(), build_pages.build_status.build(spec, spec.get("home", "../index.html")),
                                  name)
 
+    def test_related_current(self):
+        """The "Related machines" sections are the ones holdouts/related.py writes from related.json."""
+        import related
+        self.assertEqual(related.apply(False), [])
+
     def test_index_current(self):
         with open(os.path.join(build_pages.PAGES, "index.html")) as f:
             old = f.read()

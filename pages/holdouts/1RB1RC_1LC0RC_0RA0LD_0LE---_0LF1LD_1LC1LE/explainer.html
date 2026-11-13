@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A lattice of 10s, cut by separators</a><a href="#bounce">Every other separator moves</a><a href="#collide">Walls are born and die</a><a href="#far">10&lt;sup&gt;40&lt;/sup&gt; steps</a><a href="#halt">How it would halt</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A lattice of 10s, cut by separators</a><a href="#bounce">Every other separator moves</a><a href="#collide">Walls are born and die</a><a href="#far">10&lt;sup&gt;40&lt;/sup&gt; steps</a><a href="#halt">How it would halt</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -234,6 +234,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>How it would halt</h2>
 <p>The only halting transition is D1. D is entered from C1 and E1, both moving left, so the machine halts when one of them lands on a 1: for example the head in A meeting <code>1 1</code>. That takes a block of length 1 or 2 in the wrong place. Random tapes of the same shape halt in about 3% of cases when their blocks are that short, and never when all blocks have length at least 3; in the run from blank tape short blocks appear only next to the left end and in collisions, and have never done it. Turning that into a proof needs the collision rules in Lean and an invariant on how separators are arranged.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0LB_0LC0RD_1LA1LB_0RE---_0RF1RD_1RB1RE/explainer.html">1RB0LB_0LC0RD_1LA1LB_0RE---_0RF1RD_1RB1RE</a>: rename A→C, B→A, C→B, D→D, E→E, F→F and exchange left and right; it is this table started in state B, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -259,6 +265,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/random_tapes.py</code></div></div><div><b>Halting needs short blocks</b><p>Random tapes of the run's shape halt within 10<sup>5</sup> steps in about 3% of cases when the blocks have length 1 or 2 (always by the head in A meeting two 1s side by side or a similar short pattern), never in 1,600 trials with all blocks &ge; 3. Changing one block of the real tape at step 10<sup>6</sup> by one <code>10</code> gave no halt in 2&middot;10<sup>7</sup> more steps in 40 trials.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w"><code>bbtools.ctl</code>, <code>py/tctl.py</code></div></div><div><b>Closed tape languages</b><p>Windows of up to 10 cells do not close without halting (from 9 on, the right automaton takes every window). Windows of up to 6 <em>letters</em> (cells and runs of <code>10</code> of length 1, 2 or &ge; 3) close, but allow halts next to rows of blocks of length 1.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Next step: prove the collision rules and show that no collision produces the short-block pattern that halts.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0LB_0LC0RD_1LA1LB_0RE---_0RF1RD_1RB1RE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

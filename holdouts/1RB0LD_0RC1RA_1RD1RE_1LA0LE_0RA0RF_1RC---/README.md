@@ -96,3 +96,17 @@ python3 holdouts/1RB0LD_0RC1RA_1RD1RE_1LA0LE_0RA0RF_1RC---/py/stack.py run 120  
 - With all cases as rules, look for an invariant on reachable stacks, or a reachable stack that halts.
 - A Lean check of the run itself: chain `start`, `trips` and the epoch rules for the first epochs (as `native_decide`
   over the stack, with a proof that each stack step is a rule instance).
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB---_1RC1RE_1LD0LE_1RF0LC_0RD0RA_0RB1RD`](../1RB---_1RC1RE_1LD0LE_1RF0LC_0RD0RA_0RB1RD/README.md): rename A→D, B→F, C→B, D→C, E→E, F→A; it is this table started in state F
+- [`1RB1RE_1LC0LE_1RD0LB_0RA1RC_0RC0RF_1RA---`](../1RB1RE_1LC0LE_1RD0LB_0RA1RC_0RC0RF_1RA---/README.md): rename A→C, B→D, C→A, D→B, E→E, F→F; it is this table started in state C
+- [`1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---`](../1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---/README.md): rename A→B, B→C, C→D, D→A, E→E, F→F and exchange left and right; it is this table started in state D, in a mirror
+
+<!-- end of related machines -->

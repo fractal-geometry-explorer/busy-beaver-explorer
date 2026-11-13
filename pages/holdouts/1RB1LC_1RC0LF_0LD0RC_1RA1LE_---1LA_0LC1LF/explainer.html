@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#family">Three holdouts, one machine</a><a href="#m3">This page&#x27;s machine is T started in B</a><a href="#halt">The only way to halt: 0, 1, 0</a><a href="#counters">Counters inside counters</a><a href="#epochs">The clock is exact</a><a href="#open">What would settle it</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#family">Three holdouts, one machine</a><a href="#m3">This page&#x27;s machine is T started in B</a><a href="#halt">The only way to halt: 0, 1, 0</a><a href="#counters">Counters inside counters</a><a href="#epochs">The clock is exact</a><a href="#open">What would settle it</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -245,6 +245,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>What would settle it</h2>
 <p>A halt needs the pattern <code>0 1 0</code> where the head turns, which the low-level counter never produces. Whether a higher level ever produces it depends on rules that have not been decoded: how the middle unary numbers and the tail change at each stretch boundary. With those rules one could write the run as a map on a few numbers and either prove it never makes the pattern or find when it does. Until then there is no heuristic either way.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF/explainer.html">1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF</a>: rename A→B, B→C, C→D, D→A, E→E, F→F; it is this table started in state D</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -267,6 +273,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>star_runs_native</code>, <code>same_first_steps</code>, <code>1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF</code>/<code>lean/Link.lean</code></div></div><div><b>T and M1 agree for the first 10<sup>7</sup> steps</b><p>S runs 10<sup>7</sup> steps from blank tape without stopping (and 10,000 checked by the kernel), so by <code>shadow</code> the two machines have the same tape and head at each of those steps.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tmrun 1RB1LE_1RC---_1RD0LF_0LA0RD_---1LG_0LD1LF_---1LD 100000000000</code> (7.5 minutes)</div></div><div><b>T and M1 agree for the first 10<sup>11</sup> steps</b><p>The C simulator runs S for 10<sup>11</sup> steps without a stop; with the Lean simulation theorem this means the two machines make the same run through 10<sup>11</sup> steps (which is why their record outputs were identical).</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts iff T started in state B halts (proved); the rules of T's higher counter levels are not known, so there is no argument either way.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

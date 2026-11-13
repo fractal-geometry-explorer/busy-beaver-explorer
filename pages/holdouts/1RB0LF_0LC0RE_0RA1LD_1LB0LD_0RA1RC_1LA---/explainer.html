@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">Blocks at a left record</a><a href="#sweep">One sweep, one increment</a><a href="#macro">An exact block macro machine</a><a href="#phases">A Collatz-like reset map</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">Blocks at a left record</a><a href="#sweep">One sweep, one increment</a><a href="#macro">An exact block macro machine</a><a href="#phases">A Collatz-like reset map</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -251,6 +251,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p><b>Computed</b>: the macro machine matches direct simulation at 15,144 records; the macro run finds no halt in 3.39&middot;10<sup>14</sup> steps.</p>
 <p><b>Open</b>: Lean soundness of composing the rules, an invariant excluding the halt, and so the question.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---/explainer.html">1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---</a>: rename A→D, B→B, C→C, D→A, E→E, F→F and exchange left and right; it is this table started in state D, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -278,6 +284,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code></div></div><div><b>Shape of the records</b><p>In the first 10<sup>5</sup> records: no block (0, 1) after the first; after a 0-block the next block has D + x even; the first block has D + x odd (or, right after a reset, <code>1 B&gt;1</code> then (0, 0) then a block with D + x odd). 99.99% of macro steps are a single sweep: crossings right, one turn, crossings left.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/random_check.py</code></div></div><div><b>These patterns are not an invariant</b><p><code>py/random_check.py</code>: one macro step from 20,000 random block lists. 2 of the 14,742 lists that obey the record patterns halt (and 2 of the 5,258 that do not), so the patterns alone do not exclude the halt.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Missing: a Lean proof that the composition of the macro rules is sound, and an invariant of the reachable block lists that excludes <code>1 A&gt;1</code>, or a <code>halts_iff</code> reduction to the Collatz-like reset map.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

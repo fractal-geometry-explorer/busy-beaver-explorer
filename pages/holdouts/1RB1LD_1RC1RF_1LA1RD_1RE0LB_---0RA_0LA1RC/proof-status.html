@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open, and the run is an explicit map.</b> This machine writes the same tape as 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD. Nine tick and overflow rules are proved in Lean for both. The map of the twin, using this machine's transitions, reproduces every tick boundary of the first 6&middot;10<sup>9</sup> steps exactly.</p>
+      <p><b>The question is open, and the run is an explicit map.</b> In the first 10<sup>9</sup> steps this machine writes the same tape as 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD (observed, not proved). Nine tick and overflow rules are proved in Lean for both. The map of the twin, using this machine's transitions, reproduces every tick boundary of the first 6&middot;10<sup>9</sup> steps exactly.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -138,6 +138,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Same tape as its twin</h3>
         <p>This machine and 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD write the same symbol at the same cell and move the same way at every one of the first 10<sup>9</sup> steps. Where one is in C, the other is in C or E, depending on the symbol under the head. They stay twins as long as three local patterns hold: after B reads 0 the next cell is 0, after D reads 0 it is 1, and after E reads 1 it is 1.</p>
         <p class="where"><code>holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/c/twin.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Related holdouts</h3>
+        <p>The same tape and head as 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD at every one of the first 10<sup>7</sup> steps (the tables differ). The same table as 1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
+        <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>

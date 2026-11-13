@@ -95,6 +95,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. The closed node set shows that no remainder case of any phase end leads to a halt as long as the long blocks stay long and keep their order of size. What is missing is that invariant: inequalities between the block lengths that every transition preserves. With all counts free and no size assumption the search does not close (1,394 nodes after 125,453 branches, still growing), though it meets no halt either.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -191,6 +197,15 @@
      "<p>The simulator <code>py/accel.py</code> spots a phase when the shape of the tape repeats with the same change of lengths, re-runs one period with the lengths as unknowns to prove the change holds for all of them, and then applies the phase thousands of billions of times at once, adding up the steps in closed form. Its tape is exactly the machine's (checked against plain simulation up to 1.6&middot;10<sup>10</sup> steps).</p>",
      "<table><thead><tr><th>steps</th><th>drain phases</th><th>distinct periods used</th></tr></thead><tbody><tr><td>10<sup>21</sup></td><td>15</td><td>183</td></tr><tr><td>10<sup>101</sup></td><td>123</td><td>225</td></tr><tr><td>1.2&middot;10<sup>300</sup></td><td>399</td><td>245</td></tr></tbody></table>",
      "<p>No halt so far. The only halting transition is F reading a 1; F is entered only from A reading a 1, and in every proved phase the cell F reads is 0.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---/explainer.html\">1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---</a>: rename A→D, B→B, C→C, D→A, E→E, F→F and exchange left and right; it is this table started in state D, in a mirror</li></ul>"
     ]
    }
   ]

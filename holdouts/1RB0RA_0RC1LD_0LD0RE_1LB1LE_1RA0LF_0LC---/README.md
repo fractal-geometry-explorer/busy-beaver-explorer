@@ -42,3 +42,15 @@ Check the mod-3 pattern over a long run (all samples), find the sweep rules on r
 
 - [`pages/holdouts/1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC---/explainer.html`](../../pages/holdouts/1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC---/explainer.html)
 - [`pages/holdouts/1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC---/proof-status.html`](../../pages/holdouts/1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC---/proof-status.html)
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LF_1RC0RB_0RD1LE_0LE0RA_1LC1LA_0LD---`](../1RB0LF_1RC0RB_0RD1LE_0LE0RA_1LC1LA_0LD---/README.md): rename A→B, B→C, C→D, D→E, E→A, F→F; it is this table started in state E
+
+<!-- end of related machines -->

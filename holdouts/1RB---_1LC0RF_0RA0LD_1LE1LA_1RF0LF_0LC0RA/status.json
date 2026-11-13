@@ -104,6 +104,12 @@
    "title": "After a visit that comes out in C",
    "text": "What the layer of c tokens (M) becomes after a visit of the a/z stream that comes out in C is given row by row in <code>Visit.lean</code> but not composed into a law; the left side is not yet in this form. The machine can halt only there (follows from the event rules, not itself a theorem).",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same tapes at another pace, whatever the states, as 1 other holdout (listed on the explainer page).",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -253,6 +259,15 @@
      "<p>Cut the tape right of the event cell into tokens of two cells: z = <code>00</code>, a = <code>10</code>, c = <code>01</code>. Everything from R on, the blank tape included, is one stream of a and z, and one visit of the head in state B does this to it: <b>the first z becomes a, and every second a before it becomes z</b>.</p>",
      "<p>If the first z is at an odd place the visit comes out in state E: with digits <code>a z</code> = 0 and <code>a a</code> = 1 this is the binary increment of R. If it is at an even place (all digits 1 up to the blank tape) the visit comes out in state C and leaves the digits shifted by one token. So R has no overflow into something else; the rare case is a visit that comes out in C.</p>",
      "<p>Both cases, and M's increment and wrap (three visits of the stream), are proved in Lean for every size from 30 token rows, each of which is a small theorem about one token and the nested visits of the rest. What the c tokens of M do after a visit that comes out in C is in those rows but not yet composed; that is where the question of halting now sits.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same tapes at another pace (observed, not proved).</b> Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10<sup>7</sup> configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.</p><ul><li><a href=\"../1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---/explainer.html\">1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---</a>: 8,928,153 configurations, the last at step 8,928,580 here and step 10,000,000 there</li></ul>"
     ]
    }
   ]

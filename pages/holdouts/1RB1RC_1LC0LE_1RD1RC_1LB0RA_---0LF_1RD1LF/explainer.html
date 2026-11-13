@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counter">A counter whose digits are blocks of 1s</a><a href="#wave">The carry wave halves the digits it passes</a><a href="#proof">What Lean checks</a><a href="#question">A question about binary digits</a><a href="#twin">The same machine under another name</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counter">A counter whose digits are blocks of 1s</a><a href="#wave">The carry wave halves the digits it passes</a><a href="#proof">What Lean checks</a><a href="#question">A question about binary digits</a><a href="#twin">The same tapes from another table</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -268,7 +268,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 </section>
 <section id="twin">
   <span class="eyebrow">A twin</span>
-  <h2>The same machine under another name</h2>
+  <h2>The same tapes from another table</h2>
 <div class="col"><p><code>1RB1RA_1LC0RC_1RE0LD_0RE0LF_1RA---_1RB1LF</code> is another holdout of the same group. Its table is different, but at every cycle start it has exactly the same tape (in state C instead of A, and a few hundred steps later). The difference is in how the head travels: there, the run back to the right end shifts a double 0 through the digits; here, state C simply walks over them. Both machines have their own Lean proof of the same reduction.</p></div>
 </section>
 <section id="shape">
@@ -279,6 +279,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>After 10<sup>9</sup> steps the tape spans 42,663 cells (17 left of the start, 30,165 right), with a density of 1s of 1.0.</p>
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>628,526,876</td><td><code>1^893 0 1^896 0 1^1787 0 1^3574 0 1^11945 0 1^13112 0 1^2633 0 1^975 0 1^965 0 1^283 0 1^219 0 1^148 0 1^64 0 1^14 0 1^7 0 1^6 0 1^4 0 1 C&gt;0</code></td></tr><tr><td>right</td><td>644,184,842</td><td><code>1^893 0 1^896 0 1^1787 0 1^3574 0 1^11945 0 1^14970 0 1^3170 0 1^572 0 1^396 0 1^395 0 1^220 0 1^148 0 1^64 0 1^14 0 1^7 0 1^6 0 1^4 0 1 C&gt;0</code></td></tr><tr><td>right</td><td>840,617,936</td><td><code>1^893 0 1^896 0 1^1787 0 1^3574 0 1^21173 0 1^9231 0 1^1632 0 1^1406 0 1^682 0 1^396 0 1^220 0 1^148 0 1^64 0 1^14 0 1^7 0 1^6 0 1^4 0 1 C&gt;0</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
+</section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same tapes at another pace (observed, not proved).</b> Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10<sup>7</sup> configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.</p><ul><li><a href="../1RB1RA_1LC0RC_1RE0LD_0RE0LF_1RA---_1RB1LF/explainer.html">1RB1RA_1LC0RC_1RE0LD_0RE0LF_1RA---_1RB1LF</a>: 9,942,119 configurations, the last at step 9,945,848 here and step 10,000,000 there</li></ul>
 </section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
@@ -302,6 +308,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/fast.py</code>, <code>py/model.py check</code></div></div><div><b>No halt in the first 9&middot;10<sup>52</sup> steps</b><p>The digit map iterated exactly (Python integers, with the step count of every piece), accelerated by memoizing the effect of the lowest digits until a wave leaves them: 29 visits of the left end, none with the value 1. The map and its step counts were compared with the direct run at every cycle start up to 5&middot;10<sup>7</sup> steps, and the accelerated run with the plain map up to 2&middot;10<sup>6</sup> cycles.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/fast.py</code></div></div><div><b>Almost surely it never halts</b><p>A halt needs the value carried onto the leftmost digit to be 2<sup>t</sup>&minus;1, all ones in binary. These values grow by a few bits per visit of the left end (85 bits by 10<sup>52</sup> steps) and most of them are even; if their bits were random the chance of ever seeing all ones from here on would be below 2<sup>-80</sup>.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Open: equivalent (Lean) to whether the digit iteration ever delivers 2<sup>t</sup>&minus;1 to the left end, a Collatz-like question about the binary digits of the carried values.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same tapes at another pace, whatever the states, as 1 other holdout (listed on the explainer page).</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

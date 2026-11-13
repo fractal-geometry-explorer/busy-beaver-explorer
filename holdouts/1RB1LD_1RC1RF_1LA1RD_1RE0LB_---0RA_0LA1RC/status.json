@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open, and the run is an explicit map.</b> This machine writes the same tape as 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD. Nine tick and overflow rules are proved in Lean for both. The map of the twin, using this machine's transitions, reproduces every tick boundary of the first 6&middot;10<sup>9</sup> steps exactly."
+  "<b>The question is open, and the run is an explicit map.</b> In the first 10<sup>9</sup> steps this machine writes the same tape as 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD (observed, not proved). Nine tick and overflow rules are proved in Lean for both. The map of the twin, using this machine's transitions, reproduces every tick boundary of the first 6&middot;10<sup>9</sup> steps exactly."
  ],
  "claims": [
   {
@@ -80,6 +80,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known, the same as its twin. A proof of the twin correspondence would make every result about the twin hold here.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same tape and head as 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD at every one of the first 10<sup>7</sup> steps (the tables differ). The same table as 1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -90,7 +96,7 @@
   "gcc -O2 -o twin holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/c/twin.c && ./twin 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. This machine runs a countdown on a list of blocks of the word 101110. The short words between blocks act like the digits of a base-4 counter, passing borrows along, while a block at the near end of the tape keeps growing. This page runs the real machine in your browser and explains the countdown. Its moves are proved in Lean for every block length. It has a twin, 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD, which writes exactly the same tape.",
+  "lede": "Nobody knows. This machine runs a countdown on a list of blocks of the word 101110. The short words between blocks act like the digits of a base-4 counter, passing borrows along, while a block at the near end of the tape keeps growing. This page runs the real machine in your browser and explains the countdown. Its moves are proved in Lean for every block length. It has a twin, 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD, which has written exactly the same tape for 10<sup>9</sup> steps (observed, not proved).",
   "facts": [
    {
     "level": "kernel",
@@ -183,9 +189,19 @@
     "html": [
      "<p>1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD and 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC are different tables, but from a blank tape they write the same symbol at the same cell and move the same way at every step checked, 10<sup>9</sup> of them. Their states correspond one to one except that state C of one machine is split between C and E of the other, according to the symbol under the head. The correspondence holds as long as three local patterns hold: after B reads 0 the next cell is 0, after D reads 0 it is 1, and after E reads 1 it is 1. The same Lean statements are proved for both.</p>"
     ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same run as <a href=\"../1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/explainer.html\">1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD</a> (observed, not proved).</b> At every one of the first 10<sup>7</sup> steps from blank tape the two machines have the same tape and the head on the same cell. Their tables differ, and no renaming of the states turns one into the other. While they run, the states pair up as A–A, B–B, C–C, C–F, D–D, E–C, F–E (this machine first), which is not one to one. Transitions not used in these steps: this machine never uses E0 and the other never uses F0. Lean proves (<code>lean/Twin.lean</code> here, <code>lock_or_break</code>, <code>not_halts_of_noBreak</code>) that the two runs have the same tape, the same head position and paired states up to the first break, a configuration where the paired states act differently, and that neither machine halts if no break ever comes. A halt of either machine is itself a break, and the halting transitions of the two do not correspond, so the two are not known to halt together.</p>",
+     "<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB/explainer.html\">1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB</a>: rename A→C, B→A, C→B, D→D, E→E, F→F; it is this table started in state B</li></ul>"
+    ]
    }
   ]
  },
- "summary": "A base-4 countdown on a list of blocks of 101110, the same tape as 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD; the twin's exact map reproduces every tick boundary of the first 6e9 steps.",
+ "summary": "A base-4 countdown on a list of blocks of 101110, the same tape as 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD for 10^9 steps (observed); the twin's exact map reproduces every tick boundary of the first 6e9 steps.",
  "family": "block-list countdown with base-4 separators"
 }

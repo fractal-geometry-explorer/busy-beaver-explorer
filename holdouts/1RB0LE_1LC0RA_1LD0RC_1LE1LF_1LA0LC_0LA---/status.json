@@ -80,6 +80,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. A proof would need an invariant on the lists that the macro rules preserve (so that no window ever falls outside them), plus Lean proofs of the remaining cases: the sweep with fuel 1 (two rules in one visit), the windows with small values, and the rules on the fuel block other than the pair rule.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -178,6 +184,15 @@
      "<p><b>Lean, kernel</b>: the cell pieces of a sweep (<code>lean/Rules.lean</code>, written by <code>bbtools.symtm</code>), one whole sweep for any done blocks and the window rules above (<code>lean/Macro.lean</code>).</p>",
      "<p><b>Computed</b>: the full macro machine (<code>py/mac14.py</code>) checked against the machine sweep by sweep for 2&middot;10<sup>7</sup> steps and at every refill up to 10<sup>10</sup>; 187,450 sweeps without leaving its rules.</p>",
      "<p><b>Missing</b>: the fuel-1 sweep, small-value windows and the other fuel-block rules in Lean; a statement that puts all rules together as one map on lists; and an invariant showing the lists always stay inside the rules. Halting would need a window outside every rule; inside the rules proved in Lean the machine never reaches the halting move F1.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE---/explainer.html\">1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE---</a>: rename A→E, B→A, C→B, D→C, E→D, F→F and exchange left and right; it is this table started in state B, in a mirror</li><li><a href=\"../1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/explainer.html\">1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---</a>: rename A→C, B→D, C→E, D→A, E→B, F→F and exchange left and right; it is this table started in state D, in a mirror</li></ul>"
     ]
    }
   ]

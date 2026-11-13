@@ -127,7 +127,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 9 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---</p>
-  <div class="col"><p class="lede">Nobody knows yet, but we know what it is doing: it counts, exactly like its twin 1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD--- with the states renamed. The tape is a row of blocks of ones, each block a digit, and once per trip of the head the number goes up by one. Now and then a carry falls off the left end and the machine starts counting inside its own count. Lean proves every ordinary trip and the inner trips of a nested count, and runs the counter up to its third nested count: no halt in 2.66&middot;10<sup>11</sup> steps.</p></div>
+  <div class="col"><p class="lede">Nobody knows yet, but we know what it is doing: it counts like its twin 1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD--- with the states renamed. The tape is a row of blocks of ones, each block a digit, and once per trip of the head the number goes up by one. Now and then a carry falls off the left end and the machine starts counting inside its own count. Lean proves every ordinary trip and the inner trips of a nested count, and runs the counter up to its third nested count: no halt in 2.66&middot;10<sup>11</sup> steps.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev n">native_decide</span><b>2.66&middot;10<sup>11</sup> steps</b><span class="small">No halt, proved in Lean: 258,046 proved trips, up to the third nested run.</span></div>
     <div class="fact"><span class="ev k">Kernel</span><b>every trip</b><span class="small">The trip rule, for all digit values; inside a nested run too.</span></div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#sweep">One trip of the head</a><a href="#counter">An odometer</a><a href="#leftend">At the left end: counting inside the count</a><a href="#nested">The nested run</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#sweep">One trip of the head</a><a href="#counter">An odometer</a><a href="#leftend">At the left end: counting inside the count</a><a href="#nested">The nested run</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -238,7 +238,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">The meaning</span>
   <h2>An odometer</h2>
 <p>Read it like a car's odometer. The rightmost even digit is the one that moves. Odd digits to its right are like the 9s in 1999 + 1: the increment turns each of them into zeros and a 1 and carries on to the left. A long run of 1s is a run of carries already made, crossed for free. Here the active digits sit in one cluster at the left end of the tape, and the run of 1s to their right grows by one every two trips (24,985 of them at trip 50,000).</p>
-<p>This is digit for digit, step for step, the counter of <a href="../1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---/explainer.html">1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---</a>: the two machines write the same blocks and take the same number of steps for every trip; they differ in their state names and in how the head turns at the stop digit (this one turns as soon as it reaches the even block: <code>L 0 11 E&gt;0</code> becomes <code>L 1111 B&gt;</code> in 9 steps).</p>
+<p>Rule for rule, this is the counter of <a href="../1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---/explainer.html">1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---</a>: the two machines write the same blocks and take the same number of steps for every trip; they differ in their state names and in how the head turns at the stop digit (this one turns as soon as it reaches the even block: <code>L 0 11 E&gt;0</code> becomes <code>L 1111 B&gt;</code> in 9 steps).</p>
 </section>
 <section id="leftend">
   <span class="eyebrow">The rare event</span>
@@ -266,6 +266,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p><b>Trusted (C).</b> <code>c/brec.c</code>, cell by cell: no halt in 3&middot;10<sup>11</sup> steps.</p>
 <p><b>Open.</b> The nested run as a whole, and whether nested runs always end cleanly.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD/explainer.html">1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD</a>: rename A→C, B→D, C→E, D→F, E→B, F→A and exchange left and right; it is this table started in state F, in a mirror</li><li><a href="../1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---/explainer.html">1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---</a>: rename A→E, B→A, C→B, D→C, E→D, F→F; it is this table started in state B</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -291,6 +297,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README, section The nested run</div></div><div><b>The rest of a nested run</b><p>Passed digits 3, 5, &hellip; are eaten in another phase pattern; the inner counter has its own left-end events, including nested runs inside the nested run; the run ends with the right end in its other phase when the passed region is used up. Seen in simulation (on both machines), not formalized. In this run nested runs come at sweeps 5, 28 and 258,075.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README, section Where it could halt</div></div><div><b>Where a halt would come from</b><p>Following the table backwards, the machine halts exactly when C reads a 0 followed by <code>0 1 1</code> (a right-moving head meeting <code>0 0 1 1</code>). No proved sweep produces it; a halt would have to come from a nested run.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Closing it needs the whole nested run as a theorem (shared with the other machine), so that the sweep program is total, and an argument that nested runs always end in a sweep configuration. The third nested run, about 3&middot;10<sup>11</sup> steps long, is beyond a cell-by-cell native_decide check.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

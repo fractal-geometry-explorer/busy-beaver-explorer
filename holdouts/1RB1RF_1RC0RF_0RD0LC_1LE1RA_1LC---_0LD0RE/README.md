@@ -76,3 +76,19 @@ close within its round limit. The bad event needs `B> 1 0`, i.e. a factor `1 0 1
 in 3·10^8 steps the tape right of the head is made of `1 0^2`, `1 0^3`, `1^2 0^2`, `1^2 0^3` (no `1 0 1` factor)
 except next to the head, so a hand-made CTL whose right automaton is that word language plus a few cells near the
 head is the next thing to try.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB---_0LC0RB_1RA1LD_1LE1LF_1LB0LF_0RC0LA`](../1RB---_0LC0RB_1RA1LD_1LE1LF_1LB0LF_0RC0LA/README.md): rename A→D, B→E, C→B, D→C, E→A, F→F and exchange left and right; it is this table started in state E, in a mirror
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB1RF_1RC0RF_0RD0LC_1LE1RA_1LC---_1RB0RE`](../1RB1RF_1RC0RF_0RD0LC_1LE1RA_1LC---_1RB0RE/README.md): 9,444,317 configurations, the last at step 9,999,998 here and step 9,444,316 there
+
+<!-- end of related machines -->

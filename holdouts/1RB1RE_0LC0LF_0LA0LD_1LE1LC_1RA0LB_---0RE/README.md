@@ -72,3 +72,15 @@ by `native_decide` (`lean/Blank.lean`); the rules `ra` and `ri` for all values (
 PYTHONPATH=tools/py python3 holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/py/gen_rules.py | diff - holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/lean/Rules.lean
 gcc -O2 -o events holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/c/events.c && ./events 1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE 1000000000 L 1 a=10 x=1000 | grep "E> 0 a"   # y shows as a^4 0
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LC_1RC1RA_0LD0LF_0LB0LE_1LA1LD_---0RA`](../1RB0LC_1RC1RA_0LD0LF_0LB0LE_1LA1LD_---0RA/README.md): rename A→B, B→C, C→D, D→E, E→A, F→F; it is this table started in state E
+
+<!-- end of related machines -->

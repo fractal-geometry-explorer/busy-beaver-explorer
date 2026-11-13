@@ -92,3 +92,18 @@ The motion of Q is closed; the missing pieces are the collision rules. Next step
 "Q meets P" (for all gap sizes), "Q meets the wall" and "the left end emits Q", define a macro machine on the list of
 gaps between particles, prove it sound like `travel`, and run it far past 10¹⁰ steps; then look for an invariant of
 the lattices that keeps the F1 configuration out of every collision.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RD1LF_0LA---`](../1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RD1LF_0LA---/README.md): rename A→B, B→C, C→A, D→D, E→E, F→F; it is this table started in state C
+- [`1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---`](../1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/README.md): rename A→C, B→D, C→E, D→A, E→B, F→F and exchange left and right; it is this table started in state D, in a mirror
+- [`1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB---`](../1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB---/README.md): rename A→C, B→A, C→B, D→D, E→E, F→F and exchange left and right; it is this table started in state B, in a mirror
+- [`1RB1LC_1LA0RE_0LD---_1RE0LF_1RF0RD_1LD0LB`](../1RB1LC_1LA0RE_0LD---_1RE0LF_1RF0RD_1LD0LB/README.md): rename A→E, B→F, C→D, D→B, E→A, F→C; it is this table started in state E
+
+<!-- end of related machines -->

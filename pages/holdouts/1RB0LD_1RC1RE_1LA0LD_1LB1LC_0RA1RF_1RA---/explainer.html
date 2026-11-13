@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#sweep">One sweep is a carry</a><a href="#specials">When an item runs out</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#sweep">One sweep is a carry</a><a href="#specials">When an item runs out</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -263,6 +263,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>What is proved</h2>
 <p>In Lean (kernel), for all block lengths: the sweeps that act on items 1, 2 and 3 and the reset at item 1 (<code>lean/Rules.lean</code>), and that the halting pattern halts (<code>lean/Halt.lean</code>). The general sweep for any depth, and an invariant of the item lists that would exclude the halting pattern forever, are not proved; the item model is a trusted computation checked against direct simulation.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---/explainer.html">1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---</a>: rename A→D, B→B, C→C, D→A, E→E, F→F and exchange left and right; it is this table started in state D, in a mirror</li><li><a href="../1RB0RE_1LC0RE_1LA1LD_0LB1LF_1RC1RA_1LB---/explainer.html">1RB0RE_1LC0RE_1LA1LD_0LB1LF_1RC1RA_1LB---</a>: rename A→B, B→C, C→A, D→E, E→D, F→F and exchange left and right; it is this table started in state C, in a mirror</li><li><a href="../1RB1RE_1LC0LD_1RA0LD_1LA1LB_0RC1RF_1RC---/explainer.html">1RB1RE_1LC0LD_1RA0LD_1LA1LB_0RC1RF_1RC---</a>: rename A→C, B→A, C→B, D→D, E→E, F→F; it is this table started in state B</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -283,6 +289,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>A counter that slowly eats its tail</b><p>Item k is decremented about once every 2<sup>k</sup> sweeps, so the small items left at the far end from the first few hundred steps change only every 2<sup>30</sup> sweeps or so. A halt needs a specific small pattern there; nothing seen so far rules it out or makes it likely.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. A proof of non-halting would need an invariant of the item lists that is closed under the sweep rules and excludes the unmodelled sweeps, and a Lean proof of the general sweep (any depth).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RE_1LC0RE_1LA1LD_0LB1LF_1RC1RA_1LB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1RE_1LC0LD_1RA0LD_1LA1LB_0RC1RF_1RC--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

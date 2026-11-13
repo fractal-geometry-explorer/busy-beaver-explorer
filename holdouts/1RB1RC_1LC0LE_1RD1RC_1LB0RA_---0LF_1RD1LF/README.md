@@ -65,3 +65,15 @@ start, 30,165 right), 42,644 ones.
 python3 holdouts/1RB1RC_1LC0LE_1RD1RC_1LB0RA_---0LF_1RD1LF/py/model.py check 5e7
 python3 holdouts/1RB1RC_1LC0LE_1RD1RC_1LB0RA_---0LF_1RD1LF/py/fast.py 25
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB1RA_1LC0RC_1RE0LD_0RE0LF_1RA---_1RB1LF`](../1RB1RA_1LC0RC_1RE0LD_0RE0LF_1RA---_1RB1LF/README.md): 9,942,119 configurations, the last at step 9,945,848 here and step 10,000,000 there
+
+<!-- end of related machines -->

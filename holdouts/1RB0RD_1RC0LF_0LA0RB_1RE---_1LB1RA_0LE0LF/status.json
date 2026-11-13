@@ -75,6 +75,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. The machine halts only on <code>A&gt; 1 0 (1 1 0)<sup>k</sup> 1 1 1</code>-like patterns (state D reading 1), and by the wall cycle such a pattern can only arise inside the data word. A proof of non-halting needs an invariant for the data word, i.e. a description of the odometer digits that covers the new digits made at the far end.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB1LD_1LC0RF_0RD0LB_1LB0LE_1LA---_0RA0RF up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -157,6 +163,15 @@
      "<p>A real odometer has identical wheels, and a machine with identical wheels is a counter that the standard methods prove to run forever. Here the wheels differ: the periods multiply by 5, 3, 2, 2, 5, 3, 3, 5, 3, &hellip; with no pattern found so far. What a new wheel looks like depends on the state of all the old ones at the moment it is made.</p>",
      "<p>The machine can halt in one way only: state D reading a 1, which needs a pattern like <code>1 0 1 1 1</code> under the head in state A. By the wall cycle, that could only happen inside the data word. A proof that it never happens needs a description of every data word that can occur, and for that one needs the rule for the wheels.</p>",
      "<p>The reduced machine has run 750,000,000 cycles, 1.4&middot;10<sup>20</sup> steps of the real machine, without halting. The tables above come from the same runs. They are measurements, not theorems.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB1LD_1LC0RF_0RD0LB_1LB0LE_1LA---_0RA0RF/explainer.html\">1RB1LD_1LC0RF_0RD0LB_1LB0LE_1LA---_0RA0RF</a>: rename A→D, B→B, C→C, D→E, E→A, F→F and exchange left and right; it is this table started in state E, in a mirror</li></ul>"
     ]
    }
   ]

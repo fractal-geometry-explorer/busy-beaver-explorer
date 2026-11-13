@@ -69,3 +69,15 @@ and the shift rules (`lean/Rules.lean`, kernel). C (`tools/c/triage.c`): no halt
 PYTHONPATH=tools/py python3 holdouts/1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA/py/gen_rules.py
 gcc -O2 -o tok holdouts/1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA/c/tok.c && ./tok 1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA 300000000 at C L '' 100000000 | python3 holdouts/1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA/py/blocks.py
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB`](../1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB/README.md): rename A→B, B→C, C→A, D→D, E→E, F→F; it is this table started in state C
+
+<!-- end of related machines -->

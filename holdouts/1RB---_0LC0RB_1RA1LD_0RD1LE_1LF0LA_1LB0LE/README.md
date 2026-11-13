@@ -98,3 +98,15 @@ start, 32 right), 185 ones.
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB---_0LC0RB_1RA1LD_0RD1LE_1LF0LA_1LB0LE/lean/check.sh
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB---_0LC0RB_1RA1LD_1LE1LF_1LB0LF_0RC0LA`](../1RB---_0LC0RB_1RA1LD_1LE1LF_1LB0LF_0RC0LA/README.md): 8,947,615 configurations, the last at step 10,000,000 here and step 9,474,108 there
+
+<!-- end of related machines -->

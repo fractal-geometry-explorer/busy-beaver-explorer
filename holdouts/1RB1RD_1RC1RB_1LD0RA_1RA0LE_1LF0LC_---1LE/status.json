@@ -68,6 +68,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. The halting transition F0 is reached as D1 &rarr; 0LE, E0 &rarr; 1LF; a closed tape language from windows of 4 cells does not confine it to an edge, and the transfer rule of the counters is not known.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB0LC_1LC0RE_1LD1LB_1LA1LD_1RF0RA_---1RE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -128,6 +134,15 @@
     "heading": "D on a 1 after two 0s",
     "html": [
      "<p>The machine stops only when F reads a 0, reached only as D1 &rarr; 0LE, E0 &rarr; 1LF: D on a 1 with <code>0 0</code> to its left. Inside a run of one word there are never two 0s side by side; they occur only at a few junctions (a separator 0, or <code>110</code> next to <code>011</code>), so a halt needs D to arrive at such a junction in the right way.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB0LC_1LC0RE_1LD1LB_1LA1LD_1RF0RA_---1RE/explainer.html\">1RB0LC_1LC0RE_1LD1LB_1LA1LD_1RF0RA_---1RE</a>: rename A→C, B→D, C→A, D→B, E→E, F→F and exchange left and right; it is this table started in state C, in a mirror</li></ul>"
     ]
    }
   ]

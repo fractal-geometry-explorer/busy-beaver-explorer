@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">Ones turning into 110s</a><a href="#rule">N → (3N + c)/2</a><a href="#halt">Open</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">Ones turning into 110s</a><a href="#rule">N → (3N + c)/2</a><a href="#halt">Open</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -238,6 +238,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Open</h2>
 <p>The halting transition is F reading 1. The 3n/2 map itself never stops; whether the machine halts depends on what the right-end counter S does when it is fed by the odd values of N, which has not been worked out. Its sister machine <code>1RB1LC_1LA0RD_1LB1LF_1LE1RE_0LA0RB_0LB---</code>, which shares rows A, B and D, runs a 4n/3 map instead.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1LC_1LC0RF_0LF1LD_0LE---_1RF1LC_1LE0RA/explainer.html">1RB1LC_1LC0RF_0LF1LD_0LE---_1RF1LC_1LE0RA</a>: rename A→E, B→F, C→C, D→A, E→B, F→D; it is this table started in state D</li><li><a href="../1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---/explainer.html">1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---</a>: rename A→B, B→A, C→E, D→C, E→D, F→F and exchange left and right; it is this table started in state B, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -259,6 +265,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/kmap.py</code></div></div><div><b>The measured map</b><p>From K(pre, N, S) = <code>B&gt;0 0 pre 1^N S</code>, with pre empty and S empty: N = 4j → (empty, 3N/2 + 4, empty); N = 4j + 2 → (10, 3N/2 + 2, empty); N = 4j + 1 → (10, (3N + 1)/2, 011); N = 4j + 3 → (empty, (3N + 5)/2, 011). With pre = 10 the offsets are 7, 5, 7/2, 11/2. Measured for N = 20..31.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>/home/user/w/bin/ev M 3e9 B L a=110</code></div></div><div><b>The run</b><p>Samples of the run from blank tape have N = 175, 263, 395, 584, 923, 1388, 2090, 3140, 4717, 7074, 10624, 15940, 23914, 35873, 53811 (to 1.7·10<sup>9</sup> steps): ratio 3/2. Between samples, each round trip turns 4 ones into two words 110 (at 10<sup>9</sup> steps <code>B&gt;0 0 a^8705 1^18465</code>, a = 110).</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Open: the map's effect on the right word S (a counter) is not worked out, and the halting transition (F reading 1) is not located.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1LC_1LC0RF_0LF1LD_0LE---_1RF1LC_1LE0RA up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#cycle">Multiply by 3/2, carry into a tail</a><a href="#halting">The tail decides, and it is not understood yet</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#cycle">Multiply by 3/2, carry into a tail</a><a href="#halting">The tail decides, and it is not understood yet</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -232,6 +232,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>The tail decides, and it is not understood yet</h2>
 <p>The machine halts exactly when it is in state C on a 0 with three 1s to its left. The main block alone never does this; the end of a cycle reads and writes the tail, which is itself built of the same pieces (a block of 3j ones that is later turned into pairs) and grows very slowly: it is a second, slower counter fed by the first. Which tails could lead to the halting pattern is the open part. None tried (all tails of at most three blocks of at most 9 ones, every X mod 6) halts within one cycle, and the run has gone 10<sup>13</sup> steps.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/explainer.html">1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC</a>: rename A→B, B→C, C→A, D→F, E→D, F→E and exchange left and right; it is this table started in state C, in a mirror</li><li><a href="../1RB1LB_1RC1LD_1LA1RE_1RD0LA_0RB0RF_0RA---/explainer.html">1RB1LB_1RC1LD_1LA1RE_1RD0LA_0RB0RF_0RA---</a>: rename A→C, B→A, C→B, D→D, E→E, F→F and exchange left and right; it is this table started in state B, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -254,6 +260,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/cycles.py</code></div></div><div><b>No halt in 10<sup>13</sup> steps</b><p>The accelerated simulator of the shared tools (cycle rules proved by symbolic simulation) runs 10<sup>13</sup> steps without a halt; the S-state at step 2,710,634,500,213 has X = 2,125,526.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>How it could halt</b><p>The machine halts exactly in state C on a 0 with three 1s to its left. None of the S-states tried (all X mod 6, all tails of at most three blocks of at most 9 ones) halts before the next S-state, so halting would need a tail not seen yet.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known; the tail update has not been put in closed form.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1LB_1RC1LD_1LA1RE_1RD0LA_0RB0RF_0RA--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

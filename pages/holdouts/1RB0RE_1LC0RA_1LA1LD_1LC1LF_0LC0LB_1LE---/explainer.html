@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#phase">A phase: ones to wall and back</a><a href="#stack">The stack beside the block</a><a href="#question">A Collatz-like question</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#phase">A phase: ones to wall and back</a><a href="#stack">The stack beside the block</a><a href="#question">A Collatz-like question</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -236,6 +236,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>A Collatz-like question</h2>
 <p>Halting is now a question about the numbers M<sub>0</sub> = 9, M<sub>1</sub> = 27, M<sub>2</sub> = 75, &hellip; and their residues mod 3. Each M is about 8/3 of the last, plus a constant that depends on the stack. Questions like this are believed to be out of reach of current methods. If the residues behave like coin flips, halting is very unlikely in any time we could simulate.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB---_0RC0RE_1RD1RF_1LE0LB_1RC0LD_1RC1RA/explainer.html">1RB---_0RC0RE_1RD1RF_1LE0LB_1RC0LD_1RC1RA</a>: rename A→D, B→E, C→C, D→F, E→B, F→A and exchange left and right; it is this table started in state F, in a mirror</li><li><a href="../1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---/explainer.html">1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---</a>: rename A→B, B→C, C→A, D→D, E→E, F→F and exchange left and right; it is this table started in state C, in a mirror</li><li><a href="../1RB0LC_1RC1RE_1LA0LD_0RB0RA_1RB1RF_1RD---/explainer.html">1RB0LC_1RC1RE_1LA0LD_0RB0RA_1RB1RF_1RD---</a>: rename A→C, B→A, C→B, D→E, E→D, F→F and exchange left and right; it is this table started in state B, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -258,6 +264,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/phases.py 30000</code></div></div><div><b>No halt in 30,000 phases</b><p>Iterating the phase map from PS(9, []) for 30,000 phases (assuming the linear extrapolation, checked as above): no halt; the tail stays at most 26 cells and 9 blocks; M then has about 12,800 digits, so this covers far more than 10<sup>25000</sup> steps.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/tails.py</code></div></div><div><b>Halting needs a long, specific run of residues</b><p>With the residues M mod 3 chosen freely, a halting tail can be reached from [], so nothing about the tail alone rules halting out; but it takes 108 phases of the right residues, and with residues taken as random, 3&middot;10<sup>6</sup> phases had no halt.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts exactly if the residues of M mod 3 along the orbit of the phase map ever build a halting tail: a Collatz-like question.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB---_0RC0RE_1RD1RF_1LE0LB_1RC0LD_1RC1RA up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LC_1RC1RE_1LA0LD_0RB0RA_1RB1RF_1RD--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

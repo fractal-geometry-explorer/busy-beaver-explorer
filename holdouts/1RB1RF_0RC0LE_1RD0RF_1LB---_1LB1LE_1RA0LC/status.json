@@ -92,6 +92,12 @@
    "title": "A closed language for the frozen part",
    "text": "Non-halting would follow from a list of the forms the frozen part can take, closed under one cycle, with no two 0-blocks side by side. Windowed closed tape languages (cells, blocks, cells plus a summary of the far side) all fail: the abstraction cannot see the one-cell shift a sweep makes, or guesses two 0-blocks side by side. Random tapes built from the observed neighbouring particle pairs do halt, so the invariant has to remember more than pairs.",
    "where": "<code>README.md</code> (Attempts), <code>py/ctl_search.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RE_1LC---_0RA0LD_1LC1LD_1RF0LA_1RC1RE up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -220,6 +226,15 @@
      "<p>In 1.2·10<sup>11</sup> steps the rightward state never reads <code>0 0 0</code> inside the tape, and at none of the 452,253 sweep starts of the first 10<sup>9</sup> steps is there <code>0 0 0</code> inside the tape.</p>",
      "<p><b>What a proof needs.</b> A closed list of the forms the frozen part can take (runners resting at every stage of passing a wall, the walls between them, the crystal, the right end), mapped into itself by one cycle, with no two 0-blocks side by side. The eleven rules cover a runner meeting one wall or one resting runner across at least one background block; the contacts at gap 0 and the right end are not listed yet.</p>",
      "<p><b>What did not work.</b> Closed tape languages built from windows (of cells, of blocks, or of cells plus a summary of the far side) all reach a halting configuration in their abstract runs: a sweep shifts the tape by one cell, which a window cannot see, and a summary of the far side cannot stop two 0-blocks from being guessed next to each other. Random tapes built from the neighbouring particle pairs seen in the run also halt, so the invariant has to remember more than pairs.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/explainer.html\">1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---</a>: rename A→E, B→B, C→C, D→F, E→A, F→D and exchange left and right; it is this table started in state E, in a mirror</li><li><a href=\"../1RB0RE_1LC---_0RA0LD_1LC1LD_1RF0LA_1RC1RE/explainer.html\">1RB0RE_1LC---_0RA0LD_1LC1LD_1RF0LA_1RC1RE</a>: rename A→F, B→C, C→A, D→B, E→D, F→E; it is this table started in state C</li></ul>"
     ]
    }
   ]

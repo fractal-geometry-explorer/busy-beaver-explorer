@@ -86,3 +86,16 @@ Prove the closed form in Lean (an induction over the doubling rounds with c = 5�
 
 - [`pages/holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/explainer.html`](../../pages/holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/explainer.html)
 - [`pages/holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/proof-status.html`](../../pages/holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/proof-status.html)
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE`](../1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE/README.md): rename A→B, B→C, C→D, D→A, E→E, F→F and exchange left and right; it is this table started in state D, in a mirror
+- [`1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE`](../1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE/README.md): rename A→B, B→C, C→A, D→D, E→E, F→F; it is this table started in state C
+
+<!-- end of related machines -->

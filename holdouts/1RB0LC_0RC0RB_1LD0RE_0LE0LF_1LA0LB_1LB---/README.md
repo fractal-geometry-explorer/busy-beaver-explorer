@@ -16,7 +16,7 @@ bbchallenge id 156951. One of the six-state holdouts whose halting from blank ta
 
 This machine is written in **frame A**, the frame the analysis uses: states A to E do all the work, D1 = 0LF is the only way into F, F0 = 1LB is this machine's own transition, and F1 halts.
 
-**Same run as [1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---/README.md).** F0 = 1LB writes 1, steps left onto a 0 (B0 = 0RC), comes back and C1 = 0RE erases the 1: the configuration that F0 = 0RE reaches in one step, two steps later. This needs a 0 left of the cell F reads, which holds at every F-event of the run.
+**Same tapes, two steps further apart after each F-event, as [1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---/README.md).** F0 = 1LB writes 1, steps left onto a 0 (B0 = 0RC), comes back and C1 = 0RE erases the 1: the configuration that F0 = 0RE reaches in one step, two steps later. This needs a 0 left of the cell F reads, which holds at every F-event of the run.
 
 All 14 machines of the family share this five-state core (frame A: `1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_?---`):
 
@@ -157,7 +157,7 @@ run stays clean is a real question.
 | native | **No halt in the first 10^7 steps.** The same run, evaluated by compiled code. | `blank_runs_native`, `lean/Blank.lean` |
 | trusted | **No halt in the first 10^9 steps.** The C simulator `tools/c/triage.c` runs 10^9 steps without a halt; at the end 79,525 cells have been visited and 24,461 of them hold a 1. | `holdouts/triage.json` |
 | trusted | **One of 14 machines with the same five-state core.** States A to E of every machine of the family are the core 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_?--- (in frame A); the machines differ in F0 and the start state, and some are mirror images. This one is frame A itself. | `holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/frames.py`, `py/conjugacy_steps.py` |
-| trusted | **Same run from blank as 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---.** F0 = 1LB writes 1, steps left onto a 0 (B0 = 0RC), comes back and C1 = 0RE erases the 1: the configuration that F0 = 0RE reaches in one step, two steps later. This needs a 0 left of the cell F reads, which holds at every F-event of the run. Checked on tape snapshots to 2·10^8 steps. | `holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/c/family.c snapshot` |
+| trusted | **Same tapes, two steps further apart after each F-event, as 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---.** F0 = 1LB writes 1, steps left onto a 0 (B0 = 0RC), comes back and C1 = 0RE erases the 1: the configuration that F0 = 0RE reaches in one step, two steps later. This needs a 0 left of the cell F reads, which holds at every F-event of the run. Checked on tape snapshots to 2·10^8 steps. | `holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/c/family.c snapshot` |
 | kernel | **The visit rule for every depth.** A *visit* starts with the head in state A on the 0 in front of plain blocks `(10)^b1 1 (10)^b2 1 … 1` and ends when it first steps left of that cell; it never reads the tape on its left. `go_spec` proves, by induction on the depth n and for every left context, that a *clean* visit (a decidable condition: every block it spreads is odd and ≥ 7, every second block nonempty) turns the list l into `go n l` in exactly `goT n l` steps, where `go` is the recursion: spread b1, five visits to [b2+1, b3, …] with the tail bumps +3, +1, +1, +1 between them, then b1−5. It is built from seven rules (PUSH, TURN, TAIL1–4, POP) proved by bbtools.symtm for all counts. | `go_spec`, `push` … `pop`, `lean/Family.lean` |
 | kernel | **Its closed form.** `go_closed`: if b1 is odd and ≥ 7 and the later blocks are even, the last ≥ 2 and block i (i = 2..k−1) ≥ 2 + 18·5^i−2, then the visit is clean and gives (b1−5, b2−18, b3−90, …, bk−1−18·5^k−3, bk+12·5^k−2) (a single odd block gains 1); `visit_closed` states it on the tape. With the tail bump after the visit this is the measured round rule (−4, −18, …, +12·5^m−2) for every m. | `go_closed`, `visit_closed`, `lean/Family.lean`; closed step count in `holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/cf.py` (trusted) |
 | kernel | **Rounds, births and the F-event.** `round1`–`round4`: a clean visit followed by one phase of the tail on its left. `birth`: a visit to a single even block [2k+4] gives [2k+2, 8] in 10k+188 steps (where new blocks come from). `fevent` and `fevent_reads_zero`: the only way into F seen in the runs (a C exit onto the 0 of a phase-1 tail, then C0, D1) makes F read the last cell of a `1000` or of `100`, which is 0 for every q and every tape around. | `round1` … `birth`, `fevent_reads_zero`, `lean/Family.lean` |
@@ -204,3 +204,20 @@ cc -O2 -o family holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/c/family.c
 
 - [`pages/holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---/explainer.html`](../../pages/holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---/explainer.html)
 - [`pages/holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---/proof-status.html`](../../pages/holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---/proof-status.html)
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RC---`](../1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RC---/README.md): rename A→B, B→C, C→D, D→E, E→A, F→F and exchange left and right; it is this table started in state E, in a mirror
+- [`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---/README.md): rename A→D, B→E, C→A, D→B, E→C, F→F and exchange left and right; it is this table started in state C, in a mirror
+
+**Same tapes at another pace (observed, not proved).** Leave the states aside and compare only the tape and the place of the head. Then a large part of the first 10^7 configurations of this machine are configurations of the machines below, in the same order and up to the end of the run. The steps at which they occur differ, the tables are not renamings of each other, and equal tapes with different states may be continued differently, so this does not tie the halting questions together.
+
+- [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---/README.md): 9,999,993 configurations, the last at step 10,000,000 here and step 9,999,992 there
+
+<!-- end of related machines -->

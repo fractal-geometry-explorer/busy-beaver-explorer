@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open, and it is the same question as for <a href="../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a>.</b> Mirrored and with its states renamed this machine is that one, started in that machine's state F; after its first step it runs that machine from a tape with one extra 1, and in the first 10<sup>9</sup> steps the two tapes stay equal except for that 1 at the end of the wall (C). Lean proves (kernel) that a halt needs an E-run (<code>halt_needs_erun</code>), the mirror of the other machine's D-run.</p>
+      <p><b>The question is open. It is close to, but not the same as, the question for <a href="../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a>.</b> Mirrored and with its states renamed this machine is that one, started in that machine's state F; after its first step it runs that machine from a tape with one extra 1, and in the first 10<sup>9</sup> steps the two tapes stay equal except for that 1 at the end of the wall (C). Lean proves (kernel) that a halt needs an E-run (<code>halt_needs_erun</code>), the mirror of the other machine's D-run.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -120,9 +120,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>The same run as 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</h3>
+        <h3>The run of 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF from a tape with one extra 1</h3>
         <p>Mirror this machine and rename A..F to F, A, B, C, D, E: the table is the other machine's, started in its state F, whose first step writes a 1 and enters its state A. Run from that tape side by side with the other machine from blank tape, at all 32,539 left-end records of the first 10<sup>9</sup> steps the tapes agree except for one extra 1 at the end of the far wall, and the step counts differ by 56 (57 with the first step), constant since step 4,194,242.</p>
         <p class="where"><code>c/twin.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Related holdouts</h3>
+        <p>The same table as 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
+        <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>

@@ -68,6 +68,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. The machine halts only when state F reads a 1; no proved rule does that, and plain simulation of all 8,064 event configurations with up to two small extra levels found no halt. A proof of non-halting would need rules for every case (the carries and small levels too) closing over all stacks that can arise; the order in which the cases come is set by sizes modulo 3.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB---_1RC1RE_1LD0LE_1RF0LC_0RD0RA_0RB1RD up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1RE_1LC0LE_1RD0LB_0RA1RC_0RC0RF_1RA--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -176,6 +182,15 @@
     "html": [
      "<p><b>Lean, kernel:</b> the halting configurations; no halt in 10,000 steps; the start (<code>start</code>, 89 steps), the trip and k trips, and the seven epoch-end rules (<code>lean/Rules.lean</code>). <b>Lean, native_decide:</b> no halt in 10<sup>7</sup> steps.</p>",
      "<p><b>Computed (trusted):</b> following the proved rules from blank tape, no halt in 10<sup>39,417</sup> steps (<code>py/stack.py</code>, checked against the plain simulator for the first 3&middot;10<sup>10</sup> steps). <b>Observed:</b> the rule at levels 3 and up, and the 10/3 growth.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB---_1RC1RE_1LD0LE_1RF0LC_0RD0RA_0RB1RD/explainer.html\">1RB---_1RC1RE_1LD0LE_1RF0LC_0RD0RA_0RB1RD</a>: rename A→D, B→F, C→B, D→C, E→E, F→A; it is this table started in state F</li><li><a href=\"../1RB1RE_1LC0LE_1RD0LB_0RA1RC_0RC0RF_1RA---/explainer.html\">1RB1RE_1LC0LE_1RD0LB_0RA1RC_0RC0RF_1RA---</a>: rename A→C, B→D, C→A, D→B, E→E, F→F; it is this table started in state C</li><li><a href=\"../1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---/explainer.html\">1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---</a>: rename A→B, B→C, C→D, D→A, E→E, F→F and exchange left and right; it is this table started in state D, in a mirror</li></ul>"
     ]
    }
   ]

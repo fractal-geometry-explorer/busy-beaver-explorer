@@ -141,3 +141,16 @@ The same as for the other machine: the whole nested run as a theorem, written on
 serve both machines), would make `nextR` total. A direct simulation of the third nested run (about 3·10¹¹ steps,
 a few hours in C) would give the configuration after it, from which `c/dsim.c` can go on; crossing it in Lean needs
 the nested run as a theorem, since 3·10¹¹ single steps are beyond `native_decide`.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD`](../1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD/README.md): rename A→C, B→D, C→E, D→F, E→B, F→A and exchange left and right; it is this table started in state F, in a mirror
+- [`1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---`](../1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---/README.md): rename A→E, B→A, C→B, D→C, E→D, F→F; it is this table started in state B
+
+<!-- end of related machines -->

@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#structure">Slow fronts and sudden bursts</a><a href="#sweeps">Rules proved in Lean</a><a href="#halting">Where a halt would come from</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#structure">Slow fronts and sudden bursts</a><a href="#sweeps">Rules proved in Lean</a><a href="#halting">Where a halt would come from</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -236,6 +236,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Where a halt would come from</h2>
 <p>The machine halts only from A reading a 1 with a 0 on its right (<code>A&gt;1 0</code>). A reads a 1 about 139 million times in the first 10<sup>9</sup> steps, always with a 1 on its right. Nothing proves that this always holds.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB1RA_1LC0LF_1RA1LD_1LB1LE_1LC0LC_---0RA/explainer.html">1RB1RA_1LC0LF_1RA1LD_1LB1LE_1LC0LC_---0RA</a>: rename A→B, B→C, C→A, D→D, E→E, F→F and exchange left and right; it is this table started in state C, in a mirror</li><li><a href="../1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD/explainer.html">1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD</a>: rename A→B, B→C, C→D, D→A, E→E, F→F; it is this table started in state D</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -258,6 +264,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/observe.py turns 15000000 L</code></div></div><div><b>A burst rebuilds the left end</b><p>The tape at the left turn after a burst starts with the same 699 cells (1,613 at the next burst) as the tape at the left turn before it, although the left end has moved thousands of cells: the leftmost structure is re-created at the new end.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/prehalt.c</code></div></div><div><b>The halt needs <code>A&gt;1 0</code></b><p>The only halting transition F0 is reached only from <code>A&gt;1 0</code>. In the first 10<sup>9</sup> steps A reads a 1 138,854,484 times, never with a 0 on its right.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The burst sizes suggest an exact recursive structure (multiples of 1,065 = 3&middot;5&middot;71), which has not been found.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1RA_1LC0LF_1RA1LD_1LB1LE_1LC0LC_---0RA up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

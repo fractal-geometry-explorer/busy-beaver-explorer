@@ -80,6 +80,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Open. It reduces to whether the parity sequence of the Collatz-like map ever spells the 41-step climb; no proof either way.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB---_1LC0RB_0LD0LC_1RE1RB_1RD1LF_1LA0LE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LA--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -154,6 +160,15 @@
     "html": [
      "<p>The only halting transition is B reading 1. Testing all short prefixes shows that it fires when the prefix holds four 1s close together, for instance P = <code>111101</code> with m odd. Reaching it from the empty prefix takes, at the shortest, 42 samples whose parities are all prescribed (mostly alternating even, odd, even, odd …).</p>",
      "<p>Because the map is m → (3m + c)/2, every finite parity sequence is realised by some residue of m, and the observed parities look like fair coin flips. So each return to the empty prefix is a lottery ticket that wins with probability about 2<sup>−41</sup>, and there are infinitely many tickets: heuristically the machine halts with probability 1, but only after some 10<sup>12</sup> samples, around 10<sup>10<sup>12</sup></sup> steps. Proving it either way needs control of the parity sequence of a Collatz-like map, which is out of reach.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB---_1LC0RB_0LD0LC_1RE1RB_1RD1LF_1LA0LE/explainer.html\">1RB---_1LC0RB_0LD0LC_1RE1RB_1RD1LF_1LA0LE</a>: rename A→F, B→A, C→B, D→C, E→D, F→E and exchange left and right; it is this table started in state B, in a mirror</li><li><a href=\"../1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LA---/explainer.html\">1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LA---</a>: rename A→E, B→F, C→A, D→B, E→C, F→D; it is this table started in state C</li></ul>"
     ]
    }
   ]

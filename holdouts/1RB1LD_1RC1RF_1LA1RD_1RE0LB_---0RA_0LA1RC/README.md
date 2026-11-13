@@ -1,8 +1,8 @@
 # 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC
 
-bbchallenge id 157488. One of the six-state holdouts whose halting from blank tape is open. It writes the same tape as
-[`1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD`](../1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/README.md), step for step, and everything
-proved or computed there holds for this machine too. The tools are in that folder.
+bbchallenge id 157488. One of the six-state holdouts whose halting from blank tape is open. In every run so far (10^9 steps) it writes the same tape as
+[`1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD`](../1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/README.md), step for step. This is observed; Lean proves it only up to
+the first break (see Related machines). What is proved or computed there about the tape holds here while the two agree. The tools are in that folder.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -79,3 +79,17 @@ gcc -O2 -o /tmp/twin $T/c/twin.c && /tmp/twin 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF
 
 - [`pages/holdouts/1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC/explainer.html`](../../pages/holdouts/1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC/explainer.html)
 - [`pages/holdouts/1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC/proof-status.html`](../../pages/holdouts/1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC/proof-status.html)
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same run as [`1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD`](../1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/README.md) (observed, not proved).** At every one of the first 10^7 steps from blank tape the two machines have the same tape and the head on the same cell. Their tables differ, and no renaming of the states turns one into the other. While they run, the states pair up as A–A, B–B, C–C, C–F, D–D, E–C, F–E (this machine first), which is not one to one. Transitions not used in these steps: this machine never uses E0 and the other never uses F0. Lean proves (`lean/Twin.lean` here, `lock_or_break`, `not_halts_of_noBreak`) that the two runs have the same tape, the same head position and paired states up to the first break, a configuration where the paired states act differently, and that neither machine halts if no break ever comes. A halt of either machine is itself a break, and the halting transitions of the two do not correspond, so the two are not known to halt together.
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB`](../1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB/README.md): rename A→C, B→A, C→B, D→D, E→E, F→F; it is this table started in state B
+
+<!-- end of related machines -->

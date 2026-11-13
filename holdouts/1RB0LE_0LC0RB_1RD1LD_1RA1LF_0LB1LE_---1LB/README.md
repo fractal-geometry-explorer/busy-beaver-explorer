@@ -98,3 +98,15 @@ phase to the next.
 . /etc/profile.d/lean.sh && holdouts/1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB/lean/check.sh
 python3 holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/py/clock.py 1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB tmcheck 1e10
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF`](../1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF/README.md): rename A→C, B→D, C→A, D→B, E→F, F→E; it is this table started in state C
+
+<!-- end of related machines -->

@@ -68,6 +68,12 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. The block dynamics has not been reduced to a rule.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "Related holdouts",
+   "text": "The same table as 1RB0LC_1RC0RC_1LD0RB_1LA0LE_1LD1LF_1LD--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
+   "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
   }
  ],
  "check": [
@@ -138,6 +144,15 @@
     "html": [
      "<p>Between the blocks of <code>10</code>s sit separators: a single <code>0</code> or a triple <code>0 0 0</code>. Read the blocks in pairs joined by a <code>1</code>, and the separator before each pair as a binary digit: <code>0</code> means 1 and <code>0 0 0</code> means 0. Each sweep adds one to this number, from the left. Every leading 1 becomes 0 and the first 0 becomes 1, exactly like counting in binary. The head only goes as far as the carry before turning back.</p>",
      "<p>The digits also keep a tally. Each time a digit goes from 0 to 1, its first block grows by one <code>10</code>; each time it goes from 1 to 0, its second block shrinks by one. When a second block runs out, the digit merges with its neighbour. When the carry runs off the end, the first block of the tape is cut off and becomes a new digit. Those rare events are where a halt could hide, and they are not yet fully described.</p>"
+    ]
+   },
+   {
+    "id": "related-machines",
+    "eyebrow": "Family",
+    "heading": "Related machines",
+    "html": [
+     "<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>",
+     "<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href=\"../1RB0LC_1RC0RC_1LD0RB_1LA0LE_1LD1LF_1LD---/explainer.html\">1RB0LC_1RC0RC_1LD0RB_1LA0LE_1LD1LF_1LD---</a>: rename A→D, B→A, C→B, D→C, E→E, F→F and exchange left and right; it is this table started in state B, in a mirror</li></ul>"
     ]
    }
   ]

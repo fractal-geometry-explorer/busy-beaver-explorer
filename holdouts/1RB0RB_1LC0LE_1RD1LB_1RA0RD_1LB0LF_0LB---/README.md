@@ -90,3 +90,17 @@ phase end, and read off the map from one phase to the next.
 ./tmrun 1RB0RB_1LC0LE_1RD1LB_1RA0RD_1LB0LF_0LB--- 20000000000 at B L 1500
 python3 holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/py/clock.py 1RB0RB_1LC0LE_1RD1LB_1RA0RD_1LB0LF_0LB--- tmcheck 2e10
 ```
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---`](../1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---/README.md): rename A→E, B→B, C→C, D→D, E→A, F→F and exchange left and right; it is this table started in state E, in a mirror
+- [`1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---`](../1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---/README.md): rename A→D, B→A, C→B, D→C, E→E, F→F and exchange left and right; it is this table started in state B, in a mirror
+- [`1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---`](../1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---/README.md): rename A→B, B→C, C→D, D→A, E→E, F→F; it is this table started in state D
+
+<!-- end of related machines -->

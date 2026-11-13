@@ -141,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ends">What the tape looks like</a><a href="#halt">The one way to stop</a><a href="#open">What a proof would need</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ends">What the tape looks like</a><a href="#halt">The one way to stop</a><a href="#open">What a proof would need</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -241,6 +241,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>Not known. Halting needs B to meet <code>0 1 1</code>; the list keeps every 1-run followed by a 0 where B could meet one, but without the rule of the list this is not proved.</p>
 <p>The basic moves are proved in Lean for every length (<code>lean/Rules.lean</code>: crossing a run of one word in a fixed number of steps per copy), so a proof would need only the rule of the counter on top of them.</p>
 </section>
+<section id="related-machines">
+  <span class="eyebrow">Family</span>
+  <h2>Related machines</h2>
+<p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---/explainer.html">1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---</a>: rename A→B, B→C, C→E, D→A, E→F, F→D and exchange left and right; it is this table started in state D, in a mirror</li></ul>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -267,6 +273,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/rules.txt</code> with the batch's <code>c/evcov.c</code></div></div><div><b>Coverage: 99.98% of the events</b><p>101,546,466 events in 3&middot;10<sup>9</sup> steps, 18,500 not matched by a rule. The three most frequent rules fire 50,773,233, 16,777,216 (= 2<sup>24</sup>) and 8,388,597 times.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>evcov ... B:011</code></div></div><div><b>B&gt; 0 1 1 never occurs</b><p>In 3&middot;10<sup>9</sup> steps B never has <code>0 1 1</code> ahead.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Halting needs B to meet <code>0 1 1</code>; the list keeps every 1-run followed by a 0 where B could meet one, but without the rule of the list this is not proved.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

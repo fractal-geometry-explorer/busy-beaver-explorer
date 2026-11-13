@@ -72,3 +72,16 @@ gcc -O2 -I tools/c -o sstat holdouts/1RB1RF_1RC0RA_1LD1RE_1LE0LE_0RA0LD_0RB---/c
 - Decode the tail exactly: which words are the base-3 digits, and the rule for a carry.
 - From that, the marker's start position after each reset, and whether E can ever meet `1 1` (the F1 halt).
 - The twin `1RB0RE_1LC1RD_1LD0LD_0RE0LC_1RA1RF_0RA---` probably has the same proof.
+
+<!-- related machines: written by holdouts/related.py -->
+
+## Related machines
+
+Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
+
+**Same table as the machines below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+
+- [`1RB0RE_1LC1RD_1LD0LD_0RE0LC_1RA1RF_0RA---`](../1RB0RE_1LC1RD_1LD0LD_0RE0LC_1RA1RF_0RA---/README.md): rename A→E, B→A, C→B, D→C, E→D, F→F; it is this table started in state B
+- [`1RB0RB_0LC0RA_1LE1LD_0LE---_1LF0LC_1RA1LB`](../1RB0RB_0LC0RA_1LE1LD_0LE---_1LF0LC_1RA1LB/README.md): rename A→C, B→E, C→F, D→A, E→B, F→D and exchange left and right; it is this table started in state D, in a mirror
+
+<!-- end of related machines -->
