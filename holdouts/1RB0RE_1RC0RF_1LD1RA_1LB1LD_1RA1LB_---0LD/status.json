@@ -1,0 +1,171 @@
+{
+ "generated": false,
+ "group": "G06",
+ "title": "What is known about 1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD.",
+ "machine": "1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD",
+ "crumb": "holdouts / 1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 12 November 2026.",
+ "verdict": [
+  "<b>Open.</b> The run is a sequence of phases. In each, a block of ones eats a gap of X zeros in about X/4 rounds (proved in Lean for every X); at the end of the gap the head meets a short tail of blocks, rewrites its first blocks according to X mod 4, and the next phase starts with a gap of about 3X/2. The question is whether this Collatz-like interaction between the gap parity and the tail ever reaches the halting transition."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,536 cells have been visited and 46,582 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The rounds of a phase",
+   "text": "From <code>0^inf B&gt; 0 1 0^X T</code> with X = 4k+r+7 &#8805; 24 (a single 1 at the left end of the tape, a gap of X zeros, any tape T after it) the machine reaches <code>0^inf 1 C&gt; (11)^(3k+3) 000 1111 0^r T</code>: k+1 rounds, each growing the block of ones by six and moving the marker <code>000 1111</code> four cells into the gap.",
+   "where": "<code>phase</code> (by induction, <code>rounds</code>), <code>lean/Phase.lean</code>; the pieces <code>start</code>, <code>round</code> in <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "35 phases, 3.9&middot;10<sup>13</sup> steps, no halt",
+   "text": "The macro simulator (<code>tools/py/bbtools/macro.py</code>, blocks of 2 cells) follows the run to step 3.9&middot;10<sup>13</sup>; it passes through 35 phase starts <code>0^inf B&gt; 0 1 0^X T</code>, with gaps X = 4, 12, 24, 42, 60, 84, 120, 174, 258, 378, 564, &hellip;, 9,304,044.",
+   "where": "<code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/phases.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The gap grows by a factor 3/2 per phase",
+   "text": "In all 34 observed phase changes, X' = 3X/2 + d with d &#8712; {+6, &minus;6} when X &#8801; 0 (mod 4) and d &#8712; {+3, &minus;3, &minus;9} when X &#8801; 2 (mod 4); which d occurs is decided by the first blocks of the tail, which the phase end also rewrites.",
+   "where": "<code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/phases.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The tail is a slowly growing stack",
+   "text": "The tail T (right of the gap, about 100 cells after 35 phases) is a list of blocks <code>1^a 0^b</code>; each phase end edits its first one or two blocks and occasionally pushes a new one. It behaves like the digits of a counter driven by the parities X mod 4, much as in other Collatz-like holdouts with a growing state.",
+   "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "The phase map depends on the gap only through X mod 4",
+   "text": "One phase simulated cell by cell from <code>0^inf B&gt; 0 1 0^X T</code> gives the next gap X' = (3X + d)/2 and the next tail T'. For every tail met on the orbit, four gaps X in each residue class mod 4 (X between 200 and 330) give the same d and the same T'. So the run is the iteration of a map on (X mod 4, T). This is a measured table, not a proof. Started at X = 6, T = <code>1^8</code> it reproduces the 35 phases of the macro simulator exactly.",
+   "where": "<code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/c/phase.c</code>, <code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/tailmap.py orbit 40</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "2,009 phases without a halt",
+   "text": "Iterated with exact integers, the table map makes 9 phases simulated directly and 2,000 more by the table without a halt; the gap then has 1,179 bits and the tail 12,469 cells in 1169 blocks. X is even throughout (X mod 4 is 0 or 2, about equally often). At every one of these phases the three other residues of X mod 4 were tried as well: 0 of the 6,000 alternatives halt. Unlike its sibling 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA, no halting entry of the table has been seen at all.",
+   "where": "<code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/tailmap.py near 2000</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The tail is rewritten at its front by a few rules with parameters",
+   "text": "Most phase ends follow rules like these on the first blocks of the tail (X mod 4 = 0 or 2): <code>1^a 0^b</code> becomes <code>1^(a+12) 0^(b-6)</code> when X &#8801; 2 and <code>1^11 0^(a-3) 1^4 0^(b-4)</code> when X &#8801; 0 (a odd, a &#8805; 11); <code>1^4 0^b</code> becomes <code>1^4 0^3 1^4 0^(b-7)</code> when X &#8801; 0 and <code>1^11 0^3 1^4 0^(b-4)</code> when X &#8801; 2. With b &#8805; 8 these four rules account for 1,440 of the first 2,000 table phases, with no exception; other rules apply when the block of zeros is shorter or the tail starts differently. They were read off the orbit and are not proved; a closed set of them would turn the question into one about a stack driven by the parities of the 3/2 map.",
+   "where": "<code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/tailmap.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "The only halting transition, F on 0, can be met only during a phase end, while the head works through the tail. Whether some phase end ever reaches it depends on the joint evolution of the gap parity and the tail, which has not been decoded.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD 1000000000",
+  "python3 holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/phases.py 1e12",
+  "python3 holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/tailmap.py near 300"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. The run is a sequence of phases: a gap of zeros is eaten by a growing block of ones, and the next gap is half as long again. At each phase end the head visits a short tail of blocks and rewrites it. This page shows the rounds (proved in Lean), the phases, and what the question comes down to.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 47,536 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "kernel",
+    "value": "X/4 rounds",
+    "text": "A gap of X zeros is eaten in about X/4 rounds, proved for every X."
+   },
+   {
+    "level": "trusted",
+    "value": "X &#8594; 3X/2 + d",
+    "text": "The gap from one phase to the next, 35 phases (3.9&middot;10<sup>13</sup> steps)."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "story",
+    "eyebrow": "What it does",
+    "heading": "A gap that grows by half each phase",
+    "html": [
+     "<p>The tape has three parts: at the left end a single 1, then a long <b>gap</b> of X zeros, then a short <b>tail</b> of blocks of ones that the head only visits once per phase. The right end of the tape stops growing very early (21 cells right of the start); all the growth is on the left.</p>",
+     "<h3>The rounds</h3>",
+     "<p>A phase starts with <code>B&gt;</code> just left of the lone 1. Each <em>round</em> the head runs right over a block of ones, pushes a marker <code>000 1111</code> four cells further into the gap, and runs back to the left end, where the tape grows by two cells. The block of ones grows by six per round:</p>",
+     "<p style=\"text-align:center\"><code>1 C&gt; (11)^m 000 1111 0^(g+4) T</code> &nbsp;&#8594;&nbsp; <code>1 C&gt; (11)^(m+3) 000 1111 0^g T</code> &nbsp;&nbsp;(6m+44 steps)</p>",
+     "<p>This is proved in Lean for every m, g and every tail T, and iterated by induction: a gap X = 4k+r+7 is used up in k+1 rounds, leaving r = 1 or 3 zeros (r is X&minus;7 mod 4) and a block of about 3X/2 ones.</p>",
+     "<h3>The phase end</h3>",
+     "<p>Then the head meets the tail. What happens there depends on r and on the first blocks of the tail: the block of ones is wiped out again (states F and D erase it, three steps per cell) except for a single 1, so it becomes the next gap, of length 3X/2 + d with a small correction d, and the first blocks of the tail are rewritten. The phase starts observed so far:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>gap X</th><th>tail T</th></tr></thead><tbody><tr><td>33</td><td>4</td><td><code>1^4 0</code></td></tr><tr><td>251</td><td>12</td><td><code>1^4 0^3 1^4</code></td></tr><tr><td>727</td><td>24</td><td><code>1^4 0^7 1^4</code></td></tr><tr><td>1,675</td><td>42</td><td><code>1^4 0^3 1^8</code></td></tr><tr><td>3,353</td><td>60</td><td><code>1^17 0^4 1^4</code></td></tr><tr><td>6,157</td><td>84</td><td><code>1^11 0^14 1^8</code></td></tr><tr><td>11,157</td><td>120</td><td><code>1^11 0^8 1^4 0^10 1^8</code></td></tr><tr><td>20,711</td><td>174</td><td><code>1^11 0^8 1^4 0^4 1^4 0^10 1^8</code></td></tr><tr><td>40,257</td><td>258</td><td><code>1^23 0^2 1^4 0^4 1^4 0^10 1^8</code></td></tr><tr><td>80,267</td><td>378</td><td><code>1^11 0^28 1^8 0^10 1^8</code></td></tr><tr><td>166,011</td><td>564</td><td><code>1^23 0^22 1^8 0^10 1^8</code></td></tr><tr><td>351,671</td><td>840</td><td><code>1^11 0^20 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>758,485</td><td>1,254</td><td><code>1^11 0^8 1^4 0^16 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>1,660,661</td><td>1,878</td><td><code>1^23 0^2 1^4 0^16 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>3,662,491</td><td>2,808</td><td><code>1^11 0^28 1^4 0^12 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>8,130,765</td><td>4,206</td><td><code>1^11 0^8 1^4 0^24 1^4 0^12 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>18,140,599</td><td>6,306</td><td><code>1^23 0^2 1^4 0^24 1^4 0^12 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>40,568,793</td><td>9,450</td><td><code>1^11 0^28 1^4 0^20 1^4 0^12 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>90,933,829</td><td>14,172</td><td><code>1^23 0^22 1^4 0^20 1^4 0^12 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>204,076,095</td><td>21,252</td><td><code>1^11 0^20 1^4 0^18 1^4 0^20 1^4 0^12 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>458,377,571</td><td>31,872</td><td><code>1^11 0^8 1^4 0^16 1^4 0^18 1^4 0^20 1^4 0^12 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>1,030,153,327</td><td>47,802</td><td><code>1^11 0^8 1^4 0^4 1^4 0^16 1^4 0^18 1^4 0^20 1^4 0^12 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>2,316,152,687</td><td>71,700</td><td><code>1^23 0^2 1^4 0^4 1^4 0^16 1^4 0^18 1^4 0^20 1^4 0^12 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>5,209,391,393</td><td>107,556</td><td><code>1^4 0^25 1^8 0^16 1^4 0^18 1^4 0^20 1^4 0^12 1^4 0^18 1^8 0^10 1^8</code></td></tr></tbody></table></div>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.521). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"160.5\" y2=\"160.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"164.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"121.0\" y2=\"121.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"125.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"81.6\" y2=\"81.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"85.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"42.1\" y2=\"42.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"46.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,184.4 L59.2,184.4 L78.4,174.5 L97.6,168.7 L116.8,164.6 L136.0,156.6 L155.2,149.4 L174.4,143.5 L193.6,137.1 L212.8,131.0 L232.0,125.4 L251.2,120.0 L270.4,114.7 L289.6,109.6 L308.8,104.4 L328.0,99.3 L347.2,94.3 L366.4,89.2 L385.6,84.3 L404.8,79.8 L424.0,75.5 L443.2,70.3 L462.4,65.1 L481.6,60.0 L500.8,54.8 L520.0,49.9\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,172.3 L59.2,172.3 L78.4,168.7 L97.6,167.2 L116.8,162.4 L136.0,162.4 L155.2,158.8 L174.4,158.8 L193.6,156.0 L212.8,156.0 L232.0,156.0 L251.2,156.0 L270.4,156.0 L289.6,156.0 L308.8,156.0 L328.0,156.0 L347.2,156.0 L366.4,156.0 L385.6,156.0 L404.8,156.0 L424.0,156.0 L443.2,156.0 L462.4,156.0 L481.6,156.0 L500.8,156.0 L520.0,156.0\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 47,536 cells (37,906 left of the start, 21 right), with a density of 1s of 0.98.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>954,412,109</td><td><code>D&gt;0 1^44531 0^3 1^4 0^2181 1^11 0^8 1^4 0^16 1^4 0^18 1^4 0^20 1^4 0^12 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>left</td><td>970,170,137</td><td><code>D&gt;0 1^45233 0^3 1^4 0^1713 1^11 0^8 1^4 0^16 1^4 0^18 1^4 0^20 1^4 0^12 1^4 0^18 1^8 0^10 1^8</code></td></tr><tr><td>left</td><td>985,898,917</td><td><code>D&gt;0 1^45923 0^3 1^4 0^1253 1^11 0^8 1^4 0^16 1^4 0^18 1^4 0^20 1^4 0^12 1^4 0^18 1^8 0^10 1^8</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "why",
+    "eyebrow": "Why it is hard",
+    "heading": "A Collatz-like map with a memory",
+    "html": [
+     "<p>On the gap alone the phase map is X &#8594; 3X/2 + d, and d is set by the parity of X/2 together with the tail; the tail in turn is edited by each phase end. So the run is a Collatz-like iteration (multiply by 3/2, look at a residue) with a growing memory attached. Halting needs the head, during some phase end, to read a 0 in state F, which has not happened in 35 phases. Proving that it never happens would mean understanding the tail as a counter driven by the sequence of residues X mod 4, which looks as random as the Collatz parities.</p>",
+     "<p>Each phase takes about a number of steps of the order of X<sup>2</sup>: 35 phases are 3.9&middot;10<sup>13</sup> steps, and the gap is then 9.3 million cells.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "A gap of X zeros is eaten in X/4 rounds; then the tail is edited and the next gap is (3X+d)/2. The map depends only on (X mod 4, tail); 2,009 phases without a halt, and no halting entry seen even for the other residues.",
+ "family": "Collatz-like gap map (x3/2) with a growing tail"
+}

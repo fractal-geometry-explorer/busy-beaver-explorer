@@ -1,0 +1,170 @@
+{
+ "generated": false,
+ "group": "G06",
+ "title": "What is known about 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB---.",
+ "machine": "1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB---",
+ "crumb": "holdouts / 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB---",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
+  "It is one of a pair, <code>1RB0RD_1LC0RA_1LA0LB_1RE0LC_1L?1RF_0RB---</code>, that differ only in E0 (here <code>1LD</code>, there <code>1LC</code>). The outer sweeps never read E0, so the two machines share them; the inner phases differ."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The outer sweeps are proved in Lean, but the inner phases, which decide how the blocks grow, are only observed; no invariant that would exclude a halt is known.",
+  "<b>Where a halt would have to come from.</b> The machine halts only in F reading a 1. F is entered only from E reading a 1, and E only from D reading a 0; so a halt needs the head in D on <code>0 1 1</code>. F is entered constantly (in the regular sweeps), 137,952,841 times in 2·10<sup>10</sup> steps, and always reads a 0: the cell after <code>…0011</code> is always the start of <code>0101…</code>."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 77,298 cells have been visited and 38,052 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Single-token sweeps",
+   "text": "Moving right, B turns <code>c = 1101010</code> into <code>0011001</code> and <code>a = 10</code> into <code>01</code>; moving left, C crosses an <code>a</code> (shifted by one cell) unchanged.",
+   "where": "<code>b_c</code>, <code>b_a</code>, <code>c_a</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The outer sweep pair",
+   "text": "With the head in C on the leftmost cell and the tape <code>11010 w (10)<sup>k+2</sup> 1</code>, one round trip gives <code>11010 c w (10)<sup>k+1</sup> 1</code>, in 24·#c(w) + 4·#a(w) + 4k + 41 steps. Proved for every w with up to four blocks of c's: <code>w = c<sup>n</sup></code>, <code>c<sup>n</sup> a<sup>x+1</sup> c<sup>m</sup></code>, and so on, for all exponents.",
+   "where": "<code>sweep0</code>, <code>sweep1</code>, <code>sweep2</code>, <code>sweep3</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "From the blank tape to the first outer phase",
+   "text": "After 1432 steps the tape is <code>11010 w (10)<sup>k</sup> 1</code> with w = a<sup>7</sup> c a<sup>2</sup> c, k = 13.",
+   "where": "<code>init_run</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The sweep rule holds for every w seen",
+   "text": "Every arrival at the left end in the first 4·10<sup>8</sup> steps whose last block has k ≥ 2 is followed by the sweep pair above, with the exact step count, whatever w is: 1,192 sweep pairs, no exception.",
+   "where": "<code>py/sweepcheck.py</code>, <code>c/edges.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "F always reads 0",
+   "text": "In 2·10<sup>10</sup> steps state F is entered 137,952,841 times, always on a 0; no halt. The context is always <code>…0011 F&gt;0</code>, followed by <code>101…</code> or by cells not yet visited.",
+   "where": "<code>c/jumps.c</code> (counts), <code>c/fhit.c</code> (contexts)"
+  },
+  {
+   "level": "trusted",
+   "title": "Inner phases",
+   "text": "When the last block is used up the head stops reaching the left end for a long time. Recorded inner phases: the step of the last left-end arrival before the jump, the step of the first one after it, and the tape at these two arrivals, tokenised (a token is <code>c</code>, <code>a<sup>n</sup></code> or a stray bit), without its first cells (<code>11010</code> or <code>1</code>) and its trailing <code>1</code>s:<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>stop</th><th>resume</th><th>before</th><th>after</th></tr></thead><tbody><tr><td>286</td><td>1,283</td><td><code>c a<sup>7</sup></code></td><td><code>c a<sup>3</sup> c a<sup>2</sup> c a<sup>14</sup></code></td></tr><tr><td>6,536</td><td>37,179</td><td><code>c<sup>16</sup> a<sup>7</sup> c a<sup>2</sup></code></td><td><code>a<sup>3</sup> c a<sup>10</sup> (c a<sup>2</sup> c a<sup>10</sup>)<sup>7</sup> c a<sup>2</sup> c a<sup>2</sup> 1 a<sup>2</sup></code></td></tr><tr><td>42,579,653</td><td>4,182,562,330</td><td><code>c<sup>1184</sup> a<sup>7</sup> c a<sup>2</sup> c a<sup>16</sup> c a<sup>32</sup> … (37 tokens)</code></td><td><code>c<sup>1159</sup> a<sup>27</sup> c a<sup>8</sup> c a<sup>40</sup> … (83 tokens)</code></td></tr></tbody></table></div>",
+   "where": "<code>c/jumps.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Why it is hard",
+   "text": "The inner phase is a smaller machine of the same kind working on the right end of the tape: short sweeps move one <code>a</code> at a time from one block into a longer one, so blocks get multiplied rather than added. Each outer phase takes time about quadratic in the tape length, and each inner phase produces a much longer last block, so the phases grow quickly and nothing in sight closes the loop.",
+   "where": ""
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. It halts only if the head is ever in D on <code>0 1 1</code>; it never was in 2·10<sup>10</sup> steps.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB---/lean/check.sh",
+  "python3 holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB---/py/sweepcheck.py 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB--- 400000000",
+  "gcc -O2 -o jumps holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB---/c/jumps.c && ./jumps 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB--- 20000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. This machine sweeps back and forth across a tape made of two words, and every round trip moves a little of the last block to the front; when the last block runs out, a long phase of shorter sweeps rebuilds the tape bigger. This page runs the real machine in your browser; the round trips are proved in Lean.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "2·10<sup>10</sup> steps",
+    "text": "No halt in the C simulator."
+   },
+   {
+    "level": "kernel",
+    "value": "sweep pairs",
+    "text": "The outer round trip is a theorem (up to four blocks)."
+   },
+   {
+    "level": "trusted",
+    "value": "F on a 0",
+    "text": "F is entered 137,952,841 times, always on a 0."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "words",
+    "eyebrow": "The picture",
+    "heading": "A tape of two words",
+    "html": [
+     "<p>Each time the head comes back to the left end of the tape (in state C, on the leftmost cell) the tape reads <code>11010 w (10)<sup>k</sup> 1</code>, where <code>w</code> is a word made of <code>c = 1101010</code> and <code>a = 10</code>. Moving right, the head turns every <code>c</code> into <code>0011001</code> and every <code>a</code> into <code>01</code>; moving left it turns them back, shifted.</p>"
+    ]
+   },
+   {
+    "id": "outer",
+    "eyebrow": "The rule",
+    "heading": "Round trips move the last block to the front",
+    "html": [
+     "<p>One round trip takes one <code>a</code> off the last block and puts a new <code>c</code> at the front:</p>",
+     "<p><code>11010 w (10)<sup>k+2</sup> 1 → 11010 c w (10)<sup>k+1</sup> 1</code> in 24·#c + 4·#a + 4k + 41 steps.</p>",
+     "<p>The middle of the tape is untouched. This is proved in Lean for every <code>w</code> with up to four blocks of <code>c</code>s and all block lengths, and the simulation finds no exception for any <code>w</code>. So an outer phase lasts as many round trips as the last block has <code>a</code>s, and the front block of <code>c</code>s grows by that many.</p>"
+    ]
+   },
+   {
+    "id": "inner",
+    "eyebrow": "Why it is hard",
+    "heading": "When the last block runs out",
+    "html": [
+     "<p>When the last block is used up (it then eats the last <code>c</code> as well), the head stops returning to the left end. A long inner phase of shorter sweeps runs near the right part of the tape. It moves <code>a</code>s one at a time between neighbouring blocks, multiplying their lengths, and leaves a new, much longer last block. Then the outer phase starts again.</p>",
+     "<p>The two machines of the pair differ only in E0, which the outer sweeps never read; they differ in the inner phases. Halting needs the head in D on <code>0 1 1</code>. F, the state before a halt, is entered all the time (137,952,841 times in 2·10<sup>10</sup> steps), but always on a 0.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.589).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"161.2\" y2=\"161.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"165.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"122.3\" y2=\"122.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"126.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"83.5\" y2=\"83.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"87.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"44.7\" y2=\"44.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"48.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,180.6 L59.2,172.7 L78.4,172.7 L97.6,172.7 L116.8,166.4 L136.0,163.0 L155.2,163.0 L174.4,153.8 L193.6,145.8 L212.8,141.3 L232.0,141.3 L251.2,141.3 L270.4,140.3 L289.6,140.3 L308.8,140.3 L328.0,140.3 L347.2,140.3 L366.4,140.3 L385.6,140.3 L404.8,140.3 L424.0,106.5 L443.2,88.7 L462.4,85.2 L481.6,85.2 L500.8,85.2 L520.0,85.2\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,180.6 L59.2,180.6 L78.4,167.7 L97.6,163.0 L116.8,159.5 L136.0,151.5 L155.2,147.0 L174.4,143.6 L193.6,140.5 L212.8,131.4 L232.0,125.9 L251.2,122.6 L270.4,112.7 L289.6,106.7 L308.8,103.6 L328.0,97.7 L347.2,92.1 L366.4,88.5 L385.6,82.9 L404.8,79.3 L424.0,76.3 L443.2,73.7 L462.4,65.3 L481.6,59.0 L500.8,53.4 L520.0,49.7\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 77,298 cells (3,626 left of the start, 45,715 right), with a density of 1s of 0.492.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>953,763,854</td><td><code>1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1</code></td></tr><tr><td>right</td><td>969,393,736</td><td><code>1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1</code></td></tr><tr><td>right</td><td>985,026,184</td><td><code>1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1^2 0^2 1 0^2 1</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "sweeping c/a-word counter with multiplying inner phases (1RB0RD_1LC0RA_1LA0LB_1RE0LC_1L?1RF_0RB--- pair)",
+ "summary": "Outer phase: full sweeps over a tape 11010 w (10)^k 1 (w a word over c = 1101010, a = 10) each move one a from the last block into a new c at the front, proved in Lean; when the last block is used up, a long inner phase of short sweeps rebuilds and lengthens the blocks. F is entered all the time but always reads 0."
+}

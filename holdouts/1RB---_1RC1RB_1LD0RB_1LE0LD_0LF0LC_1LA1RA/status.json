@@ -1,0 +1,182 @@
+{
+ "generated": false,
+ "group": "G10",
+ "title": "What is known about 1RB---_1RC1RB_1LD0RB_1LE0LD_0LF0LC_1LA1RA",
+ "description": "Proof status of the six-state BB(6) holdout 1RB---_1RC1RB_1LD0RB_1LE0LD_0LF0LC_1LA1RA.",
+ "machine": "1RB---_1RC1RB_1LD0RB_1LE0LD_0LF0LC_1LA1RA",
+ "crumb": "holdouts / 1RB---_1RC1RB_1LD0RB_1LE0LD_0LF0LC_1LA1RA",
+ "home": "../index.html",
+ "source": "holdouts/1RB---_1RC1RB_1LD0RB_1LE0LD_0LF0LC_1LA1RA/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> A sweeping head over a 1010… background that it shifts by one cell each pass; a growing crowd of defects (doubled 0s, doubled 1s, 0000) drifts on the slow left side; chaotic, open.",
+  "Lean proves no halt in the first 10<sup>7</sup> steps (the first 10,000 by the kernel alone), 8 shift rules of the sweeps; the rest of the description below is observation of the run, marked as such."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (A1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 36,216 cells have been visited and 18,163 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: power/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.176). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.515).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "8 shift rules of the sweeps",
+   "text": "For every n and every tape around: C crosses <code>10</code> rightward writing <code>01</code>, B crosses <code>01</code> writing <code>10</code>; D, E and C cross <code>1010</code>/<code>0101</code> leftward unchanged. Each is a theorem <code>steps (s·n) … = some …</code> found and proved by <code>tools/py/bbtools/symtm.py</code>.",
+   "where": "<code>lean/Sweeps.lean</code> (<code>sweep_rC_10</code>, <code>sweep_rB_01</code>, <code>sweep_rC_1010</code>, <code>sweep_lD_1010_1</code>, …)"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt can happen (closed tape language, 5-cell windows)",
+   "text": "The closure search of <code>bbtools.ctl</code> with windows of 5 cells is closed but allows halts; the halting abstract configurations constrain the neighbourhood of a halt: a halt (A reading 1) needs <code>11010</code> or <code>11011</code> to the right of the head; any left side. A Python check, not a Lean certificate (the Lean library only has the right-edge and no-halt corollaries, which do not apply).",
+   "where": "<code>python3 -m bbtools.ctl 1RB---_1RC1RB_1LD0RB_1LE0LD_0LF0LC_1LA1RA 5</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Macro structure: bouncer over a 10 background with a defect gas",
+   "text": "Almost all of the tape is the two-cell word <code>10</code> repeated. The head sweeps right across it in states C and B (each copy of <code>10</code> becomes <code>01</code> or back: the whole background slides by one cell per pass) and returns left in D/E. The right end grows like the square root of the step count, as in any bouncer.",
+   "where": "README; <code>tmrun</code>, <code>tokrun</code> runs"
+  },
+  {
+   "level": "kernel",
+   "title": "8 shift rules of the sweeps",
+   "text": "For every n and every tape around: C crosses <code>10</code> rightward writing <code>01</code>, B crosses <code>01</code> writing <code>10</code>; D, E and C cross <code>1010</code>/<code>0101</code> leftward unchanged. Each is a theorem <code>steps (s·n) … = some …</code> found and proved by <code>tools/py/bbtools/symtm.py</code>.",
+   "where": "<code>lean/Sweeps.lean</code> (<code>sweep_rC_10</code>, <code>sweep_rB_01</code>, <code>sweep_rC_1010</code>, <code>sweep_lD_1010_1</code>, …)"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt can happen (closed tape language, 5-cell windows)",
+   "text": "The closure search of <code>bbtools.ctl</code> with windows of 5 cells is closed but allows halts; the halting abstract configurations constrain the neighbourhood of a halt: a halt (A reading 1) needs <code>11010</code> or <code>11011</code> to the right of the head; any left side. A Python check, not a Lean certificate (the Lean library only has the right-edge and no-halt corollaries, which do not apply).",
+   "where": "<code>python3 -m bbtools.ctl 1RB---_1RC1RB_1LD0RB_1LE0LD_0LF0LC_1LA1RA 5</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Macro structure: bouncer over a 10 background with a defect gas",
+   "text": "Almost all of the tape is the two-cell word <code>10</code> repeated. The head sweeps right across it in states C and B (each copy of <code>10</code> becomes <code>01</code> or back: the whole background slides by one cell per pass) and returns left in D/E. The right end grows like the square root of the step count, as in any bouncer.",
+   "where": "README; <code>tmrun</code>, <code>tokrun</code> runs"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The machine halts on A reading 1. The closed tape language with windows of 5 cells (bbtools.ctl) allows that only with <code>11010</code> or <code>11011</code> to the right of the head; nothing tighter was found.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB---_1RC1RB_1LD0RB_1LE0LD_0LF0LC_1LA1RA/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_1RC1RB_1LD0RB_1LE0LD_0LF0LC_1LA1RA 1000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 36,216 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "heuristic",
+    "value": "power/sqrt",
+    "text": "The growth shape of the two sides of the tape (see below)."
+   },
+   {
+    "level": "heuristic",
+    "value": "bouncer over a 10 background with a defect gas",
+    "text": "The behaviour family (see below)."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "structure",
+    "eyebrow": "Macro structure",
+    "heading": "What the machine does: bouncer over a 10 background with a defect gas",
+    "html": [
+     "<p>Almost all of the tape is the two-cell word <code>10</code> repeated. The head sweeps right across it in states C and B (each copy of <code>10</code> becomes <code>01</code> or back: the whole background slides by one cell per pass) and returns left in D/E. The right end grows like the square root of the step count, as in any bouncer.</p>",
+     "<p>What makes it non-trivial is the left part of the tape: read as words <code>a=10</code>, it is a list of runs of <code>a</code> separated by <em>defects</em>, a lone <code>0</code>, a lone <code>1</code> or <code>000</code>, e.g. <code>C&gt;0 0 a^4 1 a^6 1 a^5 1 a^9 0 a^8 1 a^4 0 a^9 1 a^11 0 …</code> at step 16,379,475. Each sweep moves and rewrites these defects; new ones are born at the left wall and old ones travel right and dissolve into the background. The left edge advances by about 4–5 cells each time the head reaches it, and those visits become rarer (left extent ~ t<sup>0.18</sup>).</p>",
+     "<p>We did not find a finite rule set for the defect dynamics: the run lengths between defects look irregular (no period, no linear growth). This is the signature of a chaotic machine.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Halting",
+    "heading": "What a halt would require",
+    "html": [
+     "<p>The machine halts on A reading 1. The closed tape language with windows of 5 cells (bbtools.ctl) allows that only with <code>11010</code> or <code>11011</code> to the right of the head; nothing tighter was found.</p>"
+    ]
+   },
+   {
+    "id": "proved",
+    "eyebrow": "Lean",
+    "heading": "What is proved, and what is not",
+    "html": [
+     "<ul><li><b>Sweeps</b> (<code>lean/Sweeps.lean</code>, kernel): C crosses <code>10</code> rightward writing <code>01</code>, B crosses <code>01</code> writing <code>10</code>; D, E and C cross <code>1010</code>/<code>0101</code> leftward unchanged; for every number of copies and every tape around.</li><li><b>Bounded run</b> (<code>lean/Blank.lean</code>): no halt in 10<sup>7</sup> steps (native), 10,000 (kernel); the halting transition is the only way to stop.</li></ul>",
+     "<p>Everything else on this page is observation of the simulated run (heuristic). Nothing here decides halting.</p>"
+    ]
+   },
+   {
+    "id": "later",
+    "eyebrow": "Next",
+    "heading": "What would move it forward",
+    "html": [
+     "<p>Find the defect alphabet exactly (all words that separate runs of 10 at the left wall) and the rule of a single sweep on it; then see whether the defect sequence is generated by a simpler process.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.176). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.515).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"158.9\" y2=\"158.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"162.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"117.9\" y2=\"117.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"121.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"76.8\" y2=\"76.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"80.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,176.2 L59.2,176.2 L78.4,165.9 L97.6,160.9 L116.8,151.2 L136.0,146.9 L155.2,142.4 L174.4,138.6 L193.6,135.1 L212.8,129.7 L232.0,125.0 L251.2,121.7 L270.4,116.7 L289.6,112.8 L308.8,110.4 L328.0,108.2 L347.2,105.5 L366.4,103.5 L385.6,99.6 L404.8,97.0 L424.0,95.1 L443.2,91.6 L462.4,89.9 L481.6,89.1 L500.8,87.6 L520.0,85.0\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,183.7 L59.2,176.2 L78.4,176.2 L97.6,171.2 L116.8,167.5 L136.0,164.5 L155.2,159.9 L174.4,153.6 L193.6,149.1 L212.8,144.3 L232.0,137.7 L251.2,130.8 L270.4,124.6 L289.6,118.2 L308.8,111.7 L328.0,105.4 L347.2,99.4 L366.4,93.5 L385.6,87.8 L404.8,82.2 L424.0,76.7 L443.2,71.3 L462.4,66.0 L481.6,60.7 L500.8,55.5 L520.0,50.3\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 36,216 cells (2,352 left of the start, 24,562 right), with a density of 1s of 0.502.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>930,346,925</td><td><code>D&gt;0 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>left</td><td>950,816,823</td><td><code>C&gt;0 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0^2 1 0 1 0</code></td></tr><tr><td>left</td><td>986,808,660</td><td><code>D&gt;0 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>955,061,911</td><td><code>1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1^4 0 1 0 1 0 1 0 1^2 0</code></td></tr><tr><td>right</td><td>970,704,591</td><td><code>1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1^4 0 1 0 1 0 1 0 1^2 0</code></td></tr><tr><td>right</td><td>986,345,531</td><td><code>1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1^4 0 1 0 1 0 1 0 1^2 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "A sweeping head over a 1010… background that it shifts by one cell each pass; a growing crowd of defects (doubled 0s, doubled 1s, 0000) drifts on the slow left side; chaotic, open.",
+ "family": "bouncer over a 10 background with a defect gas",
+ "decision": "open"
+}

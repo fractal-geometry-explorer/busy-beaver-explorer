@@ -1,0 +1,82 @@
+# 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---
+
+bbchallenge id 163594. One of the six-state holdouts whose halting from blank tape is open. Its pages are [`pages/holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/explainer.html`](../../pages/holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/explainer.html) and [`pages/holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/proof-status.html`](../../pages/holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/proof-status.html), built from [`status.json`](status.json).
+
+| state | read 0 | read 1 |
+|---|---|---|
+| A | 1RB | 1LD |
+| B | 1RC | 0RB |
+| C | 1LA | 1RC |
+| D | 1LE | 0LA |
+| E | 1LF | --- |
+| F | 1LC | --- |
+
+Family: **Up/down two counters with resets (G12 family 3b)**, with [`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB`](../1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB), [`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC`](../1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC), [`1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---`](../1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---), [`1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE`](../1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE). The family's scripts are in [`../1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py`](../1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py) and [`../1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/c`](../1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/c).
+
+## What it does
+
+Tick configuration `1 U 00 E>0110101 V` as in the family (ticks proved, `lean/Rules.lean`; whole phases for arbitrary counters, `lean/Phase.lean`). At V = 0 the tape is clean, `0^inf 1 U 00 E>0110101 (11)^n 1 0^inf`; the macro state is (n, N). The rebuild reads the lowest j digits of N by the walk of `py/walk.py` (b0 = 0: j = 1; else Q over pairs: 11 stay, 00 go to R, 01/10 stop; R: x0 stay, x1 stop) and returns to a clean tick configuration with N' = N >> j and V' = 2^(n+c) − δ, c = (5j + 1)/2, δ a function of the digits read. Next counter: 2^(n+c) + (N >> j) − δ, i.e. a new block `1 0^((7j−1)/2)` on top. Examples of δ: j = 1: 4; digits `1 (11)^k` then pair (1,0) read upward: 1 + 2^(5k+5) (2^(2k+4) − 1). Macro run: 1,289 rebuilds, ~10^3392 steps, no halt; the walk always stops ≥ 88 digits below the top.
+
+## For later
+
+1. Prove the walk for all N in Lean. `lean/Phase.lean` and `fill` in `lean/FamBase.lean` are the base; the generator in the scratch folder (`/home/user/g12/work3/r5s/famprove.py`, `m2fam.py`) produced a proof of the family `1 0^(2k+1) 1 0` that Lean accepted, but in 14 minutes (the term-normalising `simp` calls are the cost); it needs lemmas stated once per pass instead of per family.
+2. A non-halting proof needs an invariant of the block stack that every rebuild preserves and that stops the walk. The wall invariants of busycoq PRs #57/#58 (siblings) rely on the whole counter being converted each cycle with bounded loss; here the low digits are debris of earlier subtractions. Things tried without success: counting block boundaries at odd/even positions (a rebuild can destroy up to three and adds one only if j = 3 mod 4). The main sibling [`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB`](../1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB) is of the same type.
+3. Coq: nothing written (no Coq in this container); a port would start from `verify/ShiftOverflowCounter_F1C.v` of PR #58.
+
+## What is established
+
+**Proved in Lean, kernel only** (`step_none_iff`, `lean/Blank.lean`): The halting configurations. The machine stops exactly when it reads the symbol of a halting transition (E1, F1); the generated statement covers every configuration.
+
+**Proved in Lean, kernel only** (`blank_runs_kernel`, `lean/Blank.lean`): No halt in the first 10,000 steps. The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.
+
+**Proved in Lean, kernel only** (`lean/Rules.lean` (4 theorems)): The tick rules of the two counters. For each of the headers `0110101`, `0110111` the run uses, two theorems: with V odd, `L 00000 (00001)^j 00 E>0110101 01 R` becomes `L 00001 (00000)^j 00 E>0110101 11 R` in 10 * j + 26 steps; with V having i + 1 trailing zeros, `L 00000 (00001)^j 00 E>0110101 (11)^(i+1) 01 R` becomes `L 00001 (00000)^j 00 E>0110101 (01)^(i+1) 11 R` in 4 * i + 10 * j + 30 steps. That is U + 1 and V − 1 for every number j of carries and i + 1 of borrows and every tape L, R beyond (proved along the symbolic run of `tools/py/bbtools/symtm.py`).
+
+**Proved in Lean, kernel only** (`lean/Rebuild.lean` (11 theorems, written by `holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/gen_rebuild_rules.py`)): 11 rebuild rules. For 11 residue classes of the up-counter N modulo 2^j (j in [1, 3, 5], headers `0110101`, `0110111`) the rebuild after V = 0 is proved for every length n of V and every tape L left of the digits it reads: `L dj-1..d0 00 E> H (11)^(n+k) 1 0^inf` becomes `L 00 E> H' w (01)^(n+e) 1 0^inf`, that is: the up-counter loses its lowest j digits (N becomes N >> j) and the new down-counter is 2^n+k+c − δ with c and δ fixed by the class. For example, header `0110101` and N = 0 (mod 2^1): new header `0110101`, 3 more digits, δ = 4. The classes were found by sampling; each theorem is then proved along the symbolic run of `tools/py/bbtools/symtm.py`.
+
+**Proved in Lean, kernel only** (`tick`, `phase`, `phase_to_zero`, `lean/Phase.lean` (written by `holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py`)): A whole run of ticks, for any counters. Three statements about the tick configuration (up-counter U, gap, header, down-counter V, anything beyond), for counters given as arbitrary lists of binary digits rather than one pattern at a time. `tick`: if U is not all ones and V is not zero, the machine reaches the same configuration with U + 1 and V − 1. `phase`: for every k up to the value of V for which U + k still fits in U's digits, it reaches the configuration with U + k and V − k, the widths unchanged, without reading anything beyond the two counters. `phase_to_zero`: in particular, if U + V fits, V is counted down to 0 and U has gained exactly V. This is the step 'then add the V ticks by arithmetic' of the macro map, now a theorem; the macro simulator itself is still trusted code.
+
+**Proved in Lean, kernel only** (`fill`, `lean/FamBase.lean`): Counting a block of V down to zero inside a rebuild. A helper for proving rebuild rules for whole families of counters. If U has w digits and the low w digits of V are such that t = 2^w − 1 − U more ticks never make them all ones early, and V has a 1 above them, then the machine reaches the configuration where U is all ones (w ones), the low part of V has gained t, and the part of V above has lost 1. It is proved from `phase` for every header, width and surrounding tape. No rebuild family is proved with it yet (see the open item).
+
+**Proved in Lean with `native_decide`** (`blank_runs_native`, `lean/Blank.lean`): No halt in the first 10^7 steps. The same run, evaluated by compiled code.
+
+**Computed (trusted C/Python, tested)** (`holdouts/triage.json`): No halt in the first 10^9 steps. The C simulator `tools/c/triage.c` runs 10^9 steps without a halt; at the end 187 cells have been visited and 66 of them hold a 1.
+
+**Computed (trusted C/Python, tested)** (`holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild.py` (`validate`)): The macro map and its simulator. At each moment V reaches 0 the tape is the clean configuration `0^inf F U 00 E> H (11)^n 1 0^inf` (F the counter's top word), so the state is (H, n, N) with N the up-counter read as one number. `py/rebuild.py` writes that tape, runs the rebuild (tick runs of its sub-phases jumped by the proved tick rules, the rest cell by cell in C) to the next clean tick configuration (H', n', N', V'), and then adds the V' ticks of the phase by arithmetic: next state (H', n', N' + V'), steps by the closed formula of the tick costs. Tested: its first 80 states and step counts, up to about 10^182 steps, equal those of `py/counters.py` (itself tested against `tools/c/tmrun.c`).
+
+**Computed (trusted C/Python, tested)** (`holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LD_1RC0R... run`): No halt in the first 10^2368 steps (macro run). The macro run from blank tape goes through 891 rebuilds without a halt; at the end V has 7,863 digits and the step count is about 10^2368.
+
+**Computed (trusted C/Python, tested)** (`py/walk.py check 15`, `random 300 120`): The stopping rule of the rebuild: a walk over the digits of the counter. With header `0110101` the rebuild reads the digits b0, b1, ... of the up-counter N from the bottom. If b0 = 0 it stops after that one digit. Otherwise it goes on in a state Q over the pairs (b1,b2), (b3,b4), ...: in Q a pair (1,1) stays in Q, (0,0) switches to a state R, and (0,1) or (1,0) stops; in R a pair ending in 0 stays in R and a pair ending in 1 stops. So Q runs through ones, R runs through zeros and stops at the first 1 in an even position. If the walk stops after j digits (j is odd) and at least two digits of N remain above, the rebuild does not halt: the new counter is N with its j low digits removed, the header stays `0110101`, and V gets (5j + 1)/2 more digits, V' = 2^n + (5j+1)/2 − δ with δ depending only on the j digits read. Checked against the exact rebuild, not proved: all 64,516 such rebuilds with N < 2^15 (two values of n each), 300 random 120-digit counters, and every rebuild of the macro run below; no exception.
+
+**Computed (trusted C/Python, tested)** (`py/walk.py run 60`): The macro run follows the walk and stays far from the top of the counter. A 60-second macro run from blank tape: 1,289 rebuilds, about 10^3392 steps, no halt. The first V = 0 moment has header `0110111` (n = 15, N = 26071); every later one in the run has header `0110101`, and all 1,288 of those rebuilds are the ones the walk predicts. The longest walk reads 93 digits; from rebuild 10 on the walk always stops at least 88 digits, and at least 15 one-digits, below the top of N. (An earlier scratch run of the same comparison went through 4,500 rebuilds, to about 10^11455 steps, with the same outcome; that log is not in the repository.)
+
+**Computed (trusted C/Python, tested)** (`py/walk.py top 12`): Where a halt can come from. Given the walk, a halt from header `0110101` needs a rebuild whose walk runs through the counter up to its top two digits. For N < 2^12 the 376 rebuilds of that kind were computed: none halts directly; 252 give header `0110101` again and 124 (the all-ones-like counters) give header `0110111` with the tiny counter N = 2, and rebuilds from header `0110111` often do halt. So, for the counters checked, the machine halts only if some rebuild's walk crosses the whole counter.
+
+**Observed only / heuristic** (`py/walk.py run`): What the counter looks like, and why a halt looks unlikely. Each rebuild that reads j digits puts a new block `1 0...0` with (7j − 1)/2 zeros on top of the counter and removes j digits at the bottom, so the counter grows by about 2.5 j + 1 digits per rebuild: a stack of blocks `1 0^a` above a short stretch of irregular digits (what is left of old blocks after the subtractions of δ). The walk passes a run of ones in state Q and a run of zeros in state R, and R stops at the first 1 in an even position. To cross the whole stack, every block boundary met would have to sit at an odd position; the positions depend on j modulo 4 of the rebuilds that made the blocks, which behave irregularly. A random model gives a chance that shrinks geometrically with the number of blocks (already about 15 ones are never reached). This is a heuristic, not a proof: it is the kind of machine the community tracker calls a lottery.
+
+**Open**: Does it halt from blank tape?. Not known. The two siblings `1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC` and `1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---` have non-halting proofs in Coq in open pull requests of ccz181078/busycoq (#58 and #57; read on 12 November, not rebuilt here: Coq is not installed in this container). Their method, in plain terms: call a 'wall' the tape at a moment when V is 0. The proof gives a property of walls (enough spare room, and a marker: a 1 digit at a prescribed kind of position in the counter) and shows that every wall with the property runs to another wall with the property. It works there because the rebuild of those machines converts the whole counter in one go and loses only a bounded amount each time, so the marker can be followed from wall to wall. Carrying it over to this machine was tried in round 6 and did not succeed. Here a rebuild removes only the few digits the walk reads and leaves the rest of the counter in place, with the remains of earlier subtractions underneath; a later rebuild can erase several of the 'good' block boundaries at once (about three were seen) and creates a new one only when j = 3 modulo 4. No quantity was found that every rebuild keeps or improves, so no wall property is known that is both preserved and excludes the halting walk. Also not proved: the walk itself for all N (Lean has the 11 classes with j ≤ 5 and the two lemmas above; a generated proof of one infinite family, counters ending in `1 0^2k+1 1 0`, did pass Lean once but took 14 minutes to check and is not included).
+
+## Reproduce
+
+```sh
+. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
+holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/check.sh          # Machine, Blank, Rules (ticks), Rebuild (rebuild rules), Phase, FamBase
+python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py check 15          # the walk against the exact rebuild, every N < 2^15 (30 s)
+python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py random 300 120    # 300 random 120-digit counters
+python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py run 60            # the macro run against the walk; distance to the top of N
+python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py top 12            # what the rebuilds not covered by the walk do
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- > holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/Phase.lean
+python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py check 15          # the walk against the exact rebuild, every N < 2^15 (30 s)
+python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py random 300 120    # 300 random 120-digit counters
+python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py run 60            # the macro run against the walk; distance to the top of N
+python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py top 12            # what the rebuilds not covered by the walk do
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- > holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/Phase.lean
+python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py check 15          # the walk against the exact rebuild, every N < 2^15 (30 s)
+python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py random 300 120    # 300 random 120-digit counters
+python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py run 60            # the macro run against the walk; distance to the top of N
+python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py top 12            # what the rebuilds not covered by the walk do
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- > holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/Phase.lean
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- validate 120          # macro run = counters.py run, state by state
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- run 1500        # the macro run, one line per rebuild
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- halting 12      # which rebuilds halt, N < 2^12
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/gen_rebuild_rules.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- H163594 5 > holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/Rebuild.lean
+```

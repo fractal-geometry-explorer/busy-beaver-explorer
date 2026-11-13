@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What is known about 1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC</title>
+<meta name="description" content="Proof status of the six-state BB(6) holdout 1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 36px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; overflow-x: auto; font-family: var(--font-display); font-size: 0.74rem; line-height: 1.6; }
+.top { display: grid; gap: 12px; max-width: 70ch; }
+.crumb { font-size: 0.9rem; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.asof { font-size: 0.88rem; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 70ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 0.88rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.card p { font-size: 0.94rem; }
+.card .where { font-size: 0.84rem; color: var(--muted); }
+.card.open { border-left: 4px solid var(--open); }
+.empty { color: var(--muted); font-size: 0.94rem; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC</p>
+    <h1>What is known about 1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC</h1>
+    <p class="machine">1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC</p>
+    <p>Nobody knows whether this six-state machine halts from blank tape. It is one of three G13 holdouts with the same behaviour (the others are <code>1RB0LA_1RC---_0LD1RD_0RA0RE_0RF1RC_1LF0LA</code> and <code>1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA</code>): a solid wall of 1s that grows to the right by 3 cells every time the head comes back to it, and in front of it a short list of blocks of 1s that the head rewrites on every pass, following a recursive rule found from the simulation and checked on more than a million passes. This page says what that rule is, what is checked, and what is still open.</p>
+    <p class="asof">Status as of 12 November 2026.</p>
+  </header>
+  <section aria-labelledby="h-short">
+    <h2 id="h-short">In short</h2>
+    <div class="verdict">
+      <p><b>The question is open.</b> The run is understood at the level of passes: between two visits of the head to the wall the list of blocks changes by a short recursive rule, and every one of the 1,901,400 wall visits in the first 10<sup>9</sup> steps follows it (C simulator plus <code>py/passmap.py</code>, not a proof). The rule itself never halts; what is not understood is the rare pass in which the list reaches the wall, where in the sibling machine <code>1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA</code> the whole structure collapses and restarts. Lean proves the bounded runs and that the machine halts if and only if the run reaches <code>E&gt;0 1 0</code>.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-claims">
+    <h2 id="h-claims">What each result rests on</h2>
+    <div class="legend" aria-label="Legend">
+      <span><span class="tag t-kernel">kernel</span> checked by Lean's kernel alone</span>
+      <span><span class="tag t-native">native</span> evaluated by compiled code</span>
+      <span><span class="tag t-comp">trusted</span> C or Python in the repository, exhaustive</span>
+      <span><span class="tag t-heur">heuristic</span> sampling, extrapolation, patterns</span>
+      <span><span class="tag t-open">open</span> not known</span>
+    </div>
+    <h3><span class="tag t-kernel">kernel</span> Proved in Lean, kernel-checked</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>The halting configurations</h3>
+        <p>The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.</p>
+        <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10,000 steps</h3>
+        <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
+        <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The only way to halt</h3>
+        <p>The run from blank tape halts if and only if it reaches a configuration <code>E&gt;0 1 0</code> (the head in state E on a 0, with these cells to its right). F is entered only by A1 = 1RF; A is entered by C1 = 1LA, which leaves a 1 right of the head, and by E0 = 1RA. So the halt is <code>E&gt;0 1 0</code>, <code>1 A&gt;1 0</code>, <code>1 1 F&gt;0</code>. The proof is an invariant of the run: while no such configuration has occurred, A on a 1 has a 1 on its right and F reads a 1.</p>
+        <p class="where"><code>halts_iff_crit</code>, <code>lean/HaltIff.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>7</sup> steps</h3>
+        <p>The same run, evaluated by compiled code.</p>
+        <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>9</sup> steps</h3>
+        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 5,706,898 cells have been visited and 5,706,863 of them hold a 1.</p>
+        <p class="where"><code>holdouts/triage.json</code></p>
+      </div>
+      <div class="card">
+        <h3>The pass map holds for the first 10<sup>9</sup> steps</h3>
+        <p>Each time the head, in state E, stands just right of the wall (a run of at least 1000 1s followed by one 0), the tape right of the wall is a list of blocks <code>1^(3k) 0</code> (k = 0 meaning an extra 0) and a tail <code>1^(6+3j)</code>. Of these visits in the first 10<sup>9</sup> steps, 1,901,400 follow the pass map of the README from the previous visit: 1,901,400 after one pass, 0 after two or three (the head came back to the wall in another state in between, unseen by the sampler). 0 passes reach the wall itself, where the map does not apply. At step 999,999,9xx the wall has 5,706,542 cells and the list is <code>1 1 2 1 7 3 3 2 1 1 T0</code>.</p>
+        <p class="where"><code>py/passmap.py</code>, <code>c/blkev.c</code></p>
+      </div>
+      <div class="card">
+        <h3>State E reads a 0 only 73 times in 10<sup>9</sup> steps</h3>
+        <p>In the first 10<sup>9</sup> steps the head is in state E on a 0 exactly 73 times: 69 times with <code>0 0 0</code> to its right (last at step 459,739), once with <code>0 0 1</code> (step 2,506) and 3 times with <code>0 1 1</code> (last at step 241,338); a 1 never follows directly, so the critical <code>1 0</code> did not occur.</p>
+        <p class="where"><code>c/crit.c</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>Growth shape: fixed/linear</h3>
+        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows in proportion to the step count (the head drifts steadily that way) (fitted exponent 1.004).</p>
+        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The same map for three machines</h3>
+        <p>The same pass map, with the same list notation, describes <code>1RB0LA_1RC---_0LD1RD_0RA0RE_0RF1RC_1LF0LA</code> and <code>1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA</code>; only the starting list, the state in which the head meets the wall and the tail offset differ (1^(6+3j) here).</p>
+        <p class="where"><code>py/passmap.py</code> in each folder</p>
+      </div>
+      <div class="card">
+        <h3>Two encodings of the same list</h3>
+        <p>On the way right the head rewrites each block <code>1^(3k) 0</code> as <code>1^3 0 (1^2 0)^(k-1)</code> (same width), and on the way back it rewrites it again; only the end of the list, and the place of the first empty block, change from pass to pass.</p>
+        <p class="where">observed in the simulation</p>
+      </div>
+    </div>
+    <h3><span class="tag t-open">open</span> Open</h3>
+    <div class="cards">
+      <div class="card open">
+        <h3>Does it halt from blank tape?</h3>
+        <p>Not known. Lean reduces the question to one pattern: the machine halts if and only if the run reaches <code>E&gt;0 1 0</code> (<code>halts_iff_crit</code>). Missing for a non-halting proof: Lean proofs of the pass rules for every list (they are recursive, so they need an induction on the list), and above all a rule for the passes that reach the wall, where the wall is erased, the structure restarts from the left end of the tape and later absorbs its own debris. Only a few such restarts have been seen, so their rule has to be derived from the machine, not fitted to data.</p>
+      </div>
+    </div>
+  </section>
+  <section aria-labelledby="h-check">
+    <h2 id="h-check">Check it yourself</h2>
+    <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
+holdouts/1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC/lean/check.sh
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC 1000000000
+python3 holdouts/1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC/py/passmap.py 1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC 1000000000
+gcc -O2 -o /tmp/crit holdouts/1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC/c/crit.c &amp;&amp; /tmp/crit 1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC 1000000000 E</code></pre>
+  </section>
+  <footer>
+    <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>
+    <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+  </footer>
+</main>
+</body>
+</html>

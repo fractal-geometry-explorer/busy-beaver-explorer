@@ -1,0 +1,141 @@
+{
+ "generated": false,
+ "group": "Collatz-like (epochs on a stack of q-blocks)",
+ "title": "What is known about 1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---.",
+ "machine": "1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---",
+ "crumb": "holdouts / 1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---",
+ "home": "../index.html",
+ "source": "holdouts/1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> One round of an epoch is proved in Lean for all sizes (<code>round</code> in <code>lean/Rules.lean</code>). The end of an epoch, which builds the next stack, is only described from simulation."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 44,794 cells have been visited and 13,753 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.488). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.024).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "One round of an epoch",
+   "text": "From state D at the left end of <code>0 q 0 p^a S p^(b+1) S q^(c+1) R</code> (p = <code>10110</code>, q = <code>10000</code>, S = <code>1011</code>) the machine reaches state D at the left end of <code>0 q 0 p^(a+1) S p^(b+2) S q^c R</code> in 50a + 50b + 287 steps, for every a, b, c and every tape R to the right.",
+   "where": "<code>round</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Epochs on a stack of q-blocks",
+   "text": "An epoch starts at <code>D&gt; 0 q 0 S p^3 S q^(c0) r q^(c1) r q^(c2) ...</code> (or with S in place of r). The first block c0 at successive epochs went 3, 9, 25, 50, 102, 306, 414, 829, 1658, 4975, 6641 (step 2,944,031,436). The older entries of the stack move down unchanged or +3 (829, 832; 414, 417; 306, 309). The new top is close to 2 or 3 times the old one, or to the sum of the stack, depending on the epoch type: the Collatz-like part.",
+   "where": "<code>c/tok.c</code> (direct simulation, 3&middot;10<sup>9</sup> steps)"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The halting transition is F1, and F is entered only from E reading a 1 (<code>1LF</code>), so a halt needs E on a 1 with a 1 to its left. A round never does that, so a halt could only come at the end of an epoch. The epoch map has not been extracted.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC--- 1000000000",
+  "PYTHONPATH=tools/py python3 holdouts/1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---/py/gen_rules.py   # rewrites lean/Rules.lean",
+  "gcc -O2 -o tok holdouts/1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---/c/tok.c && ./tok 1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC--- 300000000 at D L p=10110,q=10000,S=1011,r=1000 10000000 | grep -E 'D> 0 q 0 (S p\\^3|p) S q'"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. This machine keeps a stack of blocks on its tape. Round after round it eats the top block one word at a time, which is a Lean theorem for all sizes. When the top block is gone, an epoch ends and a new, larger top is built from the stack. That step follows a Collatz-like rule that is not worked out yet.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "1 round",
+    "text": "One round of an epoch, proved for all sizes."
+   },
+   {
+    "level": "heuristic",
+    "value": "6641",
+    "text": "Top of the stack at the epoch that starts at step 2.9&middot;10<sup>9</sup>."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "round",
+    "eyebrow": "The basic move",
+    "heading": "A round eats one word of the top block",
+    "html": [
+     "<p>Write p = <code>10110</code>, q = <code>10000</code>, S = <code>1011</code>, r = <code>1000</code>. At the start of each round the head is in state D at the left end and the tape reads</p><pre>0 q 0 p^a S p^b S q^c r q^c1 r q^c2 r ... (tail)</pre><p>The head sweeps right to the q-block, turns its first q into a p and comes back, adding a p at the left as well: <code>p^(a+1) S p^(b+1) S q^(c-1)</code>. This is the theorem <code>round</code> (50a + 50b + 287 steps for b &ge; 1), for every tape to the right. So the tape grows by 5 cells a round, and a round costs about ten steps per word of the p-zone.</p>"
+    ]
+   },
+   {
+    "id": "epochs",
+    "eyebrow": "The emergent behaviour",
+    "heading": "Epochs on a stack",
+    "html": [
+     "<p>When the top block q^c is used up, an epoch ends. The machine walks into the stack, turns the p's back into q's and builds a new top. The next epoch starts again with <code>D&gt; 0 q 0 S p^3 S</code>, and a stack whose top is much larger:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>epoch starts at step</th><th>stack, top first</th></tr></thead><tbody><tr><td>16,041</td><td>9 r 6 r 3 r 1 r 1 ...</td></tr><tr><td>62,133</td><td>25 r 12 r 6 r 3 r 4 ...</td></tr><tr><td>214,904</td><td>50 r 28 r 12 r 6 r 3 r 2 ...</td></tr><tr><td>774,673</td><td>102 S 53 S 28 S 12 S 6 S 3 ... (S-type)</td></tr><tr><td>2,911,979</td><td>306 r 53 r 28 r 12 r 6 r 3 r 6 ...</td></tr><tr><td>11,690,814</td><td>414 r 309 r 53 r 28 ...</td></tr><tr><td>46,478,522</td><td>829 r 417 r 309 r 53 ...</td></tr><tr><td>184,543,635</td><td>1658 S 832 S 417 S 309 ... (S-type)</td></tr><tr><td>735,578,720</td><td>4975 r 832 r 417 r 309 ...</td></tr><tr><td>2,944,031,436</td><td>6641 r 4978 r 832 r 417 ...</td></tr></tbody></table></div><p>The old entries are kept or grow by 3. The new top is about twice or three times the old one (25 to 50, 414 to 829, 829 to 1658, 1658 to 4975 = 3&middot;1658 + 1), or about the sum of the stack. Which one happens depends on the epoch type (r or S separators) and on the entries further down. Each epoch about doubles the tape and costs about four times as many steps, so the tape grows like the square root of the step count (on the left, where the head turns); the other end hardly moves.</p>"
+    ]
+   },
+   {
+    "id": "open",
+    "eyebrow": "Why it is open",
+    "heading": "Where a halt would have to come from",
+    "html": [
+     "<p>The only halting transition is F on a 1. F is entered only from E reading a 1, so a halt needs E on a 1 with a 1 to its left. The proved round never does that, so a halt could only come at the end of an epoch. The next step is to prove the end of an epoch with symtm, at least for the two types seen, and to turn the stack update into a map that can be iterated (see the README).</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.488). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.024).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"159.7\" y2=\"159.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"163.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"119.3\" y2=\"119.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"123.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"79.0\" y2=\"79.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"83.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,179.8 L59.2,179.8 L78.4,171.7 L97.6,166.5 L116.8,159.7 L136.0,155.7 L155.2,149.6 L174.4,143.7 L193.6,137.6 L212.8,131.1 L232.0,126.2 L251.2,120.6 L270.4,115.6 L289.6,110.5 L308.8,104.5 L328.0,100.2 L347.2,94.1 L366.4,90.2 L385.6,84.0 L404.8,80.2 L424.0,74.0 L443.2,70.2 L462.4,63.9 L481.6,60.1 L500.8,53.8 L520.0,50.1\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,179.8 L59.2,176.6 L78.4,173.9 L97.6,173.9 L116.8,169.8 L136.0,166.5 L155.2,166.5 L174.4,163.9 L193.6,163.9 L212.8,161.6 L232.0,159.7 L251.2,159.7 L270.4,156.4 L289.6,156.4 L308.8,155.0 L328.0,155.0 L347.2,153.8 L366.4,153.8 L385.6,153.8 L404.8,153.8 L424.0,152.6 L443.2,152.6 L462.4,151.5 L481.6,151.5 L500.8,151.5 L520.0,151.5\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 44,794 cells (29,943 left of the start, 27 right), with a density of 1s of 0.307.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>956,996,807</td><td><code>D&gt;0 1 0^5 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0</code></td></tr><tr><td>left</td><td>972,625,158</td><td><code>D&gt;0 1 0^5 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0</code></td></tr><tr><td>left</td><td>988,336,535</td><td><code>D&gt;0 1 0^5 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0 1 0 1^2 0</code></td></tr><tr><td>right</td><td>735,198,670</td><td><code>0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1 0 1 0^2 1</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "Words p = 10110, q = 10000, S = 1011, r = 1000. The tape is two blocks of p, then a stack of q-blocks separated by r (or S). Each round turns one q of the first q-block into a p and adds a p to the first p-block (proved in Lean); when the first q-block is used up an epoch ends, and a new, larger first block is built from the whole stack; the sizes follow a Collatz-like rule."
+}

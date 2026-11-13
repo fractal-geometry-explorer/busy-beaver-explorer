@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What is known about 1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA</title>
+<meta name="description" content="Proof status of the six-state BB(6) holdout 1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 36px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; overflow-x: auto; font-family: var(--font-display); font-size: 0.74rem; line-height: 1.6; }
+.top { display: grid; gap: 12px; max-width: 70ch; }
+.crumb { font-size: 0.9rem; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.asof { font-size: 0.88rem; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 70ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 0.88rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.card p { font-size: 0.94rem; }
+.card .where { font-size: 0.84rem; color: var(--muted); }
+.card.open { border-left: 4px solid var(--open); }
+.empty { color: var(--muted); font-size: 0.94rem; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA</p>
+    <h1>What is known about 1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA</h1>
+    <p class="machine">1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p><p>Seen at the moments the head, in state B, reaches a new cell on the right, the tape is mostly a row of digits: blocks <code>1^(4m+1) 0</code>, one more than a multiple of four ones each followed by a single 0, read as the numbers m. In the run of 2·10<sup>10</sup> steps 74 of the 103 such moments have exactly this form (the others hold a block of 4m+2 ones, which appears at the visits to the left end and lingers). Most digits are 0. Near the right end a big block grows by four ones at every second new right cell, and the time between new right cells doubles; meanwhile a digit 1 walks left through the 0s, one place per record. It is the same kind of machine as <a href="../1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF/explainer.html">1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF</a>.</p></p>
+    <p><p>At each new cell on the right in state B the tape is mostly a list of digits <code>1^(4m+1) 0</code>, most of them 0, then a big block of ones, then <code>0 1 0 1 B&gt;0</code>. The new cells come in pairs a few steps apart and then a long pause, during which the head runs to the left end, rewrites the list (in the middle of a period the digits look scrambled and the big block is cut into pieces) and comes back with the list restored and the big block four 1s longer. The pause doubles from one period to the next.</p></p>
+    <p class="asof">Status as of 9 November 2026.</p>
+  </header>
+  <section aria-labelledby="h-short">
+    <h2 id="h-short">In short</h2>
+    <div class="verdict">
+      <p><b>The question is open.</b> The machine halts exactly from <code>F&gt; 0 0 0</code> (both directions in Lean). The run is a sequence of periods: in each the head goes to the left end and back, and at the right end the big block grows by four 1s (a 21-step rule proved in Lean). The periods double: 459,930, 919,858, ..., 58,870,786 steps, each exactly twice the previous minus 2, and later 3,759,931,386 and 7,519,862,778 steps, with occasional larger corrections when the digits near the left end change. F has met <code>0 0 1</code> only at steps 257, 11,457, 16,839,809 and 2,371,684,619, the only times up to that step (5 times in 10<sup>10</sup> steps by the ctxcount census), each time just after a long block was written at the very left end of the tape; the halt needs a 0 where those near misses had the 1.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-claims">
+    <h2 id="h-claims">What each result rests on</h2>
+    <div class="legend" aria-label="Legend">
+      <span><span class="tag t-kernel">kernel</span> checked by Lean's kernel alone</span>
+      <span><span class="tag t-native">native</span> evaluated by compiled code</span>
+      <span><span class="tag t-comp">trusted</span> C or Python in the repository, exhaustive</span>
+      <span><span class="tag t-heur">heuristic</span> sampling, extrapolation, patterns</span>
+      <span><span class="tag t-open">open</span> not known</span>
+    </div>
+    <h3><span class="tag t-kernel">kernel</span> Proved in Lean, kernel-checked</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>The halting configurations</h3>
+        <p>The machine stops exactly when it reads the symbol of a halting transition (E0); the generated statement covers every configuration.</p>
+        <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10,000 steps</h3>
+        <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
+        <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The halting context</h3>
+        <p>From <code>F&gt; 0 0 0</code> the machine reaches its halting transition (proved step by step, then <code>step_none_iff</code>). The halting transition is E reading a 0. E is entered only from D reading a 0 (D writes 1 and moves right), and D is entered from C or D moving left (so the cell D's 1 would hand to E is the 1 they just wrote) or from F reading a 0 and moving right. So the only way to halt is <code>F&gt; 0 0 0</code>, and F itself comes only from E reading a 1. The converse is proved: a configuration halts two steps later if and only if it is <code>F&gt; 0 0 0</code> (<code>halt_iff_2</code>), so a halting run from blank passes through it (<code>halts_blank_pred_2</code>).</p>
+        <p class="where"><code>halt_ctx</code>, <code>lean/Rules.lean</code>; <code>halt_iff_2</code>, <code>halts_blank_pred_2</code>, <code>lean/HaltPred.lean</code> (generated by <code>holdouts/1RB0LD_0RC---_1LD0RF_0LE0RA_0RA1LF_0LA1LB/py/halt_pred.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Shift rules</h3>
+        <p>8 shift rules over the words of the tape (for example <code>(1)^n D&gt; 1</code> becomes <code>D&gt; 1 (1)^n</code> in n steps, <code>0 D&gt; (10)^n</code> becomes <code>(11)^n 0 D&gt;</code> in 2n steps), proved for every n.</p>
+        <p class="where"><code>lean/Rules.lean</code> (generated by <code>lean/rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The step at the right end</h3>
+        <p><code>L 1 0 1 0 1 0 1 1 C&gt; 0^inf</code> reaches <code>L 1 1 1 1 1 0 1 0 1 B&gt; 0^inf</code> in 21 steps: the big block absorbs <code>0 1 0</code> and the tail moves two cells right (the pair of records at the end of each period).</p>
+        <p class="where"><code>right_end_grow</code>, <code>lean/Rules.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>7</sup> steps</h3>
+        <p>The same run, evaluated by compiled code.</p>
+        <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>9</sup> steps</h3>
+        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 241 cells have been visited and 183 of them hold a 1.</p>
+        <p class="where"><code>holdouts/triage.json</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 20,000,000,000 steps</h3>
+        <p><code>tools/c/tmrun.c</code> runs 20,000,000,000 steps without a halt; the visited tape is 265 cells wide and holds 208 ones.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Near misses</h3>
+        <p>F had <code>0 0 1</code> ahead of it only 5 times in the first 10<sup>10</sup> steps (the last at step 2,372,144,797, at a visit to the left end) and never <code>0 0 0</code>.</p>
+        <p class="where"><code>c/ctxcount.c</code> and <code>c/forbid.c</code> of <code>holdouts/1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA</code></p>
+      </div>
+      <div class="card">
+        <h3>The macro configuration</h3>
+        <p>At 74 of the 103 new right cells reached in state B in 2·10<sup>10</sup> steps every inner block of the tape is <code>1^(4m+1) 0</code>.</p>
+        <p class="where"><code>py/residue_blocks.py</code> of <code>holdouts/1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA</code></p>
+      </div>
+      <div class="card">
+        <h3>Doubling periods</h3>
+        <p>In 3·10<sup>10</sup> steps the long pauses between right records in state B are 57,486, 114,998, 229,966, 459,930, 919,858, 1,839,714, 3,679,426, 7,358,850, 14,717,698, 29,435,394, 58,870,786, 117,741,564, 235,483,274, 470,953,978, 941,907,956, 1,880,929,872, 3,759,931,386, 7,519,862,778 steps. Eight in a row are exactly twice the previous minus 2; the other corrections are 26, −30, −8, 146, −12,570, 0, −2,886,040, −1,928,358 and 6. There are 58 new cells on the left in these 3·10<sup>10</sup> steps.</p>
+        <p class="where"><code>tmrun M 3e10 records 100000</code>, <code>py/periods.py rec B</code></p>
+      </div>
+      <div class="card">
+        <h3>Where the near misses are</h3>
+        <p>F reads 0 with <code>0 1</code> after it at steps 257, 11,457, 16,839,809 and 2,371,684,619 and at no other step up to 2,371,684,619; each time the tape begins with a block <code>1^6</code>, <code>1^26</code>, <code>1^38</code>, <code>1^54</code> just written at its left end, then <code>F&gt;0 0 1 0 1 0 1 ...</code>. The halt is the same picture with <code>0 0 0</code>.</p>
+        <p class="where"><code>../1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/c/forbid.c</code>: <code>FROM=N ./forbid M 3e10 F:001</code>, <code>./ctxcount M 2e9 F 3</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 30,000,000,000 steps</h3>
+        <p>The C simulator <code>tools/c/tmrun.c</code> runs 3·10<sup>10</sup> steps without a halt; 264 cells visited (last new cell).</p>
+        <p class="where"><code>tmrun M 30000000000 records 100000</code></p>
+      </div>
+      <div class="card">
+        <h3>No small finite-automata certificate</h3>
+        <p>A finite-automata-reduction search (a DFA of n states on one side of the head, the least co-closed NFA on (state × DFA state) + bottom for the other) finds no certificate with n &le; 6, with the DFA on the left or on the right.</p>
+        <p class="where"><code>../1RB0LA_1RC1RA_1RD1RE_1LC---_0RB1LF_1RA0LE/c/far.c</code>: <code>./far M 6</code>, <code>./far M 6 m</code></p>
+      </div>
+      <div class="card">
+        <h3>The clock test</h3>
+        <p>At the visits of the right end in state C on a 0 the tape is <code>W 1<sup>4n+1</sup> 0 1 0 1 1 C&gt;0</code>. From the visit at step 16,962,494 (n = 8), the word W at each later visit of the phase is the word at the visit before after 2<sup>k</sup> applications of one base map, up to 2<sup>14</sup> applications (the visit at step 252,438,652). This is the clock of the machines of <code>holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE</code>, found by running the machine; its tick is not proved (the head works through the block like a counter, which is not the sweep–trip–merge template of <code>gen_clock.py</code>).</p>
+        <p class="where"><code>../1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---/py/clocktest2.py</code> against <code>tools/c/tmrun.c</code>: <code>1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA R C 2400000000 16962494 0 110101 1111 16</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>Growth shape: exp/exp</h3>
+        <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.051). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.105).</p>
+        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Binary clock</h3>
+        <p>Between consecutive new right cells the time doubles (for example 58,870,786, 117,741,564, 235,483,274, 470,953,978, 941,907,956 steps between steps 1.3·10<sup>8</sup> and 1.9·10<sup>9</sup>).</p>
+        <p class="where">records of <code>tools/c/tmrun.c</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-open">open</span> Open</h3>
+    <div class="cards">
+      <div class="card open">
+        <h3>Does it halt from blank tape?</h3>
+        <p>What exactly does one period do to the list (the doubling says it runs through all the values of a counter of growing length), and can the left end ever give F three 0s? The near misses become rarer (steps 257, 11,457, 16,839,809, 2,371,684,619).</p>
+      </div>
+    </div>
+  </section>
+  <section aria-labelledby="h-check">
+    <h2 id="h-check">Check it yourself</h2>
+    <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
+holdouts/1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA/lean/check.sh
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA 20000000000
+gcc -O2 -o ctxcount holdouts/1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/c/ctxcount.c &amp;&amp; ./ctxcount 1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA 1e10 F 3
+./tmrun 1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA 30000000000 records 100000 &gt; rec.txt &amp;&amp; python3 holdouts/1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA/py/periods.py rec.txt B</code></pre>
+  </section>
+  <footer>
+    <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>
+    <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+  </footer>
+</main>
+</body>
+</html>

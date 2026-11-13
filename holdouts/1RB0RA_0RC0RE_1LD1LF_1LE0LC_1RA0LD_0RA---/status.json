@@ -1,0 +1,173 @@
+{
+ "generated": false,
+ "group": "G02",
+ "title": "What is known about 1RB0RA_0RC0RE_1LD1LF_1LE0LC_1RA0LD_0RA---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RA_0RC0RE_1LD1LF_1LE0LC_1RA0LD_0RA---.",
+ "machine": "1RB0RA_0RC0RE_1LD1LF_1LE0LC_1RA0LD_0RA---",
+ "crumb": "holdouts / 1RB0RA_0RC0RE_1LD1LF_1LE0LC_1RA0LD_0RA---",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RA_0RC0RE_1LD1LF_1LE0LC_1RA0LD_0RA---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The tape splits into a small counter at the left end, a register of 331 three-cell digits and a tail of <code>110</code> blocks that grows by one block per sweep. The leftward pass over the tail is proved in Lean for every length; the register's dynamics are observed, not understood, and nothing found says whether F can ever read a 1."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The leftward pass over the tail, for every length",
+   "text": "With a 0 beyond, <code>0 (110110)^n C&gt; 001</code> becomes <code>0 C&gt; 001 (001001)^n</code> in 20n steps, for every n and every tape beyond: the head in C crosses the tail two blocks at a time and rewrites each <code>110</code> as <code>001</code> (the pass back to the right writes them back). A small generalisation of the shared <code>cross_l</code> lemma (a fixed cell between head and repeats) is proved alongside.",
+   "where": "<code>pass</code>, <code>pass_one</code>, <code>cross_lx</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 38,455 cells have been visited and 21,618 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.031). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.462).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 10<sup>10</sup> steps",
+   "text": "<code>tools/c/tmrun.c</code> runs 10<sup>10</sup> steps from blank tape without a halt (42,020 ones at the end).",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No closed tape language from windows up to 7",
+   "text": "<code>bbtools.ctl</code> with windows of K = 2 to 7 cells closes but allows F to read a 1 (18 to 1,920 abstract halting configurations). n-gram CPS (widths 3 to 7, with history and LRU augmentations) fails too.",
+   "where": "<code>tools/py/bbtools/ctl.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Three zones",
+   "text": "Sampled with the head in A at the right end, the tape is a left counter (runs of <code>10</code> such as <code>c^40 0 c^61 a c^17 0 c^3</code> with c = 10, a = 110), then a register that, cut into three-cell digits from the right, uses only <code>110</code> (1) and <code>010</code> (0), then the tail <code>(110)^t 1</code>. Since step 764,833 the register has exactly 331 digits; t grows by one every sweep (t = 21,472 at 3&middot;10<sup>9</sup> steps). Observed to 10<sup>10</sup> steps.",
+   "where": "<code>tools/c/tokrun.c</code>, <code>py/register.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The register is a counter",
+   "text": "The left part of the register is still the fresh pattern <code>1010&hellip;</code> it was born with; only a zone at its right (low) end changes, and at every sweep: in 4,244 consecutive sweeps (to 10<sup>8</sup> steps) the leftmost changed digit was within 20 digits of the end 93% of the time, never more than 60 away. The active zone eats into the fresh part slowly (about 148 fresh digit pairs at 3&middot;10<sup>6</sup> steps, 136 at 3&middot;10<sup>9</sup>): a counter whose length grows like the logarithm of the number of sweeps. Early on (step 760,470) the tail, then 329 blocks long, was absorbed into the register, which grew from 12 to 331 digits.",
+   "where": "<code>py/register.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt?",
+   "text": "Not known. The only halt is F on a 1; F is entered from C reading a 1 (about 4% of steps) and has always read a 0, mostly with <code>1011</code> to its left. A halt would have to come from the counter in the register or the left-end counter, whose rules are not known.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RA_0RC0RE_1LD1LF_1LE0LC_1RA0LD_0RA---/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RA_0RC0RE_1LD1LF_1LE0LC_1RA0LD_0RA--- 1000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 38,455 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "heuristic",
+    "value": "exp/sqrt",
+    "text": "The growth shape of the two sides of the tape (see below)."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "zones",
+    "eyebrow": "What the tape is made of",
+    "heading": "A counter, a register and a tail",
+    "html": [
+     "<p>Each time the head reaches the right end in state A the tape looks like this (step 2,997,000; <code>c = 10</code>, <code>a = 110</code>, <code>d = 110010</code>):</p>",
+     "<div class=\"config\">c^40 0 c^61 a c^17 0 c^3 | d^148 0 c 0 c d 0 c 0 c d a^4 d 0 c 0 c 0 c a d 0 c 0 c d^2 0 c d^3 0 c | a^571 1 A&gt;</div>",
+     "<p>On the left a few runs of <code>10</code>: a small counter that changes only at rare moments. In the middle a <em>register</em>: cut into three-cell digits from the right it uses only <code>110</code> (read as 1) and <code>010</code> (read as 0). In this sample it reads</p>",
+     "<div class=\"config\">0101&hellip;0101 (296 digits) 000100010111110000110001010010101 00</div>",
+     "<p>and on the right the tail <code>(110)^571</code>.</p>"
+    ]
+   },
+   {
+    "id": "sweeps",
+    "eyebrow": "One sweep",
+    "heading": "The tail grows by one block per sweep",
+    "html": [
+     "<p>The head bounces between the right end and the register. Going left over the tail it rewrites every <code>110</code> as <code>001</code>, two blocks per 20 steps (proved in Lean for every length: <code>0 (110110)^n C&gt; 001 &rarr; 0 C&gt; 001 (001001)^n</code>); it then does some work at the right end of the register, comes back writing the <code>110</code>s again, and adds one block at the end. So the tail length counts the sweeps, and the right side grows like the square root of the step count.</p>"
+    ]
+   },
+   {
+    "id": "register",
+    "eyebrow": "The emergent behaviour",
+    "heading": "The register is a slowly growing counter",
+    "html": [
+     "<p>The register has had exactly 331 digits since step 764,833, when the tail of the time (329 blocks) was swallowed into it. Its left part is still the fresh <code>1010&hellip;</code> pattern; each sweep changes only digits near its right end, like the low digits of a counter being stepped. Five consecutive sweeps near step 10<sup>8</sup> end the register with</p>",
+     "<div class=\"config\">&hellip;010001000001011110<br>&hellip;010001000000011110<br>&hellip;010001000000011100<br>&hellip;010001000000011000<br>&hellip;010001000000010010</div>",
+     "<p>The changed zone eats into the fresh part very slowly (a few digits per factor 10 of time), which is the shape of a counter: the left end of the tape is reached ever more rarely, and the left side grows like a logarithm.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Can it halt?",
+    "heading": "Open, and not yet reduced",
+    "html": [
+     "<p>The machine halts only if F reads a 1. F is entered after C reads a 1 and has always found a 0. The tail and the passes are regular and cannot produce the halt; whether the register counter or the left counter can ever bring F onto a 1 is the question, and their rules are not known yet, so no reduction to a number-theoretic question is given here.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.031). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.462).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"159.5\" y2=\"159.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"163.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"118.9\" y2=\"118.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"122.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"78.4\" y2=\"78.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"82.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,176.5 L59.2,176.5 L78.4,171.5 L97.6,166.3 L116.8,159.5 L136.0,156.9 L155.2,151.3 L174.4,148.4 L193.6,145.7 L212.8,143.7 L232.0,143.1 L251.2,141.4 L270.4,139.2 L289.6,137.3 L308.8,133.7 L328.0,129.6 L347.2,122.7 L366.4,122.2 L385.6,121.7 L404.8,121.4 L424.0,121.0 L443.2,120.9 L462.4,120.6 L481.6,120.1 L500.8,119.9 L520.0,119.5\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,183.9 L59.2,176.5 L78.4,169.6 L97.6,164.9 L116.8,161.4 L136.0,154.2 L155.2,150.8 L174.4,145.0 L193.6,136.7 L212.8,131.0 L232.0,125.8 L251.2,120.7 L270.4,116.0 L289.6,111.0 L308.8,106.1 L328.0,101.2 L347.2,92.3 L366.4,86.5 L385.6,82.1 L404.8,77.8 L424.0,73.5 L443.2,69.1 L462.4,64.5 L481.6,59.8 L500.8,55.0 L520.0,50.1\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 38,455 cells (245 left of the start, 28,256 right), with a density of 1s of 0.562.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>860,284,464</td><td><code>D&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>955,342,097</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>971,001,958</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>986,630,138</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "A bouncer whose tail of 110 blocks grows by one block per sweep, crossing a fixed register of 331 three-cell digits (110 = 1, 010 = 0) whose low end it rewrites at every pass like a slowly growing counter; a small counter at the far left ticks rarely.",
+ "family": "register counter + bouncer",
+ "decision": "open"
+}

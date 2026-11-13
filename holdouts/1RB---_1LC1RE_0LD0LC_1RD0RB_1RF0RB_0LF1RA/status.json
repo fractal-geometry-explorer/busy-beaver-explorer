@@ -1,0 +1,179 @@
+{
+ "generated": false,
+ "group": "G11",
+ "title": "What is known about 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA",
+ "description": "Proof status of the six-state BB(6) holdout 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA.",
+ "machine": "1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA",
+ "crumb": "holdouts / 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA",
+ "home": "../index.html",
+ "source": "holdouts/1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA/status.json",
+ "intro": [
+  "Nobody knows whether this six-state machine halts from blank tape. Like <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</code> it runs two binary counters: a long block of 1s at the right end that counts to 2<sup>j</sup>, and the single 0s between the blocks on its left, which receive 2<sup>j</sup> at each full count. Its overflows are different from that machine's and are not modelled. This page lists what has been established, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The event rule is proved in Lean for every size (the proof of <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</code>, states renamed); with <code>blank_to_P</code> it follows that the machine can only halt at an overflow. The overflow rule is not known; the exact accelerated run (jumps between overflows whose endpoints are proved, with step counts checked against the direct run; overflows simulated) reaches the third overflow at step 1.649·10<sup>12</sup> without a halt, and the next one is about 10<sup>15</sup> steps away."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (A1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 151 cells have been visited and 74 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Shift rules",
+   "text": "C erases a block of 1s leftwards; D fills 0s rightwards; F walks left over 0s; B rewrites pairs <code>1 1</code> as <code>1 0</code>; C on a separator walks left through a block, moving it one cell right. Each for every length and every surrounding tape.",
+   "where": "<code>erase</code>, <code>fill</code>, <code>walk</code>, <code>pairs</code>, <code>shift</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The all-ones counter halts",
+   "text": "The configurations <code>1^(2M+2) 0 1^(3M−2) E&gt;0</code> on blank tape halt for M = 4, 5, 6 (after 746, 1,514 and 3,050 steps).",
+   "where": "<code>allones_4</code>, <code>allones_5</code>, <code>allones_6</code>, <code>lean/Shapes.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The event rule, for every size",
+   "text": "This machine is <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</code> with one transition changed: with the states renamed (B, C, D, E, F there are E, F, B, C, D here) the tables agree except that machine's C0 = 1RD, here F0 = 0LF. In the counting phase that transition is used only on a counter digit, <code>E&gt; 0 0 x</code> (E0 1RF, F0 0LF, F1 1RA, A0 1RB, then B on x), which does what the other machine does in 5 steps instead of 3. So the proof of <code>lean/Count.lean</code> carries over with the states renamed and two step counts changed: <code>count</code>, <code>iter</code> and <code>event_rule</code> (from P(d, b1 :: lo ++ h) to P(d+1, b1 :: lo ++ inc h) when lo has d bits and h has a 0), <code>event_to_P</code>, and <code>blank_to_P</code> (the run reaches P(0, <code>1100111</code>) at step 311). Every pair of consecutive P configurations of a run to 2·10<sup>7</sup> steps follows the rule (33) or is an overflow (2).",
+   "where": "<code>event_rule</code>, <code>lean/Count.lean</code>; <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/pchain.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Halting only at an overflow",
+   "text": "Follows from <code>blank_to_P</code> and <code>event_rule</code> (the deduction is not itself a Lean theorem): the run from blank reaches a P configuration and the rules are runs, so the machine can halt only in a phase P(d, bs) whose addition of 2<sup>d+1</sup> carries out of the top bit.",
+   "where": "<code>event_rule</code>, <code>lean/Count.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 4·10<sup>11</sup> steps",
+   "text": "The C simulator runs 4·10<sup>11</sup> steps without a halt. The run has 50 events and 3 overflows; the last overflow (step 1,491,439) leaves 36 bits with j = 3, and the last event (step 206,159,921,357) has j = 33.",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The exact run to the third overflow (step 1.649·10<sup>12</sup>)",
+   "text": "<code>py/accel.py</code> follows the run from P configuration to P configuration with the proved rules (jumps whose endpoints are proved; the step count of each phase is a closed form in the carry lengths, read off the lemmas' proofs since the Lean statements give no step counts, and is checked against a direct run on every phase to 3·10<sup>6</sup> steps), and simulates only the overflows cell by cell (<code>c/transient.c</code>). It reproduces the two overflows of the direct run (P configurations at steps 1,308 and 1,491,493) and finds the third: at step 1,649,096,662,853 the string <code>100000000000011011011000011010110001</code> (d = 34) overflows, and 1,347,301 steps later the run is at P(28, <code>00000000000000000000000000000011100111110110110</code>) (47 bits), step 1,649,098,010,154, without a halt. The next overflow is near d = 46, about 10<sup>15</sup> steps.",
+   "where": "<code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/accel.py</code>, <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/c/transient.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The current phase cannot halt",
+   "text": "In a phase the bits below the current position j never change again. In the phase from step 1,491,439 the event at step 206,159,921,357 has j = 33 and its 33 bits below j (<code>000000000011011011000011010101111</code>) include 0s, so the string never becomes all ones in this phase; it ends with an overflow after j = 35, near step 1.6·10<sup>12</sup> (the time per event doubles). (Now also a consequence of <code>event_rule</code>.)",
+   "where": "<code>tmrun 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA 400000000000 at E R</code>"
+  },
+  {
+   "level": "open",
+   "title": "The overflow rule",
+   "text": "What an overflow writes is not known as a formula. By direct simulation of all 240 overflowing phases P(d, bs) with at most 6 bits, the next P configuration has d = 0 in 219 cases (1 to 3 in the others) and a string 4 to 17 bits longer (mostly 5 to 12), in a way that depends on more than the low bits of R; the only 5 that halt are P(M−2, <code>10…01</code>), the phases that end in the all-ones halting pattern. The exact accelerated run gives the real overflows but no rule.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA 1000000000",
+  "python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/bitmodel.py exhaust 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA E 6",
+  "./tmrun 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA 400000000000 at E R 400 > log && python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/bitmodel.py events 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA E log"
+ ],
+ "explainer": {
+  "lede": "Nobody knows whether it halts. It counts in binary twice at once: a counter at the right end, three cells a digit, and a bit string in the single 0s between the blocks on its left. That part is proved in Lean for every size, so it can only halt when the bit string overflows; how an overflow rebuilds the tape is the missing piece.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "event rule",
+    "text": "Proved in Lean for every size: the event rule, from which it follows that it cannot halt between overflows."
+   },
+   {
+    "level": "trusted",
+    "value": "1.649·10<sup>12</sup> steps",
+    "text": "Exact accelerated run through the third overflow, no halt."
+   },
+   {
+    "level": "kernel",
+    "value": "all ones",
+    "text": "The pattern that halts, proved in Lean for 4, 5 and 6 bits."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "event",
+    "eyebrow": "The picture",
+    "heading": "Two binary counters",
+    "html": [
+     "<p>Every so often the head arrives at the right end of the tape in state E, on blank: an <em>event</em>. The tape is then blocks of 1s split by single 0s, the last one long: <code>1^x1 0 … 0 1^N E&gt;0</code>. The last block is a binary counter with digits three cells wide; between events it counts to 2<sup>j</sup>, j = (N+2)/3, and comes back three cells longer. The blocks on the left are a second counter: after the first two 1s the cells come in pairs (separator, 1) and a separator that is a 1 is a set bit. Each event adds 2<sup>j</sup> to it. From the run (bits from j up in bold):</p>",
+     "<table><tr><th>step</th><th>N</th><th>bit string</th></tr><tr><td>1,491,439</td><td>7</td><td><code>000000000000011011011000011010110<b>111</b></code></td></tr><tr><td>1,491,620</td><td>10</td><td><code>00000000000001101101100001101011<b>1111</b></code></td></tr><tr><td>1,492,009</td><td>13</td><td><code>0000000000000110110110000110110<b>01111</b></code></td></tr><tr><td>1,492,766</td><td>16</td><td><code>000000000000011011011000011011<b>101111</b></code></td></tr><tr><td>1,494,307</td><td>19</td><td><code>00000000000001101101100001110<b>0101111</b></code></td></tr></table>",
+     "<p>This is exactly the rule of <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</code>; all 47 events of the run to 4·10<sup>11</sup> steps that do not overflow follow it.</p>",
+     "<p><b>Proved.</b> This machine is <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</code> with one transition changed, used in the counting phase only to step over a counter digit (5 steps here, 3 there). The Lean proof of that machine's event rule (<code>lean/Count.lean</code>: one count, 2<sup>d</sup> counts by induction, the phase) carries over with the states renamed, so the rule holds for every size here too.</p>"
+    ]
+   },
+   {
+    "id": "overflows",
+    "eyebrow": "Overflow",
+    "heading": "Overflows",
+    "html": [
+     "<p>When adding 2<sup>j</sup> carries out of the top bit, the tape is rebuilt. The run to 4·10<sup>11</sup> steps has three overflows:</p>",
+     "<table><tr><th>step</th><th>before</th><th>after</th></tr><tr><td>176</td><td>1 bit <code>0</code>, j = 1 (N = 1)</td><td>tape <code>1^4 0 1 0 1^4</code>, N = 1</td></tr><tr><td>1,173</td><td>7 bits <code>1110011</code>, j = 4 (N = 10)</td><td>tape <code>1^2 0 1 0 1 0 1 0 1^5 0 1^5 0 1 0 1 0 1^4</code>, N = 1; next event 13 bits</td></tr><tr><td>1,491,439</td><td>16 bits <code>1000110110100011</code>, j = 15 (N = 43)</td><td>36 bits <code>000000000000011011011000011010110111</code>, j = 3 (N = 7)</td></tr></table>",
+     "<p>Unlike in <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</code>, N goes back to 1 or 7 and a block of four 1s can appear for one event; no formula for the rebuilt string is known.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Halting",
+    "heading": "The one way to halt",
+    "html": [
+     "<p>Run directly on every bit string of 4, 5 or 6 bits with every j ≤ M, the machine halts only when all bits are set and j = M: the tape <code>1^(2M+2) 0 1^(3M−2) E&gt;0</code>. Lean checks that these halt for M = 4, 5, 6 (after 746, 1,514 and 3,050 steps). Within a phase the bits below the current position j never change again, so the string can be all ones at the top only if those bits already are. The current phase started at step 1,491,439 with 36 bits and j = 3; at step 206,159,921,357 it has reached j = 33, and the 33 bits below, <code>000000000011011011000011010101111</code>, hold 0s: this phase cannot halt. It overflows after j = 35, near step 1.6·10<sup>12</sup>.</p>"
+    ]
+   },
+   {
+    "id": "open",
+    "eyebrow": "Open",
+    "heading": "Next steps",
+    "html": [
+     "<p>The overflow rule. <code>py/accel.py</code> (in the folder of <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</code>) follows the run exactly: jumps between overflows whose endpoints are proved (step counts checked against the direct run), and only the overflows simulated cell by cell. It reaches the third overflow at step 1,649,096,662,853, which leaves a 47-bit string with d = 28; the fourth is about 10<sup>15</sup> steps away. Collecting overflows from small cases (all 240 overflowing phases with at most 6 bits) shows the next phase starting with d = 0 in 219 cases and a string 4 to 17 bits longer, in a way that depends on more than the low bits; a formula like the other machine's has not been found. The only small cases that halt are the phases that end in the all-ones pattern.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.032).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"121.4\" y2=\"121.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"125.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"42.7\" y2=\"42.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"46.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><path d=\"M40.0,168.8 L59.2,160.7 L78.4,154.4 L97.6,154.4 L116.8,149.2 L136.0,149.2 L155.2,144.8 L174.4,144.8 L193.6,144.8 L212.8,144.8 L232.0,144.8 L251.2,144.8 L270.4,144.8 L289.6,144.8 L308.8,144.8 L328.0,144.8 L347.2,144.8 L366.4,141.0 L385.6,141.0 L404.8,141.0 L424.0,141.0 L443.2,141.0 L462.4,141.0 L481.6,141.0 L500.8,141.0 L520.0,141.0\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,168.8 L59.2,149.2 L78.4,149.2 L97.6,141.0 L116.8,129.5 L136.0,112.3 L155.2,108.7 L174.4,92.0 L193.6,90.2 L212.8,86.9 L232.0,85.3 L251.2,83.9 L270.4,82.5 L289.6,81.2 L308.8,79.9 L328.0,78.7 L347.2,77.6 L366.4,66.4 L385.6,64.9 L404.8,63.5 L424.0,62.8 L443.2,62.2 L462.4,61.5 L481.6,60.9 L500.8,60.3 L520.0,59.7\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 151 cells (7 left of the start, 140 right), with a density of 1s of 0.49.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>806,797,541</td><td><code>1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1^5 0 1^5 0 1^5 0 1 0 1 0 1 0 1^5 0 1^3 0 1^3 0 1^9 0 1^73 E&gt;0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "A separator counter like its relative 1RB---_1RC0RD_... (one transition differs): two binary counters, event rule proved in Lean for every size, so it can only halt at an overflow; overflow rule unknown, exact accelerated run through the third overflow (step 1.649·10^12) without a halt.",
+ "family": "separator counter"
+}

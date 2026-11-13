@@ -1,0 +1,160 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---.",
+ "machine": "1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---",
+ "crumb": "holdouts / 1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The machine iterates a Collatz-like map: a block of m ones becomes, one phase later, a block of about 8m/3 ones, with a short prefix that acts as a second, nested counter. The cycle inside a phase is proved in Lean; the phase map is fitted case by case and agrees with direct simulation through 1.67&middot;10<sup>10</sup> steps. Iterated for 3,000 phases (about 10<sup>2557</sup> steps) it never meets a case that halts."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 76,257 cells have been visited and 46,382 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The cycle of a phase",
+   "text": "For all x, y and any tape L to the left, <code>L 1^(x+3) (01)^y 1 D&gt;0</code> reaches <code>L 1^x (01)^(y+4) 1 D&gt;0</code> in 6y + 39 steps.",
+   "where": "<code>cycle</code>, <code>lean/Cycle.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The phase map, checked against the simulator",
+   "text": "From the phase start <code>Q 0 1^m (01)^5 1 D&gt;0</code> with m = 3k + r, the next phase start is <code>Q' 0 1^(8k+c) (01)^5 1 D&gt;0</code> with Q' and c fixed by (Q, r), and a step count 12k&sup2; + Bk + C. Fitted on four block sizes per case; the predicted start steps of phases 1 to 9 (3,291 ... 16,707,143,908) equal those of the direct C simulation.",
+   "where": "<code>py/phasemap.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "3,000 phases without a halting case",
+   "text": "The fitted map, iterated from blank tape for 3,000 phases (to about 10<sup>2557</sup> steps), meets 68 (prefix, remainder) cases, none of which halts; the 120 prefixes nearest the empty one (breadth first) have no halting case either.",
+   "where": "<code>python3 py/phasemap.py 3000</code>, <code>python3 py/phasemap.py cases 120</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: fixed/sqrt",
+   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.505).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The phase map is fitted, not proved, and has infinitely many cases (the prefix can grow); no case met so far halts.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---/lean/check.sh",
+  "python3 holdouts/1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---/py/phasemap.py 12      # the first phases, with their exact start steps",
+  "python3 holdouts/1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---/py/phasemap.py cases 20",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE--- 1000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. This machine plays a game much like the 3n+1 problem: a block of m ones is ground down three at a time, and then rebuilt as a block of about 8m/3 ones, with the details set by the remainder of m divided by 3. This page runs the real machine in your browser and explains the game.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "1<sup>x+3</sup>(01)<sup>y</sup> &rarr; 1<sup>x</sup>(01)<sup>y+4</sup>",
+    "text": "One cycle of a phase, proved in Lean for all sizes."
+   },
+   {
+    "level": "trusted",
+    "value": "m' &asymp; 8m/3",
+    "text": "Phase to phase, a Collatz-like map on the block size and a short prefix; exact against the simulator through 1.67&middot;10<sup>10</sup> steps."
+   },
+   {
+    "level": "heuristic",
+    "value": "10<sup>2557</sup> steps",
+    "text": "3,000 phases of the fitted map without reaching a halting case."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "shape",
+    "eyebrow": "What the tape looks like",
+    "heading": "A block of ones turning into pairs",
+    "html": [
+     "<p>Every time the head reaches the right end of the tape in state D, the tape reads <code>Q 0 1<sup>x</sup> (01)<sup>y</sup> 1 D&gt;0</code>: a short prefix <code>Q</code>, a solid block of <code>x</code> ones, and a run of <code>y</code> pairs <code>01</code>. The head walks left over the pairs, eats three ones off the end of the block, and walks back writing four new pairs:</p>",
+     "<p class=\"mono\">1<sup>x+3</sup> (01)<sup>y</sup> 1 D&gt;0 &nbsp;&rarr;&nbsp; 1<sup>x</sup> (01)<sup>y+4</sup> 1 D&gt;0 &nbsp;&nbsp;(6y + 39 steps)</p>",
+     "<svg viewBox=\"0 0 640 120\" role=\"img\" aria-label=\"One phase: the block of 1s shrinks by 3 and the run of 01 pairs grows by 4 each cycle\" style=\"width:100%;max-width:640px;height:auto\">\n<g font-family=\"var(--mono)\" font-size=\"12\" fill=\"var(--fg2)\">\n<text x=\"0\" y=\"14\">cycle 0</text><text x=\"0\" y=\"54\">cycle 1</text><text x=\"0\" y=\"94\">cycle j</text></g>\n<rect x=\"70\" y=\"2\" width=\"300\" height=\"18\" fill=\"var(--ink)\"/><rect x=\"370\" y=\"2\" width=\"60\" height=\"18\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/>\n<rect x=\"70\" y=\"42\" width=\"270\" height=\"18\" fill=\"var(--ink)\"/><rect x=\"340\" y=\"42\" width=\"108\" height=\"18\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/>\n<rect x=\"70\" y=\"82\" width=\"150\" height=\"18\" fill=\"var(--ink)\"/><rect x=\"220\" y=\"82\" width=\"300\" height=\"18\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/>\n<g font-family=\"var(--mono)\" font-size=\"11\" fill=\"var(--fg)\"><text x=\"440\" y=\"15\">D&gt;</text><text x=\"456\" y=\"55\">D&gt;</text><text x=\"528\" y=\"95\">D&gt;</text>\n<text x=\"74\" y=\"116\">1^m (solid ones)</text><text x=\"300\" y=\"116\" fill=\"var(--accent)\">(01)^y</text></g></svg>",
+     "<p>This one cycle is proved in Lean for all <code>x</code>, <code>y</code> (<code>cycle</code>, <code>lean/Cycle.lean</code>). A <em>phase</em> is the run of cycles from a full block down to fewer than three ones: a block of <code>m = 3k + r</code> ones lasts <code>k</code> cycles and leaves about <code>4k</code> pairs.</p>"
+    ]
+   },
+   {
+    "id": "map",
+    "eyebrow": "Macro structure",
+    "heading": "Phases: a Collatz-like map that multiplies by 8/3",
+    "html": [
+     "<p>When fewer than three ones are left (r = m mod 3 of them), the head runs into the prefix, rebuilds it, and turns the long run of pairs back into a solid block: about two ones per pair, so the next block is <code>m' = 8k + c</code>, roughly <code>8m/3</code>. The constant <code>c</code> and the new prefix depend only on the old prefix and on <code>r</code>. For the empty prefix:</p>",
+     "<div class=\"tw\"><table><tr><th>m mod 3</th><th>next prefix</th><th>next block m'</th></tr><tr><td>0</td><td>empty</td><td>8k + 12</td></tr><tr><td>1</td><td>empty</td><td>8k + 14</td></tr><tr><td>2</td><td><code>1<sup>6</sup></code></td><td>8k + 8</td></tr></table></div>",
+     "<p>So the machine is iterating a map like the famous <em>3n+1</em> problem: what happens next depends on a remainder, and the numbers grow by a factor of 8/3 per phase. The phases so far, from blank tape (exact step counts at which each phase starts, read off the map and identical to the direct simulation for the first ten):</p>",
+     "<div class=\"tw\"><table><tr><th>phase</th><th>starts at step</th><th>prefix Q</th><th>m</th><th>m mod 3</th></tr><tr><td>0</td><td>576</td><td>empty</td><td>38</td><td>2</td></tr><tr><td>1</td><td>3,291</td><td>1<sup>6</sup></td><td>104</td><td>2</td></tr><tr><td>2</td><td>19,764</td><td>1<sup>3</sup>(01)<sup>2</sup></td><td>284</td><td>2</td></tr><tr><td>3</td><td>132,789</td><td>1(01)<sup>3</sup></td><td>764</td><td>2</td></tr><tr><td>4</td><td>925,650</td><td>1<sup>14</sup></td><td>2,040</td><td>0</td></tr><tr><td>5</td><td>6,524,191</td><td>empty</td><td>5,466</td><td>0</td></tr><tr><td>6</td><td>46,493,506</td><td>empty</td><td>14,588</td><td>2</td></tr><tr><td>7</td><td>330,517,071</td><td>1<sup>6</sup></td><td>38,904</td><td>0</td></tr><tr><td>8</td><td>2,349,492,124</td><td>empty</td><td>103,762</td><td>1</td></tr><tr><td>9</td><td>16,707,143,908</td><td>empty</td><td>276,710</td><td>2</td></tr></table></div>"
+    ]
+   },
+   {
+    "id": "nest",
+    "eyebrow": "A counter inside the counter",
+    "heading": "The prefix is a smaller copy of the same machine",
+    "html": [
+     "<p>The prefix <code>Q</code> has the same shape as the main tape, <code>1<sup>a</sup> (01)<sup>b</sup></code>. A phase ending with remainder 2 pushes work into it (the empty prefix becomes <code>1<sup>6</sup></code>, then <code>1<sup>3</sup>(01)<sup>2</sup></code>, ...: three ones become two pairs, just like a cycle); remainder 0 takes one pair off; remainder 1 usually runs the prefix's own little phase and empties it. Some cases nest a third level (<code>1<sup>6</sup> 0 1<sup>4</sup></code>, ...). Over 3,000 phases the prefix was empty 62% of the time and never longer than about 20 cells.</p>",
+     "<p>The halting transition is F reading a 1, reached only as <code>D&gt;1 1</code>. In all 68 (prefix, remainder) cases met in 3,000 phases, and in the 120 prefixes reached breadth first from the empty one, the phase ends in a new phase start: no case halts.</p>"
+    ]
+   },
+   {
+    "id": "open",
+    "eyebrow": "Why it is still open",
+    "heading": "What is proved and what is not",
+    "html": [
+     "<ul><li><b>Proved (kernel):</b> the halting configurations, no halt in the first 10,000 steps (10<sup>7</sup> with <code>native_decide</code>), and the cycle rule for all sizes.</li>",
+     "<li><b>Computed:</b> the phase map, fitted case by case on small blocks (four sizes each, step count included) and checked against the direct simulation step for step through phase 9 (1.67&middot;10<sup>10</sup> steps). Iterated 3,000 phases (about 10<sup>2557</sup> steps) it never reaches a case that halts.</li>",
+     "<li><b>Open:</b> each case of the map is fitted, not proved, and the prefix can in principle grow without bound (a long run of remainder-2 phases), so there are infinitely many cases. A proof of non-halting would need every case, by induction on the prefix, and an argument that the run never meets a halting one.</li></ul>",
+     "<p><b>Heuristic.</b> If the remainders behave like fair random digits, the prefix behaves like a walk pushed back towards empty, and a halting case, if one exists at all, would have to be reached through an unusually deep prefix. No such case is known; the map so far gives no sign that it halts.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "Collatz-like (8/3), nested prefix counter",
+ "summary": "A block of ones is turned into 01 pairs three at a time; phase to phase the block grows like m -> 8m/3 + c, with c and a nested prefix counter set by m mod 3 (Collatz-like, open).",
+ "decision": "open"
+}

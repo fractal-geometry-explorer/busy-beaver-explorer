@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What is known about 1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC</title>
+<meta name="description" content="Proof status of the six-state BB(6) holdout 1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 36px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; overflow-x: auto; font-family: var(--font-display); font-size: 0.74rem; line-height: 1.6; }
+.top { display: grid; gap: 12px; max-width: 70ch; }
+.crumb { font-size: 0.9rem; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.asof { font-size: 0.88rem; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 70ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 0.88rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.card p { font-size: 0.94rem; }
+.card .where { font-size: 0.84rem; color: var(--muted); }
+.card.open { border-left: 4px solid var(--open); }
+.empty { color: var(--muted); font-size: 0.94rem; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC</p>
+    <h1>What is known about 1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC</h1>
+    <p class="machine">1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p class="asof">Status as of 8 November 2026.</p>
+  </header>
+  <section aria-labelledby="h-short">
+    <h2 id="h-short">In short</h2>
+    <div class="verdict">
+      <p><b>The question is open, and reduced in Lean to a Collatz-like map.</b> Sampled with the head in D at the left end, the tape is a run of ones with one hole: p ones, the hole, r ones. Lean proves, for all p, r &ge; 1, that one sample leads to the next by an explicit map f (the hole's position roughly halved when it is odd, a jump of the hole to the right end when it is even) in an explicit number of steps, or halts (p = 1), and that the machine halts from blank tape <b>if and only if</b> the orbit of (2, 2) under f reaches p = 1. Following the proved map, the kernel shows no halt in the first 10<sup>3669</sup> steps. Whether the orbit ever reaches p = 1 is a Collatz-like question; heuristically the chance is a few in 10<sup>4</sup>.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-claims">
+    <h2 id="h-claims">What each result rests on</h2>
+    <div class="legend" aria-label="Legend">
+      <span><span class="tag t-kernel">kernel</span> checked by Lean's kernel alone</span>
+      <span><span class="tag t-native">native</span> evaluated by compiled code</span>
+      <span><span class="tag t-comp">trusted</span> C or Python in the repository, exhaustive</span>
+      <span><span class="tag t-heur">heuristic</span> sampling, extrapolation, patterns</span>
+      <span><span class="tag t-open">open</span> not known</span>
+    </div>
+    <h3><span class="tag t-kernel">kernel</span> Proved in Lean, kernel-checked</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>The halting configurations</h3>
+        <p>The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.</p>
+        <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10,000 steps</h3>
+        <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
+        <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Hole at position 1 halts</h3>
+        <p>From <code>D&gt; 1 0 R</code> with blank tape to the left, the machine reaches F on a 0 in 7 steps and halts, for every tape R.</p>
+        <p class="where"><code>to_halt</code>, <code>halts_family</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The hole map, for all p and r</h3>
+        <p>Write S(p, r) for the head in state D on the leftmost cell of <code>1^p 0 1^r</code>, blank tape around. For all p, r &ge; 1: S(1, r) halts; S(3, r) &rarr; S(r+5, 2) for r odd and S(r+5, 1) for r even; S(2k+2, r) &rarr; S(3k+r+4, 1); S(2m+1, r) &rarr; S(m&minus;1, m+r+3) for m &ge; 2, each in an exact number of steps <code>cost p r</code> (quadratic in k or m). Built from 12 symbolic rules found and proved by <code>bbtools.symtm</code>, chained by induction over the drift of a block across the ones, its consumption 11 by 11 at the right end, and the halving rounds.</p>
+        <p class="where"><code>sample_step</code>, <code>lean/Map.lean</code>; rules in <code>lean/Steps.lean</code> (from <code>py/steps.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The reduction</h3>
+        <p>From blank tape the machine reaches S(2, 2) in 11 steps, and it halts if and only if the orbit of (2, 2) under the map reaches p = 1.</p>
+        <p class="where"><code>halts_iff</code>, <code>lean/Map.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>3669</sup> steps</h3>
+        <p>The kernel follows the proved map for 30,000 samples from S(2, 2) (the numbers reach 1,835 digits) and adds up the proved step counts: more than 10<sup>3669</sup> steps, none of them a halt.</p>
+        <p class="where"><code>no_halt_10_3669</code>, <code>lean/Bound.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>7</sup> steps</h3>
+        <p>The same run, evaluated by compiled code.</p>
+        <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>9</sup> steps</h3>
+        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 21,646 cells have been visited and 21,644 of them hold a 1.</p>
+        <p class="where"><code>holdouts/triage.json</code></p>
+      </div>
+      <div class="card">
+        <h3>The hole map, checked</h3>
+        <p>From each sample (D on the leftmost cell, reading 1; N cells, a single 0 at position p): p even: N' = N + p/2 + 2, p' = N' &minus; 2; p odd, p &ge; 5: N' = N + 1, p' = (p&minus;3)/2; p = 3: N' = N + 4, p' = N' &minus; 3 (N odd) or N' = N + 3, p' = N' &minus; 2 (N even); p = 1: halt. The machine follows this from every sample with N &lt; 120 and 1 &le; p &le; N&minus;2 (exhaustive), along the first 3&middot;10<sup>7</sup> steps (31 samples) and at all 52 samples of the run to 2.9&middot;10<sup>9</sup> steps. (Now proved for all N: see above; the check also confirms the step counts.)</p>
+        <p class="where"><code>py/holemap.py check</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 10<sup>10</sup> steps</h3>
+        <p><code>tools/c/tmrun.c</code>: 10<sup>10</sup> steps from blank tape without a halt (59,677 ones). The map from the run's first sample (N, p) = (5, 2), iterated 30,000 times (N then has 1,835 digits), never reaches p = 1 or 3.</p>
+        <p class="where"><code>tools/c/tmrun.c</code>, <code>py/holemap.py run 30000</code></p>
+      </div>
+      <div class="card">
+        <h3>No closed tape language from windows up to 7</h3>
+        <p><code>bbtools.ctl</code> with K = 2 to 7 closes but allows a halt (3 abstract halting configurations at every K); n-gram CPS (widths 3 to 7, -H, -U) fails, as it must: the halting configuration above is real.</p>
+        <p class="where"><code>tools/py/bbtools/ctl.py</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>Growth shape: exp/sqrt</h3>
+        <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.07). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.471).</p>
+        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Why it probably never halts</h3>
+        <p>A halving chain p &rarr; (p&minus;3)/2 &rarr; &hellip; ends at 1 only if it starts at p = 2<sup>j</sup> &minus; 3; chains start at N &minus; 2 (or N &minus; 3 after p = 3), with N growing by a factor about 3/2 per even step. So the run must land exactly on a length like 2<sup>j</sup> &minus; 1. Treating N as random at its scale, the expected number of hits beyond N &asymp; 3&middot;10<sup>4</sup> is about &Sigma;<sub>j&ge;15</sub> 2/(2<sup>j</sup> ln 1.5) &asymp; 3&middot;10<sup>-4</sup>. The community lists the machine as Space Needle-like, probviously non-halting (bbchallenge wiki).</p>
+        <p class="where"><code>README.md</code>, <code>holdouts/known.json</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-open">open</span> Open</h3>
+    <div class="cards">
+      <div class="card open">
+        <h3>Does it halt?</h3>
+        <p>Not proved either way. By the kernel claims above, the question is exactly whether the orbit of (2, 2) under the hole map ever reaches p = 1 (a halving chain p &rarr; (p&minus;3)/2 &rarr; &hellip; starting at 2<sup>j</sup> &minus; 3), a Collatz-like question with no visible invariant that rules it out.</p>
+      </div>
+    </div>
+  </section>
+  <section aria-labelledby="h-check">
+    <h2 id="h-check">Check it yourself</h2>
+    <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
+holdouts/1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC/lean/check.sh
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC 1000000000</code></pre>
+  </section>
+  <footer>
+    <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>
+    <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+  </footer>
+</main>
+</body>
+</html>

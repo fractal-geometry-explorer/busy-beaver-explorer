@@ -1,0 +1,160 @@
+{
+ "generated": false,
+ "group": "Euclid-like subtraction with tripling (cryptid)",
+ "title": "What is known about 1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE.",
+ "machine": "1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE",
+ "crumb": "holdouts / 1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open, and is now a question about a simple map.</b> Lean proves (kernel only) that the machine halts from blank tape if and only if the orbit of (3, 1, R1) under the round map <code>next</code> reaches a pair with <i>i</i> = <i>j</i> or <i>i</i> + 1 = <i>j</i>. The map has been iterated for 10<sup>6</sup> rounds without that happening; heuristically the chance that it ever happens is negligible (a probviously non-halting cryptid)."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (C0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 32,027 cells have been visited and 32,024 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.497). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.126).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Every round, for all block sizes",
+   "text": "From R1(i, j) or R2(i, j) (two blocks of 1s of lengths 2i and 2j, then a tail 0 11 or 0 11 0 11, head at the right end in state B) the machine reaches the next round configuration given by <code>next</code>, or halts when <code>next</code> is <code>none</code> (i = j or i + 1 = j). Proved for all i, j from 26 symbolic runs and an induction on the inner passes.",
+   "where": "<code>round_ok</code>, <code>lean/Round.lean</code>; pieces in <code>lean/Pieces.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Halting is reduced to the orbit of a map",
+   "text": "The machine halts from blank tape if and only if the orbit of (3, 1, R1) under <code>next</code> reaches a halting pair.",
+   "where": "<code>halts_iff</code>, <code>lean/Round.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The map matches the machine",
+   "text": "The round starts of the real machine, read off a C run of 3&middot;10<sup>10</sup> steps (46 rounds), are exactly the orbit of the map.",
+   "where": "<code>py/orbit.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halting pair in 10<sup>6</sup> rounds",
+   "text": "Iterating the map with exact integers for 10<sup>6</sup> rounds never gives i = j or i + 1 = j; the numbers grow by about 0.31 bits per round. Closest approach: at round 547,658 the difference i &minus; j still has 167,823 bits, against 167,848 bits for i and j.",
+   "where": "<code>py/orbit.py iterate</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Probviously non-halting",
+   "text": "Along the orbit i - j looks like a random number of the size of i and j, so a round with n-bit numbers hits the two halting values with chance about 2<sup>-n</sup>; the expected number of future hits is negligible. No invariant is known that excludes them (congruences cannot: i = j is excluded only by size).",
+   "where": ""
+  },
+  {
+   "level": "open",
+   "title": "Does the orbit ever reach i = j or i + 1 = j?",
+   "text": "Not known: a Collatz-type question about a piecewise affine map mixing subtraction and multiplication by 3.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE/lean/check.sh",
+  "python3 holdouts/1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE/py/orbit.py check 22",
+  "python3 holdouts/1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE/py/orbit.py iterate 100000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows, but the question has been boiled down. This machine keeps two blocks of 1s on its tape and, round after round, takes the shorter one off the longer one and triples it, like Euclid's algorithm gone wrong. Lean proves that it halts exactly when the two blocks come out equal (or off by one) at the end of a round. This page runs the real machine, shows the rule, and lists what is known.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "halts &hArr; orbit hits",
+    "text": "The machine halts iff the round map's orbit reaches i = j or i + 1 = j (Lean, kernel only)."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>6</sup> rounds",
+    "text": "The map iterated that far: no halting pair; numbers of about 92,000 digits."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "tape",
+    "eyebrow": "The tape",
+    "heading": "Two blocks of ones and a flag",
+    "html": [
+     "<p>At the start of every round the head sits at the right end of the tape in state B, and the tape is</p><pre>R1(i, j) = &hellip;0 1<sup>2i</sup> 0 1<sup>2j</sup> 0 11 B&gt; 0&hellip;\nR2(i, j) = &hellip;0 1<sup>2i</sup> 0 1<sup>2j</sup> 0 11 0 11 B&gt; 0&hellip;</pre>",
+     "<p>Two blocks of 1s of even lengths 2i and 2j, and a short tail that works as a one-bit flag J. From blank tape the first round starts at step 74 in R1(3, 1).</p>"
+    ]
+   },
+   {
+    "id": "round",
+    "eyebrow": "One round",
+    "heading": "A three-block bouncer",
+    "html": [
+     "<p>The head runs to the left end, where the round becomes three blocks <code>E&gt; 0 1<sup>a</sup> 0 1<sup>b</sup> 0 1<sup>c</sup></code> with a = 2i, b = 2j &minus; 3 and c = 6 (after R1) or 9 (after R2). A four-cell zig-zag <code>0110</code> walks right across the first two blocks and the head walks back: each such pass takes (a, b, c) to (a &minus; 2, b &minus; 2, c + 6) and moves the left end of the tape two cells further out. When the first or second block runs out, the round ends with the third block as the new second block, and the parity of c choosing the next tail.</p>",
+     "<p>In the half-lengths (i, j) and the flag J the round is this map (<code>next</code> in <code>lean/Round.lean</code>, proved for all i and j):</p><table class=\"tbl\"><thead><tr><th>case</th><th>J = 0 (tail 0 11)</th><th>J = 1 (tail 0 11 0 11)</th></tr></thead><tbody><tr><td>i &ge; j + 2</td><td>(i &minus; j &minus; 1, 3j + 2, 0)</td><td>(i &minus; j &minus; 1, 3j + 3, 1)</td></tr><tr><td>i = j + 1</td><td>(3i &minus; 3, 3, 1)</td><td>(3i, 1, 0)</td></tr><tr><td>i = j or i + 1 = j</td><td><b>halts</b></td><td><b>halts</b></td></tr><tr><td>i + 2 = j</td><td>(3i + 3, 1, 0)</td><td>(3i + 3, 3, 1)</td></tr><tr><td>i + 3 &le; j</td><td>(j &minus; i &minus; 2, 3i + 3, 1)</td><td>(j &minus; i &minus; 2, 3i + 5, 0)</td></tr></tbody></table>",
+     "<p>So the shorter block is taken off the longer one and the shorter one is tripled: Euclid's algorithm with a tripling that keeps the numbers growing, by about 0.31 bits a round along the orbit.</p>"
+    ]
+   },
+   {
+    "id": "orbit",
+    "eyebrow": "The orbit",
+    "heading": "The first rounds from blank tape",
+    "html": [
+     "<table class=\"tbl\"><thead><tr><th>round</th><th>i</th><th>j</th><th>tail</th><th>i &minus; j</th></tr></thead><tbody><tr><td>0</td><td>3</td><td>1</td><td>R1</td><td>2</td></tr><tr><td>1</td><td>1</td><td>5</td><td>R1</td><td>-4</td></tr><tr><td>2</td><td>2</td><td>6</td><td>R2</td><td>-4</td></tr><tr><td>3</td><td>2</td><td>11</td><td>R1</td><td>-9</td></tr><tr><td>4</td><td>7</td><td>9</td><td>R2</td><td>-2</td></tr><tr><td>5</td><td>24</td><td>3</td><td>R2</td><td>21</td></tr><tr><td>6</td><td>20</td><td>12</td><td>R2</td><td>8</td></tr><tr><td>7</td><td>7</td><td>39</td><td>R2</td><td>-32</td></tr><tr><td>8</td><td>30</td><td>26</td><td>R1</td><td>4</td></tr><tr><td>9</td><td>3</td><td>80</td><td>R1</td><td>-77</td></tr><tr><td>10</td><td>75</td><td>12</td><td>R2</td><td>63</td></tr><tr><td>11</td><td>62</td><td>39</td><td>R2</td><td>23</td></tr></tbody></table>",
+     "<p>The left side of the tape grows like the square root of the step count (two cells per pass, and a round of size n costs about n<sup>2</sup> steps); the right side grows by one or three cells per round, and the number of rounds grows like the logarithm of the step count.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Halting",
+    "heading": "Why it would halt, and why it probably never does",
+    "html": [
+     "<p>The machine halts exactly when the two blocks run out in the same pass: i = j or i + 1 = j. Then the zig-zag finds a blank where it expects the third block and the head reads a 0 in state C, the halting transition. Lean proves both directions: <code>halts_iff : HaltsFromBlank &harr; &exist; n, orb n = none</code>.</p>",
+     "<p>Along the orbit the difference i &minus; j behaves like a random number as large as i and j themselves, so with n-bit numbers the chance of hitting one of the two halting values is about 2<sup>&minus;n</sup>. The orbit has been followed for 10<sup>6</sup> rounds, to numbers with tens of thousands of digits, and the closest approach is at round 547,658 the difference i &minus; j still has 167,823 bits, against 167,848 bits for i and j. Ruling out a hit forever is a problem of the Collatz type, and no invariant is known: congruences alone cannot do it, because i = j is excluded only by size.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "Two blocks of 1s play a Euclid-like game with tripling, (i, j) to (i - j - 1, 3j + 2) and similar; Lean proves it halts iff the orbit reaches i = j or i + 1 = j, which no iterate up to 10<sup>6</sup> rounds does.",
+ "decision": "open"
+}

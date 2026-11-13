@@ -1,0 +1,178 @@
+{
+ "generated": false,
+ "group": "G01",
+ "title": "What is known about 1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB.",
+ "machine": "1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB",
+ "crumb": "holdouts / 1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The head shuttles out from the left end over a periodic background, rewriting the word <code>1^8 00</code> as <code>(011)^3 0</code> on the way right and back on the way left (shift rules proved in Lean). It turns back at the first defect of the background or passes it, depending on the defect's current shape, so the defects work like the digits of a counter, and the far right end is reached only when all of them let the head through. The defects also move, as gliders between a glider gun at the left end and a slowly growing structure at the right end. No map between macro configurations is known yet, so neither halting nor non-halting is in reach."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (C1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 32,978 cells have been visited and 22,841 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The two sweeps over the background",
+   "text": "Going right, E crosses <code>(1^5 00 1^3)^n</code> in 30n steps and leaves <code>(1100110110)^n</code>, a rotation of <code>(011)^3 0</code>; going left, A crosses <code>((011)^3 0)^n</code> in 38n steps and leaves <code>(1^4 00 1^4)^n</code>. At the left end, <code>A&gt; 0^3 1^2 0^2 (1^8 00)^(n+1)</code> turns and crosses all n+1 words to the right in 30n+49 steps.",
+   "where": "<code>e_sweep</code>, <code>a_sweep</code>, <code>left_end</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The right end grows in rare events",
+   "text": "Up to 3&middot;10<sup>9</sup> steps the right end of the tape grows in 33 short bursts after the start-up (at steps 3029, 7914, 14085, 27710, &hellip;, 536503257, 802505958, 1259208777), each adding 3 or 4 cells with the same local pattern (<code>&hellip;(011)^5 E&gt;00</code> then <code>F&gt;000</code>, <code>E&gt;1100</code>); between 1.26&middot;10<sup>9</sup> and 3&middot;10<sup>9</sup> there is none.",
+   "where": "<code>py/analyse.py records</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Each right-end event makes the left end emit a glider",
+   "text": "The left end shows the shape <code>0^5 1^6</code>, the birth of a new glider, shortly (one excursion of the head) after every one of the 33 bursts (the delay grows from 218 to 135818 steps); 41 births up to 1.26&middot;10<sup>9</sup> steps, so a few births come without a burst.",
+   "where": "<code>py/sweeps.py</code>, the defect view"
+  },
+  {
+   "level": "trusted",
+   "title": "Defects act as the digits of a counter",
+   "text": "Between consecutive returns of the head to the left end (state A), near 2&middot;10<sup>8</sup> steps, the head turns back at the first defect, about 9,300 cells out, on 5 of every 7 excursions and passes it on 2 (pattern long, short, short, short, short, long, short, repeating).",
+   "where": "<code>py/analyse.py excursions</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Gliders, merges and a counter",
+   "text": "In the defect picture gliders leave the left end, travel right at about 0.4 words per return of the head to the left end, slow down, merge with each other and pile up as nearly stationary defects some 50&ndash;400 words from the right end. The time between bursts grows irregularly (ratios 1.1 to 2.5), which is why the right side grows like a logarithm while the left grows like a square root.",
+   "where": "the picture <code>pages/holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/defects.png</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Where a halt would come from",
+   "text": "The machine halts only on C reading 1, i.e. after B reads a 0 that has a 1 just right of it. Normally this never happens in the background; it needs an unusual defect to reach the left end, where the head turns. All gliders seen so far move away from the left end. No probability estimate is attempted: the defects do not look random, and their interactions have not been catalogued.",
+   "where": "<code>step_none_iff</code> (kernel) and observation"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.473). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.077).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. Next step: Catalogue the glider shapes and their speeds, the merge rules, the reaction of the left end to an arriving signal and of the right end to an arriving glider; with that catalogue the run becomes a particle system that a program can accelerate (one step per glider event instead of per sweep), and the question becomes whether a defect of the right shape can ever reach the left end.",
+   "where": "README.md, Further work"
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB 1000000000",
+  "python3 holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/py/rules.py      # rewrites lean/Rules.lean",
+  "python3 holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/py/analyse.py image   # the defect picture",
+  "python3 holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/py/rules.py      # rewrites lean/Rules.lean",
+  "python3 holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/py/analyse.py image   # the defect picture"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. This machine bounces between the ends of its tape, and its tape is a long repeated word with a few defects in it. The defects move like particles: a glider gun at one end, slow collisions in the middle, and a slowly growing pile at the other end. This page shows the particles and what is proved.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "2 sweeps",
+    "text": "The head's sweeps over the background, proved for every length."
+   },
+   {
+    "level": "trusted",
+    "value": "33 events",
+    "text": "Bursts of growth at the right end in 3&middot;10<sup>9</sup> steps."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 32,978 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "background",
+    "eyebrow": "The background",
+    "heading": "A word rewritten on every sweep",
+    "html": [
+     "<p>Apart from a few defects the tape is one word repeated. When the head has just come back to the left end, the word is <code>1111111100</code> (eight 1s, two 0s). Sweeping right, the head turns each copy into <code>0110110110</code>, i.e. <code>(011)^3 0</code>, 3 steps a cell; sweeping left, it turns them back, 3.8 steps a cell. So the tape flips between two phases, and a sweep costs time proportional to its length.</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>sweep</th><th>word crossed</th><th>word left behind</th><th>steps per word</th></tr></thead><tbody><tr><td>right, state E</td><td><code>1^5 00 1^3</code></td><td><code>1100110110</code></td><td>30</td></tr><tr><td>left, state A</td><td><code>(011)^3 0</code></td><td><code>1^4 00 1^4</code></td><td>38</td></tr></tbody></table></div>",
+     "<p>Each return of the head to the left end adds two cells there (a word every five returns), so the left side grows like the square root of the time.</p>"
+    ]
+   },
+   {
+    "id": "gliders",
+    "eyebrow": "Emergent behaviour",
+    "heading": "Gliders between a gun and a pile",
+    "html": [
+     "<figure style=\"margin:1em 0\"><img src=\"defects.png\" alt=\"defect picture of 1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB\" style=\"width:100%;max-width:900px;image-rendering:pixelated;border:1px solid var(--line);background:#fff\"/><figcaption style=\"font-size:0.9em;color:var(--muted)\">One row every 7 returns of the head to the left end (time runs down), 4&middot;10<sup>8</sup> steps; dark where the tape differs from itself 10 cells further, i.e. where the background is broken. The upper-left edge is the left end of the tape.</figcaption></figure>",
+     "<p>A defect in the background is not static: every sweep reshapes it (it cycles through about seven shapes such as <code>1^4 00 1^12</code>, <code>1^20</code>, <code>1^4 0^4 1^4</code>) and moves it. These moving defects are <em>gliders</em>, the dark lines in the picture.</p><ol><li>Now and then the right end of the tape grows by 3 or 4 cells (a <em>burst</em>).</li><li>Within one excursion of the head the left end reacts: it shows <code>0^5 1^6</code> and a new glider is born.</li><li>The glider moves right, at first fast, then slower; gliders that meet merge into one.</li><li>Merged gliders pile up near the right end, and the next burst follows.</li></ol><p>The bursts get rarer as the tape gets longer (33 in 3&middot;10<sup>9</sup> steps, the last at 1.26&middot;10<sup>9</sup>), so the right side grows like a logarithm.</p>",
+     "<p><b>Defects as digits.</b> The head does not cross the whole tape every time. Leaving the left end it crosses the background up to the first defect, and there it either turns back or passes, depending on the defect's shape, which changes at every visit. Around 2&middot;10<sup>8</sup> steps the first defect lets the head through on 2 of every 7 visits (the excursions follow the pattern long, short, long, short, short, short, short), so the second defect is visited 7/2 times less often, and so on: the defects form a counter, and the right end, reached only when every defect lets the head through, moves at the rate of the counter's overflows.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Can it stop?",
+    "heading": "Halting needs a defect at the left end",
+    "html": [
+     "<p>The only halting transition is C reading 1. C is entered when B reads a 0 and writes a 1 moving right, so a halt needs <code>B&gt;0 1</code>: in the background the cell after such a 0 is always 0, so the halt can only come from a defect at the turning point. All gliders seen move away from the left end, so there is no visible path to a halt, but the collision rules have not been worked out, so nothing is proved either way.</p><p>The same table, mirrored and started in another state, is the holdout <a href=\"../1RB0LB_1RC1LD_1LD0RD_1LE0RC_1LF---_0LA1RF/explainer.html\">1RB0LB_1RC1LD_1LD0RD_1LE0RC_1LF---_0LA1RF</a>, which shows the same gliders.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.473). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.077).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"158.8\" y2=\"158.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"162.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"117.6\" y2=\"117.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"121.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"76.4\" y2=\"76.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"80.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,183.7 L59.2,179.4 L78.4,179.4 L97.6,173.4 L116.8,169.1 L136.0,161.9 L155.2,157.9 L174.4,151.6 L193.6,143.4 L212.8,139.4 L232.0,132.3 L251.2,126.4 L270.4,120.6 L289.6,116.4 L308.8,108.8 L328.0,102.4 L347.2,97.7 L366.4,93.3 L385.6,86.1 L404.8,82.0 L424.0,75.6 L443.2,69.8 L462.4,64.9 L481.6,60.0 L500.8,56.7 L520.0,50.3\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,176.1 L59.2,176.1 L78.4,171.1 L97.6,167.3 L116.8,161.9 L136.0,158.8 L155.2,158.8 L174.4,154.8 L193.6,152.8 L212.8,151.0 L232.0,147.6 L251.2,146.3 L270.4,145.2 L289.6,142.8 L308.8,138.4 L328.0,137.1 L347.2,136.4 L366.4,135.3 L385.6,134.2 L404.8,133.6 L424.0,131.6 L443.2,129.8 L462.4,128.6 L481.6,128.3 L500.8,127.9 L520.0,127.2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 32,978 cells (23,720 left of the start, 133 right), with a density of 1s of 0.693.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>955,442,026</td><td><code>A&gt;0 0^2 1^2 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2</code></td></tr><tr><td>left</td><td>971,123,408</td><td><code>A&gt;0 0^2 1^2 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2</code></td></tr><tr><td>left</td><td>986,770,586</td><td><code>A&gt;0 0^2 1^2 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2 1^8 0^2</code></td></tr><tr><td>right</td><td>536,503,257</td><td><code>0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2</code></td></tr><tr><td>right</td><td>802,505,958</td><td><code>0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "Glider collider: a bouncer whose background carries gliders, with a counter at the slow end",
+ "summary": "A bouncer over the background 1^8 00 / (011)^3 0 carrying gliders: each event at the slow right end makes the left end emit a glider, gliders drift right, merge, and trigger the next event; halting needs a C>1 at the left end.",
+ "decision": "open"
+}

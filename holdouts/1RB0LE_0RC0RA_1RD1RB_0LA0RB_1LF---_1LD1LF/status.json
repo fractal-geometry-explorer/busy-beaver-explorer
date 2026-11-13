@@ -1,0 +1,148 @@
+{
+ "generated": false,
+ "group": "G08",
+ "title": "What is known about 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF.",
+ "machine": "1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF",
+ "crumb": "holdouts / 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head sweeps over the whole tape; on both sides it leaves sequences of a few kinds of unit, in an order with no visible period. This page lists what has been established, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean proves the halting configurations and no halt in the first 10<sup>7</sup> steps. The unit structure below is observed in simulations, not proved. No halt in the first 10<sup>9</sup> steps."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (E1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 58,887 cells have been visited and 28,304 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: sqrt/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.496). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.493).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A never reads 1 with a 1 to its left (so far)",
+   "text": "The only halting entry is E reading a 1, and E is entered only from <code>A&gt;1</code> (write 0, move left): the machine halts exactly when <code>1 A&gt;1</code> occurs. In the first 10<sup>8</sup> steps E is entered 12,501,222 times, always onto a 0.",
+   "where": "<code>c/haltwatch.c</code>, first 10<sup>8</sup> steps"
+  },
+  {
+   "level": "heuristic",
+   "title": "Two sequences of units",
+   "text": "Right of the start the tape is a sequence of runs <code>(01)^k 0</code> with k = 12 most of the time, 3 or 21 now and then, and 9, 15 or 18 in the youngest part near the right end, which is a long run <code>(01)^126 (10)^16 1</code> at step 2&middot;10<sup>7</sup>. Left of the start it is a sequence of units <code>000 (110100)^k 110 (010011)^j 01</code> with k = 3 or 6 and j = 4 or 7. The settled lengths differ by multiples of 3, and no period is visible in the order of the units.",
+   "where": "<code>py/snapshots.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The unit sequences look like the fixed point of a substitution, generated one unit per sweep near each end; a proof would need that substitution (how the run at the right end is cut into units, and what decides between 3, 12 and 21), and then a check that the head's passes over the units never produce <code>1 A&gt;1</code>.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/lean/check.sh",
+  "python3 holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/py/snapshots.py 2e7 R 100",
+  "gcc -O2 -o haltwatch holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/c/haltwatch.c && ./haltwatch 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF 100000000",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF 1000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Started on a blank tape, this machine sweeps back and forth and leaves behind, on each side, a long sequence built from a few kinds of block, in an order that never settles into a repeat. Working out the rule behind that order is the open part.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "10<sup>4</sup> steps",
+    "text": "No halt, checked by Lean's kernel (10<sup>7</sup> by compiled code)."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator."
+   },
+   {
+    "level": "heuristic",
+    "value": "3, 12, 21",
+    "text": "The usual lengths of the runs of 01 on the right side."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "The one way to halt",
+    "html": [
+     "<p>The only halting entry is E reading a 1. E is entered only from A reading a 1 (A writes 0 and moves left), so the machine halts exactly when <code>1 A&gt;1</code> occurs. In the first 10<sup>8</sup> steps that moment comes 12.5 million times, and the cell to the left has always been a 0; the window around the head as E is entered is most often <code>101[0]001</code> or <code>100[0]010</code>.</p>"
+    ]
+   },
+   {
+    "id": "right",
+    "eyebrow": "Macro structure",
+    "heading": "The right side: runs of 01",
+    "html": [
+     "<p>When the head reaches a new cell at the right end the tape right of the start reads, at step 4,995,420,</p>",
+     "<p><code>(10)^5 (01)^21 0 (01)^12 0 (01)^12 0 (01)^12 0 (01)^12 0 (01)^12 0 (01)^12 0 (01)^3 0 (01)^12 0 (01)^12 0 (01)^12 0 (01)^12 0 (01)^21 0 &hellip;</code></p>",
+     "<p>a sequence of runs <code>(01)^k</code> each followed by one 0, with k = 12 most of the time and 3 or 21 now and then. Near the right end, in the part written most recently, other lengths occur (9, 15, 18, 5, 6, 8), and the end itself is one long run that grows: <code>&hellip; (01)^3 0 (01)^5 0 (01)^3 0 (01)^126 (10)^16 1 D&gt;0</code> at step 2&middot;10<sup>7</sup>. So the run at the end is cut into pieces over time and the pieces settle into lengths 3, 12, 21.</p>"
+    ]
+   },
+   {
+    "id": "left",
+    "eyebrow": "Macro structure",
+    "heading": "The left side: units of 110100 and 010011",
+    "html": [
+     "<p>Left of the start the tape reads, at step 44,527,536,</p>",
+     "<p><code>A&gt;0 0110011010011 000 1101 000 (110100)^3 110 (010011)^4 01 000 (110100)^6 110 (010011)^4 01 000 (110100)^3 110 (010011)^4 01 &hellip;</code></p>",
+     "<p>a sequence of units <code>000 (110100)^k 110 (010011)^j 01</code> with k = 3 or 6 and j = 4 or 7 (and a few shorter units such as <code>000 110 (010011)^4 01</code>). As on the right, the lengths differ by multiples of 3 and no period is visible in their order.</p>",
+     "<p>Nothing here is proved. A natural next step is to cut the run into round trips and find the rule by which the end run is split, which would give a substitution generating both sequences.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.496). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.493).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"160.7\" y2=\"160.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"164.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"121.5\" y2=\"121.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"125.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"82.2\" y2=\"82.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"86.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"42.9\" y2=\"42.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"46.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,180.4 L59.2,174.6 L78.4,166.0 L97.6,166.0 L116.8,159.9 L136.0,151.4 L155.2,145.2 L174.4,139.4 L193.6,134.1 L212.8,128.4 L232.0,121.7 L251.2,115.8 L270.4,110.9 L289.6,106.3 L308.8,101.8 L328.0,97.3 L347.2,93.0 L366.4,88.3 L385.6,83.7 L404.8,78.9 L424.0,74.2 L443.2,69.3 L462.4,64.5 L481.6,59.6 L500.8,54.7 L520.0,49.8\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,180.4 L59.2,177.2 L78.4,177.2 L97.6,168.9 L116.8,163.7 L136.0,159.9 L155.2,159.9 L174.4,156.9 L193.6,152.3 L212.8,150.5 L232.0,146.7 L251.2,145.5 L270.4,142.3 L289.6,139.6 L308.8,136.1 L328.0,132.8 L347.2,128.6 L366.4,124.8 L385.6,120.2 L404.8,115.9 L424.0,111.2 L443.2,106.8 L462.4,101.7 L481.6,96.9 L500.8,92.0 L520.0,87.2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 58,887 cells (40,304 left of the start, 2,878 right), with a density of 1s of 0.481.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>955,949,503</td><td><code>D&gt;0 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^3 0^2 1^2 0^2 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^3 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0^2 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^3 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0^2 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^3 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0^2 1 0^2 1^2 0 1</code></td></tr><tr><td>left</td><td>971,585,376</td><td><code>E&gt;0 0^2 1^2 0 1 0^2 1^2 0^2 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^3 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0^2 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^3 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0^2 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^3 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0^2 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2</code></td></tr><tr><td>left</td><td>987,280,866</td><td><code>D&gt;0 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^3 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0^2 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^3 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0^2 1 0^2 1^2 0 1 0^3 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0^2 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^3 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0^2 1 0^2 1^2 0 1</code></td></tr><tr><td>right</td><td>949,254,239</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>967,845,367</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>984,054,267</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "Bouncer whose two sides are sequences of units: on the right, runs (01)^k separated by single 0s with k almost always 3, 12 or 21 (k = 9, 18 near the end), on the left, units 000 (110100)^k 110 (010011)^j 01 with k, j in {3, 6} and {4, 7}; the sequences show no period and look like the output of a substitution. No regime proved yet.",
+ "family": "bouncer writing irregular sequences of units",
+ "decision": "open"
+}

@@ -1,0 +1,178 @@
+{
+ "generated": false,
+ "group": "G05",
+ "title": "What is known about 1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---.",
+ "machine": "1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---",
+ "crumb": "holdouts / 1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The sweep, the phase and the two clean phase ends are proved in Lean for all values (kernel); blank tape reaches the clean regime at step 58,429 (<code>native_decide</code>) and four clean phases follow by the kernel. The exact cycle accelerator runs 10<sup>1000</sup> steps without a halt. The phase end for <i>y</i> ≡ 1 (mod 3) and the resets of deeper levels are not yet closed rules."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "One sweep, for all values",
+   "text": "From <code>0^∞ C&gt; 0 1 0 (110)^p 1111 (110)^x 11100 (100)^(y+3) R</code> the machine reaches the same form with <code>(x+4, y)</code> in 8p + 24x + 75 steps, for every p, x, y and every tape R.",
+   "where": "<code>sweep</code>, <code>lean/Macro.lean</code> (from <code>sweep0/1/2</code>, <code>lean/Rules.lean</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "A phase of k sweeps",
+   "text": "<code>(x, 3k + y)</code> to <code>(x + 4k, y)</code>, by induction on k, with the exact step count <code>pst</code>.",
+   "where": "<code>phase</code>, <code>lean/Macro.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The clean phase ends",
+   "text": "When y comes down to 0 or 2 the front level is reset to (0, x) or (0, x + 2), the counter p gains 2 and the next level (z, w) becomes (z + 2, w − 2). Together: on an empty front level y ↦ 4y/3 (y ≡ 0) and y ↦ 4(y − 2)/3 + 2 (y ≡ 2).",
+   "where": "<code>end0</code>, <code>end2</code>, <code>cleanA</code>, <code>cleanB</code>, <code>lean/Macro.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "Blank tape enters the clean regime",
+   "text": "After 58,429 steps the tape is <code>cfg 2 (lv 0 72 (lv 12 26 (lv 10 3 (lv 2 1 (lv 2 0 (lv 2 0 11))))))</code>; four clean phases (kernel) take y through 72, 96, 128, 170, 226 and reach step 399,523, exactly where the simulator sees that tape.",
+   "where": "<code>start</code>, <code>clean_chain</code>, <code>lean/Start.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>1000</sup> steps",
+   "text": "The shared cycle accelerator (<code>bbtools.cycles</code> on 3-cell blocks; every jump applies a cycle rule proved symbolically) runs 10<sup>1000</sup> steps in about seven minutes, with 5,609 rules and 3,726 jumps, and no halt.",
+   "where": "<code>py/run_accel.py 1000</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A Collatz-like counter",
+   "text": "The residue of y mod 3 at the end of each phase looks irregular; y ≡ 1 starts a secondary bouncer that rebuilds the left part, and the run returns to the clean form with p = 0. Levels further right are reset in turn, each a bit longer than before.",
+   "where": "README"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. It halts exactly when D reads a 1 with a 1 to its left (C at <code>1 1 C&gt;1</code> or E at <code>1 1 E&gt;0</code>); the proved rules never do that, but the y ≡ 1 regime and the deep resets are not closed rules yet.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---/lean/check.sh",
+  "python3 holdouts/1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---/py/gen_rules.py",
+  "python3 holdouts/1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---/py/run_accel.py 1000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows yet. This machine builds a row of counters on its tape. The front counter grows by a factor of about 4/3 each round, and whether the count is divisible by 3 decides what happens next, just like in the Collatz problem. It has been followed for 10<sup>1000</sup> steps without stopping.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>1000</sup> steps",
+    "text": "No halt (exact cycle accelerator)."
+   },
+   {
+    "level": "kernel",
+    "value": "y ↦ 4y/3",
+    "text": "The clean phase map, proved for all values."
+   },
+   {
+    "level": "native",
+    "value": "step 58,429",
+    "text": "Blank tape reaches the clean regime."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.604). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"160.7\" y2=\"160.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"164.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"121.4\" y2=\"121.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"125.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"82.1\" y2=\"82.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"86.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"42.8\" y2=\"42.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"46.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,180.3 L59.2,170.5 L78.4,166.0 L97.6,166.0 L116.8,159.8 L136.0,154.9 L155.2,150.4 L174.4,144.0 L193.6,138.4 L212.8,131.8 L232.0,127.9 L251.2,121.8 L270.4,113.9 L289.6,110.2 L308.8,105.6 L328.0,101.6 L347.2,95.2 L366.4,90.8 L385.6,87.1 L404.8,83.1 L424.0,78.8 L443.2,74.5 L462.4,65.8 L481.6,61.7 L500.8,54.9 L520.0,49.8\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,180.3 L59.2,180.3 L78.4,177.2 L97.6,167.4 L116.8,164.8 L136.0,157.5 L155.2,157.5 L174.4,154.4 L193.6,150.9 L212.8,150.9 L232.0,149.2 L251.2,149.2 L270.4,149.2 L289.6,149.2 L308.8,149.2 L328.0,149.2 L347.2,149.2 L366.4,149.2 L385.6,149.2 L404.8,149.2 L424.0,149.2 L443.2,149.2 L462.4,149.2 L481.6,149.2 L500.8,149.2 L520.0,149.2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 46,692 cells (39,843 left of the start, 35 right), with a density of 1s of 0.386.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>955,929,437</td><td><code>D&gt;0 1^6 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0</code></td></tr><tr><td>left</td><td>971,625,689</td><td><code>D&gt;0 1^6 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0</code></td></tr><tr><td>left</td><td>987,272,234</td><td><code>D&gt;0 1^6 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "tape",
+    "eyebrow": "Structure",
+    "heading": "What the tape is made of",
+    "html": [
+     "<p>Read the tape in words of three cells: <code>110</code> (drawn in the accent colour) and <code>100</code> (grey). Whenever the head is back at the left end, in state C, the tape is: a short start <code>0 1 0</code>, a <b>counter</b> of <code>110</code>s, a marker <code>1111</code>, and then a row of <b>levels</b>. A level is a run of <code>110</code>s, a separator <code>11100</code> (orange) and a run of <code>100</code>s. The first level is the <b>front</b>; write it <i>(x, y)</i>.</p>",
+     "<svg viewBox=\"0 0 862 70\" role=\"img\" aria-label=\"a sweep configuration\" style=\"width:100%;max-width:862px;height:auto;font:11px var(--mono);\"><rect x=\"10\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><path d=\"M15.5,22 l-4,-7 h8 z\" fill=\"var(--head)\"/><rect x=\"23\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"36\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"53\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"66\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"79\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"92\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"105\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"118\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"135\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"148\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"161\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"174\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"191\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"204\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"217\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"230\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"243\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"256\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"269\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"282\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"295\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"312\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"325\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"338\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"351\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"364\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"381\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"394\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"407\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"420\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"433\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"446\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"459\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"472\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"485\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"498\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"511\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"524\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"537\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"550\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"563\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"576\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"589\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"602\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"619\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"632\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"645\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"658\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"671\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"684\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"701\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"714\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"727\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"740\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"753\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"770\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"783\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"796\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"809\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"822\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"835\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><text x=\"28.5\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">start</text><text x=\"91.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">counter p=2</text><text x=\"160.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">marker</text><text x=\"248.5\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">x=3</text><text x=\"497.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">y=6</text><text x=\"657.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">z=2</text><text x=\"808.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">w=2</text></svg>",
+     "<p>At step 58,429, for instance, the counter is 2 and the levels are (0, 72), (12, 26), (10, 3), (2, 1), (2, 0), (2, 0), followed by <code>11</code> and blank tape on the right.</p>"
+    ]
+   },
+   {
+    "id": "sweep",
+    "eyebrow": "The basic move",
+    "heading": "One sweep",
+    "html": [
+     "<p>The head runs right through the counter and the front level, turns the first three <code>100</code>s after the separator into four <code>110</code>s, and runs back. The separator moves right by three words, and the tape grows by three cells at the left end. Everything behind the front is untouched.</p>",
+     "<svg viewBox=\"0 0 901 70\" role=\"img\" aria-label=\"after one sweep\" style=\"width:100%;max-width:901px;height:auto;font:11px var(--mono);\"><rect x=\"10\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><path d=\"M15.5,22 l-4,-7 h8 z\" fill=\"var(--head)\"/><rect x=\"23\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"36\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"53\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"66\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"79\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"92\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"105\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"118\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"135\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"148\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"161\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"174\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"191\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"204\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"217\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"230\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"243\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"256\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"269\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"282\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"295\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"308\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"321\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"334\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"347\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"360\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"373\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"386\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"399\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"412\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"425\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"438\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"451\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"468\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"481\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"494\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"507\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"520\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"537\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"550\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"563\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"576\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"589\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"602\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"615\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"628\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"641\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"658\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"671\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"684\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"697\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"710\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"723\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"740\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"753\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"766\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"779\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"792\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"809\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"822\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"835\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"848\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"861\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"874\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><text x=\"91.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">p=2</text><text x=\"326.5\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">x=7</text><text x=\"594.5\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">y=3</text><text x=\"696.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">z=2</text><text x=\"847.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">w=2</text></svg>",
+     "<p>Exactly: <code>(x, y + 3) → (x + 4, y)</code> in 8p + 24x + 75 steps. A <b>phase</b> is ⌊y/3⌋ sweeps in a row.</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "The emergent behaviour",
+    "heading": "A counter that multiplies by 4/3",
+    "html": [
+     "<p>When the <code>100</code>s of the front run out, the remainder <i>r = y mod 3</i> decides what happens.</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>r</th><th>new front</th><th>next level</th><th>counter</th></tr></thead><tbody><tr><td>0</td><td>(0, x)</td><td>(z + 2, w − 2)</td><td>p + 2</td></tr><tr><td>2</td><td>(0, x + 2)</td><td>(z + 2, w − 2)</td><td>p + 2</td></tr><tr><td>1</td><td colspan=\"3\">a different regime: secondary bouncers rebuild the counter into new levels, and the run comes back with p = 0</td></tr></tbody></table></div>",
+     "<p>Since a phase of ⌊y/3⌋ sweeps adds 4 to <i>x</i> each time, a front that starts empty ends with <i>x</i> = 4⌊y/3⌋, so the new front is</p>",
+     "<p style=\"text-align:center\"><code>y ↦ 4y/3</code> if y ≡ 0, &nbsp; <code>y ↦ 4(y − 2)/3 + 2</code> if y ≡ 2 (mod 3).</p>",
+     "<p>From step 58,429 the front goes 72 → 96 → 128 → 170 → 226, and 226 ≡ 1 ends the clean run. Later: 734 → 978 → 1304 → 1738 ≡ 1. Each reset also ticks the next level, two words at a time; when that level's <code>100</code>s run out it is reset in turn and ticks the one after it: a mixed-radix counter whose digits get longer every time they are reset. Because <i>y</i> grows geometrically and a phase costs about <i>y</i>² steps, the tape grows like the square root of time.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The question",
+    "heading": "Where it could halt",
+    "html": [
+     "<p>The only halting transition is F reading 1. F is entered only from D reading 1, so the machine halts exactly when D reads a 1 that has a 1 on its left: C at <code>1 1 C&gt;1</code> or E at <code>1 1 E&gt;0</code>. The sweeps and the clean phase ends never do that (they are proved for all values). What is not yet written as a rule is the y ≡ 1 regime and the reset of the levels far to the right; those are where a halt would have to come from.</p>"
+    ]
+   },
+   {
+    "id": "proved",
+    "eyebrow": "Status",
+    "heading": "What is proved",
+    "html": [
+     "<ul><li><b>Kernel</b>: the sweep, the phase (any number of sweeps), the two clean phase ends and the 4/3 map (<code>lean/Rules.lean</code>, <code>lean/Macro.lean</code>).</li><li><b>native_decide</b>: blank tape reaches the clean regime after 58,429 steps; four clean phases then reach step 399,523 (<code>lean/Start.lean</code>).</li><li><b>Trusted computation</b>: no halt in 10<sup>1000</sup> steps (exact cycle accelerator).</li><li><b>Open</b>: whether it ever halts.</li></ul>"
+    ]
+   }
+  ]
+ },
+ "family": "Collatz-like nested counter (y -> 4y/3)",
+ "summary": "A row of counter levels W^x 11100 V^y; each sweep turns three 100s into four 110s, so a phase maps the front level y to about 4y/3 (y mod 3 decides the branch) and ticks the next level; no halt in 10^1000 steps.",
+ "decision": "open"
+}

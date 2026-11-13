@@ -1,0 +1,200 @@
+{
+ "generated": false,
+ "group": "G12",
+ "title": "What is known about 1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB.",
+ "machine": "1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB",
+ "crumb": "holdouts / 1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB/status.json",
+ "intro": [
+  "Nobody knows whether this six-state machine halts from blank tape. This page records what is established about it, sorted by what each result rests on.",
+  "At its core the machine is a binary counter. The number is written twice, once on each side of a fixed cell: on the right least significant bit first in 4-cell words <code>1011</code> (1) and <code>1111</code> (0), on the left most significant bit first in words <code>1111</code> (1) and <code>1010</code> (0). Each increment is one trip of the head out and back, and the two increment rules are proved in Lean for every number. The counter runs in <em>rounds</em>: from 1 to 2<sup>w</sup> - 1, then the block at the right end grows by four cells and the count restarts one bit wider, so each round takes twice as long as the one before. Slower counters on the left are driven by the carries out of the counter's left half; how they end is what decides halting, and that is not known."
+ ],
+ "asof": "Status as of 9 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> No halt in the first 10<sup>10</sup> steps (C simulator). The counter's increment rules are proved in Lean (kernel); the rounds and the slower counters that drive the rare events are seen in simulation, not proved."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (D0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>10</sup> steps",
+   "text": "The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>10</sup> steps from blank tape without a halt; at the end the tape holds 204 ones.",
+   "where": "<code>tmrun 1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB 10000000000</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 237 cells have been visited and 190 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt can be",
+   "text": "A closed tape language of windows of 5 cells (<code>tools/py/bbtools/ctl.py</code>, closure checked by the script, not by Lean) contains every configuration reachable from blank tape, and its only halting configurations have D reading a 0 with <code>1 1 0 1 D&gt;0</code>.",
+   "where": "<code>python3 -m bbtools.ctl 1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB 5</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The sweeps",
+   "text": "Five shift rules, for every length n: <code>A&gt; (10)^n</code> becomes <code>(01)^n A&gt;</code>, <code>F&gt; (01)^n</code> becomes <code>(10)^n F&gt;</code>, <code>E&gt; (01)^n</code> becomes <code>(11)^n E&gt;</code>, C crosses <code>1^n</code> leftwards unchanged, and B with F turns pairs <code>1 1</code> into <code>0 1</code> moving left.",
+   "where": "<code>sweep_A</code>, <code>sweep_F</code>, <code>sweep_E</code>, <code>sweep_C</code>, <code>sweep_B</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The counter's increment rules",
+   "text": "Write W(m) for the bits of m, most significant first, as <code>1111</code> (1) / <code>1010</code> (0), and V(n) for the bits of n, least significant first, as <code>1011</code> (1) / <code>1111</code> (0). The configuration <code>... W(n-1) 1 1 D&gt;1 1 1 1 1 V(n) ...</code> goes to the same configuration for n + 1: in 8t + 42 steps when n - 1 ends in t + 1 ones (<code>inc_odd</code>), in 14s + 48 steps when n - 1 ends in a 0 and n in s + 1 ones (<code>inc_even</code>). Both hold for every t, s and every tape beyond the words they name, as long as the next word on each side is a 0-digit (<code>1010</code> on the left, <code>1011</code> resp. <code>1111</code> as stated on the right).",
+   "where": "<code>inc_odd</code>, <code>inc_even</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The right end grows by four",
+   "text": "<code>0 1^n 0 1 0 1 0 1 A&gt;0 0^inf</code> becomes <code>0 1^(n+4) 0 1 0 1 A&gt;0 0^inf</code> in 22 steps, for every n: the event at the end of each round.",
+   "where": "<code>right_end</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The counter runs in rounds, checked to 2&middot;10<sup>9</sup> steps",
+   "text": "At every step C0 &rarr; D the script tests whether the tape is the counter configuration with some n (left value equal to n - 1 modulo its width). From 1.15&middot;10<sup>6</sup> steps on, the 35.7 million matches form runs at one fixed cell in which n goes up by exactly one each time: n = 1, 2, ..., 2<sup>w</sup> - 1 for every w from 12 to 24 (round 24 ends at step 1,881,955,329; round 25 is under way at 2&middot;10<sup>9</sup>), with the left half always 12 digits wide. Until step 9.2&middot;10<sup>6</sup> (rounds 13 to 17) a round is cut into runs at the multiples of 4096, where the 12-digit left half overflows and the head leaves to the left and comes back with the count resumed; from then on each round is one unbroken run. The round lengths double: about 2.3&middot;10<sup>5</sup>&middot;2<sup>w-12</sup> steps, about 56 steps per increment.",
+   "where": "<code>python3 py/counter_check.py 2e9</code> (about 15 minutes; output in <code>py/counter_check_2e9.txt</code>)"
+  },
+  {
+   "level": "heuristic",
+   "title": "The left half overflows every 4096 increments",
+   "text": "The left copy has room for 12 digits (it is bounded by a block <code>1^13 0</code>). Every 4096 increments it overflows; the head then carries into the region further left, which holds a second counter in a mixed code (blocks <code>1^4</code>, <code>1^8</code>, <code>1^12</code>, <code>1^16</code> growing by four, and an inner 4-phase digit), and comes back with the left half cleared. In round 16 this region goes through 16 different states, one per overflow.",
+   "where": "<code>tmrun ... at C L</code>, head positions left of the counter"
+  },
+  {
+   "level": "trusted",
+   "title": "Rare visits to the far left",
+   "text": "Between 1.9&middot;10<sup>6</sup> and 10<sup>9</sup> steps the head reaches the far left end (in state F) seven times, at steps 3,682,344, 5,522,782, 9,203,628, 68,017,235, 185,638,122, 303,258,880 and 538,500,366, each time during the increment to n = 2<sup>14</sup> (rounds 15, 16, 17), 2<sup>14</sup> + 2<sup>17</sup> (round 20) or 2<sup>14</sup> + 2<sup>17</sup> + 2<sup>20</sup> (rounds 21, 22, 23): the next counter configuration holds that value + 1. In units of the 4096 increments between left overflows these are 4, 44 and 444 in octal. At these visits the tape reads <code>F&gt;0 (10)^a [left digits] (10)^26 1^59 0 1^11 0 1^11 ... 0 (10)^2</code>: the right part is just V(n) seen after the leftward sweep (zeros at bits 14, 17, 20, ...), and a left digit (<code>1^7</code>, then <code>1^4</code>) is used up at some of them. After 5.4&middot;10<sup>8</sup> steps three digits <code>1^3 0 1^3 0 1^3</code> are left.",
+   "where": "<code>tmrun 1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB 1000000000 at F L</code>, <code>py/far_left_check.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Epochs",
+   "text": "The first 9.2&middot;10<sup>5</sup> steps are a smaller copy of the same structure, with a block <code>1^15</code> where the second epoch has <code>1^59</code> = 1^(4&middot;15 - 1). At step 920,431 the left digits have run out and the tape is rebuilt with a longer list of left digits and a wider counter. If this repeats, the second epoch ends when its last left digits are used up, at a step count far beyond direct simulation; whether it does, and whether the rebuild can ever produce the halting pattern, is not known.",
+   "where": "<code>tmrun ... records</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. A halt needs D reading a 0 (after <code>1 1 0 1</code>), which none of the counter's rules produce; it could only come from the rare events at the ends of the tape, whose rules are not yet worked out. What is missing: the rules of the left counters and of the epoch rebuild, as functions of their parameters, and a fast simulator built on them.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB/lean/check.sh",
+  "python3 holdouts/1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB/py/gen_rules.py > /tmp/Rules.lean && diff /tmp/Rules.lean holdouts/1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB/lean/Rules.lean",
+  "python3 holdouts/1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB/py/counter_check.py 2e9      # the rounds, about 15 minutes",
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB 10000000000",
+  "cd tools/py && python3 -m bbtools.ctl 1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB 5"
+ ],
+ "explainer": {
+  "lede": "Nobody knows whether this machine halts. Underneath, it is a binary counter: the number is written twice, mirrored about one cell, and every increment is one trip of the head. The counter runs in rounds that double in length, and slower counters to its left are driven by its carries. It has run 10<sup>10</sup> steps without halting.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "n &rarr; n + 1",
+    "text": "The two increment rules of the counter, for every n, proved in Lean."
+   },
+   {
+    "level": "trusted",
+    "value": "2&middot;10<sup>9</sup> steps",
+    "text": "Every increment of rounds w = 13 to 24 checked against a direct run."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>10</sup> steps",
+    "text": "No halt in the C simulator."
+   },
+   {
+    "level": "heuristic",
+    "value": "exp/exp",
+    "text": "Each round is one bit wider and twice as long as the one before."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "counter",
+    "eyebrow": "The core",
+    "heading": "A binary counter written twice",
+    "html": [
+     "<p>Run the simulator past two million steps and the head settles around one cell, near the right part of the tape, and swings out to both sides by distances 4, 8, 4, 12, 4, 8, 4, 16, ... cells: the ruler sequence of a binary counter. The number n is written twice, once on each side of that cell, in words of four cells:</p>",
+     "<table><tr><th></th><th>bit 1</th><th>bit 0</th><th>order</th></tr><tr><td>right of the head</td><td><code>1011</code></td><td><code>1111</code></td><td>least significant bit first (nearest the head)</td></tr><tr><td>left of the head</td><td><code>1111</code></td><td><code>1010</code></td><td>least significant bit nearest the head; it holds n - 1</td></tr></table>",
+     "<p>So the configuration holding n is <code>... W(n-1) 1 1 D&gt;1 1 1 1 1 V(n) ...</code>. For n = 5 the right side reads <code>11111 1011 1111 1011</code> (bits 1, 0, 1) and the left <code>1111 1010 1010 11 D</code> (n - 1 = 4 = 100). Leading zeros on the left are the long stretch <code>1 0 1 0 ...</code>, on the right the long block of 1s: room for more digits.</p>",
+     "<p>One increment is one trip. D, E, F go a step right, then B and F sweep left turning the pairs <code>1 1</code> of the left side's trailing 1-digits into <code>0 1</code> (the carry), C turns the first 0-digit into a 1, and A and F sweep back right restoring the alternating cells; on the right a single 0 is moved to flip the bits of n. If n - 1 ends in t + 1 ones this takes 8t + 42 steps, if it ends in a 0 and n in s + 1 ones, 14s + 48 steps. Both rules are theorems in <code>lean/Rules.lean</code>, for every t, s and every tape around.</p>"
+    ]
+   },
+   {
+    "id": "rounds",
+    "eyebrow": "Level two",
+    "heading": "Rounds that double",
+    "html": [
+     "<p>The left copy is boxed in: 12 digits of room between the counter's cell and a block <code>1^13 0</code>. The right copy is not: when n reaches 2<sup>w</sup>, its top bit runs into the end of the tape, the head arrives at the right end, the last block grows by four cells (<code>0 1^m 0 1 0 1 0 1 A&gt;0</code> becomes <code>0 1^(m+4) 0 1 0 1 A&gt;0</code>, also proved), and the count starts again at 1 with room for one more bit.</p>",
+     "<p>Measured on a direct run up to 2&middot;10<sup>9</sup> steps, the counter went through n = 1, ..., 2<sup>w</sup> - 1 for every w from 12 to 24, one increment at a time, at the same cell. A round costs about 56 steps per increment, so round w takes about 2.3&middot;10<sup>5</sup> &middot; 2<sup>w-12</sup> steps: this is why the right end is reached at times that double (1.84, 2.76, 4.60, 8.28, 15.6, 30.3, 59.7 million, ...).</p>"
+    ]
+   },
+   {
+    "id": "left",
+    "eyebrow": "Level three",
+    "heading": "Slower counters on the left",
+    "html": [
+     "<p>Because the left copy has only 12 digits, it overflows every 4096 increments. Its carry goes on into the tape further left, which holds a second counter written in a different code (blocks <code>1^4</code>, <code>1^8</code>, <code>1^12</code>, <code>1^16</code> that grow by four, and a small digit with four phases), and the head comes back with the left copy cleared. Further left still is a list of short blocks, <code>1^7</code>, <code>1^4</code>, <code>1^3</code>, that are used up one by one: the head goes all the way to the left end only when n hits 2<sup>14</sup>, then 2<sup>14</sup> + 2<sup>17</sup>, then 2<sup>14</sup> + 2<sup>17</sup> + 2<sup>20</sup>, and some of these visits consume a block.</p>",
+     "<p>The first 920,431 steps are a smaller version of the whole thing; there the list runs out, and the tape is rebuilt with a longer list, a wider counter and a block <code>1^59</code> in place of <code>1^15</code>. After 5.4&middot;10<sup>8</sup> steps the second list is down to three blocks <code>1^3</code>. When it runs out, the next rebuild should come, but at a step count far beyond what can be simulated directly.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Halting",
+    "heading": "Where a halt could happen",
+    "html": [
+     "<p>The machine stops when D reads a 0. A closed tape language with windows of 5 cells, which contains every configuration reachable from blank tape, adds that the four cells left of the head must read <code>1 1 0 1</code>. None of the proved rules does this: inside a round the counter cannot halt. A halt could only come from the rare events, the overflows into the left counters or a rebuild, whose rules have not been worked out.</p>",
+     "<p>So the question reduces to a long chain of nested counters, of which the innermost two levels are understood. The natural next step is to write the rules of the left counters and of the rebuild as functions of their parameters, prove them with the same shift-rule machinery, and build a simulator that does a whole round in one move; it could then follow the run to the end of the second epoch and see what the rebuild produces.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.034). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.034).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"124.6\" y2=\"124.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"128.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"49.3\" y2=\"49.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"53.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><path d=\"M40.0,170.1 L59.2,162.3 L78.4,156.3 L97.6,151.3 L116.8,143.5 L136.0,137.4 L155.2,134.8 L174.4,128.3 L193.6,123.0 L212.8,120.0 L232.0,116.0 L251.2,116.0 L270.4,116.0 L289.6,112.5 L308.8,111.4 L328.0,110.4 L347.2,101.1 L366.4,99.1 L385.6,98.4 L404.8,97.8 L424.0,95.9 L443.2,95.9 L462.4,95.9 L481.6,94.2 L500.8,93.7 L520.0,93.1\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,156.3 L59.2,156.3 L78.4,143.5 L97.6,132.5 L116.8,124.6 L136.0,118.6 L155.2,109.4 L174.4,104.1 L193.6,92.6 L212.8,90.6 L232.0,88.7 L251.2,85.3 L270.4,83.7 L289.6,82.3 L308.8,80.9 L328.0,79.6 L347.2,67.3 L366.4,64.9 L385.6,64.2 L404.8,62.7 L424.0,62.0 L443.2,61.4 L462.4,60.7 L481.6,60.1 L500.8,59.5 L520.0,58.8\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 237 cells (50 left of the start, 179 right), with a density of 1s of 0.802.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>538,500,367</td><td><code>B&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^4 0 1 0 1 0 1 0 1 0 1^3 0 1^3 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^59 0 1^11 0 1^11 0 1^11 0 1 0 1 0</code></td></tr><tr><td>right</td><td>941,628,672</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1 0 1 0 1 0 1^13 0 1^49 0 1^97 0 1 0 1 0 1 A&gt;0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "Binary counter with rounds of growing width, nested in slower counters (exp/exp)",
+ "summary": "A binary counter written twice, mirrored about a fixed cell, counts from 1 to 2^w - 1, then the right end block grows by 4 and it restarts one bit wider; slower counters on the left are driven by its carries. Increment rules proved in Lean; halting open.",
+ "decision": "open"
+}

@@ -1,0 +1,242 @@
+{
+ "generated": false,
+ "group": "G05",
+ "title": "What is known about 1RB0LE_0RC0RA_1LD0LC_1LA0LB_1RA1LF_---0LC",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LE_0RC0RA_1LD0LC_1LA0LB_1RA1LF_---0LC.",
+ "machine": "1RB0LE_0RC0RA_1LD0LC_1LA0LB_1RA1LF_---0LC",
+ "crumb": "holdouts / 1RB0LE_0RC0RA_1LD0LC_1LA0LB_1RA1LF_---0LC",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LE_0RC0RA_1LD0LC_1LA0LB_1RA1LF_---0LC/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 9 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The machine is a binary counter: left of a periodic wall the tape reads as six-cell units holding one or two bits, and every three sweeps add one. When the counter is full, the carry rewrites the left part of the tape and the counting starts over. Rarely the carry runs to the left end (an <i>S event</i>): the old counter freezes into blocks and the wall, by then astronomically long, becomes the new counter. Lean proves every rule on the way from blank tape through the first S event, for all counter and wall lengths: no halt in the first 8<sup>p0+1</sup> steps, p0 = 321,163,084,821,590,067,792,163 (a number with about 2.9&middot;10<sup>23</sup> digits). A trusted simulator gets through the next three S events without a halt. Each S event is a new, apparently random trial for halting, and the left part never settles into a pattern."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Two sweeps that only touch the right end",
+   "text": "From the phase P right end <code>111011 (101011)^n 1 B&gt;0</code> one sweep gives phase Q <code>101010 (111010)^n 111 B&gt;0</code>, and the next gives phase R <code>111110 (101110)^n 10111 B&gt;0</code>, in 16n+18 and 16n+26 steps, for every n and any tape left of them.",
+   "where": "<code>sweep_PQ</code>, <code>sweep_QR</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "One increment of the counter, for every carry",
+   "text": "Read the cells left of the wall in six-cell units, alternately X (<code>111110</code> = 0, <code>111011</code> = 1) and Y (<code>111011</code>, <code>111010</code>, <code>111111</code>, <code>111110</code> = 0..3). Three sweeps from phase R add one to this mixed-radix (binary) number and one unit to the wall: X0 becomes X1, or a carry over a last X1 and j pairs Y3 X1 stops at a Y below 3 or at an X0. 48n+122, 60j+48n+154 (or +162 for Y1, +182 for an X stop) steps, for all j, n and any tape left of the counter.",
+   "where": "<code>cyc_x0</code>, <code>cyc_y0</code>, <code>cyc_y1</code>, <code>cyc_y2</code>, <code>cyc_x</code>, <code>lean/Rules.lean</code>; <code>inc_x0</code> &hellip; <code>inc_x</code>, <code>lean/Counter.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The increment as a program",
+   "text": "A program <code>next</code> on the list of units computes one increment and its number of steps; <code>next_sound</code> proves that the machine makes exactly that move whenever <code>next</code> answers, which it does unless the carry runs off the end of the list.",
+   "where": "<code>next_sound</code>, <code>run_sound</code>, <code>lean/Counter.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "From blank tape to the counter",
+   "text": "After 59,129 steps (sweep 149) the tape is the 34-cell left part <code>1 0 1^11 0 1^3 0 1 0 1^3 0 1 0 1 0 1^5 0</code>, a 73-bit counter in 49 units, the edge unit and a wall of two units, by compiled evaluation of the list simulator.",
+   "where": "<code>reach_s0</code>, <code>lean/Counter.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 2.4&middot;10<sup>17</sup> steps",
+   "text": "<code>next</code>, run 100,000,000 times from there by compiled code without a gap: no halt in the first 240,000,021,742,916,313 steps.",
+   "where": "<code>no_halt_240000021742916313</code>, <code>lean/Counter.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A full count, for any counter",
+   "text": "From any valid list of m units, the counter counts up to all ones in at least capP(m) &minus; 1 &minus; value steps (capP = number of values, 2&middot;8<sup>k</sup> for 2k+1 units), for every m, every wall length and any tape left of it.",
+   "where": "<code>up</code>, <code>lean/Count.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The 17 carries into the left part, and the first S event",
+   "text": "With the counter all ones, the carry into the left part L<sub>k</sub> gives the zero counter and L<sub>k+1</sub> (k = 0..16), for every even counter length and wall; the carry into L<sub>17</sub> runs to the left end: the counter becomes the blocks of <code>L1 = P (1^9 0 1 0)^j Q</code> and a wall of 2p+2 units becomes the counter <code>1,3,0,3,0,&hellip;</code> of 2p+3 units, for every j and p. Generated with <code>bbtools.symtm</code> by <code>py/gen_left.py</code>.",
+   "where": "<code>fe</code>, <code>s1</code>, <code>lean/Left.lean</code>; <code>lean/LeftRules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The first six carries into L1",
+   "text": "With an odd all-ones counter, the first six carries into L1 only rewrite its last ten cells Q (Q<sub>0</sub> to Q<sub>6</sub>), for every counter length, wall and tape left of Q.",
+   "where": "<code>fo</code>, <code>lean/Left.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "Blank tape passes the first S event",
+   "text": "Chaining <code>reach_s0</code>, <code>up</code>, the 17 carries and <code>s1</code>: blank tape reaches L1 with 24 blocks, the counter <code>ds1 p0</code> of 2p0+3 units and an empty wall, p0 = 321,163,084,821,590,067,792,163 (around step 10<sup>49</sup>); and then the configuration just before the seventh carry into L1. Kernel-checked apart from the native <code>reach_s0</code>.",
+   "where": "<code>reach_S1</code>, <code>reach_jump</code>, <code>lean/Frontier.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 8<sup>p0+1</sup> steps",
+   "text": "The new counter has 2&middot;8<sup>p0+1</sup> values and six full counts precede the seventh carry, so the machine runs at least 8<sup>p0+1</sup> steps: a number with about 2.9&middot;10<sup>23</sup> decimal digits.",
+   "where": "<code>no_halt_early</code>, <code>lean/Frontier.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The second S event",
+   "text": "A memoized simulator of the carry map on the left part (the counter between carries is skipped) finds 2,266,846,918 carries into L1 before the second S event, without a halt. It gives a new irregular part P2 of 406 cells, p0+1 blocks and Q, and a new counter from the wall.",
+   "where": "<code>py/accel/acc.cpp</code> (<code>ODD=1</code>), README, section Level 1"
+  },
+  {
+   "level": "trusted",
+   "title": "Jumps, and the third and fourth S events",
+   "text": "The blocks are transparent: a carry crosses them in state C and returns in state A. A carry into P (a jump) changes P by a map J that depends on P only. J was checked against the direct run for the first 11 jumps with 300 blocks, and the result of the S event was checked to be independent of the number of blocks and of the cells right of them. Iterating J: 170,793,835 jumps on P2, no halt, then the third S event, giving P3 of 460 cells; 2,048,289,505 jumps on P3, no halt, then the fourth, giving P4 of 500 cells.",
+   "where": "<code>py/accel/acc.cpp</code> (<code>JUMP=1</code>), <code>jmap.py</code>, README, section Level 2"
+  },
+  {
+   "level": "heuristic",
+   "title": "Halting is possible at the left end",
+   "text": "The machine halts exactly when E reads a 1 with a 0 on its left, and this can happen when a carry arrives at the left end: for the synthetic left part <code>P B^2 Q</code> with an even counter it halts after 1,129 carries. From blank tape all counters after S1 have odd length.",
+   "where": "README, section Where it could halt"
+  },
+  {
+   "level": "heuristic",
+   "title": "No closed family",
+   "text": "The irregular part is new at each level (28, 406, 460, 500 cells) and the number of jumps until the next S event is irregular (about 2.3&middot;10<sup>9</sup> carries, then 1.7&middot;10<sup>8</sup> and 2.0&middot;10<sup>9</sup> jumps). Each S event looks like a fresh random trial for halting, and the time between them grows like a tower; no invariant family is in sight.",
+   "where": "README, section Why it does not close"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. Deciding it needs either the outcome of every future S event (each computable by iterating J on a few hundred cells, but with ever more jumps), or a reason why the left end never shows E over a 1 next to a 0.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LE_0RC0RA_1LD0LC_1LA0LB_1RA1LF_---0LC/lean/check.sh",
+  "python3 holdouts/1RB0LE_0RC0RA_1LD0LC_1LA0LB_1RA1LF_---0LC/py/gen_rules.py > holdouts/1RB0LE_0RC0RA_1LD0LC_1LA0LB_1RA1LF_---0LC/lean/Rules.lean",
+  "python3 holdouts/1RB0LE_0RC0RA_1LD0LC_1LA0LB_1RA1LF_---0LC/py/gen_left.py",
+  "cd holdouts/1RB0LE_0RC0RA_1LD0LC_1LA0LB_1RA1LF_---0LC/py/accel && g++ -O2 -o acc acc.cpp && ODD=1 ./acc 8 < Lp24.txt && JUMP=1 ./acc 8 < P2.txt"
+ ],
+ "explainer": {
+  "lede": "Nobody knows yet, but we know what it does: it counts in binary, and every time the counter fills up the carry scribbles on the far left of the tape. Very rarely the carry reaches the left end; then the whole counter freezes into the left part and the wall, by then unimaginably long, becomes a new counter. Lean follows the machine through the first of these events, past 8<sup>p0+1</sup> steps with p0 &asymp; 3.2&middot;10<sup>23</sup>. What happens at the later ones looks random.",
+  "facts": [
+   {
+    "level": "native",
+    "value": "8<sup>p0+1</sup> steps",
+    "text": "No halt, proved in Lean; p0 = 321,163,084,821,590,067,792,163."
+   },
+   {
+    "level": "kernel",
+    "value": "every rule",
+    "text": "Increments, full counts and left-end events up to the second level, for all counter and wall lengths."
+   },
+   {
+    "level": "trusted",
+    "value": "4 levels",
+    "text": "Simulated through the second, third and fourth left-end events without a halt."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.488).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"159.5\" y2=\"159.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"163.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"119.0\" y2=\"119.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"123.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"78.5\" y2=\"78.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"82.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,189.9 L59.2,171.6 L78.4,169.6 L97.6,169.6 L116.8,161.5 L136.0,159.5 L155.2,159.5 L174.4,153.6 L193.6,152.4 L212.8,149.4 L232.0,148.9 L251.2,146.9 L270.4,142.6 L289.6,142.6 L308.8,142.6 L328.0,142.6 L347.2,142.6 L366.4,142.6 L385.6,142.6 L404.8,142.6 L424.0,142.6 L443.2,142.6 L462.4,142.6 L481.6,142.6 L500.8,142.6 L520.0,142.6\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,176.5 L59.2,176.5 L78.4,176.5 L97.6,163.7 L116.8,159.5 L136.0,154.9 L155.2,148.5 L174.4,143.5 L193.6,138.0 L212.8,132.5 L232.0,127.0 L251.2,121.8 L270.4,113.4 L289.6,106.5 L308.8,101.9 L328.0,97.6 L347.2,93.3 L366.4,88.8 L385.6,84.3 L404.8,79.6 L424.0,74.8 L443.2,70.0 L462.4,65.1 L481.6,60.1 L500.8,55.1 L520.0,50.1\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 39,053 cells (50 left of the start, 28,650 right), with a density of 1s of 0.668.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,493,403</td><td><code>1 0 1^11 0 1^3 0 1 0 1^3 0 1 0 1 0 1^5 0 1^3 0 1^7 0 1^3 0 1^7 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^3 0 1^5 0 1^7 0 1^3 0 1 0 1^3 0 1^5 0 1^5 0 1^5 0 1 0 1^5 0 1^5 0 1^3 0 1^3 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^</code></td></tr><tr><td>right</td><td>970,196,873</td><td><code>1 0 1^11 0 1^3 0 1 0 1^3 0 1 0 1 0 1^5 0 1^3 0 1^7 0 1^3 0 1^7 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^3 0 1^5 0 1^7 0 1^3 0 1 0 1^3 0 1^5 0 1 0 1^5 0 1^3 0 1^5 0 1^5 0 1 0 1^3 0 1^5 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0</code></td></tr><tr><td>right</td><td>985,823,311</td><td><code>1 0 1^11 0 1^3 0 1 0 1^3 0 1 0 1 0 1^5 0 1^3 0 1^7 0 1^3 0 1^7 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^3 0 1^5 0 1^7 0 1^3 0 1 0 1^3 0 1^5 0 1 0 1^5 0 1^5 0 1^3 0 1^7 0 1^5 0 1^3 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "tape",
+    "eyebrow": "The parts",
+    "heading": "What the tape is made of",
+    "html": [
+     "<p>The right part of the tape is a <b>wall</b>: the six cells <code>010111</code> over and over, two cells longer after every trip of the head. Left of the wall, cut the tape into pieces of six cells, starting at the wall. Each piece, a <b>unit</b>, is one of a handful of words, and the units take turns being of two kinds:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>X unit (1 bit)</th><th>cells</th><th>Y unit (2 bits)</th><th>cells</th></tr></thead><tbody><tr><td>X0</td><td><code>111110</code></td><td>Y0</td><td><code>111011</code></td></tr><tr><td>X1</td><td><code>111011</code></td><td>Y1</td><td><code>111010</code></td></tr><tr><td></td><td></td><td>Y2</td><td><code>111111</code></td></tr><tr><td></td><td></td><td>Y3</td><td><code>111110</code></td></tr></tbody></table></div>",
+     "<p>Nearest the wall is an X unit (bit 0), then a Y unit (bits 1 and 2), then X (bit 3), Y (bits 4 and 5), and so on: together a binary number. Between the counter and the wall sits one edge unit, <code>111110</code> once every three trips. Far to the left is a short irregular piece that is not made of units: the <b>left part</b>.</p>"
+    ]
+   },
+   {
+    "id": "cycle",
+    "eyebrow": "The motion",
+    "heading": "Three trips, one increment",
+    "html": [
+     "<p>Two of every three trips are short: the head walks left over the wall, turns inside the edge unit, and walks back. Each adds two cells to the wall and changes nothing else. The third trip goes deeper: it crosses every unit that holds its maximum (X1 or Y3), turns at the first unit that does not, and on the way back rewrites the crossed units to their minimum. That is exactly adding one, with a carry.</p>",
+     "<svg viewBox=\"0 0 586 82\" role=\"img\" aria-label=\"The counter X0 Y3 X1 before and after one increment\" style=\"width:100%;max-width:586px;height:auto;font:10px var(--mono);\"><rect x=\"0\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"12\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"24\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"36\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"48\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"60\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"72\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"84\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"96\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"108\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"120\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"132\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"144\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"156\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"168\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"180\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"192\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"204\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"216\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"228\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"240\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"252\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"264\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"276\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"288\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"300\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"312\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"324\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"336\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"348\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"360\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"372\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"384\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"396\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"408\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"420\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"432\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"444\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"456\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"468\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"480\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"492\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><path d=\"M0,22 v3 H71 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"35.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">X0</text><path d=\"M72,22 v3 H143 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"107.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">Y3</text><path d=\"M144,22 v3 H215 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"179.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">X1</text><path d=\"M216,22 v3 H287 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"251.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">edge</text><path d=\"M288,22 v3 H491 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"389.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">wall, 2 units</text><rect x=\"0\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"12\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"24\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"36\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"48\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"60\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"72\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"84\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"96\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"108\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"120\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"132\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"144\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"156\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"168\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"180\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"192\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"204\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"216\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"228\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"240\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"252\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"264\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"276\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"288\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"300\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"312\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"324\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"336\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"348\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"360\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"372\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"384\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"396\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"408\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"420\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"432\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"444\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"456\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"468\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"480\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"492\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"504\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"516\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"528\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"540\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"552\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"564\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><path d=\"M0,59 v3 H71 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"35.5\" y=\"73\" text-anchor=\"middle\" fill=\"var(--muted)\">X1</text><path d=\"M72,59 v3 H143 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"107.5\" y=\"73\" text-anchor=\"middle\" fill=\"var(--muted)\">Y0</text><path d=\"M144,59 v3 H215 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"179.5\" y=\"73\" text-anchor=\"middle\" fill=\"var(--muted)\">X0</text><path d=\"M216,59 v3 H287 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"251.5\" y=\"73\" text-anchor=\"middle\" fill=\"var(--muted)\">edge</text><path d=\"M288,59 v3 H563 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"425.5\" y=\"73\" text-anchor=\"middle\" fill=\"var(--muted)\">wall, 3 units</text></svg>",
+     "<p>Above: the counter X0 Y3 X1 (from the left; the value 0&middot;8 + 3&middot;2 + 1 = 7) and the edge and wall, before and after one increment. The X1 and Y3 carry, the X0 becomes X1: the value 8, and the wall one unit longer. In blocks of ones the counter is the odd blocks of the simulator records; the long run of <code>1^5</code> blocks is a stretch of high bits <code>X0 Y3</code>.</p>",
+     "<p>Exactly (proved in Lean for every value, with n the wall length and j the number of pairs Y3 X1 crossed):</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>where the carry stops</th><th>steps for the three trips</th></tr></thead><tbody><tr><td>bit 0: X0 &rarr; X1</td><td>48n + 122</td></tr><tr><td>Y0 &rarr; Y1 or Y2 &rarr; Y3</td><td>60j + 48n + 154</td></tr><tr><td>Y1 &rarr; Y2</td><td>60j + 48n + 162</td></tr><tr><td>X0 &rarr; X1 above bit 0</td><td>60j + 48n + 182</td></tr></tbody></table></div>",
+     "<p>The wall grows by one unit per increment, so the k-th increment takes about 48k steps: the run is quadratic and the tape grows like the square root of the time.</p>"
+    ]
+   },
+   {
+    "id": "run",
+    "eyebrow": "The run",
+    "heading": "From blank tape",
+    "html": [
+     "<p>The first 145 trips are a scramble in which a small counter grows against the left end. From step 59,129 on the tape is a 28-cell left part L<sub>0</sub>, a counter of 50 units and the wall (<code>reach_s0</code>, checked by compiled Lean). The counter is 8.4&middot;10<sup>19</sup> increments from full; then the carry reaches the left part for the first time, around step 10<sup>41</sup>.</p>"
+    ]
+   },
+   {
+    "id": "levels",
+    "eyebrow": "The big picture",
+    "heading": "Counters inside counters",
+    "html": [
+     "<p>When the counter is all ones, the next carry has nowhere to go inside it. It runs on into the left part and rewrites a few of its cells, and the counter starts again from zero, now with a longer wall. Proved in Lean: from blank tape this happens 17 times, each time rewriting the left part L<sub>k</sub> into L<sub>k+1</sub> by a rule that holds for every counter length and wall length.</p>",
+     "<p>The 18th carry does something new: it runs all the way to the left end of the tape. Call this an <b>S event</b>. The old counter is frozen into identical blocks <code>1^9 0 1 0</code>, and the wall, which by then has 2&middot;p0+2 units with p0 = 321,163,084,821,590,067,792,163, becomes the new counter.</p>",
+     "<svg viewBox=\"0 0 640 200\" width=\"100%\" style=\"max-width:640px\" role=\"img\" aria-label=\"Tape before and after an S event\">\n<style>text{font:12px sans-serif;fill:var(--fg2)} .l{font-weight:600;fill:var(--head)}</style>\n<text x=\"0\" y=\"16\" class=\"l\">before an S event</text>\n<rect x=\"0\" y=\"26\" width=\"70\" height=\"30\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"10\" y=\"46\">P</text>\n<rect x=\"70\" y=\"26\" width=\"120\" height=\"30\" fill=\"none\" stroke=\"var(--line)\"/><text x=\"80\" y=\"46\">blocks B^k</text>\n<rect x=\"190\" y=\"26\" width=\"50\" height=\"30\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"196\" y=\"46\">Q, R</text>\n<rect x=\"240\" y=\"26\" width=\"140\" height=\"30\" fill=\"var(--accent)\" fill-opacity=\"0.18\" stroke=\"var(--accent)\"/><text x=\"250\" y=\"46\">counter (all ones)</text>\n<rect x=\"380\" y=\"26\" width=\"260\" height=\"30\" fill=\"none\" stroke=\"var(--line)\" stroke-dasharray=\"4 3\"/><text x=\"390\" y=\"46\">wall, w units</text>\n<path d=\"M310 64 L310 80 L30 80 L30 96\" fill=\"none\" stroke=\"var(--head)\" marker-end=\"url(#a)\"/>\n<defs><marker id=\"a\" markerWidth=\"8\" markerHeight=\"8\" refX=\"4\" refY=\"4\" orient=\"auto\"><path d=\"M0 0L8 4L0 8z\" fill=\"var(--head)\"/></marker></defs>\n<text x=\"60\" y=\"76\">the carry runs to the left end</text>\n<text x=\"0\" y=\"122\" class=\"l\">after</text>\n<rect x=\"0\" y=\"132\" width=\"90\" height=\"30\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"10\" y=\"152\">new P</text>\n<rect x=\"90\" y=\"132\" width=\"140\" height=\"30\" fill=\"none\" stroke=\"var(--line)\"/><text x=\"98\" y=\"152\">old counter as blocks</text>\n<rect x=\"230\" y=\"132\" width=\"40\" height=\"30\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"238\" y=\"152\">Q</text>\n<rect x=\"270\" y=\"132\" width=\"370\" height=\"30\" fill=\"var(--accent)\" fill-opacity=\"0.18\" stroke=\"var(--accent)\"/><text x=\"280\" y=\"152\">new counter: w + 1 units, 2&middot;8^(w/2) values</text>\n<text x=\"0\" y=\"190\">The new counter must count all the way up, again and again, before the next carry can reach the left end.</text>\n</svg>",
+     "<p>The new counter has 2&middot;8<sup>p0+1</sup> values, so the time to the next carry into the left part is beyond astronomical. Each carry either stays near the right end of the blocks or makes a <b>jump</b>: it crosses the blocks without changing them and rewrites the irregular piece P on the far left by a map J that depends on P alone. When a jump comes back in the wrong state (B instead of A) it is the next S event, and the whole picture repeats one level up with a new P.</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>level</th><th>irregular part P</th><th>until the next S event</th><th>how we know</th></tr></thead><tbody><tr><td>0</td><td>L<sub>0</sub>, 28 cells</td><td>17 carries</td><td>Lean</td></tr><tr><td>1</td><td>28 cells, 24 blocks</td><td>2,266,846,918 carries</td><td>simulation</td></tr><tr><td>2</td><td>406 cells, p0+1 blocks</td><td>170,793,835 jumps</td><td>simulation</td></tr><tr><td>3</td><td>460 cells</td><td>2,048,289,505 jumps</td><td>simulation</td></tr><tr><td>4</td><td>500 cells</td><td>not yet computed</td><td></td></tr></tbody></table></div>",
+     "<p>P never settles: 28, 406, 460, 500 cells of what looks like noise, and J scrambles it. That is why the question stays open: every S event is a new roll of the dice for a halt.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The question",
+    "heading": "Where it could halt",
+    "html": [
+     "<p>The missing transition is F reading 0, and F is entered only from E reading 1, which steps left. So the machine halts exactly when <b>E reads a 1 with a 0 on its left</b>. In every proved rule F lands on a 1. The place where it could fail is the left end of the tape, at an S event: what state the carry arrives in there depends on the irregular cells of P. For a made-up left part (<code>P B^2 Q</code> with an even-length counter) the machine does halt, after 1,129 carries; the configurations reached from blank tape have so far always been safe.</p>"
+    ]
+   },
+   {
+    "id": "proved",
+    "eyebrow": "The proof so far",
+    "heading": "What is proved",
+    "html": [
+     "<p><b>Lean, kernel.</b> The two short trips and the five kinds of three-trip increment, for every wall length and carry length (<code>lean/Rules.lean</code>); the increment as a program on the units (<code>next_sound</code>, <code>lean/Counter.lean</code>); a full count of a counter of any length (<code>up</code>, <code>lean/Count.lean</code>); the 17 carries into the left part, the first S event and the first six carries into L1, for all counter and wall lengths (<code>fe</code>, <code>s1</code>, <code>fo</code>, <code>lean/Left.lean</code>).</p>",
+     "<p><b>Lean, kernel on top of one native_decide.</b> Blank tape reaches the first S event and goes on to the seventh carry into L1: no halt in the first 8<sup>p0+1</sup> steps (<code>no_halt_early</code>, <code>lean/Frontier.lean</code>), where only the first 59,129 steps (<code>reach_s0</code>) use compiled evaluation.</p>",
+     "<p><b>Trusted computation.</b> The second S event after 2,266,846,918 carries into L1, the third after 170,793,835 jumps into P2 and the fourth after 2,048,289,505 jumps into P3, none halting (<code>py/accel/</code>).</p>",
+     "<p><b>Open.</b> All later S events. Each one is a finite computation on a few hundred cells, but the number of jumps before it is large and unpredictable, and nothing suggests a pattern that a proof could follow.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "counter whose overflows freeze into a self-similar, chaotic left end",
+ "summary": "A binary counter in six-cell units whose overflows rewrite an irregular left part; rarely an overflow reaches the left end, the old counter freezes into blocks and the wall becomes a far longer counter. Lean proves the run through the first such event (no halt in the first 8^(p0+1) steps, p0 about 3.2e23); the next three are computed, and the left part behaves chaotically, so the question stays open.",
+ "decision": "open"
+}

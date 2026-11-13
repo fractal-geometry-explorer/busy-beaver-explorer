@@ -1,0 +1,120 @@
+{
+ "generated": false,
+ "group": "counter on a periodic background",
+ "title": "What is known about 1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC",
+ "description": "Proof status of the six-state BB(6) holdout 1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC.",
+ "machine": "1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC",
+ "crumb": "holdouts / 1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC",
+ "home": "../index.html",
+ "source": "holdouts/1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>Open.</b> Between rare rebuilds the machine is a binary counter written with four-valued digits on a background of the word <code>01011111</code>; this is checked against the simulator over 10<sup>8</sup> steps. The rebuilds (ten so far, the last at step 29,787,121; none up to 2·10<sup>10</sup>) are not understood, so there is no decision."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (A1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The counter passes",
+   "text": "At every right-end turn in the first 10^8 steps where the tape ends in digits separated by runs of 01011111, the next pass steps the lowest digit a → b → c → d → a and passes a carry left exactly on d → a and a → b (2,480 passes checked).",
+   "where": "<code>py/passes.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Ten rebuilds, no halt in 2·10^10 steps",
+   "text": "The head reaches the left end in state C at steps 38, 107, 251, 394, 726, 1,603, 1,979, 5,272, 39,576 and 29,787,121 and not again before step 2·10^10.",
+   "where": "<code>tools/c/tmrun.c</code> (<code>at C L</code>)"
+  },
+  {
+   "level": "heuristic",
+   "title": "Nonhalting expected",
+   "text": "The halting pattern (state B reading 1 1) does not occur in the counter passes; whether a rebuild can produce it is not known.",
+   "where": "README"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The self-similar structure is described here, but its rules were not derived or proved; this machine was left at a first analysis.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC 1000000000"
+ ],
+ "explainer": {
+  "lede": "Not known, and only looked at: the tape is a self-similar word whose block exponents double, so the long returns of the head come at exponentially spaced times. The rules were not derived here.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10 returns",
+    "text": "of the head to the left end in state C in 10<sup>9</sup> steps, the last at step 29,787,121."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 52,296 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "counter",
+    "eyebrow": "What it does",
+    "heading": "A counter with four-valued digits",
+    "html": [
+     "<p>Read the tape two cells at a time, from the right end. Most of it is the same eight-cell word, <code>01011111</code>, repeated. Between the repeats sit a few special groups, the <b>digits</b>, each with four possible values a, b, c, d.</p>",
+     "<p>Every pass of the head changes the digit nearest the right end to its next value: a, b, c, d, a, ... On two of those four steps (d to a, and a to b) the head carries on to the next digit and steps it too. So each digit moves half as often as its right neighbour, exactly like the digits of a binary counter, and the stretches of background between the digits slowly grow.</p>",
+     "<p>Ten times so far a carry ran off the top of the counter and the head went to the far left end, rebuilding the tape into a larger arrangement (after the tenth, a row of two-digit counters). Those rebuilds are the part nobody has described yet, and the reason the machine is still open.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.522).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"160.6\" y2=\"160.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"164.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"121.2\" y2=\"121.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"125.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"81.7\" y2=\"81.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"85.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"42.3\" y2=\"42.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"46.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,184.4 L59.2,184.4 L78.4,177.1 L97.6,170.4 L116.8,167.3 L136.0,159.7 L155.2,158.1 L174.4,153.7 L193.6,153.7 L212.8,151.2 L232.0,151.2 L251.2,151.2 L270.4,150.3 L289.6,150.3 L308.8,150.3 L328.0,150.3 L347.2,150.3 L366.4,150.3 L385.6,150.3 L404.8,150.3 L424.0,150.3 L443.2,148.3 L462.4,148.3 L481.6,148.3 L500.8,148.3 L520.0,148.3\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,172.3 L59.2,170.4 L78.4,168.8 L97.6,164.7 L116.8,161.5 L136.0,158.1 L155.2,147.2 L174.4,143.3 L193.6,133.8 L212.8,128.6 L232.0,122.3 L251.2,117.3 L270.4,112.8 L289.6,108.2 L308.8,103.6 L328.0,99.0 L347.2,94.3 L366.4,89.5 L385.6,84.7 L404.8,79.9 L424.0,75.0 L443.2,71.0 L462.4,65.2 L481.6,59.7 L500.8,54.7 L520.0,49.9\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 52,296 cells (37 left of the start, 38,610 right), with a density of 1s of 0.721.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>955,189,963</td><td><code>1^7 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1 0 1^13 0 1 0 1 0 1 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1 0 1^3 0 1 0 1^5 0 1 0 1 0 1^11 0 1 0 1^5 0 1 0 1^5 0 1 0 1^11 0 1 0 1^5 0 1 0 1^11 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^11 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^11 0 1 0 1^5 0 1 0 1^5 0 1</code></td></tr><tr><td>right</td><td>970,815,087</td><td><code>1^7 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1 0 1^13 0 1 0 1 0 1 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1 0 1 0 1^9 0 1 0 1^7 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^</code></td></tr><tr><td>right</td><td>986,487,677</td><td><code>1^7 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1 0 1^13 0 1 0 1 0 1 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1 0 1 0 1^9 0 1 0 1^7 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "A counter on a periodic background: between rare rebuilds the right part of the tape is a row of four-valued digits separated by runs of the word 01011111, and every pass steps the lowest digit and sends a carry on two of its four steps, so each digit moves half as often as the one to its right.",
+ "decision": "open"
+}

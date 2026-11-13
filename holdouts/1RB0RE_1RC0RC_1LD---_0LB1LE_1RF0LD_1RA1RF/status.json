@@ -1,0 +1,160 @@
+{
+ "generated": false,
+ "group": "G02",
+ "title": "What is known about 1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF.",
+ "machine": "1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF",
+ "crumb": "holdouts / 1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> At 12 of the 13 epoch starts up to 1.7·10<sup>9</sup> steps this machine's configuration is identical, cell for cell, to that of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> (it gets there about 1.5 times later); so it runs the same running-parity computation. Lean proves eleven shift rules over its 4-cell words. It halts only when B stands left of a cell holding 1."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (C1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Shift rules over the 4-cell words",
+   "text": "D runs left over <code>1111</code> leaving it (on a 0) or writing <code>0101</code> (on a 1); E runs left over 1111 writing 1010; E, F, A cross <code>0101</code>, <code>1010</code> going right, D and E going left.",
+   "where": "<code>d_v0</code> ... <code>e_1010</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Same epoch starts as its twin",
+   "text": "The epoch starts (a crossing of 80% of the tape) of this machine at steps 3,350, 8,689, 19,594, 72,335, 220,328, 734,951, 2,145,468, 6,420,857, 60,731,203, 186,137,520, 574,984,133 and 1,744,002,084 have exactly the configuration (tape, head position, state) of 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF at its steps 2,284, 5,873, 13,248, 47,799, 145,962, 487,979, 1,427,948, 4,277,179, 40,483,837, 124,076,294, 383,276,545 and 1,162,585,978. (The epoch near 2·10<sup>7</sup> was sampled at different turns in the two runs.) Left end at 56, 103, 172, 374, ... 68,091 cells, as for the twin.",
+   "where": "<code>c/dump.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "What it computes",
+   "text": "As for the twin: a binary word in letters u = 1110, v = 1111, replaced on each leftward sweep by its running XOR, giving Sierpinski triangles in space-time, in epochs growing by about 1.75. Inferred from the identical epoch starts.",
+   "where": "README"
+  },
+  {
+   "level": "trusted",
+   "title": "Where it can halt",
+   "text": "Only C reading 1 halts; C is entered only from B (1RC on 0, 0RC on 1), so the machine halts exactly when B stands just left of a 1 (<code>B&gt; x 1</code>). Read off the table.",
+   "where": "the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No closed tape language with small windows",
+   "text": "<code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS 3 to 7 fails; no invariant mod 2..12.",
+   "where": "<code>tools/py/bbtools/ctl.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,528 cells have been visited and 37,059 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.502). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.04).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The two twins agree at epoch starts; between them they take different routes (this one about 1.5 times slower), and each has its own halting pattern, so a proof for one would have to be redone for the other unless the agreement itself is proved.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/lean/check.sh",
+  "gcc -O2 -o dump holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/c/dump.c && ./dump 1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF 72335 && ./dump 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF 47799",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF 1000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 47,528 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "heuristic",
+    "value": "exp/sqrt",
+    "text": "The growth shape of the two sides of the tape (see below)."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "twin",
+    "eyebrow": "The main finding",
+    "heading": "The same computation as another holdout",
+    "html": [
+     "<p>Run this machine and <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> side by side and look at the moments when the head starts a sweep across the whole tape. This machine gets there later (step 72,335 instead of 47,799, 1,744,002,084 instead of 1,162,585,978), but the tape is the same cell for cell, with the head on the same cell in the same state (E reading 1). That holds at 12 of the 13 epoch starts up to 1.7·10<sup>9</sup> steps.</p><p>At step 72,335 both tapes begin</p><pre>1^12 0 1^7 0 1^7 0 1^3 0 1^15 0 1^3 0 1^3 0 1^15 0 1^7 0 ...</pre>"
+    ]
+   },
+   {
+    "id": "what",
+    "eyebrow": "What it computes",
+    "heading": "Running parity, Sierpinski triangles",
+    "html": [
+     "<p>The tape is a word in two 4-cell letters, <code>1110</code> and <code>1111</code> (blocks <code>1<sup>4k+3</sup>0</code>). In the twin, each leftward sweep provably replaces the word by its running XOR; here the same words are crossed with different states (D, E, F, A: eleven shift rules proved in Lean), more slowly. The space-time diagram shows the same Sierpinski triangles and the same epochs, each about 1.75 times longer than the last.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Can it stop?",
+    "heading": "Only when B stands left of a 1",
+    "html": [
+     "<p>The only halting transition is C reading 1, and C is entered only from B, which always moves right. So the machine stops exactly when B stands just left of a cell holding 1. As for its twin, the question is in the rightward sweeps and the turns at the walls, which were not decoded.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.502). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.04).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"160.5\" y2=\"160.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"164.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"121.1\" y2=\"121.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"125.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"81.6\" y2=\"81.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"85.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"42.1\" y2=\"42.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"46.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,180.3 L59.2,174.5 L78.4,168.7 L97.6,165.9 L116.8,161.5 L136.0,156.7 L155.2,153.1 L174.4,147.5 L193.6,140.8 L212.8,134.4 L232.0,127.8 L251.2,123.7 L270.4,116.2 L289.6,110.6 L308.8,105.8 L328.0,99.6 L347.2,96.1 L366.4,90.1 L385.6,84.6 L404.8,80.7 L424.0,74.4 L443.2,71.1 L462.4,65.1 L481.6,59.3 L500.8,56.1 L520.0,49.9\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,184.4 L59.2,184.4 L78.4,174.5 L97.6,168.7 L116.8,163.5 L136.0,157.4 L155.2,154.8 L174.4,149.4 L193.6,149.4 L212.8,148.2 L232.0,147.1 L251.2,144.9 L270.4,144.9 L289.6,142.0 L308.8,142.0 L328.0,139.5 L347.2,137.4 L366.4,137.4 L385.6,135.6 L404.8,135.6 L424.0,134.6 L443.2,133.1 L462.4,133.1 L481.6,132.7 L500.8,132.3 L520.0,132.3\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 47,528 cells (38,068 left of the start, 115 right), with a density of 1s of 0.78.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>954,589,142</td><td><code>D&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1^9 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1^13 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1^9 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^25 0 1 0 1 0 1 0 1^13 0 1 0 1 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1^9 0 1 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0</code></td></tr><tr><td>left</td><td>970,268,133</td><td><code>B&gt;0 0 1^8 0 1 0 1 0 1 0 1^13 0 1 0 1^13 0 1 0 1^9 0 1 0 1^5 0 1 0 1^9 0 1 0 1 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1^9 0 1 0 1^5 0 1 0 1^17 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1^13 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^9 0 1 0 1^13 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1^17 0 1 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>left</td><td>985,948,440</td><td><code>B&gt;0 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1^9 0 1 0 1^5 0 1 0 1^17 0 1 0 1^9 0 1 0 1^13 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^13 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1^13 0 1 0 1^5 0 1 0 1^9 0 1 0 1^13 0 1 0 1 0 1 0 1^5 0 1 0 1^5 0 1 0 1^9 0 1 0 1^9 0 1 0 1 0 1 0 1 0 1 0 1^9 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0</code></td></tr><tr><td>right</td><td>781,475,908</td><td><code>1^7 0 1^3 0 1^7 0 1^3 0 1^3 0 1^7 0 1^3 0 1^3 0 1^15 0 1^7 0 1^27 0 1^3 0 1^3 0 1^3 0 1^11 0 1^3 0 1^23 0 1^3 0 1^3 0 1^3 0 1^23 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^19 0 1^7 0 1^3 0 1^7 0 1^7 0 1^3 0 1^11 0 1^3 0 1^3 0 1^11 0 1^7 0 1^3 0 1^3 0 1^11 0 1^3 0 1^3 0 1^11 0 1^43 0 1^7 0 1^19 0 1^7 0 1^3 0 1^23 0 1^3 0 1^11 0 1^11 0 1^11 0 1^15 0 1^7 0 1^3 0 1^15 0 1^23 0 1^3 0 1^7 0 1^15 0 1^3 0 1^3 0 1</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "A slower twin of 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF: the same running-parity (Sierpinski) word in 4-cell letters 1110/1111, with the same epochs; at the epoch starts the two machines have identical tapes, head position and state.",
+ "family": "running-XOR (Sierpinski) zone in epochs (twin)",
+ "decision": "open"
+}

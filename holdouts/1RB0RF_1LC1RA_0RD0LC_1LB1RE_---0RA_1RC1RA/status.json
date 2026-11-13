@@ -1,0 +1,149 @@
+{
+ "generated": false,
+ "group": "G13",
+ "title": "What is known about 1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA.",
+ "machine": "1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA",
+ "crumb": "holdouts / 1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is a long alternating stretch <code>(10)^n</code> holding a single marker 0, followed by a short, changing tail at the right end that behaves like a binary counter. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 12 cells) finds no halt in the first 10<sup>12</sup> steps."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (E0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 3,893 cells have been visited and 2,178 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: power/power",
+   "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.295). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.349).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>12</sup> steps",
+   "text": "An exact macro simulator (blocks of 12 cells) runs 10<sup>12</sup> steps without a halt. The macro simulator cuts the tape into blocks of K cells, run-length codes them, and crosses a whole run at once when the head leaves it on the far side in the state it entered with; it agrees with the plain simulator <code>tools/c/tmrun</code> cell for cell.",
+   "where": "<code>holdouts/1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA/c/mrun.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A marker counted in binary",
+   "text": "At the moments the head first reaches a new cell on the right, the tape is <code>0 (10)^x 0 (10)^y</code> followed by a short tail; between consecutive such moments in one round, x grew by 64 (104 times), 32 (99), 128 (85), 16 (79), 8 (43), 256 (43), 4 (23) and a handful of other amounts in the first 10<sup>8</sup> steps, with 139 resets. Read as: one marker step per sweep, and a binary counter in the tail that gains a digit at powers of 2.",
+   "where": "<code>tools/c/tmrun.c</code> records"
+  },
+  {
+   "level": "trusted",
+   "title": "The halting state, seen from the run",
+   "text": "In the first 10<sup>8</sup> steps state E was entered 58,016 times, always reading a 1 (E0 halts); 57,572 of those times the head was at least 7 cells from both ends of the tape.",
+   "where": "<code>c/sstat.c</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA 1000000000",
+  "gcc -O2 -o mrun holdouts/1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA/c/mrun.c && ./mrun 1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA 12 1000000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. A marker 0 drifts through a long alternating sea one cell per sweep while a binary counter at the right end counts the sweeps; when the marker reaches the far end a reset sweep starts the next round, one cell wider.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>12</sup> steps",
+    "text": "No halt in an exact macro simulator (blocks of 12 cells)."
+   },
+   {
+    "level": "heuristic",
+    "value": "binary",
+    "text": "The marker moves 8, 16, &hellip;, 256 cells between right growths: a binary sweep counter."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 3,893 cells visited."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "structure",
+    "eyebrow": "Macro structure",
+    "heading": "What the machine does",
+    "html": [
+     "<p>Stop the machine whenever its head first reaches a new cell on the right. With <code>a</code> for <code>10</code> and <code>c</code> for <code>1110</code>, the tape around step 9.65&middot;10<sup>7</sup>:</p>",
+     "<ul><li>step 96,383,862: <code>0 a^24 0 a^842 c a c a^6 c 1^2 B&gt;0</code></li><li>step 96,424,357: <code>0 a^32 0 a^834 c a c a^6 c 1^3 A&gt;0</code></li><li>step 96,504,199: <code>0 a^48 0 a^818 c a c a^6 c 1^5 A&gt;0</code></li><li>step 96,659,277: <code>0 a^80 0 a^786 c a c a^6 c 1^7 A&gt;0</code></li><li>step 96,951,003: <code>0 a^144 0 a^722 c a c a^6 c 1^9 A&gt;0</code></li><li>step 97,460,729: <code>0 a^272 0 a^594 c a c a^6 c 1^11 A&gt;0</code></li><li>step 98,185,271: <code>0 a^528 0 a^338 c a c a^6 c 1^13 A&gt;0</code></li><li>step 98,543,083: <code>C&gt;0 1^1738 c 1^12 c &hellip;</code> (the reset sweep)</li><li>step 98,684,671: <code>0 a^28 0 a^842 c a^9 1^2 c a^2 1^2 B&gt;0</code></li></ul>",
+     "<p>The left part is an <em>alternating sea</em> <code>0 a^x 0 a^y</code> with x + y fixed within a round (866 here, then 870): one extra 0, the <em>marker</em>, sits after x copies of <code>10</code>. The head shuttles between the marker and the right end: going left (states C and D) it turns the sea right of the marker into solid 1s, at the marker it moves the marker one cell on, and going right (state F) it turns the 1s back into <code>10</code>s, for example <code>0 a^33 0 a^303 F&gt;1^1058</code>. At the right end each sweep adds one to a counter in the tail, and the tape grows on the right only when the counter gains a digit. So between right growths the marker moves 8, 16, 32, 64, 128, 256 cells: in the first 10<sup>8</sup> steps the increments were 64 (104 times), 32 (99), 128 (85), 16 (79), 8 (43), 256 (43), 4 (23) and a handful of others, with 139 resets. The counter counts sweeps in binary.</p>",
+     "<p>When the marker reaches the right end of the sea, a long sweep (<code>C&gt;0 1^1738 &hellip;</code>) resets it near the left end, the counter's tail is rewritten, and the sea is a little longer. A round of a sea of width w is about w sweeps of about w steps, and the sea grows a little per round: the width grows like the cube root of the step count.</p>",
+     "<p>The near-duplicate <code>1RB1RF_0RC0LB_1LD1RE_1LB1RF_---0RF_1RD0RA</code> does the same (marker increments 64, 32, 16, 128, &hellip;).</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "The halting transition",
+    "heading": "Where a halt would have to come from",
+    "html": [
+     "<p>The halting transition is E reading a 0. E is entered only from D reading a 1 (<code>1RE</code>), so a halt needs D on a 1 with a 0 just right of it. In the first 10<sup>8</sup> steps E was entered 58,016 times, every time on a 1, and 57,572 of those times at least 7 cells from both ends of the tape.</p>",
+     "<p>D runs left through the sea during a sweep (<code>0 a^647 D&gt;0 1^371</code>); the danger would be a configuration of the sea or the counter where D meets <code>1 0</code> in the wrong phase. Whether the counter's carries or the resets can ever produce one is open.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.295). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.349).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"148.9\" y2=\"148.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"152.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"97.9\" y2=\"97.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"101.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"46.8\" y2=\"46.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"50.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,179.8 L59.2,179.8 L78.4,174.5 L97.6,174.5 L116.8,170.4 L136.0,167.0 L155.2,164.2 L174.4,159.5 L193.6,157.6 L212.8,154.2 L232.0,151.4 L251.2,147.8 L270.4,144.8 L289.6,141.5 L308.8,138.0 L328.0,134.5 L347.2,131.1 L366.4,127.6 L385.6,124.3 L404.8,120.7 L424.0,117.3 L443.2,113.6 L462.4,109.8 L481.6,106.1 L500.8,102.2 L520.0,98.5\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,170.4 L59.2,164.2 L78.4,159.5 L97.6,152.8 L116.8,150.1 L136.0,143.1 L155.2,139.3 L174.4,136.2 L193.6,129.5 L212.8,125.5 L232.0,120.2 L251.2,116.3 L270.4,111.2 L289.6,106.5 L308.8,102.5 L328.0,97.5 L347.2,92.8 L366.4,88.2 L385.6,84.1 L404.8,78.9 L424.0,75.1 L443.2,71.1 L462.4,66.2 L481.6,62.0 L500.8,57.8 L520.0,52.8\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 3,893 cells (246 left of the start, 2,958 right), with a density of 1s of 0.559.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>940,355,081</td><td><code>C&gt;0 1^3750 0 1^22 0 1^3 0^2 1^6 0 1 0^5 1^3 0 1^5 0 1 0^3 1</code></td></tr><tr><td>left</td><td>961,716,673</td><td><code>C&gt;0 1^3799 0^2 1^6 0^2 1^8 0^7 1 0^3 1 0 1 0 1</code></td></tr><tr><td>left</td><td>983,678,675</td><td><code>C&gt;0 1^3824 0^3 1^14 0^2 1^6 0^2 1^4 0 1 0^3 1 0^3 1 0 1 0 1</code></td></tr><tr><td>right</td><td>950,128,482</td><td><code>0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>967,076,134</td><td><code>0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>984,328,309</td><td><code>0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "sweep counter: a marker in an alternating sea, counted in binary",
+ "summary": "A marker 0 drifts through a long alternating sea one cell per sweep while a binary counter at the right end counts the sweeps; when the marker reaches the far end a reset sweep starts the next round, one cell wider."
+}

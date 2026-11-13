@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What is known about 1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE</title>
+<meta name="description" content="Proof status of the six-state BB(6) holdout 1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 36px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; overflow-x: auto; font-family: var(--font-display); font-size: 0.74rem; line-height: 1.6; }
+.top { display: grid; gap: 12px; max-width: 70ch; }
+.crumb { font-size: 0.9rem; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.asof { font-size: 0.88rem; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 70ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 0.88rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.card p { font-size: 0.94rem; }
+.card .where { font-size: 0.84rem; color: var(--muted); }
+.card.open { border-left: 4px solid var(--open); }
+.empty { color: var(--muted); font-size: 0.94rem; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE</p>
+    <h1>What is known about 1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE</h1>
+    <p class="machine">1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is always an alternating block <code>(10)^x</code> next to a solid block <code>1^y</code>, and the machine moves cells between them by doubling, back and forth. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p class="asof">Status as of 8 November 2026.</p>
+  </header>
+  <section aria-labelledby="h-short">
+    <h2 id="h-short">In short</h2>
+    <div class="verdict">
+      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; an exact macro simulator finds no halt in the first 10<sup>15</sup> steps. Lean proves the left phase rule (below) for all sizes.</p>
+      <p><b>What Lean proves.</b> The whole phase map, every case for all sizes (E(x, z) = <code>E&gt;0 (10)^x 1^z</code>, R(x, y) = <code>(10)^x 1^y C&gt;0</code> and the bounce frame Q(m, k, t) = <code>(10)^m 1 A&gt;0 0 (10)^k 1^t</code>), and <code>halts_iff</code>: the machine halts from blank tape if and only if the map, iterated from R(0, 2), which the blank tape reaches in 2 steps,, reaches E(x, 0) or E(x, 1). By <code>native_decide</code> the first 10<sup>8</sup> phases (about 4.1&middot;10<sup>21</sup> machine steps) do not. Lean also proves that the <em>even</em> phases lead only to even phases or to an all-ones tape, and checks, for every all-ones tape of length n &lt; 10<sup>5</sup>, that its run halts before the next even phase or all-ones tape exactly when n is 0, 6 or 32&middot;2<sup>k</sup> &minus; 2k &minus; 12 (20, 50, 112, 238, &hellip;). What is not proved: that this list holds for every n, and that the run never lands on it.</p>
+      <p><b>Where a halt would come from.</b> F0 halts, and F is entered only from E0: E stands on the 0 at the left end and walks right with F over <code>0101&hellip;</code>, so a halt needs at most one 1 after the alternating block. Probing every two-block tape with sizes below 150, a parity rule keeps that from happening except right after the tape has become all ones; from <code>1^n C&gt;0</code> it halts for n = 20, 50, 112, 238 (n = 32&middot;2<sup>k</sup> &minus; 2k &minus; 12) and for 15 values of n below 40 (all n &le; 400 checked).</p>
+      <p><b>Why it has not halted.</b> All-ones moments are rare: in the first 10<sup>9</sup> steps the tape was <code>1^n C&gt;0</code> at n = 2, 5, 10, 71, 279, 466, 763 and 3002, and between 10<sup>9</sup> and 10<sup>15</sup> steps only at n = 5882, 10234, 12114, 24455, 37818, 48395, 53042 and 405563. None is in the list. The machine very probably never halts, but nothing here proves it.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-claims">
+    <h2 id="h-claims">What each result rests on</h2>
+    <div class="legend" aria-label="Legend">
+      <span><span class="tag t-kernel">kernel</span> checked by Lean's kernel alone</span>
+      <span><span class="tag t-native">native</span> evaluated by compiled code</span>
+      <span><span class="tag t-comp">trusted</span> C or Python in the repository, exhaustive</span>
+      <span><span class="tag t-heur">heuristic</span> sampling, extrapolation, patterns</span>
+      <span><span class="tag t-open">open</span> not known</span>
+    </div>
+    <h3><span class="tag t-kernel">kernel</span> Proved in Lean, kernel-checked</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>The halting configurations</h3>
+        <p>The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.</p>
+        <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10,000 steps</h3>
+        <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
+        <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The left phase rule, for all sizes</h3>
+        <p>Lean proves, with <code>rfl</code> steps, the crossing lemmas and induction on the number of bounces, that E(x,z) reaches E(2x+4, z&minus;2x&minus;6) whenever x &ge; 1 and z &ge; 2x + 7 (<code>ephase</code>). The phase is a start piece, one bounce <code>(10)^(m+1) 1 A&gt;0 0 (1010)^j 1^(r+3)</code> to <code>(10)^m 1 A&gt;0 0 (1010)^(j+1) 1^(r+1)</code> per copy of <code>10</code>, and an end piece, generated by <code>py/gen_rules.py</code>: the proof of <code>1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE</code>, whose state D plays the part of A here. The right phase and the parity analysis are not proved.</p>
+        <p class="where"><code>lean/Rules.lean</code>, <code>lean/EPhase.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The whole phase map</h3>
+        <p>Write E(x, z) = <code>E&gt;0 (10)^x 1^z</code>, R(x, y) = <code>(10)^x 1^y C&gt;0</code> and the bounce frame Q(m, k, t) = <code>(10)^m 1 A&gt;0 0 (10)^k 1^t</code>. <code>next</code> sends each of them to the next one the machine reaches (bounces taken all at once), with 18 cases; <code>next_sound</code> proves every case for all parameters (one symbolic run of <code>lean/Pieces.lean</code> each, generated by <code>py/pieces.py</code>, and induction for the bounces). <code>next</code> fails only at E(x, 0) and E(x, 1), which halt (<code>e_halts</code>).</p>
+        <p class="where"><code>lean/Phases.lean</code>, <code>lean/Pieces.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halts if and only if the map reaches E(x, 0) or E(x, 1)</h3>
+        <p><code>halts_iff</code>: the machine halts from blank tape if and only if some iterate of <code>next</code> from R(0, 2), which the blank tape reaches in 2 steps, is E(x, z) with z &le; 1.</p>
+        <p class="where"><code>lean/Phases.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The parity classes</h3>
+        <p><code>even_next</code>: the even phases (E(x, z) with z even and z &ge; 2, R(x, y) with x &ge; 1 and y odd, Q(m, k, t) with t even) lead only to even phases or to an all-ones tape. So from an even phase the machine cannot halt before the tape is next all ones (<code>even_safe</code>).</p>
+        <p class="where"><code>lean/Phases.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>7</sup> steps</h3>
+        <p>The same run, evaluated by compiled code.</p>
+        <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>8</sup> phases</h3>
+        <p><code>no_halt_phases</code>, by <code>native_decide</code>: the first 10<sup>8</sup> iterates are defined and none is E(x, 0) or E(x, 1). By the step counts of the pieces (<code>py/phasemap.py run</code>) that is about 4.1&middot;10<sup>21</sup> machine steps.</p>
+        <p class="where"><code>lean/Phases.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The fatal all-ones lengths below 10<sup>5</sup></h3>
+        <p><code>fatal_list</code>, by <code>native_decide</code>: for every n &lt; 10<sup>5</sup>, the run from the all-ones tape R(0, n) = <code>1^n C&gt;0</code> reaches a halting phase before an even phase or another all-ones tape exactly when n is 0, 6 or 32&middot;2<sup>k</sup> &minus; 2k &minus; 12 (20, 50, 112, 238, &hellip;) (<code>ones_fatal</code>, <code>ones_safe</code>). That the list goes on this way for every n is not proved.</p>
+        <p class="where"><code>lean/Phases.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>9</sup> steps</h3>
+        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 4,148 cells have been visited and 3,758 of them hold a 1.</p>
+        <p class="where"><code>holdouts/triage.json</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>15</sup> steps</h3>
+        <p>The exact macro simulator <code>c/mrun.c</code> (blocks of 2 cells, run-length coded, a run crossed at once when the head leaves it on the far side in the state it entered with) runs 10<sup>15</sup> steps without a halt.</p>
+        <p class="where"><code>holdouts/1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE/c/mrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The two phase rules, along the run</h3>
+        <p>Write <code>E(x,z)</code> for <code>E&gt;0 (10)^x 1^z</code> and <code>C(x,y)</code> for <code>(10)^x 1^y C&gt;0</code> (blank around). In the first 10<sup>9</sup> steps every left phase with z &ge; 2x+8 went E(x,z) &rarr; E(2x+4, z&minus;2x&minus;6) (502 times) and every right phase with 2x &ge; y+6 went C(x,y) &rarr; C(x&minus;&lfloor;y/2&rfloor;&minus;2, 2y+5) (490 times).</p>
+        <p class="where"><code>py/phases.py check</code></p>
+      </div>
+      <div class="card">
+        <h3>All-ones moments so far</h3>
+        <p>In the first 10<sup>9</sup> steps the tape is <code>1^n C&gt;0</code> at n = 2, 5, 10, 71, 279, 466, 763, 3002 (the last at step 372,886,607). Between 10<sup>9</sup> and 10<sup>15</sup> steps, from the exact macro simulation (which sees the moment <code>1^n &lt;D</code> just after): n = 5882, 10234, 12114, 24455, 37818, 48395, 53042, 405563, at steps about 2.90&middot;10<sup>9</sup>, 1.48&middot;10<sup>10</sup>, 2.48&middot;10<sup>10</sup>, 2.06&middot;10<sup>11</sup>, 7.55&middot;10<sup>11</sup>, 1.58&middot;10<sup>12</sup>, 2.09&middot;10<sup>12</sup> and 9.26&middot;10<sup>14</sup>. None is in the list (its members near them: 8164, 16354, 32736, 65502, 524248).</p>
+        <p class="where"><code>c/mrun.c</code>, <code>py/phases.py check</code></p>
+      </div>
+      <div class="card">
+        <h3>All-ones moments in the first 10<sup>8</sup> phases</h3>
+        <p>Iterating the map with the pieces' step counts (<code>py/phasemap.py run 100000000</code>): after n = 405563 (step 9.26&middot;10<sup>14</sup>) the tape is all ones at n = 454194, 469239, 2163591, 10123515, 10839355, 10989362, 14932875, 15458727, 20193339 and 23796235 (the last near step 1.87&middot;10<sup>20</sup>). None is fatal.</p>
+        <p class="where"><code>py/phasemap.py</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>Growth shape: power/power</h3>
+        <p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.334). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.342).</p>
+        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Step counts of the phases</h3>
+        <p>From probes: the left phase takes 4x&sup2;+24x+30 steps, the right phase y&sup2;+6y+7 (y even) or y&sup2;+4y+5 (y odd). Doubling costs the square of the block, so the width grows like t<sup>1/3</sup>.</p>
+        <p class="where"><code>py/phases.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting needs an all-ones tape from a sparse list</h3>
+        <p>From every two-block tape with x, y, z &lt; 150 the next one was computed. E(x,z) with z even &ge; 2 and C(x,y) with x &ge; 1, y odd lead only to tapes of the same kind or to an all-ones tape <code>1^n C&gt;0</code>, never to a halt; the machine halts only from E(x,0) and E(x,1). From <code>1^n C&gt;0</code> the run goes to E(0, n+1) and then E(4, n&minus;5); the alternating block grows 4, 12, 28, 60, &hellip; (x &#8614; 2x+4), and the run halts when the ones run out leaving exactly one: n = 20, 50, 112, 238, &hellip; = 32&middot;2<sup>k</sup> &minus; 2k &minus; 12. For n &le; 37 there are 15 more fatal values (1, 3, 6, 7, 9, 16, 18, 21, 22, 24, 29, 30, 31, 34, 37). All n &le; 400 checked directly; not proved for all sizes.</p>
+        <p class="where"><code>py/phases.py probe</code>, <code>py/phases.py ones</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-open">open</span> Open</h3>
+    <div class="cards">
+      <div class="card open">
+        <h3>Does it halt from blank tape?</h3>
+        <p>Not known. It would need an all-ones tape whose length is in a sparse list; nothing rules that out.</p>
+      </div>
+    </div>
+  </section>
+  <section aria-labelledby="h-check">
+    <h2 id="h-check">Check it yourself</h2>
+    <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
+holdouts/1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE/lean/check.sh
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE 1000000000
+gcc -O2 -o mrun holdouts/1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE/c/mrun.c &amp;&amp; ./mrun 1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE 2 1000000000000</code></pre>
+  </section>
+  <footer>
+    <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>
+    <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+  </footer>
+</main>
+</body>
+</html>

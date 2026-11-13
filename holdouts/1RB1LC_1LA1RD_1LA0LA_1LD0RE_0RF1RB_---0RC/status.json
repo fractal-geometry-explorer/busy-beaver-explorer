@@ -1,0 +1,135 @@
+{
+ "generated": false,
+ "group": "G12",
+ "title": "What is known about 1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC.",
+ "machine": "1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC",
+ "crumb": "holdouts / 1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC",
+ "home": "../index.html",
+ "source": "holdouts/1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
+  "Its run is a counter of the Fibonacci kind on the left, whose overflows come at times growing by the golden ratio, and a word of binary digits on the right that the counter's carries rewrite; at rare restructures the word is rebuilt longer. Lean proves that a halt can only happen at the right edge."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>) and that a halt can only happen at the right edge (kernel); the C simulator finds no halt in the first 10<sup>11</sup> steps.",
+  "<b>What it does.</b> At each overflow of its counter the tape is <code>C&gt;0 (1 0)^z W</code>; z grows by one per overflow and the step counts grow by a factor tending to the golden ratio. Eleven times in 10<sup>11</sup> steps the word W is rebuilt (a restructure), the last at step 75,515,153,373.",
+  "<b>Why it is hard.</b> A halt can only come out of a restructure, they are rare and come at growing intervals, and the rule that maps one epoch to the next has not been decoded."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A halt can only happen at the right edge",
+   "text": "A closed tape language from windows of 4 cells covers every configuration of the run from blank tape; in all of its abstract configurations where F can read a 0 (the only halting transition), the tape right of the head is blank. So the machine halts exactly when F steps onto the blank region right of everything written.",
+   "where": "<code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps without a halt; 423 cells visited, 339 ones at the end.",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The overflow configurations of the run",
+   "text": "Every time C is at the left end on <code>0 1 0</code>, the tape from the head on is <code>(1 0)^z</code> followed by odd blocks of 1s separated by single 0s (a string of binary digits read in pairs). In the first 10<sup>11</sup> steps z rises by one from each such moment to the next, except at 11 restructures where it falls back to 1 (the first such moment is at step 40): steps 105, 184, 529, 660, 3,423, 13,944, 149,177, 370,694, 1,993,257, 442,705,820 and 75,515,153,373.",
+   "where": "<code>tmrun ... records</code>, read in pairs of cells"
+  },
+  {
+   "level": "heuristic",
+   "title": "A Fibonacci counter",
+   "text": "Within an epoch the ratio of successive overflow times tends to 1.618 (1.534, 1.583, 1.604, 1.609 at z = 37, 39, 41, 42): the counter has Fibonacci-many states per digit count.",
+   "where": "the records of the 10<sup>11</sup>-step run"
+  },
+  {
+   "level": "open",
+   "title": "The restructures, and the question itself",
+   "text": "Not known: the rule from one epoch to the next, whether a restructure can produce the halting configuration, and whether the machine halts.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC/lean/check.sh",
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC 100000000000 records 100000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>11</sup> steps without stopping. It is a counter of the Fibonacci kind that rewrites a word of binary digits, rebuilt at rare restructures. This page runs the real machine in your browser and lists what is known.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator; 423 cells visited."
+   },
+   {
+    "level": "kernel",
+    "value": "right edge",
+    "text": "Lean proves a halt can only happen at the right end of the tape."
+   },
+   {
+    "level": "heuristic",
+    "value": "&phi; = 1.618",
+    "text": "The growth factor of the counter's overflow times."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "family",
+    "eyebrow": "Macro structure",
+    "heading": "A counter that grows by the golden ratio",
+    "html": [
+     "<p>Stop the simulator whenever the head, in state C, is at the left end of the tape reading a 0 followed by <code>1 0</code>. The tape then reads, from the head on, <code>C&gt;0 (1 0)^z W</code>: z pairs <code>1 0</code>, then a word W of odd blocks of 1s separated by single 0s. Read in pairs of cells, the whole tape is a string of binary digits (the second cell of each pair), and the <code>(1 0)^z</code> prefix is a run of z zero digits.</p><table><tr><th>step</th><th>z</th><th>digits</th><th>ratio to the previous step count</th></tr><tr><td>4,966,446,282</td><td>37</td><td>169</td><td>1.534</td></tr><tr><td>12,286,012,150</td><td>39</td><td>171</td><td>1.583</td></tr><tr><td>31,448,884,462</td><td>41</td><td>174</td><td>1.604</td></tr><tr><td>50,611,756,288</td><td>42</td><td>175</td><td>1.609</td></tr></table><p>Each such moment z is one larger than at the one before, and the step counts grow by a factor that tends to 1.618&hellip;, the golden ratio. That is the signature of a <b>Fibonacci counter</b>: a counter in which the number of states with z digits grows like the Fibonacci numbers, as in the Zeckendorf representation (no two adjacent 1s). Each overflow of the counter adds a digit to the zero run and changes W only near the counter.</p>"
+    ]
+   },
+   {
+    "id": "restructure",
+    "eyebrow": "Why it is open",
+    "heading": "Restructures",
+    "html": [
+     "<p>The regular growth is interrupted by <b>restructures</b>, where z falls back to 1 and W is rebuilt longer. In the first 10<sup>11</sup> steps they came at steps 105, 184, 529, 660, 3,423, 13,944, 149,177, 370,694, 1,993,257, 442,705,820 and 75,515,153,373, with W growing from 5 to 178 digits. Within an epoch W changes only in a window that the counter's carries reach; the digits beyond look random and do not settle into a pattern we could name.</p><p>Lean proves that a halt can only happen when F reads a 0 on blank tape at the right end, so a halt would come out of a restructure, when the far end of the word is rewritten. Restructures come at irregular, rapidly growing times (the last two epochs lasted 4&middot;10<sup>8</sup> and 7.5&middot;10<sup>10</sup> steps), so a direct simulation sees only a handful of chances to halt.</p><p>What decides how a restructure ends, and whether the map from one epoch to the next can ever lead to the halting configuration, is not known. Decoding it would turn the machine into a map on words, probably of the Collatz kind.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.063). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"130.6\" y2=\"130.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"134.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"61.2\" y2=\"61.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"65.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><path d=\"M40.0,159.7 L59.2,155.1 L78.4,147.9 L97.6,135.8 L116.8,127.6 L136.0,119.4 L155.2,108.9 L174.4,106.4 L193.6,97.9 L212.8,94.7 L232.0,88.5 L251.2,85.7 L270.4,84.7 L289.6,84.2 L308.8,77.6 L328.0,71.7 L347.2,70.8 L366.4,66.7 L385.6,65.3 L404.8,64.6 L424.0,64.4 L443.2,63.9 L462.4,63.7 L481.6,63.3 L500.8,63.1 L520.0,57.4\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,172.5 L59.2,159.7 L78.4,155.1 L97.6,155.1 L116.8,145.0 L136.0,142.3 L155.2,140.0 L174.4,135.8 L193.6,133.9 L212.8,130.6 L232.0,129.1 L251.2,129.1 L270.4,126.3 L289.6,126.3 L308.8,125.0 L328.0,123.8 L347.2,121.5 L366.4,120.4 L385.6,120.4 L404.8,120.4 L424.0,120.4 L443.2,120.4 L462.4,120.4 L481.6,120.4 L500.8,120.4 L520.0,119.4\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 330 cells (297 left of the start, 24 right), with a density of 1s of 0.821.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>598,512,206</td><td><code>C&gt;0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1^5 0 1^11 0 1 0 1 0 1 0 1 0 1 0 1^11 0 1^5 0 1^7 0 1^5 0 1^5 0 1^5 0 1^23 0 1^17 0 1^7 0 1 0 1^11 0 1^13 0 1 0 1^11 0 1^7 0 1 0 1^11 0 1^3 0 1^3 0 1^5 0 1^5 0 1^5 0 1^5 0 1^7 0 1^6</code></td></tr><tr><td>left</td><td>694,805,444</td><td><code>C&gt;0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^11 0 1 0 1^7 0 1 0 1 0 1^11 0 1^11 0 1 0 1 0 1 0 1 0 1 0 1^11 0 1^5 0 1^5 0 1 0 1^11 0 1^5 0 1^17 0 1^11 0 1^17 0 1 0 1 0 1^11 0 1^13 0 1 0 1^19 0 1 0 1^11 0 1^3 0 1^3 0 1^5 0 1^5 0 1^5 0 1^5 0 1^7 0 1^6</code></td></tr><tr><td>left</td><td>850,611,538</td><td><code>C&gt;0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1^7 0 1^5 0 1 0 1 0 1 0 1^5 0 1^5 0 1^5 0 1^7 0 1 0 1 0 1 0 1 0 1^11 0 1^5 0 1^5 0 1 0 1^5 0 1^5 0 1^5 0 1^5 0 1^11 0 1^5 0 1^5 0 1^19 0 1 0 1^11 0 1^11 0 1 0 1 0 1^17 0 1 0 1 0 1^15 0 1^3 0 1^5 0 1^5 0 1^5 0 1^5 0 1^7 0 1^6</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "Fibonacci counter feeding a word",
+ "summary": "A Fibonacci counter (step counts grow by the golden ratio) on the left that rewrites a word of binary digits, with restructures at growing intervals; halts only at the right edge. Open, no halt in 10^11 steps."
+}

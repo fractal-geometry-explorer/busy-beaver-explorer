@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Inside holdouts / 1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF</title>
+<meta name="description" content="An interactive explainer of the 6-state machine 1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF: the table, where it can halt, the machine running in the browser, a space-time diagram, and what is known about it, each result marked by what it rests on.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --sunk:#eceef2; --line:#d9dce3; --line-strong:#b9bec9;
+  --fg:#14171d; --fg2:#4a505c; --muted:#7a808c; --accent:#2350a8; --accent-soft:#e3eaf8;
+  --ink:#1b2230; --cell0:#ffffff; --head:#d2551f;
+  --kernel:#1c7a4d; --kernel-bg:#e2f3ea; --native:#2350a8; --native-bg:#e3eaf8;
+  --computed:#9a6400; --computed-bg:#fbf0d9; --heur:#7a4fb5; --heur-bg:#efe8f8; --open:#b3363a; --open-bg:#f8e3e3;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#11141a; --surface:#181c24; --sunk:#0d1015; --line:#2a303b; --line-strong:#3c4452;
+  --fg:#e9ecf2; --fg2:#b4bac6; --muted:#858c99; --accent:#8fb0f0; --accent-soft:#1d2a44;
+  --ink:#dfe5f0; --cell0:#11141a; --head:#f08a55;
+  --kernel:#5cc893; --kernel-bg:#14301f; --native:#8fb0f0; --native-bg:#1d2a44;
+  --computed:#e7b453; --computed-bg:#33280f; --heur:#b99cf0; --heur-bg:#2a2040; --open:#f08488; --open-bg:#3a1c1e;
+  color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#11141a; --surface:#181c24; --sunk:#0d1015; --line:#2a303b; --line-strong:#3c4452;
+  --fg:#e9ecf2; --fg2:#b4bac6; --muted:#858c99; --accent:#8fb0f0; --accent-soft:#1d2a44;
+  --ink:#dfe5f0; --cell0:#11141a; --head:#f08a55;
+  --kernel:#5cc893; --kernel-bg:#14301f; --native:#8fb0f0; --native-bg:#1d2a44;
+  --computed:#e7b453; --computed-bg:#33280f; --heur:#b99cf0; --heur-bg:#2a2040; --open:#f08488; --open-bg:#3a1c1e;
+  color-scheme:dark; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--body);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 64px}
+.wrap{max-width:1080px;margin:0 auto}
+.col{max-width:68ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,3.3rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(1.45rem,3vw,1.95rem);font-weight:700;margin-bottom:.6rem}
+h3{font-size:1.12rem;font-weight:700;margin:1.4rem 0 .4rem}
+p{margin:.65rem 0}
+a{color:var(--accent)}
+code,.mono{font-family:var(--mono);font-size:.86em}
+code{background:var(--sunk);padding:.08em .32em;border-radius:4px;overflow-wrap:anywhere}
+section{padding-block:44px 8px;border-top:1px solid var(--line)}
+.eyebrow{font:600 .74rem/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem;display:block}
+.lede{font-size:1.14rem;color:var(--fg2)}
+.small{font-size:.88rem;color:var(--fg2)}
+.ev{display:inline-flex;align-items:center;gap:.35em;font:600 .72rem/1 var(--body);letter-spacing:.04em;text-transform:uppercase;
+  padding:.32em .55em;border-radius:999px;white-space:nowrap;vertical-align:.12em}
+.ev.k{color:var(--kernel);background:var(--kernel-bg)} .ev.k::before{content:"\25C6"}
+.ev.n{color:var(--native);background:var(--native-bg)} .ev.n::before{content:"\25C8"}
+.ev.c{color:var(--computed);background:var(--computed-bg)} .ev.c::before{content:"\25B2"}
+.ev.h{color:var(--heur);background:var(--heur-bg)} .ev.h::before{content:"\2248"}
+.ev.o{color:var(--open);background:var(--open-bg)} .ev.o::before{content:"?"}
+header.hero{padding-block:48px 28px}
+.crumb{font-size:.88rem;color:var(--muted);overflow-wrap:anywhere;margin:0 0 18px}
+.machine-id{font-family:var(--mono);font-size:clamp(.78rem,2.2vw,1rem);color:var(--fg2);word-break:break-all;margin:.8rem 0 0}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:26px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.fact b{font:700 1.4rem/1.15 var(--display)}
+.key{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:22px;align-items:center}
+.key div{display:flex;gap:8px;align-items:center;font-size:.86rem;color:var(--fg2)}
+nav.toc{margin-top:26px;display:flex;flex-wrap:wrap;gap:6px}
+nav.toc a{font-size:.84rem;text-decoration:none;color:var(--fg2);border:1px solid var(--line);border-radius:999px;padding:.25em .7em;background:var(--surface)}
+nav.toc a:hover{border-color:var(--accent);color:var(--accent)}
+.tw{overflow-x:auto;margin:1rem 0}
+table{border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:.42rem .8rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--fg2);font-size:.8rem;letter-spacing:.03em}
+table.tt td{text-align:center;font-family:var(--mono)} table.tt th{text-align:center}
+td.halt{color:var(--open);font-weight:600}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+.grid2>*{min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin:22px 0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,select,input[type=text]{font:500 .9rem var(--body);color:var(--fg);background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:.45em .8em}
+button{cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text]{font-family:var(--mono);min-width:0;width:11em;max-width:100%}
+.readout{display:flex;flex-wrap:wrap;gap:6px 22px;margin:14px 0 6px;font-size:.9rem;color:var(--fg2)}
+.readout b{font-family:var(--mono);color:var(--fg);font-weight:600}
+.statechip{display:inline-block;min-width:1.6em;text-align:center;font:700 .9rem var(--mono);color:var(--surface);background:var(--head);border-radius:5px;padding:0 .3em}
+.cells{display:flex;gap:2px;justify-content:center;margin:14px 0 4px;overflow:hidden}
+.cell{width:22px;height:30px;flex:0 0 22px;border:1px solid var(--line-strong);border-radius:3px;background:var(--cell0);position:relative}
+.cell.one{background:var(--ink);border-color:var(--ink)}
+.cell.out{border-style:dashed;opacity:.5}
+.cell.hd{outline:2px solid var(--head);outline-offset:2px}
+.cell.hd::after{content:attr(data-s);position:absolute;top:-24px;left:50%;transform:translateX(-50%);font:700 .8rem var(--mono);color:var(--head)}
+.cellwrap{padding-top:22px}
+.config{font-family:var(--mono);font-size:.82rem;background:var(--sunk);border-radius:8px;padding:10px 12px;overflow-wrap:anywhere;margin-top:10px}
+canvas{display:block;max-width:100%}
+.stwrap{overflow-x:auto;margin-top:12px}
+.cap{font-size:.8rem;color:var(--muted);margin-top:6px}
+.log{font-family:var(--mono);font-size:.8rem;max-height:300px;overflow:auto;border-top:1px solid var(--line);margin-top:12px;padding-top:8px}
+.log div{display:grid;grid-template-columns:7.5em 1.5em 3.5em minmax(0,1fr);gap:10px;padding:2px 0}
+.log div span:last-child{overflow-wrap:anywhere}
+.log .t{color:var(--muted);text-align:right}
+.claim{border-left:3px solid var(--line-strong);padding:.15rem 0 .15rem .9rem;margin:1rem 0}
+.claim.k{border-color:var(--kernel)} .claim.n{border-color:var(--native)} .claim.c{border-color:var(--computed)}
+.claim.h{border-color:var(--heur)} .claim.o{border-color:var(--open)}
+.claim .where{font-size:.8rem;color:var(--muted);margin-top:.2rem}
+.claim p{margin:.35rem 0}
+.lfilter{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.lfilter button{font-size:.8rem;padding:.3em .7em;border-radius:999px}
+.lfilter button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.litem{display:grid;grid-template-columns:8.5em minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.litem .w{font-size:.78rem;color:var(--muted);overflow-wrap:anywhere}
+.litem p{margin:.25rem 0}
+pre{font-family:var(--mono);font-size:.8rem;background:var(--sunk);border-radius:8px;padding:12px;overflow-x:auto;line-height:1.5}
+footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;font-size:.9rem;color:var(--fg2)}
+@media (max-width:560px){ .litem{grid-template-columns:1fr;gap:4px} .log div{grid-template-columns:6em 1.2em 3em minmax(0,1fr)} }
+@media (prefers-reduced-motion:reduce){ *{scroll-behavior:auto!important;transition:none!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF / explained</p>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 9 November 2026.</span>
+  <h1>Does this machine ever halt?</h1>
+  <p class="machine-id">1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF</p>
+  <div class="col"><p class="lede">Nobody knows. This machine keeps a binary counter in the gaps between its blocks of 1s, two 0s for a 0 digit and three for a 1, and counts it down by one every time the head comes back to the right end. Lean now proves that ordinary step for any number of blocks; the open part is what happens in the rare visits where the counter runs out and reloads itself.</p></div>
+  <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>dec_general</b><span class="small">The ordinary visit (counter minus one), proved for any number of blocks.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>36,604 / 36,790</b><span class="small">Visits to 10<sup>9</sup> steps that are instances of the proved theorems.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the direct run.</span></div>
+  </div>
+  <div class="key" aria-label="Evidence levels used on this page">
+    <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
+    <div><span class="ev n">native_decide</span> proved in Lean, one evaluation trusts the compiler</div>
+    <div><span class="ev c">Computed</span> C or Python in the repository, tested but not proved</div>
+    <div><span class="ev h">Heuristic</span> evidence and estimates</div>
+    <div><span class="ev o">Open</span> not known</div>
+  </div>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counter">A counter written in the gaps</a><a href="#visit">A sweep to the left, a refill to the right</a><a href="#reload">Reloads, and counters inside counters</a><a href="#gap">The rare visits, and an invariant</a><a href="#frozen">A record that freezes from the left</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+</header>
+<section id="machine">
+  <span class="eyebrow">The machine</span>
+  <h2>6 states, two symbols, 1 halting transition</h2>
+  <div class="grid2">
+    <div class="col">
+    <p>Each entry says what to write, which way to move and which state to enter. The machine starts in A on a blank tape (all 0s).</p>
+    <p>The machine stops when it is in E reading 1. E is entered only from B1 (writes 1, moves R): <code>B&gt;1 1</code>. So a halt is the moment this pattern appears, with the head on the cell after <code>&gt;</code>.</p>
+    </div>
+    <div class="tw"><table class="tt" aria-label="Transition table">
+      <thead><tr><th>state</th><th>reads 0</th><th>reads 1</th></tr></thead>
+      <tbody>
+        <tr><th>A</th><td>1 R B</td><td>1 R C</td></tr>
+        <tr><th>B</th><td>0 L C</td><td>1 R E</td></tr>
+        <tr><th>C</th><td>1 R A</td><td>0 L D</td></tr>
+        <tr><th>D</th><td>1 L B</td><td>0 R D</td></tr>
+        <tr><th>E</th><td>0 R F</td><td class="halt">halt</td></tr>
+        <tr><th>F</th><td>0 R A</td><td>0 R F</td></tr>
+      </tbody></table></div>
+  </div>
+</section>
+<section id="run">
+  <span class="eyebrow">Watch it run</span>
+  <h2>The tape from blank, step by step</h2>
+  <div class="col"><p>This is the real machine, simulated in your browser. Step it, play it, or jump to a step count. Below the cells is the whole visited tape in the notation of the notes: <code>1^5</code> is five 1s, and <code>C&gt;0</code> is the head in state C on a 0.</p></div>
+  <div class="panel">
+    <div class="controls">
+      <button id="step" type="button">Step</button>
+      <button id="play" class="primary" type="button">Play</button>
+      <label class="small" for="speed">Speed</label>
+      <select id="speed"><option value="1">1 step/frame</option><option value="10" selected>10 steps/frame</option><option value="1000">1,000 steps/frame</option><option value="100000">100,000 steps/frame</option></select>
+      <button id="reset" type="button">Reset</button>
+      <label class="small" for="jumpTo">Go to step</label>
+      <input type="text" id="jumpTo" inputmode="numeric" value="1000" spellcheck="false" autocomplete="off">
+      <button id="jumpGo" type="button">Go</button>
+    </div>
+    <div class="controls" style="margin-top:8px"><span class="small">Jump to:</span><button type="button" data-jump="1000">1,000</button><button type="button" data-jump="100000">100,000</button><button type="button" data-jump="1000000">1,000,000</button></div>
+    <div class="readout"><span>step <b id="rStep">0</b></span><span>state <span class="statechip" id="rState">A</span></span><span>cells visited <b id="rWidth">1</b></span><span>ones <b id="rOnes">0</b></span></div>
+    <div class="cellwrap"><div class="cells" id="cells" aria-label="Tape cells around the head"></div></div>
+    <div class="cap">Cells around the head (dark = 1, dashed = never visited).</div>
+    <div class="config" id="config" aria-live="polite"></div>
+  </div>
+</section>
+<section id="glance">
+  <span class="eyebrow">The run at a glance</span>
+  <h2>Space-time diagram and records</h2>
+  <div class="col"><p>The diagram stacks the tape at many moments. Sampling at each new cell shows the shape of the run as the visited region grows; sampling evenly in time shows where the head spends its time. The records list every step at which the head reaches a cell no earlier step reached, with the side, the width so far and the whole tape: the first place to look for a repeating macro structure.</p></div>
+  <div class="panel">
+    <div class="controls">
+      <label class="small" for="stMode">Rows</label>
+      <select id="stMode"><option value="rec" selected>at each new cell</option><option value="time">evenly in time</option></select>
+      <label class="small" for="stSteps">up to step</label>
+      <select id="stSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="60000" selected>60,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <button id="stGo" class="primary" type="button">Draw</button>
+    </div>
+    <div class="stwrap"><canvas id="st" aria-label="Space-time diagram"></canvas></div>
+    <div class="cap" id="stCap"></div>
+  </div>
+  <div class="panel">
+    <div class="controls">
+      <label class="small" for="recSteps">Records up to step</label>
+      <select id="recSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="60000" selected>60,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <button id="recGo" class="primary" type="button">List</button>
+    </div>
+    <div class="cap" id="recCap"></div>
+    <div class="log" id="recs"></div>
+  </div>
+</section>
+<section id="counter">
+  <span class="eyebrow">Macro structure</span>
+  <h2>A counter written in the gaps</h2>
+<div class="col"><p>Stop the machine every time the head, in state A, reaches the right end. The tape is a row of blocks of 1s, and between two blocks there are two or three 0s (rarely one). Read each gap as a digit: <code>00</code> is a 0, <code>000</code> is a 1 (and a single <code>0</code> is a 2). The digits, lowest on the right, are a binary counter.</p></div>
+<svg viewBox="0 0 620 120" role="img" aria-label="blocks of 1s with gaps of two or three zeros read as binary digits" style="width:100%;max-width:620px;height:auto;font:12px var(--mono)">
+<g fill="var(--accent-soft)" stroke="var(--accent)"><rect x="10" y="20" width="60" height="26"/><rect x="100" y="20" width="80" height="26"/><rect x="220" y="20" width="130" height="26"/><rect x="380" y="20" width="110" height="26"/><rect x="520" y="20" width="90" height="26"/></g>
+<g fill="var(--fg)" text-anchor="middle"><text x="40" y="38">6</text><text x="140" y="38">8</text><text x="285" y="38">25</text><text x="435" y="38">23</text><text x="565" y="38">18</text></g>
+<g fill="var(--head)" text-anchor="middle"><text x="85" y="72">000</text><text x="200" y="72">000</text><text x="365" y="72">00</text><text x="505" y="72">00</text>
+<text x="85" y="92">1</text><text x="200" y="92">1</text><text x="365" y="92">0</text><text x="505" y="92">0</text></g>
+<text x="10" y="112" fill="var(--muted)">gaps read as digits, lowest at the right: 1100 in binary; the next visit makes it 1011</text></svg>
+<div class="col"><p>Every visit of the right end <b>subtracts one</b> from this counter, the way you would by hand: the lowest digit that is not 0 goes down by one, and every 0 below it becomes a 1. The blocks shift with the digits: the block left of the changed digit gains 3 cells, the block right of it gains 3, the blocks after that lose 1 each, and the last block loses 4. In the run, 36,604 of the first 36,790 visits are exactly this, and Lean proves it.</p><p>The head does the subtraction by walking left from the right end. On the way it rewrites every block it crosses into a thinned-out form, <code>1 0 1 0 1 0</code>, until it meets the first <code>000</code>. There it turns, and on the way back it fills the blocks in again, with the gaps and lengths shifted by a few cells.</p></div>
+</section>
+<section id="visit">
+  <span class="eyebrow">How one visit works</span>
+  <h2>A sweep to the left, a refill to the right</h2>
+<div class="col"><p>Between two visits of the right end the head makes exactly one trip to the left and one trip back (checked for every visit up to 10<sup>9</sup> steps). On the way left, states C and D take the 1s two at a time: each pair <code>11</code> becomes <code>01</code>, so a block turns into the thinned-out form <code>0 1 0 1 &hellip;</code>. What happens at the left end of a block depends only on its length and the gap before it:</p></div>
+<svg viewBox="0 0 620 150" role="img" aria-label="the four ways the leftward sweep can end a block" style="width:100%;max-width:620px;height:auto;font:12px var(--mono)"><g fill="var(--fg)"><text x="10" y="22">odd block, gap 00</text><text x="230" y="22" fill="var(--accent)">pass: go on into the block before</text><text x="10" y="54">odd block, gap 000</text><text x="230" y="54" fill="var(--accent)">stop: write a 1 in the gap, turn right</text><text x="10" y="86">even block, any gap</text><text x="230" y="86" fill="var(--accent)">stop: turn right</text><text x="10" y="118">odd block, gap 0</text><text x="230" y="118" fill="var(--head)">halt (state E reads a 1)</text></g><text x="10" y="144" fill="var(--muted)">each case is a Lean theorem for every block length (p_pass, p_stop_odd, p_stop_even, p_halt)</text></svg>
+<div class="col"><p>So the sweep runs left through the trailing odd blocks behind <code>00</code> gaps &mdash; the trailing 0 digits of the counter &mdash; and stops at the first <code>000</code>, the lowest digit 1. On the way back, state A fills the thinned-out blocks in again, and in doing so the <code>000</code> becomes <code>00</code> and every <code>00</code> it passes becomes <code>000</code>: binary subtraction of one. Lean proves this whole visit, <code>dec_general</code>, by induction on the number of blocks crossed, for every block length (from 7 cells up; the shortest cases follow other paths).</p></div>
+</section>
+<section id="reload">
+  <span class="eyebrow">What makes it hard</span>
+  <h2>Reloads, and counters inside counters</h2>
+<div class="col"><p>The last block loses 4 cells every other step, and the counter itself runs down. When either runs out, something else happens (115 times in the first 10<sup>9</sup> steps): the machine creates a new digit further left, a single-0 gap with a new block of 3, sets every digit below it to 1, and goes on counting down from a bigger number. These reloads are themselves counted by the digits further left, so the counter is a nest of counters. Late in the run the block lengths contain runs like <code>15 31 63 127 255 511 1023 2047</code>, the fingerprints of that nesting, and the leftmost blocks freeze: they never change again.</p><p>The machine can only halt if state E reads a 1. An ordinary decrement never does that, so the answer hides in the reload events, which are not yet written as an exact rule. Lean proves the ordinary decrement for any number of blocks; the reloads are the next thing to prove.</p></div>
+</section>
+<section id="gap">
+  <span class="eyebrow">What is still missing</span>
+  <h2>The rare visits, and an invariant</h2>
+<div class="col"><p>Of the 36,790 visits in the first 10<sup>9</sup> steps, 36,604 are instances of the two decrement theorems. The other 186 are where the interesting things happen: the sweep stops at an even block, or behind short blocks, or the last block is used up, or the sweep reaches the far left. These reload the counter and create the single-0 gaps. A single-0 gap is dangerous: if a sweep ever reached an odd block behind it, the machine would halt. In the run the block after a single 0 is always even when the next gap is <code>00</code>, and odd when it is <code>000</code>, which keeps sweeps away from it.</p><p>To prove the machine runs forever one needs a description of all the tapes that can occur, closed under every kind of visit, that excludes this pattern. Descriptions that look only at a few neighbouring blocks are not enough: building tapes from the neighbouring pairs or triples seen in the run and running one visit soon produces tapes that halt. The real constraint reaches further along the tape, through the nested reloads.</p></div>
+</section>
+<section id="frozen">
+  <span class="eyebrow">Macro structure</span>
+  <h2>A record that freezes from the left</h2>
+<p>The tape is a list of blocks of 1s separated by gaps of two or three 0s (rarely one). At step 5&middot;10<sup>8</sup> it begins</p>
+<p class="config">1^3 0^2 1^6 0^3 1^8 0^3 1^22 0^2 1^6 0^2 1^26 0^3 1^22 0^2 1^3 0^3 1^55 0^2 1^20 0 1^6 0^2 1^15 0^2 1^69 &hellip; 1^20260 0^3 1^3545 0^2 1^1257 &hellip;</p>
+<p>The first seven blocks were already exactly like this at step 6&middot;10<sup>4</sup>, the first thirteen at 4.5&middot;10<sup>5</sup>: the left part <em>freezes</em>, while the blocks on the right keep changing and growing. During a sweep part of the tape is held in a sparse form, <code>(10)^n</code>, which state A fills back into 1s, and states D and F erase blocks as they cross them; Lean proves these three moves for every length.</p>
+<p>Only 227 blocks exist at 10<sup>9</sup> steps. The rule for the active blocks is not known yet; a halt needs state E reading a 1.</p>
+</section>
+<section id="shape">
+  <span class="eyebrow">First look</span>
+  <h2>The shape of the run</h2>
+<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.523).</p>
+<svg viewBox="0 0 560 240" role="img" aria-label="cells visited on each side against steps, log scales" style="width:100%;max-width:560px;height:auto;font:11px var(--mono);"><line x1="40.0" x2="40.0" y1="20.0" y2="200" stroke="var(--line)"/><text x="40.0" y="216" text-anchor="middle" fill="var(--muted)">2^4</text><line x1="116.8" x2="116.8" y1="20.0" y2="200" stroke="var(--line)"/><text x="116.8" y="216" text-anchor="middle" fill="var(--muted)">2^8</text><line x1="193.6" x2="193.6" y1="20.0" y2="200" stroke="var(--line)"/><text x="193.6" y="216" text-anchor="middle" fill="var(--muted)">2^12</text><line x1="270.4" x2="270.4" y1="20.0" y2="200" stroke="var(--line)"/><text x="270.4" y="216" text-anchor="middle" fill="var(--muted)">2^16</text><line x1="347.2" x2="347.2" y1="20.0" y2="200" stroke="var(--line)"/><text x="347.2" y="216" text-anchor="middle" fill="var(--muted)">2^20</text><line x1="424.0" x2="424.0" y1="20.0" y2="200" stroke="var(--line)"/><text x="424.0" y="216" text-anchor="middle" fill="var(--muted)">2^24</text><line x1="500.8" x2="500.8" y1="20.0" y2="200" stroke="var(--line)"/><text x="500.8" y="216" text-anchor="middle" fill="var(--muted)">2^28</text><line x1="40" x2="520" y1="200.0" y2="200.0" stroke="var(--line)"/><text x="34" y="204.0" text-anchor="end" fill="var(--muted)">2^0</text><line x1="40" x2="520" y1="161.9" y2="161.9" stroke="var(--line)"/><text x="34" y="165.9" text-anchor="end" fill="var(--muted)">2^4</text><line x1="40" x2="520" y1="123.7" y2="123.7" stroke="var(--line)"/><text x="34" y="127.7" text-anchor="end" fill="var(--muted)">2^8</text><line x1="40" x2="520" y1="85.6" y2="85.6" stroke="var(--line)"/><text x="34" y="89.6" text-anchor="end" fill="var(--muted)">2^12</text><line x1="40" x2="520" y1="47.5" y2="47.5" stroke="var(--line)"/><text x="34" y="51.5" text-anchor="end" fill="var(--muted)">2^16</text><path d="M40.0,180.9 L59.2,173.2 L78.4,168.3 L97.6,164.7 L116.8,161.9 L136.0,161.9 L155.2,159.5 L174.4,157.5 L193.6,155.7 L212.8,155.7 L232.0,154.2 L251.2,154.2 L270.4,154.2 L289.6,154.2 L308.8,154.2 L328.0,154.2 L347.2,154.2 L366.4,154.2 L385.6,154.2 L404.8,154.2 L424.0,154.2 L443.2,154.2 L462.4,154.2 L481.6,154.2 L500.8,154.2 L520.0,154.2" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M40.0,180.9 L59.2,177.9 L78.4,177.9 L97.6,168.3 L116.8,161.9 L136.0,155.2 L155.2,149.6 L174.4,143.9 L193.6,137.7 L212.8,131.3 L232.0,125.0 L251.2,119.9 L270.4,113.9 L289.6,108.4 L308.8,103.8 L328.0,98.4 L347.2,93.4 L366.4,88.6 L385.6,83.7 L404.8,78.8 L424.0,74.1 L443.2,69.8 L462.4,64.6 L481.6,59.7 L500.8,54.3 L520.0,49.5" fill="none" stroke="var(--head)" stroke-width="2"/><text x="520" y="24.0" text-anchor="end" fill="var(--fg2)"><tspan fill="var(--accent)">&#9632; left of start</tspan>  <tspan fill="var(--head)">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>
+<p>After 10<sup>9</sup> steps the tape spans 73,592 cells (27 left of the start, 56,453 right), with a density of 1s of 0.996.</p>
+<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,442,115</td><td><code>1^3 0^2 1^6 0^3 1^8 0^3 1^22 0^2 1^6 0^2 1^26 0^3 1^22 0^2 1^3 0^3 1^55 0^2 1^20 0 1^6 0^2 1^15 0^2 1^69 0 1^3 0^3 1^66 0^3 1^17 0^2 1^36 0^3 1^188 0^3 1^142 0^3 1^295 0^2 1^410 0^3 1^540 0^3 1^669 0^2 1^215 0^2 1^915 0^2 1^866 0^3 1^278 0^3 1^2019 0^2 1^44 0^3 1^1181 0^2 1^183 0^2 1^367 0^2 1^2914 0^3 1^1471 0^2 1^79 0^2 1^3033 0^2 1^316 0^3 1^633 0^2 1^3733 0^2 1^2543 0^2 1^5087 0^2 1^28666 0^3</code></td></tr><tr><td>right</td><td>970,093,195</td><td><code>1^3 0^2 1^6 0^3 1^8 0^3 1^22 0^2 1^6 0^2 1^26 0^3 1^22 0^2 1^3 0^3 1^55 0^2 1^20 0 1^6 0^2 1^15 0^2 1^69 0 1^3 0^3 1^66 0^3 1^17 0^2 1^36 0^3 1^188 0^3 1^142 0^3 1^295 0^2 1^410 0^3 1^540 0^3 1^669 0^2 1^215 0^2 1^915 0^2 1^866 0^3 1^278 0^3 1^2019 0^2 1^44 0^3 1^1181 0^2 1^183 0^2 1^367 0^2 1^2917 0^2 1^1474 0^3 1^78 0^3 1^3035 0^2 1^327 0^2 1^652 0^3 1^3764 0^3 1^2606 0^3 1^5214 0^3 1^28924 0^3</code></td></tr><tr><td>right</td><td>985,809,373</td><td><code>1^3 0^2 1^6 0^3 1^8 0^3 1^22 0^2 1^6 0^2 1^26 0^3 1^22 0^2 1^3 0^3 1^55 0^2 1^20 0 1^6 0^2 1^15 0^2 1^69 0 1^3 0^3 1^66 0^3 1^17 0^2 1^36 0^3 1^188 0^3 1^142 0^3 1^295 0^2 1^410 0^3 1^540 0^3 1^669 0^2 1^215 0^2 1^915 0^2 1^866 0^3 1^278 0^3 1^2019 0^2 1^44 0^3 1^1181 0^2 1^183 0^2 1^367 0^2 1^2917 0^2 1^1474 0^3 1^81 0^2 1^3041 0^2 1^335 0^2 1^668 0^3 1^3796 0^3 1^2673 0^2 1^5348 0^3 1^29188 0^3</code></td></tr></tbody></table></div>
+<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
+</section>
+<section id="ledger">
+  <span class="eyebrow">What is known</span>
+  <h2>Every result, by what it rests on</h2>
+  <div class="col"><p>Status as of 9 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="lfilter" role="group" aria-label="Filter by evidence level">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
+    <button type="button" data-f="native" aria-pressed="false">native_decide</button>
+    <button type="button" data-f="trusted" aria-pressed="false">Computed</button>
+    <button type="button" data-f="heuristic" aria-pressed="false">Heuristic</button>
+    <button type="button" data-f="open" aria-pressed="false">Open</button>
+  </div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (E1); the generated statement covers every configuration.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 73,592 cells have been visited and 73,306 of them hold a 1.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.523).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Shifts.lean</code> (written by <code>bbtools.symtm.prove</code>)</div></div><div><b>Shift rules</b><p>For every length n of the run and any tape around it: <code>L D&gt; 1^n R</code> reaches <code>L 0^n D&gt; R</code>; <code>L F&gt; 1^n R</code> reaches <code>L 0^n F&gt; R</code>; <code>L A&gt; (10)^n R</code> reaches <code>L (11)^n A&gt; R</code>. These are the moves the head makes across the long uniform stretches of the tape.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>dec_last</code>, <code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</div></div><div><b>The lowest step of the counter</b><p>For every length 2y+2 of the last block and x of the block before it, and any tape further left: <code>L 0 1^x 000 1^(2y+2) A&gt; 0^inf</code> reaches <code>L 0 1^(x+3) 00 1^(2y+2) A&gt; 0^inf</code> in 6y+16 steps (the lowest digit of the counter goes from 1 to 0).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (from <code>py/rules.py</code>, written by <code>bbtools.symtm.prove</code>)</div></div><div><b>The sweep, block by block</b><p>For every length: the leftward sweep crosses an odd block behind the gap <code>00</code>, leaving it in the sparse form <code>0 1 0 (01)^w</code> (<code>p_pass</code>); it stops and turns right at an odd block behind <code>000</code> (<code>p_stop_odd</code>) or at any even block (<code>p_stop_even</code>); at an odd block behind a single <code>0</code> it halts (<code>p_halt</code>: state E reads a 1). The pieces of the rightward refill (<code>p_fill_first</code>, <code>p_fill_two</code>, <code>p_fill_mid</code>, <code>p_fill_end</code>) are proved the same way.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>dec_general</code>, <code>lean/Decrement.lean</code></div></div><div><b>The ordinary decrement, for any number of blocks</b><p>For any tape <code>L</code> on the left, any a &ge; 1, m &ge; 3 and any list of b<sub>1</sub>, &hellip;, b<sub>r</sub> &ge; 3 (r &ge; 0): <code>L 000 1^(2a+1) 00 1^(2b<sub>1</sub>+1) &hellip; 00 1^(2b<sub>r</sub>+1) 00 1^(2m) A&gt; 0^&infin;</code> reaches <code>L 111 00 1^(2a+4) 000 1^(2b<sub>1</sub>) &hellip; 000 1^(2b<sub>r</sub>) 000 1^(2m-4) A&gt; 0^&infin;</code>: the lowest digit 1 of the counter becomes 0 and the 0s below it become 1s, the blocks change by +3, +3, &minus;1 each and &minus;4. Proved by induction over the list of blocks from the pieces above.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/visits.c</code></div></div><div><b>One visit is one sweep and one refill</b><p>Up to 10<sup>9</sup> steps (36,752 visits of a new cell at the right end) the rightward pass never turns back before it reaches the end: C never reads a 1 straight after A, and B never reads a 0 straight after A inside the tape.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/visits.py</code></div></div><div><b>Which visits the theorems cover</b><p>Of the 36,790 visits of the right end up to 10<sup>9</sup> steps (as <code>tmrun ... at A R</code> lists them), 18,360 are instances of <code>dec_last</code> and 18,244 of <code>dec_general</code>. The other 186 are the reload events: 114 sweeps stop at an even block, 48 at an odd block with short blocks behind it, 16 with the last block too short, 8 at the left end. None reaches the halting case.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/visits.py</code>; searches described in the README</div></div><div><b>No small local invariant</b><p>Reading the tape as tokens (block length up to 8 exactly, longer ones by parity, and the gap after it), the sets of neighbouring pairs and triples seen in the run are not closed: running one visit on words built from them produces new pairs and triples, and repeating this soon reaches words that halt. Closed tape languages from windows of cells, of run-length tokens with parity, and with depth from the end were also tried and allow a halt. So a proof needs an invariant that sees further than a few blocks.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. A halt needs a sweep to reach an odd block behind a single 0 (or the refill to meet <code>0 1 1</code>). The ordinary decrement never does that; the reload visits would need an exact rule and an invariant closed under all visits.</p></div></div>
+</section>
+<section id="check">
+  <span class="eyebrow">Check it yourself</span>
+  <h2>Commands</h2>
+  <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
+holdouts/1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF/lean/check.sh
+gcc -O2 -o visits holdouts/1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF/c/visits.c &amp;&amp; ./visits 1000000000
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF 1000000000 at A R 100000000 &gt; ar.txt
+python3 holdouts/1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF/py/visits.py ar.txt</code></pre>
+</section>
+<footer class="foot">
+  <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF/status.json</code>; edit that file and rebuild rather than editing this page.</p>
+  <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+</footer>
+</div>
+<script type="application/json" id="spec">{"machine": "1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF"}</script>
+<script id="engine">
+var BB = (function () {
+  "use strict";
+  var STATES = "ABCDEFGHIJ";
+  function parse(text) {
+    var groups = text.trim().split("_"), n = groups.length, table = [];
+    for (var s = 0; s < n; s++) {
+      var g = groups[s], row = [];
+      if (g.length !== 6) throw new Error("bad group " + g);
+      for (var y = 0; y < 2; y++) {
+        var t = g.substr(3 * y, 3), q = STATES.indexOf(t[2]);
+        if (t === "---" || q < 0 || q >= n) { row.push(null); continue; }
+        row.push([+t[0], t[1] === "R" ? 1 : -1, q]);
+      }
+      table.push(row);
+    }
+    return { text: text.trim(), n: n, table: table };
+  }
+  function Run(m) {
+    this.m = m; this.cells = new Uint8Array(1024); this.off = 512;
+    this.lo = 0; this.hi = 0; this.head = 0; this.state = 0; this.steps = 0; this.halted = false; this.nOnes = 0;
+  }
+  Run.prototype.get = function (p) { var i = p + this.off; return i < 0 || i >= this.cells.length ? 0 : this.cells[i]; };
+  Run.prototype.grow = function () {
+    var n = this.cells.length, c = new Uint8Array(3 * n);
+    c.set(this.cells, n); this.cells = c; this.off += n;
+  };
+  Run.prototype.step = function () {
+    if (this.halted) throw new Error("halted");
+    var i = this.head + this.off, y = this.cells[i], tr = this.m.table[this.state][y];
+    this.steps++;
+    if (tr === null) { this.halted = true; return false; }
+    this.nOnes += tr[0] - y; this.cells[i] = tr[0];
+    this.head += tr[1]; this.state = tr[2];
+    if (this.head < this.lo) this.lo = this.head;
+    if (this.head > this.hi) this.hi = this.head;
+    i = this.head + this.off;
+    if (i < 1 || i >= this.cells.length - 1) this.grow();
+    return true;
+  };
+  Run.prototype.run = function (max) { while (this.steps < max) if (!this.step()) return true; return false; };
+  Run.prototype.ones = function () { return this.nOnes; };
+  Run.prototype.word = function (lo, hi) { var w = []; for (var p = lo; p <= hi; p++) w.push(this.get(p)); return w; };
+  Run.prototype.configStr = function () {
+    return formatConfig(this.word(this.lo, this.hi), this.head - this.lo, STATES[this.state]);
+  };
+  function rle(cells) {
+    var out = [], i = 0;
+    while (i < cells.length) {
+      var j = i; while (j < cells.length && cells[j] === cells[i]) j++;
+      out.push(j - i > 1 ? cells[i] + "^" + (j - i) : String(cells[i])); i = j;
+    }
+    return out;
+  }
+  function formatConfig(cells, h, state) {
+    return rle(cells.slice(0, h)).concat([state + ">" + cells[h]], rle(cells.slice(h + 1))).join(" ");
+  }
+  // [steps, "L"|"R", hi - lo, config] each time the head reaches a new cell, at most k of them.
+  function records(m, maxSteps, k) {
+    var r = new Run(m), out = [];
+    while (r.steps < maxSteps && out.length < k) {
+      var lo = r.lo, hi = r.hi;
+      if (!r.step()) break;
+      if (r.lo < lo) out.push([r.steps, "L", r.hi - r.lo, r.configStr()]);
+      else if (r.hi > hi) out.push([r.steps, "R", r.hi - r.lo, r.configStr()]);
+    }
+    return { records: out, run: r };
+  }
+  return { STATES: STATES, parse: parse, Run: Run, rle: rle, formatConfig: formatConfig, records: records };
+})();
+if (typeof module !== "undefined") module.exports = BB;
+</script>
+<script>
+(function () {
+  "use strict";
+  var spec = JSON.parse(document.getElementById("spec").textContent);
+  var M = BB.parse(spec.machine), $ = function (id) { return document.getElementById(id); };
+  var css = function (v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); };
+  var fmt = function (n) { return n.toLocaleString("en-US"); };
+  // simulator
+  var r = new BB.Run(M), playing = false, raf = 0;
+  function draw() {
+    $("rStep").textContent = fmt(r.steps);
+    $("rState").textContent = r.halted ? "halt" : BB.STATES[r.state];
+    $("rWidth").textContent = fmt(r.hi - r.lo + 1);
+    $("rOnes").textContent = fmt(r.ones());
+    var box = $("cells"), w = box.clientWidth || 600, n = Math.max(9, Math.min(41, Math.floor(w / 24) | 1)), h = n >> 1;
+    var html = "";
+    for (var p = r.head - h; p <= r.head + h; p++) {
+      var cls = "cell" + (r.get(p) ? " one" : "") + (p < r.lo || p > r.hi ? " out" : "") + (p === r.head ? " hd" : "");
+      html += '<div class="' + cls + '"' + (p === r.head ? ' data-s="' + (r.halted ? "H" : BB.STATES[r.state]) + '"' : "") + "></div>";
+    }
+    box.innerHTML = html;
+    var width = r.hi - r.lo + 1;
+    $("config").textContent = width <= 4000 ? r.configStr() : "(" + fmt(width) + " cells: too wide to print here)";
+  }
+  function advance(n) {
+    var target = r.steps + n;
+    while (!r.halted && r.steps < target) if (!r.step()) break;
+  }
+  function jump(t) { if (t < r.steps) r = new BB.Run(M); advance(t - r.steps); draw(); }
+  function loop() {
+    if (!playing) return;
+    advance(+$("speed").value); draw();
+    if (r.halted) { stop(); return; }
+    raf = requestAnimationFrame(loop);
+  }
+  function stop() { playing = false; cancelAnimationFrame(raf); $("play").textContent = "Play"; }
+  $("step").onclick = function () { stop(); advance(1); draw(); };
+  $("play").onclick = function () {
+    if (playing) { stop(); return; }
+    playing = true; $("play").textContent = "Pause"; loop();
+  };
+  $("reset").onclick = function () { stop(); r = new BB.Run(M); draw(); };
+  $("jumpGo").onclick = function () {
+    stop(); var t = parseInt($("jumpTo").value.replace(/[^0-9]/g, ""), 10);
+    if (t >= 0 && t <= 1e9) jump(t);
+  };
+  document.querySelectorAll("[data-jump]").forEach(function (b) {
+    b.onclick = function () { stop(); $("jumpTo").value = b.dataset.jump; jump(+b.dataset.jump); };
+  });
+  window.addEventListener("resize", draw);
+  draw();
+  // space-time diagram: one row per sample, the visited tape across
+  function spacetime() {
+    var mode = $("stMode").value, steps = Math.min(+$("stSteps").value, 1e9), rows = 600;
+    var q = new BB.Run(M), snaps = [];
+    function snap() { snaps.push([q.steps, q.lo, q.word(q.lo, q.hi), q.head, q.halted]); }
+    snap();
+    if (mode === "time") {
+      var every = Math.max(1, Math.floor(steps / rows));
+      while (q.steps < steps && !q.halted) { q.run(Math.min(steps, q.steps + every)); snap(); }
+    } else {
+      while (q.steps < steps && snaps.length < rows) {
+        var lo = q.lo, hi = q.hi;
+        if (!q.step()) { snap(); break; }
+        if (q.lo < lo || q.hi > hi) snap();
+      }
+    }
+    var lo = Math.min.apply(null, snaps.map(function (s) { return s[1]; }));
+    var hi = Math.max.apply(null, snaps.map(function (s) { return s[1] + s[2].length - 1; }));
+    var W = hi - lo + 1, cw = Math.max(1, Math.min(12, Math.floor(1000 / W))), ch = Math.max(1, Math.min(8, Math.floor(600 / snaps.length)));
+    var cv = $("st"), dpr = window.devicePixelRatio || 1;
+    cv.width = W * cw * dpr; cv.height = snaps.length * ch * dpr;
+    cv.style.width = W * cw + "px"; cv.style.height = snaps.length * ch + "px";
+    var g = cv.getContext("2d"); g.scale(dpr, dpr);
+    g.fillStyle = css("--cell0"); g.fillRect(0, 0, W * cw, snaps.length * ch);
+    g.fillStyle = css("--sunk");
+    snaps.forEach(function (s, i) { g.fillRect((s[1] - lo) * cw, i * ch, s[2].length * cw, ch); });
+    g.fillStyle = css("--ink");
+    snaps.forEach(function (s, i) { s[2].forEach(function (c, j) { if (c) g.fillRect((s[1] - lo + j) * cw, i * ch, cw, ch); }); });
+    g.fillStyle = css("--head");
+    snaps.forEach(function (s, i) { g.fillRect((s[3] - lo) * cw, i * ch, cw, ch); });
+    var last = snaps[snaps.length - 1];
+    $("stCap").textContent = snaps.length + " rows, steps 0 to " + fmt(last[0]) + ", " + fmt(W) + " cells" +
+      (last[4] ? "; the machine halted" : "") + ". Time runs down, the tape runs left to right; dark = 1, orange = the head.";
+  }
+  $("stGo").onclick = spacetime;
+  spacetime();
+  // records
+  function showRecords() {
+    var steps = Math.min(+$("recSteps").value, 1e9), res = BB.records(M, steps, 400), out = "";
+    res.records.forEach(function (x) {
+      out += '<div><span class="t">' + fmt(x[0]) + "</span><span>" + x[1] + '</span><span class="t">' + x[2] +
+        "</span><span>" + x[3].replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</span></div>";
+    });
+    $("recs").innerHTML = out || "<div>none</div>";
+    $("recCap").textContent = res.records.length + " records in " + fmt(res.run.steps) + " steps" +
+      (res.run.halted ? "; the machine halted" : "") + (res.records.length >= 400 ? " (the first 400 shown)" : "") + ".";
+  }
+  $("recGo").onclick = showRecords;
+  showRecords();
+  // ledger
+  document.querySelectorAll(".lfilter button").forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll(".lfilter button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+      document.querySelectorAll(".litem").forEach(function (it) {
+        it.hidden = b.dataset.f !== "all" && it.dataset.level !== b.dataset.f;
+      });
+    };
+  });
+})();
+</script>
+</body>
+</html>

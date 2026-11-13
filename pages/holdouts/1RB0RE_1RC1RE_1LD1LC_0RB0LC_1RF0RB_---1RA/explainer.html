@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Inside holdouts / 1RB0RE_1RC1RE_1LD1LC_0RB0LC_1RF0RB_---1RA</title>
+<meta name="description" content="An interactive explainer of the 6-state machine 1RB0RE_1RC1RE_1LD1LC_0RB0LC_1RF0RB_---1RA: the table, where it can halt, the machine running in the browser, a space-time diagram, and what is known about it, each result marked by what it rests on.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --sunk:#eceef2; --line:#d9dce3; --line-strong:#b9bec9;
+  --fg:#14171d; --fg2:#4a505c; --muted:#7a808c; --accent:#2350a8; --accent-soft:#e3eaf8;
+  --ink:#1b2230; --cell0:#ffffff; --head:#d2551f;
+  --kernel:#1c7a4d; --kernel-bg:#e2f3ea; --native:#2350a8; --native-bg:#e3eaf8;
+  --computed:#9a6400; --computed-bg:#fbf0d9; --heur:#7a4fb5; --heur-bg:#efe8f8; --open:#b3363a; --open-bg:#f8e3e3;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#11141a; --surface:#181c24; --sunk:#0d1015; --line:#2a303b; --line-strong:#3c4452;
+  --fg:#e9ecf2; --fg2:#b4bac6; --muted:#858c99; --accent:#8fb0f0; --accent-soft:#1d2a44;
+  --ink:#dfe5f0; --cell0:#11141a; --head:#f08a55;
+  --kernel:#5cc893; --kernel-bg:#14301f; --native:#8fb0f0; --native-bg:#1d2a44;
+  --computed:#e7b453; --computed-bg:#33280f; --heur:#b99cf0; --heur-bg:#2a2040; --open:#f08488; --open-bg:#3a1c1e;
+  color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#11141a; --surface:#181c24; --sunk:#0d1015; --line:#2a303b; --line-strong:#3c4452;
+  --fg:#e9ecf2; --fg2:#b4bac6; --muted:#858c99; --accent:#8fb0f0; --accent-soft:#1d2a44;
+  --ink:#dfe5f0; --cell0:#11141a; --head:#f08a55;
+  --kernel:#5cc893; --kernel-bg:#14301f; --native:#8fb0f0; --native-bg:#1d2a44;
+  --computed:#e7b453; --computed-bg:#33280f; --heur:#b99cf0; --heur-bg:#2a2040; --open:#f08488; --open-bg:#3a1c1e;
+  color-scheme:dark; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--body);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 64px}
+.wrap{max-width:1080px;margin:0 auto}
+.col{max-width:68ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,3.3rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(1.45rem,3vw,1.95rem);font-weight:700;margin-bottom:.6rem}
+h3{font-size:1.12rem;font-weight:700;margin:1.4rem 0 .4rem}
+p{margin:.65rem 0}
+a{color:var(--accent)}
+code,.mono{font-family:var(--mono);font-size:.86em}
+code{background:var(--sunk);padding:.08em .32em;border-radius:4px;overflow-wrap:anywhere}
+section{padding-block:44px 8px;border-top:1px solid var(--line)}
+.eyebrow{font:600 .74rem/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem;display:block}
+.lede{font-size:1.14rem;color:var(--fg2)}
+.small{font-size:.88rem;color:var(--fg2)}
+.ev{display:inline-flex;align-items:center;gap:.35em;font:600 .72rem/1 var(--body);letter-spacing:.04em;text-transform:uppercase;
+  padding:.32em .55em;border-radius:999px;white-space:nowrap;vertical-align:.12em}
+.ev.k{color:var(--kernel);background:var(--kernel-bg)} .ev.k::before{content:"\25C6"}
+.ev.n{color:var(--native);background:var(--native-bg)} .ev.n::before{content:"\25C8"}
+.ev.c{color:var(--computed);background:var(--computed-bg)} .ev.c::before{content:"\25B2"}
+.ev.h{color:var(--heur);background:var(--heur-bg)} .ev.h::before{content:"\2248"}
+.ev.o{color:var(--open);background:var(--open-bg)} .ev.o::before{content:"?"}
+header.hero{padding-block:48px 28px}
+.crumb{font-size:.88rem;color:var(--muted);overflow-wrap:anywhere;margin:0 0 18px}
+.machine-id{font-family:var(--mono);font-size:clamp(.78rem,2.2vw,1rem);color:var(--fg2);word-break:break-all;margin:.8rem 0 0}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:26px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.fact b{font:700 1.4rem/1.15 var(--display)}
+.key{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:22px;align-items:center}
+.key div{display:flex;gap:8px;align-items:center;font-size:.86rem;color:var(--fg2)}
+nav.toc{margin-top:26px;display:flex;flex-wrap:wrap;gap:6px}
+nav.toc a{font-size:.84rem;text-decoration:none;color:var(--fg2);border:1px solid var(--line);border-radius:999px;padding:.25em .7em;background:var(--surface)}
+nav.toc a:hover{border-color:var(--accent);color:var(--accent)}
+.tw{overflow-x:auto;margin:1rem 0}
+table{border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:.42rem .8rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--fg2);font-size:.8rem;letter-spacing:.03em}
+table.tt td{text-align:center;font-family:var(--mono)} table.tt th{text-align:center}
+td.halt{color:var(--open);font-weight:600}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+.grid2>*{min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin:22px 0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,select,input[type=text]{font:500 .9rem var(--body);color:var(--fg);background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:.45em .8em}
+button{cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text]{font-family:var(--mono);min-width:0;width:11em;max-width:100%}
+.readout{display:flex;flex-wrap:wrap;gap:6px 22px;margin:14px 0 6px;font-size:.9rem;color:var(--fg2)}
+.readout b{font-family:var(--mono);color:var(--fg);font-weight:600}
+.statechip{display:inline-block;min-width:1.6em;text-align:center;font:700 .9rem var(--mono);color:var(--surface);background:var(--head);border-radius:5px;padding:0 .3em}
+.cells{display:flex;gap:2px;justify-content:center;margin:14px 0 4px;overflow:hidden}
+.cell{width:22px;height:30px;flex:0 0 22px;border:1px solid var(--line-strong);border-radius:3px;background:var(--cell0);position:relative}
+.cell.one{background:var(--ink);border-color:var(--ink)}
+.cell.out{border-style:dashed;opacity:.5}
+.cell.hd{outline:2px solid var(--head);outline-offset:2px}
+.cell.hd::after{content:attr(data-s);position:absolute;top:-24px;left:50%;transform:translateX(-50%);font:700 .8rem var(--mono);color:var(--head)}
+.cellwrap{padding-top:22px}
+.config{font-family:var(--mono);font-size:.82rem;background:var(--sunk);border-radius:8px;padding:10px 12px;overflow-wrap:anywhere;margin-top:10px}
+canvas{display:block;max-width:100%}
+.stwrap{overflow-x:auto;margin-top:12px}
+.cap{font-size:.8rem;color:var(--muted);margin-top:6px}
+.log{font-family:var(--mono);font-size:.8rem;max-height:300px;overflow:auto;border-top:1px solid var(--line);margin-top:12px;padding-top:8px}
+.log div{display:grid;grid-template-columns:7.5em 1.5em 3.5em minmax(0,1fr);gap:10px;padding:2px 0}
+.log div span:last-child{overflow-wrap:anywhere}
+.log .t{color:var(--muted);text-align:right}
+.claim{border-left:3px solid var(--line-strong);padding:.15rem 0 .15rem .9rem;margin:1rem 0}
+.claim.k{border-color:var(--kernel)} .claim.n{border-color:var(--native)} .claim.c{border-color:var(--computed)}
+.claim.h{border-color:var(--heur)} .claim.o{border-color:var(--open)}
+.claim .where{font-size:.8rem;color:var(--muted);margin-top:.2rem}
+.claim p{margin:.35rem 0}
+.lfilter{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.lfilter button{font-size:.8rem;padding:.3em .7em;border-radius:999px}
+.lfilter button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.litem{display:grid;grid-template-columns:8.5em minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.litem .w{font-size:.78rem;color:var(--muted);overflow-wrap:anywhere}
+.litem p{margin:.25rem 0}
+pre{font-family:var(--mono);font-size:.8rem;background:var(--sunk);border-radius:8px;padding:12px;overflow-x:auto;line-height:1.5}
+footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;font-size:.9rem;color:var(--fg2)}
+@media (max-width:560px){ .litem{grid-template-columns:1fr;gap:4px} .log div{grid-template-columns:6em 1.2em 3em minmax(0,1fr)} }
+@media (prefers-reduced-motion:reduce){ *{scroll-behavior:auto!important;transition:none!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RE_1RC1RE_1LD1LC_0RB0LC_1RF0RB_---1RA / explained</p>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <h1>Does this machine ever halt?</h1>
+  <p class="machine-id">1RB0RE_1RC1RE_1LD1LC_0RB0LC_1RF0RB_---1RA</p>
+  <div class="col"><p class="lede">Nobody knows. The right 60% of the tape is one repeated word; the left 40% is a zone in which every run of 1s is odd, rewritten every round trip like a cellular automaton. This page shows both, the proved sweep rules, and what a halt would need.</p></div>
+  <div class="facts">
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>10</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
+    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>sqrt/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>9 rules</b><span class="small">The sweep rules of <code>lean/Rules.lean</code>, for every repeat count.</span></div>
+  </div>
+  <div class="key" aria-label="Evidence levels used on this page">
+    <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
+    <div><span class="ev n">native_decide</span> proved in Lean, one evaluation trusts the compiler</div>
+    <div><span class="ev c">Computed</span> C or Python in the repository, tested but not proved</div>
+    <div><span class="ev h">Heuristic</span> evidence and estimates</div>
+    <div><span class="ev o">Open</span> not known</div>
+  </div>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#what">An odd-runs zone and a periodic block</a><a href="#rules">The sweep rules</a><a href="#halt">What a halt would need</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+</header>
+<section id="machine">
+  <span class="eyebrow">The machine</span>
+  <h2>6 states, two symbols, 1 halting transition</h2>
+  <div class="grid2">
+    <div class="col">
+    <p>Each entry says what to write, which way to move and which state to enter. The machine starts in A on a blank tape (all 0s).</p>
+    <p>The machine stops when it is in F reading 0. F is entered only from E0 (writes 1, moves R): <code>E&gt;0 0</code>. So a halt is the moment this pattern appears, with the head on the cell after <code>&gt;</code>.</p>
+    </div>
+    <div class="tw"><table class="tt" aria-label="Transition table">
+      <thead><tr><th>state</th><th>reads 0</th><th>reads 1</th></tr></thead>
+      <tbody>
+        <tr><th>A</th><td>1 R B</td><td>0 R E</td></tr>
+        <tr><th>B</th><td>1 R C</td><td>1 R E</td></tr>
+        <tr><th>C</th><td>1 L D</td><td>1 L C</td></tr>
+        <tr><th>D</th><td>0 R B</td><td>0 L C</td></tr>
+        <tr><th>E</th><td>1 R F</td><td>0 R B</td></tr>
+        <tr><th>F</th><td class="halt">halt</td><td>1 R A</td></tr>
+      </tbody></table></div>
+  </div>
+</section>
+<section id="run">
+  <span class="eyebrow">Watch it run</span>
+  <h2>The tape from blank, step by step</h2>
+  <div class="col"><p>This is the real machine, simulated in your browser. Step it, play it, or jump to a step count. Below the cells is the whole visited tape in the notation of the notes: <code>1^5</code> is five 1s, and <code>C&gt;0</code> is the head in state C on a 0.</p></div>
+  <div class="panel">
+    <div class="controls">
+      <button id="step" type="button">Step</button>
+      <button id="play" class="primary" type="button">Play</button>
+      <label class="small" for="speed">Speed</label>
+      <select id="speed"><option value="1">1 step/frame</option><option value="10" selected>10 steps/frame</option><option value="1000">1,000 steps/frame</option><option value="100000">100,000 steps/frame</option></select>
+      <button id="reset" type="button">Reset</button>
+      <label class="small" for="jumpTo">Go to step</label>
+      <input type="text" id="jumpTo" inputmode="numeric" value="1000" spellcheck="false" autocomplete="off">
+      <button id="jumpGo" type="button">Go</button>
+    </div>
+    <div class="controls" style="margin-top:8px"><span class="small">Jump to:</span><button type="button" data-jump="1000">1,000</button><button type="button" data-jump="100000">100,000</button><button type="button" data-jump="1000000">1,000,000</button></div>
+    <div class="readout"><span>step <b id="rStep">0</b></span><span>state <span class="statechip" id="rState">A</span></span><span>cells visited <b id="rWidth">1</b></span><span>ones <b id="rOnes">0</b></span></div>
+    <div class="cellwrap"><div class="cells" id="cells" aria-label="Tape cells around the head"></div></div>
+    <div class="cap">Cells around the head (dark = 1, dashed = never visited).</div>
+    <div class="config" id="config" aria-live="polite"></div>
+  </div>
+</section>
+<section id="glance">
+  <span class="eyebrow">The run at a glance</span>
+  <h2>Space-time diagram and records</h2>
+  <div class="col"><p>The diagram stacks the tape at many moments. Sampling at each new cell shows the shape of the run as the visited region grows; sampling evenly in time shows where the head spends its time. The records list every step at which the head reaches a cell no earlier step reached, with the side, the width so far and the whole tape: the first place to look for a repeating macro structure.</p></div>
+  <div class="panel">
+    <div class="controls">
+      <label class="small" for="stMode">Rows</label>
+      <select id="stMode"><option value="rec" selected>at each new cell</option><option value="time">evenly in time</option></select>
+      <label class="small" for="stSteps">up to step</label>
+      <select id="stSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="20000" selected>20,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <button id="stGo" class="primary" type="button">Draw</button>
+    </div>
+    <div class="stwrap"><canvas id="st" aria-label="Space-time diagram"></canvas></div>
+    <div class="cap" id="stCap"></div>
+  </div>
+  <div class="panel">
+    <div class="controls">
+      <label class="small" for="recSteps">Records up to step</label>
+      <select id="recSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="20000" selected>20,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <button id="recGo" class="primary" type="button">List</button>
+    </div>
+    <div class="cap" id="recCap"></div>
+    <div class="log" id="recs"></div>
+  </div>
+</section>
+<section id="what">
+  <span class="eyebrow">The structure</span>
+  <h2>An odd-runs zone and a periodic block</h2>
+<p>The head sweeps from end to end; each round trip adds one cell at the left end and three at the right. The leftward sweep is simple: C runs left over the 1s, and each 0 it meets (with a 1 before it) moves one cell to the left (<code>1 1 C&gt;0</code> becomes <code>C&gt;1 0 1</code>). The rightward sweep zigzags over the left zone and then runs straight through the block to the right end.</p><p>The right part of the tape is the word <code>01011111</code> repeated, a steady 60% of it; the sweeps cross it word by word (proved). The left 40% is irregular, but every run of 1s in it has odd length and every 0 is single, at every sweep end ever looked at; so it is a list of odd numbers, and every round trip rewrites the list.</p><figure style="margin:1rem 0"><img alt="The tape at every visit to the left end, the first 1.2·10&lt;sup&gt;6&lt;/sup&gt; steps, one row per visit (dark: 1). The regular stripes on the right are the periodic block; the left zone is the irregular texture." src="data:image/png;base64,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" style="width:100%;max-width:900px;height:auto;image-rendering:auto;border:1px solid var(--line)"/><figcaption style="font-size:.9rem;color:var(--fg2)">The tape at every visit to the left end, the first 1.2·10<sup>6</sup> steps, one row per visit (dark: 1). The regular stripes on the right are the periodic block; the left zone is the irregular texture.</figcaption></figure>
+</section>
+<section id="rules">
+  <span class="eyebrow">Proved in Lean</span>
+  <h2>The sweep rules</h2>
+<p>Each row is a theorem of <code>lean/Rules.lean</code>, for every <code>n</code> and every tape <code>L</code>, <code>R</code> (<code>S&gt;</code>: the head in state S on the next cell; <code>(w)^n</code>: n copies of w; <code>0^inf</code>: blank tape).</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>rule</th><th>from</th><th>to</th><th>steps</th><th>what it says</th></tr></thead><tbody><tr><td><code>left_ones</code></td><td><code>L 1^n C&gt; 1 R</code></td><td><code>L C&gt; 1 (1)^n R</code></td><td>n</td><td>Leftward sweep: C runs left over ones (C1 = 1LC).</td></tr><tr><td><code>shift_zero</code></td><td><code>L 1 1 C&gt; 0 R</code></td><td><code>L C&gt; 1 0 1 R</code></td><td>2</td><td>Leftward sweep at a 0 after a 1: C writes 1 and D writes 0 one cell further left, so the 0 moves one cell left.</td></tr><tr><td><code>left_block</code></td><td><code>L (11010111)^n C&gt; 1 R</code></td><td><code>L C&gt; 1 (01011111)^n R</code></td><td>8 · n</td><td>Leftward sweep over the periodic block on the right: each 11010111 becomes 01011111 (8 steps a word).</td></tr><tr><td><code>right_block</code></td><td><code>L B&gt; (11111010)^n R</code></td><td><code>L (10101111)^n B&gt; R</code></td><td>8 · n</td><td>Rightward sweep over the periodic block: B turns each 11111010 into 10101111 (8 steps a word).</td></tr><tr><td><code>right_E</code></td><td><code>L E&gt; (011)^n R</code></td><td><code>L (110)^n E&gt; R</code></td><td>3 · n</td><td>Rightward sweep: E turns 011 into 110.</td></tr><tr><td><code>right_A</code></td><td><code>L A&gt; (101)^n R</code></td><td><code>L (011)^n A&gt; R</code></td><td>3 · n</td><td>Rightward sweep: A turns 101 into 011.</td></tr><tr><td><code>right_F</code></td><td><code>L F&gt; (110)^n R</code></td><td><code>L (101)^n F&gt; R</code></td><td>3 · n</td><td>Rightward sweep: F turns 110 into 101.</td></tr><tr><td><code>right_end</code></td><td><code>L 0 1 0 1 1 F&gt; 1 0^inf</code></td><td><code>L C&gt; 0 0 1 1 1 1 1 0 1 0^inf</code></td><td>11</td><td>Right end: F reads the last 1, A, B and C write three new cells, and C turns back.</td></tr><tr><td><code>left_end</code></td><td><code>0^inf C&gt; 0 1 R</code></td><td><code>0^inf 0 1 0 B&gt; R</code></td><td>4</td><td>Left end: C writes one new cell and the head turns right in B.</td></tr></tbody></table></div>
+</section>
+<section id="halt">
+  <span class="eyebrow">Halting</span>
+  <h2>What a halt would need</h2>
+<p>F0 is the only halting transition, and F is entered only from E on a 0 (writing 1, moving right): the machine halts exactly when E reads two 0s in a row. Inside the tape every 0 is single (observed), so a halt would need a double 0 in the irregular zone or E arriving at the blank right end; at the right end the periodic block always delivers A, not E (rule <code>right_end</code>). In the first 10<sup>9</sup> steps F is entered 60,675,981 times and reads 1 every time; no halt in 10<sup>10</sup> steps.</p>
+</section>
+<section id="shape">
+  <span class="eyebrow">First look</span>
+  <h2>The shape of the run</h2>
+<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.496). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.496).</p>
+<svg viewBox="0 0 560 240" role="img" aria-label="cells visited on each side against steps, log scales" style="width:100%;max-width:560px;height:auto;font:11px var(--mono);"><line x1="40.0" x2="40.0" y1="20.0" y2="200" stroke="var(--line)"/><text x="40.0" y="216" text-anchor="middle" fill="var(--muted)">2^4</text><line x1="116.8" x2="116.8" y1="20.0" y2="200" stroke="var(--line)"/><text x="116.8" y="216" text-anchor="middle" fill="var(--muted)">2^8</text><line x1="193.6" x2="193.6" y1="20.0" y2="200" stroke="var(--line)"/><text x="193.6" y="216" text-anchor="middle" fill="var(--muted)">2^12</text><line x1="270.4" x2="270.4" y1="20.0" y2="200" stroke="var(--line)"/><text x="270.4" y="216" text-anchor="middle" fill="var(--muted)">2^16</text><line x1="347.2" x2="347.2" y1="20.0" y2="200" stroke="var(--line)"/><text x="347.2" y="216" text-anchor="middle" fill="var(--muted)">2^20</text><line x1="424.0" x2="424.0" y1="20.0" y2="200" stroke="var(--line)"/><text x="424.0" y="216" text-anchor="middle" fill="var(--muted)">2^24</text><line x1="500.8" x2="500.8" y1="20.0" y2="200" stroke="var(--line)"/><text x="500.8" y="216" text-anchor="middle" fill="var(--muted)">2^28</text><line x1="40" x2="520" y1="200.0" y2="200.0" stroke="var(--line)"/><text x="34" y="204.0" text-anchor="end" fill="var(--muted)">2^0</text><line x1="40" x2="520" y1="159.9" y2="159.9" stroke="var(--line)"/><text x="34" y="163.9" text-anchor="end" fill="var(--muted)">2^4</text><line x1="40" x2="520" y1="119.9" y2="119.9" stroke="var(--line)"/><text x="34" y="123.9" text-anchor="end" fill="var(--muted)">2^8</text><line x1="40" x2="520" y1="79.8" y2="79.8" stroke="var(--line)"/><text x="34" y="83.8" text-anchor="end" fill="var(--muted)">2^12</text><path d="M40.0,180.0 L59.2,180.0 L78.4,176.7 L97.6,174.1 L116.8,170.0 L136.0,166.7 L155.2,161.9 L174.4,156.7 L193.6,151.3 L212.8,146.3 L232.0,141.1 L251.2,135.8 L270.4,130.6 L289.6,125.5 L308.8,120.6 L328.0,115.6 L347.2,110.6 L366.4,105.6 L385.6,100.6 L404.8,95.7 L424.0,90.7 L443.2,85.8 L462.4,80.8 L481.6,75.8 L500.8,70.9 L520.0,65.9" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M40.0,184.1 L59.2,170.0 L78.4,168.2 L97.6,160.9 L116.8,154.7 L136.0,149.9 L155.2,145.3 L174.4,140.4 L193.6,135.6 L212.8,130.2 L232.0,125.3 L251.2,120.0 L270.4,114.7 L289.6,109.7 L308.8,104.7 L328.0,99.7 L347.2,94.8 L366.4,89.8 L385.6,84.8 L404.8,79.8 L424.0,74.8 L443.2,69.9 L462.4,64.9 L481.6,60.0 L500.8,55.0 L520.0,50.0" fill="none" stroke="var(--head)" stroke-width="2"/><text x="520" y="24.0" text-anchor="end" fill="var(--fg2)"><tspan fill="var(--accent)">&#9632; left of start</tspan>  <tspan fill="var(--head)">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>
+<p>After 10<sup>9</sup> steps the tape spans 58,449 cells (10,724 left of the start, 32,176 right), with a density of 1s of 0.749.</p>
+<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>954,773,311</td><td><code>D&gt;0 1 0 1^7 0 1 0 1 0 1^3 0 1^3 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1^7 0 1^3 0 1^11 0 1 0 1^7 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1^17 0 1^13 0 1 0 1^3 0 1^3 0 1^3 0 1 0 1^5 0 1^3 0 1^3 0 1 0 1 0 1^11 0 1 0 1 0 1^9 0 1 0 1 0 1^3 0 1^3 0 1 0 1^3 0 1 0 1^9 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1^3 0 1 0 1 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^5 0 1^5 0 1^3 0 1^7 0 1^3 0 1^7 0 1^5 0 1^7 0 1^7 0 1^5 0 1^5 0 1 0 1^3 0 1^3 0</code></td></tr><tr><td>left</td><td>970,421,129</td><td><code>D&gt;0 1 0 1^7 0 1 0 1 0 1^13 0 1^7 0 1^3 0 1^7 0 1^13 0 1 0 1 0 1^7 0 1^3 0 1 0 1 0 1 0 1^3 0 1^7 0 1 0 1^5 0 1 0 1 0 1^5 0 1^3 0 1 0 1 0 1^5 0 1^3 0 1 0 1^3 0 1^3 0 1^3 0 1^5 0 1^3 0 1 0 1 0 1^3 0 1 0 1^5 0 1 0 1 0 1^5 0 1^3 0 1 0 1 0 1 0 1^11 0 1 0 1 0 1^9 0 1^5 0 1^5 0 1 0 1 0 1 0 1^3 0 1 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^7 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1 0 1 0 1^3 0 1 0 1^7 0</code></td></tr><tr><td>left</td><td>986,046,186</td><td><code>D&gt;0 1^3 0 1 0 1 0 1^3 0 1^3 0 1^11 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1 0 1 0 1 0 1 0 1^3 0 1^5 0 1^3 0 1^5 0 1^3 0 1 0 1 0 1 0 1 0 1^5 0 1^19 0 1^5 0 1^5 0 1 0 1^9 0 1^3 0 1^9 0 1 0 1^7 0 1 0 1 0 1 0 1^7 0 1^3 0 1^5 0 1^5 0 1 0 1^5 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1^3 0 1 0 1^5 0 1 0 1^3 0 1^3 0 1 0 1^3 0 1^3 0 1^5 0 1 0 1^3 0 1^3 0 1^5 0 1^7 0 1^3 0 1^3 0 1 0 1^5 0 1 0 1 0 1 0 1^3 0 1 0 1 0</code></td></tr><tr><td>right</td><td>954,850,365</td><td><code>0 1^3 0 1^5 0 1^5 0 1^3 0 1 0 1 0 1 0 1^5 0 1 0 1^5 0 1^3 0 1^5 0 1 0 1^3 0 1^9 0 1^3 0 1^5 0 1^3 0 1 0 1^9 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1^11 0 1 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1 0 1^7 0 1^9 0 1^5 0 1 0 1 0 1 0 1^7 0 1 0 1 0 1^5 0 1^5 0 1 0 1 0 1 0 1^11 0 1 0 1^3 0 1 0 1 0 1^7 0 1^5 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1^3 0 1^5 0 1 0 1^3 0 1^5 0 1 0 1^3 0 1^5 0 1 0 1 0 1^3 0 1^5 0 1 0 1 0</code></td></tr><tr><td>right</td><td>970,499,349</td><td><code>0 1^3 0 1^5 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1^5 0 1 0 1^3 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^7 0 1^5 0 1 0 1^9 0 1^3 0 1^5 0 1^3 0 1^3 0 1 0 1^3 0 1^3 0 1^3 0 1 0 1^3 0 1^3 0 1^3 0 1 0 1 0 1^3 0 1 0 1 0 1^3 0 1^3 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1^3 0 1 0 1^3 0 1^3 0 1^3 0 1 0 1^5 0 1 0 1 0 1 0 1 0 1^7 0 1^7 0 1^5 0 1 0 1 0 1^9 0 1^7 0 1 0 1^19 0 1^5 0 1^11 0 1 0 1^7 0 1 0 1^3 0 1^5 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>986,124,474</td><td><code>0 1 0 1^7 0 1 0 1 0 1^3 0 1^9 0 1 0 1^5 0 1 0 1 0 1^5 0 1 0 1 0 1^11 0 1 0 1 0 1 0 1^3 0 1 0 1 0 1 0 1^3 0 1 0 1^9 0 1 0 1^3 0 1^17 0 1 0 1 0 1^3 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1^9 0 1 0 1 0 1^3 0 1 0 1 0 1 0 1^3 0 1^3 0 1 0 1 0 1 0 1^3 0 1 0 1^11 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1^5 0 1^3 0 1 0 1^3 0 1 0 1 0 1^3 0 1^3 0 1 0 1 0 1^3 0 1 0 1 0 1 0 1^3 0 1^5 0 1 0</code></td></tr></tbody></table></div>
+<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
+</section>
+<section id="ledger">
+  <span class="eyebrow">What is known</span>
+  <h2>Every result, by what it rests on</h2>
+  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="lfilter" role="group" aria-label="Filter by evidence level">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
+    <button type="button" data-f="native" aria-pressed="false">native_decide</button>
+    <button type="button" data-f="trusted" aria-pressed="false">Computed</button>
+    <button type="button" data-f="heuristic" aria-pressed="false">Heuristic</button>
+    <button type="button" data-f="open" aria-pressed="false">Open</button>
+  </div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code>, generated by <code>py/rules.py</code></div></div><div><b>The sweep rules</b><p>9 rules for all values of the repeat counts and every tape around them: C running left over ones and moving each isolated 0 one cell left, both sweeps over the periodic block (8 steps a word), the rightward sweep over <code>011</code>, <code>101</code>, <code>110</code>, and the turns at both ends.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 58,449 cells have been visited and 43,788 of them hold a 1.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in the first 10<sup>10</sup> steps</b><p><code>tools/c/tmrun 1RB0RE_1RC1RE_1LD1LC_0RB0LC_1RF0RB_---1RA 10000000000</code> runs 10<sup>10</sup> steps without a halt (138,480 ones at the end).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: sqrt/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.496). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.496).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/sweeps.py</code></div></div><div><b>Odd runs, single zeros</b><p>At all 816 visits to the left end in the first 3·10<sup>6</sup> steps, every run of 1s on the tape has odd length and every 0 (after the two at the left end) is single; at the visits to the right end the same, except the three 0s at the very end. Sampled at every 97th step, the same holds away from the head.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/sweeps.py</code></div></div><div><b>A periodic block on the right</b><p>The right end of the tape is the word <code>01011111</code> repeated, a steady 60% of the tape (15,448 of 25,718 cells at the 6,427th visit to the left end, step 1.9·10<sup>8</sup>). A visit adds 1 cell at the left end and 3 at the right; the irregular zone grows by about 1.6 cells per round trip, the block by 2.4.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">direct simulation</div></div><div><b>The halting state is never close</b><p>F0 is the only halting transition and F is entered only by E0 (1RF): a halt needs E on a 0 followed by a 0. In the first 10<sup>9</sup> steps F is entered 60,675,981 times and reads 1 every time.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. If every 0 away from the right end stays single, E never sees two 0s inside the tape, and the right end is safe as long as the periodic block keeps its phase; both are observed, neither is proved. A closed tape language with run-parity counters and the block's phase is the natural candidate; the generic window searches fail at the right end.</p></div></div>
+</section>
+<section id="check">
+  <span class="eyebrow">Check it yourself</span>
+  <h2>Commands</h2>
+  <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
+holdouts/1RB0RE_1RC1RE_1LD1LC_0RB0LC_1RF0RB_---1RA/lean/check.sh
+python3 holdouts/1RB0RE_1RC1RE_1LD1LC_0RB0LC_1RF0RB_---1RA/py/rules.py | diff - holdouts/1RB0RE_1RC1RE_1LD1LC_0RB0LC_1RF0RB_---1RA/lean/Rules.lean   # Rules.lean is current
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1RC1RE_1LD1LC_0RB0LC_1RF0RB_---1RA 1000000000</code></pre>
+</section>
+<footer class="foot">
+  <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0RE_1RC1RE_1LD1LC_0RB0LC_1RF0RB_---1RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>
+  <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+</footer>
+</div>
+<script type="application/json" id="spec">{"machine": "1RB0RE_1RC1RE_1LD1LC_0RB0LC_1RF0RB_---1RA"}</script>
+<script id="engine">
+var BB = (function () {
+  "use strict";
+  var STATES = "ABCDEFGHIJ";
+  function parse(text) {
+    var groups = text.trim().split("_"), n = groups.length, table = [];
+    for (var s = 0; s < n; s++) {
+      var g = groups[s], row = [];
+      if (g.length !== 6) throw new Error("bad group " + g);
+      for (var y = 0; y < 2; y++) {
+        var t = g.substr(3 * y, 3), q = STATES.indexOf(t[2]);
+        if (t === "---" || q < 0 || q >= n) { row.push(null); continue; }
+        row.push([+t[0], t[1] === "R" ? 1 : -1, q]);
+      }
+      table.push(row);
+    }
+    return { text: text.trim(), n: n, table: table };
+  }
+  function Run(m) {
+    this.m = m; this.cells = new Uint8Array(1024); this.off = 512;
+    this.lo = 0; this.hi = 0; this.head = 0; this.state = 0; this.steps = 0; this.halted = false; this.nOnes = 0;
+  }
+  Run.prototype.get = function (p) { var i = p + this.off; return i < 0 || i >= this.cells.length ? 0 : this.cells[i]; };
+  Run.prototype.grow = function () {
+    var n = this.cells.length, c = new Uint8Array(3 * n);
+    c.set(this.cells, n); this.cells = c; this.off += n;
+  };
+  Run.prototype.step = function () {
+    if (this.halted) throw new Error("halted");
+    var i = this.head + this.off, y = this.cells[i], tr = this.m.table[this.state][y];
+    this.steps++;
+    if (tr === null) { this.halted = true; return false; }
+    this.nOnes += tr[0] - y; this.cells[i] = tr[0];
+    this.head += tr[1]; this.state = tr[2];
+    if (this.head < this.lo) this.lo = this.head;
+    if (this.head > this.hi) this.hi = this.head;
+    i = this.head + this.off;
+    if (i < 1 || i >= this.cells.length - 1) this.grow();
+    return true;
+  };
+  Run.prototype.run = function (max) { while (this.steps < max) if (!this.step()) return true; return false; };
+  Run.prototype.ones = function () { return this.nOnes; };
+  Run.prototype.word = function (lo, hi) { var w = []; for (var p = lo; p <= hi; p++) w.push(this.get(p)); return w; };
+  Run.prototype.configStr = function () {
+    return formatConfig(this.word(this.lo, this.hi), this.head - this.lo, STATES[this.state]);
+  };
+  function rle(cells) {
+    var out = [], i = 0;
+    while (i < cells.length) {
+      var j = i; while (j < cells.length && cells[j] === cells[i]) j++;
+      out.push(j - i > 1 ? cells[i] + "^" + (j - i) : String(cells[i])); i = j;
+    }
+    return out;
+  }
+  function formatConfig(cells, h, state) {
+    return rle(cells.slice(0, h)).concat([state + ">" + cells[h]], rle(cells.slice(h + 1))).join(" ");
+  }
+  // [steps, "L"|"R", hi - lo, config] each time the head reaches a new cell, at most k of them.
+  function records(m, maxSteps, k) {
+    var r = new Run(m), out = [];
+    while (r.steps < maxSteps && out.length < k) {
+      var lo = r.lo, hi = r.hi;
+      if (!r.step()) break;
+      if (r.lo < lo) out.push([r.steps, "L", r.hi - r.lo, r.configStr()]);
+      else if (r.hi > hi) out.push([r.steps, "R", r.hi - r.lo, r.configStr()]);
+    }
+    return { records: out, run: r };
+  }
+  return { STATES: STATES, parse: parse, Run: Run, rle: rle, formatConfig: formatConfig, records: records };
+})();
+if (typeof module !== "undefined") module.exports = BB;
+</script>
+<script>
+(function () {
+  "use strict";
+  var spec = JSON.parse(document.getElementById("spec").textContent);
+  var M = BB.parse(spec.machine), $ = function (id) { return document.getElementById(id); };
+  var css = function (v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); };
+  var fmt = function (n) { return n.toLocaleString("en-US"); };
+  // simulator
+  var r = new BB.Run(M), playing = false, raf = 0;
+  function draw() {
+    $("rStep").textContent = fmt(r.steps);
+    $("rState").textContent = r.halted ? "halt" : BB.STATES[r.state];
+    $("rWidth").textContent = fmt(r.hi - r.lo + 1);
+    $("rOnes").textContent = fmt(r.ones());
+    var box = $("cells"), w = box.clientWidth || 600, n = Math.max(9, Math.min(41, Math.floor(w / 24) | 1)), h = n >> 1;
+    var html = "";
+    for (var p = r.head - h; p <= r.head + h; p++) {
+      var cls = "cell" + (r.get(p) ? " one" : "") + (p < r.lo || p > r.hi ? " out" : "") + (p === r.head ? " hd" : "");
+      html += '<div class="' + cls + '"' + (p === r.head ? ' data-s="' + (r.halted ? "H" : BB.STATES[r.state]) + '"' : "") + "></div>";
+    }
+    box.innerHTML = html;
+    var width = r.hi - r.lo + 1;
+    $("config").textContent = width <= 4000 ? r.configStr() : "(" + fmt(width) + " cells: too wide to print here)";
+  }
+  function advance(n) {
+    var target = r.steps + n;
+    while (!r.halted && r.steps < target) if (!r.step()) break;
+  }
+  function jump(t) { if (t < r.steps) r = new BB.Run(M); advance(t - r.steps); draw(); }
+  function loop() {
+    if (!playing) return;
+    advance(+$("speed").value); draw();
+    if (r.halted) { stop(); return; }
+    raf = requestAnimationFrame(loop);
+  }
+  function stop() { playing = false; cancelAnimationFrame(raf); $("play").textContent = "Play"; }
+  $("step").onclick = function () { stop(); advance(1); draw(); };
+  $("play").onclick = function () {
+    if (playing) { stop(); return; }
+    playing = true; $("play").textContent = "Pause"; loop();
+  };
+  $("reset").onclick = function () { stop(); r = new BB.Run(M); draw(); };
+  $("jumpGo").onclick = function () {
+    stop(); var t = parseInt($("jumpTo").value.replace(/[^0-9]/g, ""), 10);
+    if (t >= 0 && t <= 1e9) jump(t);
+  };
+  document.querySelectorAll("[data-jump]").forEach(function (b) {
+    b.onclick = function () { stop(); $("jumpTo").value = b.dataset.jump; jump(+b.dataset.jump); };
+  });
+  window.addEventListener("resize", draw);
+  draw();
+  // space-time diagram: one row per sample, the visited tape across
+  function spacetime() {
+    var mode = $("stMode").value, steps = Math.min(+$("stSteps").value, 1e9), rows = 600;
+    var q = new BB.Run(M), snaps = [];
+    function snap() { snaps.push([q.steps, q.lo, q.word(q.lo, q.hi), q.head, q.halted]); }
+    snap();
+    if (mode === "time") {
+      var every = Math.max(1, Math.floor(steps / rows));
+      while (q.steps < steps && !q.halted) { q.run(Math.min(steps, q.steps + every)); snap(); }
+    } else {
+      while (q.steps < steps && snaps.length < rows) {
+        var lo = q.lo, hi = q.hi;
+        if (!q.step()) { snap(); break; }
+        if (q.lo < lo || q.hi > hi) snap();
+      }
+    }
+    var lo = Math.min.apply(null, snaps.map(function (s) { return s[1]; }));
+    var hi = Math.max.apply(null, snaps.map(function (s) { return s[1] + s[2].length - 1; }));
+    var W = hi - lo + 1, cw = Math.max(1, Math.min(12, Math.floor(1000 / W))), ch = Math.max(1, Math.min(8, Math.floor(600 / snaps.length)));
+    var cv = $("st"), dpr = window.devicePixelRatio || 1;
+    cv.width = W * cw * dpr; cv.height = snaps.length * ch * dpr;
+    cv.style.width = W * cw + "px"; cv.style.height = snaps.length * ch + "px";
+    var g = cv.getContext("2d"); g.scale(dpr, dpr);
+    g.fillStyle = css("--cell0"); g.fillRect(0, 0, W * cw, snaps.length * ch);
+    g.fillStyle = css("--sunk");
+    snaps.forEach(function (s, i) { g.fillRect((s[1] - lo) * cw, i * ch, s[2].length * cw, ch); });
+    g.fillStyle = css("--ink");
+    snaps.forEach(function (s, i) { s[2].forEach(function (c, j) { if (c) g.fillRect((s[1] - lo + j) * cw, i * ch, cw, ch); }); });
+    g.fillStyle = css("--head");
+    snaps.forEach(function (s, i) { g.fillRect((s[3] - lo) * cw, i * ch, cw, ch); });
+    var last = snaps[snaps.length - 1];
+    $("stCap").textContent = snaps.length + " rows, steps 0 to " + fmt(last[0]) + ", " + fmt(W) + " cells" +
+      (last[4] ? "; the machine halted" : "") + ". Time runs down, the tape runs left to right; dark = 1, orange = the head.";
+  }
+  $("stGo").onclick = spacetime;
+  spacetime();
+  // records
+  function showRecords() {
+    var steps = Math.min(+$("recSteps").value, 1e9), res = BB.records(M, steps, 400), out = "";
+    res.records.forEach(function (x) {
+      out += '<div><span class="t">' + fmt(x[0]) + "</span><span>" + x[1] + '</span><span class="t">' + x[2] +
+        "</span><span>" + x[3].replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</span></div>";
+    });
+    $("recs").innerHTML = out || "<div>none</div>";
+    $("recCap").textContent = res.records.length + " records in " + fmt(res.run.steps) + " steps" +
+      (res.run.halted ? "; the machine halted" : "") + (res.records.length >= 400 ? " (the first 400 shown)" : "") + ".";
+  }
+  $("recGo").onclick = showRecords;
+  showRecords();
+  // ledger
+  document.querySelectorAll(".lfilter button").forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll(".lfilter button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+      document.querySelectorAll(".litem").forEach(function (it) {
+        it.hidden = b.dataset.f !== "all" && it.dataset.level !== b.dataset.f;
+      });
+    };
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+{
+ "generated": false,
+ "group": "G11",
+ "title": "What is known about 1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB",
+ "description": "Proof status of the six-state BB(6) holdout 1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB.",
+ "machine": "1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB",
+ "crumb": "holdouts / 1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB",
+ "home": "../index.html",
+ "source": "holdouts/1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
+  "<p>Seen at the moments the head, in state E, reaches a new cell on the right, the tape is a list of numbers: <code>1^(3a) 0 1^(3m<sub>1</sub>+2) 0 1^(3m<sub>2</sub>+2) 0 &hellip; 1^(3m<sub>k</sub>+2) 0 E&gt;0</code>, a first run of 1s whose length is a multiple of 3 and then blocks of 1s each two more than a multiple of 3, each followed by a single 0. In the 10<sup>11</sup>-step run 107 of the 130 such moments have exactly this form; the others are the moments when the head has just come back from the left end. The list ends in <code>2 0 0 &hellip; 0</code>, and each new cell on the right appends one more 0 (a block <code>1 1 0</code>). Further left one or two numbers change at each record, a pattern that walks left one block per record, and the time between records doubles each time: a binary clock. When the walk reaches the left part, the head visits the left end, the list is rewritten and a new walk starts.</p>",
+  "<p>At each new cell on the right in state E the tape is <code>1^(3a) 0</code> followed by numbers m written as blocks <code>1^(3m+2) 0</code> (most m are 0, 1 or 2), ending in a 2 and a run of 0s that grows by one at each record. Between two records the head runs over the list many times and the time doubles. From record to record a disturbance (a 3 or a 4) moves one number to the left; when it reaches the left end the first number a changes and, a few records later, the phase ends and the list is rewritten.</p>"
+ ],
+ "asof": "Status as of 9 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The machine halts exactly from <code>C&gt; x 1 1</code> (both directions in Lean), never seen in 10<sup>11</sup> steps. The run goes in phases: inside a phase every new right cell in state E takes twice as long as the previous one (up to a few hundred steps), one more 0 is appended to the list and a carry walks one number to the left. The phases seen end at steps 142,951,915, 776,063,293 and 1,601,996,125, each after the carry has reached the left end and changed the first number; the fourth ended at step 136,228,769,152 exactly as the earlier ones (first number 4, then 1, <code>1 3</code>, 5, end), and the fifth repeats the corrections to doubling of the fourth, record for record, 7.7 times slower."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (A1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 370 cells have been visited and 276 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/exp",
+   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.047). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.083).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The halting context",
+   "text": "From <code>C&gt; x 1 1</code> the machine reaches its halting transition (proved step by step, then <code>step_none_iff</code>). The halting transition is A reading a 1. A is entered only from D reading a 1, and D only from C, which writes a 1 and moves right whatever it reads. So C halts two steps later exactly when the two cells after it are both 1 (Lean: <code>halt_ctx</code>, <code>halt_ctx'</code>; the converse, that no other configuration halts two steps later, is <code>halt_iff_2</code>). C is entered from B on a 0, from E on a 1 (both moving right) and from F on a 0 (moving left, so F would need <code>0 1</code> under and after it); <code>halt_pred_3</code> lists exactly these configurations three steps before a halt.",
+   "where": "<code>halt_ctx</code>, <code>lean/Rules.lean</code>; <code>halt_iff_2</code>, <code>halt_pred_3</code>, <code>halts_blank_pred_2</code>, <code>lean/HaltPred.lean</code> (generated by <code>holdouts/1RB0LD_0RC---_1LD0RF_0LE0RA_0RA1LF_0LA1LB/py/halt_pred.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "Shift rules",
+   "text": "12 shift rules over the words of the tape (for example <code>E&gt; (110)^n</code> becomes <code>(011)^n E&gt;</code> in 3n steps and <code>(110)^n B&gt; 1 1</code> becomes <code>B&gt; 1 1 (010)^n</code> in 9n steps), proved for every n.",
+   "where": "<code>lean/Rules.lean</code> (generated by <code>lean/rules.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 100,000,000,000 steps",
+   "text": "<code>tools/c/tmrun.c</code> runs 100,000,000,000 steps without a halt; the visited tape is 439 cells wide and holds 340 ones.",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Near misses",
+   "text": "In the first 10<sup>9</sup> steps F never had <code>0 1</code> under it and B never <code>0 x 1 1</code> ahead; E (which hands over to C one cell right) has had <code>1 1 1 0</code> ahead of it 28 times in 10<sup>10</sup> steps and never <code>1 x 1 1</code>: every near miss is at the right end, where the blocks <code>1^(3m+2) 0</code> keep a 0 within reach.",
+   "where": "<code>c/ctxcount.c</code> and <code>c/forbid.c</code> of <code>holdouts/1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The macro configuration",
+   "text": "At 107 of the 130 new right cells reached in state E in 10<sup>11</sup> steps the tape is exactly <code>1^(3a) 0 (1^(3m+2) 0)* E&gt;0</code>; the rest follow a visit to the left end.",
+   "where": "<code>py/blocks.py</code> on the records of <code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Binary clock",
+   "text": "Around step 1.6·10<sup>9</sup> the gaps between consecutive right records are 1,378,615, 2,757,407, 5,514,467, 11,029,027, 22,058,167, 44,116,343, 88,232,779, 176,465,379 steps: each about twice the one before, so the width grows like the logarithm of the step count.",
+   "where": "records of <code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 2.2·10<sup>11</sup> steps",
+   "text": "The C simulator ran past step 222,918,842,017 (a record) without a halt.",
+   "where": "<code>tmrun M 250000000000 records 100000</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Phases and doubling",
+   "text": "In 2.2·10<sup>11</sup> steps the records on the right in state E fall into phases ending at steps 142,951,915, 776,063,293, 1,601,996,125 and 136,228,769,152. Inside phases 2 to 5 the steps between records satisfy d<sub>k+1</sub> = 2d<sub>k</sub> + c with |c| &le; 400; in phase 4 they are 1,378,615, 2,757,407, 5,514,467, ..., 2,823,447,159, 5,646,894,327, 11,293,789,015 (c = 177, −347, 93, 113, 9, 93, −179, 197, −179, 113, 9, 9, 361).",
+   "where": "<code>tmrun M 2.5e11 records 100000</code>, <code>../1RB0LC_1RC0RA_1LD1LA_1RE1LD_---1RF_0RD1RA/py/periods.py rec E</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The walking carry and the end of a phase",
+   "text": "Read as numbers (<code>py/blocks.py</code>), each record of a phase appends a 0 and moves a 3 or 4 one place left (<code>... 1 1 3 1 0 ...</code>, <code>... 1 3 1 1 2 ...</code>, <code>... 3 1 1 1 2 ...</code>). The first number a was 4 through each phase until the carry arrived; then a = 1 (steps 249,125,544 and 915,762,320), then <code>1 3</code>, then a = 5, and the next record ended the phase (a = 5 at 106,838,677, 567,646,766 and 1,331,610,646; ends at 142,951,915, 776,063,293 and 1,601,996,125). In the current phase a = 1 at step 24,189,918,303. The same sequence ended phase 4: a = 1 with <code>1 3</code> at step 46,777,495,938, a = 5 at 91,952,651,237, end at 136,228,769,152.",
+   "where": "<code>py/blocks.py rec 40</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Phases repeat",
+   "text": "The corrections c to exact doubling repeat from phase to phase: phase 4 has 177, −347, 93, 113, 9, 93, −179, 197, −179, 113, 9, 9, 361, −395, 29; phase 5 starts with five more records (29, 221, 241, 9, 9) and then repeats 177, −347, 93, 113, 9, 93, −179, 197, −179, 113, 9 up to step 222,918,842,017, each record 7.7 times longer than its match in phase 4. Extrapolated, phase 5 ends near 10<sup>12</sup> steps. A phase end, where the left end is rewritten, is where the halting context would have to appear.",
+   "where": "<code>tmrun M 2.5e11 records 100000</code> (the 2.2·10<sup>11</sup> steps recorded), <code>periods.py rec E</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No small finite-automata certificate",
+   "text": "A finite-automata-reduction search (a DFA of n states on one side of the head, the least co-closed NFA on (state × DFA state) + bottom for the other) finds no certificate with n &le; 6, with the DFA on the left or on the right.",
+   "where": "<code>../1RB0LA_1RC1RA_1RD1RE_1LC---_0RB1LF_1RA0LE/c/far.c</code>: <code>./far M 6</code>, <code>./far M 6 m</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The clock test",
+   "text": "At the visits of the right end in state C on a 0 the tape is <code>W (0 1 1)<sup>n</sup> 0 C&gt;0</code>. From the visit at step 1,603,719,355 (n = 1), the word W at the visit with n = k+2 is the word at the visit before after exactly 2<sup>k</sup> applications of one base map (the run from the visit with n = 1 to the next), for k = 0, …, 8 (up to 256 applications). This is the clock of the machines of <code>holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE</code>, found by running the machine; its tick is not proved (the head works through the block like a counter, which is not the sweep–trip–merge template of <code>gen_clock.py</code>).",
+   "where": "<code>../1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---/py/clocktest2.py</code> against <code>tools/c/tmrun.c</code>: <code>1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB R C 2400000000 1603719355 0 0 110 10</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "What is the exact rule of the carry (a transducer on the numbers, from the block crossings of <code>lean/Rules.lean</code>) and what does the end of a phase do to the left end? The halt needs <code>C&gt; x 1 1</code>, which would be written there.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB/lean/check.sh",
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB 100000000000",
+  "gcc -O2 -o ctxcount holdouts/1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/c/ctxcount.c && ./ctxcount 1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB 1e10 E 4",
+  "./tmrun 1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB 250000000000 records 100000 > rec.txt && python3 holdouts/1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB/py/blocks.py rec.txt 40"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. This machine has run 10<sup>11</sup> steps without stopping. Its tape is a list of numbers, each written as a block of ones two more than a multiple of three; a pattern walks along the list like a carry in a binary counter, doubling the time at every step. It can stop only from one local pattern, <code>C&gt; x 1 1</code>, which it has never produced.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator; 439 cells visited."
+   },
+   {
+    "level": "kernel",
+    "value": "C&gt; x 1 1",
+    "text": "Every halt passes through it, and it always halts (Lean: <code>halt_ctx</code>, <code>halt_iff_2</code>)."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.047). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.083).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"129.9\" y2=\"129.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"133.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"59.8\" y2=\"59.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"63.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><path d=\"M40.0,172.2 L59.2,164.9 L78.4,159.3 L97.6,154.7 L116.8,150.8 L136.0,141.8 L155.2,139.4 L174.4,133.3 L193.6,126.9 L212.8,120.7 L232.0,116.7 L251.2,114.0 L270.4,114.0 L289.6,113.2 L308.8,110.8 L328.0,107.4 L347.2,107.4 L366.4,105.5 L385.6,104.9 L404.8,103.2 L424.0,101.1 L443.2,100.6 L462.4,99.1 L481.6,98.7 L500.8,97.3 L520.0,97.3\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,159.3 L59.2,150.8 L78.4,141.8 L97.6,137.2 L116.8,128.4 L136.0,121.8 L155.2,114.0 L174.4,109.4 L193.6,105.5 L212.8,97.3 L232.0,91.9 L251.2,84.1 L270.4,83.3 L289.6,79.4 L308.8,77.5 L328.0,77.1 L347.2,71.1 L366.4,70.1 L385.6,69.3 L404.8,68.1 L424.0,64.4 L443.2,63.1 L462.4,61.8 L481.6,61.2 L500.8,57.8 L520.0,57.5\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 370 cells (57 left of the start, 279 right), with a density of 1s of 0.746.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>669,524,518</td><td><code>B&gt;0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0^2 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0^2 1 0 1 0 1</code></td></tr><tr><td>left</td><td>908,796,591</td><td><code>F&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0^2 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>811,800,128</td><td><code>1^12 0 1^5 0 1^5 0 1^8 0 1^2 0 1^2 0 1^11 0 1^5 0 1^5 0 1^5 0 1^14 0 1^5 0 1^2 0 1^5 0 1^17 0 1^5 0 1^2 0 1^5 0 1^5 0 1^20 0 1^11 0 1^5 0 1^8 0 1^8 0 1^2 0 1^5 0 1^5 0 1^8 0 1^8 0 1^2 0 1^5 0 1^5 0 1^5 0 1^2 0 1^2 0 1^2 0 1^14 0 1^8 0 1^2 0 1^2 0 1^5 0 1^5 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^8 0 1^2 0 1^2 0 1^2 0 1^2 0 C&gt;0</code></td></tr><tr><td>right</td><td>846,454,071</td><td><code>1^12 0 1^5 0 1^5 0 1^8 0 1^2 0 1^8 0 1^5 0 1^5 0 1^5 0 1^5 0 1^14 0 1^5 0 1^2 0 1^5 0 1^17 0 1^5 0 1^2 0 1^5 0 1^5 0 1^20 0 1^11 0 1^5 0 1^8 0 1^8 0 1^2 0 1^5 0 1^5 0 1^8 0 1^8 0 1^2 0 1^5 0 1^5 0 1^5 0 1^2 0 1^2 0 1^2 0 1^14 0 1^8 0 1^2 0 1^2 0 1^5 0 1^5 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^8 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 C&gt;0</code></td></tr><tr><td>right</td><td>915,762,318</td><td><code>1^3 0 1^5 0 1^5 0 1^5 0 1^5 0 1^8 0 1^2 0 1^2 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^14 0 1^5 0 1^2 0 1^5 0 1^17 0 1^5 0 1^2 0 1^5 0 1^5 0 1^20 0 1^11 0 1^5 0 1^8 0 1^8 0 1^2 0 1^5 0 1^5 0 1^8 0 1^8 0 1^2 0 1^5 0 1^5 0 1^5 0 1^2 0 1^2 0 1^2 0 1^14 0 1^8 0 1^2 0 1^2 0 1^5 0 1^5 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^8 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 C&gt;0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "ends",
+    "eyebrow": "Structure",
+    "heading": "What the tape looks like",
+    "html": [
+     "<p>Seen at the moments the head, in state E, reaches a new cell on the right, the tape is a list of numbers: <code>1^(3a) 0 1^(3m<sub>1</sub>+2) 0 1^(3m<sub>2</sub>+2) 0 &hellip; 1^(3m<sub>k</sub>+2) 0 E&gt;0</code>, a first run of 1s whose length is a multiple of 3 and then blocks of 1s each two more than a multiple of 3, each followed by a single 0. In the 10<sup>11</sup>-step run 107 of the 130 such moments have exactly this form; the others are the moments when the head has just come back from the left end. The list ends in <code>2 0 0 &hellip; 0</code>, and each new cell on the right appends one more 0 (a block <code>1 1 0</code>). Further left one or two numbers change at each record, a pattern that walks left one block per record, and the time between records doubles each time: a binary clock. When the walk reaches the left part, the head visits the left end, the list is rewritten and a new walk starts.</p>",
+     "<p>The ends of the tape at the last moments the head reached a new cell (run-length coded: <code>(10)^n</code> is n copies of <code>10</code>; the state is the head's):</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>width</th><th>state</th><th>left end of the tape</th></tr></thead><tbody><tr><td>669,524,518</td><td>340</td><td>B</td><td><code> (01)^16 ..1010101001</code></td></tr><tr><td>908,796,591</td><td>364</td><td>F</td><td><code>0 (01)^14 ..1010101001</code></td></tr><tr><td>908,796,592</td><td>365</td><td>C</td><td><code> (01)^15 ..1010101001</code></td></tr><tr><td>908,796,599</td><td>366</td><td>B</td><td><code> (01)^2 ..0010101010</code></td></tr><tr><td>1,463,261,066</td><td>376</td><td>B</td><td><code> (01)^16 ..1010101001</code></td></tr><tr><td>23,290,316,327</td><td>427</td><td>F</td><td><code>0 (01)^14 ..1010101001</code></td></tr><tr><td>23,290,316,328</td><td>428</td><td>C</td><td><code> (01)^15 ..1010101001</code></td></tr><tr><td>23,290,316,335</td><td>429</td><td>B</td><td><code> (01)^2 ..0010101010</code></td></tr></tbody></table></div>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>width</th><th>state</th><th>right end of the tape</th></tr></thead><tbody><tr><td>46,777,495,936</td><td>433</td><td>C</td><td><code>0110111111.. (110)^17 0</code></td></tr><tr><td>46,777,495,937</td><td>434</td><td>D</td><td><code>0110111111.. (110)^17 10</code></td></tr><tr><td>46,777,495,938</td><td>435</td><td>E</td><td><code>0110111111.. (110)^18 </code></td></tr><tr><td>91,952,651,235</td><td>436</td><td>C</td><td><code>0110111111.. (110)^18 0</code></td></tr><tr><td>91,952,651,236</td><td>437</td><td>D</td><td><code>0110111111.. (110)^18 10</code></td></tr><tr><td>91,952,651,237</td><td>438</td><td>E</td><td><code>0110111111.. (110)^19 </code></td></tr></tbody></table></div>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Halting",
+    "heading": "The one way to stop",
+    "html": [
+     "<p>The halting transition is A reading a 1. A is entered only from D reading a 1, and D only from C, which writes a 1 and moves right whatever it reads. So C halts two steps later exactly when the two cells after it are both 1 (Lean: <code>halt_ctx</code>, <code>halt_ctx'</code>; the converse, that no other configuration halts two steps later, is <code>halt_iff_2</code>). C is entered from B on a 0, from E on a 1 (both moving right) and from F on a 0 (moving left, so F would need <code>0 1</code> under and after it); <code>halt_pred_3</code> lists exactly these configurations three steps before a halt. So the machine halts exactly when it produces <code>C&gt; x 1 1</code>; Lean proves both directions (<code>halt_ctx</code>: the steps from there to the halt; <code>halt_iff_2</code>: nothing else halts two steps later).</p>",
+     "<p>How close does it come? What E has ahead of it, counted at every step of the first 10<sup>10</sup> steps:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>E reads (from the head rightwards)</th><th>times in the first 10<sup>10</sup> steps</th><th>last time</th></tr></thead><tbody><tr><td><code>0 0 0 0</code></td><td>126</td><td>7,249,234,961</td></tr><tr><td><code>0 1 0 0</code></td><td>57,461,818</td><td>9,999,999,827</td></tr><tr><td><code>0 1 0 1</code></td><td>98,788,028</td><td>9,999,999,943</td></tr><tr><td><code>1 0 0 0</code></td><td>98,788,170</td><td>9,999,999,940</td></tr><tr><td><code>1 0 0 1</code></td><td>213,711,905</td><td>9,999,999,992</td></tr><tr><td><code>1 0 1 0</code></td><td>312,500,131</td><td>9,999,999,981</td></tr><tr><td><code>1 1 0 0</code></td><td>57,461,773</td><td>9,999,999,899</td></tr><tr><td><code>1 1 0 1</code></td><td>98,787,929</td><td>9,999,999,998</td></tr><tr><td><code>1 1 1 0</code></td><td>28</td><td>1,601,996,112</td></tr></tbody></table></div>",
+     "<p>In the first 10<sup>9</sup> steps F never had <code>0 1</code> under it and B never <code>0 x 1 1</code> ahead; E (which hands over to C one cell right) has had <code>1 1 1 0</code> ahead of it 28 times in 10<sup>10</sup> steps and never <code>1 x 1 1</code>: every near miss is at the right end, where the blocks <code>1^(3m+2) 0</code> keep a 0 within reach.</p>"
+    ]
+   },
+   {
+    "id": "blocks",
+    "eyebrow": "Macro configuration",
+    "heading": "A list of numbers and a walking carry",
+    "html": [
+     "<p>Read each block <code>1^(3m+2) 0</code> as the number m. The last moments in the 10<sup>11</sup>-step run when the head reached a new cell on the right in state E:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>steps since the previous</th><th>a</th><th>the blocks m<sub>1</sub> m<sub>2</sub> &hellip; (each is 1<sup>3m+2</sup> 0)</th></tr></thead><tbody><tr><td>1,955,271,541</td><td>176,465,379</td><td>4</td><td><code>1 1 2 0 0 1 1 1 1 1 4 1 2 1 1 1 1 2 1 2 1 3 1 1 2 2 0 1 1 2 2 0 1 9 1 0 7 1 0 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0</code></td></tr><tr><td>2,308,202,496</td><td>352,930,955</td><td>4</td><td><code>1 1 2 0 0 1 1 3 1 0 1 1 1 2 1 1 1 1 2 1 2 1 3 1 1 2 2 0 1 1 2 2 0 1 9 1 0 7 1 0 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0</code></td></tr><tr><td>3,014,064,227</td><td>705,861,731</td><td>4</td><td><code>1 1 2 0 0 1 1 3 1 2 1 1 2 1 1 1 1 2 1 2 1 3 1 1 2 2 0 1 1 2 2 0 1 9 1 0 7 1 0 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0</code></td></tr><tr><td>4,425,787,802</td><td>1,411,723,575</td><td>4</td><td><code>1 1 2 0 0 1 3 1 1 2 1 1 2 1 1 1 1 2 1 2 1 3 1 1 2 2 0 1 1 2 2 0 1 9 1 0 7 1 0 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0</code></td></tr><tr><td>7,249,234,961</td><td>2,823,447,159</td><td>4</td><td><code>1 1 2 0 0 3 1 1 1 2 1 1 2 1 1 1 1 2 1 2 1 3 1 1 2 2 0 1 1 2 2 0 1 9 1 0 7 1 0 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0</code></td></tr><tr><td>12,896,129,288</td><td>5,646,894,327</td><td>4</td><td><code>1 1 2 0 2 1 1 1 1 2 1 1 2 1 1 1 1 2 1 2 1 3 1 1 2 2 0 1 1 2 2 0 1 9 1 0 7 1 0 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</code></td></tr><tr><td>24,189,918,303</td><td>11,293,789,015</td><td>1</td><td><code>1 1 1 1 2 0 0 1 1 1 1 1 2 1 1 2 1 1 1 1 2 1 2 1 3 1 1 2 2 0 1 1 2 2 0 1 9 1 0 7 1 0 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</code></td></tr><tr><td>46,777,495,938</td><td>22,587,577,635</td><td>1</td><td><code>3 1 1 2 0 0 1 1 1 1 1 2 1 1 2 1 1 1 1 2 1 2 1 3 1 1 2 2 0 1 1 2 2 0 1 9 1 0 7 1 0 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</code></td></tr><tr><td>91,952,651,237</td><td>45,175,155,299</td><td>5</td><td><code>1 1 2 0 0 1 1 1 1 1 2 1 1 2 1 1 1 1 2 1 2 1 3 1 1 2 2 0 1 1 2 2 0 1 9 1 0 7 1 0 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</code></td></tr></tbody></table></div>",
+     "<p>From row to row the list gains a 0 at the right end, and somewhere in the middle one or two numbers change: that change moves one block to the left per row while the time between rows doubles, the way a carry would in a binary counter whose digits were the blocks to its right.</p>"
+    ]
+   },
+   {
+    "id": "open",
+    "eyebrow": "What is left",
+    "heading": "What a proof would need",
+    "html": [
+     "<p>Not known. The blocks keep every run of 1s short of the pattern <code>x 1 1</code> after C at the places C is entered, as long as the list keeps its form; what is missing is the rule that rewrites the list (how a walk changes the numbers, and what the left end does), from which one could prove that the form is kept forever.</p>",
+     "<p>The basic moves are proved in Lean for every length (<code>lean/Rules.lean</code>: crossing a run of one word in a fixed number of steps per copy), so a proof would need only the rule of the counter on top of them.</p>"
+    ]
+   },
+   {
+    "id": "phases",
+    "eyebrow": "The clock",
+    "heading": "A carry walking left while the time doubles",
+    "html": [
+     "<p>Write the tape at each new right cell (state E) as the number a of the leading block <code>1^(3a)</code> and the numbers m of the blocks <code>1^(3m+2) 0</code>. Some records of the run (steps from <code>tmrun</code>; the list is cut after 26 numbers):</p>",
+     "<pre>step             steps since last  a  numbers\n     915,762,320      69,308,247   1  1 1 1 1 2 0 0 1 1 1 1 1 4 1 0 1 5 1 0 1 1 6 3 1 2 ...\n   1,054,378,419     138,616,099   1  3 1 1 2 0 0 1 1 1 1 1 4 1 0 1 5 1 0 1 1 6 3 1 2 ...\n   1,331,610,646     277,232,227   5  1 1 2 0 0 1 1 1 1 1 4 1 0 1 5 1 0 1 1 6 3 1 2 ...\n   (phase end at 1,601,996,125)\n   2,308,202,496     352,930,955   4  1 1 2 0 0 1 1 3 1 0 1 1 1 2 1 1 1 1 2 1 2 1 3 ...\n   3,014,064,227     705,861,731   4  1 1 2 0 0 1 1 3 1 2 1 1 2 1 1 1 1 2 1 2 1 3 1 ...\n   4,425,787,802   1,411,723,575   4  1 1 2 0 0 1 3 1 1 2 1 1 2 1 1 1 1 2 1 2 1 3 1 ...\n   7,249,234,961   2,823,447,159   4  1 1 2 0 0 3 1 1 1 2 1 1 2 1 1 1 1 2 1 2 1 3 1 ...\n  12,896,129,288   5,646,894,327   4  1 1 2 0 2 1 1 1 1 2 1 1 2 1 1 1 1 2 1 2 1 3 1 ...\n  24,189,918,303  11,293,789,015   1  1 1 1 1 2 0 0 1 1 1 1 1 2 1 1 2 1 1 1 1 2 1 2 ...</pre>",
+     "<p>Each record takes twice as long as the previous one, and the 3 walks one place to the left per record until it reaches the front; then the first number changes from 4 to 1. In the earlier phases this was followed by a = 1 again (with a 3 behind it), a = 5, and the end of the phase, where the head visits the left end and the list is rewritten.</p>"
+    ]
+   },
+   {
+    "id": "clock",
+    "eyebrow": "The clock",
+    "heading": "2<sup>k</sup> applications of one map",
+    "html": [
+     "<p>At the visits of the right end in state C the tape is <code>W (0 1 1)<sup>n</sup> 0 C&gt;0</code>, n growing by one per visit. From the visit at step 1,603,719,355 (n = 1), the word W at the visit with n = k+2 is the word at the visit before after exactly 2<sup>k</sup> applications of one base map (the run from the visit with n = 1 to the next), for k = 0, …, 8 (up to 256 applications). That is the clock of five other holdouts, where it is proved in Lean; here only the test by running the machine is done.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "A list of numbers 1^(3m+2) 0 run in phases: each record doubles the time, a 0 is appended at the right and a carry walks left; each phase ends with a visit to the left end, where halting would have to happen.",
+ "family": "blocks of 3m+2 ones, binary clock"
+}

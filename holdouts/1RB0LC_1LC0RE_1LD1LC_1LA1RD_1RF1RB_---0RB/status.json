@@ -1,0 +1,141 @@
+{
+ "generated": false,
+ "group": "G13",
+ "title": "What is known about 1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB.",
+ "machine": "1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB",
+ "crumb": "holdouts / 1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB/status.json",
+ "intro": [
+  "Nobody knows whether this six-state machine halts from blank tape. Seen from the left end, its tape is a few long blocks of 1s separated by single 0s; the block lengths keep being cut into halves and thirds (2,666 and 1,332; 1,318, 1,975 and 655; 332, 1,489, 1,652 and 494). Seen from the right end, the left part of the tape is an alternating stretch <code>1 0 1 0 …</code> and the rest a solid block."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps; the C simulator shows none in 10<sup>9</sup>. How the block lengths are cut is not yet understood."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 4,003 cells have been visited and 2,945 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Tape shape",
+   "text": "At the last left-end extensions before 10<sup>9</sup> steps the tape is two to four blocks of 1s split by single 0s, e.g. <code>0 1^2666 0 1^1332</code> at step 999,181,386, <code>0 1^1318 0 1^1975 0 1^655</code> at step 959,766,361, <code>0 1^332 0 1^1489 0 1^1652 0 1^494</code> at step 974,655,988. At the right-end side switches the left part is alternating, with holes, and the rest a solid block or more alternating cells: <code>(10)^1333 1^1336 0</code> at step 999,185,396, <code>(10)^666 0 (10)^993 1^664 0</code> at step 981,117,700, <code>(10)^1328 0 (10)^661</code> at step 978,904,600.",
+   "where": "<code>py/shape.py</code>, <code>py/switches.py</code> on a <code>tmrun … records</code> log"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: power/power",
+   "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.336). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.334).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth like t<sup>1/3</sup>",
+   "text": "After step 5·10<sup>8</sup>: 291 side switches, 1,720,135 steps apart on average (≈ 0.107·w<sup>2</sup>, w = 4002), about 2.9 cells of width per switch; fitted width exponent 0.335 after step 10<sup>7</sup>.",
+   "where": "<code>py/switches.py</code>, <code>py/shape.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "How it could halt",
+   "text": "The halting transition is F reading 0. F is entered only from E reading 0, moving right. So a halt is exactly <code>E&gt;0 0</code>: E on a 0 with a 0 to its right. E is entered only from B reading 1, which writes 0, so equivalently <code>B&gt;1 0 0</code>.",
+   "where": "the transition table"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The shapes above hold at every extension printed; what rule cuts the blocks, and why B never meets a 1 followed by two 0s, are open.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB 1000000000",
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB 1000000000 records 100000 > rec.txt && python3 holdouts/1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB/py/shape.py rec.txt a=10 && python3 holdouts/1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB/py/switches.py rec.txt a=10"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. The tape is a few long blocks of 1s with single 0s between them, and on each trip the block lengths are cut in halves or thirds and rejoined. Each trip crosses the whole tape and costs about the width squared, for a few cells of growth: the width grows like the cube root of the time.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "4,002",
+    "text": "Width of the tape at its last extension before step 10<sup>9</sup>."
+   },
+   {
+    "level": "trusted",
+    "value": "1401",
+    "text": "Side switches in the first 10<sup>9</sup> steps."
+   },
+   {
+    "level": "heuristic",
+    "value": "t<sup>1/3</sup>",
+    "text": "Growth of the width (fitted exponent 0.335)."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "blocks",
+    "eyebrow": "What it does",
+    "heading": "Blocks of 1s, cut and rejoined",
+    "html": [
+     "<p>The tape at a few left-end extensions near the end of the first 10<sup>9</sup> steps (head at the far left):</p>",
+     "<pre>step 959,766,361   0 1^1318 0 1^1975 0 1^655\nstep 972,952,841   0 1^661 0 1^2312 0 1^989\nstep 974,655,988   0 1^332 0 1^1489 0 1^1652 0 1^494\nstep 978,900,620   0 1^2651 0 1^1323\nstep 999,181,386   0 1^2666 0 1^1332</pre>",
+     "<p>The first block keeps being halved (1,318, 661, 332) and then the blocks merge back into a 2:1 pair (2,651 and 1,323). At the right end the left part of the tape reads as an alternating stretch: <code>(10)^1333 1^1336 0</code> at step 999,185,396, about a third of the width alternating, then a solid block.</p>"
+    ]
+   },
+   {
+    "id": "growth",
+    "eyebrow": "Growth law",
+    "heading": "Why the width grows like t<sup>1/3</sup>",
+    "html": [
+     "<p>The head goes back and forth across the whole tape. After step 5·10<sup>8</sup> there are 291 side switches (extensions of the tape on the other side from the last one), on average 1,720,135 steps apart, which is about 0.107·w<sup>2</sup> for the final width w = 4002; each adds about 2.9 cells to the width. A constant gain per w<sup>2</sup> steps gives w<sup>3</sup> ~ t. The fitted exponent of the width after step 10<sup>7</sup> is 0.335.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.336). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.334).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"147.8\" y2=\"147.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"151.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"95.5\" y2=\"95.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"99.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"43.3\" y2=\"43.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"47.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,173.9 L59.2,173.9 L78.4,163.3 L97.6,156.6 L116.8,151.7 L136.0,144.5 L155.2,139.3 L174.4,133.5 L193.6,129.1 L212.8,124.5 L232.0,119.1 L251.2,115.6 L270.4,111.1 L289.6,105.8 L308.8,101.1 L328.0,96.6 L347.2,92.5 L366.4,88.3 L385.6,83.7 L404.8,79.4 L424.0,75.1 L443.2,70.4 L462.4,66.1 L481.6,61.8 L500.8,57.5 L520.0,53.1\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,179.3 L59.2,173.9 L78.4,169.7 L97.6,166.2 L116.8,160.8 L136.0,158.6 L155.2,154.8 L174.4,151.7 L193.6,145.5 L212.8,141.8 L232.0,137.2 L251.2,134.7 L270.4,130.5 L289.6,125.2 L308.8,120.8 L328.0,116.7 L347.2,112.5 L366.4,108.4 L385.6,103.9 L404.8,99.8 L424.0,95.7 L443.2,90.9 L462.4,86.7 L481.6,82.4 L500.8,78.1 L520.0,73.7\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 4,003 cells (2,433 left of the start, 813 right), with a density of 1s of 0.736.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>957,589,050</td><td><code>C&gt;0 1^2629 0 1^1313</code></td></tr><tr><td>left</td><td>974,655,988</td><td><code>C&gt;0 1^332 0 1^1489 0 1^1652 0 1^493</code></td></tr><tr><td>left</td><td>993,844,057</td><td><code>C&gt;0 1^2662 0 1^1332</code></td></tr><tr><td>right</td><td>953,267,927</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>970,224,729</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>988,521,386</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "blocks of 1s split in halves and thirds",
+ "summary": "At the left end the tape is two to four blocks of 1s separated by single 0s, with lengths in ratios near 2:1 or halved again; at the right end it is an alternating stretch followed by a solid block. Width ~ t^(1/3)."
+}

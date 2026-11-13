@@ -1,0 +1,120 @@
+{
+ "generated": false,
+ "group": "G01",
+ "title": "What is known about 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---.",
+ "machine": "1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---",
+ "crumb": "holdouts / 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 12 November 2026.",
+ "verdict": [
+  "<b>Open; analysis only begun.</b> Sampled when the head is in E at the left end, the tape is a list of blocks of the words <code>0100</code>, <code>0010</code> and <code>0001</code>, as in <code>E&gt; (10)^2 (0100)^189 (10)^3 (0010)^633 (01)^2 (0001)^n</code> plus a short tail. All blocks but the last are frozen. The last one grows by a factor of about 1.4 per event: n = 13, 159, 363, &hellip;, 28,645, 40,230 up to step 1.9&middot;10<sup>10</sup>. From time to time a new level begins: 189 copies of <code>0100</code> froze at step 0.43&middot;10<sup>6</sup>, and 633 copies of <code>0010</code> at step 9.1&middot;10<sup>6</sup>. The exact map and the halting condition are further work.",
+  "<b>Third pass.</b> No halt in 10<sup>18</sup> steps (macro simulation); the third level froze at 40,231 copies and a fourth grows. The growth factor 1.40 is 7/5 (community tracker: a recursive counter)."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The shape of the run from blank tape",
+   "text": "The E-events at the left end up to 1.93&middot;10<sup>10</sup> steps have the form described: a frozen prefix <code>(10)^2 (0100)^189 (10)^3 (0010)^633 (01)^2</code> since step 9.1&middot;10<sup>6</sup>, then <code>(0001)^n</code> with n = 13, 159, 363, 649, 1050, 1612, 2398, 3499, 5039, 7197, 10215, 14443, 20361, 28645, 40230, then a short tail (<code>0^5 1^2</code>, <code>(001)^2 1</code>, <code>0^2 1^2</code>, &hellip;). At the last event the tail is <code>0^2 (10)^2 (0010)^7 0^2 1^2</code>, which looks like the start of a new level.",
+   "where": "<code>py/events.py 2e10</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>18</sup> steps",
+   "text": "A macro simulator (blocks of 4 cells, whole runs of equal blocks crossed at once, exact step counts) runs 10<sup>18</sup> steps from blank tape without a halt. The block of 40,230 copies of the first analysis froze at 40,231 and a new level grows behind it.",
+   "where": "<code>holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB--- 1e18</code> (macro simulator <code>c/msim.c</code> there, checked against the direct simulator at 10<sup>9</sup> steps by <code>check_msim.py check</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No pushdown certificate with a DFA of at most 6 states",
+   "text": "The pushdown reduction of <code>bb6-1RB0LF_1RC0LB/c/pds.c</code> (one side of the tape kept exactly, the other abstracted by a DFA, reachability by post* saturation) reaches a halt for every DFA with at most 6 states, on either side: <code>TM=1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB--- ./pds 6 L</code> and <code>R</code>.",
+   "where": "<code>bb6-1RB0LF_1RC0LB/c/pds.c</code>"
+  },
+  {
+   "level": "open",
+   "title": "The map and the halting condition",
+   "text": "The growth ratio of the last block is not constant (1.44 falling to 1.40), and the tail changes from event to event, so the event map has more structure than a single number. During a sweep 14 copies of the middle block move at a time. No halting configuration of a high-level map has been identified yet.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/lean/check.sh",
+  "python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/py/events.py 2e10"
+ ],
+ "explainer": {
+  "lede": "Not known yet. The tape fills up with long blocks of a repeated four-cell word. Only the last block keeps growing, by about 40% per sweep of the head, and the earlier ones stay frozen. Now and then a new block with a new word is started. How it could halt is still to be found.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>18</sup> steps",
+    "text": "No halt in the macro simulator (checked against the direct one at 10<sup>9</sup>)."
+   },
+   {
+    "level": "trusted",
+    "value": "&times; 1.4",
+    "text": "Growth of the last block per sweep, while the earlier blocks stay frozen."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean (first 10,000 by the kernel)."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "what",
+    "eyebrow": "What it does",
+    "heading": "Frozen blocks and one growing block",
+    "html": [
+     "<p>When the head is in state E at the left end, the tape reads, from left to right, <code>(10)^2 (0100)^189 (10)^3 (0010)^633 (01)^2 (0001)^n</code> and a short tail. Only <i>n</i> changes: 13, 159, 363, 649, 1,050, 1,612, 2,398, 3,499, 5,039, 7,197, 10,215, 14,443, 20,361, 28,645, 40,230, a factor of about 1.4 per sweep.</p>",
+     "<p>The frozen blocks are what is left of earlier levels. The block of <code>0100</code> grew to 189 copies and froze at step 432,110, and the block of <code>0010</code> grew to 633 copies and froze at step 9.1 million. At step 1.9&middot;10<sup>10</sup> the tail <code>0^2 (10)^2 (0010)^7 0^2 1^2</code> may be the start of the next level.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.078). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.536).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"159.1\" y2=\"159.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"163.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"118.3\" y2=\"118.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"122.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"77.4\" y2=\"77.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"81.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,183.8 L59.2,176.3 L78.4,176.3 L97.6,176.3 L116.8,171.3 L136.0,167.6 L155.2,164.6 L174.4,162.2 L193.6,160.1 L212.8,158.2 L232.0,156.6 L251.2,155.1 L270.4,153.8 L289.6,152.5 L308.8,151.4 L328.0,150.4 L347.2,149.4 L366.4,147.6 L385.6,146.0 L404.8,145.3 L424.0,143.9 L443.2,142.6 L462.4,142.0 L481.6,140.9 L500.8,140.4 L520.0,139.9\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,179.6 L59.2,179.6 L78.4,167.6 L97.6,166.1 L116.8,159.1 L136.0,156.6 L155.2,148.9 L174.4,144.6 L193.6,139.4 L212.8,134.2 L232.0,128.7 L251.2,122.9 L270.4,117.7 L289.6,112.4 L308.8,107.1 L328.0,102.2 L347.2,98.7 L366.4,92.6 L385.6,87.0 L404.8,80.6 L424.0,77.5 L443.2,71.7 L462.4,65.6 L481.6,60.1 L500.8,55.2 L520.0,50.2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 35,260 cells (58 left of the start, 25,847 right), with a density of 1s of 0.449.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>708,153,823</td><td><code>E&gt;0 0 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0</code></td></tr><tr><td>right</td><td>955,727,455</td><td><code>1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0^3 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1</code></td></tr><tr><td>right</td><td>971,374,783</td><td><code>1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0^3 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1</code></td></tr><tr><td>right</td><td>987,060,512</td><td><code>1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0^3 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "A growing list of frozen blocks: the last block of the tape grows by a factor of about 1.4 per sweep while the earlier blocks stay fixed, and from time to time a new level with a new word starts; the map and halting condition are not yet known.",
+ "family": "List of frozen blocks with a last block growing by about 1.4 per sweep"
+}

@@ -1,0 +1,203 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---.",
+ "machine": "1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---",
+ "crumb": "holdouts / 1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. It keeps a list of counters on its tape and runs a binary odometer over them, rebuilding the list whenever the carry runs off it. Lean proves the ordinary visits for every list, and an exact accelerated run reaches 10<sup>1757</sup> visits without a halt; a halt needs one particular coincidence, a counter of exactly 1 next to an emptied counter."
+ ],
+ "asof": "Status as of 9 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The visit-to-visit rule of the counter list is known in every case met by the run (ordinary carries and four kinds of rebuild) and checked against the machine; Lean now proves every ordinary visit for every list. An exact accelerated run that computes the binary odometer in closed form reaches 10<sup>1757</sup> visits without a halt. A halt needs a rebuild that finds a counter equal to 1 next to an emptied counter, and even then happens only sometimes; the counters met there are in the thousands or much larger, so a halt looks very unlikely, but nothing rules the coincidence out."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 81,699 cells have been visited and 42,530 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "One visit of the last two counters, every case",
+   "text": "For separator 0 or 1 and each parity of the last two counters c and k (and of the counter z left of c where the carry passes c), the run from <code>L 0 (10)<sup>c</sup> s (10)<sup>k</sup> A&gt; 0<sup>&infin;</sup></code> to the next such visit, for all values and every tape L: e.g. <code>(10)<sup>2a+2</sup> 0 (10)<sup>2b</sup></code> becomes <code>(10)<sup>2a+1</sup> 0 (10)<sup>2b+3</sup></code> in 12b + 18 steps. Eight theorems, proved from symbolic traces (shift rules, <code>rfl</code>, <code>omega</code>).",
+   "where": "<code>lean/Rules.lean</code> (from <code>py/rules.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "Every ordinary visit, for every counter list",
+   "text": "Theorem <code>ordinary_visit</code>: for every list of counters and separators on which the rule <code>ordinary</code> is defined (the carry stops before the front counter and does not target an emptied counter: every visit but the rebuilds), the machine goes from the tape of the list to the tape of the result. The rule: the carry starts at the last counter k, passes every odd counter with a separator 0 on its left, and at the first counter v that is even or has a separator 1 on its left takes one from v's left neighbour (v odd with separator 1, or v even with separator 0) or from v itself (v even, separator 1); that separator becomes 0 and k gains 3. The proof composes 24 generated pieces (the leftward pass turns each crossed counter into a block of 1s, the way back rebuilds them) by induction over the list. Its Python mirror agrees with the machine on 14,249 random lists and with <code>counters.py</code> at all 19,972 ordinary visits among the first 20,000.",
+   "where": "<code>lean/Macro.lean</code>, <code>lean/MacroRules.lean</code> (from <code>py/macro.py</code>); <code>python3 py/macro.py check 20000</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The complete rule, with step counts",
+   "text": "<code>py/counters.py</code>: the carry (ordinary visits: one counter loses 1, the last gains 3) and the four rebuilds (the carry passes the front; it reaches an emptied counter with a counter x ≥ 1 on its left; it reaches two emptied counters, which merge their neighbours; it reaches the prefix), each with the exact number of steps (6S + 6n + 12 for the commonest visit, S the sum of the counters the head crosses). It agrees with the machine on 6,000 random lists of every kind and at each of the first 37,148 visits from blank tape (3·10<sup>9</sup> steps), counters and step counts.",
+   "where": "<code>python3 py/counters.py random 6000</code>, <code>visits</code> with <code>c/tokvisits.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 2.4·10<sup>16</sup> steps",
+   "text": "<code>py/longrun.py</code> applies the rule from the first visit: 10<sup>8</sup> visits, 24,493,542,227,095,740 steps, 31 rebuilds at the front and 40 at emptied counters, without leaving the shapes the rule covers. At visit 446,127 it agrees with the earlier exact simulator (5.4·10<sup>11</sup> steps).",
+   "where": "<code>python3 py/longrun.py 1e8</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>1757</sup> visits",
+   "text": "Between rebuilds the order of the visits depends only on parities and separators: once its separator is 0, the counter k places from the end is examined by the carry every 2<sup>k</sup> visits, alternately stopping it and passing it on. <code>py/accel.py</code> computes these schedules in closed form, jumps to the next event (the carry passing the front, a counter reaching 0, an emptied counter targeted), does that visit with <code>counters.step</code>, and repeats. It agrees with <code>counters.step</code> run visit by visit at 31 sample visits up to 10<sup>6</sup>. It runs 10<sup>1757</sup> visits (5,837 counters, 15,505 slot and merge rebuilds) without leaving the rule's shapes; each visit is at least one step.",
+   "where": "<code>python3 py/accel.py check 1e6</code>, <code>python3 py/accel.py far 1757 2700</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "An exact accelerated simulator",
+   "text": "<code>py/blocksim.py</code> keeps the tape as runs of <code>10</code> and crosses each run with a shift rule; at every visit of the right end up to 2·10<sup>7</sup> steps its tape equals the C simulator's (<code>py/bscheck.py</code>).",
+   "where": "<code>py/blocksim.py</code>, <code>py/bscheck.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The carry rule",
+   "text": "At each visit the last counter gains 3 and a carry starts at it: over a separator 0 it stops at an even counter and takes 1 from its left neighbour, and passes an odd one; at a separator 1 it stops, clears the separator and takes 1 from the counter (even) or its left neighbour (odd). Checked at 186,651 consecutive ordinary visits, no failure; the 1,423 visits with a zero counter, a merge or a rebuild are the rare events.",
+   "where": "<code>py/carry.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "What a halt needs",
+   "text": "On random lists of every shape the rule covers, the machine never halts within the visit. The rule leaves those shapes only when a rebuild at an emptied counter finds the counter x on its left equal to 1 (x becomes 0, followed by a separator 1, the tape pattern 01 or 11). Even that is not fatal: of 400 random lists with such an event the machine halted within 300 visits in only 8; the others returned to the rule's shapes. In the run to 10<sup>1757</sup> visits the smallest such x (other than the first counter, where x = 1 only creates the prefix) is the early 6, at about visit 2<sup>10</sup>.",
+   "where": "<code>py/counters.py</code> (<code>Unknown</code>), <code>py/longrun.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt can come from",
+   "text": "A closed tape language from windows of 6 cells covers the run and allows the halting transition F1 only with blank (or a single 1 and blank) to the left of the head and 1111 to the right: at the left end of the tape.",
+   "where": "<code>python3 -m bbtools.ctl 1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD--- 6</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A halt looks very unlikely",
+   "text": "The small counters next to an emptied counter come from the front of the list, which drains ever more slowly: only a carry that runs through the whole list reaches it, about once in 2<sup>m&minus;1</sup> visits with m counters. Their sizes stay in the thousands (x = 2,984 near visit 2<sup>577</sup>, 1,186 near 2<sup>1158</sup>). Over all slot rebuilds the sum of 1/x is 0.227, but only 0.0013 after visit 2<sup>30</sup> and 2&middot;10<sup>&minus;5</sup> after 2<sup>2000</sup>; treating x as random, the chance of a future x = 1 is below 10<sup>&minus;3</sup>, and an x = 1 halts the machine only sometimes.",
+   "where": "<code>py/accel.py far</code>, README"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. Missing: the rebuilds in Lean (they are not local on the tape: the head may scan on to the front and come back in a second phase that sets every separator to 1), which would reduce the machine to its counter list as for 1RB1RA_0LC1RF_0LD1LD_1LE1LC_0RB0RA_---1RE, and an invariant showing that a counter left of an emptied counter is never 1 when the carry arrives; since x is set by the exact values the counters had at the last rebuilds, such an invariant looks as hard as a Collatz-type question.",
+   "where": "README, next steps"
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---/lean/check.sh",
+  "cd holdouts/1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---/py",
+  "python3 counters.py random 6000",
+  "gcc -O2 -o tokvisits ../c/tokvisits.c && ./tokvisits 3000000000 > visits.txt && python3 counters.py visits visits.txt",
+  "python3 longrun.py 1e8",
+  "python3 accel.py check 1e6 && python3 accel.py far 1757 2700",
+  "python3 macro.py check 20000 && python3 macro.py > ../lean/MacroRules.lean",
+  "python3 rules.py > ../lean/Rules.lean",
+  "cd ../../../tools/py && python3 -m bbtools.ctl 1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD--- 6"
+ ],
+ "explainer": {
+  "lede": "Nobody knows whether it halts. The machine keeps a list of counters on its tape and runs a binary odometer over them: each digit of the odometer is itself a counter that slowly runs down, while a new counter fills up at the right. A halt is only possible at the far left end, which the odometer reaches ever more rarely.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "8 cases",
+    "text": "The rule for the last two counters, proved in Lean for every parity."
+   },
+   {
+    "level": "trusted",
+    "value": "2.4·10<sup>16</sup>",
+    "text": "Steps run without a halt (the complete counter rule, 10<sup>8</sup> visits)."
+   },
+   {
+    "level": "trusted",
+    "value": "37,148",
+    "text": "Consecutive visits where the rule matched the machine, step counts included."
+   },
+   {
+    "level": "trusted",
+    "value": "x = 1",
+    "text": "The one coincidence a halt needs; the smallest x seen is 6."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "list",
+    "eyebrow": "What the tape looks like",
+    "heading": "A list of counters with one-cell separators",
+    "html": [
+     "<p>Look at the tape each time the head steps onto the blank cell just right of the tape in state A. It reads <code>(10)<sup>c<sub>1</sub></sup> s<sub>1</sub> (10)<sup>c<sub>2</sub></sup> s<sub>2</sub> &hellip; (10)<sup>c<sub>m</sub></sup></code>: runs of the pair <code>10</code>, each followed by a single separator cell, 0 or 1, with a few cells of prefix at the far left. At step 31,596, for example: counters 49, 67, 19, 65, 2 with separators 1, 1, 1, 0.</p>",
+     "<svg viewBox=\"0 0 560 150\" role=\"img\" aria-label=\"a list of counters; the carry walks left from the right end\" style=\"width:100%;max-width:560px;height:auto;font:12px var(--mono);\">\n<rect x=\"10\" y=\"40\" width=\"70\" height=\"34\" rx=\"5\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"45\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">c1=49</text>\n<rect x=\"95\" y=\"40\" width=\"70\" height=\"34\" rx=\"5\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"130\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">c2=67</text>\n<rect x=\"180\" y=\"40\" width=\"70\" height=\"34\" rx=\"5\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"215\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">c3=19</text>\n<rect x=\"265\" y=\"40\" width=\"70\" height=\"34\" rx=\"5\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"300\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">c4=65</text>\n<rect x=\"350\" y=\"40\" width=\"120\" height=\"34\" rx=\"5\" fill=\"var(--sunk)\" stroke=\"var(--head)\"/><text x=\"410\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">c5=5 (+3)</text>\n<text x=\"490\" y=\"62\" fill=\"var(--head)\">A&gt;</text>\n<text x=\"300\" y=\"100\" text-anchor=\"middle\" fill=\"var(--fg2)\">-1 every 2nd visit</text>\n<text x=\"215\" y=\"118\" text-anchor=\"middle\" fill=\"var(--fg2)\">every 4th</text>\n<text x=\"130\" y=\"136\" text-anchor=\"middle\" fill=\"var(--fg2)\">every 8th</text>\n<text x=\"45\" y=\"30\" text-anchor=\"middle\" fill=\"var(--fg2)\">every 16th</text>\n</svg>"
+    ]
+   },
+   {
+    "id": "rule",
+    "eyebrow": "One sweep",
+    "heading": "The carry",
+    "html": [
+     "<p>Between two visits the head walks left, turning every <code>1010</code> it crosses into <code>1111</code>, then walks back turning them into <code>1010</code> again. On the way it carries a borrow, starting at the last counter:</p><ul><li>across a separator 0, an <b>even</b> counter stops the borrow and its left neighbour loses 1; an <b>odd</b> counter passes it on to the left;</li><li>at a separator 1 the borrow stops at once: the separator becomes 0 and one counter loses 1;</li><li>and the last counter always gains 3.</li></ul><p>Every decrement flips a parity, so the parities form a binary counter: the second-to-last counter loses 1 every 2nd visit, the one before every 4th, then every 8th, and so on, while the last one grows by 3 each time. From (5, 9, 18, 2): (5, 9, 17, 5), (5, 8, 17, 8), (5, 8, 16, 11), (5, 7, 16, 14), (5, 7, 15, 17), (4, 7, 15, 20).</p><p>Lean proves this for <em>every</em> list of counters, not just the ones the run produces: theorem <code>ordinary_visit</code> says that one sweep of the machine does exactly what this rule says, whenever the carry neither runs off the front nor meets an empty counter. The proof follows the head: on the way left each counter it crosses becomes a block of 1s, and on the way back each block is turned into the same counter again, the last one with three more units.</p>"
+    ]
+   },
+   {
+    "id": "events",
+    "eyebrow": "Rare events",
+    "heading": "Empty counters and rebuilds",
+    "html": [
+     "<p>Counters near the right drain fast and hit 0. An empty counter sits between two separators 0 (the tape shows <code>00</code>). Nothing happens to it until the carry needs to take 1 from it; then the list is <em>rebuilt</em> from there: the counter left of the empty one gives up 1, the empty counter disappears, every separator to its right becomes 1, the counter after it and the last counter each gain 1, and a new last counter of 2 is added. The same rebuild happens when the carry runs past the first counter (then a new first counter may appear). Two empty counters in a row merge their neighbours instead.</p><p>Rebuilds are rare: 71 of the first 10<sup>8</sup> visits. Each one at the front adds a counter, so the list grows slowly: 17 counters at 5.4·10<sup>11</sup> steps, 25 at 2.4·10<sup>16</sup>. Every one of these rules, with the exact number of steps it takes, agrees with the machine at each of the first 37,148 visits.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "The one coincidence that would stop it",
+    "html": [
+     "<p>The machine stops only when F reads a 1. Every visit the rule describes is safe: on random lists of every kind the machine never stops within the visit. To stop, the tape has to take a shape the rule does not cover, an empty counter next to a separator 1, and there is exactly one way to get there: a rebuild at an empty counter whose left neighbour is exactly 1 (it drops to 0 and is followed by the new separator 1).</p><p>So the question is whether a counter of exactly 1 is ever sitting just left of a counter that has run out when the carry arrives. In 10<sup>8</sup> visits it never was; the smallest left neighbour seen was 6 (the first counter excepted, where a 1 is harmless). A closed tape language also says a halt could only happen at the far left end of the tape. Even if it did happen the machine would usually survive: in experiments only about 2% of such events led to a halt within 300 visits.</p>"
+    ]
+   },
+   {
+    "id": "far",
+    "eyebrow": "Running it much further",
+    "heading": "A binary odometer in closed form",
+    "html": [
+     "<p>Between two rebuilds nothing but parities decides where the carry stops. Once a separator is 0, the counter one place from the end is reached by the carry every 2nd visit, the next every 4th, then every 8th, and each time it alternately stops the carry and passes it on, exactly like the digits of a binary counter. So instead of running the visits one by one, a program can compute, for every counter, the exact list of times at which it will lose a unit, and jump straight to the next interesting moment: a counter running out, the carry falling off the front, or an empty counter being hit.</p>",
+     "<svg viewBox=\"0 0 560 130\" role=\"img\" aria-label=\"the times at which each counter is reached by the carry: every 2nd, 4th, 8th visit\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><text x=\"10\" y=\"24\" fill=\"var(--fg2)\">last</text><text x=\"10\" y=\"46\" fill=\"var(--fg2)\">2nd last</text><text x=\"10\" y=\"68\" fill=\"var(--fg2)\">3rd last</text><text x=\"10\" y=\"90\" fill=\"var(--fg2)\">4th last</text><text x=\"10\" y=\"112\" fill=\"var(--fg2)\">5th last</text><rect x=\"80\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"87\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"94\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"101\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"108\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"115\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"122\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"129\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"136\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"143\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"150\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"157\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"164\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"171\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"178\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"185\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"192\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"199\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"206\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"213\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"220\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"227\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"234\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"241\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"248\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"255\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"262\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"269\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"276\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"283\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"290\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"297\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"304\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"311\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"318\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"325\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"332\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"339\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"346\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"353\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"360\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"367\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"374\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"381\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"388\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"395\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"402\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"409\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"416\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"423\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"430\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"437\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"444\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"451\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"458\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"465\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"472\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"479\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"486\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"493\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"500\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"507\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"514\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"521\" y=\"14\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"80\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"94\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"108\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"122\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"136\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"150\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"164\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"178\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"192\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"206\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"220\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"234\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"248\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"262\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"276\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"290\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"304\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"318\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"332\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"346\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"360\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"374\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"388\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"402\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"416\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"430\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"444\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"458\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"472\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"486\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"500\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"514\" y=\"36\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"87\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"115\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"143\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"171\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"199\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"227\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"255\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"283\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"311\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"339\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"367\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"395\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"423\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"451\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"479\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"507\" y=\"58\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"101\" y=\"80\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"157\" y=\"80\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"213\" y=\"80\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"269\" y=\"80\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"325\" y=\"80\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"381\" y=\"80\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"437\" y=\"80\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"493\" y=\"80\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"129\" y=\"102\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"241\" y=\"102\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"353\" y=\"102\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/><rect x=\"465\" y=\"102\" width=\"6\" height=\"12\" fill=\"var(--accent)\"/></svg>",
+     "<p>That makes the run thousands of digits long cheap: the program reaches 10<sup>1757</sup> visits (the list then has 5,837 counters) in 45 minutes, always within the shapes the rule covers. The counters left of an empty counter at the moment the carry hits it are the ones to watch, since a value of exactly 1 is the only way out of the rule. After the first million visits they are never below 1,000, and most are astronomically large. If they behave like random numbers of their size, the chance of ever seeing a 1 is well under one in a thousand, and even a 1 would only rarely stop the machine.</p>"
+    ]
+   }
+  ],
+  "title": "A binary odometer made of counters"
+ },
+ "family": "binary-ruler counter list",
+ "summary": "A list of counters (10)^c run as a binary odometer: each visit the last counter gains 3 and a parity-ruled carry takes 1 from another, the tail rebuilt when the carry runs off the list or into an emptied counter; Lean proves every ordinary visit for every list, and an exact closed-form run reaches 10^1757 visits without a halt, which would need a counter of exactly 1 beside an emptied one.",
+ "decision": "open"
+}

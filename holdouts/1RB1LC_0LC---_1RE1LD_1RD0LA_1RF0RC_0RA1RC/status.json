@@ -1,0 +1,159 @@
+{
+ "generated": false,
+ "group": "G10",
+ "title": "What is known about 1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC.",
+ "machine": "1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC",
+ "crumb": "holdouts / 1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC",
+ "home": "../index.html",
+ "source": "holdouts/1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> At every moment the visited part grows on the right, the tape is <code>(10)^x 1^4 (01)^n1 1^3 (01)^n2 1^3 … (01)^nk 1 0 1</code>, and between two such moments the j-th counter from the right loses exactly 2<sup>j</sup>, for the counters up to some point from the right; beyond it the list is rebuilt. This is measured, not proved. Halting needs A on a 0 with a 1 to its right, which never happens in the first 10<sup>9</sup> steps."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (B1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 80,023 cells have been visited and 40,016 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: power/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.511). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.15).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Shift rules of the sweeps",
+   "text": "Lean proves, for every count and every tape around, the four shift rules by which the sweeps cross the blocks: C crosses <code>(10)^n</code> leftward and <code>(01)^n</code> rightward (turning it into <code>(10)^n</code>), A crosses <code>(01)^n</code> leftward, E crosses <code>(10)^n</code> rightward (turning it into <code>(01)^n</code>).",
+   "where": "<code>shift_l_C_10</code>, <code>shift_r_C_01</code>, <code>shift_l_A_01</code>, <code>shift_r_E_10</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The tape is a list of counters",
+   "text": "Each time the visited part grows on the right (in A, then B), the tape is <code>(10)^x 1^4 (01)^n1 1^3 (01)^n2 1^3 … 1^3 (01)^nk 1 0 1 B&gt;0</code>, e.g. at step 233,350,399: x = 2461 and the counters 2693 3139 1283 339 5487 1363 2621 313 2778 377.",
+   "where": "<code>py/observe.py … R</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The rate law: the j-th counter from the right loses 2<sup>j</sup>",
+   "text": "Between two right extensions, counter j (counted from the right, j = 1, 2, …) decreases by exactly 2<sup>j</sup> for every j up to some point; the counters beyond it are rebuilt. In 21 of the 74 transitions from step 8,225 to 2.5·10<sup>9</sup> all k counters pay, and then always a new counter appears at the front and x = 2<sup>k+3</sup> − 3 (61, 125, …, 8189, 16381). In the other 53 the rebuild starts at some counter; in 28 of them it is the first counter (from the right) smaller than its rate 2<sup>j</sup>, or its right neighbour; what decides it in general is not yet understood.",
+   "where": "the right-extension samples of <code>tools/c/tmrun.c</code> (scratch script)"
+  },
+  {
+   "level": "heuristic",
+   "title": "Never one step from a halt",
+   "text": "The machine halts when B reads a 1, and B is entered only from A reading a 0 (A0 → 1RB). In the first 3·10<sup>6</sup> steps A reads a 0 8,918 times, always with a 0 to its right.",
+   "where": "direct simulation"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The rate law is measured, not proved, and the rebuilding of the counters that cannot pay is not yet written as a map. A proof would need both, and an invariant of the counters that keeps a 1 away from the right of A when A reads 0.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC/lean/check.sh",
+  "python3 holdouts/1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC/py/rules.py && holdouts/1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC/lean/check.sh      # regenerate and check the rules",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC 1000000000",
+  "python3 holdouts/1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC/py/observe.py 1e7 B 6      # the tape at the last moments each end grew"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. This machine keeps a list of counters on the tape, and they run at rates 2, 4, 8, 16, … like the digits of a binary counter seen from the side. This page shows the list, the rate law, and what is proved.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 80,023 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "heuristic",
+    "value": "power/sqrt",
+    "text": "The growth shape of the two sides of the tape (see below)."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "list",
+    "eyebrow": "Structure",
+    "heading": "A wall and a list of counters",
+    "html": [
+     "<p>Each time the visited part of the tape grows on the right, the tape has the same shape:</p>",
+     "<pre>(10)^x 1^4 (01)^n1 1^3 (01)^n2 1^3 … 1^3 (01)^nk 1 0 1 B&gt;0</pre>",
+     "<p>(<code>(01)^5</code> is <code>01</code> five times.) For example at step 233,350,399: x = 2461 and the counters are 2693, 3139, 1283, 339, 5487, 1363, 2621, 313, 2778, 377. The wall <code>(10)^x</code> on the left grows by one cell per sweep; the counters are separated by <code>1 1 1</code>.</p>"
+    ]
+   },
+   {
+    "id": "rates",
+    "eyebrow": "The rule",
+    "heading": "Counter j drains at rate 2<sup>j</sup>",
+    "html": [
+     "<p>Next time the tape grows on the right (step 378,591,341), compare from the right end:</p>",
+     "<pre>377 → 375  (−2)\n2778 → 2774  (−4)\n313 → 305  (−8)\n2621 → 2605  (−16)\n1363 → 1331  (−32)\n5487 → 5423  (−64)\n339 → 211  (−128)\n1283 → 1027  (−256)\n3139 → 2627  (−512)\n2693 → 1669  (−1024)\nnew counter 413 in front;  x = 8189 = 2^13 − 3</pre>",
+     "<p>That is the law, seen at every right extension up to 2.5·10<sup>9</sup> steps for the counters at the right end of the list: <b>the j-th counter from the right loses exactly 2<sup>j</sup></b>. From some counter on (often one too small to pay its rate) the list is rebuilt; when all pay, as here, a new counter is born and the wall reaches 2<sup>k+3</sup> − 3. It is a binary counter laid out in space. These are measurements: the law is not proved.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Halting",
+    "heading": "What a halt would need",
+    "html": [
+     "<p>The machine stops only when B reads a 1, and B is entered only from A reading a 0. So a halt needs <code>A&gt;0 1</code>, A on a 0 with a 1 right of it. At the right end A always meets <code>1 0 A&gt;0</code> with blank tape beyond; in the first 3·10<sup>6</sup> steps A reads a 0 8,918 times and the next cell is always 0. A halt would need the rebuilding of the counters to produce a separator of a new shape. Open.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.511). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.15).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"162.2\" y2=\"162.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"166.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"124.4\" y2=\"124.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"128.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"86.6\" y2=\"86.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"90.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"48.7\" y2=\"48.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"52.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,185.0 L59.2,175.6 L78.4,171.6 L97.6,165.0 L116.8,161.4 L136.0,154.6 L155.2,149.3 L174.4,143.7 L193.6,138.2 L212.8,134.3 L232.0,127.7 L251.2,121.6 L270.4,116.7 L289.6,110.4 L308.8,104.6 L328.0,100.1 L347.2,96.2 L366.4,91.8 L385.6,87.1 L404.8,81.3 L424.0,73.8 L443.2,66.8 L462.4,61.9 L481.6,56.6 L500.8,52.8 L520.0,49.5\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,178.0 L59.2,178.0 L78.4,178.0 L97.6,175.6 L116.8,171.6 L136.0,171.6 L155.2,168.6 L174.4,166.1 L193.6,166.1 L212.8,166.1 L232.0,161.4 L251.2,158.5 L270.4,157.2 L289.6,155.0 L308.8,152.3 L328.0,150.7 L347.2,150.0 L366.4,148.7 L385.6,148.1 L404.8,143.9 L424.0,139.1 L443.2,134.5 L462.4,133.6 L481.6,131.8 L500.8,131.5 L520.0,131.3\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 80,023 cells (62,162 left of the start, 153 right), with a density of 1s of 0.5.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>954,401,745</td><td><code>D&gt;0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>970,115,600</td><td><code>D&gt;0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>985,746,576</td><td><code>D&gt;0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>577,955,470</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>960,729,784</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "bouncer with a cascade of counters at rates 2, 4, 8, ...",
+ "decision": "open",
+ "summary": "A bouncer on the left feeds a list of counters (01)^n separated by 1 1 1: at each new cell on the right, the j-th counter from the right loses exactly 2^j, up to a point where the list is rebuilt; when the whole list pays, a new counter is born and the wall is 2^(k+3) - 3."
+}

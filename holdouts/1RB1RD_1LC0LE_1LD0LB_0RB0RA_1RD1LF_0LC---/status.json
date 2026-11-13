@@ -1,0 +1,144 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC---.",
+ "machine": "1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC---",
+ "crumb": "holdouts / 1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC---",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The run is a sequence of phases. In each, a block of pairs <code>(01)<sup>a</sup></code> at the left grows by about 10 cells for every 3 words eaten from a block of 4-cell words next to it; when that block is used up, the pairs are converted into a new block of about a/2 words and a starts again near 0. The phase lengths grow by a factor of about 1.4 to 1.7, and a region at the right end, read at each conversion, decides the details: a Collatz-like system, not yet written exactly."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 51,139 cells have been visited and 25,234 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Phase ends",
+   "text": "The (01)-block at the end of each of the first 14 phases (direct run to 3&middot;10<sup>8</sup> steps): 90, 209, 207, 357, 385, 491, 819, 1389, 1457, 2464, 4140, 6945, 6971, 9749.",
+   "where": "<code>tools/c/tmrun.c</code> at B L"
+  },
+  {
+   "level": "trusted",
+   "title": "The 8-visit cycle of a phase",
+   "text": "Inside a phase the left end repeats every 8 visits in state B: (01)<sup>a</sup> 10100 (1100)<sup>b+9</sup> becomes (01)<sup>a+30</sup> 10100 (1100)<sup>b</sup>, with the same junk sequence each period (direct run, five consecutive periods, a = 694 to 844, steps 2.59&middot;10<sup>6</sup> to 2.81&middot;10<sup>6</sup>). It is not proved: the head moves a bubble of 1s through the pairs, which a one-state shift rule does not cover.",
+   "where": "README, <code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Grow, eat, convert",
+   "text": "Within a phase about 10 cells of pairs are written per 3 words eaten; at the end the pairs become about a/2 words. Read off the run.",
+   "where": ""
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: fixed/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.432). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The rules below are read off the run, not proved, and they describe a counter system whose long-run behaviour is not understood.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC---/lean/check.sh",
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC--- 300000000 at B L 100000     # the tape at each visit of the left end",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC--- 1000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. This machine alternates between two moods: it grows one block while eating another, and when the second runs out it converts the first into food for the next round. This page runs the real machine in your browser and explains the rhythm.",
+  "facts": [
+   {
+    "level": "heuristic",
+    "value": "&times;1.4&ndash;1.7",
+    "text": "Growth of the block per phase."
+   },
+   {
+    "level": "trusted",
+    "value": "a = 9,749",
+    "text": "The pair block at the end of the phase that finished near step 2.86&middot;10<sup>8</sup>."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "phases",
+    "eyebrow": "Macro structure",
+    "heading": "Grow, eat, convert",
+    "html": [
+     "<p>Each time the head reaches the left end in state B the tape reads <code>0 (01)<sup>a</sup> [a few cells] W<sup>b</sup> [right end]</code>, where <code>W</code> is a 4-cell word (<code>1100</code>, <code>1001</code> or <code>0011</code> depending on the phase type). Sweep after sweep a grows and b shrinks, about 10 cells of pairs for every 3 words. When b reaches 0 the head converts all of <code>(01)<sup>a</sup></code> into a new block of about a/2 words, and a restarts near 0.</p>",
+     "<p>The pair block at the end of successive phases: 90, 209, 207, 357, 385, 491, 819, 1,389, 1,457, 2,464, 4,140, 6,945, 6,971, 9,749 (the last at step 2.86&middot;10<sup>8</sup>). Some phases are short (209 &rarr; 207, 6,945 &rarr; 6,971): their type differs, set by the region at the right end, which itself grows (a run of 0s there went from 46 to 687 cells).</p>"
+    ]
+   },
+   {
+    "id": "cycle",
+    "eyebrow": "Inside a phase",
+    "heading": "Thirty pairs for nine words",
+    "html": [
+     "<p>Watch the left end in state B during one phase and the same picture comes back every 8 visits, with the pair block 30 longer and the word block 9 shorter:</p>",
+     "<pre>B&gt; 0 (01)^694 10100 (1100)^206\nB&gt; 0 (01)^697 100101 (1100)^205\nB&gt; 0 (01)^700 101 (1100)^205\nB&gt; 0 (01)^701 001001100101 (1100)^203\n  ... four more visits ...\nB&gt; 0 (01)^724 10100 (1100)^197</pre>",
+     "<p>On each visit the head pushes a small bubble of 1s through the pairs to the junk in the middle and back; the junk runs through a cycle of eight shapes while the words are eaten.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "Three ones, read by B",
+    "html": [
+     "<p>The machine stops only when F reads a 1, reached only as B and E each read a 1 moving left: B must meet <code>1 1 1</code>. Some phase types carry exactly such a run (<code>1<sup>3</sup> (0011)<sup>b</sup></code>), so whether a halt is possible depends on how the head arrives there, which depends on the right end.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "two-phase converter, Collatz-like growth",
+ "summary": "Phases alternate: a block (01)^a grows while a block of 4-cell words (1100/1001/0011) is consumed, then the whole (01)^a is converted into the next 4-cell block of about a/2 words; the phase lengths grow by a factor of about 1.4 to 1.7, with a remainder-driven right end.",
+ "decision": "open"
+}

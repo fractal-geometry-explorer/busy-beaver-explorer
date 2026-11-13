@@ -1,0 +1,147 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC.",
+ "machine": "1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC",
+ "crumb": "holdouts / 1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Each round trip of the head converts a block of 8-cell words at the right end (proved in Lean for every length) and rewrites the end of an irregular region to its left; both grow linearly with the trips. The rule of the rewrite, and so the halting question, is not understood."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (C1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The leftward sweep",
+   "text": "For every n and every tape L: L (01011111)<sup>n+3</sup> 1 1 B&gt; 0 reaches L D&gt; (11101000)<sup>n+3</sup> 1 1 0 1 in 38n+118 steps: the whole block is converted word by word.",
+   "where": "<code>sweep_left</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 41,156 cells have been visited and 25,720 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Round trips",
+   "text": "Over the 10,115 visits of the right end in state B in the first 10<sup>9</sup> steps, each trip changes the tape by 4 cells: (block +1 word, region &minus;4 cells), (block &minus;1, region +12) or (block unchanged, region +4). At step 9.8&middot;10<sup>8</sup>: block 2,938 words, region 17,196 cells.",
+   "where": "<code>tools/c</code> runs, README"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: fixed/sqrt",
+   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.534).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A heavy-tailed rewrite",
+   "text": "The rewrite at the left end of the block usually touches the last 8&ndash;40 cells of the region, about 3% of the trips reach 100 cells back, 0.3% reach 1,000, the deepest 3,160: the region acts like the memory of a counter or a stack.",
+   "where": "README"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The halting transition C1 needs B reading 0 before a 1 or F reading 1 after a 1; closed tape languages from windows of 4 and 6 cells do not confine it, and the rewrite rule is not known.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC 1000000000",
+  "cd holdouts/1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC && python3 py/rules.py | diff - lean/Rules.lean"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "38 steps/word",
+    "text": "The leftward sweep converts the block one word every 38 steps (proved)."
+   },
+   {
+    "level": "trusted",
+    "value": "+4 cells",
+    "text": "Growth of the tape per round trip."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "zigzag",
+    "eyebrow": "How it works",
+    "heading": "A zig-zag over a block of words",
+    "html": [
+     "<p>After its first million steps the tape has three parts: a fixed left part, an <em>irregular region</em> that grows to the right, and a <em>block</em> of k copies of the 8-cell word <code>01011111</code>.</p>",
+     "<svg viewBox=\"0 0 560 112\" role=\"img\" aria-label=\"one round trip\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><text x=\"120\" y=\"23\" text-anchor=\"end\" fill=\"var(--muted)\">at the right end</text><rect x=\"126.0\" y=\"8\" width=\"62.5\" height=\"22\" rx=\"3\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"157.2\" y=\"23\" text-anchor=\"middle\" fill=\"var(--fg)\">fixed</text><rect x=\"190.5\" y=\"8\" width=\"148.5\" height=\"22\" rx=\"3\" fill=\"var(--native-bg)\" stroke=\"var(--line-strong)\"/><text x=\"264.8\" y=\"23\" text-anchor=\"middle\" fill=\"var(--fg)\">irregular region</text><rect x=\"341.0\" y=\"8\" width=\"213.0\" height=\"22\" rx=\"3\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><text x=\"447.5\" y=\"23\" text-anchor=\"middle\" fill=\"var(--fg)\">(01011111)^k</text><text x=\"120\" y=\"57\" text-anchor=\"end\" fill=\"var(--muted)\">sweeping left</text><rect x=\"126.0\" y=\"42\" width=\"62.5\" height=\"22\" rx=\"3\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"157.2\" y=\"57\" text-anchor=\"middle\" fill=\"var(--fg)\">fixed</text><rect x=\"190.5\" y=\"42\" width=\"148.5\" height=\"22\" rx=\"3\" fill=\"var(--native-bg)\" stroke=\"var(--line-strong)\"/><text x=\"264.8\" y=\"57\" text-anchor=\"middle\" fill=\"var(--fg)\">irregular region</text><rect x=\"341.0\" y=\"42\" width=\"105.5\" height=\"22\" rx=\"3\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><text x=\"393.8\" y=\"57\" text-anchor=\"middle\" fill=\"var(--fg)\">(01011111)^j</text><rect x=\"448.5\" y=\"42\" width=\"105.5\" height=\"22\" rx=\"3\" fill=\"var(--heur-bg)\" stroke=\"var(--line-strong)\"/><text x=\"501.2\" y=\"57\" text-anchor=\"middle\" fill=\"var(--fg)\">(11101000)^(k-j)</text><text x=\"120\" y=\"91\" text-anchor=\"end\" fill=\"var(--muted)\">at the left end</text><rect x=\"126.0\" y=\"76\" width=\"62.5\" height=\"22\" rx=\"3\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"157.2\" y=\"91\" text-anchor=\"middle\" fill=\"var(--fg)\">fixed</text><rect x=\"190.5\" y=\"76\" width=\"148.5\" height=\"22\" rx=\"3\" fill=\"var(--native-bg)\" stroke=\"var(--line-strong)\"/><text x=\"264.8\" y=\"91\" text-anchor=\"middle\" fill=\"var(--fg)\">region, rewritten end</text><rect x=\"341.0\" y=\"76\" width=\"213.0\" height=\"22\" rx=\"3\" fill=\"var(--heur-bg)\" stroke=\"var(--line-strong)\"/><text x=\"447.5\" y=\"91\" text-anchor=\"middle\" fill=\"var(--fg)\">(11101000)^k</text></svg>",
+     "<p>On each round trip the head walks left converting every word of the block into <code>11101000</code> (proved in Lean for every block length: 38 steps per word), rewrites the last cells of the irregular region, then walks back converting the block back and adds a little at the right end. Each trip lengthens the tape by 4 cells.</p>"
+    ]
+   },
+   {
+    "id": "region",
+    "eyebrow": "The open part",
+    "heading": "What the region remembers",
+    "html": [
+     "<p>The rewrite usually changes only the last 8&ndash;40 cells of the region, but sometimes it reaches far back: 100 cells in about 3% of the trips, 1,000 cells in 0.3%, and once 3,160 cells. Such a heavy tail is what the carries of a counter, or the pops of a stack, look like. Decoding what the region counts is the next step; until then nobody can say whether a trip will ever produce the halting pattern.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.534).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"159.6\" y2=\"159.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"163.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"119.2\" y2=\"119.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"123.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"78.8\" y2=\"78.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"82.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,189.9 L59.2,179.8 L78.4,173.9 L97.6,169.7 L116.8,161.6 L136.0,155.0 L155.2,150.4 L174.4,144.2 L193.6,139.9 L212.8,133.8 L232.0,129.5 L251.2,127.0 L270.4,122.4 L289.6,118.4 L308.8,116.1 L328.0,111.4 L347.2,111.4 L366.4,107.9 L385.6,104.5 L404.8,104.5 L424.0,104.5 L443.2,104.5 L462.4,104.5 L481.6,104.5 L500.8,104.5 L520.0,104.5\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,171.7 L59.2,171.7 L78.4,165.1 L97.6,165.1 L116.8,165.1 L136.0,160.5 L155.2,157.1 L174.4,152.0 L193.6,148.2 L212.8,143.9 L232.0,140.6 L251.2,132.5 L270.4,128.5 L289.6,121.5 L308.8,114.6 L328.0,108.2 L347.2,100.5 L366.4,94.8 L385.6,89.3 L404.8,83.0 L424.0,77.1 L443.2,71.5 L462.4,66.1 L481.6,60.7 L500.8,55.3 L520.0,50.1\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 41,156 cells (701 left of the start, 29,410 right), with a density of 1s of 0.625.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>955,540,365</td><td><code>1^6 0 1 0 1^7 0 1^3 0 1 0 1^5 0 1 0 1 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1^5 0 1 0 1^7 0 1 0 1^3 0 1 0 1^11 0 1 0 1 0 1 0 1^7 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1^5 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^9 0 1 0 1^5 0 1 0 1^3 0 1 0 1^7 0 1 0 1^5 0 1^9 0 1^9 0 1 0 1^5 0 1^3 0 1 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1^9 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^11 0 1^5 0 1 0</code></td></tr><tr><td>right</td><td>971,216,747</td><td><code>1^6 0 1 0 1^7 0 1^3 0 1 0 1^5 0 1 0 1 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1^5 0 1 0 1^7 0 1 0 1^3 0 1 0 1^11 0 1 0 1 0 1 0 1^7 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1^5 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^9 0 1 0 1^5 0 1 0 1^3 0 1 0 1^7 0 1 0 1^5 0 1^9 0 1^9 0 1 0 1^5 0 1^3 0 1 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1^9 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^11 0 1^5 0 1 0</code></td></tr><tr><td>right</td><td>986,889,929</td><td><code>1^6 0 1 0 1^7 0 1^3 0 1 0 1^5 0 1 0 1 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1^5 0 1 0 1^7 0 1 0 1^3 0 1 0 1^11 0 1 0 1 0 1 0 1^7 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1^5 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^9 0 1 0 1^5 0 1 0 1^3 0 1 0 1^7 0 1 0 1^5 0 1^9 0 1^9 0 1 0 1^5 0 1^3 0 1 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1^9 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^11 0 1^5 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "The head zig-zags over a block of 8-cell words (01011111)^k at the right, converting it to 11101000 words and back on each trip (the leftward sweep is proved), and on each trip rewrites the end of an irregular region that grows to the right; the rewrite depth has a heavy tail, like the memory of a counter.",
+ "family": "zig-zag block converter feeding a growing irregular region",
+ "decision": "open"
+}

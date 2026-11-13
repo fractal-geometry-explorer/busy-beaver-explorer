@@ -1,0 +1,189 @@
+{
+ "generated": false,
+ "group": "G12",
+ "title": "What is known about 1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD.",
+ "machine": "1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD",
+ "crumb": "holdouts / 1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD",
+ "home": "../index.html",
+ "source": "holdouts/1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD/status.json",
+ "intro": [
+  "Nobody knows whether this six-state machine halts from blank tape. This page records what is established about it, sorted by what each result rests on.",
+  "The tape is a few long blocks of 1s separated by single 0s. The head keeps returning to the right end in state B with a single block on the tape, <code>Y(n) = 0^&infin; 1^n 0 B&gt;0 0^&infin;</code>. From one such visit to the next, n follows a Collatz-like map: odd n go to 3n &minus; 7, even n go through a nested computation on two blocks whose outcome is piecewise linear on residue classes modulo powers of 2, and which halts for a sparse set of even n."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The run from blank tape has been followed exactly, on a run-length simulator tested against the plain one, to step 1.88&middot;10<sup>18</sup> and through the visits Y(n) for n = 2, 5, 8, 14, 39, 110, 232, 357, 1064, 1614, 4539, 13610, 23544, 67275, 201818, 576606, 1243308, 1864956, 2797428, 4196136, 8162799, 24488390, 37736994, 129867393, 389602172, 584403252, 876604872, 1397089014 without a halt.",
+  "<b>Why it is hard.</b> An even n halts with a probability that falls slowly with n (13% of even n below 64, 1% around 2,000, 0.1% around 100,000), so the run has survived real risks; along the orbit the chance of a future halt is small (heuristically of order 10<sup>&minus;4</sup>), but the map is a Collatz-like map with infinitely many residue classes and no proof method is known."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when D reads a 0.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "How a halt happens",
+   "text": "E standing on a 0 before a block of exactly one 1, followed by a 0, makes D read a 0 two steps later (<code>L 1 E&gt;0 1 0 R</code>). D is entered only from C (which always leaves a 1 for D) and from F, so this is the only way.",
+   "where": "<code>r_halt</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Shift rules",
+   "text": "For all lengths and any surrounding tape: E before a block of m + 3 slides a 0 through it (<code>L E&gt;0 1^(m+3) 0 R</code> to <code>L 1 0 1^(m+1) 0 B&gt;0 R</code>); E before a block of 2 merges it with the next; B on a double gap after an even block of 2j + 4 takes 4 from it, giving 1 to the left block and 3 to the right (<code>r_g4</code>); Y(2k + 5) turns into <code>0^&infin; A&gt;0 1^(2k+3) 0 1^3</code>; and <code>0^&infin; A&gt;0 1^3 0 1^b</code> into Y(b + 5).",
+   "where": "<code>lean/Rules.lean</code>, <code>py/gen_rules.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "Direct run of the list simulator.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same, compiled.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "An exact accelerated simulator",
+   "text": "<code>c/rle.h</code> runs the machine on a run-length tape and crosses a run in one move when the machine provably does the same thing on every cell of it (a sweep whose states cycle, or a 0 sliding through 1s); <code>c/rle_test.c</code> checks it against <code>tools/c/tm.h</code> after every move (state, head position) and on 3,000 cells each side every 1,000 moves, here over 2.3&middot;10<sup>8</sup> steps.",
+   "where": "<code>c/rle.h</code>, <code>c/rle_test.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt before step 1.88&middot;10<sup>18</sup>",
+   "text": "The run from blank tape on that simulator (<code>c/orbit.c</code>) visits Y(n) for n = 2, 5, 8, 14, 39, 110, 232, 357, 1064, 1614, 4539, 13610, 23544, 67275, 201818, 576606, 1243308, 1864956, 2797428, 4196136, 8162799, 24488390, 37736994, 129867393, 389602172, 584403252, 876604872, 1397089014, the last at step 1,236,827,870,800,421,332, and does not halt before it stops at step 1,881,917,985,725,222,773. The step counts of the first visits agree with direct simulation (Y(67275) at step 4,875,439,011 in both).",
+   "where": "<code>c/orbit.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The odd rule",
+   "text": "For every odd n from 5 to 19,999, Y(n) leads to Y(3n &minus; 7); Y(3) halts. (Lean proves the first and last phases, <code>r_y_odd</code> and <code>r_w_end</code>; the shifts between them are not yet proved.)",
+   "where": "<code>c/ymap.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The even map",
+   "text": "For every even n &le; 20,000 (and 100,000 to 104,000) the next visit, or the halt, was computed. The map is linear on residue classes modulo powers of two: n &equiv; 4 (mod 8) gives 3n/2 &minus; 6, n &equiv; 16 (mod 32) gives 9n/8 &minus; 5, n &equiv; 22 (mod 32) gives 15n/8 &minus; 9/4, n &equiv; 2 (mod 64) gives 27n/16 &minus; 99/8, n &equiv; 14 (mod 64) gives 45n/16 &minus; 3/8 (each checked on every n of its class between 4 times the modulus and 20,000), and finer classes for the rest. 57 even n below 20,000 halt: 10, 12, 34, 48, 122, 138, 178, 186, 192, 230, 294, ..., including every 3&middot;4<sup>k</sup> (12, 48, 192, 768, 3072, 12288).",
+   "where": "<code>c/ymap.c</code>, <code>c/zmap.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt can be",
+   "text": "A closed tape language of windows of 4 cells (<code>tools/py/bbtools/ctl.py</code>, closure checked) allows a halt only with <code>0^&infin; 1 1 0 D&gt;0</code>: the halting block of one 1 must be the leftmost block, next to a block of one 1.",
+   "where": "<code>python3 -m bbtools.ctl 1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD 4</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Probviously non-halting",
+   "text": "The fraction of even n whose step halts falls from 13% (n &lt; 64) to 4% (64 to 512), 1.1% (512 to 4,096), 0.3% (4,096 to 20,000) and 0.1% (around 100,000), roughly like n<sup>&minus;0.5</sup>. Along the orbit n grows by a factor of about 2 per visit, so if the even values behave like typical ones the chance of a halt after n = 1.4&middot;10<sup>9</sup> is of order 10<sup>&minus;4</sup>.",
+   "where": "<code>c/ymap.c</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. A proof needs the full nested structure of the even map, which is a Collatz-like map with infinitely many residue classes.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD/lean/check.sh",
+  "cd holdouts/1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD && python3 py/gen_rules.py | diff - lean/Rules.lean",
+  "gcc -O2 -o rle_test c/rle_test.c && ./rle_test 1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD 300000",
+  "gcc -O2 -o orbit c/orbit.c && ./orbit 30000000000",
+  "gcc -O2 -o ymap c/ymap.c && ./ymap 2 2000 2"
+ ],
+ "explainer": {
+  "lede": "This machine writes a few long blocks of 1s and keeps coming back to a tape with a single block. The block's length follows a Collatz-like map: three times plus a little for odd lengths, and a nested, 2-adic computation for even ones, which sometimes halts. The run has dodged every halt so far.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "1.9&middot;10<sup>18</sup> steps",
+    "text": "No halt, on an exact accelerated simulator; 28 visits Y(n), up to n = 1,397,089,014."
+   },
+   {
+    "level": "kernel",
+    "value": "E&gt;0 1 0",
+    "text": "The only way to halt: E before a single 1."
+   },
+   {
+    "level": "trusted",
+    "value": "n &rarr; 3n &minus; 7",
+    "text": "For odd n; even n follow a map that is linear on residue classes mod 2<sup>k</sup>."
+   },
+   {
+    "level": "heuristic",
+    "value": "~10<sup>&minus;4</sup>",
+    "text": "Rough chance of a halt still to come, from the halting rate of even n."
+   }
+  ],
+  "presets": [
+   32,
+   229,
+   1368,
+   4875,
+   45378
+  ],
+  "spacetime": {
+   "steps": 5000
+  },
+  "sections": [
+   {
+    "id": "blocks",
+    "eyebrow": "The tape",
+    "heading": "Blocks, and the visits Y(n)",
+    "html": [
+     "<p>Watch the simulator: the tape is a few long blocks of 1s separated by single 0s, and the head runs across them in long sweeps. Every so often only one block is left and the head stands just right of it in state B:</p>",
+     "<p style=\"text-align:center\"><code>Y(n) = 0^&infin; 1^n 0 B&gt;0 0^&infin;</code></p>",
+     "<p>From blank tape: Y(2) at step 8, Y(5) at 32, Y(8) at 71, Y(14) at 229, Y(39) at 1,368, Y(110) at 4,875, Y(232) at 45,378, and then 357, 1064, 1614, 4539, 13610, 23544, 67275, ... The whole run is the passage from one visit to the next.</p>"
+    ]
+   },
+   {
+    "id": "odd",
+    "eyebrow": "Odd n",
+    "heading": "Three times n minus seven",
+    "html": [
+     "<p>From Y(n) with n odd, B turns around, A and E sweep left across the block (they alternate on each 1, so the parity of the block decides which of them arrives) and A arrives at the left end: <code>A&gt;0 1^(n&minus;2) 0 1^3</code>. Now A shifts the 0: each round takes 2 from the first block and gives 6 to the second, <code>A&gt;0 1^a 0 1^b</code> becoming <code>A&gt;0 1^(a&minus;2) 0 1^(b+6)</code>, until the first block has 3 left; then the blocks merge into Y(b + 5). Counting, Y(n) leads to Y(3n &minus; 7). For example Y(39): <code>A&gt;0 1^37 0 1^3</code>, 17 rounds, <code>A&gt;0 1^3 0 1^105</code>, Y(110).</p>"
+    ]
+   },
+   {
+    "id": "even",
+    "eyebrow": "Even n",
+    "heading": "A nested computation",
+    "html": [
+     "<p>For even n, E arrives at the left end instead, and it does something else: it slides a 0 through the block, and B, standing on a double gap after a block, takes 4 from it and gives 1 to the block on its left and 3 to the block on its right, over and over (<code>r_g4</code> in Lean). What is left (0, 1, 2 or 3 cells) decides what comes next, and the leftover work moves to the block on the left. The tape passes through two-block visits <code>0^&infin; 1^a 0 1^b 0 B&gt;0</code> (from Y(110): (29, 82), (51, 61), then Y(232)) before returning to one block.</p>",
+     "<p>The result is a map that is linear on residue classes modulo powers of two, with finer and finer classes: n &equiv; 4 (mod 8) goes to 3n/2 &minus; 6, n &equiv; 16 (mod 32) to 9n/8 &minus; 5, n &equiv; 22 (mod 32) to 15n/8 &minus; 9/4, n &equiv; 2 (mod 64) to 27n/16 &minus; 99/8, ... Some even n halt instead: 10, 12, 34, 48, 122, 138, 178, 186, 192, 230, 294, ... and every 3&middot;4<sup>k</sup>.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Halting",
+    "heading": "E before a single 1",
+    "html": [
+     "<p>The machine halts when D reads a 0. D is entered from C, which always leaves a 1 under D, or from F, and F is entered from E. Working back, the halt happens exactly when E stands on a 0 just before a block of a single 1 followed by a 0 (<code>r_halt</code>, proved in Lean). A closed tape language adds that this block must be the leftmost one, right of another single 1.</p>",
+     "<p>Of the even n below 64, 13% halt; between 4,096 and 20,000, 0.3%; around 100,000, 0.1%. The orbit from blank tape has passed through 21 even values (counting n = 2) without meeting one, and now stands above 10<sup>9</sup>, where halting values are rare. If the orbit's even values behave like typical ones, the chance of a halt still to come is of order 10<sup>&minus;4</sup>: the machine is probably, but not provably, non-halting.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.276). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.063).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"156.6\" y2=\"156.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"160.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"113.1\" y2=\"113.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"117.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"69.7\" y2=\"69.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"73.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,182.8 L59.2,182.8 L78.4,174.8 L97.6,169.5 L116.8,163.9 L136.0,161.1 L155.2,149.6 L174.4,141.8 L193.6,131.5 L212.8,127.5 L232.0,125.2 L251.2,116.9 L270.4,115.4 L289.6,114.0 L308.8,101.3 L328.0,91.0 L347.2,91.0 L366.4,90.8 L385.6,84.4 L404.8,74.5 L424.0,66.2 L443.2,60.4 L462.4,50.9 L481.6,50.9 L500.8,50.9 L520.0,50.9\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,182.8 L59.2,174.8 L78.4,174.8 L97.6,171.9 L116.8,167.4 L136.0,163.9 L155.2,163.9 L174.4,162.4 L193.6,162.4 L212.8,161.1 L232.0,158.6 L251.2,158.6 L270.4,157.6 L289.6,155.6 L308.8,154.7 L328.0,153.9 L347.2,153.1 L366.4,151.6 L385.6,150.2 L404.8,149.6 L424.0,148.9 L443.2,148.9 L462.4,148.4 L481.6,148.4 L500.8,147.2 L520.0,145.2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 26,492 cells (13,590 left of the start, 32 right), with a density of 1s of 1.0.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>625,585,213</td><td><code>E&gt;0 1^2 0 1^1097 0 1^20248</code></td></tr><tr><td>left</td><td>905,260,744</td><td><code>E&gt;0 1^5884 0 1^17662</code></td></tr><tr><td>left</td><td>922,668,603</td><td><code>A&gt;0 1^1473 0 1^22071 0 1^3</code></td></tr><tr><td>right</td><td>512,102,468</td><td><code>1^2080 0 1^11540 0 B&gt;0</code></td></tr><tr><td>right</td><td>628,089,001</td><td><code>1^23544 0 B&gt;0</code></td></tr><tr><td>right</td><td>922,645,052</td><td><code>1^1473 0 1^22073 0 B&gt;0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "Collatz-like map on block lengths (piecewise linear on 2-adic classes)",
+ "summary": "Blocks of 1s; the visits Y(n) = 0^inf 1^n 0 B>0 follow n -> 3n - 7 for odd n and a 2-adic piecewise-linear map for even n that halts on a sparse set (10, 12, 34, 48, 3*4^k, ...); followed to n = 1,397,089,014 (step 1.24e18) and on to step 1.88e18, no halt; probviously non-halting.",
+ "decision": "open"
+}

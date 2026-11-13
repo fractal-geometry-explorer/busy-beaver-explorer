@@ -1,0 +1,168 @@
+{
+ "generated": false,
+ "group": "G05",
+ "title": "What is known about 1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB.",
+ "machine": "1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB",
+ "crumb": "holdouts / 1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean proves the transfer cycle for every block length and every rest of the tape, k cycles at once, and that the run from blank tape reaches it (step 16,718) and finishes the first phase with it (step 29,508). The phases of the first regime follow a Collatz-like map that ends at step about 435,764; what follows has no description yet. No halt in the first 10<sup>11</sup> steps."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (E1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The transfer cycle",
+   "text": "With the gadget <code>G = 0 1 0 1 0 111 0 1 00 1 0 11 0</code> at the left end, the head in state C on its first cell and blank tape to the left: <code>G (10)^(2x+12) 111 0 R</code> reaches <code>G (10)^(2x) 111 0 (10)^15 R</code> in 120x + 878 steps, for every x and every tape R (the cycle never reads R). Iterated: <code>G (10)^(2x+12k) 111 0 R</code> reaches <code>G (10)^(2x) 111 0 (10)^(15k) R</code> in ccost x k = k(120x+878) + 360k(k&minus;1) steps (the closed form is stated in the comment; the theorem uses the recursive cost).",
+   "where": "<code>cycle_cells</code>, <code>lean/Rules.lean</code> (<code>py/gen_rules.py</code>, <code>bbtools.symtm.prove</code>); <code>cycle</code>, <code>cycles</code>, <code>lean/Cycle.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "From blank tape to the cycle",
+   "text": "After 16,718 steps the configuration is <code>cyc 32 R0</code> (<code>G (10)^64 111 0 (10)^15 0 (10)^3 1</code>); five cycles later, at step 29,508, it is <code>cyc 2 ((10)^75 R0)</code>, as the simulator says.",
+   "where": "<code>reach_16718</code>, <code>phase_end_29508</code>, <code>lean/Reach.lean</code> (<code>py/gen_reach.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "<code>tmrun</code> (the group's run-length simulator) runs 10<sup>11</sup> steps from blank tape without a halt. At the end 176,677 cells hold a 1.",
+   "where": "<code>tmrun</code> run, see README"
+  },
+  {
+   "level": "heuristic",
+   "title": "Regime 1: a Collatz-like phase map",
+   "text": "Each phase starts with <code>G (10)^X 111 0 (10)^Y 0 (10)^t</code> and X even. The cycles take X down to its remainder r = X mod 12; then the head reorganizes the right part and a new phase starts with X' = Y + 15&lfloor;X/12&rfloor; + a(r, t), so X grows by about 5/4 per phase. Observed phase starts (step: X, Y, t): 16,718: 64, 15, 4; 33,824: 90, 8, 3; 61,598: 118, 5, 2; 102,230: 152, 0, 5; 169,786: 190, 2, 4; 283,966: 230, 14, 3. With r = 2 (X = 230) the phase ends differently and regime 1 stops.",
+   "where": "event list of C at the left end, see README"
+  },
+  {
+   "level": "heuristic",
+   "title": "Regime 2: a row of units",
+   "text": "From step 435,764 on, right of the gadget the tape is a row of units <code>(10)^a 1110 (10)^b</code> separated by extra 0s: at step 3&middot;10<sup>9</sup> there are 13 of them, with a up to 17,222, after a short irregular stretch next to the gadget. Each excursion of the head from the left end changes a few units; the changes do not follow a pattern found so far.",
+   "where": "event list of C at the left end, see README"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "The only halting transition is E reading 1, reached when D reads a 1, erases it and moves left onto another 1. The proved cycle never does that; whether regime 2 can is open.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB/lean/check.sh",
+  "python3 holdouts/1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB/py/gen_rules.py   # rewrites lean/Rules.lean",
+  "python3 holdouts/1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB/py/gen_reach.py   # rewrites lean/Reach.lean"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. A fixed gadget at the left end of the tape pumps a marker through a long block of 10s, and Lean proves that pump exactly. The pump runs in phases whose lengths follow a Collatz-like map, growing by about 5/4 each time, until a remainder case breaks it after about 435,000 steps. After that the tape is a row of about fifteen units that change irregularly. No halt in 10<sup>11</sup> steps.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "120x + 878 steps",
+    "text": "One transfer cycle, for every block length; proved in Lean."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the run-length simulator."
+   },
+   {
+    "level": "heuristic",
+    "value": "&times; 5/4 per phase",
+    "text": "Growth of the block in the first regime, which ends at step about 435,764."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.571). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"158.3\" y2=\"158.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"162.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"116.7\" y2=\"116.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"120.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"75.0\" y2=\"75.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"79.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,179.2 L59.2,179.2 L78.4,173.1 L97.6,168.7 L116.8,165.4 L136.0,162.7 L155.2,158.3 L174.4,158.3 L193.6,152.2 L212.8,149.9 L232.0,146.1 L251.2,135.7 L270.4,127.3 L289.6,120.1 L308.8,112.6 L328.0,106.5 L347.2,102.3 L366.4,98.6 L385.6,92.4 L404.8,85.7 L424.0,80.1 L443.2,73.9 L462.4,68.2 L481.6,62.6 L500.8,55.8 L520.0,50.4\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,179.2 L59.2,173.1 L78.4,164.0 L97.6,161.5 L116.8,155.7 L136.0,148.9 L155.2,143.1 L174.4,137.0 L193.6,133.1 L212.8,127.8 L232.0,124.6 L251.2,124.6 L270.4,124.6 L289.6,124.2 L308.8,124.2 L328.0,109.0 L347.2,105.1 L366.4,101.4 L385.6,99.6 L404.8,92.8 L424.0,90.9 L443.2,90.3 L462.4,86.7 L481.6,85.8 L500.8,85.5 L520.0,85.4\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 29,224 cells (21,011 left of the start, 2,044 right), with a density of 1s of 0.5.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>729,549,302</td><td><code>C&gt;0 1 0 1^3 0 1 0 1 0^2 1^3 0^2 1^3 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>left</td><td>832,157,978</td><td><code>C&gt;0 1 0 1 0 1^3 0 1 0^2 1 0 1^3 0 1 0^2 1^3 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>left</td><td>848,125,428</td><td><code>C&gt;0 1 0 1 0 1^3 0 1 0^2 1 0 1^3 0 1 0^2 1^3 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "cycle",
+    "eyebrow": "Structure",
+    "heading": "The pump at the left end",
+    "html": [
+     "<p>From step 16,718 on, the leftmost 17 cells of the tape never change between visits: <code>G = 0 1 0 1 0 111 0 1 00 1 0 11 0</code>. Right of G is a long block of <code>10</code>s, then a marker <code>111 0</code>, then the rest R of the tape. The head, in state C on the first cell of G, makes one long trip: it carries the marker twelve pairs to the left and leaves fifteen new pairs <code>10</code> behind it, then comes back to G in state C. It never looks at R.</p>",
+     "<svg viewBox=\"0 0 560 150\" role=\"img\" aria-label=\"one transfer cycle\" style=\"width:100%;max-width:560px;height:auto;font:12px var(--mono);\"><text x=\"10\" y=\"18\" fill=\"var(--muted)\">before</text><rect x=\"10\" y=\"26\" width=\"70\" height=\"24\" rx=\"3\" fill=\"none\" stroke=\"var(--head)\"/><text x=\"45\" y=\"43\" text-anchor=\"middle\" fill=\"var(--head)\">G</text><rect x=\"86\" y=\"26\" width=\"250\" height=\"24\" rx=\"3\" fill=\"none\" stroke=\"var(--accent)\"/><text x=\"211\" y=\"43\" text-anchor=\"middle\" fill=\"var(--fg2)\">(10)^(2x+12)</text><rect x=\"342\" y=\"26\" width=\"46\" height=\"24\" rx=\"3\" fill=\"var(--accent)\" opacity=\"0.25\" stroke=\"var(--accent)\"/><text x=\"365\" y=\"43\" text-anchor=\"middle\" fill=\"var(--fg2)\">1110</text><text x=\"398\" y=\"43\" fill=\"var(--muted)\">R</text><text x=\"10\" y=\"82\" fill=\"var(--muted)\">after 120x + 878 steps</text><rect x=\"10\" y=\"90\" width=\"70\" height=\"24\" rx=\"3\" fill=\"none\" stroke=\"var(--head)\"/><text x=\"45\" y=\"107\" text-anchor=\"middle\" fill=\"var(--head)\">G</text><rect x=\"86\" y=\"90\" width=\"190\" height=\"24\" rx=\"3\" fill=\"none\" stroke=\"var(--accent)\"/><text x=\"181\" y=\"107\" text-anchor=\"middle\" fill=\"var(--fg2)\">(10)^(2x)</text><rect x=\"282\" y=\"90\" width=\"46\" height=\"24\" rx=\"3\" fill=\"var(--accent)\" opacity=\"0.25\" stroke=\"var(--accent)\"/><text x=\"305\" y=\"107\" text-anchor=\"middle\" fill=\"var(--fg2)\">1110</text><rect x=\"334\" y=\"90\" width=\"64\" height=\"24\" rx=\"3\" fill=\"none\" stroke=\"var(--line)\"/><text x=\"366\" y=\"107\" text-anchor=\"middle\" fill=\"var(--fg2)\">(10)^15</text><text x=\"408\" y=\"107\" fill=\"var(--muted)\">R</text><text x=\"10\" y=\"140\" fill=\"var(--muted)\">12 pairs leave the block, 15 pairs appear right of the marker: the tape grows by 3 pairs</text></svg>",
+     "<p>Lean proves this for every length of the block and every R, and the k-fold version, from a rule written by the symbolic prover. It also checks, from blank tape, that the machine reaches this shape after 16,718 steps (block of 64 pairs) and that five cycles later, at step 29,508, it has 4 pairs left and 75 new ones.</p>"
+    ]
+   },
+   {
+    "id": "phases",
+    "eyebrow": "First regime",
+    "heading": "Phases and a Collatz-like map",
+    "html": [
+     "<p>The cycles stop when fewer than 12 pairs are left; what happens next depends on the remainder r = X mod 12 and on the short blocks right of the new pairs. In the cases seen, the head reorganizes the right part and a new phase starts with a bigger block, X' = Y + 15&lfloor;X/12&rfloor; + a small correction, about 5X/4.</p>",
+     "<table><tr><th>step</th><th>X (pairs in the block)</th><th>Y</th><th>t</th></tr><tr><td>16,718</td><td>64</td><td>15</td><td>4</td></tr><tr><td>33,824</td><td>90</td><td>8</td><td>3</td></tr><tr><td>61,598</td><td>118</td><td>5</td><td>2</td></tr><tr><td>102,230</td><td>152</td><td>0</td><td>5</td></tr><tr><td>169,786</td><td>190</td><td>2</td><td>4</td></tr><tr><td>283,966</td><td>230</td><td>14</td><td>3</td></tr></table>",
+     "<p>(The phase start is <code>G (10)^X 111 0 (10)^Y 0 (10)^t</code>.) At X = 230 the remainder is 2, the only case not seen before, and the phase ends in a different way: the first regime is over by step 435,764.</p>"
+    ]
+   },
+   {
+    "id": "units",
+    "eyebrow": "Second regime",
+    "heading": "A row of units",
+    "html": [
+     "<p>After that the tape right of G is a row of <em>units</em> <code>(10)^a 1110 (10)^b</code> separated by extra 0s, in the style of the marker of the first regime. At step 3&middot;10<sup>9</sup> there are 13 of them, for example (a, b) = (2512, 22), (17222, 29), (204, 947). Each return of the head to the left end changes a few units at a time; no rule for these changes has been found, so the run cannot yet be accelerated past this point.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could halt",
+    "heading": "Where it could halt",
+    "html": [
+     "<p>The only missing transition is E reading 1. E is entered only from D reading 1 (D writes 0 and moves left), so a halt needs D to erase a 1 that has another 1 just left of it. The cycle never does that; the irregular second regime might.</p>"
+    ]
+   },
+   {
+    "id": "proved",
+    "eyebrow": "Status",
+    "heading": "What is proved",
+    "html": [
+     "<p><b>Lean (kernel):</b> the transfer cycle and its iterate for every block length and every tape R (<code>lean/Rules.lean</code>, <code>lean/Cycle.lean</code>). <b>Lean (native_decide):</b> blank tape reaches the cycle at step 16,718 and ends its first phase at 29,508 (<code>lean/Reach.lean</code>); no halt in 10<sup>7</sup> steps (<code>lean/Blank.lean</code>). <b>Computed:</b> no halt in 10<sup>11</sup> steps. <b>Open:</b> the phase map, the second regime, and the halting question.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "marker transfer at a fixed left gadget, then a growing row of chaotic units",
+ "summary": "A fixed gadget at the left end sends a marker 111 left through a block of 10s, 12 pairs per trip, leaving 15 pairs behind each time; the phase map grows the block by about 5/4 per phase until a remainder case breaks the pattern at step about 4.4e5, after which the tape is a row of a dozen or so units (10)^a 1110 (10)^b that change in an irregular way; open.",
+ "decision": "open"
+}

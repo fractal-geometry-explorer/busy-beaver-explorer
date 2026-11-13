@@ -1,0 +1,121 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC.",
+ "machine": "1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC",
+ "crumb": "holdouts / 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its run is an odometer with three wheels; it can only halt at the moment the slowest wheel turns over, and only if the fastest one is at one exact position then."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Every time the head reaches a new cell on the right in state B the tape is <code>S(c, a, b) = (10)^c 1^a 0 (10)^b 1 B&gt;0</code>, and a three-line rule (checked against direct simulation) gives the next one. The machine halts only at a <em>reset</em> (c = 0 and 2b ≥ a) with b = a/2 exactly.",
+  "<b>Why a halt is unlikely.</b> The rule run for 10<sup>8</sup> macro steps from the start makes 38 resets, none halting; the left block now has tens of millions of cells. At a reset b is spread over about a/3 possible values, one of which halts, and resets grow roughly geometrically, so the chance of any future halt is of the order of 10<sup>−7</sup>."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 4,166 cells have been visited and 3,725 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The odometer rule",
+   "text": "For S(c, a, b) = 0^∞ (10)^c 1^a 0 (10)^b 1 B&gt;0 0^∞ with a even and a ≥ 2, the next right-end visit in state B is: if 2b &lt; a, S(c, a − 2b, 2b + 1) (the right block doubles, eating 1s); if 2b ≥ a and c ≥ 1, apply the rule to (c − 1, 2a + 4, max(b − a/2 − 1, 0)) (a carry: one 10 of the left block becomes 1s); if 2b ≥ a and c = 0, halt when b = a/2 and otherwise apply the rule to (a, 4, b − a/2 − 1) (a reset: the 1s become the new left block). Checked against direct simulation for all c &lt; 6, even 2 ≤ a &lt; 30, b &lt; 34 (2,856 configurations), and on every such visit in the first 3·10<sup>6</sup> steps of the run, which first reaches S(0, 4, 1) at step 43.",
+   "where": "<code>py/model.py check</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "38 resets, no halt",
+   "text": "The rule iterated 10<sup>8</sup> times from S(0, 4, 1): 38 resets, at none of which b = a/2; the left blocks they create grow from 2, 8, 4, 24, 52, … to 44,140,926 at the 38th.",
+   "where": "<code>py/model.py resets 1e8</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A halt has probability about 10<sup>−7</sup>",
+   "text": "A reset follows a doubling step from (a′, b′) with 2b′ &lt; a′ ≤ 6b′ + 2, so b′ takes about a′/3 values and exactly one gives b = a/2. With resets at pool sizes in the tens of millions and growing, the sum of the remaining chances is of the order of 10<sup>−7</sup>.",
+   "where": ""
+  },
+  {
+   "level": "open",
+   "title": "Does a reset ever land on b = a/2?",
+   "text": "Open: nothing known controls the position of the fast wheel at the resets.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC 1000000000",
+  "python3 holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/py/model.py check && python3 holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/py/model.py resets 1e8"
+ ],
+ "explainer": {
+  "lede": "Nobody knows whether it halts. The tape is an odometer with three wheels: a fast one that doubles, a middle one that ticks down, and a slow one that resets. The machine can only halt at a reset, and only if the fast wheel is on one exact value at that moment. In 38 resets that has never happened, and the target keeps getting smaller.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "3 wheels",
+    "text": "The macro rule, checked against simulation."
+   },
+   {
+    "level": "trusted",
+    "value": "38 resets",
+    "text": "No halt in 10<sup>8</sup> macro steps."
+   },
+   {
+    "level": "heuristic",
+    "value": "≈ 10<sup>−7</sup>",
+    "text": "Chance of any future halt."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 5000
+  },
+  "sections": [
+   {
+    "id": "odometer",
+    "eyebrow": "What the machine does",
+    "heading": "Three wheels",
+    "html": [
+     "<div class=\"col\"><p>Each time the head pushes the tape one cell further right in state B, the tape reads <code>(10)^c 1^a 0 (10)^b 1</code>: a left block of <i>c</i> pairs, a pool of <i>a</i> ones, and a right block of <i>b</i> pairs.</p>",
+     "<ul><li><b>Fast wheel.</b> If the pool is big enough (2b &lt; a), one sweep doubles the right block, b ↦ 2b + 1, paying 2b ones from the pool.</li>",
+     "<li><b>Middle wheel.</b> If the pool is too small and c ≥ 1, one 10 of the left block is turned into ones: the pool becomes 2a + 4 and b drops by a/2 + 1; then the fast wheel tries again.</li>",
+     "<li><b>Slow wheel.</b> If the pool is too small and the left block is empty, the whole pool becomes the new left block (c = a), a new pool of 4 starts, and b drops by a/2 + 1 — unless b is exactly a/2, and then the machine <b>halts</b>.</li></ul>",
+     "<p>So the run is a sequence of resets, each one creating a left block as long as the pool was. From blank tape the first left blocks are 2, 8, 4, 24, 52, 44, 120, …; after 10<sup>8</sup> steps of the odometer there have been 38 resets and the latest left block is 44,140,926 pairs long.</p>",
+     "<p>At a reset the fast wheel can be on any of roughly a/3 positions, and only one halts. The chances shrink as the blocks grow, so the total chance that the machine ever halts is tiny (around one in ten million) — but nobody can rule it out.</p></div>"
+    ]
+   }
+  ],
+  "title": "An odometer that might stop on one exact number"
+ },
+ "family": "three-wheel odometer (doubling counter with carries)",
+ "decision": "open",
+ "summary": "An odometer: (10)^b doubles while it eats a pool of 1s, a carry turns one 10 of the left block (10)^c into 1s, and when c is empty the pool becomes the new left block; it halts only if a reset hits b = a/2 exactly. No halt in 38 resets; heuristically about a 10^-7 chance of ever halting."
+}

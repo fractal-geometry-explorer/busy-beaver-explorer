@@ -1,0 +1,195 @@
+{
+ "generated": false,
+ "group": "G08",
+ "title": "What is known about 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---.",
+ "machine": "1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---",
+ "crumb": "holdouts / 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean proves the sweeps, the ticks of the two common families for chains of any length and blocks of any size, one rebuild for every length of its last block, and that every halt must come from <code>B&gt;0 1 1</code> (kernel). It also proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>). A C program checks the block form at all 30,932 right-end turns of the first 10<sup>10</sup> steps.",
+  "<b>What it does.</b> The tape is <code>1010&hellip;</code> cut into blocks <code>(10)<sup>n</sup></code> by single extra cells, the separators (1 or 0). A round trip from the right end, a <i>tick</i>, sweeps left over some separators, turns at one, and sweeps back, complementing everything it crosses. Which separator it turns at, and how the block lengths change, depends on the separators and the parities of the blocks; two families of rules cover 30,528 of the 30,932 ticks of the first 10<sup>10</sup> steps. The last block grows by one or two each tick, so the right edge grows smoothly.",
+  "<b>The rebuilds.</b> 238 of those ticks reach the left end instead. There the head works for a long time and rebuilds the front of the list; the same sequences of lists then recur with more blocks on the right, on larger and larger scales.",
+  "<b>Where a halt would come from.</b> Only F reading a 1 halts. Two steps before a halt the machine must be at <code>B&gt;0 1 1</code> (<code>halt_route</code>): E is entered only from A reading a 1, which leaves a 0 to E's right, so <code>E&gt;1 1</code> never occurs. In block terms B would have to stand on the last 0 of a block followed by a separator 1; in the run F always reads a 0."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 76,681 cells have been visited and 38,337 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: sqrt/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.389). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.554).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Every way to a halt",
+   "text": "Two steps before any halt the machine is at <code>B&gt;0 1 1</code>. In particular <code>E&gt;1 1</code>, which would halt (<code>halt_E</code>), is never reached.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The sweeps",
+   "text": "Moving left, A crosses <code>1010</code> in four steps and complements it; moving right, B crosses <code>10</code> in two steps and writes <code>01</code>. Both for any number of copies.",
+   "where": "<code>sweep_left</code>, <code>sweep_right</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Two whole ticks",
+   "text": "From the right-end turn back to the next one: <code>x | e</code> becomes <code>x . e+2</code> for every even e (8k+8 steps for e = 2k), and <code>x | o | o'</code> becomes <code>x . o+1 | o'+1</code> for all odd o, o' &ge; 3 (written in the block notation: lengths of <code>(10)</code>-blocks, <code>|</code> a separator 1, <code>.</code> a 0).",
+   "where": "<code>tick_last</code>, <code>tick_oo</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Tick chains of any length",
+   "text": "The two tick families, for chains of any length and blocks of any size: <code>x | a . b<sub>1</sub> . c<sub>1</sub> . &hellip; . b<sub>k</sub> . c<sub>k</sub> . d . e</code> with all blocks even (<code>tick_chain</code>) and <code>x | p | a . b<sub>1</sub> . c<sub>1</sub> . &hellip; . d . e</code> with p, a odd and the rest even (<code>tick_chain_oo</code>), from one right-end turn to the next, for every list of pairs, every size and every tape x. With <code>tick_last</code> and <code>tick_oo</code> (no pairs) this covers the families <code>x | e (. e . e)<sup>k</sup></code> and <code>x | o | o (. e . e)<sup>k</sup></code> for every k. The proof splits a tick into five pieces: entering, one pair on the way left, the turn, one pair on the way right, and leaving. Each piece is a symbolic run with unknown tape around it, and the passes over the pairs are inductions on the list.",
+   "where": "<code>tick_chain</code>, <code>tick_chain_oo</code>, <code>left_pass</code>, <code>right_pass</code>, <code>lean/Chain.lean</code> (written by <code>py/chain.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "One rebuild, for every last block",
+   "text": "The left-end tick at step 22,986, <code>3|3|12|15|1.48.94</code> to <code>88|6|2|13|21|94</code>, holds with the last block of any even length 2v+4 (8v + 16,500 steps). The rebuild reads the block 48 cell by cell, so that block cannot be made a variable this way.",
+   "where": "<code>rebuild_3_3_12_15_1_48</code>, <code>lean/Rebuild.lean</code> (written by <code>py/rebuild.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "The block form",
+   "text": "At every right-end turn of the first 10<sup>10</sup> steps (30,932 turns) the tape is <code>(10)<sup>n<sub>0</sub></sup> s<sub>1</sub> (10)<sup>n<sub>1</sub></sup> &hellip; s<sub>k</sub> (10)<sup>n<sub>k</sub></sup> A&gt;1 1</code> with single separators s<sub>i</sub>; the program stops if not.",
+   "where": "<code>c/blocks.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The tick rules",
+   "text": "Each tick of the first 10<sup>10</sup> steps, run symbolically with the last block lengths as variables, follows a rule valid for all lengths of the same parities: 30,528 ticks are in the families <code>x | e (. e . e)<sup>k</sup></code> and <code>x | o | o (. e . e)<sup>k</sup></code> (the separator 1 becomes 0, the 0s after it become 1s, the blocks after it change by +1, &minus;1, &hellip;, +1, +1), 30,674 follow one of 61 patterns, 238 reach the left end and 20 have a block of length 1 that the templates do not cover.",
+   "where": "<code>py/ticks.py</code> (symbolic runs with <code>bbtools.symtm</code>, not Lean)"
+  },
+  {
+   "level": "heuristic",
+   "title": "Recurrence on growing scales",
+   "text": "The rebuild at step 22,986 (<code>3|3|12|15|1.48.94</code> to <code>88|6|2|13|21|94</code>) recurs at step 778,692 with three blocks more on the right (<code>&hellip;1.48.212.258.468</code> to <code>88|6|2|13|21|210|259|469</code>), and likewise 81,286 / 1,452,208; the list has 8 blocks at 10<sup>6</sup> steps, 12 at 10<sup>9</sup>, 14 at 10<sup>10</sup>.",
+   "where": "<code>c/blocks.c</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The ordinary ticks of the two common families are proved for every length. Still missing: the other tick patterns (166 of the 30,932 ticks of the first 10<sup>10</sup> steps, besides the 238 rebuilds), rules for the left-end rebuilds, and an invariant of the block lists, kept by all rules, that keeps B off <code>0 1 1</code>. A rebuild reads its blocks cell by cell. It also comes back to the right in a state that depends on the blocks there, so it does not split into the pass pieces of the ordinary ticks. A general rebuild rule would have to follow the counter it runs on the block after the turning point.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- 1000000000",
+  "python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/blocks.py 40000",
+  "python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/rules.py   # writes lean/Rules.lean",
+  "python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/route.py   # writes lean/Route.lean",
+  "gcc -O2 -o blocks holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/c/blocks.c && ./blocks 1e8 | python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/ticks.py",
+  "python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/chain.py     # writes lean/Chain.lean",
+  "python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/rebuild.py   # writes lean/Rebuild.lean"
+ ],
+ "explainer": {
+  "lede": "Nobody knows yet. This machine keeps an alternating tape cut into blocks, and its separators count like an odometer whose rules depend on the parities of the blocks. This page runs it in your browser and shows the counter.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 76,681 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "heuristic",
+    "value": "sqrt/sqrt",
+    "text": "The growth shape of the two sides of the tape (see below)."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "blocks",
+    "eyebrow": "Macro structure",
+    "heading": "Blocks, separators and complementing sweeps",
+    "html": [
+     "<p>Stop the simulator whenever the head turns at the right end. The tape is always an alternating pattern cut into blocks by single extra cells. Writing <code>a</code> for <code>10</code>, at step 2,614 it reads</p>",
+     "<pre>a<sup>3</sup> 1 a<sup>3</sup> 1 a<sup>12</sup> 1 a<sup>15</sup> 1 a<sup>27</sup> A&gt;1 1</pre>",
+     "<p>Each sweep <em>complements</em> the cells it crosses, which on an alternating stretch is the same as shifting it by one cell. Moving left, A, E and D take four cells at a time (<code>sweep_left</code>); moving right, B and A take two (<code>sweep_right</code>). A separator is where two equal cells sit side by side, and that is where the head changes phase or turns. Below a list such as <code>3|3|12|15|27</code> means block lengths 3, 3, 12, 15, 27 with separators 1 (<code>|</code>) or 0 (<code>.</code>) between them.</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "Macro structure",
+    "heading": "An odometer read through parities",
+    "html": [
+     "<p>Consecutive right-end turns after step 2,614:</p>",
+     "<pre>2,614  3|3|12|15|27\n2,792  3|3|12.16|28\n2,912  3|3|12.16.30\n3,224  3|3.12|17|31\n3,426  3|3.12.18|32\n3,562  3|3.12.18.34</pre>",
+     "<p>Each line is one tick. The sweep from the right passes some separators and turns at one; the rules found by running the machine symbolically, with the block lengths as variables (e even, o odd):</p>",
+     "<pre>x | e                  &rarr;  x . e+2                    (tick_last)\nx | o | o'             &rarr;  x . o+1 | o'+1             (tick_oo)\nx | e . e . e          &rarr;  x . e | e+1 | e+1\nx | o | o' . e . e     &rarr;  x . o+1 | o'-1 | e+1 | e+1\nx | e . e . e . e . e  &rarr;  x . e | e+1 | e-1 | e+1 | e+1</pre>",
+     "<p>The separator 1 where the sweep turns becomes 0, the 0s after it become 1s, and the blocks after it change by +1, &minus;1, &hellip;, +1, +1. These two families cover 30,528 of the 30,932 ticks of the first 10<sup>10</sup> steps; Lean proves the first two lines for all lengths. For example the tick from 2,792 to 2,912 is <code>tick_last</code> with e = 28: <code>&hellip;16 | 28</code> becomes <code>&hellip;16 . 30</code>.</p>"
+    ]
+   },
+   {
+    "id": "rebuilds",
+    "eyebrow": "Macro structure",
+    "heading": "Rebuilds that recur",
+    "html": [
+     "<p>238 ticks reach the left end. The head then works there for a long time and rebuilds the front of the list. The striking thing is that the same rebuilds come back, later and with more blocks behind them:</p>",
+     "<pre>   22,986  3|3|12|15|1.48.94               &rarr;  88|6|2|13|21|94\n  778,692  3|3|12|15|1.48.212.258.468      &rarr;  88|6|2|13|21|210|259|469\n   81,286  2|97|3|11|1.58.168              &rarr;  108|4|100|1|17|168\n1,452,208  2|97|3|11|1.58.174.370.692      &rarr;  108|4|100|1|17|172|371|693</pre>",
+     "<p>So the list behaves like a counter whose digits are themselves counters, recurring on growing scales; the list has only 14 blocks after 10<sup>10</sup> steps, but some of them are tens of thousands of cells long.</p>",
+     "<p>The only halt is <code>B&gt;0 1 1</code> two steps ahead (<code>halt_route</code>): B on the last 0 of a block followed by a separator 1. The open steps are the tick families for chains of any length, the rules of the rebuilds, and an invariant of the lists that rules this out.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.389). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.554).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"160.7\" y2=\"160.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"164.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"121.3\" y2=\"121.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"125.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"82.0\" y2=\"82.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"86.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"42.7\" y2=\"42.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"46.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,184.4 L59.2,174.6 L78.4,170.5 L97.6,163.6 L116.8,163.6 L136.0,159.0 L155.2,150.4 L174.4,147.0 L193.6,145.4 L212.8,144.0 L232.0,139.5 L251.2,129.5 L270.4,126.0 L289.6,119.2 L308.8,110.5 L328.0,108.9 L347.2,106.3 L366.4,100.2 L385.6,99.7 L404.8,94.4 L424.0,85.3 L443.2,80.1 L462.4,73.6 L481.6,73.2 L500.8,72.5 L520.0,63.1\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,172.4 L59.2,170.5 L78.4,164.8 L97.6,160.7 L116.8,154.9 L136.0,149.2 L155.2,146.3 L174.4,140.2 L193.6,134.1 L212.8,128.0 L232.0,122.7 L251.2,120.1 L270.4,113.9 L289.6,110.9 L308.8,109.9 L328.0,101.2 L347.2,94.6 L366.4,89.3 L385.6,83.5 L404.8,78.7 L424.0,75.7 L443.2,71.1 L462.4,64.9 L481.6,58.4 L500.8,52.9 L520.0,49.8\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 76,681 cells (15,535 left of the start, 39,631 right), with a density of 1s of 0.5.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>906,387,880</td><td><code>D&gt;0 0 1 0 1 0^2 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>left</td><td>929,656,316</td><td><code>D&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>976,251,180</td><td><code>D&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>960,750,878</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>976,420,602</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>992,057,658</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "odometer on separators of (10)-blocks, recurring on growing scales",
+ "summary": "An alternating tape cut into blocks by single separator cells. Each round trip from the right end is a tick that flips separators by a few rules depending on the parities of the blocks, like an odometer; now and then a tick reaches the left end and rebuilds the front of the list, and the whole pattern recurs on larger scales. Open.",
+ "decision": "open"
+}

@@ -1,0 +1,169 @@
+{
+ "generated": false,
+ "group": "G02",
+ "title": "What is known about 1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD.",
+ "machine": "1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD",
+ "crumb": "holdouts / 1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The run is the iteration of a map f on the numbers N for which the tape is exactly 1<sup>N</sup> with F on its leftmost cell: 8, 22, 42, 58, 90, 148, 218, ... (the first ones proved in Lean). No starting value N &le; 6,000 makes the machine halt before it returns to an all-ones tape, so the machine halts only if some phase from 1<sup>N</sup> halts; none is known to."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 37,504 cells have been visited and 37,450 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.066). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.499).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The first samples",
+   "text": "From blank tape the machine reaches F on the leftmost cell of 1<sup>8</sup> (43 steps), 1<sup>90</sup> (5,156 steps) and 1<sup>148</sup> (13,203 steps), with nothing else on the tape.",
+   "where": "<code>orbit_8</code>, <code>orbit_90</code>, <code>orbit_148</code>, <code>lean/Orbit.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "Later samples",
+   "text": "1<sup>4992</sup> after 17,659,931 steps and 1<sup>8906</sup> after 56,708,301 steps.",
+   "where": "<code>orbit_4992</code>, <code>orbit_8906</code>, <code>lean/Orbit.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Sweep rules and the shape of a halt",
+   "text": "Rightward, E turns each pair <code>11</code> into <code>01</code> (the first sweep of a phase), and E or D turn every three blocks <code>1110</code> into one 12-cell word (the merging sweeps). The only way to a halt: D on a 0 with <code>1 0 0</code> to its left reaches F on a 0 in 3 steps (F on a 0 is the halting transition). By reading the table (not formalized), F on a 0 needs E on a 0 entered from A on a 1, and A comes only from D on a 0.",
+   "where": "<code>e_halve</code>, <code>e_triple</code>, <code>d_triple</code>, <code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The map f on all-ones tapes",
+   "text": "For every N from 1 to 6,000, the machine started in F on the leftmost cell of 1<sup>N</sup> returns to an all-ones tape 1<sup>f(N)</sup> with F on its leftmost cell, without halting. The orbit from 8 is 8, 22, 42, 58, 90, 148, 218, 298, 410, 554, 746, 1002, 1344, 1558, 2090, 2794, 3738, 4992, 6674, 8906, 11882, 15850, 21146, 28202, 37610, 50154 (to step 1.8&middot;10<sup>9</sup>) , then 89188, 132216, 146976, 348442 (3.5&middot;10<sup>11</sup> steps in all, by the same program).",
+   "where": "<code>c/phasemap.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "What a phase does",
+   "text": "From 1<sup>N</sup> a first sweep writes (1110)<sup>k</sup>; then merging sweeps group the blocks three at a time into 1<sup>11</sup>0, 1<sup>35</sup>0, ... (lengths 3&middot;a+2), the leftovers of each division by 3 making a growing left part. When the regrouping stops, the tape is filled with ones again. So f depends on the base-3 digits of N: 3f(N) &minus; 4N takes the value 22 when N &equiv; 2 or 14 (mod 36) and other small values for most N, but large values for N divisible by high powers of 3 (for example f(16) = 90, f(35) = 240).",
+   "where": "<code>c/phasemap.c</code>, traces of single phases"
+  },
+  {
+   "level": "trusted",
+   "title": "Near misses",
+   "text": "In 10<sup>9</sup> steps D reads a 0 about 62,600 times; the left neighbours are never <code>1 0 0</code> (the closest: <code>1 0 1</code>, 32,865 times).",
+   "where": "<code>c/nbhd.c</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. It halts iff some phase of the orbit 8, 22, 42, ... halts. Since no phase from any N &le; 6,000 halts, the most likely answer is that no phase ever halts, which would prove that the machine runs forever; a proof needs the exact description of a phase for every N (a recursion on the base-3 digits).",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD 1000000000",
+  "gcc -O2 -o phasemap holdouts/1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD/c/phasemap.c && ./phasemap 600 200000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 37,504 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "trusted",
+    "value": "N &rarr; &asymp;4N/3",
+    "text": "The run is a Collatz-like map on all-ones tapes."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "map",
+    "eyebrow": "The sample point",
+    "heading": "An all-ones tape, again and again",
+    "html": [
+     "<p>Every now and then the whole tape is a single run of ones with the head in state F on the leftmost one. This happens with 8 ones (at step 43), then 22, 42, 58, 90, 148, 218, 298, 410, ..., 37,610 and 50,154 ones (at step 1,796,208,166). Whatever happens between two such moments depends only on the number N of ones, so the machine is the iteration of a map N &rarr; f(N). The values grow by a factor of about 4/3 each time, which is why the tape grows only logarithmically on one side... and the head's sweeps over the whole tape give the square-root growth on the other.</p>"
+    ]
+   },
+   {
+    "id": "phase",
+    "eyebrow": "One sample to the next",
+    "heading": "Regrouping in threes",
+    "html": [
+     "<p>Take N = 90. The first sweep turns 1<sup>90</sup> into 23 blocks <code>1110</code> (92 cells). Merging sweeps then group three blocks into one, giving <code>1</code><sup>11</sup><code>0</code> blocks (11 = 3&middot;3+2), and would go on to 1<sup>35</sup>0, 1<sup>107</sup>0, ... while the count of blocks divides by 3; what does not divide piles up on the left. Here, after 8,047 steps, the tape is all ones again, with 148 of them:</p>",
+     "<pre class=\"config\">step    0   F&gt; 1^90\nstep  186   1 (1110)^22 1110          (blocks of 3 ones)\nstep  502   10 ones, then (1^11 0)^7    (blocks of 11 ones)\nstep 8047   F&gt; 1^148</pre>",
+     "<p>So f(N) depends on how N/4 divides by 3, by 9, by 27...: for most N, 3&middot;f(N) &minus; 4N is a small number (22, 34, 38, 48, 60, ...), so f(N) &asymp; 4N/3, but N divisible by a high power of 3 make bigger jumps (f(16) = 90, f(35) = 240). It is a Collatz-like map whose branches are the base-3 digits.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Could it stop?",
+    "heading": "No phase has ever halted",
+    "html": [
+     "<p>The halting transition is F reading a 0, and the table allows only one way there: D reads a 0 with <code>1 0 0</code> on its left (Lean: <code>halt_shape</code>). We ran a single phase from every all-ones tape with N = 1, 2, ..., 6,000 ones: every one of them returns to an all-ones tape without halting. So unlike most Collatz-like machines the danger is not a rare residue that the orbit must avoid: no residue is known to be dangerous at all.</p>",
+     "<p>That suggests the machine never halts, and a proof is in reach in principle: describe a phase for every N (a recursion over the base-3 regrouping) and show that none halts. That description is not written yet.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.066). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.499).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"159.4\" y2=\"159.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"163.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"118.8\" y2=\"118.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"122.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"78.1\" y2=\"78.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"82.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,189.8 L59.2,189.8 L78.4,179.7 L97.6,176.4 L116.8,173.7 L136.0,167.8 L155.2,167.8 L174.4,163.6 L193.6,160.3 L212.8,157.7 L232.0,152.3 L251.2,151.2 L270.4,149.7 L289.6,148.8 L308.8,147.9 L328.0,147.1 L347.2,146.0 L366.4,141.0 L385.6,140.5 L404.8,139.8 L424.0,139.1 L443.2,136.9 L462.4,136.6 L481.6,136.2 L500.8,135.6 L520.0,135.3\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,176.4 L59.2,171.5 L78.4,169.5 L97.6,162.4 L116.8,160.3 L136.0,154.7 L155.2,149.2 L174.4,144.9 L193.6,138.0 L212.8,131.7 L232.0,127.2 L251.2,120.3 L270.4,115.4 L289.6,110.4 L308.8,105.6 L328.0,100.6 L347.2,95.7 L366.4,90.4 L385.6,85.3 L404.8,80.5 L424.0,75.7 L443.2,69.9 L462.4,64.7 L481.6,59.7 L500.8,54.9 L520.0,50.2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 37,504 cells (82 left of the start, 27,667 right), with a density of 1s of 0.999.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>567,752,171</td><td><code>D&gt;0 1^28202</code></td></tr><tr><td>right</td><td>954,721,258</td><td><code>0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1</code></td></tr><tr><td>right</td><td>970,357,450</td><td><code>0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1</code></td></tr><tr><td>right</td><td>986,120,468</td><td><code>0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "A Collatz-like map on all-ones tapes: from F at the left end of 1^N the machine regroups the ones in base 3 (blocks 1110, then 1^11 0, 1^35 0, ...) and returns to an all-ones tape 1^N' with N' about 4N/3 (8, 22, 42, 58, 90, 148, ...).",
+ "family": "Collatz-like map N -> ~4N/3 (base-3 regrouping)",
+ "decision": "open"
+}

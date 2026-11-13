@@ -1,0 +1,208 @@
+{
+ "generated": false,
+ "group": "G12",
+ "title": "What is known about 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---.",
+ "machine": "1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---",
+ "crumb": "holdouts / 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---",
+ "home": "../index.html",
+ "source": "holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
+  "The tape holds two binary counters, U up and V down. When V runs out the machine reads a few digits off the bottom of U and writes a new, longer V; for an even U it simply halves it."
+ ],
+ "asof": "Status as of 12 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean proves the ticks, whole tick phases for arbitrary counters, and 11 rebuild rules. The rebuild's stopping rule is now known as a simple walk over the counter's digits (checked by computation, not proved), and the exact macro run finds no halt in the first 10<sup>3392</sup> steps.",
+  "<b>Where a halt would come from.</b> Only from a rebuild whose walk runs through the whole counter up to its top two digits; in the run it always stops at least 88 digits below. The invariant method that settled two sibling machines (busycoq PRs #57, #58) does not carry over as it stands."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (E1, F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The tick rules of the two counters",
+   "text": "For each of the headers <code>0110101</code>, <code>0110111</code> the run uses, two theorems: with V odd, <code>L 00000 (00001)^j 00 E&gt;0110101 01 R</code> becomes <code>L 00001 (00000)^j 00 E&gt;0110101 11 R</code> in 10 * j + 26 steps; with V having i + 1 trailing zeros, <code>L 00000 (00001)^j 00 E&gt;0110101 (11)^(i+1) 01 R</code> becomes <code>L 00001 (00000)^j 00 E&gt;0110101 (01)^(i+1) 11 R</code> in 4 * i + 10 * j + 30 steps. That is U + 1 and V &minus; 1 for every number j of carries and i + 1 of borrows and every tape L, R beyond (proved along the symbolic run of <code>tools/py/bbtools/symtm.py</code>).",
+   "where": "<code>lean/Rules.lean</code> (4 theorems)"
+  },
+  {
+   "level": "kernel",
+   "title": "11 rebuild rules",
+   "text": "For 11 residue classes of the up-counter N modulo 2<sup>j</sup> (j in [1, 3, 5], headers <code>0110101</code>, <code>0110111</code>) the rebuild after V = 0 is proved for every length n of V and every tape L left of the digits it reads: <code>L d<sub>j-1</sub>..d<sub>0</sub> 00 E&gt; H (11)^(n+k) 1 0^inf</code> becomes <code>L 00 E&gt; H' w (01)^(n+e) 1 0^inf</code>, that is: the up-counter loses its lowest j digits (N becomes N &gt;&gt; j) and the new down-counter is 2<sup>n+k+c</sup> &minus; &delta; with c and &delta; fixed by the class. For example, header <code>0110101</code> and N = 0 (mod 2<sup>1</sup>): new header <code>0110101</code>, 3 more digits, &delta; = 4. The classes were found by sampling; each theorem is then proved along the symbolic run of <code>tools/py/bbtools/symtm.py</code>.",
+   "where": "<code>lean/Rebuild.lean</code> (11 theorems, written by <code>holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/gen_rebuild_rules.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "A whole run of ticks, for any counters",
+   "text": "Three statements about the tick configuration (up-counter U, gap, header, down-counter V, anything beyond), for counters given as arbitrary lists of binary digits rather than one pattern at a time. <code>tick</code>: if U is not all ones and V is not zero, the machine reaches the same configuration with U + 1 and V &minus; 1. <code>phase</code>: for every k up to the value of V for which U + k still fits in U's digits, it reaches the configuration with U + k and V &minus; k, the widths unchanged, without reading anything beyond the two counters. <code>phase_to_zero</code>: in particular, if U + V fits, V is counted down to 0 and U has gained exactly V. This is the step &lsquo;then add the V ticks by arithmetic&rsquo; of the macro map, now a theorem; the macro simulator itself is still trusted code.",
+   "where": "<code>tick</code>, <code>phase</code>, <code>phase_to_zero</code>, <code>lean/Phase.lean</code> (written by <code>holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "Counting a block of V down to zero inside a rebuild",
+   "text": "A helper for proving rebuild rules for whole families of counters. If U has w digits and the low w digits of V are such that t = 2<sup>w</sup> &minus; 1 &minus; U more ticks never make them all ones early, and V has a 1 above them, then the machine reaches the configuration where U is all ones (w ones), the low part of V has gained t, and the part of V above has lost 1. It is proved from <code>phase</code> for every header, width and surrounding tape. No rebuild family is proved with it yet (see the open item).",
+   "where": "<code>fill</code>, <code>lean/FamBase.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 187 cells have been visited and 66 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The macro map and its simulator",
+   "text": "At each moment V reaches 0 the tape is the clean configuration <code>0^inf F U 00 E&gt; H (11)^n 1 0^inf</code> (F the counter's top word), so the state is (H, n, N) with N the up-counter read as one number. <code>py/rebuild.py</code> writes that tape, runs the rebuild (tick runs of its sub-phases jumped by the proved tick rules, the rest cell by cell in C) to the next clean tick configuration (H', n', N', V'), and then adds the V' ticks of the phase by arithmetic: next state (H', n', N' + V'), steps by the closed formula of the tick costs. Tested: its first 80 states and step counts, up to about 10<sup>182</sup> steps, equal those of <code>py/counters.py</code> (itself tested against <code>tools/c/tmrun.c</code>).",
+   "where": "<code>holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild.py</code> (<code>validate</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>2368</sup> steps (macro run)",
+   "text": "The macro run from blank tape goes through 891 rebuilds without a halt; at the end V has 7,863 digits and the step count is about 10<sup>2368</sup>.",
+   "where": "<code>holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LD_1RC0R... run</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The stopping rule of the rebuild: a walk over the digits of the counter",
+   "text": "With header <code>0110101</code> the rebuild reads the digits b0, b1, ... of the up-counter N from the bottom. If b0 = 0 it stops after that one digit. Otherwise it goes on in a state Q over the pairs (b1,b2), (b3,b4), ...: in Q a pair (1,1) stays in Q, (0,0) switches to a state R, and (0,1) or (1,0) stops; in R a pair ending in 0 stays in R and a pair ending in 1 stops. So Q runs through ones, R runs through zeros and stops at the first 1 in an even position. If the walk stops after j digits (j is odd) and at least two digits of N remain above, the rebuild does not halt: the new counter is N with its j low digits removed, the header stays <code>0110101</code>, and V gets (5j + 1)/2 more digits, V' = 2<sup>n + (5j+1)/2</sup> &minus; &delta; with &delta; depending only on the j digits read. Checked against the exact rebuild, not proved: all 64,516 such rebuilds with N &lt; 2<sup>15</sup> (two values of n each), 300 random 120-digit counters, and every rebuild of the macro run below; no exception.",
+   "where": "<code>py/walk.py check 15</code>, <code>random 300 120</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The macro run follows the walk and stays far from the top of the counter",
+   "text": "A 60-second macro run from blank tape: 1,289 rebuilds, about 10<sup>3392</sup> steps, no halt. The first V = 0 moment has header <code>0110111</code> (n = 15, N = 26071); every later one in the run has header <code>0110101</code>, and all 1,288 of those rebuilds are the ones the walk predicts. The longest walk reads 93 digits; from rebuild 10 on the walk always stops at least 88 digits, and at least 15 one-digits, below the top of N. (An earlier scratch run of the same comparison went through 4,500 rebuilds, to about 10<sup>11455</sup> steps, with the same outcome; that log is not in the repository.)",
+   "where": "<code>py/walk.py run 60</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt can come from",
+   "text": "Given the walk, a halt from header <code>0110101</code> needs a rebuild whose walk runs through the counter up to its top two digits. For N &lt; 2<sup>12</sup> the 376 rebuilds of that kind were computed: none halts directly; 252 give header <code>0110101</code> again and 124 (the all-ones-like counters) give header <code>0110111</code> with the tiny counter N = 2, and rebuilds from header <code>0110111</code> often do halt. So, for the counters checked, the machine halts only if some rebuild's walk crosses the whole counter.",
+   "where": "<code>py/walk.py top 12</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "What the counter looks like, and why a halt looks unlikely",
+   "text": "Each rebuild that reads j digits puts a new block <code>1 0...0</code> with (7j &minus; 1)/2 zeros on top of the counter and removes j digits at the bottom, so the counter grows by about 2.5 j + 1 digits per rebuild: a stack of blocks <code>1 0<sup>a</sup></code> above a short stretch of irregular digits (what is left of old blocks after the subtractions of &delta;). The walk passes a run of ones in state Q and a run of zeros in state R, and R stops at the first 1 in an even position. To cross the whole stack, every block boundary met would have to sit at an odd position; the positions depend on j modulo 4 of the rebuilds that made the blocks, which behave irregularly. A random model gives a chance that shrinks geometrically with the number of blocks (already about 15 ones are never reached). This is a heuristic, not a proof: it is the kind of machine the community tracker calls a lottery.",
+   "where": "<code>py/walk.py run</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The two siblings <code>1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC</code> and <code>1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---</code> have non-halting proofs in Coq in open pull requests of ccz181078/busycoq (#58 and #57; read on 12 November, not rebuilt here: Coq is not installed in this container). Their method, in plain terms: call a &lsquo;wall&rsquo; the tape at a moment when V is 0. The proof gives a property of walls (enough spare room, and a marker: a 1 digit at a prescribed kind of position in the counter) and shows that every wall with the property runs to another wall with the property. It works there because the rebuild of those machines converts the whole counter in one go and loses only a bounded amount each time, so the marker can be followed from wall to wall. Carrying it over to this machine was tried in round 6 and did not succeed. Here a rebuild removes only the few digits the walk reads and leaves the rest of the counter in place, with the remains of earlier subtractions underneath; a later rebuild can erase several of the &lsquo;good&rsquo; block boundaries at once (about three were seen) and creates a new one only when j = 3 modulo 4. No quantity was found that every rebuild keeps or improves, so no wall property is known that is both preserved and excludes the halting walk. Also not proved: the walk itself for all N (Lean has the 11 classes with j &le; 5 and the two lemmas above; a generated proof of one infinite family, counters ending in <code>1 0<sup>2k+1</sup> 1 0</code>, did pass Lean once but took 14 minutes to check and is not included)."
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/check.sh          # Machine, Blank, Rules (ticks), Rebuild (rebuild rules), Phase, FamBase",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py check 15          # the walk against the exact rebuild, every N < 2^15 (30 s)",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py random 300 120    # 300 random 120-digit counters",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py run 60            # the macro run against the walk; distance to the top of N",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py top 12            # what the rebuilds not covered by the walk do",
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- > holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/Phase.lean",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py check 15          # the walk against the exact rebuild, every N < 2^15 (30 s)",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py random 300 120    # 300 random 120-digit counters",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py run 60            # the macro run against the walk; distance to the top of N",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py top 12            # what the rebuilds not covered by the walk do",
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- > holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/Phase.lean",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py check 15          # the walk against the exact rebuild, every N < 2^15 (30 s)",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py random 300 120    # 300 random 120-digit counters",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py run 60            # the macro run against the walk; distance to the top of N",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py top 12            # what the rebuilds not covered by the walk do",
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- > holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/Phase.lean",
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- validate 120          # macro run = counters.py run, state by state",
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- run 1500        # the macro run, one line per rebuild",
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- halting 12      # which rebuilds halt, N < 2^12",
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/gen_rebuild_rules.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- H163594 5 > holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/Rebuild.lean"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>3392</sup> steps",
+    "text": "No halt in the exact macro simulation (1,289 rebuilds)."
+   },
+   {
+    "level": "kernel",
+    "value": "11 rules",
+    "text": "Rebuild rules proved in Lean for every n."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "counters",
+    "eyebrow": "Macro structure",
+    "heading": "Two binary counters on one tape",
+    "html": [
+     "<p>Run the machine for a while and the tape sorts itself into two numbers written in binary. On the far left, after a single 1 that acts as a sentinel, is a counter <b>U</b> whose digits are blocks of 5 cells: <code>00000</code> is a 0 and <code>00001</code> a 1, most significant digit on the left. Then come a short gap <code>00</code>, the head in state E, and a fixed <em>header</em> such as <code>0110101</code>. Right of the header is a second counter <b>V</b> whose digits are pairs, least significant first: <code>01</code> is a 1 and <code>11</code> a 0.</p>",
+     "<p>The tick configuration is <code>1 U 00 E&gt;0110101 V</code>. Every tick adds 1 to U and takes 1 from V. Most of the time nothing else happens.</p>"
+    ]
+   },
+   {
+    "id": "tick",
+    "eyebrow": "The rule",
+    "heading": "One tick: U + 1, V &minus; 1",
+    "html": [
+     "<p>The head walks left through the trailing 1-digits of U, turning them into 0-digits (the carries), writes a 1-digit, then walks right to V and turns its trailing 0-pairs into 1-pairs and its lowest 1-pair into a 0-pair (the borrows). Written with j carries and i + 1 borrows:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>before</th><th>after</th><th>steps</th></tr></thead><tbody><tr><td><code>L 00000 (00001)^j 00 E&gt;0110101 01 R</code></td><td><code>L 00001 (00000)^j 00 E&gt;0110101 11 R</code></td><td>10 * j + 26</td></tr><tr><td><code>L 00000 (00001)^j 00 E&gt;0110101 (11)^(i+1) 01 R</code></td><td><code>L 00001 (00000)^j 00 E&gt;0110101 (01)^(i+1) 11 R</code></td><td>4 * i + 10 * j + 30</td></tr></tbody></table></div>",
+     "<p>These two shapes are proved in Lean for every j and i (<code>lean/Rules.lean</code>), for every header the run has used (<code>0110101</code>, <code>0110111</code>). Because the cost of a tick depends only on the numbers of carries and borrows, a long run of ticks has an exact cost: the sum of the trailing zeros of the numbers U+1, ..., U+k and V&minus;k+1, ..., V, which has a closed form. The accelerated simulator uses it to skip billions of ticks at once.</p>"
+    ]
+   },
+   {
+    "id": "rebuild",
+    "eyebrow": "When V runs out",
+    "heading": "The rebuild as a function of the counter",
+    "html": [
+     "<p>When V reaches 0 the tape is clean, <code>0^inf 1 U 00 E&gt;0110101 (11)^n 1 0^inf</code>, and the machine's state is (n, N): the length of V and the up-counter read as one number with its sentinel.</p>",
+     "<p>The rebuild reads the lowest j digits of N and leaves N' = N &gt;&gt; j, with a new V = 2<sup>n+c</sup> &minus; &delta;. The simplest case is an even N: it reads one digit, the counter is halved, and V gets 3 more digits, V' = 2<sup>n+3</sup> &minus; 4. So the next counter is 2<sup>n+3</sup> + N/2 &minus; 4, a halving map. Proved in Lean (11 theorems), for example:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>header</th><th>N mod 2<sup>j</sup></th><th>new header</th><th>c</th><th>&delta;</th></tr></thead><tbody><tr><td><code>0110101</code></td><td>0 (mod 2<sup>1</sup>)</td><td><code>0110101</code></td><td>3</td><td>4</td></tr><tr><td><code>0110101</code></td><td>3 (mod 2<sup>3</sup>)</td><td><code>0110101</code></td><td>8</td><td>481</td></tr><tr><td><code>0110101</code></td><td>5 (mod 2<sup>3</sup>)</td><td><code>0110101</code></td><td>8</td><td>228</td></tr><tr><td><code>0110101</code></td><td>15 (mod 2<sup>5</sup>)</td><td><code>0110101</code></td><td>13</td><td>64513</td></tr><tr><td><code>0110101</code></td><td>17 (mod 2<sup>5</sup>)</td><td><code>0110101</code></td><td>13</td><td>7649</td></tr><tr><td><code>0110101</code></td><td>23 (mod 2<sup>5</sup>)</td><td><code>0110101</code></td><td>13</td><td>31748</td></tr></tbody></table></div>",
+     "<p>The first rebuilds of the run from blank tape:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>rebuild</th><th>new header</th><th>digits of N</th><th>j read</th><th>c added</th><th>digits of &delta;</th><th>digits of N'</th><th>steps after</th></tr></thead><tbody><tr><td>1</td><td><code>0110101</code></td><td>15</td><td>5</td><td>13</td><td>17</td><td>10</td><td>10<sup>10</sup></td></tr><tr><td>2</td><td><code>0110101</code></td><td>28</td><td>1</td><td>3</td><td>3</td><td>27</td><td>10<sup>11</sup></td></tr><tr><td>3</td><td><code>0110101</code></td><td>32</td><td>1</td><td>3</td><td>3</td><td>31</td><td>10<sup>12</sup></td></tr><tr><td>4</td><td><code>0110101</code></td><td>35</td><td>3</td><td>8</td><td>8</td><td>32</td><td>10<sup>14</sup></td></tr><tr><td>5</td><td><code>0110101</code></td><td>43</td><td>1</td><td>3</td><td>3</td><td>42</td><td>10<sup>15</sup></td></tr><tr><td>6</td><td><code>0110101</code></td><td>46</td><td>1</td><td>3</td><td>3</td><td>45</td><td>10<sup>16</sup></td></tr><tr><td>7</td><td><code>0110101</code></td><td>49</td><td>5</td><td>13</td><td>15</td><td>44</td><td>10<sup>20</sup></td></tr><tr><td>8</td><td><code>0110101</code></td><td>62</td><td>3</td><td>8</td><td>9</td><td>59</td><td>10<sup>22</sup></td></tr><tr><td>9</td><td><code>0110101</code></td><td>70</td><td>1</td><td>3</td><td>3</td><td>69</td><td>10<sup>23</sup></td></tr><tr><td>10</td><td><code>0110101</code></td><td>73</td><td>7</td><td>18</td><td>18</td><td>66</td><td>10<sup>28</sup></td></tr></tbody></table></div>",
+     "<p>Over 891 rebuilds j was always odd, c = (5j + 1)/2, about half the time j = 1. No halt in about 10<sup>2368</sup> steps.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Where it could stop",
+    "heading": "Halting needs a walk across the whole counter",
+    "html": [
+     "<p>Ticks never halt, so a halt can only come from a rebuild. The rebuild reads the up-counter from the bottom, digit by digit, by a simple rule: an even counter is read for one digit; otherwise the machine runs through pairs of digits, passing ones, then zeros, and stops at the first 1 it meets in an even position. As long as it stops before the top two digits, the rebuild does not halt (checked for every counter below 2<sup>15</sup> and along the run; not proved).</p>",
+     "<p>Each rebuild also puts a new block <code>1 0...0</code> on top of the counter, longer than what it removed at the bottom. So the counter is a growing stack of such blocks, and a halt needs one single walk to slip through all of them. In the run the walk never gets within 88 digits of the top. That makes a halt look very unlikely, but it is a matter of chance-like coincidences, not of a rule we can prove: the question is open.</p>",
+     "<p>Two sibling machines were proved non-halting by others with a &lsquo;wall invariant&rsquo;: a property of the tape at the moments V = 0 that is kept from one such moment to the next. Their rebuild converts the whole counter each time. This machine's rebuild nibbles at the bottom and leaves debris, and no property of that kind has been found for it.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "Up/down two counters with resets (G12 family 3b)",
+ "summary": "Up/down counters; ticks and whole tick phases proved in Lean; the rebuild's stopping rule found as a digit walk (checked, not proved); halts only if a walk crosses the whole counter; no halt in ~10^3392 steps; open.",
+ "decision": "open"
+}

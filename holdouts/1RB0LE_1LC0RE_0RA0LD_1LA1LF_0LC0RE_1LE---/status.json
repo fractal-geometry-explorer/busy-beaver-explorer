@@ -1,0 +1,262 @@
+{
+ "generated": false,
+ "group": "G11",
+ "title": "What is known about 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---.",
+ "machine": "1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---",
+ "crumb": "holdouts / 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state machine halts from blank tape. It belongs to a family of six holdouts with almost the same table (F0 = 1LE, E1 = 0RE). Their tapes are made of the words 10 and 110, grouped in sections split by 000, and they grow slowly to the left. This page lists what has been established, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The engine is decoded and proved in Lean for every size: from one event to the next, a base-3 counter N gets 1, a binary counter M gets 1, and when M wraps a binary counter R gets 3. No event can halt; a halt can only come from what was called an overflow of R. That is now located exactly: everything from R on is one endless stream of two tokens with a recursive visit law (Lean, every size), and the event rule stops when a visit of it comes out in state C instead of A. What the machine does after such a visit is proved row by row but not yet composed into a law."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 183 cells have been visited and 66 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Sweep rules",
+   "text": "The head crosses runs of the words 01, 10, 011 or 110 in one state, rewriting each copy the same way, for any number of copies and any surrounding tape.",
+   "where": "<code>a_right_01</code>, <code>a_right_011</code>, <code>b_right_10</code>, <code>b_right_11</code>, <code>b_right_110</code>, <code>e_right_10</code>, <code>e_right_11</code>, <code>e_right_110</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 3·10<sup>9</sup> steps",
+   "text": "The C simulator runs 3·10<sup>9</sup> steps without a halt.",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where it can halt",
+   "text": "A closed tape language with windows of 6 cells (closed, found and checked by <code>bbtools.ctl</code>, not yet in Lean) allows a halt only with F reading a 1 and <code>110001</code>, <code>110011</code> from the head on: the first 1 of a word 110 followed by a section break 000 1.",
+   "where": "<code>python3 -m bbtools.ctl 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- 6</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The first section",
+   "text": "At its visits to the left end (in state E) the tape starts <code>E&gt;0 0 1 0 (1 1 0)^k …</code>; the record values of k: 10 at step 6,741,512, 11 at step 41,755,007, 12 at step 523,217,185, 13 at step 1,019,661,408, 14 at step 1,421,446,771, 15 at step 2,626,803,218. Its left-end configurations coincide with those of <code>1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA</code> at 47 of its first 50 visits (in the same order; that machine takes about 1.12 times fewer steps): the two machines do the same thing.",
+   "where": "<code>tmrun 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- 3000000000 at E L</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth",
+   "text": "Each new 110 at the front costs about 2 to 3 times the steps of the previous one, the signature of a counter; the rest of the tape changes everywhere between visits, so the counter's digits are not simply blocks.",
+   "where": ""
+  },
+  {
+   "level": "kernel",
+   "title": "The event rule, for every size",
+   "text": "From an event <code>0^∞ 1 0 [N] A&gt; 0 [M] 1 [R]</code> (N base 3 in 3-cell digits 100/110/010, M and R binary in 4-cell digits 0010/1010 and 1000/1010, low digit first) the machine reaches the next event with N + 1, M + 1 and, when M wraps, R + 3; 54 theorems, one per case (54 cases, exhaustive by construction of <code>events.py</code>, not by a Lean theorem; carries over k twos in N, i ones in M, j ones in R; the wrap of N at the left end), each with its exact step count and any tape beyond.",
+   "where": "<code>lean/Events.lean</code> (generated by <code>holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/events.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "The run follows the rule",
+   "text": "The run reaches the clean shape (R followed by <code>1 0 1</code> and blank tape) at step 132,141 (N = 35 (5 digits), M = 2 (2 digits), R = 0 (12 digits)); 5,556 (to step 3·10<sup>6</sup>) consecutive events then follow the rule, until R = 4,095 = 2<sup>12</sup> − 1 at step 3·10<sup>6</sup>, about to overflow. Counting all events of the form N, <code>0 [M] 1</code>, anything: 42,230 of the first 3·10<sup>6</sup> steps follow from the previous one by the rule, 3,227 do not (wraps of M that reach the undecoded part).",
+   "where": "<code>python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/track.py MACHINE 3000000</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Token rows of the visit law",
+   "text": "<code>Vis q x r x'</code>: the head enters the stream x from the left in state q and first leaves it to the left in state r, leaving x'. With tokens of two cells right of the event cell, 32 rows occur in 3·10<sup>7</sup> steps; each is a Lean theorem, conditional on the nested visits of the rest of the stream and valid for every stream.",
+   "where": "<code>lean/Visit.lean</code> (generated by <code>py/gen_visit.py</code> from <code>py/laws.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The a/z stream and M as a recursive visit law",
+   "text": "Everything from R on, blank tape included, is one stream of a = <code>10</code> and z = <code>00</code>. A visit in state B turns the first z into a and every second a before it into z; it comes out in A when the first z is at an odd place (the binary increment of R, for every size: <code>vb_odd</code>, <code>ve_odd</code>) and in C when it is at an even place (<code>vb_even</code>). M + 1 without a wrap (<code>m_inc</code>) and with a wrap, where the stream gets three visits (<code>m_wrap</code>), for every size.",
+   "where": "<code>lean/Stream.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The overflow of R is the even case of the stream law",
+   "text": "R has no end: when all its digits up to the blank tape are 1, the first z is at an even place and the visit comes out in C, leaving the digits shifted by one token. In the run of <code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---</code> this first happens at step 20,645 (stream a<sup>18</sup> then blank, left as (z a)<sup>9</sup> a). That the event rule fails only there is read off the rules, not a Lean theorem.",
+   "where": "<code>py/laws.py</code>; a direct run"
+  },
+  {
+   "level": "open",
+   "title": "After a visit that comes out in C",
+   "text": "What the layer of c tokens (M) becomes after a visit of the a/z stream that comes out in C is given row by row in <code>Visit.lean</code> but not composed into a law; the left side is not yet in this form. The machine can halt only there (follows from the event rules, not itself a theorem).",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- 1000000000",
+  "python3 -m bbtools.ctl 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- 6   # from tools/py"
+ ],
+ "explainer": {
+  "lede": "Nobody knows whether it halts. Its engine is now decoded and proved: a base-3 counter on the left and two binary counters on the right tick together, N and M by one per event and R by three each time M wraps. Only the overflows of R, where the machine reaches its rare transitions, remain a mystery.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "54 rules",
+    "text": "The event rule (N+1, M+1, R+3 on a wrap) for every size, in Lean."
+   },
+   {
+    "level": "trusted",
+    "value": "42,230",
+    "text": "Events by the rule in 3·10<sup>6</sup> steps."
+   },
+   {
+    "level": "open",
+    "value": "R overflow",
+    "text": "The only place a halt could come from."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "engine",
+    "eyebrow": "Decoded",
+    "heading": "Three counters on one tape",
+    "html": [
+     "<p>At the moments we call <em>events</em> (the head in state A, on a 0, just right of the left counter) the tape reads</p>",
+     "<p style=\"text-align:center\"><code>0<sup>∞</sup> 1 0 [N] A&gt; 0 [M] 1 [R] …</code></p>",
+     "<ul><li><b>N</b>, a <b>base-3</b> counter: 3-cell digits <code>100</code> = 0, <code>110</code> = 1, <code>010</code> = 2, most significant first, its lowest digit next to the head;</li><li><b>M</b>, a <b>binary</b> counter: 4-cell digits <code>0010</code> = 0, <code>1010</code> = 1, lowest digit first (next to the head);</li><li><b>R</b>, a second <b>binary</b> counter after a single <code>1</code>: 4-cell digits <code>1000</code> = 0, <code>1010</code> = 1, lowest digit first.</li></ul>",
+     "<p>In the words a = <code>10</code>, b = <code>110</code> of the older description, M's digits read as sections <code>a|</code> and <code>aa</code>, which is why the tape looked like sections of a's split by <code>000</code>.</p>"
+    ]
+   },
+   {
+    "id": "rule",
+    "eyebrow": "The rule",
+    "heading": "One event: N + 1, M + 1, and R + 3 when M wraps",
+    "html": [
+     "<p>From one event to the next the head runs right over M (and over R only when M wraps), comes back, crawls into N, adds one there and returns. The net effect:</p>",
+     "<table><tr><th>counter</th><th>change per event</th></tr><tr><td>N</td><td>+1 in base 3; trailing 2s carry; when N = 2…2 it becomes 0…0 with one digit more (the tape grows 3 cells at the left)</td></tr><tr><td>M</td><td>+1 in binary; trailing 1s carry; from 1…1 it wraps to 0…0 (same width)</td></tr><tr><td>R</td><td>unchanged, except when M wraps: then +3 in binary</td></tr></table>",
+     "<p>So N counts events (mod 3<sup>width</sup>), M counts them mod 2<sup>width</sup>, and R gains 3 every 2<sup>width of M</sup> events: two different bases running side by side. Example from the run of <code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---</code> (M with 2 digits, R with 8): at steps 12,203, 12,223, 12,243, 12,253, 12,345 the triple (N, M, R) is (5, 0, 92), (6, 1, 92), (7, 2, 92), (8, 3, 92), (9, 0, 95).</p>",
+     "<p>Each case of this rule is a theorem in <code>lean/Events.lean</code>, proved for every size: 9 cases for N (lowest digit 0 or 1 after 0, 1 or k+2 twos, or the wrap of 2…2 at the left end), times 6 for M and R (no wrap, carry over i+1 ones, or a wrap of M with i+1 digits combined with the 4 cases of R's two low bits and a carry over j ones). 54 cases (exhaustive by construction of <code>events.py</code>), one theorem each, with its exact step count, e.g. 12i + 12j + 10k + 116 steps for a carry over k twos in N, a wrap of M with i+1 digits and R ending in <code>10</code> followed by j ones. When M does not wrap, nothing right of M is read, so these rules hold whatever lies beyond.</p>"
+    ]
+   },
+   {
+    "id": "runs",
+    "eyebrow": "Checked",
+    "heading": "How long the run keeps this shape",
+    "html": [
+     "<p>In the clean shape R is followed by <code>1 0 1</code> and blank tape. This run reaches it at step 132,141 (N = 35 (5 digits), M = 2 (2 digits), R = 0 (12 digits)) and then 5,556 (to step 3·10<sup>6</sup>) consecutive events follow the rule, until R = 4,095 = 2<sup>12</sup> − 1 at step 3·10<sup>6</sup>, about to overflow.</p>",
+     "<p>An overflow of R (its carry running into the cells after it) is not covered by the rules: there the head goes past R and rebuilds the right part; in <code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---</code> the transition D1 (the only way into F, whose 1 halts) is used in the first 10<sup>5</sup> steps only at steps 138, 1,008, 3,177, 7,571 (before the clean shape) and 20,756, 53,353, 92,444, 92,861 (at the first three overflows of R). After the first overflows the cells right of R are no longer just <code>1 0 1</code>: they hold a further structure starting <code>1 0 1 1 0 …</code>, and M and R take other widths. Counting every event whose left part is N and whose right part starts <code>0 [M] 1</code>, 42,230 events in the first 3·10<sup>6</sup> steps follow from the previous one by the rule and 3,227 do not (the wraps of M that touch the undecoded part); at step 3·10<sup>6</sup>: N = 18,571 (9 digits), M with 1 digit, R with 5 digits.</p>"
+    ]
+   },
+   {
+    "id": "words",
+    "eyebrow": "The picture",
+    "heading": "Two words and a separator",
+    "html": [
+     "<p>Write a for <code>1 0</code> and b for <code>1 1 0</code>. Apart from a few cells at the ends, the tape is a string of a's and b's broken into sections by extra 0s (<code>0 0 0</code> between two 1s). At its visits to the left end the first section is <code>a b b … b</code> followed by a's and b's, and the later sections are mostly runs of a's. Writing 1 for a and 2 for b, the tape at step 645,244,842 of the first sibling is <code>1222222222222222 | 111 | 111 | 11111 | 111 | 12 | 11111112 | 111111111 | 11111 | 11111 | 1 | 111 | 1 | 11</code>.</p>"
+    ]
+   },
+   {
+    "id": "sweeps",
+    "eyebrow": "Mechanism",
+    "heading": "Sweeps and an inner counter",
+    "html": [
+     "<p>The head moves through runs of words in one state, rewriting each copy the same way, for example A turning <code>0 1 1</code> into <code>1 0 0</code> or B turning <code>1 0</code> into <code>0 1</code> (proved in Lean for any number of copies: <code>a_right_01</code>, <code>a_right_011</code>, <code>b_right_10</code>, <code>b_right_11</code>, <code>b_right_110</code>, <code>e_right_10</code>, <code>e_right_11</code>, <code>e_right_110</code>). Its excursions do not usually reach the ends: the turning points far from the left end follow the ruler pattern of a binary counter with digits four cells wide (in a stretch of 17,000 steps from step 28,601 of the first sibling the far turning points are 43, 47, 43, 51, 43, 47, 43, 55, … cells from the left end). The ends are visited rarely, and each visit to the left end finds the whole tape rearranged.</p>"
+    ]
+   },
+   {
+    "id": "family",
+    "eyebrow": "Family",
+    "heading": "What the siblings share and where they differ",
+    "html": [
+     "<p>All 54 event rules are proved for each of the six machines (the transitions that differ are never used inside an event). They differ only in what happens at the overflows of R and in the undecoded later layout, so their histories part early:</p>",
+     "<table><tr><th>machine</th><th>differs in</th><th>first event of the clean shape (step)</th><th>its counters</th><th>events in 3·10<sup>6</sup> steps that follow the rule / that do not</th></tr><tr><td><code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---</code></td><td>F0 = 0LB, E1 = 0RA</td><td>7,591</td><td>N = 4 (2 digits), M = 2 (2 digits), R = 2 (8 digits)</td><td>5,820 / 1,045</td></tr><tr><td><code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LE---</code></td><td>F0 = 0LE, E1 = 0RA</td><td>7,583</td><td>N = 4 (2 digits), M = 2 (2 digits), R = 2 (8 digits)</td><td>11,087 / 3,515</td></tr><tr><td><code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_0LC---</code></td><td>F0 = 0LC, E1 = 0RE</td><td>533</td><td>N = 1 (1 digit), M = 4 (4 digits), R = 0 (2 digits)</td><td>5,729 / 1,022</td></tr><tr><td><code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LA---</code></td><td>F0 = 1LA, E1 = 0RE</td><td>301</td><td>N = 0 (0 digits), M = 0 (2 digits), R = 0 (2 digits)</td><td>88,887 / 1,201</td></tr><tr><td><code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---</code></td><td>F0 = 1LE, E1 = 0RE</td><td>132,141</td><td>N = 35 (5 digits), M = 2 (2 digits), R = 0 (12 digits)</td><td>42,230 / 3,227</td></tr><tr><td><code>1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA</code></td><td>a relabelled relative: in the leftward sweep E and F play the parts of A and E; A1 halts</td><td>118,003</td><td>N = 35 (5 digits), M = 2 (2 digits), R = 0 (12 digits)</td><td>47,902 / 3,503</td></tr></table>",
+     "<p>The 0LB and 0LE siblings have the same events up to the first overflow of R (8 steps apart); the 1LE sibling and the relabelled machine have the same event values to beyond step 10<sup>5</sup> and then part.</p>"
+    ]
+   },
+   {
+    "id": "front",
+    "eyebrow": "Growth",
+    "heading": "The front section",
+    "html": [
+     "<p>The number k of b's at the front grows slowly; the steps at which it first reaches each value:</p>",
+     "<table><tr><th>k</th><th>step</th></tr><tr><td>10</td><td>6,741,512</td></tr><tr><td>11</td><td>41,755,007</td></tr><tr><td>12</td><td>523,217,185</td></tr><tr><td>13</td><td>1,019,661,408</td></tr><tr><td>14</td><td>1,421,446,771</td></tr><tr><td>15</td><td>2,626,803,218</td></tr></table>",
+     "<p>Each new b costs about 2 to 3 times as many steps as the one before, as a counter would.</p>"
+    ]
+   },
+   {
+    "id": "siblings",
+    "eyebrow": "Family",
+    "heading": "Six siblings",
+    "html": [
+     "<p>Five of the six differ only in E1 and F0 (F1 halts in all of them); F is entered only from D reading 1, so F0 runs every time D finds a 1, and the five really are different machines. The sixth is a relabelled relative. All six show the same tape language and the same slow front.</p>",
+     "<table><tr><th>machine</th><th>differs in</th><th>largest k in 3·10<sup>9</sup> steps</th></tr><tr><td><code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---</code></td><td>F0 = 0LB, E1 = 0RA</td><td>16 at step 1,767,055,517</td></tr><tr><td><code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LE---</code></td><td>F0 = 0LE, E1 = 0RA</td><td>15 at step 1,313,823,679</td></tr><tr><td><code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_0LC---</code></td><td>F0 = 0LC, E1 = 0RE</td><td>14 at step 997,927,371</td></tr><tr><td><code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LA---</code></td><td>F0 = 1LA, E1 = 0RE</td><td>16 at step 2,894,971,682</td></tr><tr><td><code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---</code></td><td>F0 = 1LE, E1 = 0RE</td><td>15 at step 2,626,803,218</td></tr><tr><td><code>1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA</code></td><td>a relabelled relative (its F plays E's part)</td><td>15 at step 2,345,360,050</td></tr></table>",
+     "<p> Its left-end configurations coincide with those of <code>1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA</code> at 47 of its first 50 visits (in the same order; that machine takes about 1.12 times fewer steps): the two machines do the same thing.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Halting",
+    "heading": "Where it could halt",
+    "html": [
+     "<p>The machine halts only when F reads a 1. A closed tape language with windows of six cells (an over-approximation of every configuration reachable from blank tape, found and checked by <code>bbtools.ctl</code>) allows that only with <code>110001</code>, <code>110011</code> from the head on: F on the first 1 of a word <code>1 1 0</code> that ends a section. Whether the run ever puts F there is the open question.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.066). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.054).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"121.9\" y2=\"121.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"125.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"43.7\" y2=\"43.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"47.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><path d=\"M40.0,169.0 L59.2,145.2 L78.4,141.4 L97.6,127.7 L116.8,118.5 L136.0,114.2 L155.2,110.4 L174.4,101.5 L193.6,101.5 L212.8,95.3 L232.0,91.5 L251.2,88.1 L270.4,86.5 L289.6,85.1 L308.8,82.3 L328.0,77.6 L347.2,74.5 L366.4,71.6 L385.6,69.9 L404.8,68.3 L424.0,66.0 L443.2,63.9 L462.4,62.0 L481.6,60.7 L500.8,60.1 L520.0,59.5\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,160.9 L59.2,160.9 L78.4,149.5 L97.6,149.5 L116.8,141.4 L136.0,135.1 L155.2,135.1 L174.4,130.0 L193.6,125.6 L212.8,121.9 L232.0,121.9 L251.2,118.5 L270.4,118.5 L289.6,118.5 L308.8,115.6 L328.0,112.9 L347.2,110.4 L366.4,108.2 L385.6,106.1 L404.8,106.1 L424.0,104.1 L443.2,102.3 L462.4,100.6 L481.6,99.0 L500.8,99.0 L520.0,99.0\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 183 cells (145 left of the start, 35 right), with a density of 1s of 0.361.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>523,217,185</td><td><code>E&gt;0 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0^3 1 0^3 1 0^3 1 0 1 0 1 0 1 0 1 0^3 1 0 1 0 1 0^3 1 0 1 0 1 0^3 1 0 1 0 1 0 1 0 1 0^3 1 0^3 1 0 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0^3 1 0^3 1 0^3 1 0 1 0 1 0 1 0 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>946,140,360</td><td><code>1 0 1^2 0 1^2 0 1 0^2 1 0^2 1^2 0 1^2 0^2 1 0 1^2 0 1 0^3 1 0 1^2 0^2 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0^3 1 0 1^2 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 E&gt;0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "open",
+    "eyebrow": "Open",
+    "heading": "What is left",
+    "html": [
+     "<p>The engine is proved; the halting question now sits entirely in the overflows. No event can halt, since every rule is a run of the machine; a halt can only come between events that the rules do not cover. Open: (1) the overflow of R as a rule: what N, M, R and the cells after R become; (2) the layered layout that follows (the part right of R starting <code>1 0 1 1 0</code>), which seems to hold further counters; (3) whether the iterated overflows ever produce the halting pattern. The left counter N alone never causes trouble: its wrap at the left end is one of the proved cases.</p>"
+    ]
+   },
+   {
+    "id": "visit",
+    "eyebrow": "New view",
+    "heading": "One visit of a stream",
+    "html": [
+     "<p>Cut the tape right of the event cell into tokens of two cells: z = <code>00</code>, a = <code>10</code>, c = <code>01</code>. Everything from R on, the blank tape included, is one stream of a and z, and one visit of the head in state B does this to it: <b>the first z becomes a, and every second a before it becomes z</b>.</p>",
+     "<p>If the first z is at an odd place the visit comes out in state A: with digits <code>a z</code> = 0 and <code>a a</code> = 1 this is the binary increment of R. If it is at an even place (all digits 1 up to the blank tape) the visit comes out in state C and leaves the digits shifted by one token. So R has no overflow into something else; the rare case is a visit that comes out in C.</p>",
+     "<p>Both cases, and M's increment and wrap (three visits of the stream), are proved in Lean for every size from 32 token rows, each of which is a small theorem about one token and the nested visits of the rest. What the c tokens of M do after a visit that comes out in C is in those rows but not yet composed; that is where the question of halting now sits.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "Two-word sweeper: a base-3 counter N and binary counters M and R; each event adds 1 to N and to M and, when M wraps, 3 to R (proved in Lean for every size); the overflows of R and the layered layout after them are not decoded.",
+ "family": "two-word sweeper"
+}

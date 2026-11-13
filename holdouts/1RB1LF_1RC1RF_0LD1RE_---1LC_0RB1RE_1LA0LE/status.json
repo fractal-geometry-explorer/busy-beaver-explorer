@@ -1,0 +1,119 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE.",
+ "machine": "1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE",
+ "crumb": "holdouts / 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE",
+ "home": "../index.html",
+ "source": "holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its right end is a doubling bouncer: a block of <code>10</code> pairs doubles at every sweep, paid for from a pool of 1s, and the tape is rewritten each time the pool runs out."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> At every right-end visit in state B the tape is <code>[1^2 0 (10)^c] 1^a 0 (10)^b B&gt;0</code>. While a ≥ 2b + 3 the next visit is (a − 2b − 2, 2b + 2); otherwise the pool overflows and the tape is rewritten. Of all such configurations only the ones without the bracket and with a = 1 halt.",
+  "<b>Why it has not halted.</b> The doubling step keeps the parity of a, and a is even most of the time: in the first 10<sup>9</sup> steps there are 1,453 such visits and only 48 have a odd, in 7 short odd phases (pools 5, 61, 165, 165, 989, 1,853, 189 at their start). An odd phase that starts at (A, 0) halts only if A − 1 is one of the sparse values 2<sup>k+2</sup> − 2k − 4, so the danger shrinks as the tape grows; a halt is possible but not expected."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (D0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 2,930 cells have been visited and 1,686 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The doubling step and where it can halt",
+   "text": "For T = 0^∞ [1^2 0 (10)^c] 1^a 0 (10)^b B&gt;0 0^∞ (the bracket present or not): if a ≥ 2b + 3, the next right-end visit in state B is the same with (a − 2b − 2, 2b + 2). Among all these configurations (bracket absent or c ∈ {0, 1, 2, 5, 9}, 1 ≤ a &lt; 40, b &lt; 20) exactly those without bracket and with a = 1 halt. Checked against direct simulation, and on every doubling step of the first 3·10<sup>6</sup> steps of the run.",
+   "where": "<code>py/model.py check</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Odd pools are rare",
+   "text": "In the first 10<sup>9</sup> steps the run makes 1,453 right-end visits of this form; a is odd at 48 of them, in 7 phases starting with a = 5, 61, 165, 165, 989, 1,853, 189 (at steps 28, 10,527, 212,888, 432,061, 43,052,524, 260,493,638, 262,189,033); a is never 1.",
+   "where": "<code>c</code> record runs, see README"
+  },
+  {
+   "level": "heuristic",
+   "title": "A halt needs an exact hit",
+   "text": "Doubling from (A, 0) gives a = A − (2<sup>k+2</sup> − 2k − 4) after k steps, so an odd phase of this kind halts only if A is 3, 9, 23, 53, 115, 241, 495, 1005, …, about log<sub>2</sub> A values out of A. Odd phases are rare and their pools grow with the tape, so the chance that some future phase hits shrinks; nothing rules it out.",
+   "where": ""
+  },
+  {
+   "level": "open",
+   "title": "The overflow rule",
+   "text": "The exceptional steps (a &lt; 2b + 3) are not yet written as a formula; a complete macro machine would turn the parity bookkeeping into a proof strategy or find the halt.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE 1000000000",
+  "python3 holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE/py/model.py check"
+ ],
+ "explainer": {
+  "lede": "Nobody knows whether it halts. At the right end of the tape a block of pairs doubles at every sweep, paid for from a pool of 1s. The machine can only halt when that pool is down to a single 1 — but doubling always takes an even number of 1s, so with an even pool that can never happen. Only rare stretches with an odd pool are dangerous, and so far none of them has landed on 1.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "a ↦ a − 2b − 2",
+    "text": "The doubling step, checked against simulation."
+   },
+   {
+    "level": "trusted",
+    "value": "48 of 1,453",
+    "text": "Visits with an odd pool in 10<sup>9</sup> steps."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 5000
+  },
+  "sections": [
+   {
+    "id": "doubling",
+    "eyebrow": "What the machine does",
+    "heading": "Doubling, overflow, and a parity guard",
+    "html": [
+     "<div class=\"col\"><p>Each time the head pushes the tape one cell further right in state B, the right part of the tape is a pool of 1s, a 0, and a block of <code>10</code> pairs: <code>1^a 0 (10)^b</code> (sometimes with <code>1^2 0 (10)^c</code> further left).</p>",
+     "<p><b>Doubling.</b> If the pool is large enough, one sweep turns it into <code>1^(a−2b−2) 0 (10)^(2b+2)</code>: the pair block doubles and gains two, and the pool pays for it.</p>",
+     "<p><b>Overflow.</b> When the pool cannot pay, the sweep runs into the 0s and pairs beyond and the tape is rearranged; a new, bigger pool appears and the doubling starts again from a small block.</p>",
+     "<p><b>The only way to halt</b> is to have a pool of exactly one 1 with nothing to its left. Doubling always removes an even number of 1s, so an even pool stays even and is safe. In 10<sup>9</sup> steps the pool was odd only 48 times out of 1,453, in seven short stretches, and never reached 1. Starting from an odd pool A with an empty pair block, doubling reaches 1 only if A is one of 3, 9, 23, 53, 115, 241, 495, 1005, … — a thinner and thinner target as the tape grows.</p></div>"
+    ]
+   }
+  ],
+  "title": "A doubling bouncer guarded by parity"
+ },
+ "family": "doubling bouncer with overflow (parity-protected)",
+ "decision": "open",
+ "summary": "A pool 1^a feeds a block (10)^b that doubles (+2) every sweep; overflows rewrite the tape. It halts only if a reaches 1 with nothing to its left; the doubling keeps a parity, so only rare odd-a phases are dangerous (7 in 10^9 steps, none hit)."
+}

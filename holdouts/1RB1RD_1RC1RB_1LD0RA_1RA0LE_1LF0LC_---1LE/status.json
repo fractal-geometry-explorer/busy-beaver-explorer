@@ -1,0 +1,138 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE.",
+ "machine": "1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE",
+ "crumb": "holdouts / 1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The tape is a list of counters, runs of the word 011 separated by short words. The last few counters, at the right end, trade amounts with each other and with a block that grows at the end; the older counters to the left are left almost unchanged. The transfer rule is not written down yet. An exact run-length simulation finds no halt in 10<sup>15</sup> steps."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 102,439 cells have been visited and 61,465 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A frozen left part",
+   "text": "The counters 450, 259, 303, 1011, 731, 2347, 2123 and twenty copies of (011)^11 (110)^11 are the same at steps 10<sup>8</sup> and 2&middot;10<sup>8</sup>.",
+   "where": "direct run"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 10<sup>15</sup> steps",
+   "text": "An exact run-length simulator (<code>c/tok.c</code>; it agrees with <code>tools/c/tmrun.c</code> on the number of 1s at step 10,000,087,134) runs 10<sup>15</sup> steps, 2.8&middot;10<sup>7</sup> visits of the right end in state A, without a halt. The last counters then are 011<sup>2482146</sup>, 011<sup>1085286</sup>, 011<sup>4382435</sup>, 011<sup>13188604</sup> and the end block 110<sup>495835</sup>.",
+   "where": "<code>c/tok.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: fixed/sqrt",
+   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.603).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Active counters at the right end",
+   "text": "The list keeps about 50&ndash;77 tokens; at each moment one of the last counters shrinks at a steady rate (about 1,500 per 10<sup>6</sup> visits) while the end block grows; the first counters (011<sup>410</sup>, 011<sup>255</sup>, ... at 10<sup>6</sup> visits) barely change.",
+   "where": "README"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The halting transition F0 is reached as D1 &rarr; 0LE, E0 &rarr; 1LF; a closed tape language from windows of 4 cells does not confine it to an edge, and the transfer rule of the counters is not known.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE 1000000000",
+  "gcc -O2 -o tok holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/c/tok.c && ./tok 1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE 1e15 A R 1000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. This machine keeps a list of counters built from three-cell words; some of them stay frozen in a long regular stretch while others change. This page runs the real machine in your browser.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>15</sup> steps",
+    "text": "No halt in an exact run-length simulation."
+   },
+   {
+    "level": "trusted",
+    "value": "~60 tokens",
+    "text": "Length of the counter list, steady while the counters grow to millions."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "list",
+    "eyebrow": "What the tape looks like",
+    "heading": "Counters of three-cell words",
+    "html": [
+     "<p>At step 10<sup>8</sup> the tape reads <code>(111011011)<sup>2</sup> (011)<sup>450</sup> (110)<sup>259</sup> 1<sup>4</sup> (011)<sup>303</sup> (110)<sup>1011</sup> 1<sup>4</sup> (011)<sup>731</sup> (110)<sup>2347</sup> 1<sup>4</sup> (011)<sup>2123</sup> [1<sup>4</sup> (011)<sup>11</sup> (110)<sup>11</sup>] &times; 20 &hellip; (101)<sup>342</sup> 1<sup>3</sup> (011)<sup>420</sup> 0 (101)<sup>175</sup> &hellip;</code>: a list of counters. The left counters (450, 259, 303, ...) were the same at step 2&middot;10<sup>8</sup>; the changes happen at the right end, where new counters appear.</p>"
+    ]
+   },
+   {
+    "id": "counters",
+    "eyebrow": "Seen as tokens",
+    "heading": "A list of counters",
+    "html": [
+     "<p>Compress the tape into tokens, where <code>011^c</code> means the word 011 written c times. At every visit of the right end the tape is a list of such counters, separated by short words (<code>0 1111</code> or <code>0101 1</code>), with a growing block <code>110^m</code> at the end:</p>",
+     "<pre>visits 1e6    ... 011^36147 . 011^312866 . 011^217864 . 011^185970 0 1 0 110^126391\nvisits 1e7    ... 011^880368 . 011^2866633 . 011^204281 . 011^3172504 0 1 0 110^871891\nvisits 2.8e7  ... 011^2482146 . 011^1085286 . 011^4382435 . 011^13188604 0 1 0 110^495835</pre>",
+     "<p>Only the last few counters are worked on: one of them shrinks at a steady rate while the end block grows, and when it runs out the next one takes over. The first counters of the list change only rarely. The list stays at about 60 tokens while the counters grow to millions, so the machine behaves like a counter machine with a handful of active registers. Their exact transfer rule is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "D on a 1 after two 0s",
+    "html": [
+     "<p>The machine stops only when F reads a 0, reached only as D1 &rarr; 0LE, E0 &rarr; 1LF: D on a 1 with <code>0 0</code> to its left. Inside a run of one word there are never two 0s side by side; they occur only at a few junctions (a separator 0, or <code>110</code> next to <code>011</code>), so a halt needs D to arrive at such a junction in the right way.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "counter list with active counters at the right end",
+ "summary": "A list of counters 011^c separated by short words; the last few, at the growing right end, are worked on (one shrinks at a steady rate while the end block grows) and the older ones are left behind almost unchanged; no halt in 10^15 steps of an exact run-length simulation.",
+ "decision": "open"
+}

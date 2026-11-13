@@ -1,0 +1,169 @@
+{
+ "generated": false,
+ "group": "G13",
+ "title": "What is known about 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB.",
+ "machine": "1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB",
+ "crumb": "holdouts / 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/status.json",
+ "intro": [
+  "Nobody knows whether this six-state machine halts from blank tape. It is a close relative of <a href=\"../1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA/explainer.html\">1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA</a>: the tape is blocks of 1s separated by single 0s, and each round turns the first block into <code>0 1</code> pairs that come back as gliders, each moving a hole 3 cells left. Rounds from a first block of even length are step for step the same as in that machine and are proved in Lean; rounds from an odd block differ, and that is also where a halt could happen."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean proves the whole round from an even first block and no halt in the first 10<sup>7</sup> steps. The machine halts exactly when F reads a 0; F is entered only from B reading a 1, and on the tapes seen that happens when a sweep that has passed an odd block meets a block of a single 1 (<code>C&gt;1 0 1 0</code> runs into F on a 0). In 10<sup>9</sup> steps no round after step 2,136 started with a block shorter than 12 cells."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The pieces of a round",
+   "text": "The same statements as for 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA, proved for this machine: the sweep <code>0 C&gt; (11)^n</code> → <code>(01)^n 0 C&gt;</code> (here by B, C and A), the glider <code>0 0 D&gt; 1^n</code> → <code>1^n 0 0 D&gt;</code>, the glider cycle and the first and last pieces of a round.",
+   "where": "<code>lean/Rules.lean</code> (from <code>py/rules.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "Rounds from an even first block",
+   "text": "<code>E&gt; 0 1^(4k+4) 0 1^(a+3) 0 1 R</code> reaches <code>E&gt; 0 1^(a+k+4) 0 1^(3k+7) R</code> and <code>E&gt; 0 1^(4k+6) 0 1^(a+4) 0 1 R</code> reaches <code>E&gt; 0 1^(a+k+5) 0 1^(3k+10) R</code>, for all k, a, R: [4K, a, b, …] → [a+K, 3K+3+b, …] and [4K+2, a, b, …] → [a+K, 3K+6+b, …].",
+   "where": "<code>round_mod4</code>, <code>round_mod2</code>, <code>lean/Round.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Where the two machines part",
+   "text": "The sweep crossing a hole after an odd stretch, <code>C&gt;1 0 1 1</code> → <code>0 1 0 C&gt;1</code>, is the same in both machines; on <code>C&gt;1 0 1 0</code> (a block of one 1 after the hole) this machine reaches F on a 0 and halts, where the twin carries on.",
+   "where": "checked with <code>bbtools.symtm</code> (single steps)"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 3,867 cells have been visited and 3,172 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Every round starts on single holes",
+   "text": "At the 660 times up to step 10<sup>9</sup> that the head is at the left end in state E on a 0, the tape is blocks of 1s separated by single 0s (except at steps 7 and 204): 2 blocks 593 times, 3 blocks 53, 4 blocks 10, 5 blocks 2. The shortest block at a round start is 3 (step 1,605); after step 2,136 it is never below 12.",
+   "where": "<code>tools/c/tmrun.c</code> (<code>at E L</code>), <code>py/rounds.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The even rounds follow the formula",
+   "text": "All 329 rounds from an even first block in the first 10<sup>9</sup> steps follow [a+K, 3K+3+b, …] (x = 4K) or [a+K, 3K+6+b, …] (x = 4K+2).",
+   "where": "<code>py/rounds.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: power/power",
+   "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.331). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.332).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Why the width grows like t<sup>1/3</sup>",
+   "text": "As in the twin: about x/4 gliders each cross the second block and come back, so a round costs about 1.5·x·a ~ w<sup>2</sup> steps, and it adds 3 ones (x = 4K), 4 (x = 4K+2) or 4 to 28 (odd x). So w<sup>3</sup> ~ t.",
+   "where": "<code>py/rounds.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The even rounds are proved; odd first blocks make the sweep pass through holes, and the machine would halt if such a sweep met a block of a single 1. A proof needs the odd rounds as rules and an invariant that keeps blocks long.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 1000000000",
+  "python3 holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/py/rules.py | diff - holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/lean/Rules.lean",
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 1000000000 at E L 100000 > el.txt && python3 holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/py/rounds.py el.txt"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Like its twin 1RB0LA_0RC---…, this machine keeps a nearly solid block of 1s with one or two holes, and each round moves a hole: the first block becomes <code>0 1</code> pairs, and every two pairs come back as a glider that knocks the hole 3 cells left. Rounds cost about the square of the width and add a few cells, so the width grows like the cube root of the time.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "even rounds",
+    "text": "A round from a first block of length 4k+4 or 4k+6 is proved for all k and all second blocks."
+   },
+   {
+    "level": "trusted",
+    "value": "329 / 329",
+    "text": "Even rounds in the first 10<sup>9</sup> steps that follow the proved formula."
+   },
+   {
+    "level": "heuristic",
+    "value": "t<sup>1/3</sup>",
+    "text": "Width after t steps: a round costs about w<sup>2</sup> steps and adds 3 to 28 ones."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "twin",
+    "eyebrow": "What it does",
+    "heading": "Same rounds as its twin",
+    "html": [
+     "<p>Stop the machine whenever the head is at the left end in state E. The tape is then a few blocks of 1s separated by single 0s: at step 997,741,851 it is <code>E&gt;0 1^3127 0 1^726</code>, blocks [3127, 726].</p>",
+     "<p>A round does what it does in <a href=\"../1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA/explainer.html\">1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA</a>. The sweep turns the first block's pairs <code>1 1</code> into <code>0 1</code> (here with states B, C, A instead of B, C, F, A). A first block of even length ends the sweep with a <em>glider</em>, two 0s that move right through the next block at one cell per 5 steps. Each glider reaches the next hole, fills it, and leaves a hole 3 cells further left; E walks back, two more pairs make the next glider, and so on. The round from [16, 20] is identical, step for step, in both machines and ends at [24, 15] after 715 steps.</p>",
+     "<p>Lean proves the whole round for every even first block: [4K, a, b, …] becomes [a+K, 3K+3+b, …] and [4K+2, a, b, …] becomes [a+K, 3K+6+b, …]. All 329 even rounds of the first 10<sup>9</sup> steps match.</p>"
+    ]
+   },
+   {
+    "id": "odd",
+    "eyebrow": "The hard case",
+    "heading": "Odd blocks, and a halt on a block of one",
+    "html": [
+     "<p>When the first block is odd, the sweep runs through the hole into the next block (<code>C&gt;1 0 1 1</code> becomes <code>0 1 0 C&gt;1</code>), leaving a mark behind. Here the two machines differ: in this one, if the stretch after the hole is a single 1 (<code>C&gt;1 0 1 0</code>), the next steps put F on a 0, which is the halting transition. So the machine halts if a sweep coming out of an odd block ever meets a block of length 1.</p>",
+     "<p>Blocks at round starts are long: after step 2,136, none is shorter than 12 cells in 10<sup>9</sup> steps. Whether short blocks can appear in the middle of a round, where the gliders rework the tape, is part of the open question.</p>"
+    ]
+   },
+   {
+    "id": "growth",
+    "eyebrow": "Growth law",
+    "heading": "Why the width grows like t<sup>1/3</sup>",
+    "html": [
+     "<p>Each glider crosses the second block and E walks back over it, so a round from blocks [x, a] costs about 1.5·x·a steps, of the order of the width squared, and adds only a few ones (3 to 28). A constant gain per w<sup>2</sup> steps gives w<sup>3</sup> ~ t. After 10<sup>9</sup> steps the tape is 3,867 cells wide.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.331). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.332).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"145.9\" y2=\"145.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"149.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"91.8\" y2=\"91.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"95.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><path d=\"M40.0,178.6 L59.2,178.6 L78.4,168.6 L97.6,162.0 L116.8,155.1 L136.0,148.5 L155.2,144.7 L174.4,139.7 L193.6,135.0 L212.8,130.6 L232.0,127.1 L251.2,122.5 L270.4,118.0 L289.6,114.8 L308.8,109.4 L328.0,104.0 L347.2,99.8 L366.4,96.0 L385.6,91.6 L404.8,86.9 L424.0,81.7 L443.2,77.3 L462.4,72.5 L481.6,68.2 L500.8,63.8 L520.0,59.3\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,173.0 L59.2,168.6 L78.4,162.0 L97.6,157.1 L116.8,155.1 L136.0,153.2 L155.2,144.7 L174.4,141.6 L193.6,135.7 L212.8,127.6 L232.0,124.1 L251.2,118.3 L270.4,111.8 L289.6,110.0 L308.8,105.5 L328.0,99.4 L347.2,92.2 L366.4,88.1 L385.6,85.8 L404.8,81.7 L424.0,76.1 L443.2,71.9 L462.4,67.7 L481.6,63.1 L500.8,58.8 L520.0,53.5\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 3,867 cells (1,355 left of the start, 1,822 right), with a density of 1s of 0.82.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>951,282,050</td><td><code>E&gt;0 1^942 0 1^2832</code></td></tr><tr><td>left</td><td>967,436,269</td><td><code>A&gt;0 0^2 1^1479 0 1^2307</code></td></tr><tr><td>left</td><td>983,437,816</td><td><code>A&gt;0 0^2 1^959 0 1^2868</code></td></tr><tr><td>right</td><td>951,298,098</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>967,452,731</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>983,451,241</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "hole-wandering solid block",
+ "summary": "A twin of 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA: blocks of 1s with single holes, rounds of sweep and gliders that move a hole 3 cells at a time; the even rounds are the same and proved in Lean, the odd ones differ and can halt on a block of length 1."
+}

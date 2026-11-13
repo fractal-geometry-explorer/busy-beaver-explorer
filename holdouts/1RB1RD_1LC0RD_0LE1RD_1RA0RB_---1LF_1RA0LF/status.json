@@ -1,0 +1,143 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1RD_1LC0RD_0LE1RD_1RA0RB_---1LF_1RA0LF",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RD_1LC0RD_0LE1RD_1RA0RB_---1LF_1RA0LF.",
+ "machine": "1RB1RD_1LC0RD_0LE1RD_1RA0RB_---1LF_1RA0LF",
+ "crumb": "holdouts / 1RB1RD_1LC0RD_0LE1RD_1RA0RB_---1LF_1RA0LF",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RD_1LC0RD_0LE1RD_1RA0RB_---1LF_1RA0LF/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Most of the tape is the 11-cell word <code>00000101000</code> repeated; the head adds 7 words every 80 visits of the left end, where the tape repeats exactly with that period. The rest of the cells (3 per period) go to a list of counters <code>(101)<sup>k</sup></code> at the right end, separated by short words, which change slowly from sweep to sweep. A halt needs B on a 0 with <code>0 0</code> to its left, which the bulk offers everywhere, so the question is how the head meets it."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (E0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 70,713 cells have been visited and 51,893 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Period 80 at the left edge",
+   "text": "At visits of the left end 80 apart (e.g. steps 94,467,133 and 95,160,717) the tape near the left end is identical and the bulk has grown by 7 words. Near step 3.2&middot;10<sup>8</sup> the left end alternates between two forms 80 visits apart, so the exact period there is 160 visits (40 cells and 7 bulk words per 160 visits).",
+   "where": "direct run"
+  },
+  {
+   "level": "trusted",
+   "title": "Counter samples to 4&middot;10<sup>9</sup> steps",
+   "text": "Every 160 visits of the left end the counters (run lengths of (101)<sup>c</sup> right of the bulk) were read off a direct run: e.g. (123, 134, 113, 88, 5, 2) &rarr; (120, 135, 116, 88, 5, 2) &rarr; (117, 138, 117, 88, 5, 2) near step 3.8&middot;10<sup>8</sup>; (291, 78, 805, 2) at 2.04&middot;10<sup>9</sup>; (52, 2, 2, 52, 1553, 2) at 3.96&middot;10<sup>9</sup>. No halt.",
+   "where": "README, <code>tools/c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A counter list at the right",
+   "text": "The (101)-counters change by small amounts between periods (21, 11, ..., 12 to 18, 14, ..., 13); their rule is not yet known.",
+   "where": ""
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: fixed/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.505). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The rules below are read off the run, not proved, and they describe a counter system whose long-run behaviour is not understood.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RD_1LC0RD_0LE1RD_1RA0RB_---1LF_1RA0LF/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RD_1LC0RD_0LE1RD_1RA0RB_---1LF_1RA0LF 1000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Almost all of this machine's tape is one eleven-cell word repeated thousands of times; the interesting part is a list of counters at the far end that the head updates on each trip. This page runs the real machine in your browser and explains the parts.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "80 visits",
+    "text": "The left edge of the tape repeats with this period, the bulk gaining 7 words."
+   },
+   {
+    "level": "heuristic",
+    "value": "(101)<sup>k</sup> list",
+    "text": "A slowly changing list of counters at the right end."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "bulk",
+    "eyebrow": "What the tape looks like",
+    "heading": "A periodic bulk and a list of counters",
+    "html": [
+     "<p>At step 9.4&middot;10<sup>7</sup> the tape reads <code>[about 60 cells] (00000101000)<sup>1897</sup> 0101 0<sup>4</sup> (101)<sup>21</sup> 00101 0<sup>4</sup> (101)<sup>11</sup> 0<sup>4</sup> (101)<sup>17</sup> 00101 0<sup>4</sup> (101)<sup>90</sup> 00101 0<sup>4</sup> (101)<sup>12</sup> 00 (101)<sup>92</sup> &hellip;</code>, and 80 visits of the left end later the bulk has 1,904 words and the counters read 18, 14, 17, 90, 13, 92: the left edge is identical, 77 cells went into the bulk and 3 into the counters.</p>",
+     "<p>So the machine is a translated pattern at the left feeding a counter system at the right: the counters change by small amounts and in an order that looks like a carry, as in other multi-counter holdouts.</p>"
+    ]
+   },
+   {
+    "id": "counters",
+    "eyebrow": "The right part",
+    "heading": "Counters that feed each other",
+    "html": [
+     "<p>Right of the bulk the tape is a list of counters: runs <code>(101)<sup>c</sup></code> separated by short words. Every 160 visits of the left end the first counter loses 3 and the next two gain about 2 each:</p>",
+     "<pre>(123, 134, 113, 88, 5, 2)\n(120, 135, 116, 88, 5, 2)\n(117, 138, 117, 88, 5, 2)\n...\n(80, 161, 140, 88, 5, 2)</pre>",
+     "<p>When the first counter runs out, the list is reorganised: small new counters appear at the front and the mass moves right. The last big counter grows slowly (805 at step 2&middot;10<sup>9</sup>, 1,553 at 4&middot;10<sup>9</sup>) and the deep counters change rarely: a machine of counters passing amounts to each other, the kind of system whose long-term behaviour is usually Collatz-like and open.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "B on a 0 with two 0s behind",
+    "html": [
+     "<p>The machine stops only when E reads a 0, reached only as B0 &rarr; 1LC, C0 &rarr; 0LE: B on a 0 with two 0s to its left. The bulk is full of runs of 0s, so the head must never arrive in B at the wrong place; whether the counter list can steer it there is the open question.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "multi-counter transfer machine",
+ "summary": "A bulk of the 11-cell word 00000101000 grows at the left (7 words per 160 visits) while a list of (101)^c counters at the right is updated: the first counter feeds the next two (&minus;3, +2, +2 per 160 visits) and the list is reorganised when it runs out; the last counter grows slowly (1,553 at 4&middot;10<sup>9</sup> steps).",
+ "decision": "open"
+}

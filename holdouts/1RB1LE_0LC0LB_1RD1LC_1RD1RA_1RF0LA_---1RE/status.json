@@ -1,0 +1,118 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE.",
+ "machine": "1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE",
+ "crumb": "holdouts / 1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE",
+ "home": "../index.html",
+ "source": "holdouts/1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its run is a sequence of <em>epochs</em>; each epoch is a Collatz-like countdown, and the way it ends decides whether the machine halts, runs away forever, or starts a bigger epoch."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open, and is now a question about a 3/2 map.</b> In configurations <code>X(k, m) = A&gt;0 0 (10)^k 1^m 0</code> (blank on both sides) the machine sends <i>k</i> to about 3<i>k</i>/2 and <i>m</i> down by 2 or 3 according to the parity of <i>k</i>. When <i>m</i> runs out the machine halts, runs right forever on blank tape, or starts a new epoch with <i>m</i> ≈ 3<i>k</i>.",
+  "<b>Where the run is.</b> Exactly computed: epochs start with m = 6, 41, 16,169 and then a 1,139-digit number. The fourth epoch would take about 10<sup>1138</sup> macro steps, far out of reach, so the outcome cannot be computed. With fair-coin parities each epoch ends in a halt with probability 1/5, in a run to infinity with probability 3/10 and in a new epoch with probability 1/2: overall the machine halts with probability 2/5 (Racheline's estimate on the bbchallenge wiki, recovered here exactly)."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 74,958 cells have been visited and 44,545 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The macro rules",
+   "text": "For X(k, m) = 0^∞ A&gt;0 0 (10)^k 1^m 0 0^∞ and k ≥ 1: for m ≥ 4, or m = 3 and k even, k = 2j goes to X(3j + 3, m − 2) and k = 2j + 1 to X(3j + 5, m − 3); m = 3 and k = 2j + 1 goes to X(3j + 4, 1); m = 2: k even gives X(2, 3k + 5), k odd halts; m = 1: k odd gives X(2, 3k + 3), k even leaves D running right on blank tape forever (D reads 0, writes 1, moves right, stays in D); m = 0: k even gives X(2, 3k), k odd runs right forever. Checked against direct simulation for every 1 ≤ k &lt; 40 and m &lt; 14. Inside a step the head makes k/2 passes, each eating two <code>10</code> pairs at the right and pushing a run of 0s at the left out by 6; the 0s are rewritten as the new <code>(10)^k'</code> on the way back.",
+   "where": "<code>py/macro.py check</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The run, epoch by epoch",
+   "text": "From blank tape the run reaches X(1, 1) after 24 steps. Iterating the macro rules exactly (Python big integers): epochs X(2, m) start with m = 6 (step 68), 41 (step 698), 16,169 (step 78,482,217), and the third epoch ends after 6,456 macro steps at m = 2 with k even (1,138 digits), so a fourth epoch starts with m = 3k + 5, a 1,139-digit number. The first epochs agree with the C simulator's records (k = 2, 6, 12, 21, 35, …; m = 16,169 at step 78,482,217).",
+   "where": "<code>py/macro.py epochs</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Halts with probability 2/5",
+   "text": "With y = k + 6 the rule is y ↦ ⌈3y/2⌉, m −2 for y even and −3 for y odd. If parities are fair coins, the countdown lands on m = 3, 2, 1 with probabilities 2/5, 2/5, 1/5, and the end rules give: new epoch 1/2, halt 1/5, run away 3/10. So the run halts with probability 2/5 and becomes a translated cycler (D running right) with probability 3/5, after astronomically many steps either way.",
+   "where": "<code>py/macro.py odds</code>"
+  },
+  {
+   "level": "open",
+   "title": "How does the fourth epoch end?",
+   "text": "It needs the parities of about 0.4 · 10<sup>1139</sup> iterates of ⌈3y/2⌉: no known method computes or predicts them.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE 1000000000",
+  "python3 holdouts/1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE/py/macro.py check && python3 holdouts/1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE/py/macro.py epochs"
+ ],
+ "explainer": {
+  "lede": "Nobody knows whether it halts, and nobody can find out by running it. This machine plays a game in rounds: a number is multiplied by about 3/2 while a countdown ticks down by 2 or 3, depending on whether the number is even or odd. When the countdown runs out, the machine either halts, runs off to the right forever, or starts a new, enormously longer round. The round it is in now has a countdown with 1,139 digits.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "m = 6, 41, 16169, …",
+    "text": "Countdown lengths of the epochs, computed exactly; the next has 1,139 digits."
+   },
+   {
+    "level": "heuristic",
+    "value": "2/5",
+    "text": "Chance it ever halts if parities are fair coins; 3/5 it runs right forever."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 3000
+  },
+  "sections": [
+   {
+    "id": "epochs",
+    "eyebrow": "What the machine does",
+    "heading": "Rounds of a 3/2 game",
+    "html": [
+     "<div class=\"col\"><p>Again and again the tape looks like this, with the head at its left end in state A:</p></div>",
+     "<svg viewBox=\"0 0 640 120\" role=\"img\" aria-label=\"the tape at a macro configuration\" style=\"width:100%;max-width:640px;height:auto;font:12px var(--mono)\">\n<polygon points=\"8,40 20,57 8,74\" fill=\"var(--head)\"/><text x=\"4\" y=\"92\" fill=\"var(--head)\">A</text>\n<rect x=\"24\" y=\"40\" width=\"22\" height=\"34\" fill=\"var(--cell0)\" stroke=\"var(--line-strong)\"/>\n<rect x=\"50\" y=\"40\" width=\"330\" height=\"34\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"215\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">(10)^k — the number</text>\n<rect x=\"384\" y=\"40\" width=\"220\" height=\"34\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"494\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">1^m — the countdown</text>\n<text x=\"215\" y=\"28\" text-anchor=\"middle\" fill=\"var(--fg2)\">k → about 3k/2 each step</text><text x=\"494\" y=\"28\" text-anchor=\"middle\" fill=\"var(--fg2)\">m → m−2 (k even) or m−3 (k odd)</text>\n<text x=\"320\" y=\"108\" text-anchor=\"middle\" fill=\"var(--fg2)\">blank tape on both sides</text></svg>",
+     "<div class=\"col\"><p>Between two such moments the head sweeps back and forth about <i>k</i>/2 times: each sweep eats two <code>10</code> pairs at the right of the number and pushes a run of 0s at the left a little further out; at the end the run of 0s is rewritten as a new, longer number. The result is a simple rule: <b>k = 2j becomes 3j + 3 and the countdown loses 2; k = 2j + 1 becomes 3j + 5 and it loses 3</b>. Written with y = k + 6, the number just goes y ↦ ⌈3y/2⌉.</p><p>Each round starts at k = 2, so the numbers are always the same sequence 2, 6, 12, 21, 35, 56, 87, 134, …; only the countdown differs. When the countdown reaches 0, 1, 2 or 3 the round ends in one of three ways, decided by the last parities:</p><ul><li><b>halt</b> (countdown 2, number odd);</li><li><b>run away</b>: the tape is wiped and state D walks right over blank tape forever, writing 1s (countdown 1 with the number even, or 0 with it odd);</li><li><b>a new round</b> with countdown about 3 times the number.</li></ul><p>From blank tape the rounds start with countdowns 6, 41 and 16,169. The third round lasts 6,456 steps of the game, in which the number grows to 1,138 digits, and then ends with a new round whose countdown has <b>1,139 digits</b>. That round would take about 10<sup>1138</sup> steps of the game, each one a full sweep of an astronomically long tape. No computer will ever play it out, and nobody knows how to predict the parities of a 3/2 map without playing it out.</p><p>If the parities behave like fair coins, a round ends in a halt with probability 1/5, runs away with probability 3/10, and starts a new round with probability 1/2. So the machine halts with probability 2/5.</p></div>"
+    ]
+   }
+  ],
+  "title": "A countdown that the 3/2 map keeps winding back up"
+ },
+ "family": "Collatz-like epochs (y ↦ ⌈3y/2⌉ countdown)",
+ "decision": "open",
+ "summary": "Epochs: a countdown m loses 2 or 3 per step of y ↦ ⌈3y/2⌉ by parity; each epoch ends in a halt, an endless run right, or a new epoch with m ≈ 3y. The current epoch ends in a reset to m with 1,139 digits, so deciding it means 10^1138 parity steps; open."
+}

@@ -1,0 +1,126 @@
+{
+ "generated": false,
+ "group": "G06",
+ "title": "What is known about 1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---.",
+ "machine": "1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---",
+ "crumb": "holdouts / 1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The tape is made of the words <code>100</code> and <code>101</code>, grouped into regions. The head works for a long time at the boundary between two regions before it moves on. Full sweeps across the tape come at steps 25,912, 827,042 and 1,021,956,316, ever further apart, as in a nested counter. Lean proves three shift rules. The macro structure has not been decoded."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 36,984 cells have been visited and 24,185 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Shift rules",
+   "text": "<code>b_right</code>: going right, B turns each <code>100</code> into <code>101</code>. <code>b_left</code>: going left, B turns <code>101</code> words back into <code>100</code> words. <code>a_right</code>: going right, A shifts a block of <code>100</code> words by one cell. All three hold for every n and every surrounding tape.",
+   "where": "<code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Rare full sweeps",
+   "text": "The head reaches the left end after having been at the right end at steps 38, 110, 416, 660, 1,070, 1,904, 3,712, 8,212, 25,912, 827,042 and 1,021,956,316. At those times the tape is 12, 19, 37, 44, 55, 71, 102, 149, 238, 1,499 and 37,210 cells wide. No halt in 3&middot;10<sup>9</sup> steps.",
+   "where": "<code>edges</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Why it is hard",
+   "text": "The gaps between full sweeps grow faster than geometrically: 25,912, then 827,042, then about 10<sup>9</sup>. This is the mark of nested counters, where each region of the tape is used up one unit at a time by the region to its left. To decode it, one has to find the counting rule at each kind of boundary, and there are several kinds.",
+   "where": ""
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The machine halts if F reads a 1.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA--- 1000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. The machine spends almost all its time inside the tape, working at the boundaries between regions made of the words 100 and 101. Sweeps across the whole tape get rarer and rarer: one at step 827,042, the next at step 1,021,956,316.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 36,984 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "heuristic",
+    "value": "fixed/sqrt",
+    "text": "The growth shape of the two sides of the tape (see below)."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "words",
+    "eyebrow": "The tape",
+    "heading": "Regions of 100 and 101",
+    "html": [
+     "<p>Cut the tape into words <code>10</code> followed by a 0 or a 1: <code>100</code> and <code>101</code>. On the way right, B turns <code>100</code> into <code>101</code>; on the way left, it turns them back (<code>b_right</code> and <code>b_left</code> in Lean). The head moves back and forth between two neighbouring regions, and the boundary between them creeps along one word at a time.</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>full sweep at step</th><th>tape width</th></tr></thead><tbody><tr><td>3,712</td><td>102</td></tr><tr><td>8,212</td><td>149</td></tr><tr><td>25,912</td><td>238</td></tr><tr><td>827,042</td><td>1,499</td></tr><tr><td>1,021,956,316</td><td>37,210</td></tr></tbody></table></div>",
+     "<p>The gaps between full sweeps grow faster than any fixed ratio, which is typical of nested counters.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.419).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"159.4\" y2=\"159.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"163.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"118.7\" y2=\"118.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"122.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"78.1\" y2=\"78.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"82.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,183.9 L59.2,183.9 L78.4,171.5 L97.6,164.9 L116.8,160.3 L136.0,156.8 L155.2,154.0 L174.4,149.7 L193.6,147.9 L212.8,147.9 L232.0,146.3 L251.2,144.9 L270.4,144.9 L289.6,144.9 L308.8,144.9 L328.0,144.9 L347.2,143.6 L366.4,143.6 L385.6,143.6 L404.8,143.6 L424.0,143.6 L443.2,143.6 L462.4,143.6 L481.6,143.6 L500.8,143.6 L520.0,143.6\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,173.7 L59.2,167.8 L78.4,167.8 L97.6,163.6 L116.8,160.3 L136.0,154.7 L155.2,149.2 L174.4,144.5 L193.6,136.3 L212.8,130.6 L232.0,128.1 L251.2,119.5 L270.4,112.4 L289.6,107.4 L308.8,103.6 L328.0,96.6 L347.2,91.2 L366.4,88.1 L385.6,84.3 L404.8,79.5 L424.0,72.4 L443.2,65.9 L462.4,63.0 L481.6,59.0 L500.8,54.7 L520.0,50.2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 36,984 cells (46 left of the start, 27,523 right), with a density of 1s of 0.654.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>955,888,555</td><td><code>1^2 0^2 1^3 0 1^2 0 1^2 0^2 1^3 0 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0</code></td></tr><tr><td>right</td><td>971,699,614</td><td><code>1^2 0^2 1^3 0 1^2 0 1^2 0^2 1^3 0 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0</code></td></tr><tr><td>right</td><td>987,537,030</td><td><code>1^2 0^2 1^3 0 1^2 0 1^2 0^2 1^3 0 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "Words 100 and 101 in nested regions, each counting off the one to its right; sweeps across the whole tape are rare (the last two at steps 827,042 and 1,021,956,316) and the structure is not yet decoded.",
+ "family": "nested counters in words 100/101 (irregular)"
+}

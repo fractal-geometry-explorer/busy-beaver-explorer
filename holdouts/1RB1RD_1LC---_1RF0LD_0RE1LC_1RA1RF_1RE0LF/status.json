@@ -1,0 +1,149 @@
+{
+ "generated": false,
+ "group": "G13",
+ "title": "What is known about 1RB1RD_1LC---_1RF0LD_0RE1LC_1RA1RF_1RE0LF",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RD_1LC---_1RF0LD_0RE1LC_1RA1RF_1RE0LF.",
+ "machine": "1RB1RD_1LC---_1RF0LD_0RE1LC_1RA1RF_1RE0LF",
+ "crumb": "holdouts / 1RB1RD_1LC---_1RF0LD_0RE1LC_1RA1RF_1RE0LF",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RD_1LC---_1RF0LD_0RE1LC_1RA1RF_1RE0LF/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
+  "The tape is a sequence of the words <code>110</code> and <code>1111</code> in no visible order (with an occasional stray 0 or 1), and the run keeps rewriting it. It grows mainly at the right end, by about 100 cells per tenfold increase in time."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps.",
+  "<b>Where a halt would come from.</b> The machine halts only in state B reading 1, and B is entered only from A reading 0 and stepping right (<code>1RB</code>). In the first 10<sup>8</sup> steps that happens 3,447,235 times and B always reads a 0.",
+  "<b>Why it is hard.</b> No counter or repeating cycle has shown up: macro machines with blocks of 2 to 6 cells do not compress the run (with blocks of k cells, about one macro step per k steps), and the contents of the tape look irregular. A finite-automaton invariant (CTL) with windows of up to 8 cells does not close. A proof would need an invariant that captures why the halting pattern never forms, and none is known."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (B1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 492 cells have been visited and 245 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Slow, irregular growth",
+   "text": "Cells visited (from the C simulator's records): 218 at 10<sup>6</sup>, 292 at 10<sup>7</sup>, 405 at 10<sup>8</sup>, 491 at 10<sup>9</sup>, 652 at 10<sup>10</sup> steps. The tape grows by a roughly constant number of cells per factor of 10 in time.",
+   "where": "<code>tools/c/tmrun.c</code> (records)"
+  },
+  {
+   "level": "trusted",
+   "title": "The halting pattern never forms",
+   "text": "B is entered only from A reading 0 (<code>1RB</code>). In the first 10<sup>8</sup> steps that happens 3,447,235 times and B reads a 0 every time.",
+   "where": "state counts and windows, <code>tools/c/tm.h</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No macro structure found",
+   "text": "Macro machines with blocks of 3 and 6 cells take about one macro step per 3, respectively 6 to 7, steps over 10<sup>7</sup> steps (<code>bbtools.macro</code>), so the run has no long uniform stretches for a shift rule to cross; the accelerator <code>bbtools.cycles</code> (blocks of 4) finds no linear cycle in 10<sup>7</sup> steps.",
+   "where": "<code>tools/py/bbtools/macro.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: fixed/power",
+   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.138).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The run looks chaotic on a slowly growing tape; no structure that would rule out the halting pattern has been found.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RD_1LC---_1RF0LD_0RE1LC_1RA1RF_1RE0LF/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RD_1LC---_1RF0LD_0RE1LC_1RA1RF_1RE0LF 1000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Started on a blank tape, this machine stirs a small tape in an irregular way, growing it only a few cells at a time. This page runs the real machine in your browser and lists what is known.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>10</sup> steps",
+    "text": "No halt in the C simulator."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "trusted",
+    "value": "652 cells",
+    "text": "Visited after 10<sup>10</sup> steps; about logarithmic growth."
+   },
+   {
+    "level": "heuristic",
+    "value": "Chaotic",
+    "text": "No counter, cycle or macro structure found."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "look",
+    "eyebrow": "What it does",
+    "heading": "An irregular, slowly growing tape",
+    "html": [
+     "<p>Read the tape with <code>b = 110</code> and <code>q = 1111</code>. At step 588,948,035, when the tape grows on the right, it is</p>",
+     "<p><code>0 b^3 q b^2 q^2 b q b q^2 b^2 q^5 b q^2 b q b q^3 b^2 q^2 b q^4 &hellip; b q^2 0 q^7 1 1 B&gt;0</code></p>",
+     "<p>491 cells of <code>110</code>s and <code>1111</code>s in no visible order. Width: 218 cells at 10<sup>6</sup> steps, 405 at 10<sup>8</sup>, 652 at 10<sup>10</sup>.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The halting question",
+    "heading": "What a halt would need",
+    "html": [
+     "<p>The machine halts only in state B reading 1, and B is entered only from A reading 0 and stepping right (<code>1RB</code>). In the first 10<sup>8</sup> steps that happens 3,447,235 times and B always reads a 0.</p>",
+     "<p>For a run this irregular, the honest summary is that it behaves like a random process on a tape that grows very slowly, with one forbidden pattern that has never appeared. Whether something forbids it, or it is only unlikely, is not known.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.138).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"134.5\" y2=\"134.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"138.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"69.1\" y2=\"69.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"73.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><path d=\"M40.0,183.6 L59.2,174.1 L78.4,174.1 L97.6,167.3 L116.8,162.0 L136.0,157.7 L155.2,157.7 L174.4,154.0 L193.6,148.1 L212.8,145.6 L232.0,145.6 L251.2,141.3 L270.4,137.7 L289.6,134.5 L308.8,131.7 L328.0,129.3 L347.2,128.1 L366.4,127.0 L385.6,121.3 L404.8,121.3 L424.0,118.9 L443.2,118.2 L462.4,116.0 L481.6,113.5 L500.8,110.6 L520.0,109.1\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,157.7 L59.2,154.0 L78.4,145.6 L97.6,139.4 L116.8,128.1 L136.0,124.0 L155.2,117.4 L174.4,112.3 L193.6,108.1 L212.8,103.3 L232.0,96.5 L251.2,94.3 L270.4,88.8 L289.6,81.5 L308.8,78.6 L328.0,77.0 L347.2,74.5 L366.4,72.7 L385.6,70.7 L404.8,69.5 L424.0,67.0 L443.2,66.0 L462.4,61.1 L481.6,59.4 L500.8,57.9 L520.0,56.4\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 492 cells (46 left of the start, 437 right), with a density of 1s of 0.498.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>500,935,706</td><td><code>0 1^2 0 1^2 0 1^2 0 1^6 0 1^6 0 1^10 0 1^10 0 1^6 0 1^2 0 1^22 0 1^2 0 1^2 0 1^10 0 1^20 0 1^14 0 1^6 0 1^10 0 1^2 0 1^2 0 1^14 0 1^2 0 1^2 0 1^6 0 1^2 0 1^10 0 1^2 0 1^6 0 1^6 0 1^2 0 1^2 0 1^50 0 1^2 0 1^38 0 1^18 0 1^6 0 1^18 0 1^22 0 1^18 0 1^26 0 1^6 0 1^6 0 1^10 0 1^27 F&gt;0</code></td></tr><tr><td>right</td><td>547,946,068</td><td><code>0 1^2 0 1^2 0 1^6 0 1^2 0 1^2 0 1^22 0 1^10 0 1^2 0 1^6 0 1^10 0 1^6 0 1^18 0 1^10 0 1^14 0 1^6 0 1^6 0 1^10 0 1^10 0 1^6 0 1^6 0 1^10 0 1^10 0 1^2 0 1^2 0 1^2 0 1^10 0 1^6 0 1^10 0 1^2 0 1^2 0 1^6 0 1^54 0 1^22 0 1^6 0 1^34 0 1^10 0 1^14 0 1^6 0 1^30 0 1^4 0 1^6 0 1^10 0 1^27 F&gt;0</code></td></tr><tr><td>right</td><td>588,948,032</td><td><code>0 1^2 0 1^2 0 1^2 0 1^6 0 1^2 0 1^10 0 1^6 0 1^10 0 1^2 0 1^22 0 1^10 0 1^6 0 1^14 0 1^2 0 1^10 0 1^18 0 1^2 0 1^2 0 1^6 0 1^18 0 1^10 0 1^2 0 1^2 0 1^10 0 1^6 0 1^6 0 1^10 0 1^2 0 1^26 0 1^22 0 1^2 0 1^18 0 1^10 0 1^10 0 1^10 0 1^22 0 1^46 0 1^6 0 1^26 0 1^2 0 1^10 0 1^8 0 1^27 F&gt;0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "chaotic tape of 110 and 1111 words",
+ "summary": "Rewrites a tape of 110 and 1111 words in an irregular way; grows about 100 cells per tenfold time."
+}

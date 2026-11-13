@@ -1,0 +1,141 @@
+{
+ "generated": false,
+ "group": "G12",
+ "title": "What is known about 1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---.",
+ "machine": "1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---",
+ "crumb": "holdouts / 1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
+  "Its run is a block <code>1^(4j+1)</code> at the left end that grows by four cells per overflow while the gap doubles, so a binary counter is at work, and a word of blocks <code>1</code>, <code>1^5</code>, <code>1^9</code> (binary-like digits) on its right. Each overflow changes the word only from some block on, and that block moves right about two blocks per overflow; when it reaches the end the word is rebuilt and the block at the left end starts again."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in the first 10<sup>11</sup> steps.",
+  "<b>What it does.</b> At each overflow the tape reads <code>C&gt;0 1 0 1^(4j+1) 0 W</code>. Since the last restructure, at step 1,354,998, j has grown by one per overflow, 30 times, to <code>1^125</code> at step 73,018,175,570, and the gap between overflows has doubled (ratio 2.0000 at the last 15). W has 54 to 56 blocks, and the first block that changes from one overflow to the next has moved from block 0 to block 50.",
+  "<b>Why it is hard.</b> The sweep should reach the end of W within a few more overflows (a few times 10<sup>11</sup> steps); what happens then, a restructure or possibly a halt (state F reading a 1), depends on a rule that has not been worked out."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps without a halt; 313 cells visited (282 left of the start, 30 right), 162 ones at the end.",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The overflow configurations of the run",
+   "text": "There are 65 moments in the first 10<sup>11</sup> steps where the head reaches a new cell at the left end with the tape reading <code>C&gt;0 1 0 1^k 0 W</code>. From step 830 on k has the form 4j+1 and rises by 4 from each to the next, except at restructures where it falls back to 5: at steps 1,525, 4,520, 166,083 and 1,354,998. The last is at step 73,018,175,570 with k = 125.",
+   "where": "<code>tmrun ... records</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The change sweeps through W",
+   "text": "Comparing W at successive overflows since step 1,354,998, the first block that differs moves right, from block 0 to block 50 of the 54 to 56 blocks of W (by 0 to 6 blocks per overflow, 1.7 on average). The gap between overflows doubled exactly (ratio 2.0000 to four digits) at the last 15.",
+   "where": "<code>tmrun ... records</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A restructure is due soon",
+   "text": "If, as in the similar machine 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB, the epoch ends when the sweep reaches the end of W (not checked for the earlier epochs of this machine), then at its current pace that happens in two or three more overflows, near 1.5&middot;10<sup>11</sup> to 3&middot;10<sup>11</sup> steps.",
+   "where": "the records of the 10<sup>11</sup>-step run"
+  },
+  {
+   "level": "heuristic",
+   "title": "No simple arithmetic rule",
+   "text": "Reading W as a binary number N, N changes by roughly 3&middot;4<sup>j&minus;1</sup> per overflow, but the rule fails when the machine is started from constructed configurations with arbitrary low digits, so the run depends on the particular words it writes.",
+   "where": "experiments with a direct simulator started from given tapes"
+  },
+  {
+   "level": "open",
+   "title": "The restructures, and the question itself",
+   "text": "Not known: the per-overflow rule for W, the restructure rule, and whether the machine halts. A closed tape language that confined the halt to the left edge looked plausible in Python but failed Lean's check, so no edge theorem is claimed.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---/lean/check.sh",
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB--- 100000000000 records 100000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>11</sup> steps without stopping. A block at its left end grows by four cells each time a counter overflows, at doubling gaps, and each overflow pushes a change further through the word on its right. This page runs the real machine in your browser and lists what is known.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator; 313 cells visited."
+   },
+   {
+    "level": "trusted",
+    "value": "<code>1^125</code>",
+    "text": "The counter block at step 73,018,175,570, 30 overflows into the epoch."
+   },
+   {
+    "level": "heuristic",
+    "value": "&times;2",
+    "text": "The gap between overflows doubles."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "family",
+    "eyebrow": "Macro structure",
+    "heading": "A growing block and a sweep",
+    "html": [
+     "<p>Stop the simulator whenever the head reaches a new cell at the left end with the tape reading <code>C&gt;0 1 0 1^k 0 W</code>. Since step 1,354,998, k has gone 5, 9, 13, &hellip;, 125, four cells at a time, while the gap between these moments doubled: a block in unary that grows by one unit per doubling, so a binary counter overflows each time. W is a word of blocks <code>1</code>, <code>1^5</code> and <code>1^9</code>.</p><p>Each overflow changes W only from some block on, and that block moves right:</p><table><tr><th>step</th><th>k</th><th>first changed block of W</th></tr><tr><td>1,355,994</td><td>21</td><td>4</td></tr><tr><td>19,181,220</td><td>77</td><td>22</td></tr><tr><td>1,142,242,574</td><td>101</td><td>34</td></tr><tr><td>73,018,175,570</td><td>125</td><td>50</td></tr></table><p>W has 54 to 56 blocks.</p>"
+    ]
+   },
+   {
+    "id": "restructure",
+    "eyebrow": "Why it is open",
+    "heading": "Restructures",
+    "html": [
+     "<p>The block at the left end fell back to <code>1^5</code> at steps 1,525, 4,520, 166,083 and 1,354,998, and each time the word on its right was rewritten. The current epoch has run for 30 overflows, and the sweep is four blocks from the end of W; if the epoch ends when the sweep reaches the end, the next restructure comes within two or three overflows, at a few times 10<sup>11</sup> steps.</p><p>The machine halts only in state F reading a 1. Started from constructed configurations of the same shape with arbitrary words, the per-overflow change of W follows no simple rule, so whether the run stays safe depends on the words it writes at restructures, which have not been decoded.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.024). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"128.7\" y2=\"128.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"132.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"57.3\" y2=\"57.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"61.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><path d=\"M40.0,164.3 L59.2,149.9 L78.4,146.5 L97.6,138.3 L116.8,124.2 L136.0,119.3 L155.2,108.5 L174.4,98.3 L193.6,96.0 L212.8,86.9 L232.0,84.5 L251.2,83.4 L270.4,82.3 L289.6,81.3 L308.8,71.8 L328.0,70.4 L347.2,69.7 L366.4,61.8 L385.6,60.9 L404.8,60.4 L424.0,60.0 L443.2,59.5 L462.4,59.1 L481.6,58.7 L500.8,58.2 L520.0,57.8\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,171.7 L59.2,158.6 L78.4,153.9 L97.6,146.5 L116.8,140.8 L136.0,134.0 L155.2,125.6 L174.4,121.7 L193.6,119.3 L212.8,119.3 L232.0,119.3 L251.2,119.3 L270.4,119.3 L289.6,117.2 L308.8,114.3 L328.0,114.3 L347.2,114.3 L366.4,111.6 L385.6,111.6 L404.8,111.6 L424.0,111.6 L443.2,111.6 L462.4,111.6 L481.6,111.6 L500.8,111.6 L520.0,111.6\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 285 cells (250 left of the start, 30 right), with a density of 1s of 0.53.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>571,798,693</td><td><code>C&gt;0 0 1 0 1^93 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1 0 1^5 0 1^5 0 1 0 1 0 1 0 1^5 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1^5 0 1^5 0 1 0 1 0 1^9 0 1^5 0 1^5 0 1 0 1 0 1 0 1^5 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "counter in a unary block, sweeping a change through a word",
+ "summary": "Open. No halt in 10^11 steps. A block of 1s at the left end grows by four cells per overflow while the gap between overflows doubles, and each overflow moves the place where the word on its right changes about two blocks to the right; the sweep is near the end of the word at 7.3·10^10 steps."
+}

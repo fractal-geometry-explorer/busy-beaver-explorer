@@ -1,0 +1,149 @@
+{
+ "generated": false,
+ "group": "G09",
+ "family": "collect/expand counter (×7 per round)",
+ "summary": "A left block of seven-cell words (1011001)^p and a right block (011)^q trade places: q is collected into p one for one, then p is expanded back into q seven for one, so each round is about 7 times longer (602, 4,374, 30,497 words); a third block at the far right grows in steps (95, 209, 403, 1,111).",
+ "decision": "open",
+ "title": "What is known about 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA.",
+ "machine": "1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA",
+ "crumb": "holdouts / 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The run alternates two long phases that move a block of seven-cell words into a block of three-cell words and back, about seven times larger each round. The sweeps over the blocks are proved in Lean (kernel); the turnaround at the right end is an inner zigzag that is not yet stated as a rule."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 43,491 cells have been visited and 26,502 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: sqrt/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.498). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.478).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Sweeps over the long blocks",
+   "text": "<code>L A&gt;(0011011)^n R</code> &rarr; <code>L (1100110)^n A&gt; R</code> (13n steps), <code>L (1011001)^n D&gt;1 R</code> &rarr; <code>L D&gt;1 (0110110)^n R</code> (23n steps), <code>L A&gt;(011)^n R</code> &rarr; <code>L (110)^n A&gt; R</code> (3n steps), for every n, L, R.",
+   "where": "<code>a_right</code>, <code>d_left</code>, <code>a_right3</code> in <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Rounds",
+   "text": "Collect phase (q into p, 1 for 1): p = 602 at step 1.3&middot;10<sup>7</sup>, 4,374 at 6.2&middot;10<sup>8</sup>; expand phase (p into q, 1 for 7): q = 4,134 at 1.1&middot;10<sup>8</sup>, 30,497 at 5.6&middot;10<sup>9</sup>.",
+   "where": "C run, <code>c/ev.c</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The phase rules are measured, not proved: each visit of the right end runs an inner zigzag whose length grows with the block, which the automatic prover does not compress.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA 1000000000",
+  ". /etc/profile.d/lean.sh && holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/lean/check.sh   # Rules.lean",
+  "gcc -O2 -o ev holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/c/ev.c && ./ev 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA 2000000000 L E 1 100000 12 | awk 'NR%300==0'"
+ ],
+ "explainer": {
+  "lede": "Nobody knows yet. This machine moves a block back and forth between two forms: one word of seven cells for each word of three cells when it collects, seven words of three cells for each word of seven when it expands. Each round is about seven times longer than the last.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "3 sweeps",
+    "text": "Shift rules over the long blocks, proved in Lean."
+   },
+   {
+    "level": "heuristic",
+    "value": "&times;7",
+    "text": "Growth from one round to the next."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 43,491 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "heuristic",
+    "value": "sqrt/sqrt",
+    "text": "The growth shape of the two sides of the tape (see below)."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.498). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.478).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"157.6\" y2=\"157.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"161.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"115.2\" y2=\"115.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"119.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"72.7\" y2=\"72.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"76.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,175.4 L59.2,175.4 L78.4,170.2 L97.6,163.3 L116.8,160.8 L136.0,156.7 L155.2,153.4 L174.4,147.5 L193.6,145.6 L212.8,141.8 L232.0,136.1 L251.2,131.3 L270.4,127.9 L289.6,121.9 L308.8,114.5 L328.0,108.9 L347.2,105.0 L366.4,101.2 L385.6,95.2 L404.8,88.0 L424.0,82.1 L443.2,77.9 L462.4,74.1 L481.6,69.8 L500.8,61.9 L520.0,55.6\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,175.4 L59.2,175.4 L78.4,170.2 L97.6,166.4 L116.8,160.8 L136.0,156.7 L155.2,150.8 L174.4,146.5 L193.6,139.3 L212.8,133.5 L232.0,128.8 L251.2,123.4 L270.4,117.4 L289.6,112.5 L308.8,108.0 L328.0,102.1 L347.2,96.1 L366.4,91.0 L385.6,86.1 L404.8,81.7 L424.0,76.2 L443.2,69.7 L462.4,64.4 L481.6,59.4 L500.8,54.9 L520.0,50.6\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 43,491 cells (12,594 left of the start, 17,410 right), with a density of 1s of 0.609.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>955,905,721</td><td><code>E&gt;0 1 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0</code></td></tr><tr><td>left</td><td>971,976,277</td><td><code>E&gt;0 1 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0</code></td></tr><tr><td>left</td><td>987,704,249</td><td><code>E&gt;0 1 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0</code></td></tr><tr><td>right</td><td>956,685,805</td><td><code>1 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1</code></td></tr><tr><td>right</td><td>972,322,623</td><td><code>1 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1</code></td></tr><tr><td>right</td><td>988,040,901</td><td><code>1 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1^2 0^2 1</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "words",
+    "eyebrow": "Tape as words",
+    "heading": "Two blocks that trade places",
+    "html": [
+     "<p>At the left end (state E) the tape reads</p><p style='text-align:center'><code>0 (1011001)^p (101)^5 1 0 (011)^q 0000 (110)^r</code></p>",
+     "<p>(collect phase, e.g. step 5,800,574,389: <code>0 (1011001)^211 (101)^5 1 0 (011)^30578 0000 (110)^1111</code>) or</p><p style='text-align:center'><code>0 (1011001)^p 1 0 1 1 0^5 1 1 0 1 1 0 0 1 (10)^3 (110)^q 000 (110)^r</code></p><p>(expand phase, e.g. step 708,092,141: p = 4,290, q = 740, r = 1,111).</p>"
+    ]
+   },
+   {
+    "id": "phases",
+    "eyebrow": "Macro behaviour",
+    "heading": "Collect and expand",
+    "html": [
+     "<table><thead><tr><th>phase</th><th>change</th><th>per</th></tr></thead><tbody><tr><td>collect</td><td>p + 1, q &minus; 1</td><td>visit of the left end</td></tr><tr><td>expand</td><td>p &minus; 2, q + 14</td><td>four visits</td></tr></tbody></table>",
+     "<p>Collecting turns three cells into seven, so the tape grows at the left end; expanding turns one seven-cell word into seven three-cell words. Each phase runs until its source block is empty, so the round map is roughly q &rarr; 7q:</p>",
+     "<table><thead><tr><th>step</th><th>block</th></tr></thead><tbody><tr><td>13,427,273</td><td>p = 602 (collected)</td></tr><tr><td>112,813,341</td><td>q = 4,134 (expanded)</td></tr><tr><td>617,145,533</td><td>p = 4,374</td></tr><tr><td>5,639,901,953</td><td>q = 30,497</td></tr></tbody></table>",
+     "<p>Between rounds, a short pump phase moves part of the left block into the third block <code>(110)^r</code> at the far right (95 &rarr; 209 &rarr; 403 &rarr; 665 &rarr; 1,111). At each visit of the right end the head runs an inner zigzag along the end of the right block, which is why the per-visit rule is not yet proved. The only halting transition is F on a 0; F is entered only from D on a 1 (D writes 0 and moves left).</p>"
+    ]
+   }
+  ]
+ }
+}

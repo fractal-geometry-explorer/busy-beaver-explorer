@@ -16,6 +16,11 @@ on:
       - "tools/lean/**"
   workflow_dispatch:
 
+# A newer push to the same branch or pull request replaces the run in progress.
+concurrency:
+  group: return62-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 

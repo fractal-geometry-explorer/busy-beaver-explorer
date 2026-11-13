@@ -1,0 +1,201 @@
+{
+ "generated": false,
+ "group": "G13",
+ "title": "What is known about 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD.",
+ "machine": "1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD",
+ "crumb": "holdouts / 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is mostly two blocks: an alternating block <code>(10)^x</code> and a solid block <code>1^y</code>. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 2 cells) finds no halt in the first 10<sup>15</sup> steps.",
+  "<b>What Lean proves.</b> The whole frame map: 8 tape shapes, 78 cases, each proved for all sizes by a symbolic run (<code>next_sound</code>), and the cases where the map is undefined halt (<code>none_halts</code>). So the machine halts from blank tape if and only if the map, iterated from the frame the run reaches after 2 steps, reaches one of those cases (<code>halts_iff</code>). By <code>native_decide</code> the first 10<sup>8</sup> frames (about 4.5&middot;10<sup>11</sup> machine steps) do not. Whether the orbit ever does is open."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 4,302 cells have been visited and 3,792 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: power/power",
+   "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.321). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.347).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>15</sup> steps",
+   "text": "An exact macro simulator (blocks of 2 cells) runs 10<sup>15</sup> steps without a halt. The macro simulator cuts the tape into blocks of K cells, run-length codes them, and crosses a whole run at once when the head leaves it on the far side in the state it entered with; it agrees with the plain simulator <code>tools/c/tmrun</code> cell for cell.",
+   "where": "<code>holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/c/mrun.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Two blocks trading length",
+   "text": "At the moments the head reaches a new cell between steps 9.79&middot;10<sup>7</sup> and 9.94&middot;10<sup>7</sup>, the tape is an alternating block and a solid block plus a few cells, with lengths (806, 336), (672, 604), (540, 874), (722, 513).",
+   "where": "<code>tools/c/tmrun.c</code> records"
+  },
+  {
+   "level": "trusted",
+   "title": "The halting state, seen from the run",
+   "text": "In the first 10<sup>8</sup> steps state F was entered 83,257 times, always reading a 1 (F0 halts).",
+   "where": "<code>c/sstat.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The frame map agrees with the machine on a grid",
+   "text": "For each of the 8 frames and every canonical choice of sizes below 16, the machine reaches exactly the frame, sizes and step count the fitted map predicts (30,736 frames, <code>py/framemap.py verify 16</code>). The map is now proved in Lean; this check is how it was found.",
+   "where": "<code>py/framemap.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The frame map agrees with the run",
+   "text": "Run from blank tape next to the machine, the fitted map predicts the whole tape at each of the 48,691 frames in the first 5&middot;10<sup>6</sup> steps (<code>py/framemap.py real 5000000</code>).",
+   "where": "<code>py/framemap.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The whole frame map",
+   "text": "<code>next</code> in <code>lean/Phases.lean</code> sends each of the 8 frames to the next one the machine reaches, in 78 cases; <code>next_sound</code> proves every case for all parameters, each from a symbolic run in <code>lean/Pieces.lean</code> (generated by <code>py/pieces.py</code>) glued by <code>tape_eq</code>. Where <code>next</code> is undefined (<code>.z 1 1 1</code>, <code>.w l 0 1</code>, <code>.w l 1 0</code>, <code>.W l 0 1</code>, <code>.W l 1 0</code>) the machine halts (<code>none_halts</code>).",
+   "where": "<code>lean/Phases.lean</code>, <code>lean/Pieces.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Halts if and only if the map reaches an undefined case",
+   "text": "<code>init_start</code>: the run from blank tape reaches <code>Ph.z 0 0 2</code> after 2 steps. <code>halts_iff</code>: the machine halts from blank tape if and only if some iterate of <code>next</code> from there is a frame where <code>next</code> is <code>none</code>.",
+   "where": "<code>lean/Phases.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>8</sup> frames",
+   "text": "<code>no_halt_phases</code>, by <code>native_decide</code>: the first 10<sup>8</sup> iterates are defined. By the step counts of the fitted map (<code>py/framemap.py run 100000000</code>) that is about 4.5&middot;10<sup>11</sup> machine steps.",
+   "where": "<code>lean/Phases.lean</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD 1000000000",
+  "python3 holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/py/framemap.py verify 26",
+  "gcc -O2 -o mrun holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/c/mrun.c && ./mrun 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD 2 1000000000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Its tape is an alternating block and a solid block whose lengths trade back and forth; each pass rewrites one block into the other.",
+  "facts": [
+   {
+    "level": "native",
+    "value": "10<sup>8</sup> frames",
+    "text": "No halt in the first 10<sup>8</sup> frames of the frame map proved in Lean (about 4.5&middot;10<sup>11</sup> machine steps)."
+   },
+   {
+    "level": "kernel",
+    "value": "<code>halts_iff</code>",
+    "text": "It halts if and only if the frame map, iterated from the first frame, reaches a frame where it is undefined."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>15</sup> steps",
+    "text": "No halt in an exact macro simulator (blocks of 2 cells)."
+   },
+   {
+    "level": "heuristic",
+    "value": "two blocks",
+    "text": "An alternating and a solid block trade length."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 4,302 cells visited."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "structure",
+    "eyebrow": "Macro structure",
+    "heading": "What the machine does",
+    "html": [
+     "<p>Stop the machine whenever its head first reaches a new cell. With <code>a</code> for <code>10</code>, around step 9.8&middot;10<sup>7</sup>:</p>",
+     "<ul><li>step 97,915,409: <code>D&gt;0 a^2 1 a^802 1^338</code> (left end)</li><li>step 97,921,865: <code>A&gt;0^2 a^806 1^336</code> (left end)</li><li>step 98,376,215: <code>1^2 a 1^604 a^672 C&gt;0</code> (right end)</li><li>step 98,837,298: <code>A&gt;0^2 a^540 1^874</code> (left end)</li><li>step 99,362,025: <code>C&gt;0^2 a^722 1^513</code> (left end)</li></ul>",
+     "<p>The tape is two long blocks, one alternating and one solid, and at successive moments their lengths trade: 806 copies of <code>10</code> and 336 ones, then 604 ones and 672 copies of <code>10</code>, then 540 and 874, then 722 and 513. Rewriting a block of length x costs about x passes of length x, so the width grows like the cube root of the step count. The shape is the one of the three machines <code>1RB1RD_0LC1RA_&hellip;_1RF0LD_---0RE</code>, where one block doubles at the other's expense; the exact rules here have not been worked out.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "The halting transition",
+    "heading": "Where a halt would have to come from",
+    "html": [
+     "<p>The halting transition is F reading a 0. F is entered only from E reading a 0 (<code>1RF</code>), so a halt needs <code>E&gt;0 0</code>. In the first 10<sup>8</sup> steps F was entered 83,257 times, every time on a 1, and 82,807 of those times at least 7 cells from the left end.</p>",
+     "<p>Whether the trading ever leaves E in front of two 0s is open.</p>"
+    ]
+   },
+   {
+    "id": "frame-map",
+    "eyebrow": "Proof",
+    "heading": "The frame map in Lean",
+    "html": [
+     "<p>The frames (blank tape outside; <code>X</code> is the head in state X on the next cell; <code>u^v</code> is v copies of u, so <code>11^L</code> is 2L ones; a frame counts only at a moment where the head turns round):</p>",
+     "<ul><li><code>z</code>: <code>1^L 10^j C 1^R</code></li><li><code>y</code>: <code>1^L A 10 10^j 1^R</code></li><li><code>w</code>: <code>1^L C 00 10^j 1^R</code></li><li><code>u</code>: <code>1^L 10^j 1 A 00 1^R</code></li><li><code>Z</code>: <code>1110 1^L 10^j C 1^R</code></li><li><code>Y</code>: <code>1110 1^L A 10 10^j 1^R</code></li><li><code>W</code>: <code>1110 1^L C 00 10^j 1^R</code></li><li><code>U</code>: <code>1110 1^L 10^j 1 A 00 1^R</code></li></ul>",
+     "<p>The map <code>next</code> (Lean names; each variable a natural number):</p>",
+     "<pre>def next : Ph → Option Ph\n  | .z 0 0 0 =&gt; some (.w (0) (0) (4))\n  | .z (l + 1) 0 0 =&gt; some (.y (l) (0) (2))\n  | .z l (j + 1) 0 =&gt; some (.u (l) (j) (2))\n  | .z 0 0 (r + 1) =&gt; some (.w (0) (0) (r + 1))\n  | .z 0 (j + 1) (r + 1) =&gt; some (.w (0) (j + 1) (r + 1))\n  | .z 1 0 (r + 1) =&gt; some (.w (0) (0) (r + 3))\n  | .z 1 1 1 =&gt; none\n  | .z 1 1 2 =&gt; some (.Y (1) (0) (1))\n  | .z 1 1 3 =&gt; some (.U (2) (0) (2))\n  | .z 1 1 (r + 4) =&gt; some (.Y (3) (0) (r + 1))\n  | .z 1 2 1 =&gt; some (.Z (4) (0) (0))\n  | .z 1 2 2 =&gt; some (.Y (2) (0) (2))\n  | .z 1 2 (r + 3) =&gt; some (.U (3) (0) (r + 1))\n  | .z 1 (j + 3) (r + 1) =&gt; some (.W (4) (j) (r + 1))\n  | .z (l + 2) 0 (r + 1) =&gt; some (.y (l) (0) (r + 1))\n  | .z (l + 2) (j + 1) (r + 1) =&gt; some (.y (l) (j + 1) (r + 1))\n  | .y 0 0 0 =&gt; some (.w (0) (0) (4))\n  | .y 0 (j + 1) 0 =&gt; some (.u (0) (j) (2))\n  | .y 0 j 1 =&gt; some (.u (0) (j) (2))\n  | .y 0 j (r + 2) =&gt; some (.z (0) (j + 1) (r + 1))\n  | .y (l + 1) 0 0 =&gt; some (.u (l) (0) (2))\n  | .y (l + 1) (j + 1) 0 =&gt; some (.u (l) (j + 1) (2))\n  | .y (l + 1) j 1 =&gt; some (.u (l) (j + 1) (2))\n  | .y (l + 1) j (r + 2) =&gt; some (.z (l) (j + 2) (r + 1))\n  | .w 0 0 0 =&gt; some (.w (0) (0) (4))\n  | .w (l + 1) 0 0 =&gt; some (.y (l) (0) (2))\n  | .w l 0 1 =&gt; none\n  | .w l 0 2 =&gt; some (.y (l + 1) (0) (1))\n  | .w l 0 3 =&gt; some (.u (l + 2) (0) (2))\n  | .w l 0 (r + 4) =&gt; some (.y (l + 3) (0) (r + 1))\n  | .w l 1 0 =&gt; none\n  | .w l 1 1 =&gt; some (.z (l + 4) (0) (0))\n  | .w l 1 2 =&gt; some (.y (l + 2) (0) (2))\n  | .w l 1 (r + 3) =&gt; some (.u (l + 3) (0) (r + 1))\n  | .w l 2 0 =&gt; some (.z (l + 4) (0) (0))\n  | .w l (j + 3) 0 =&gt; some (.w (l + 4) (j) (1))\n  | .w l (j + 2) (r + 1) =&gt; some (.w (l + 4) (j) (r + 1))\n  | .u 0 0 r =&gt; some (.w (0) (0) (r + 4))\n  | .u (l + 1) 0 r =&gt; some (.y (l) (0) (r + 2))\n  | .u l (j + 1) r =&gt; some (.u (l) (j) (r + 2))\n  | .Z 0 0 0 =&gt; some (.u (2) (0) (2))\n  | .Z 0 (j + 1) 0 =&gt; some (.u (2) (j + 1) (2))\n  | .Z 0 0 (r + 1) =&gt; some (.y (0) (1) (r + 1))\n  | .Z 0 (j + 1) (r + 1) =&gt; some (.y (0) (j + 2) (r + 1))\n  | .Z (l + 1) 0 0 =&gt; some (.Y (l) (0) (2))\n  | .Z (l + 1) (j + 1) 0 =&gt; some (.U (l + 1) (j) (2))\n  | .Z 1 0 (r + 1) =&gt; some (.u (2) (0) (r + 1))\n  | .Z 1 (j + 1) (r + 1) =&gt; some (.y (5) (j + 1) (r + 1))\n  | .Z (l + 2) 0 (r + 1) =&gt; some (.Y (l) (0) (r + 1))\n  | .Z (l + 2) (j + 1) (r + 1) =&gt; some (.Y (l) (j + 1) (r + 1))\n  | .Y 0 j 0 =&gt; some (.y (0) (1) (2 * j + 4))\n  | .Y 0 j 1 =&gt; some (.y (0) (1) (2 * j + 6))\n  | .Y 0 j (r + 2) =&gt; some (.w (3) (j + 1) (r + 1))\n  | .Y 1 0 0 =&gt; some (.u (2) (1) (2))\n  | .Y 1 (j + 1) 0 =&gt; some (.u (2) (j + 2) (2))\n  | .Y 1 j 1 =&gt; some (.u (2) (j + 2) (2))\n  | .Y 1 j (r + 2) =&gt; some (.z (2) (j + 3) (r + 1))\n  | .Y (l + 2) 0 0 =&gt; some (.U (l + 1) (0) (2))\n  | .Y (l + 2) (j + 1) 0 =&gt; some (.U (l + 1) (j + 1) (2))\n  | .Y (l + 2) j 1 =&gt; some (.U (l + 1) (j + 1) (2))\n  | .Y (l + 2) j (r + 2) =&gt; some (.Z (l + 1) (j + 2) (r + 1))\n  | .W 0 0 0 =&gt; some (.u (2) (0) (2))\n  | .W (l + 1) 0 0 =&gt; some (.Y (l) (0) (2))\n  | .W l 0 1 =&gt; none\n  | .W l 0 2 =&gt; some (.Y (l + 1) (0) (1))\n  | .W l 0 3 =&gt; some (.U (l + 2) (0) (2))\n  | .W l 0 (r + 4) =&gt; some (.Y (l + 3) (0) (r + 1))\n  | .W l 1 0 =&gt; none\n  | .W l 1 1 =&gt; some (.Z (l + 4) (0) (0))\n  | .W l 1 2 =&gt; some (.Y (l + 2) (0) (2))\n  | .W l 1 (r + 3) =&gt; some (.U (l + 3) (0) (r + 1))\n  | .W l 2 0 =&gt; some (.Z (l + 4) (0) (0))\n  | .W l (j + 3) 0 =&gt; some (.W (l + 4) (j) (1))\n  | .W l (j + 2) (r + 1) =&gt; some (.W (l + 4) (j) (r + 1))\n  | .U 0 0 r =&gt; some (.u (2) (0) (r + 2))\n  | .U 0 (j + 1) r =&gt; some (.u (2) (j + 1) (r + 2))\n  | .U (l + 1) 0 r =&gt; some (.Y (l) (0) (r + 2))\n  | .U (l + 1) (j + 1) r =&gt; some (.U (l + 1) (j) (r + 2))</pre>",
+     "<p>The map was found by fitting the machine's runs (<code>py/framemap.py</code>) and collapsing the fit into cases (<code>py/pieces.py</code>); Lean then checks every case for all sizes. It is undefined only at <code>.z 1 1 1</code>, <code>.w l 0 1</code>, <code>.w l 1 0</code>, <code>.W l 0 1</code>, <code>.W l 1 0</code>, and those halt. So the open question is exactly whether the orbit of <code>Ph.z 0 0 2</code> reaches one of them; the first 10<sup>8</sup> frames do not.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.321). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.347).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"147.4\" y2=\"147.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"151.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"94.7\" y2=\"94.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"98.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"42.1\" y2=\"42.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"46.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,179.1 L59.2,166.0 L78.4,163.1 L97.6,163.1 L116.8,154.5 L136.0,151.3 L155.2,144.1 L174.4,140.5 L193.6,130.5 L212.8,126.1 L232.0,122.3 L251.2,116.8 L270.4,111.8 L289.6,108.2 L308.8,103.4 L328.0,97.4 L347.2,94.2 L366.4,88.0 L385.6,82.5 L404.8,78.5 L424.0,74.3 L443.2,70.2 L462.4,65.6 L481.6,61.8 L500.8,57.5 L520.0,53.2\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,169.5 L59.2,169.5 L78.4,169.5 L97.6,160.5 L116.8,160.5 L136.0,154.5 L155.2,149.9 L174.4,143.1 L193.6,138.2 L212.8,133.1 L232.0,128.6 L251.2,125.0 L270.4,122.0 L289.6,116.6 L308.8,111.7 L328.0,109.1 L347.2,104.1 L366.4,99.9 L385.6,96.5 L404.8,92.3 L424.0,88.6 L443.2,84.3 L462.4,80.1 L481.6,75.7 L500.8,70.6 L520.0,65.7\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 4,302 cells (2,289 left of the start, 1,181 right), with a density of 1s of 0.881.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>960,908,976</td><td><code>C&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>978,463,966</td><td><code>A&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>996,611,172</td><td><code>A&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>956,082,659</td><td><code>1^1971 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>971,819,859</td><td><code>1^3524 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>993,561,919</td><td><code>1^2617 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "doubling between an alternating and a solid block",
+ "summary": "Its tape is an alternating block and a solid block whose lengths trade back and forth; each pass rewrites one block into the other."
+}

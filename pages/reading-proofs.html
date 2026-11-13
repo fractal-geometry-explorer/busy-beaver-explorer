@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reading the Proofs</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Layout: one reading column; code panels and tools break out to a wider measure. Lean is violet-blue, Coq is copper. */
+:root {
+  --bg: #f3f5f8; --surface: #ffffff; --sunk: #e9edf2; --ink: #17202b; --muted: #566473; --rule: #d3dae3;
+  --lean: #3f4bb8; --lean-soft: #e6e8fa; --coq: #a2541a; --coq-soft: #f8eadc;
+  --accent: #0f6f7c; --accent-soft: #dcf0f2; --sel: #fff3c4;
+  --kernel: #1d7a46; --native: #9a6a00; --trusted: #2f6394; --heur: #7a4a9c; --open: #b0343c;
+  --cell1: #17202b; --cell1-ink: #ffffff; --cell0: #ffffff;
+  --f-head: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: Inter, "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --r: 8px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12171e; --surface: #1a212b; --sunk: #222b37; --ink: #e6ebf1; --muted: #9aa8b8; --rule: #323d4c;
+  --lean: #a5aeff; --lean-soft: #262c58; --coq: #f0a56b; --coq-soft: #4a2e17;
+  --accent: #5fc7d3; --accent-soft: #173a40; --sel: #4b4215;
+  --kernel: #5fcf8f; --native: #e5b84a; --trusted: #7fb3e6; --heur: #c59be6; --open: #f0808a;
+  --cell1: #e6ebf1; --cell1-ink: #12171e; --cell0: #1a212b;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12171e; --surface: #1a212b; --sunk: #222b37; --ink: #e6ebf1; --muted: #9aa8b8; --rule: #323d4c;
+  --lean: #a5aeff; --lean-soft: #262c58; --coq: #f0a56b; --coq-soft: #4a2e17;
+  --accent: #5fc7d3; --accent-soft: #173a40; --sel: #4b4215;
+  --kernel: #5fcf8f; --native: #e5b84a; --trusted: #7fb3e6; --heur: #c59be6; --open: #f0808a;
+  --cell1: #e6ebf1; --cell1-ink: #12171e; --cell0: #1a212b;
+  color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.6; }
+.page { max-width: 1040px; margin: 0 auto; padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 44px; }
+.prose { max-width: 68ch; display: flex; flex-direction: column; gap: 12px; }
+h1, h2, h3 { font-family: var(--f-head); font-weight: 600; line-height: 1.2; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); letter-spacing: -0.01em; }
+h2 { font-size: 1.45rem; }
+h3 { font-size: 1.05rem; }
+p, ul, ol { margin: 0; }
+ul, ol { padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; }
+section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 64px; }
+code, .mono { font-family: var(--f-mono); font-size: 0.86em; }
+p code, li code, td code { background: var(--sunk); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.lede { font-size: 1.1rem; color: var(--muted); max-width: 62ch; }
+.eyebrow { font-size: 0.78rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+nav.toc { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
+  border-bottom: 1px solid var(--rule); margin-block: -16px; padding-block: 10px; display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 0.9rem; }
+nav.toc a { text-decoration: none; color: var(--muted); font-weight: 500; }
+nav.toc a:hover { color: var(--accent); }
+
+.lang { display: inline-block; font-family: var(--f-mono); font-size: 0.72rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; vertical-align: 0.1em; }
+.lang.lean { background: var(--lean-soft); color: var(--lean); }
+.lang.coq { background: var(--coq-soft); color: var(--coq); }
+
+.steps { counter-reset: s; list-style: none; padding: 0; gap: 10px; max-width: 72ch; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 2rem 1fr; gap: 10px; align-items: baseline; }
+.steps li::before { content: counter(s); font-family: var(--f-head); font-weight: 600; color: var(--accent); font-size: 1.1rem; }
+
+.shape { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); overflow-x: auto; }
+.shape pre { margin: 0; padding: 14px 16px; font-family: var(--f-mono); font-size: 0.84rem; line-height: 1.7; }
+.shape .n { color: var(--accent); font-weight: 600; } .shape .s { background: var(--sel); border-radius: 3px; padding: 1px 2px; } .shape .p { color: var(--muted); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 12px; }
+.two > * { min-width: 0; }
+.cap { font-size: 0.86rem; color: var(--muted); }
+
+/* tool */
+.tool { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: inherit; }
+.chip { border: 1px solid var(--rule); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 4px 12px; font-size: 0.86rem; cursor: pointer; }
+.chip:hover { border-color: var(--accent); }
+.chip[aria-pressed="true"], .chip[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+textarea, input[type="text"], input[type="search"] { font-family: var(--f-mono); font-size: 0.84rem; color: var(--ink); background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; width: 100%; box-sizing: border-box; }
+textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
+label { font-size: 0.82rem; color: var(--muted); font-weight: 500; display: flex; flex-direction: column; gap: 4px; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; }
+.out { display: flex; flex-direction: column; gap: 10px; }
+.outlabel { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.tape { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 3px; padding: 12px; background: var(--sunk); border-radius: 6px; min-height: 30px; }
+.cell { width: 22px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-family: var(--f-mono); font-size: 0.82rem; border: 1px solid var(--muted); border-radius: 3px; background: var(--cell0); color: var(--ink); }
+.cell.one { background: var(--cell1); color: var(--cell1-ink); border-color: var(--cell1); }
+.cell.head { box-shadow: 0 0 0 2px var(--accent); }
+.run { display: inline-flex; align-items: center; gap: 2px; padding: 3px 4px; border: 1.5px dashed var(--accent); border-radius: 6px; margin-right: 2px; }
+.exp { font-family: var(--f-mono); font-size: 0.8rem; color: var(--accent); font-weight: 600; align-self: flex-start; margin: -4px 4px 0 2px; white-space: nowrap; }
+.headmark { font-family: var(--f-mono); font-weight: 600; font-size: 0.86rem; color: var(--bg); background: var(--accent); border-radius: 4px; padding: 3px 6px; margin-inline: 4px 1px; }
+.rest { font-family: var(--f-mono); font-size: 0.82rem; color: var(--muted); padding-inline: 4px; }
+.plain { font-family: var(--f-mono); font-size: 0.86rem; background: var(--sunk); border-radius: 6px; padding: 10px 12px; overflow-x: auto; white-space: nowrap; }
+.err { color: var(--open); font-size: 0.9rem; }
+
+/* annotated excerpts */
+.ann { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); overflow: hidden; }
+.ann .codecol { overflow-x: auto; border-right: 1px solid var(--rule); min-width: 0; }
+.ann .file { font-family: var(--f-mono); font-size: 0.78rem; color: var(--muted); padding: 8px 14px; border-bottom: 1px solid var(--rule); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.seg { display: block; width: max-content; min-width: 100%; box-sizing: border-box; text-align: left; border: 0; border-left: 4px solid transparent; background: none; color: var(--ink); cursor: pointer;
+  font-family: var(--f-mono); font-size: 0.8rem; line-height: 1.65; white-space: pre; padding: 6px 14px 6px 10px; margin: 0; }
+.seg:hover { background: var(--sunk); }
+.seg[aria-pressed="true"] { background: var(--sel); border-left-color: var(--accent); }
+.seg .cm { color: var(--muted); }
+.note { padding: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 0.95rem; min-width: 0; }
+.note h3 { font-size: 1rem; }
+.note .plainread { background: var(--accent-soft); border-radius: 6px; padding: 8px 10px; }
+.hint { font-size: 0.82rem; color: var(--muted); }
+@media (max-width: 760px) { .ann { grid-template-columns: minmax(0, 1fr); } .ann .codecol { border-right: 0; border-bottom: 1px solid var(--rule); } }
+
+/* tables */
+.tw { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 0.76rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--sunk); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.k { font-family: var(--f-mono); font-size: 0.82rem; white-space: nowrap; }
+td.k.l { color: var(--lean); } td.k.c { color: var(--coq); }
+.tag { display: inline-block; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.04em; padding: 1px 8px; border-radius: 4px; border: 1.5px solid currentColor; white-space: nowrap; }
+.t-kernel { color: var(--kernel); } .t-native { color: var(--native); } .t-trusted { color: var(--trusted); } .t-heur { color: var(--heur); } .t-open { color: var(--open); }
+.filterbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.empty { padding: 14px; color: var(--muted); }
+.callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 12px 14px; border-radius: 0 6px 6px 0; max-width: 72ch; }
+.tree { font-family: var(--f-mono); font-size: 0.82rem; line-height: 1.75; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; overflow-x: auto; white-space: pre; }
+.tree .d { color: var(--muted); font-family: var(--f-body); }
+footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 14px; }
+</style>
+
+<div class="page">
+  <header class="prose">
+    <span class="eyebrow">Busy beaver holdouts · proof files</span>
+    <h1>Reading the Proofs</h1>
+    <p class="lede">How to read the Lean and Coq files this project generates, without learning either language. You only need to read the statements. The computer has already checked the proofs.</p>
+  </header>
+
+  <nav class="toc" aria-label="Sections">
+    <a href="#method">The method</a>
+    <a href="#tape">Tape decoder</a>
+    <a href="#excerpts">Annotated files</a>
+    <a href="#lookup">Symbol lookup</a>
+    <a href="#trust">What to trust</a>
+    <a href="#files">File map</a>
+  </nav>
+
+  <section id="method">
+    <h2>The method: read statements, skip proofs</h2>
+    <div class="prose">
+      <p>A proof file is a list of named facts. Each fact has a <b>statement</b> (what is claimed) and a <b>proof</b> (instructions that convince the checker). If the file compiles, every proof was accepted. So the proofs are for the machine, and the statements are for you.</p>
+    </div>
+    <div class="two">
+      <div>
+        <div class="shape"><pre><span class="p">/-- A comment for humans. Not checked. -/</span>
+theorem <span class="n">sweep_right</span> (n : Nat) (L R : Tape) :
+    <span class="s">steps (14 * n) ⟨…⟩ = some ⟨…⟩</span> := by
+  <span class="p">have hn : … := by omega
+  exact …</span></pre></div>
+        <p class="cap"><span class="lang lean">Lean</span> Name in teal. Statement highlighted, between the <code>:</code> and the <code>:=</code>. Everything after <code>:= by</code> is the proof, up to the next <code>theorem</code> or <code>def</code>.</p>
+      </div>
+      <div>
+        <div class="shape"><pre><span class="p">(** A comment for humans. Not checked. *)</span>
+Lemma <span class="n">oentry</span> : <span class="s">forall a b c,
+  fO a (b + 6) (c + 2) -->+ fS1 (a + 1) (b + 6) c</span>.
+Proof.
+  <span class="p">intros a b c. … lia.</span>
+Qed.</pre></div>
+        <p class="cap"><span class="lang coq">Coq</span> Statement between the <code>:</code> and the first full stop. The proof sits between <code>Proof.</code> and <code>Qed.</code> The word <code>Qed</code> means the checker accepted it.</p>
+      </div>
+    </div>
+    <ol class="steps">
+      <li><span><b>Read the comment at the top of the file.</b> Every generated file opens with a plain-English summary of what it contains and which script wrote it.</span></li>
+      <li><span><b>Jump to the last theorem.</b> It is the headline: <code>nonhalting : ¬ HaltsFromBlank</code> in Lean, <code>nonhalt : ~ halts tm c0</code> in Coq. Both say the machine never halts from blank tape.</span></li>
+      <li><span><b>Check the machine is the right one.</b> Compare the twelve rows of the transition table near the top with the machine's text name. This is the one place a human must look.</span></li>
+      <li><span><b>Read statements on the way up, as far as you are curious.</b> Lines starting with <code>def</code> or <code>Definition</code> introduce vocabulary. Lines starting with <code>theorem</code>, <code>Lemma</code> or <code>Theorem</code> are facts.</span></li>
+      <li><span><b>Look at how much was assumed.</b> One command lists every unproved assumption behind a theorem. The section <a href="#trust">What to trust</a> shows how to read its answer.</span></li>
+    </ol>
+  </section>
+
+  <section id="tape">
+    <h2>Tape notation, and a decoder</h2>
+    <div class="prose">
+      <p>In comments and on the explainer pages, a tape is written the usual bbchallenge way: <code>0^inf B> 0 0 (01)^a 0 0 0 1 0^inf</code>. The head is in state B and is reading the cell just right of <code>B></code>. <code>(01)^a</code> is the word 01 repeated a times. <code>0^inf</code> is blank tape to the edge.</p>
+      <p>In the proof files the same tape is spelled out as data, which is harder on the eye. Three things to know:</p>
+      <ul>
+        <li>A cell is <code>false</code> / <code>true</code> in Lean and <code>S0</code> / <code>S1</code> in Coq, for 0 and 1.</li>
+        <li>A configuration is three parts: left of the head, right of the head (starting with the cell being read), and the state.</li>
+        <li><b>The left part is listed nearest cell first</b>, so it reads backwards compared with the tape. The decoder below turns it the right way round.</li>
+      </ul>
+      <p>Counts such as <code>⟨7, [0, 3]⟩</code> or <code>mkLin 7 [0; 3]</code> mean 7 + 0·(first variable) + 3·(second variable). With variables k and j that is 3j + 7.</p>
+    </div>
+
+    <div class="tool" aria-label="Tape decoder">
+      <div class="chips" id="ex-chips" role="group" aria-label="Examples from the real files"></div>
+      <label for="dec-in">Paste a tape or template from any Lean or Coq file
+        <textarea id="dec-in" spellcheck="false"></textarea>
+      </label>
+      <div class="row">
+        <label for="dec-vars">Names of the count variables, in order
+          <input type="text" id="dec-vars" value="k, j" spellcheck="false">
+        </label>
+        <label for="dec-vals">Try numbers for them (optional)
+          <input type="text" id="dec-vals" value="" placeholder="e.g. 1, 2" spellcheck="false">
+        </label>
+      </div>
+      <div class="out">
+        <div class="outlabel">As a tape</div>
+        <div class="tape" id="dec-tape"></div>
+        <div class="outlabel">In the project's comment notation</div>
+        <div class="plain" id="dec-plain"></div>
+        <div id="dec-concrete-wrap" hidden>
+          <div class="outlabel" id="dec-concrete-label">With those numbers</div>
+          <div class="tape" id="dec-concrete" style="margin-top:10px"></div>
+        </div>
+        <div class="err" id="dec-err" role="status"></div>
+        <p class="hint" id="dec-src"></p>
+      </div>
+    </div>
+    <div class="prose">
+      <p class="cap">The decoder understands the four spellings used in the project: Lean streams (<code>cons</code>, <code>app</code>, <code>rep</code>, <code>blank</code>), Lean templates (<code>.b</code> for one cell, <code>.r</code> for a run), Coq templates (<code>TB</code>, <code>TR</code>, <code>mkMC</code>) and anything in angle brackets <code>⟨left, right, .State⟩</code>. In Lean's <code>Tables.lean</code>, <code>ft</code> is short for the word 01.</p>
+    </div>
+  </section>
+
+  <section id="excerpts">
+    <h2>Five real excerpts, line by line</h2>
+    <div class="prose">
+      <p>These are copied from the files for the two machines proved so far, bbchallenge ids 36670 and 113677. Pick an excerpt, then click any block of code to see what it says in plain words. Very long lines are cut with an ellipsis.</p>
+    </div>
+    <div class="chips" id="ann-tabs" role="tablist" aria-label="Excerpts"></div>
+    <div class="ann">
+      <div class="codecol">
+        <div class="file" id="ann-file"></div>
+        <div id="ann-code"></div>
+      </div>
+      <div class="note" id="ann-note" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section id="lookup">
+    <h2>Symbol and keyword lookup</h2>
+    <div class="prose"><p>Type a symbol, a keyword or a plain word such as "every" or "halt". Lean spelling is on the left, Coq spelling in the middle.</p></div>
+    <div class="filterbar">
+      <label for="lk-q" style="flex-direction:row;align-items:center;gap:8px">
+        <span>Find</span>
+        <input type="search" id="lk-q" placeholder="forall, ⟨, vm_compute, skip…" spellcheck="false">
+      </label>
+      <div class="chips" id="lk-kinds" role="group" aria-label="Filter by kind"></div>
+    </div>
+    <div class="tw"><table id="lk-table">
+      <thead><tr><th>Lean</th><th>Coq</th><th>Read it as</th></tr></thead>
+      <tbody></tbody>
+    </table><div class="empty" id="lk-empty" hidden>Nothing matches. Try a shorter word.</div></div>
+  </section>
+
+  <section id="trust">
+    <h2>What to trust, and how much</h2>
+    <div class="prose">
+      <p>Every claim on a proof-status page carries one of five tags. They say what stands behind the claim.</p>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Tag</th><th>What checked it</th><th>How it looks in a file</th><th>What you are trusting</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag t-kernel">kernel</span></td><td>The proof assistant's kernel, a small program whose only job is to recheck every step.</td><td><span class="lang lean">Lean</span> ordinary proofs, <code>rfl</code>, <code>omega</code>, <code>decide +kernel</code><br><span class="lang coq">Coq</span> everything in <code>busycoq/</code>, including <code>vm_compute</code></td><td>The kernel, and that the statement says what you think it says.</td></tr>
+        <tr><td><span class="tag t-native">native</span></td><td>Lean compiled the check to machine code and ran it. Much faster, used when the kernel runs out of memory.</td><td><span class="lang lean">Lean</span> <code>native_decide</code></td><td>The above, plus Lean's compiler. Still far stronger than our own code.</td></tr>
+        <tr><td><span class="tag t-trusted">trusted</span></td><td>A C or Python program in the repository, run exhaustively. No proof assistant involved.</td><td>Files under <code>c/</code> and <code>py/</code></td><td>That our program has no bug.</td></tr>
+        <tr><td><span class="tag t-heur">heuristic</span></td><td>Sampling, curve fitting, a pattern seen in a long run.</td><td>Prose in the README and status page only</td><td>Nothing firm. It is a lead, not a result.</td></tr>
+        <tr><td><span class="tag t-open">open</span></td><td>Nobody knows yet.</td><td></td><td></td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>The three computing words</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Word</th><th>System</th><th>Meaning</th><th>Tag</th></tr></thead>
+      <tbody>
+        <tr><td class="k l">decide +kernel</td><td>Lean</td><td>The statement is a yes/no question a program can answer. The kernel runs that program itself, step by step, and sees the answer is yes.</td><td><span class="tag t-kernel">kernel</span></td></tr>
+        <tr><td class="k l">native_decide</td><td>Lean</td><td>Same question, but the program is compiled and run at full speed outside the kernel. The kernel accepts the answer on the compiler's word.</td><td><span class="tag t-native">native</span></td></tr>
+        <tr><td class="k c">vm_compute</td><td>Coq</td><td>Coq's fast evaluator. It is part of Coq's kernel, so it counts like <code>decide +kernel</code>, yet it is fast enough for the long runs. This is why the Coq versions need nothing at the native level.</td><td><span class="tag t-kernel">kernel</span></td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Reading the list of assumptions</h3>
+    <div class="prose">
+      <p>Lean's <code>#print axioms nonhalting</code> and Coq's <code>Print Assumptions nonhalt</code> list everything a theorem rests on that was not proved. This is the single most useful line of output.</p>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>It prints</th><th>System</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td class="k c">Closed under the global context</td><td>Coq</td><td>No assumptions at all. The best possible answer. Both Coq proofs print this (see <code>busycoq/build.log</code>).</td></tr>
+        <tr><td class="k l">propext, Quot.sound, Classical.choice</td><td>Lean</td><td>Lean's three standard axioms, used by nearly all Lean mathematics. Seeing only these means kernel level. The Lean proof of 113677 lists exactly these.</td></tr>
+        <tr><td class="k l">Lean.ofReduceBool, Lean.trustCompiler</td><td>Lean</td><td>The mark left by <code>native_decide</code>. The Lean proof of 36670 lists these, for its start run and its 62 end-of-epoch runs.</td></tr>
+        <tr><td class="k l">sorryAx</td><td>Lean</td><td>A hole. Some proof was skipped with <code>sorry</code>. The theorem is not proved. This must never appear.</td></tr>
+        <tr><td class="k c">a named Axiom, or anything Admitted</td><td>Coq</td><td>Same: something was assumed, not proved. This must never appear.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Where the two machines stand</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Machine</th><th>Lean</th><th>Coq (busycoq)</th></tr></thead>
+      <tbody>
+        <tr><td>36670<br><code>1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC</code></td><td><span class="tag t-kernel">kernel</span> for the tables and the 62 rounds, <span class="tag t-native">native</span> for the start and the 62 ends of an epoch. About 5 minutes.</td><td><span class="tag t-kernel">kernel</span> throughout, no axioms. 79 seconds.</td></tr>
+        <tr><td>113677<br><code>1RB0LE_1RC---_1RD1RE_1LA0RF_0RC0LA_0LC0RB</code></td><td><span class="tag t-kernel">kernel</span> throughout. Standard axioms only.</td><td><span class="tag t-kernel">kernel</span> throughout, no axioms. About 3 minutes over three files.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>What still needs a human</h3>
+    <div class="prose">
+      <ul>
+        <li><b>The transition table.</b> If a row were mistyped, the proof would be about a different machine. Twelve entries to compare. The Lean table is generated from the text name by <code>leangen.py</code>, but checking it by eye takes a minute.</li>
+        <li><b>The meaning of "step" and "halts".</b> In Lean these are our own definitions, about thirty lines in <code>tools/lean/TM/Basic.lean</code>. In Coq they are busycoq's, written by someone else for the bbchallenge BB(5) effort. A proof against definitions we did not write is the stronger evidence, which is why the Coq versions exist.</li>
+        <li><b>Comments are not checked.</b> A comment can drift from the statement under it. When they disagree, the statement is what was proved. The decoder above lets you compare a template with its comment.</li>
+      </ul>
+      <p>What you do <b>not</b> need to trust: the Python generators, the tables of numbers they write, or the symbolic checker <code>auto</code>. A wrong number makes a check return false and the build fail. The checker comes with a soundness theorem (<code>auto_reach</code> in Lean, <code>auto_sound</code> and <code>rules_sound</code> in Coq) proving that an answer of true means the real machine makes that run.</p>
+    </div>
+    <div class="callout"><b>Three words to search for.</b> <code>sorry</code>, <code>Admitted</code> and <code>axiom</code>. Each marks something assumed without proof. A search on 12 November 2026 of both machines' Lean folders and all of <code>busycoq/</code> found none.</div>
+  </section>
+
+  <section id="files">
+    <h2>File map and naming habits</h2>
+    <div class="two">
+      <div class="tree">holdouts/&lt;machine name&gt;/
+  README.md        <span class="d">what it does, what is proved, what is open</span>
+  status.json      <span class="d">the claims and their tags; the status page is built from it</span>
+  lean/
+    Machine.lean   <span class="d">states and transition table (generated)</span>
+    Blank.lean     <span class="d">when it halts; first 10⁴ and 10⁷ steps (generated)</span>
+    Rules.lean     <span class="d">shift rules: crossing a repeated word in one go</span>
+    …              <span class="d">files special to this machine; the last one holds the main theorem</span>
+    check.sh       <span class="d">recompiles everything, in order</span>
+  py/              <span class="d">scripts that found the patterns and wrote the Lean files</span>
+  c/               <span class="d">fast simulators</span></div>
+      <div class="tree">busycoq/
+  README.md        <span class="d">what is proved and how to build</span>
+  build.sh         <span class="d">compiles everything against busycoq</span>
+  build.log        <span class="d">the last clean build, with times</span>
+  lib/
+    BB62.v         <span class="d">six states, two symbols</span>
+    SymRun.v       <span class="d">the symbolic runner and its soundness proof</span>
+    SymForms.v     <span class="d">templates and rules between them</span>
+  H36670/          <span class="d">one file: tables, checks, final theorem</span>
+  H113677/         <span class="d">_Rules, then _Table, then the final theorem</span>
+  gen/             <span class="d">the scripts that wrote the .v files</span></div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Name pattern</th><th>What it tells you</th></tr></thead>
+      <tbody>
+        <tr><td class="k">H36670, H113677</td><td>H for holdout, then the machine's bbchallenge id. Everything inside is about that one machine.</td></tr>
+        <tr><td class="k">…_ok</td><td>A computation returned true. <code>rounds_ok</code>, <code>ends_ok</code>, <code>start_ok</code>, <code>tables_ok</code>.</td></tr>
+        <tr><td class="k">…_sound, auto_reach</td><td>A checker can be believed: if it says true, the machine really does it.</td></tr>
+        <tr><td class="k">sweep_…, cycle, …_iter</td><td>A rule: from this tape shape the machine reaches that one. <code>_iter</code> is the rule repeated k times.</td></tr>
+        <tr><td class="k">halt_C, halt_route</td><td>A situation that leads to a halt. Used to know what must be avoided.</td></tr>
+        <tr><td class="k">f… (fO, fS1, fT2)</td><td>Coq: a tape form with its counts as arguments. The Lean files call the same forms <code>O</code>, <code>S1</code>, <code>T2</code>.</td></tr>
+        <tr><td class="k">Good</td><td>The invariant: the set of tape shapes the machine stays inside forever.</td></tr>
+        <tr><td class="k">good_step, mv_…, step_…</td><td>From any Good tape the machine reaches another Good tape after at least one step.</td></tr>
+        <tr><td class="k">nonhalting, nonhalt</td><td>The final theorem.</td></tr>
+        <tr><td class="k">(b + 6) in a statement</td><td>A way to say "when this count is at least 6". Writing the count as b + 6 with b free covers 6, 7, 8 and so on.</td></tr>
+        <tr><td class="k">fuel, 3000, Nat.pow 2 18</td><td>The most moves a checker may use before giving up. Running out gives false, never a wrong true.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="prose">
+      <p><b>Step counts.</b> Lean statements give exact step counts: <code>steps (14 * n) c = some c'</code> means exactly 14n steps. Coq statements only say "reaches": <code>--&gt;+</code> is one or more steps, <code>--&gt;*</code> is zero or more. In Lean, a machine that halts on its next step has <code>step c = none</code>; bbchallenge counts that halting move as one more step.</p>
+    </div>
+  </section>
+
+  <footer>Excerpts are from <code>holdouts/…/lean/</code> for machines 36670 and 113677 and from <code>busycoq/</code>, as of 12 November 2026. Build times are from <code>busycoq/build.log</code> and the machines' READMEs.</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  /* ---------- decoder ---------- */
+  var R = String.raw;
+  var EXAMPLES = [
+    { label: "Lean: start of the right sweep", vars: "n", src: "36670, lean/Rules.lean, theorem sweep_right. The tape before B sweeps right across n copies of 010101.",
+      text: "⟨cons true (L), rep (n) [false, true, false, true, false, true] (R), .B⟩" },
+    { label: "Lean: end of the right sweep", vars: "n", src: "36670, lean/Rules.lean, theorem sweep_right. Each 010101 has become 011001 and now lies left of the head. Note how the left list is written nearest first.",
+      text: "⟨cons true (rep (n) [true, false, false, true, true, false] (L)), R, .B⟩" },
+    { label: "Lean: template 7", vars: "k, j", src: "36670, lean/Tables.lean, the eighth of the 62 phase templates. Try the numbers 1, 0.",
+      text: "⟨[], [.b false, .b false, .r ft ⟨4, [3]⟩, .b false, .b false, .b false, .r ft ⟨7, [0, 3]⟩, .b false, .b false, .b false, .r ft ⟨4, []⟩, .b false, .b false, .b false, .r ft ⟨15, []⟩, .b true, .b true, .r ft ⟨17, []⟩, .b true, .b true, .b false, .b true], .B⟩" },
+    { label: "Coq: form O", vars: "a, b, c", src: "113677, busycoq/H113677/H113677_Rules.v, O_mc. Its comment reads: 0^inf A> 0 0 0 0 0 0 0 (1000)^a (10)^b (00001000001000)^c 1 0 1 0^inf",
+      text: "mkMC [] [TB S0; TB S0; TB S0; TB S0; TB S0; TB S0; TB S0; TR [S1;S0;S0;S0] (mkLin 0 [1]); TR [S1;S0] (mkLin 0 [0;1]); TR [S0;S0;S0;S0;S1;S0;S0;S0;S0;S0;S1;S0;S0;S0] (mkLin 0 [0;0;1]); TB S1; TB S0; TB S1] A" },
+    { label: "Coq: form RF (head at the right end)", vars: "a, k, m", src: "113677, busycoq/H113677/H113677_Rules.v, RF_mc. Everything is left of the head, so the whole list is written backwards. Its comment reads: 0^inf (1110)^a (1111110)^k 1 1 1 0 0 1 (10)^m 1 E> 0^inf",
+      text: "mkMC [TB S1; TR [S0;S1] (mkLin 0 [0;0;1]); TB S1; TB S0; TB S0; TB S1; TB S1; TB S1; TR [S0;S1;S1;S1;S1;S1;S1] (mkLin 0 [0;1]); TR [S0;S1;S1;S1] (mkLin 0 [1])] [] E" },
+    { label: "Lean: the library's own example", vars: "", src: "tools/lean/TM/Basic.lean, header comment: the tape L 1 0 0 E>0 1 1 0 R.",
+      text: "⟨app [false, false, true] L, app [false, true, true, false] R, .E⟩" }
+  ];
+
+  function bit(w) { w = w.trim(); if (w === "true" || w === "S1" || w === "1") return 1; if (w === "false" || w === "S0" || w === "0") return 0; throw new Error("I expected a cell (true, false, S0 or S1) but found \"" + w + "\"."); }
+  function word(s) { s = s.trim(); if (s === "ft") return [0, 1]; s = s.replace(/^\[|\]$/g, ""); if (!s.trim()) return []; return s.split(/[,;]/).map(bit); }
+  function nums(s) { return s.split(/[,;]/).map(function (x) { return x.trim(); }).filter(Boolean).map(function (x) { return parseInt(x, 10); }); }
+
+  // items: {t:'c', b} | {t:'r', w:[bits], lin:{c,a} | raw:string} | {t:'rest', name}
+  function parseTokens(s) {
+    var re = /\.b\s+(true|false)|TB\s+(S0|S1)|\.r\s+(ft|\[[^\]]*\])\s*⟨\s*(\d+)\s*,\s*\[([^\]]*)\]\s*⟩|TR\s+\[([^\]]*)\]\s*\(\s*mkLin\s+(\d+)\s+\[([^\]]*)\]\s*\)/g;
+    var out = [], m;
+    while ((m = re.exec(s))) {
+      if (m[1]) out.push({ t: "c", b: bit(m[1]) });
+      else if (m[2]) out.push({ t: "c", b: bit(m[2]) });
+      else if (m[3]) out.push({ t: "r", w: word(m[3]), lin: { c: parseInt(m[4], 10), a: nums(m[5]) } });
+      else out.push({ t: "r", w: word(m[6]), lin: { c: parseInt(m[7], 10), a: nums(m[8]) } });
+    }
+    return out;
+  }
+  function topLists(s) { // top-level [ ... ] segments
+    var segs = [], depth = 0, start = -1;
+    for (var i = 0; i < s.length; i++) {
+      if (s[i] === "[") { if (depth === 0) start = i; depth++; }
+      else if (s[i] === "]") { depth--; if (depth === 0 && start >= 0) { segs.push({ a: start, b: i }); start = -1; } }
+    }
+    return segs;
+  }
+  function splitTop(s) { // split at top-level commas
+    var parts = [], depth = 0, cur = "";
+    for (var i = 0; i < s.length; i++) {
+      var ch = s[i];
+      if ("([⟨".indexOf(ch) >= 0) depth++; else if (")]⟩".indexOf(ch) >= 0) depth--;
+      if (ch === "," && depth === 0) { parts.push(cur); cur = ""; } else cur += ch;
+    }
+    parts.push(cur); return parts;
+  }
+  function parseStream(src) {
+    var i = 0;
+    function ws() { while (i < src.length && /\s/.test(src[i])) i++; }
+    function ident() { ws(); var m = /^[A-Za-z_][A-Za-z0-9_'.]*/.exec(src.slice(i)); if (!m) return null; i += m[0].length; return m[0]; }
+    function list() { ws(); if (src[i] !== "[") throw new Error("I expected a word in square brackets near \"" + src.slice(i, i + 20) + "\"."); var j = src.indexOf("]", i); if (j < 0) throw new Error("A square bracket is not closed."); var w = word(src.slice(i, j + 1)); i = j + 1; return w; }
+    function count() { ws(); if (src[i] === "(") { var d = 0, st = i; for (; i < src.length; i++) { if (src[i] === "(") d++; else if (src[i] === ")") { d--; if (d === 0) { i++; return src.slice(st + 1, i - 1).trim(); } } } throw new Error("A round bracket is not closed."); }
+      var m = /^[A-Za-z0-9_']+/.exec(src.slice(i)); if (!m) throw new Error("I expected a repeat count after rep."); i += m[0].length; return m[0]; }
+    function expr() {
+      ws();
+      if (i >= src.length) throw new Error("The stream stops early. Every stream ends in blank or a name such as L or R.");
+      if (src[i] === "(") { i++; var e = expr(); ws(); if (src[i] !== ")") throw new Error("A round bracket is not closed."); i++; return e; }
+      var id = ident();
+      if (!id) throw new Error("I could not read \"" + src.slice(i, i + 20) + "\".");
+      if (id === "cons") { ws(); var b = ident(); return [{ t: "c", b: bit(b || "") }].concat(expr()); }
+      if (id === "app") { var w = list(); return w.map(function (x) { return { t: "c", b: x }; }).concat(expr()); }
+      if (id === "rep") { var n = count(); var w2 = list(); return [{ t: "r", w: w2, raw: n }].concat(expr()); }
+      if (id === "blank") return [{ t: "rest", name: "0^inf" }];
+      return [{ t: "rest", name: id }];
+    }
+    var res = expr(); ws();
+    if (i < src.length) throw new Error("I did not expect \"" + src.slice(i, i + 20) + "\" after the stream.");
+    return res;
+  }
+  function parse(input) {
+    var s = input.trim();
+    if (!s) throw new Error("Paste something, or pick an example above.");
+    s = s.replace(/^(some|Some)\s+/, "").replace(/[.;,]\s*$/, "").trim();
+    var tokenStyle = /(^|[^A-Za-z_])\.[br]\s|TB\s|TR\s|mkMC/.test(s);
+    var left, right, st = "?";
+    if (tokenStyle) {
+      var isMC = /mkMC/.test(s) || /^⟨\s*\[/.test(s);
+      if (isMC) {
+        var segs = topLists(s);
+        if (segs.length < 2) throw new Error("A template needs two lists, the left side and the right side.");
+        left = parseTokens(s.slice(segs[0].a, segs[0].b + 1));
+        right = parseTokens(s.slice(segs[1].a, segs[1].b + 1));
+        var m = /^\s*[,]?\s*\.?([A-F])\b/.exec(s.slice(segs[1].b + 1)); if (m) st = m[1];
+      } else { left = []; right = parseTokens(s); if (!right.length) throw new Error("I found no cells or runs in that."); }
+      left.push({ t: "rest", name: "0^inf" }); right.push({ t: "rest", name: "0^inf" });
+    } else {
+      var inner = s;
+      if (inner[0] === "⟨" && inner[inner.length - 1] === "⟩") inner = inner.slice(1, -1);
+      var parts = splitTop(inner);
+      if (parts.length === 3) {
+        left = parseStream(parts[0]); right = parseStream(parts[1]);
+        var m2 = /\.?([A-F])\b/.exec(parts[2]); if (m2) st = m2[1];
+      } else if (parts.length === 1) { left = null; right = parseStream(parts[0]); }
+      else throw new Error("A configuration has three parts: left stream, right stream, state.");
+    }
+    return { left: left, right: right, st: st };
+  }
+
+  function fmtLin(lin, names) {
+    var terms = [];
+    lin.a.forEach(function (a, i) { if (!a) return; var n = names[i] || ("x" + (i + 1)); terms.push((a === 1 ? "" : a) + n); });
+    if (lin.c || !terms.length) terms.push(String(lin.c));
+    return terms.join("+");
+  }
+  function evalLin(lin, vals) { var n = lin.c; lin.a.forEach(function (a, i) { n += a * (vals[i] || 0); }); return n; }
+  function evalRaw(raw, env) { // tiny evaluator for sums and products of names and numbers
+    var toks = raw.match(/\d+|[A-Za-z_][A-Za-z0-9_']*|[+*()]/g) || [], i = 0;
+    function atom() { var t = toks[i++]; if (t === "(") { var v = sum(); i++; return v; } if (/^\d+$/.test(t)) return parseInt(t, 10); if (t in env) return env[t]; throw new Error("no value for " + t); }
+    function prod() { var v = atom(); while (toks[i] === "*") { i++; v *= atom(); } return v; }
+    function sum() { var v = prod(); while (toks[i] === "+") { i++; v += prod(); } return v; }
+    var v = sum(); if (i < toks.length) throw new Error("cannot evaluate"); return v;
+  }
+  function expOf(it, names) { return it.lin ? fmtLin(it.lin, names) : it.raw; }
+
+  function cellEl(b, head) { var c = el("span", "cell" + (b ? " one" : "") + (head ? " head" : ""), String(b)); return c; }
+  function render(cfg, names, vals) {
+    // returns {dom: fragment, plain: string, total}
+    var frag = document.createDocumentFragment(), plain = [], headDone = false, cells = 0;
+    var concrete = vals != null;
+    function countOf(it) { if (it.lin) return evalLin(it.lin, vals.list); return evalRaw(it.raw, vals.env); }
+    function put(it, reversed, isRight) {
+      if (it.t === "rest") { frag.appendChild(el("span", "rest", it.name === "0^inf" ? "0∞" : it.name)); plain.push(it.name); return; }
+      if (it.t === "c") { var h = isRight && !headDone; headDone = headDone || isRight; frag.appendChild(cellEl(it.b, h)); plain.push(String(it.b)); cells++; return; }
+      var w = reversed ? it.w.slice().reverse() : it.w;
+      if (concrete) {
+        var n = countOf(it); cells += n * w.length;
+        if (cells > 1500) throw new Error("That is more than 1,500 cells. Try smaller numbers.");
+        for (var k = 0; k < n; k++) for (var q = 0; q < w.length; q++) { var h2 = isRight && !headDone; headDone = headDone || isRight; frag.appendChild(cellEl(w[q], h2)); }
+        return;
+      }
+      var box = el("span", "run"); w.forEach(function (b) { box.appendChild(cellEl(b, false)); });
+      if (isRight) headDone = true; // a run under the head: the head reads its first cell
+      frag.appendChild(box);
+      var e = expOf(it, names); frag.appendChild(el("span", "exp", e));
+      plain.push("(" + w.join("") + ")^" + (/^[A-Za-z0-9_']+$/.test(e) ? e : "(" + e + ")"));
+    }
+    if (cfg.left) cfg.left.slice().reverse().forEach(function (it) { put(it, true, false); });
+    if (cfg.left) { frag.appendChild(el("span", "headmark", cfg.st + ">")); plain.push(cfg.st + ">"); }
+    cfg.right.forEach(function (it) { put(it, false, true); });
+    return { dom: frag, plain: plain.join(" "), cells: cells };
+  }
+
+  function decode() {
+    var err = $("dec-err"), tape = $("dec-tape"), plain = $("dec-plain"), cw = $("dec-concrete-wrap"), ct = $("dec-concrete");
+    err.textContent = ""; tape.textContent = ""; plain.textContent = ""; ct.textContent = ""; cw.hidden = true;
+    var names = $("dec-vars").value.split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+    try {
+      var cfg = parse($("dec-in").value);
+      var r = render(cfg, names, null);
+      tape.appendChild(r.dom); plain.textContent = r.plain;
+      var vtxt = $("dec-vals").value.trim();
+      if (vtxt) {
+        var list = vtxt.split(/[,;\s]+/).filter(Boolean).map(function (x) { return parseInt(x, 10); });
+        if (list.some(function (x) { return isNaN(x) || x < 0; })) throw new Error("The numbers must be whole and not negative, separated by commas.");
+        var env = {}; names.forEach(function (n, i) { env[n] = list[i] || 0; });
+        try {
+          var rc = render(cfg, names, { list: list, env: env });
+          ct.appendChild(rc.dom); cw.hidden = false;
+          $("dec-concrete-label").textContent = "With " + names.map(function (n, i) { return n + " = " + (list[i] || 0); }).join(", ") + " (" + rc.cells + " cells shown)";
+        } catch (e2) { err.textContent = /1,500/.test(e2.message) ? e2.message : "I could not fill in the numbers. Check that the variable names above match the ones in the text."; }
+      }
+    } catch (e) { err.textContent = e.message; }
+  }
+  var exChips = $("ex-chips");
+  EXAMPLES.forEach(function (ex, i) {
+    var b = el("button", "chip", ex.label); b.type = "button"; b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", function () { loadEx(i); });
+    exChips.appendChild(b);
+  });
+  function loadEx(i) {
+    var ex = EXAMPLES[i];
+    $("dec-in").value = ex.text; $("dec-vars").value = ex.vars; $("dec-vals").value = "";
+    $("dec-src").textContent = "From " + ex.src;
+    Array.prototype.forEach.call(exChips.children, function (c, j) { c.setAttribute("aria-pressed", j === i ? "true" : "false"); });
+    decode();
+  }
+  ["dec-in", "dec-vars", "dec-vals"].forEach(function (id) { $(id).addEventListener("input", function () {
+    if (id === "dec-in") { $("dec-src").textContent = ""; Array.prototype.forEach.call(exChips.children, function (c) { c.setAttribute("aria-pressed", "false"); }); }
+    decode(); }); });
+  loadEx(2);
+
+  /* ---------- annotated excerpts ---------- */
+  var EXC = [
+    { tab: "The machine", lang: "lean", file: "holdouts/1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC/lean/Machine.lean", start: 2, segs: [
+      { code: R`namespace H36670`,
+        title: "A name prefix", read: "Everything below belongs to machine 36670.",
+        more: "Inside the namespace a fact is called nonhalting. From outside its full name is H36670.nonhalting. The matching end H36670 closes it at the bottom of the file." },
+      { code: R`inductive St where
+  | A | B | C | D | E | F
+  deriving DecidableEq, Repr`,
+        title: "The six states", read: "A state is one of A, B, C, D, E, F, and nothing else.",
+        more: "The word inductive introduces a new kind of thing by listing its cases. The deriving line asks Lean to generate the code that compares two states and prints them. It adds no assumptions." },
+      { code: R`def trans : St → Bool → Option (Bool × Dir × St)
+  | .A, false => some (true, .R, .B)
+  | .A, true => some (false, .L, .F)
+  | .B, false => some (true, .L, .C)
+  | .B, true => some (false, .L, .A)
+  | .C, false => some (true, .R, .A)
+  | .C, true => some (false, .R, .D)
+  | .D, false => none
+  | .D, true => some (true, .R, .E)
+  …`,
+        title: "The transition table", read: "In state A reading 0: write 1, move right, go to B. That is 1RB.",
+        more: "The first line is the type: given a state and the cell read (false is 0, true is 1), the result is either some (write, move, next state) or none. The row with none is the halting entry, written --- in the machine's name. Compare these rows with 1RB0LF_1LC0LA_1RA0RD_---1RE_… to confirm the proof is about the right machine." },
+      { code: R`abbrev init : Config := TM.blankCfg .A
+abbrev HaltsFromBlank : Prop := TM.Halts trans init`,
+        title: "The question", read: "HaltsFromBlank is the claim that this machine, started in state A on blank tape, halts.",
+        more: "abbrev gives a short name to a longer expression. Prop is Lean's word for a statement that may be true or false. The final theorem of the proof is ¬ HaltsFromBlank: this claim is false." }
+    ] },
+    { tab: "A rule", lang: "lean", file: "holdouts/1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC/lean/Rules.lean", start: 1, segs: [
+      { code: R`/-- The rightward sweep: B, with a 1 behind it, turns each 010101
+    into 011001, 14 steps a copy. -/`,
+        title: "A comment", read: "The plain-English summary of the theorem below it.",
+        more: "Lean ignores anything between /-- and -/. It is written by the same script that writes the theorem, but it is not checked, so treat it as a guide and the statement as the truth." },
+      { code: R`theorem sweep_right (n : Nat) (L R : Tape) :
+    steps (14 * n)
+      ⟨cons true (L),
+       rep (n) [false, true, false, true, false, true] (R),
+       .B⟩
+    = some
+      ⟨cons true (rep (n) [true, false, false, true, true, false] (L)),
+       R,
+       .B⟩ := by`,
+        title: "The statement", read: "For every number n and whatever lies further left (L) and right (R): from L 1 B> (010101)^n R, after exactly 14·n steps, the machine is at L (011001)^n 1 B> R.",
+        more: "The parameters in brackets before the colon are 'for every'. steps k c = some c' means k steps from c lead to c' with no halt on the way. The left side of the second tape lists [1,0,0,1,1,0] nearest the head first, which is 011001 read left to right. The two tapes here are the first two examples in the decoder. (The file has this on two long lines; it is wrapped here.)" },
+      { code: R`  have hn : (n) * 14 = 14 * n := by omega
+  have c0 : ∀ L R : Tape, steps 14 ⟨app [true] L, app [false, true, … ] R, .B⟩
+      = some ⟨app [true] (app [true, false, … ] L), R, .B⟩ := fun _ _ => rfl
+  have h0 : … := cross_r trans c0 (n) (L) (R)
+  exact steps_congr trans hn (h0)`,
+        title: "The proof (skip it)", read: "One copy is checked by running the machine for 14 steps. A library lemma then repeats it n times.",
+        more: "If you are curious: each have states a small intermediate fact. rfl means 'compute both sides and see they are equal', so c0 is the kernel simulating 14 steps. cross_r is a lemma in tools/lean/TM/Basic.lean, proved once by induction, that turns 'one copy' into 'n copies'. omega settles the arithmetic n·14 = 14·n." }
+    ] },
+    { tab: "Invariant and checks", lang: "lean", file: "holdouts/1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC/lean/Cert.lean", start: 3, segs: [
+      { code: R`def Good (c : Config) : Prop :=
+  ∃ t k j, t < nT ∧ c = (tplAt t).den [k, j] ∧ 215 ≤ j + 2 * k + pot t`,
+        title: "The invariant", read: "A configuration is Good when it is one of the 62 templates (number t), with some counts k and j filled in, and the counts are large enough.",
+        more: "∃ t k j reads 'there are numbers t, k, j such that'. ∧ is 'and'. tplAt t is the t-th template from Tables.lean. .den [k, j] turns the template into an actual tape by putting k and j in for its two variables. pot t is a small number looked up in a table. The whole proof is: the machine reaches a Good tape, and from any Good tape it reaches another one." },
+      { code: R`theorem round_7 : roundOK 7 = true := by decide +kernel`,
+        title: "A check done by the kernel", read: "The symbolic checker, run on template 7, answers true.",
+        more: "roundOK 7 is a program: start from template 7 with counts k+1 and j, run the symbolic machine, and see whether it lands on the next template with counts k and j + dj. The theorem says the program returns true. decide +kernel means Lean's kernel ran the program itself. There are 62 lines like this, round_0 to round_61." },
+      { code: R`theorem ends_ok : (List.range nT).all endOK = true := by native_decide`,
+        title: "A check done by compiled code", read: "For every t from 0 to 61, the end-of-epoch check answers true.",
+        more: "List.range nT is the list 0, 1, …, 61 and .all endOK asks that endOK holds for each. These runs total about 2.5 million symbolic moves and the kernel runs out of memory on them, so they are compiled and run natively. This is the one place the Lean proof of this machine goes beyond the kernel. The Coq version does the same checks inside its kernel." },
+      { code: R`theorem good_step (rounds : …) (ends : …) (c : Config) (hc : Good c) :
+    ∃ n c', 1 ≤ n ∧ steps n c = some c' ∧ Good c' := by`,
+        title: "The engine of the proof", read: "From any Good configuration c, after some number n ≥ 1 of steps, the machine is at a configuration c' that is Good again.",
+        more: "The inputs rounds and ends are the 62 + 62 checks above. hc : Good c is the assumption that c is Good. Because n is at least 1 and no halt happens within the n steps, repeating this forever shows the machine never stops." },
+      { code: R`theorem nonhalting : ¬ HaltsFromBlank :=
+  nonhalting_of (fun t ht => List.all_eq_true.mp ends_ok t (List.mem_range.mpr ht))`,
+        title: "The final theorem", read: "The machine does not halt from blank tape.",
+        more: "¬ is 'not'. The line under it is the whole proof: hand the 62 end checks to nonhalting_of, which combines start_good (blank tape reaches a Good tape) with good_step. This is the theorem to ask #print axioms about." }
+    ] },
+    { tab: "The same proof in Coq", lang: "coq", file: "busycoq/H36670/H36670.v", start: 2, segs: [
+      { code: R`Definition tm : TM := fun '(q, s) =>
+  match q, s with
+  | A, S0 => Some (S1, R, B)  | A, S1 => Some (S0, L, F)
+  | B, S0 => Some (S1, L, C)  | B, S1 => Some (S0, L, A)
+  | C, S0 => Some (S1, R, A)  | C, S1 => Some (S0, R, D)
+  | D, S0 => None             | D, S1 => Some (S1, R, E)
+  …
+  end.`,
+        title: "The transition table", read: "In state A reading 0 (S0): write 1 (S1), move right, go to B.",
+        more: "The same table as in Lean, two entries per line. None is the halting entry. TM is busycoq's own type for a Turing machine, so the final theorem is stated in terms an independent project defined." },
+      { code: R`Notation "c -->* c'" := (c -[ tm ]->* c') (at level 40).
+Notation "c -->+ c'" := (c -[ tm ]->+ c') (at level 40).`,
+        title: "Two arrows", read: "c -->+ c' : the machine goes from c to c' in one or more steps. c -->* c' : in zero or more steps.",
+        more: "Notation only defines shorthand. Unlike Lean, the Coq statements do not carry step counts. The plus matters: a proof of non-halting needs real progress each time, so the key lemmas use -->+." },
+      { code: R`Lemma rounds_ok : forallb roundOK (seq 0 nT) = true.
+Proof. vm_compute. reflexivity. Qed.`,
+        title: "A check done by computation", read: "For every t from 0 to 61, the round check answers true.",
+        more: "seq 0 nT is the list 0, 1, …, 61 and forallb roundOK asks that roundOK holds for each. vm_compute tells Coq to evaluate the left side with its fast evaluator, which gives true; reflexivity then notes that true = true. Qed is the kernel accepting the proof. The lines ends_ok and start_ok next to it are the same pattern, and they replace Lean's native_decide." },
+      { code: R`Definition Good (c : Q * tape) : Prop :=
+  exists t k j, t < nT /\ c = cfg t k j /\ 215 <= j + 2 * k + pot t.`,
+        title: "The invariant", read: "Good means: template number t with counts k and j, and the counts are large enough.",
+        more: "Word for word the Lean definition. exists is ∃, /\\ is 'and', <= is ≤. cfg t k j is template t with k and j filled in." },
+      { code: R`Lemma good_step : forall c, Good c -> exists c', Good c' /\ c -->+ c'.`,
+        title: "The engine of the proof", read: "For every configuration c: if c is Good, then there is a Good configuration c' that the machine reaches from c in at least one step.",
+        more: "forall is 'for every' and -> between statements is 'if … then'." },
+      { code: R`Theorem nonhalt : ~ halts tm c0.
+Proof.
+  apply multistep_nonhalt with (c' := cfg 31 38 163); …
+  apply progress_nonhalt with (P := Good).
+  …
+Qed.
+
+Print Assumptions nonhalt.`,
+        title: "The final theorem, and its assumptions", read: "The machine tm does not halt from c0, busycoq's name for blank tape in state A.",
+        more: "~ is 'not'. The proof names the two busycoq lemmas it leans on: blank tape reaches template 31 with counts 38 and 163, and a property that always makes progress never halts. The last line asks Coq to list every assumption behind the theorem. The build log shows the answer: Closed under the global context, meaning none." }
+    ] },
+    { tab: "Forms, rules, big numbers", lang: "coq", file: "busycoq/H113677/ (H113677_Rules.v, H113677_Table.v, H113677.v)", start: 1, segs: [
+      { code: R`(** [0^inf A> 0 0 0 0 0 0 0 (1000)^a (10)^b (00001000001000)^c 1 0 1 0^inf] *)
+Definition O_mc : MC := mkMC [] [TB S0; TB S0; … ; TR [S1;S0;S0;S0] (mkLin 0 [1]); … ] A.
+Definition fO (a b c : nat) : Q * tape := cden [a; b; c] O_mc.`,
+        title: "A form", read: "fO a b c is the tape 0^inf A> 0000000 (1000)^a (10)^b (00001000001000)^c 101 0^inf.",
+        more: "A form is a tape shape with holes for counts. The comment shows it in tape notation. O_mc is the same shape as data: TB is one cell, TR is a repeated word with its count. cden [a; b; c] fills the holes. The full O_mc line is the fourth example in the decoder, so you can check the comment against the data yourself." },
+      { code: R`Lemma oentry : forall a b c, fO a (b + 6) (c + 2) -->+ fS1 (a + 1) (b + 6) c.`,
+        title: "A rule between forms", read: "Whenever the machine is in form O with second count at least 6 and third count at least 2, it reaches form S1 with the first count up by one and the third down by two.",
+        more: "Writing (b + 6) with b free is how 'at least 6' is said without an extra condition. Rules like this one are the moves of a much faster, higher-level machine whose 'tape' is just the counts." },
+      { code: R`Proof.
+  intros a b c.
+  pose proof (rules_sound tm KK FUEL O_mc [ … ] S1_mc [ … ]
+    ltac:(vm_compute; reflexivity) [a; b; c]) as H.
+  unfold fO, fS1. eapply trp; [exact H | f_equal; evs_eq | f_equal; evs_eq].
+Qed.`,
+        title: "Its proof (skip it)", read: "The symbolic runner ran from the first form to the second and answered true. rules_sound turns that answer into a fact about the real machine.",
+        more: "ltac:(vm_compute; reflexivity) is the computation, done in the kernel. rules_sound is proved once in lib/SymForms.v. The last line only matches up two ways of writing the same counts." },
+      { code: R`Lemma cycle_iter : forall k a b c,
+  fS1 a (b + 2) (c + 2 * k) -->* fS1 (a + 3 * k) (b + 2 + 12 * k) c.
+Proof.
+  induction k as [| k IH]; intros a b c; [base |].
+  step_then (cycle a b (c + 2 * k)). close (IH (a + 3) (b + 12) c).
+Qed.`,
+        title: "A rule repeated k times", read: "Doing the cycle k times takes 2k from the third count, adds 3k to the first and 12k to the second.",
+        more: "induction k is the standard argument: true for 0 repeats, and if true for k then true for k + 1. This is how one checked rule covers arbitrarily long stretches of the run." },
+      { code: R`Lemma move33 : fU3 2778 (N.to_nat 6213%N) 1409 4297 1
+               -->* fRG3 2781 (N.to_nat 6218%N) 1407 5 4296.`,
+        title: "A line of the table, with a big number", read: "From form U3 with counts 2778, 6213, 1409, 4297, 1 the machine reaches form RG3 with counts 2781, 6218, 1407, 5, 4296.",
+        more: "H113677_Table.v follows the run from blank tape through 196 such moves. N.to_nat 6213%N is just the number 6213, written so that Coq stores it in binary. Coq's plain numbers are tally marks, which would be hopeless for the 15-digit counts at the end of the table." },
+      { code: R`Definition gRF (a k m : nat) : Prop :=
+  101 * m <= 399 * a /\
+  29 * a <= 11 * m /\
+  4 <= k /\
+  k <= 5 /\
+  (N.to_nat 50000000%N) <= 44 * a + 25 * m.`,
+        title: "One piece of the invariant", read: "The counts of form RF are 'good' when m is between about 2.6·a and 3.95·a, k is 4 or 5, and the counts are large.",
+        more: "For this machine Good is: the tape is one of ten forms and its counts satisfy that form's list of inequalities. The inequalities fence off a region the counts can never leave. Each step_… lemma shows one form's region leads into another's, and lia (Coq's arithmetic solver) checks the inequalities." }
+    ] }
+  ];
+  var annTabs = $("ann-tabs"), annCode = $("ann-code"), annNote = $("ann-note"), annFile = $("ann-file");
+  var curTab = 0;
+  function showSeg(ti, si) {
+    var ex = EXC[ti], sg = ex.segs[si];
+    Array.prototype.forEach.call(annCode.children, function (c, j) { c.setAttribute("aria-pressed", j === si ? "true" : "false"); });
+    annNote.textContent = "";
+    annNote.appendChild(el("h3", null, sg.title));
+    annNote.appendChild(el("p", "plainread", sg.read));
+    annNote.appendChild(el("p", null, sg.more));
+    annNote.appendChild(el("p", "hint", "Block " + (si + 1) + " of " + ex.segs.length + ". Click another block of code to read it."));
+  }
+  function showTab(ti) {
+    curTab = ti; var ex = EXC[ti];
+    Array.prototype.forEach.call(annTabs.children, function (c, j) { c.setAttribute("aria-selected", j === ti ? "true" : "false"); });
+    annFile.textContent = "";
+    annFile.appendChild(el("span", "lang " + ex.lang, ex.lang === "lean" ? "Lean" : "Coq"));
+    annFile.appendChild(el("span", null, ex.file));
+    annCode.textContent = "";
+    ex.segs.forEach(function (sg, si) {
+      var b = el("button", "seg"); b.type = "button"; b.setAttribute("aria-pressed", "false");
+      sg.code.split("\n").forEach(function (line, k) {
+        if (k) b.appendChild(document.createTextNode("\n"));
+        var isCm = /^\s*(\/--|--|\(\*\*)/.test(line) || (/-\/\s*$/.test(line) && !/:=/.test(line));
+        b.appendChild(isCm ? el("span", "cm", line) : document.createTextNode(line));
+      });
+      b.addEventListener("click", function () { showSeg(ti, si); });
+      annCode.appendChild(b);
+    });
+    showSeg(ti, ex.start);
+  }
+  EXC.forEach(function (ex, i) {
+    var b = el("button", "chip", ex.tab); b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", "false");
+    b.addEventListener("click", function () { showTab(i); });
+    annTabs.appendChild(b);
+  });
+  showTab(0);
+
+  /* ---------- lookup ---------- */
+  var KINDS = [["all", "All"], ["logic", "Logic"], ["shape", "File structure"], ["tape", "Machines and tapes"], ["proof", "Proof steps"], ["flag", "Red flags"]];
+  var LK = [
+    ["logic", "∀ x,", "forall x,", "For every x. Parameters in brackets before the colon of a theorem mean the same.", "all every"],
+    ["logic", "∃ x,", "exists x,", "There is an x such that.", "some there"],
+    ["logic", "¬ P", "~ P", "Not P. P is false.", "not negation"],
+    ["logic", "P ∧ Q", "P /\\ Q", "P and Q.", "and"],
+    ["logic", "P ∨ Q", "P \\/ Q", "P or Q (or both).", "or"],
+    ["logic", "P → Q", "P -> Q", "If P then Q. Between types it means 'a function from P to Q'.", "implies arrow if then"],
+    ["logic", "P ↔ Q", "P <-> Q", "P exactly when Q.", "iff"],
+    ["logic", "a ≤ b, a < b", "a <= b, a < b", "Less than or equal, less than. On natural numbers.", "le lt inequality"],
+    ["logic", "a = b", "a = b", "Equal. Also the shape of every 'the check returned true' fact: check = true.", "equals"],
+    ["logic", "Nat", "nat", "A natural number: 0, 1, 2, … Never negative, so 3 - 5 is 0.", "number natural"],
+    ["logic", "Bool, true, false", "bool, true, false", "A yes/no value a program computes. In Lean tapes, true is the symbol 1 and false is 0.", "boolean"],
+    ["logic", "Prop", "Prop", "A statement, something that can be proved. Different from Bool: a Prop need not be computable.", "proposition statement"],
+    ["logic", "some x, none", "Some x, None", "A result that may be missing. For a machine step, none means it halts.", "option halt"],
+    ["logic", "[a, b, c]", "[a; b; c]", "A list. Lean separates with commas, Coq with semicolons.", "list"],
+    ["logic", "L.getD t 0", "nth t L 0", "Entry number t of the list L, counting from 0. The 0 is the answer if t is off the end.", "index lookup table"],
+    ["logic", "(List.range n).all f", "forallb f (seq 0 n)", "f answers true for each of 0, 1, …, n − 1.", "all every range"],
+    ["logic", "⟨a, b, c⟩", "mkMC a b c, (a, b)", "Build a record from its parts. For a configuration: left tape, right tape, state.", "angle bracket tuple record anonymous constructor"],
+    ["logic", "fun x => e", "fun x => e", "The function taking x to e.", "lambda function"],
+    ["logic", "_", "_", "A blank that the system fills in by itself.", "underscore placeholder"],
+    ["logic", "14 * n, 2 ^ 12", "14 * n, Nat.pow 2 12", "Ordinary arithmetic.", "times power"],
+    ["logic", "34158019330534", "N.to_nat 34158019330534%N", "A large number. Coq needs the wrapper so the number is stored in binary and not as tally marks.", "big number binary to_nat"],
+
+    ["shape", "import Machine", "From BusyCoq Require Import SymForms.", "Use the definitions and facts of another file.", "import require"],
+    ["shape", "namespace H36670 … end H36670", "(file name H36670.v)", "Everything in between belongs to machine 36670; full names get the prefix H36670.", "namespace prefix"],
+    ["shape", "open TM", "Import ListNotations.", "Allow short names from a library, e.g. steps for TM.steps.", "open"],
+    ["shape", "def name : type := value", "Definition name : type := value.", "Introduce a new word. Not a claim, so nothing to prove.", "definition def"],
+    ["shape", "abbrev", "Notation \"…\" := (…)", "Shorthand for a longer expression.", "abbreviation notation"],
+    ["shape", "inductive St where | A | B", "Inductive state := A | B.", "A new kind of thing, given by listing its cases.", "inductive type"],
+    ["shape", "structure Lin where c : Nat …", "Record Lin := mkLin { lc : nat; … }.", "A record with named fields.", "structure record"],
+    ["shape", "theorem name : statement := proof", "Lemma name : statement. Proof. … Qed.", "A proved fact. Theorem and Lemma are the same thing to the checker.", "theorem lemma fact"],
+    ["shape", ":= by …", "Proof. … Qed.", "The proof, as a list of instructions. Safe to skip.", "proof by qed"],
+    ["shape", "/-- … -/, /-! … -/, -- …", "(** … *), (* … *)", "Comments for humans. Not checked.", "comment doc"],
+    ["shape", "set_option maxHeartbeats …", "Set Default Goal Selector \"!\".", "Settings for time limits and style. No effect on what is proved.", "option setting"],
+    ["shape", "#print axioms name", "Print Assumptions name.", "List every unproved assumption the fact rests on.", "axioms assumptions trust"],
+    ["shape", "deriving DecidableEq, Repr", "decide equality.", "Auto-generate the code that compares two values (and, in Lean, prints them).", "deriving"],
+
+    ["tape", "trans", "tm", "The machine's transition table.", "machine table transition"],
+    ["tape", ".A … .F", "A … F", "The six states.", "state"],
+    ["tape", "false, true", "S0, S1", "The tape symbols 0 and 1.", "symbol cell zero one"],
+    ["tape", ".L, .R", "L, R", "Move left, move right. (L and R are also used as names for 'the rest of the tape' in Lean rules.)", "direction left right"],
+    ["tape", "⟨l, r, .B⟩", "l {{B}}> r", "A configuration: left side l (nearest cell first), right side r (first cell is under the head), state B.", "configuration config head"],
+    ["tape", "cons true s", "S1 >> s", "The cell 1 in front of the stream s.", "cons cell"],
+    ["tape", "app [false, true] s", "[S0; S1] *> s", "The word 01 in front of s.", "app word"],
+    ["tape", "rep n [false, true] s", "[S0; S1] ^^ n *> s", "The word 01 repeated n times in front of s. Written (01)^n in comments.", "repeat rep power run"],
+    ["tape", "blank", "blank, const s0", "All zeros forever. Written 0^inf in comments.", "blank zero infinite"],
+    ["tape", "(L R : Tape)", "forall l r,", "Any tape at all further out. A rule stated this way works whatever surrounds the pattern.", "rest tape any"],
+    ["tape", "step c = some c'", "c -[ tm ]-> c'", "One step takes c to c'.", "step"],
+    ["tape", "step c = none", "halted tm c", "c is a halting configuration: the table has no move for it.", "halt none"],
+    ["tape", "steps n c = some c'", "c -->* c', c -->+ c'", "Lean: exactly n steps take c to c', with no halt on the way. Coq: c reaches c' in zero or more (*) or one or more (+) steps.", "steps reaches run multistep"],
+    ["tape", "init", "c0", "Blank tape, head in state A.", "start blank initial"],
+    ["tape", "HaltsFromBlank", "halts tm c0", "The machine eventually halts from blank tape. The final theorems prove the opposite.", "halts"],
+    ["tape", ".b false", "TB S0", "Template piece: one cell holding 0.", "token cell template"],
+    ["tape", ".r [false, true] ⟨4, [3]⟩", "TR [S0;S1] (mkLin 4 [3])", "Template piece: the word 01 repeated 4 + 3·(first variable) times.", "token run template"],
+    ["tape", "⟨7, [0, 3]⟩ : Lin", "mkLin 7 [0; 3]", "The count 7 + 0·x₁ + 3·x₂, a formula in the template's variables.", "linear lin count"],
+    ["tape", "MC", "MC", "A template: left pieces, right pieces, state. 'Macro configuration'.", "template macro"],
+    ["tape", "c.den [k, j]", "cden [k; j] c", "The real tape you get from template c by putting k and j in for its variables.", "den denotation fill"],
+    ["tape", "c.subst σ", "substMC s c", "Replace the template's variables by formulas, e.g. k by k + 1.", "substitute"],
+    ["tape", "auto trans .B target fuel false c", "rule tm KK norm01 fuel c s c' s'", "Run the symbolic checker from template c and answer whether it arrives at the target.", "auto checker rule runner"],
+    ["tape", "norm", "norm01, normS, normL, normG", "Rewrite a template into a standard spelling so two spellings of the same tape compare equal.", "normal form"],
+
+    ["proof", "rfl", "reflexivity", "Both sides compute to the same thing. For a run of the machine: the kernel simulated it.", "compute equal"],
+    ["proof", "decide +kernel", "vm_compute. reflexivity.", "Evaluate a yes/no program inside the kernel and see it says yes.", "decide compute kernel"],
+    ["proof", "native_decide", "(not used)", "Evaluate with compiled code outside the kernel. Faster, trusts the compiler.", "native"],
+    ["proof", "omega", "lia", "Arithmetic with +, ≤ and multiplication by constants, solved automatically.", "arithmetic linear"],
+    ["proof", "simp, rw", "rewrite, unfold, cbn, simpl", "Rewrite the goal using known equations or by unfolding definitions.", "rewrite simplify"],
+    ["proof", "exact h, apply h", "exact h, apply h, eapply h", "The goal follows from the known fact h.", "exact apply"],
+    ["proof", "have h : … := …", "pose proof (…) as H, assert", "State and prove a stepping stone, call it h.", "have intermediate"],
+    ["proof", "intro, obtain ⟨a, b⟩ := h", "intros, destruct h as [a b]", "Name the things given, or take a compound fact apart.", "intro destruct obtain cases"],
+    ["proof", "induction n with | zero | succ", "induction n as [| n IH]", "Prove for 0, then for n + 1 assuming n.", "induction"],
+    ["proof", "cases k with | zero | succ", "destruct k as [| k]", "Split into the case k = 0 and the case k = k′ + 1.", "cases split"],
+    ["proof", "refine ⟨_, _, ?_⟩, exists", "exists x, split, repeat split", "Supply the witness for a 'there is', or split an 'and' into its parts.", "exists split refine"],
+    ["proof", "by …", "ltac:(…)", "A small proof written inline, in the middle of an expression.", "inline tactic"],
+    ["proof", "<;>, ·", ";, -, +, [ … | … ]", "Punctuation for handling several sub-goals.", "bullets semicolon"],
+
+    ["flag", "sorry", "Admitted., admit", "A hole: the proof was skipped. The fact is not proved.", "sorry admitted hole unproved"],
+    ["flag", "axiom name : …", "Axiom name : …, Parameter", "A statement assumed without proof.", "axiom assume"],
+    ["flag", "sorryAx (in #print axioms)", "any name listed by Print Assumptions", "The theorem depends on something unproved.", "assumptions"],
+    ["flag", "native_decide", "native_compute", "Not wrong, but a step outside the kernel. Should match what the status page says.", "native compiler"]
+  ];
+  var lkKind = "all", lkBody = document.querySelector("#lk-table tbody"), lkKinds = $("lk-kinds");
+  KINDS.forEach(function (k) {
+    var b = el("button", "chip", k[1]); b.type = "button"; b.setAttribute("aria-pressed", k[0] === "all" ? "true" : "false");
+    b.addEventListener("click", function () { lkKind = k[0]; Array.prototype.forEach.call(lkKinds.children, function (c) { c.setAttribute("aria-pressed", c === b ? "true" : "false"); }); drawLk(); });
+    lkKinds.appendChild(b);
+  });
+  function drawLk() {
+    var q = $("lk-q").value.trim().toLowerCase(); lkBody.textContent = ""; var n = 0;
+    LK.forEach(function (r) {
+      if (lkKind !== "all" && r[0] !== lkKind) return;
+      if (q && (r[1] + " " + r[2] + " " + r[3] + " " + r[4]).toLowerCase().indexOf(q) < 0) return;
+      var tr = el("tr");
+      tr.appendChild(el("td", "k l", r[1])); tr.appendChild(el("td", "k c", r[2])); tr.appendChild(el("td", null, r[3]));
+      lkBody.appendChild(tr); n++;
+    });
+    $("lk-empty").hidden = n > 0;
+  }
+  $("lk-q").addEventListener("input", drawLk);
+  drawLk();
+})();
+</script>

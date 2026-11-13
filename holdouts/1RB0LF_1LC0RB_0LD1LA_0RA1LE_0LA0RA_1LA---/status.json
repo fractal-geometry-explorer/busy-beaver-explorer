@@ -1,0 +1,177 @@
+{
+ "generated": false,
+ "group": "G02",
+ "title": "What is known about 1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA---.",
+ "machine": "1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA---",
+ "crumb": "holdouts / 1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA---",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean now proves whole rounds, not just sweeps: from a round start <code>A&gt; (10)^4 110 (10)^N 10010 T</code>, for every N in a residue class mod 4 and the short or long tail T, the machine reaches the next round start, with an exact step count (four branches: N &rarr; (3N+5)/2, 9N/4 + 24, 11N/4 + 47/2 (with the tail's length), (3N+10)/2). Chaining them from blank tape, Lean's kernel proves that the machine reaches the round with N = 19,199 at exactly step 1,842,640,229 without halting. The tail keeps changing shape (a new one appears at N = 19,199), so the rounds do not yet close into a single map whose orbit decides the question."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 51,188 cells have been visited and 26,870 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.474). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.065).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The counting sweep",
+   "text": "For all a, b, c and any tape R further right: <code>A&gt; (10)^(a+1) 110 (10)^(b+2) 10010 (110)^(c+1) R</code> (A at the left end of the tape) reaches <code>A&gt; (10)^(a+4) 110 (10)^b 10010 (110)^(c+2) R</code> in 14a + 8b + 83 steps: one sweep moves the counter (a, b, c) to (a+3, b&minus;2, c+1). Also the shift rules the sweep is made of.",
+   "where": "<code>sweep</code>, <code>b_run</code>, <code>f_run</code>, <code>a_run</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Four branches of the round map, for all N",
+   "text": "With RS(N, T) the round start <code>A&gt; (10)^4 110 (10)^N 10010 T</code> (A on the leftmost cell, blank tape left), the short tail Ts = <code>(10)^11 1</code>, the long tail Tl(m) = <code>(10)^m 1 (10)^11 0101</code> and TD(p) = <code>1 (10)^p 1 (10)^9 0101101</code>: for all j and m, RS(4j+5, Ts) &rarr; RS(6j+10, Tl(3j+6)); RS(4j+2, Tl(m)) &rarr; RS(9j+m+27, Ts); RS(4j+4, Ts) &rarr; RS(9j+33, Ts); RS(4j+4, Tl(m)) &rarr; RS(6j+11, TD(3j+m+5)), each in an exact number of steps. A round is the first sweep (<code>sweep0</code>), the counting sweeps chained by induction (<code>sweeps</code>: k sweeps in k(14a+8x+83) + 29k(k&minus;1) steps) and a conversion found and proved as one symbolic run by <code>bbtools.symtm</code>.",
+   "where": "<code>round_A</code> &hellip; <code>round_D</code>, <code>sweeps</code>, <code>lean/Round.lean</code>; conversions in <code>lean/Conv.lean</code> (from <code>py/round.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "Eight conversions",
+   "text": "The conversion at the end of the counting phase is proved, as a single symbolic run, for every residue of N mod 4 and both the short and the long tail (families A&ndash;H); four of them end at a proper round start and are chained above, the other four (N &equiv; 3, or N &equiv; 1 with the long tail, &hellip;) end at a left-end configuration of a different shape.",
+   "where": "<code>convA</code> &hellip; <code>convH</code>, <code>lean/Conv.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 1,842,640,229 steps",
+   "text": "From blank tape the machine reaches RS(13, Ts) in 1817 steps and then, by the proved branches A B C A B A B C A D, the round starts N = 22, 84, 213, 322, 909, 1366, 3780, 8529, 12796 and 19199, the last one at exactly step 1,842,640,229: no halt before (the kernel, no <code>native_decide</code>).",
+   "where": "<code>reach_19199</code>, <code>no_halt_1842640229</code>, <code>lean/Round.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The shape of a halt",
+   "text": "F on a 1 halts, and F is entered only from A on a 1 (writing 0, moving left), so the machine halts exactly when A reads a 1 with a 1 to its left: <code>1 A&gt; 1</code> reaches F on a 1 in one step (the converse direction by reading the table, not formalized).",
+   "where": "<code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Near misses",
+   "text": "In 10<sup>9</sup> steps A reads a 1 92,274,763 times, every time with a 0 to its left.",
+   "where": "<code>c/nbhd.c</code> (<code>./nbhd M 1000000000 A 1</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Rounds and the map on N",
+   "text": "The rounds seen in the run from blank tape, all now covered by the proved branches up to N = 19199 (step 1,842,640,229): N = 7 (tail <code>1 1 0 1</code>), 13, 22, 84, 213, 322, 909, 1366, 3780, 8529, 12796, 19199. In the old notation <code>(10)^4 110 (10)^N 100 T</code>: (N, short) with N &equiv; 0 (mod 4) &rarr; 9N/4 + 24; N &equiv; 1 &rarr; (3N+5)/2 with a long tail; (N, long) with N &equiv; 2 &rarr; 11N/4 + 47/2 back to the short tail; (N, long) with N &equiv; 0 &rarr; (3N+10)/2 with the new tail TD.",
+   "where": "<code>c/tok.c</code>, <code>py/orbit.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The proved branches carry the run to N = 19199, but the round from there (N &equiv; 3 with the tail TD) ends in a left-end configuration of a new shape, and new tail shapes keep appearing, so the rounds are not yet a closed map. The halting configuration <code>1 A&gt; 1</code> never occurs in the proved rounds (they are exact runs), so a halt, if any, would come later. A macro simulation (words 10, 110, 10010) finds the next left-end start at step 4,516,954,072: <code>A&gt; (10)^4 110 (10)^28802 1 110 (10)^30401 110 (10)^5 10010 (110)^2 1</code>, where the run is followed by <code>1 110</code> instead of <code>10010</code>.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA---/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA--- 1000000000",
+  "gcc -O2 -o tok holdouts/1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA---/c/tok.c && ./tok 1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA--- 2000000000 A 1 L 0 100000 1"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine runs in rounds that act on a number N like a Collatz map; Lean proves four branches of that map for every N and follows them for 1,842,640,229 steps without a halt. This page runs the real machine in your browser, shows the shape of its run, and explains the rounds.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "1,842,640,229 steps",
+    "text": "No halt, proved in Lean through 11 proved rounds."
+   },
+   {
+    "level": "kernel",
+    "value": "4 branches",
+    "text": "Of the round map, proved for all N."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "tape",
+    "eyebrow": "What the tape is made of",
+    "heading": "Pairs and triples",
+    "html": [
+     "<p>Almost the whole tape is made of the pairs <code>10</code> and the triples <code>110</code>. At the start of a round, with the head in A on the leftmost cell, it reads</p>",
+     "<pre class=\"config\">A&gt; (10)^4 110 (10)^N 100 (10)^12 1</pre>",
+     "<p>for example with N = 3780 at step 21,312,041 (the tail can also be a longer word, see below).</p>"
+    ]
+   },
+   {
+    "id": "count",
+    "eyebrow": "Inside a round",
+    "heading": "Counting down by two",
+    "html": [
+     "<p>During a round the tape is <code>(10)^a 110 (10)^b 10010 (110)^c ...</code>. Each sweep runs right into the (10)<sup>b</sup> part and back, and moves the marker <code>110</code> along: a grows by 3, b shrinks by 2, and one more <code>110</code> is added on the right. Lean proves this for every a, b, c, with its exact cost 14a + 8b + 83 steps. The sweeps never cross the (110)<sup>c</sup> part, and the left end gains 5 cells per sweep: the square-root side of the tape.</p>",
+     "<p>When b reaches 0 or 1, the (110)<sup>c</sup> part is converted back into pairs, which gives the next N. Lean proves each such round from start to finish, for every N in a residue class (writing the tail after <code>10010</code>; the short tail is <code>(10)^11 1</code>, the long one <code>(10)^m 1 (10)^11 0101</code>):</p>",
+     "<pre class=\"config\">N = 4j+5, short tail:  N' = 6j+10, long tail with m = 3j+6     13 -> 22, 213 -> 322, 909 -> 1366, 8529 -> 12796\nN = 4j+2, long tail:   N' = 9j+m+27, short tail                 22 -> 84, 322 -> 909, 1366 -> 3780\nN = 4j+4, short tail:  N' = 9j+33, short tail                   84 -> 213, 3780 -> 8529\nN = 4j+4, long tail:   N' = 6j+11, new tail                      12796 -> 19199</pre>",
+     "<p>Each round is three proved pieces: the first sweep, the counting sweeps (chained by induction, k sweeps in k(14a+8x+83) + 29k(k&minus;1) steps), and the conversion, which turns out to be a single symbolic run once the (110)<sup>c</sup> part is written in pairs <code>(110110)^j</code>: the head crosses every long run by a shift rule. Chained from blank tape (<code>lean/Round.lean</code>), these four branches give the rounds 13, 22, 84, 213, 322, 909, 1366, 3780, 8529, 12796 and 19199, reached at exactly step 1,842,640,229. A Collatz-like map: multiply by about 1.5 to 2.75, the branch chosen by the remainder of N mod 4 and the tail left behind.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Could it stop?",
+    "heading": "A 1 next to A",
+    "html": [
+     "<p>The machine halts when F reads a 1, and F is only entered from A reading a 1 and stepping left. So it halts exactly when A reads a 1 with another 1 just to its left. The proved rounds are exact runs, so no halt happens in the first 1,842,640,229 steps. After that the tail has a new shape, the round from N = 19199 ends in a configuration that is not a round start of the same kind, and the map has not been pinned down in general: like other Collatz-like machines, deciding it would need to know every branch the orbit of N ever takes.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.474). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.065).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"160.2\" y2=\"160.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"164.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"120.5\" y2=\"120.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"124.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"80.7\" y2=\"80.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"84.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"40.9\" y2=\"40.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"44.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,184.2 L59.2,172.1 L78.4,172.1 L97.6,165.6 L116.8,160.2 L136.0,153.8 L155.2,147.1 L174.4,140.3 L193.6,134.8 L212.8,128.3 L232.0,124.6 L251.2,119.6 L270.4,114.5 L289.6,109.9 L308.8,104.7 L328.0,99.2 L347.2,93.5 L366.4,88.9 L385.6,84.4 L404.8,79.2 L424.0,73.5 L443.2,68.9 L462.4,64.4 L481.6,59.7 L500.8,54.7 L520.0,49.9\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,180.1 L59.2,180.1 L78.4,174.3 L97.6,174.3 L116.8,170.2 L136.0,167.0 L155.2,167.0 L174.4,164.4 L193.6,164.4 L212.8,162.1 L232.0,162.1 L251.2,160.2 L270.4,160.2 L289.6,157.0 L308.8,157.0 L328.0,155.7 L347.2,155.7 L366.4,154.4 L385.6,154.4 L404.8,153.3 L424.0,153.3 L443.2,152.2 L462.4,152.2 L481.6,150.3 L500.8,150.3 L520.0,150.3\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 51,188 cells (34,955 left of the start, 31 right), with a density of 1s of 0.525.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>955,201,875</td><td><code>F&gt;0 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>left</td><td>970,846,611</td><td><code>F&gt;0 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>left</td><td>986,564,266</td><td><code>F&gt;0 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>654,106,698</td><td><code>1 0^2 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "A Collatz-like map with residues mod 4: each round counts a run (10)^N down two cells per sweep, then rebuilds it into a new N of about 1.5 to 2.75 times the size; four branches of the round map are proved in Lean, carrying the run from blank tape to step 1,842,640,229.",
+ "family": "Collatz-like map (mod 4) + counting sweeps",
+ "decision": "open"
+}

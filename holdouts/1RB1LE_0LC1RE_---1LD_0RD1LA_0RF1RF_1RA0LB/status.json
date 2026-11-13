@@ -1,0 +1,195 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB.",
+ "machine": "1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB",
+ "crumb": "holdouts / 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB",
+ "home": "../index.html",
+ "source": "holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. It builds a ladder of ever longer runs of one block of 1s at the right end of the tape and, every now and then, wipes the ladder into a plain repeated word and starts a new one. A halt is only possible at the far left end, which it has not visited since the first few hundred steps."
+ ],
+ "asof": "Status as of 12 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The tape between visits of the right end is a ladder of runs of the block <code>1<sup>9</sup>0</code> whose lengths grow geometrically (ratio about 8/3) from left to right, separated by short words of 1s that change at every sweep; at step 27,167,335 one sweep rewrites every <code>1<sup>9</sup>0</code> of the left part into <code>1<sup>7</sup>010</code>, that part freezes, and a new ladder starts to its right. An exact accelerated simulator (checked step for step against the C simulator) runs 2.4·10<sup>8</sup> steps without a halt. A closed tape language confines a halt to the left end with <code>00011001</code> under and right of the head; the exact rule of the ladder and of its resets is not yet written down."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (C0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 41,692 cells have been visited and 30,239 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt can come from",
+   "text": "Closed tape languages from windows of 4, 6 and 8 cells cover the run; each allows the halting transition C0 only at the left end (blank to the left) with the right side starting <code>0001</code>, <code>000110</code>, <code>00011001</code> respectively. Two abstract configurations in all.",
+   "where": "<code>python3 -m bbtools.ctl 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB 8   # from tools/py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The left end is almost never visited",
+   "text": "The tape reaches 5 cells left of the start, and in the first 3·10<sup>8</sup> steps the head extends the tape to the left only 5 times (in D on a 0 with <code>1 0 0</code> or <code>1 0</code> ahead, once in A), all early.",
+   "where": "<code>c/rec.c</code> of 1RB1LF_1RC1RF"
+  },
+  {
+   "level": "trusted",
+   "title": "An exact accelerated simulator",
+   "text": "<code>py/blocksim.py</code> keeps the tape as repeats of the word <code>1111111010</code> and plain cells and crosses each repeat with a shift rule of the symbolic simulator; at every visit of the right end up to 3·10<sup>7</sup> steps (past the first reset) its tape equals the C simulator's (<code>py/bscheck.py</code>).",
+   "where": "<code>py/blocksim.py</code>, <code>py/bscheck.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A geometric ladder of 1<sup>9</sup>0 blocks, and a reset",
+   "text": "Written as lengths of runs of 1s (single 0s dropped), the tape at the right-end visits is a short head followed by <code>9*n<sub>1</sub> w<sub>1</sub> 9*n<sub>2</sub> w<sub>2</sub> ... 9*n<sub>k</sub> 7 1</code>, with digit words w<sub>i</sub> such as <code>3 1 3 1</code>, <code>7 11</code>, <code>13 1</code>, <code>21</code>; the counts grow in ratio about 8/3 (e.g. 2, 6, 19, 53, 144, 384, 1024 at visit 11,201) and the last grows by 1 every 8 visits. At step 27,167,335 one sweep rewrites the left part block for block (each <code>1<sup>9</sup>0</code> becomes <code>1<sup>7</sup>010</code>, the same length; the digit words become <code>1<sup>3</sup>010</code>, <code>1<sup>11</sup>010</code>, …); that part then stays frozen and a new ladder builds up at its right.",
+   "where": "<code>py/runs.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 2.4·10<sup>8</sup> steps (accelerated)",
+   "text": "The accelerated simulator runs 11,354 right-end visits (2.4·10<sup>8</sup> steps, 22,718 cells) without a halt; the C simulator (triage) reaches 10<sup>9</sup>.",
+   "where": "<code>py/runs.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Whole visits for three families of words",
+   "text": "Reading pairs from the head leftwards (X = <code>0 1</code>, Y = <code>1 1</code>): V(X U) = Y Y U; V(Y<sup>3j+1</sup> X U) = X X (Y X X)<sup>j</sup> Y U; V(Y<sup>3j+3</sup> X U) = X X (Y X X)<sup>j</sup> Y<sup>3</sup> U; V(Y<sup>3j+2</sup> X X U) ends in X Y<sup>4</sup> U. For every j and every tape to the left, 28j + const steps.",
+   "where": "<code>lean/Rules.lean</code> (from <code>py/rules.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "A tape that halts at the left edge",
+   "text": "On the tape <code>0<sup>&infin;</sup> 0 1 1 1 1 1 A&gt;</code> the visit runs into the blank left end and halts after 17 steps. Not a tape of the run from blank.",
+   "where": "<code>edge_halts</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The visit map as a recursion on words",
+   "text": "V(X U) = Y Y U, V(Y X U) = X X Y U, V(Y Y X X U) = X Y<sup>4</sup> U, V(Y Y Y S) = X X Y V(S), V(Y Y X Y Y S) = X Y<sup>4</sup> V(S): equal to the machine on 19,312 random words and on the 724 visits they cover among the first 1,012 of the run. The words starting Y Y X Y X follow further rules not yet written down.",
+   "where": "<code>py/vmodel.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The halting pattern",
+   "text": "The machine halts exactly when B reads a 0 with a 0 on its left; inside the tape all 0s are single, so only at the blank left edge. The head reached the left end at steps 1,781 and 27,158,888 in the first 3·10<sup>9</sup> steps, arriving in E and D.",
+   "where": "README"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. It depends on the state in which the rare visits that cross the whole tape arrive at the left edge; the rule for those visits and for the reset they cause is not known.",
+   "where": "README, Next steps"
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/lean/check.sh",
+  "cd holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/py && python3 rules.py > ../lean/Rules.lean",
+  "python3 vmodel.py 3000000",
+  "gcc -O2 -o tmrun ../../../tools/c/tmrun.c && TMRUN=./tmrun python3 bscheck.py 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB 1111111010 A R 30000000",
+  "cd tools/py && python3 -m bbtools.ctl 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB 8"
+ ],
+ "explainer": {
+  "lede": "Nobody knows whether it halts. The machine builds a ladder of ever longer runs of one block of 1s at the right end of the tape, and every now and then flattens the ladder into a plain repeated pattern and starts again. A halt is only possible at the far left end, in one precise local pattern, and the head has not been back there since the beginning.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "left end only",
+    "text": "Where a halt can happen (closed tape language)."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator."
+   },
+   {
+    "level": "trusted",
+    "value": "× 8/3",
+    "text": "Growth from one rung of the ladder to the next."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.527).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"159.9\" y2=\"159.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"163.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"119.8\" y2=\"119.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"123.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"79.7\" y2=\"79.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"83.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,190.0 L59.2,190.0 L78.4,184.1 L97.6,184.1 L116.8,184.1 L136.0,179.9 L155.2,179.9 L174.4,176.7 L193.6,176.7 L212.8,176.7 L232.0,176.7 L251.2,176.7 L270.4,176.7 L289.6,176.7 L308.8,176.7 L328.0,176.7 L347.2,176.7 L366.4,176.7 L385.6,176.7 L404.8,176.7 L424.0,176.7 L443.2,174.1 L462.4,174.1 L481.6,174.1 L500.8,174.1 L520.0,174.1\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,176.7 L59.2,171.9 L78.4,164.1 L97.6,159.9 L116.8,156.7 L136.0,151.3 L155.2,146.3 L174.4,139.4 L193.6,133.1 L212.8,128.3 L232.0,124.4 L251.2,120.1 L270.4,115.8 L289.6,111.3 L308.8,106.7 L328.0,102.0 L347.2,97.2 L366.4,92.4 L385.6,87.5 L404.8,82.5 L424.0,77.6 L443.2,68.5 L462.4,62.7 L481.6,58.4 L500.8,54.2 L520.0,50.0\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 41,692 cells (5 left of the start, 31,830 right), with a density of 1s of 0.725.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>956,197,639</td><td><code>1^10 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1^7 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^11 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1</code></td></tr><tr><td>right</td><td>971,918,359</td><td><code>1^10 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1^7 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^11 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1</code></td></tr><tr><td>right</td><td>987,551,383</td><td><code>1^10 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1^7 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^11 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "words",
+    "eyebrow": "How a visit works",
+    "heading": "A recursion on words of pairs",
+    "html": [
+     "<p>Read the tape from the head leftwards, two cells at a time: X is the pair <code>0 1</code>, Y is <code>1 1</code>. Each visit of the right end rewrites the word and makes it one pair longer:</p>",
+     "<pre>V(X U)          = Y Y U                bounce\nV(Y X U)        = X X Y U\nV(Y Y X X U)    = X Y^4 U\nV(Y Y Y S)      = X X Y V(S)           three Y's pass the visit on\nV(Y Y X Y Y S)  = X Y^4 V(S)           so does Y Y X Y Y</pre>",
+     "<p>The first three are turns: the head goes back to the right end. The last two are carries: the visit goes on to the left. These five rules cover about seven visits in ten and agree with the machine wherever they apply; the remaining words (those starting Y Y X Y X) follow more rules of the same kind that are not written down yet. Whole visits for three families of words are Lean theorems. The block <code>1<sup>9</sup> 0</code> of the ladder is the word Y<sup>4</sup> X.</p>",
+     "<p>The machine halts exactly when state B reads a 0 that has another 0 on its left, and inside the tape every 0 stands alone: so a halt needs B at the blank left edge, which only a visit carried across the whole tape can reach. That has happened once since the first 2,000 steps (the reset), and the head arrived in D.</p>"
+    ]
+   },
+   {
+    "id": "ladder",
+    "eyebrow": "Structure",
+    "heading": "A ladder of blocks",
+    "html": [
+     "<p>Each time the head reaches the right end of the tape in state A, write the tape as the lengths of its runs of 1s (the 0s between them are single). Most of it is the block <code>1111111110</code>, nine 1s and a 0, repeated. The repeats come in <em>rungs</em> separated by short words such as <code>3 1 3 1</code> or <code>13 1</code>, and each rung is about 8/3 times as long as the one before it:</p>",
+     "<pre>... 15 9 3 1 13 1 9×2 21 9×6 21 9×19 3 1 11 9×53 3 1 3 1 9×144 3 15 9×384 3 7 1 9×1024 7 1  A&gt;</pre>",
+     "<p>At each sweep the short words between the rungs change, like the digits of a counter, and the last rung grows by one block every eighth sweep. The rungs further left are copies made more rarely, which is why their lengths shrink geometrically.</p>",
+     "<svg viewBox=\"0 0 560 110\" role=\"img\" aria-label=\"rungs of the ladder growing by a factor of about 8/3\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><rect x=\"10\" y=\"60\" width=\"4\" height=\"20\" fill=\"var(--accent)\"/><rect x=\"20\" y=\"60\" width=\"6\" height=\"20\" fill=\"var(--accent)\"/><rect x=\"32\" y=\"60\" width=\"12\" height=\"20\" fill=\"var(--accent)\"/><rect x=\"50\" y=\"60\" width=\"30\" height=\"20\" fill=\"var(--accent)\"/><rect x=\"86\" y=\"60\" width=\"80\" height=\"20\" fill=\"var(--accent)\"/><rect x=\"172\" y=\"60\" width=\"210\" height=\"20\" fill=\"var(--accent)\"/><rect x=\"388\" y=\"60\" width=\"140\" height=\"20\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"277\" y=\"52\" text-anchor=\"middle\" fill=\"var(--fg2)\">384 blocks</text><text x=\"458\" y=\"52\" text-anchor=\"middle\" fill=\"var(--fg2)\">1024 ... (cut)</text><text x=\"126\" y=\"52\" text-anchor=\"middle\" fill=\"var(--fg2)\">144</text><text x=\"10\" y=\"100\" fill=\"var(--muted)\">left</text><text x=\"500\" y=\"100\" fill=\"var(--muted)\">right end</text></svg>"
+    ]
+   },
+   {
+    "id": "reset",
+    "eyebrow": "Rare event",
+    "heading": "The ladder is flattened",
+    "html": [
+     "<p>At step 27,167,335 something different happens: a single sweep rewrites the whole left part block for block: every <code>1111111110</code> becomes <code>1111111010</code> (one 1 turned into a 0), and the short words become similar blocks. That part then never changes again, and a fresh ladder starts growing to its right. The second machine-made ladder looks like the first, so another flattening may come later; when and why it happens is still to be worked out.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "Only at the far left",
+    "html": [
+     "<p>The machine stops only in state C reading a 0. A closed tape language, a list of every 8-cell window that can ever appear around the head, shows that this can only happen at the left end of the tape (blank to the left) with <code>0 0 0 1 1 0 0 1</code> under and right of the head. The tape now starts with <code>1<sup>10</sup> 0 1 0 1<sup>3</sup> 0 1 0 ...</code>, and the head has not extended the tape to the left since the first steps. Whether a future flattening could bring that pattern to the left end is the open question.</p>"
+    ]
+   }
+  ],
+  "title": "A counter at the right, a trap at the left"
+ },
+ "family": "geometric block ladder with resets (word recursion)",
+ "decision": "open",
+ "summary": "Right-end visits act on words of the pairs 01 and 11 by a recursion (five rules checked, three families proved in Lean); the words form a ladder of 1^9 0 rungs growing by 8/3, with rare visits that cross to the left end (one reset so far); it halts only if B arrives at the blank left edge."
+}

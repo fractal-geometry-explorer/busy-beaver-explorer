@@ -1,0 +1,147 @@
+{
+ "generated": false,
+ "group": "G01",
+ "title": "What is known about 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---.",
+ "machine": "1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---",
+ "crumb": "holdouts / 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The tape is a list of blocks <code>(10)^n</code> separated by single 1s. In the <b>right phase</b> each sweep (head at the right end in state B) takes one <code>10</code> off the first block and appends a block <code>(10)^3 1</code> at the right end; this rule is proved in Lean for every length. When the first block is used up, the <b>left phase</b> starts: the head bounces between the left end and a marker, the first block grows by 4 copies per two bounces while the block after the marker shrinks by 2, the marker moves through the list and rebuilds it (the left phase rules are also proved). Then a new right phase starts with a much longer first block (3,728 copies at 6.8&middot;10<sup>8</sup> steps, used up at 1.234&middot;10<sup>9</sup>). No closed map yet."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 62,666 cells have been visited and 29,712 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.553). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.04).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Right-phase sweep",
+   "text": "From the head at the right end in state B, one sweep turns <code>(10)^(a+2) 1 [(10)^(b+2) 1] ((10)^3 1)^(n+1)</code> into the same with one 10 less in the first block and one more block of three, in 4a+24n+53 steps (4a+4b+24n+73 with the middle block).",
+   "where": "<code>sweep_tail</code>, <code>sweep_mid</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Left-phase bounces",
+   "text": "From the head at the left end in state C: <code>(01)^(x+2) 0 (01)^(y+3) 00110</code> goes to the marker and back in 4x+22 steps, the first block three copies longer and the marker now a 1; the next bounce (4x+26 steps) adds one more copy and restores the marker 0.",
+   "where": "<code>left_a</code>, <code>left_b</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "A plain C simulator (<code>longrun.c</code>, on <code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps from blank tape without a halt; at the end the head has visited cells -586,772 to 108,199 and 329,462 cells hold a 1.",
+   "where": "<code>holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/c/longrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The phases in the run",
+   "text": "In the direct run the right phases end (first block 0) at 8.0&middot;10<sup>4</sup>, 1.96&middot;10<sup>7</sup> and 1.234&middot;10<sup>9</sup> steps; the left phases between them last until 8.3&middot;10<sup>6</sup> and 6.5&middot;10<sup>8</sup> steps, and the third lasts past 3&middot;10<sup>9</sup>. From 1.234&middot;10<sup>9</sup> to 2&middot;10<sup>9</sup> steps the head reaches only the left end (47,163 times in state A, 23,587 in C), and the tail of 4655 blocks of three is left as it is.",
+   "where": "README.md"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growing phases, no sign of a halt",
+   "text": "Each right phase is longer than the last (its first block is built from the whole list in the left phase), and the list behind it is periodic in large stretches (<code>[19,35]&times;15</code>, <code>[541,917]&times;11</code>, <code>[5,13]&times;13</code>), the signature of a deterministic hierarchical counter rather than a random walk.",
+   "where": "README.md"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The two phases are understood one sweep at a time, but the rebuilding of the list in the left phase has not been reduced to a map.",
+   "where": "README.md, Further work"
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA--- 1000000000",
+  "python3 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---/py/gen_rules.py      # rewrites lean/Rules.lean"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. This machine alternates two phases: in one, each sweep moves one unit from the first block of the tape to a growing tail of small blocks; in the other, the head bounces at the left end and rebuilds a much longer first block from the whole list.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "4 rules",
+    "text": "One sweep of each phase, proved for every length."
+   },
+   {
+    "level": "trusted",
+    "value": "3 rounds",
+    "text": "Right phases ending at 8&middot;10<sup>4</sup>, 2&middot;10<sup>7</sup>, 1.2&middot;10<sup>9</sup> steps, each round much longer."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "phases",
+    "eyebrow": "Emergent behaviour",
+    "heading": "Countdown and rebuild",
+    "html": [
+     "<figure style=\"margin:1em 0\"><img src=\"defects.png\" alt=\"defect picture of 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---\" style=\"width:100%;max-width:900px;image-rendering:pixelated;border:1px solid var(--line);background:#fff\"/><figcaption style=\"font-size:0.9em;color:var(--muted)\">Defect picture of the first 3&middot;10<sup>7</sup> steps (time runs down, rows at equal step spacing); white where the tape repeats with period 2, dark at the separators between blocks.</figcaption></figure>",
+     "<p>In the <b>right phase</b> the tape is <code>(10)^a 1 (10)^b 1 &hellip; 1 (10)^3 1 (10)^3 1 &hellip;</code>. Each sweep takes one <code>10</code> from the first block and appends a <code>(10)^3 1</code> on the right; the blocks in between are left as they are:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>first block</th><th>list (compressed)</th></tr></thead><tbody><tr><td>8,470,124</td><td>626</td><td>485 24 83 264 [19,35]&times;15 &hellip; 3&times;427</td></tr><tr><td>679,059,433</td><td>3728</td><td>288 [541,917]&times;11 235 84 [323,163]&times;2 &hellip; 3&times;927</td></tr><tr><td>1,191,833,933</td><td>228</td><td>the same list, 3&times;4427</td></tr></tbody></table></div>",
+     "<p>When the first block is empty, the head stops reaching the right end and the <b>left phase</b> starts: the head bounces between the left end and a marker (a single <code>0</code> or <code>1</code>), adding copies to the first block while taking them from the block behind the marker; the marker then moves on through the list, so the first block collects a share of every block. The next right phase starts with this long first block.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.553). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.04).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"161.1\" y2=\"161.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"165.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"122.2\" y2=\"122.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"126.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"83.2\" y2=\"83.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"87.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"44.3\" y2=\"44.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"48.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,172.7 L59.2,172.7 L78.4,169.2 L97.6,164.0 L116.8,162.0 L136.0,158.7 L155.2,148.6 L174.4,140.6 L193.6,133.1 L212.8,129.0 L232.0,126.0 L251.2,123.4 L270.4,120.6 L289.6,111.2 L308.8,102.4 L328.0,96.8 L347.2,91.9 L366.4,86.1 L385.6,83.0 L404.8,80.2 L424.0,77.6 L443.2,68.2 L462.4,61.3 L481.6,58.5 L500.8,52.9 L520.0,49.7\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,184.6 L59.2,180.5 L78.4,172.7 L97.6,167.7 L116.8,161.1 L136.0,156.6 L155.2,154.8 L174.4,154.8 L193.6,154.8 L212.8,154.8 L232.0,144.5 L251.2,133.8 L270.4,126.6 L289.6,124.5 L308.8,124.5 L328.0,124.5 L347.2,124.5 L366.4,124.5 L385.6,124.5 L404.8,122.6 L424.0,95.0 L443.2,92.3 L462.4,92.3 L481.6,92.3 L500.8,92.3 L520.0,92.3\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 62,666 cells (44,552 left of the start, 2,149 right), with a density of 1s of 0.474.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>955,238,229</td><td><code>C&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>970,971,933</td><td><code>C&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>986,599,133</td><td><code>C&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>962,246,598</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>977,917,455</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>993,634,155</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "Two-phase list sweeper: a countdown block feeding a tail of (10)^3 blocks, then a left-growing bounce that rebuilds the list",
+ "summary": "Blocks of (10)^n separated by single 1s: in one phase each sweep takes one 10 off the first block and appends a block of three at the right end; when the first block is empty, a long phase of bounces at the left end rebuilds the list with a marker that runs through it.",
+ "decision": "open"
+}

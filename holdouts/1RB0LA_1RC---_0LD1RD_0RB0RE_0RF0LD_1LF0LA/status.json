@@ -1,0 +1,206 @@
+{
+ "generated": false,
+ "group": "G13",
+ "title": "What is known about 1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA.",
+ "machine": "1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA",
+ "crumb": "holdouts / 1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA/status.json",
+ "intro": [
+  "Nobody knows whether this six-state machine halts from blank tape. It is one of three G13 holdouts with the same behaviour (the others are <code>1RB0LA_1RC---_0LD1RD_0RA0RE_0RF1RC_1LF0LA</code> and <code>1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC</code>): a solid wall of 1s that grows to the right by 3 cells every time the head comes back to it, and in front of it a short list of blocks of 1s that the head rewrites on every pass, following a recursive rule found from the simulation and checked on more than a million passes. This page says what that rule is, what is checked, and what is still open."
+ ],
+ "asof": "Status as of 12 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The run is understood at the level of passes: between two visits of the head to the wall the list of blocks changes by a short recursive rule, and every one of the 1,657,122 wall visits in the first 10<sup>9</sup> steps follows it (C simulator plus <code>py/passmap.py</code>, not a proof). The rule itself never halts; what is not understood is the rare pass in which the list reaches the wall, where in the sibling machine <code>1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA</code> the whole structure collapses and restarts. Lean proves the bounded runs and that the machine halts if and only if the run reaches <code>D&gt;0 1</code>."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (B1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 5,420,665 cells have been visited and 5,420,637 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: fixed/linear",
+   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows in proportion to the step count (the head drifts steadily that way) (fitted exponent 0.999).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The pass map holds for the first 10<sup>9</sup> steps",
+   "text": "Each time the head, in state D, stands just right of the wall (a run of at least 1000 1s followed by one 0), the tape right of the wall is a list of blocks <code>1^(3k) 0</code> (k = 0 meaning an extra 0) and a tail <code>1^(7+3j)</code>. Of these visits in the first 10<sup>9</sup> steps, 1,657,122 follow the pass map of the README from the previous visit: 1,657,095 after one pass, 27 after two or three (the head came back to the wall in another state in between, unseen by the sampler). 59 passes reach the wall itself, where the map does not apply. At step 999,999,9xx the wall has 5,420,553 cells and the list is <code>4 4 4 2 4 2 1 1 3 4 0 T0</code>.",
+   "where": "<code>py/passmap.py</code>, <code>c/blkev.c</code>",
+   "hand": true
+  },
+  {
+   "level": "heuristic",
+   "title": "The same map for three machines",
+   "text": "The same pass map, with the same list notation, describes <code>1RB0LA_1RC---_0LD1RD_0RA0RE_0RF1RC_1LF0LA</code> and <code>1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC</code>; only the starting list, the state in which the head meets the wall and the tail offset differ (1^(7+3j) here).",
+   "where": "<code>py/passmap.py</code> in each folder",
+   "hand": true
+  },
+  {
+   "level": "heuristic",
+   "title": "Two encodings of the same list",
+   "text": "On the way right the head rewrites each block <code>1^(3k) 0</code> as <code>1^3 0 (1^2 0)^(k-1)</code> (same width), and on the way back it rewrites it again; only the end of the list, and the place of the first empty block, change from pass to pass.",
+   "where": "observed in the simulation",
+   "hand": true
+  },
+  {
+   "level": "kernel",
+   "title": "The leftward rewrite, for every n",
+   "text": "From <code>L 111 (110)^n &hellip;</code> written as <code>L (110)^n 111 B&gt;000 R</code>, the machine reaches <code>L 111 B&gt;000 (111)^n R</code> in exactly 11n steps, for any tapes L and R: one 11-step unit <code>L 110 111 B&gt;000 R &rarr; L 111 B&gt;000 111 R</code> (generated by symtm) chained by induction.",
+   "where": "<code>unit</code>, <code>lean/Rules.lean</code>; <code>unwind</code>, <code>lean/Unwind.lean</code>",
+   "hand": true,
+   "addon": true
+  },
+  {
+   "level": "kernel",
+   "title": "The only way to halt",
+   "text": "The run from blank tape halts if and only if it reaches a configuration <code>D&gt;0 1</code> (the head in state D on a 0, with these cells to its right). B is entered by A0 = 1RB and by D0 = 0RB; A is entered only by A1 and F1, which move left and leave a 0 right of the head, so <code>A&gt;0 1</code> cannot occur. So the halt is <code>D&gt;0 1</code>, <code>0 B&gt;1</code>. The proof is an invariant of the run: while no such configuration has occurred, A on a 0 has a 0 on its right and B reads a 0.",
+   "where": "<code>halts_iff_crit</code>, <code>lean/HaltIff.lean</code>",
+   "hand": true,
+   "addon": true
+  },
+  {
+   "level": "trusted",
+   "title": "State D on a 0 always had a 0 next to it in 10<sup>9</sup> steps",
+   "text": "In the first 10<sup>9</sup> steps the head is in state D on a 0 33,926,084 times, and the cell right of it is a 0 every time: the three cells right of the head are <code>0 0 0</code> 2,721,021 times, <code>0 0 1</code> 1,814,007 times, <code>0 1 0</code> 16 times (the last at step 3,941,677) and <code>0 1 1</code> 29,391,040 times. The head was at the left end of the tape 53 times in 3&middot;10<sup>9</sup> steps, the last time at step 1,882,323.",
+   "where": "<code>c/crit.c</code>",
+   "hand": true,
+   "addon": true
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. Lean reduces the question to one pattern: the machine halts if and only if the run reaches <code>D&gt;0 1</code> (<code>halts_iff_crit</code>). Missing for a non-halting proof: Lean proofs of the pass rules for every list (they are recursive, so they need an induction on the list), and above all a rule for the passes that reach the wall, where the wall is erased, the structure restarts from the left end of the tape and later absorbs its own debris. Only a few such restarts have been seen, so their rule has to be derived from the machine, not fitted to data.",
+   "where": "",
+   "hand": true
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA 1000000000",
+  "python3 holdouts/1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA/py/passmap.py 1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA 1000000000",
+  "gcc -O2 -o /tmp/crit holdouts/1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA/c/crit.c && /tmp/crit 1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA 1000000000 D"
+ ],
+ "explainer": {
+  "lede": "Nobody knows yet. The machine builds a solid wall of 1s that grows by 3 cells per pass, and in front of it the head shuttles over a short list of blocks that changes like a counter whose digits are counters. This page shows the rule and how far it has been checked.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "1,657,122",
+    "text": "wall visits in 10<sup>9</sup> steps, all following the pass map"
+   },
+   {
+    "level": "heuristic",
+    "value": "3 cells",
+    "text": "the wall grows by 3 cells per pass; the list stays short"
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 5,420,665 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "wall",
+    "eyebrow": "What it does",
+    "heading": "A wall, a list and a shuttle",
+    "html": [
+     "<p>After a short start the tape always has the same three parts: some debris on the far left (<code>1^10536 0 1^2 0</code>), a solid <b>wall</b> of 1s that keeps growing, and right of the wall a short <b>list</b> of blocks of 1s that ends in a slightly longer block, the <b>tail</b>. The head shuttles between the wall and the end of the list. Every time it comes back to the wall, the wall is 3 cells longer: after 10<sup>9</sup> steps it has 5,420,553 cells while the list right of it is only 105 cells long.</p>",
+     "<p>Stop the simulation each time the head stands just right of the wall. Then every block of the list is a run of 1s whose length is a multiple of 3, <code>1^(3k)</code>, followed by one 0; a block with k = 0 is just an extra 0. The tail is <code>1^(7+3j)</code>. Write the list as numbers: the tape <code>1^9 0 1^3 0 0 1^3 0 1^3 0 1^7</code> is <code>3 1 0 1 1 T0</code>.</p>",
+     "<p>On the way right the head rewrites each block <code>1^(3k) 0</code> as <code>1^3 0 1^2 0 &hellip; 1^2 0</code> (one 3 and k&minus;1 2s, the same number of cells), and on the way back it turns it into <code>1^(3k) 0</code> again. So most of the list is just carried along; what changes is decided at one place.</p>"
+    ]
+   },
+   {
+    "id": "passmap",
+    "eyebrow": "Macro structure",
+    "heading": "From pass to pass: a counter whose digits are counters",
+    "html": [
+     "<p>Between two visits to the wall the list changes by this rule (found from the simulation, not yet proved):</p><ul><li>No empty block in the list: the tail splits off, <code>&hellip; Tj &rarr; &hellip; j T0</code> if j &ge; 1, and <code>&hellip; T0 &rarr; &hellip; 0 T0</code> (an empty block is appended).</li><li>Otherwise look at the <em>first</em> empty block and the number n just left of it, <code>&hellip; n 0 X</code>. If n &ge; 2: <code>n 0 X &rarr; (n&minus;2) 1 f(X)</code>, where <code>f(T0) = 1 T0</code> and <code>f(1 Y) = 2 step(Y)</code>: the part after the empty block takes one step of the same map, as if the empty block were a wall of its own.</li><li>If n = 1, with a the number before it: <code>a 1 0 T0 &rarr; T(a+1)</code> (the tail swallows the block a), and <code>a 1 0 1 Y &rarr; (a+2) Y</code>.</li></ul>",
+     "<p>Here is the end of the list at seven consecutive visits early in the run of the first machine of the family: <code>1 1 1 T3</code>, <code>1 1 1 3 T0</code>, <code>1 1 1 3 0 T0</code>, <code>1 1 1 1 1 1 T0</code>, <code>1 1 1 1 1 1 0 T0</code>, <code>1 1 1 1 T2</code>, <code>1 1 1 1 2 T0</code>. The last numbers behave like the low digits of a counter, and the first empty block acts like a small wall for everything after it, so the list is a counter whose digits are themselves counters. Changes deep in the list are rare: in the frequency table of the rules each deeper rule fires about half as often as the one before.</p>",
+     "<p>The rule has no branch that halts. It is checked against the machine itself: <code>py/passmap.py</code> runs the C simulator and compares every visit with the rule applied to the previous one. All 1,657,122 visits of the first 10<sup>9</sup> steps agree.</p>"
+    ]
+   },
+   {
+    "id": "collapse",
+    "eyebrow": "The open part",
+    "heading": "When the list reaches the wall",
+    "html": [
+     "<p>The rule needs a number left of the first empty block. When the empty block is the first entry, or when <code>a 1 0</code> has the wall itself as a, the wall takes part in the pass. In the sibling machine <code>1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA</code> this led, at step 1,858,969, to a <b>collapse</b>: the list became <code>1 T0</code>, the tail swallowed the wall, and the head swept left over a stack of older walls of lengths 8192, 2048, 512, 128, 32 (each a quarter of the one before), erasing them, before a new wall started growing. So the machine has epochs, and walls of sizes 2&middot;4<sup>k</sup> point to a regular structure in them.</p>",
+     "<p>For this machine, 59 of the passes in the first 10<sup>9</sup> steps reached the wall. A proof that the machine never halts would need the pass rules proved for every list (an induction on the list in Lean) and a description of what happens at the wall, including the collapses. Neither is done yet.</p>"
+    ]
+   },
+   {
+    "id": "phase2",
+    "eyebrow": "Phase 2",
+    "heading": "One sweep proved for all lengths",
+    "html": [
+     "<p>The unit <code>L 110 111 B&gt;000 R &rarr; L 111 B&gt;000 111 R</code> (11 steps) is proved for any surrounding tapes, and <code>unwind</code> chains it n times. This is one piece of the sweeps behind the pass map. The other sweep, the end-of-list rules and the wall passes are not proved yet, so the pass map is still a trusted computation, not a theorem.</p>"
+    ],
+    "addon": true
+   },
+   {
+    "id": "crit",
+    "eyebrow": "Phase 3",
+    "heading": "The one configuration that can halt",
+    "addon": true,
+    "html": [
+     "<p>Lean now proves where a halt has to come from: the run from blank tape halts if and only if it reaches <code>D&gt;0 1</code>. B is entered by A0 = 1RB and by D0 = 0RB; A is entered only by A1 and F1, which move left and leave a 0 right of the head, so <code>A&gt;0 1</code> cannot occur. So the halt is <code>D&gt;0 1</code>, <code>0 B&gt;1</code>; every other way into the halting transition is ruled out by a small invariant (while no such configuration has occurred, A on a 0 has a 0 on its right and B reads a 0), checked transition by transition.</p>",
+     "<p>In the first 10<sup>9</sup> steps the head is in state D on a 0 33,926,084 times, and the cell right of it is a 0 every time: the three cells right of the head are <code>0 0 0</code> 2,721,021 times, <code>0 0 1</code> 1,814,007 times, <code>0 1 0</code> 16 times (the last at step 3,941,677) and <code>0 1 1</code> 29,391,040 times. The head was at the left end of the tape 53 times in 3&middot;10<sup>9</sup> steps, the last time at step 1,882,323. (C simulator, <code>c/crit.c</code>; a count, not a proof.)</p>",
+     "<p>So the open question is exactly whether a restart of the structure can ever put that pattern under the head.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows in proportion to the step count (the head drifts steadily that way) (fitted exponent 0.999).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"171.5\" y2=\"171.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"175.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"143.0\" y2=\"143.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"147.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"114.6\" y2=\"114.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"118.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"86.1\" y2=\"86.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"90.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><line x1=\"40\" x2=\"520\" y1=\"57.6\" y2=\"57.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"61.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^20</text><path d=\"M40.0,192.9 L59.2,188.7 L78.4,185.8 L97.6,181.6 L116.8,181.6 L136.0,176.3 L155.2,176.3 L174.4,170.3 L193.6,170.3 L212.8,170.3 L232.0,170.3 L251.2,170.3 L270.4,170.3 L289.6,170.3 L308.8,170.3 L328.0,170.3 L347.2,170.3 L366.4,163.2 L385.6,163.2 L404.8,163.2 L424.0,163.2 L443.2,163.2 L462.4,163.2 L481.6,163.2 L500.8,163.2 L520.0,163.2\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,183.5 L59.2,181.6 L78.4,176.3 L97.6,174.5 L116.8,171.5 L136.0,166.5 L155.2,162.6 L174.4,158.6 L193.6,155.8 L212.8,151.3 L232.0,145.5 L251.2,139.2 L270.4,132.4 L289.6,125.5 L308.8,118.5 L328.0,111.4 L347.2,104.2 L366.4,97.6 L385.6,96.9 L404.8,89.8 L424.0,82.7 L443.2,75.6 L462.4,68.5 L481.6,61.4 L500.8,54.3 L520.0,47.1\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 5,420,665 cells (35 left of the start, 2,903,401 right), with a density of 1s of 1.0.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>953,134,986</td><td><code>1^10536 0 1^2 0 1^5155388 0^2 1^3 0 1^2 0 1^2 0 1^2 0 1^3 0 1^2 0 1^2 0 1^2 0 1^3 0 1^2 0 1^3 0 1^3 0 1^2 0 1^3 0 1^3 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^3 0 1^2 0 1^2 0 1^2 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1 C&gt;0</code></td></tr><tr><td>right</td><td>968,760,326</td><td><code>1^10536 0 1^2 0 1^5240024 0^2 1^3 0 1^2 0 1^2 0 1^2 0 1^3 0 1^2 0 1^2 0 1^2 0 1^3 0 1^2 0 1^3 0 1^3 0 1^2 0 1^3 0 1^3 0 1^3 0 1^2 0 1^3 0 1^2 0 1^2 0 1^2 0 1^3 0 1^3 0 1^2 0 1^2 0 1^3 0 1^2 0 1^2 0 1^2 0 1^3 0 1^2 0 1 C&gt;0</code></td></tr><tr><td>right</td><td>984,385,804</td><td><code>1^10536 0 1^2 0 1^5325062 0^2 1^3 0 1^2 0 1^2 0 1^2 0 1^3 0 1^2 0 1^2 0 1^2 0 1^3 0 1^2 0 1^3 0 1^3 0 1^2 0 1^3 0 1^2 0 1^3 0 1^3 0 1^2 0 1^2 0 1^3 0 1^2 0 1^2 0 1^3 0 1^3 0 1^3 0 1^2 0 1^3 0 1^3 0 1^2 0 1^3 0 1^2 0 1 C&gt;0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "recursive counter riding a growing wall",
+ "summary": "A solid block grows to the right at one cell per pass; in front of it the head shuttles over a short list of blocks 1^(3k) that changes like a recursive counter, the same pass map as two other G13 machines."
+}

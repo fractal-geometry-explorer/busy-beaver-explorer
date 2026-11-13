@@ -1,0 +1,192 @@
+{
+ "generated": false,
+ "group": "G11",
+ "title": "What is known about 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF.",
+ "machine": "1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF",
+ "crumb": "holdouts / 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/status.json",
+ "intro": [
+  "Nobody knows whether this six-state machine halts from blank tape. Its tape is single 1s separated by gaps of one, two or three 0s, and it grows to the left. At its visits to the left end a prefix made of the word <code>0 0 1</code> grows by one word each time while the time between visits roughly doubles, then shrinks back: the behavior of a counter. This page lists what has been established, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Its events are decoded: a binary counter at the left end (3-cell digits) gains 1 per event and a 2-bit counter M right of a fixed 46-cell word gains 1; this is proved in Lean for every carry length. When M wraps, a slower counter further right changes (not decoded), and now and then the fixed words themselves are rebuilt."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (D1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 275 cells have been visited and 85 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Sweep rules",
+   "text": "A, B, C and D cross runs of the words 01, 10, 001 or 100 rightwards in one state, rewriting each copy the same way, for any number of copies and any surrounding tape.",
+   "where": "<code>a_right_01</code>, <code>a_right_001</code>, <code>b_right_10</code>, <code>b_right_100</code>, <code>c_right_10</code>, <code>d_right_01</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 10<sup>9</sup> steps",
+   "text": "The C simulator runs 10<sup>9</sup> steps without a halt.",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Visits to the left end",
+   "text": "At the visits of E to the left end on blank the tape is <code>E&gt;0 0 1 (0 0 1)^k 0 1 …</code> followed by single 1s with gaps of one to three 0s. k grows by 1 from one visit to the next while the time between visits roughly doubles, and drops back now and then (to 8 at step 4,121,436; to 2 at step 109,450,476, after reaching 18).",
+   "where": "<code>tmrun 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 1000000000 at E L</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where it can halt",
+   "text": "A closed tape language with windows of 6 cells (found and checked by <code>bbtools.ctl</code>, not yet in Lean) allows a halt only with D reading a 1 at the left end of the tape, followed by <code>100100</code>, <code>100101</code>, <code>101001</code> or <code>101010</code>.",
+   "where": "<code>python3 -m bbtools.ctl 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 6</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A counter",
+   "text": "A word per visit and twice the time per word is the signature of a binary counter whose digits are the gaps; the drops of k are its carries reaching further into the tape.",
+   "where": ""
+  },
+  {
+   "level": "open",
+   "title": "The rule",
+   "text": "How the gaps encode a number, and what a visit does to it, are not known.",
+   "where": ""
+  },
+  {
+   "level": "kernel",
+   "title": "The event rule (non-wrapping events)",
+   "text": "From <code>L 0 0 0 (1 0 0)^k ENGINE A&gt; 0 PREFIX [M] R</code> (ENGINE = <code>00101001010100</code>, PREFIX the 46-cell word <code>1001010100100101010010001001000100100010101010</code>, M two 4-cell digits 1000 = 0 / 1010 = 1, low first) the machine reaches the same shape with the left counter + 1 (<code>1 0 0 (0 0 0)^k</code>) and M + 1, for M = 0, 1, 2, every k and every tape L, R (8k + 608 or 8k + 616 steps); also when the k ones reach the left end of the tape (the counter gains a digit). Nothing right of M is read.",
+   "where": "<code>lean/Events.lean</code> (6 theorems, generated by <code>py/events.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Events in the run",
+   "text": "With this ENGINE and PREFIX, events run from step 78,415 (left counter 32, M = 1): 110 consecutive events add 1 to both counters (27 of them wraps of M), up to left counter 142; then the PREFIX is rebuilt (one of the drops of the left-end count noted above).",
+   "where": "<code>python3 py/track.py 3000000</code>"
+  },
+  {
+   "level": "open",
+   "title": "The wrap of M and beyond",
+   "text": "When M wraps, a slower counter right of M (4-cell words 0101/0100 and others) changes; how, and how the PREFIX is rebuilt, is not decoded. A halt (D reading 1) can only come in those steps, never inside a non-wrapping event.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 1000000000",
+  "python3 -m bbtools.ctl 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 6   # from tools/py"
+ ],
+ "explainer": {
+  "lede": "Nobody knows whether it halts. Its tape is single 1s with gaps of one to three 0s; read in 3-cell digits, the left end is a binary counter that gains 1 at every event, while a two-digit counter far to the right ticks along with it. That much is proved; what happens each time the small counter wraps is not yet decoded.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "6 rules",
+    "text": "The non-wrapping events for every carry length, in Lean."
+   },
+   {
+    "level": "trusted",
+    "value": "110 events",
+    "text": "Consecutive events of the proved shape (steps 78,415 on)."
+   },
+   {
+    "level": "open",
+    "value": "M wraps",
+    "text": "Where the slower counters change."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "events",
+    "eyebrow": "Decoded",
+    "heading": "A binary counter at the left end",
+    "html": [
+     "<p>At an <em>event</em> the head is in state A just right of a fixed 14-cell word (the engine), and the tape reads</p>",
+     "<p style=\"text-align:center\"><code>[left counter] 00101001010100 A&gt; 0 [46-cell word] [M] …</code></p>",
+     "<p>The left counter is binary with 3-cell digits <code>000</code> = 0 and <code>100</code> = 1, most significant first; M is two 4-cell digits <code>1000</code> = 0, <code>1010</code> = 1. One event: the head runs right through the 46-cell word (the head turns at several places inside it, rewriting and then restoring it: it comes back unchanged), adds 1 to M, returns, carries 1 into the left counter, and comes back: 608 + 8k steps for a carry over k ones. Example (steps 100,465, 101,089, 101,705, 102,321, 102,979): the left counter reads 1000011, 1000100, 1000101, 1000110, 1000111 and M = 0, 1, 2, 3, 0.</p>",
+     "<p>Proved in Lean for every k (<code>lean/Events.lean</code>). Open: what the wrap of M does to the slower counter further right, and the occasional rebuilding of the 46-cell word, which is when the count of the left-end visits drops.</p>"
+    ]
+   },
+   {
+    "id": "visits",
+    "eyebrow": "The picture",
+    "heading": "Visits to the left end",
+    "html": [
+     "<p>Every so often the head reaches the left end of the tape in state E, on blank. The tape then starts <code>E&gt;0 0 1 (0 0 1)^k 0 1 …</code> and continues with single 1s separated by one, two or three 0s. From step 109,450,476 on (run of 10<sup>9</sup> steps):</p>",
+     "<table><tr><th>step</th><th>k</th></tr><tr><td>109,450,476</td><td>2</td></tr><tr><td>123,935,687</td><td>3</td></tr><tr><td>152,906,122</td><td>4</td></tr><tr><td>210,847,005</td><td>5</td></tr><tr><td>227,095,618</td><td>6</td></tr><tr><td>253,511,605</td><td>7</td></tr><tr><td>306,343,592</td><td>8</td></tr><tr><td>412,007,579</td><td>9</td></tr><tr><td>475,681,750</td><td>10</td></tr><tr><td>583,059,657</td><td>11</td></tr><tr><td>797,815,484</td><td>12</td></tr></table>",
+     "<p>The gaps between visits are 14.5, 29.0, 57.9 million steps: they double, apart from some shorter ones where a carry stops early. Earlier the front went up to 14 (step 3,688,357), dropped to 8, went up to 11, dropped to 9, rose to 12, dropped to 11, and climbed to 18 (step 94,782,615) before dropping to 2.</p>"
+    ]
+   },
+   {
+    "id": "sweeps",
+    "eyebrow": "Mechanism",
+    "heading": "Sweeps",
+    "html": [
+     "<p>The head crosses repeated words in one state, rewriting each copy the same way: for example A turns <code>0 1</code> into <code>1 0</code> and B turns <code>1 0 0</code> into <code>0 0 0</code>. These rules are proved in Lean for any number of copies: <code>a_right_01</code>, <code>a_right_001</code>, <code>b_right_10</code>, <code>b_right_100</code>, <code>c_right_10</code>, <code>d_right_01</code>.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Halting",
+    "heading": "Where it could halt",
+    "html": [
+     "<p>The machine halts only when D reads a 1. A closed tape language with windows of six cells (an over-approximation of the configurations reachable from blank tape, found by <code>bbtools.ctl</code>) allows that only at the left end of the tape, with <code>100100</code>, <code>100101</code>, <code>101001</code> or <code>101010</code> from the head on. Whether the counter ever leaves that pattern at the front when D arrives is the open question.</p>"
+    ]
+   },
+   {
+    "id": "open",
+    "eyebrow": "Open",
+    "heading": "Next steps",
+    "html": [
+     "<p>Read the gaps as digits, write what one visit does to them and when the front collapses, and check the rule against the visits of a longer run; then find which value of the counter puts D on a 1 at the left end.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.08). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"127.3\" y2=\"127.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"131.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"54.6\" y2=\"54.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"58.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><path d=\"M40.0,171.2 L59.2,157.8 L78.4,145.5 L97.6,134.8 L116.8,129.0 L136.0,116.6 L155.2,103.9 L174.4,103.9 L193.6,95.9 L212.8,91.8 L232.0,88.2 L251.2,85.1 L270.4,81.4 L289.6,80.0 L308.8,77.0 L328.0,74.2 L347.2,71.7 L366.4,70.0 L385.6,68.4 L404.8,67.4 L424.0,65.5 L443.2,63.7 L462.4,62.0 L481.6,60.8 L500.8,59.3 L520.0,58.2\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,157.8 L59.2,157.8 L78.4,149.0 L97.6,142.4 L116.8,137.1 L136.0,132.7 L155.2,132.7 L174.4,129.0 L193.6,125.7 L212.8,122.8 L232.0,120.1 L251.2,117.8 L270.4,117.8 L289.6,115.6 L308.8,113.6 L328.0,111.7 L347.2,109.9 L366.4,108.3 L385.6,106.7 L404.8,106.7 L424.0,105.3 L443.2,103.9 L462.4,102.6 L481.6,101.4 L500.8,100.2 L520.0,99.0\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 275 cells (222 left of the start, 46 right), with a density of 1s of 0.309.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>583,059,657</td><td><code>E&gt;0 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0 1 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0^2 1 0^2 1 0^3 1 0 1 0 1 0 1 0 1 0^2 1 0^3 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0^3 1 0^2 1 0 1 0 1 0^2 1 0^2 1 0^3 1 0^2 1 0^2 1 0^3 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^3 1 0^3 1 0^3 1 0^3 1 0 1 0 1 0^3 1 0 1 0 1 0</code></td></tr><tr><td>left</td><td>797,815,484</td><td><code>E&gt;0 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0 1 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0^2 1 0^2 1 0^3 1 0 1 0 1 0 1 0 1 0^2 1 0^3 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0^3 1 0^2 1 0 1 0 1 0^2 1 0^2 1 0^3 1 0^2 1 0^2 1 0^3 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^3 1 0^3 1 0^3 1 0^3 1 0 1 0 1 0^3 1 0 1</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "Gap counter: a binary counter on the left (3-cell digits 000/100) gains 1 per event while a 2-bit counter M far to the right gains 1; proved in Lean for every carry length with the engine words seen from step 78,415; what M's wrap does to the slow counter beyond is not decoded.",
+ "family": "gap counter"
+}

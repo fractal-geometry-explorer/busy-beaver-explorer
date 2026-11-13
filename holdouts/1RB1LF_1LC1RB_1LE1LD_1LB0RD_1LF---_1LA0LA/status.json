@@ -1,0 +1,169 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA.",
+ "machine": "1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA",
+ "crumb": "holdouts / 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA",
+ "home": "../index.html",
+ "source": "holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Seen in pairs of cells, each visit of the growing left end applies one recursive map to the tape; that map runs a counter in base 4 whose levels are long blocks of the word 111010. The counter itself can never halt; what the head does on the rare occasions it reaches the right end is not understood."
+ ],
+ "asof": "Status as of 12 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The map from one wall visit to the next is known exactly as a recursion on words of pairs, and the four phases of the counter are proved in Lean for every block length and every tape to the right. Direct simulation runs 2·10<sup>10</sup> steps without a halt. But there are words of pairs on which a visit halts (proved in Lean), so everything depends on the words the right-end events leave behind."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (E1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 48,278 cells have been visited and 35,368 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt can come from",
+   "text": "A closed tape language from windows of 6 cells (closed: yes) covers the run; the only places it lets the halting transition E1 fire are E reading a 1 with the abstract left side in a window of 0s, followed by at least six 1s. With windows of 4 and 8 the same picture.",
+   "where": "<code>python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA 6   # from tools/py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "An exact accelerated simulator",
+   "text": "<code>py/blocksim.py</code> keeps the tape as runs of <code>111010</code> and crosses each run with a shift rule; at every visit of the left wall up to 2·10<sup>6</sup> steps its tape equals the C simulator's (<code>py/bscheck.py</code>).",
+   "where": "<code>py/blocksim.py</code>, <code>py/bscheck.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The pair moves",
+   "text": "With X = 10, Y = 11, O = 00: F moving left swaps X and Y and turns round on a blank pair (<code>reflect</code>, <code>flipX0/1</code>, <code>flipY0/1</code>); <code>Y B&gt; X X</code> becomes <code>&lt;F Y Y Y</code> (<code>turn0/1</code>); <code>Y B&gt; X Y<sup>d</sup> X</code> becomes <code>X O<sup>d-1</sup> Y Y Y B&gt;</code> (<code>digit1</code>, <code>digit</code>). For every count and every surrounding tape.",
+   "where": "<code>lean/Rules.lean</code> (from <code>py/rules.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The first-block counter, phase by phase",
+   "text": "<code>bounce</code>, <code>phase1</code>, <code>phase2</code>, <code>phase4_in</code>, <code>phase4_out</code>: eight wall visits take <code>000 (1 0)<sup>n</sup> 0000000 R</code> (digits) to <code>000 (1 0)<sup>n+2</sup> 0000000 R'</code>, for every n and every tape R, in 104n + 407 steps plus the time spent in R; R' is what one visit makes of R.",
+   "where": "<code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A word of pairs that halts",
+   "text": "The wall visit of the tape <code>X Y^8 X X</code> halts after 257 steps. It is not a tape of the run from blank; it shows that the pair structure alone does not exclude a halt.",
+   "where": "<code>pure_tape_halts</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The visit map is a recursion on words",
+   "text": "V(S) = G(S) with G(Y<sup>a</sup> X X U) = X<sup>a</sup> Y Y Y U, G(Y<sup>a</sup> X Y<sup>k</sup> X U) = X<sup>a</sup> Y G<sup>k</sup>(Y Y U), G(Y<sup>a</sup>) = X<sup>a</sup> Y Y: checked against the machine on 20,000 random words and on every covered wall visit of the run from blank tape (the recursion does not cover the right-end events).",
+   "where": "<code>py/gmodel.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in direct simulation",
+   "text": "The C simulator runs 2·10<sup>10</sup> steps from blank tape without a halt; the head reaches the right end of the tape at steps 1,937, 4,828, 24,290, 26,031, 17,047,480,846, 19,980,179,600.",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The counter cannot halt; a right-end event could leave a halting word, and no rule for these events is known.",
+   "where": "README"
+  },
+  {
+   "level": "open",
+   "title": "The right-end events",
+   "text": "When the last level of the counter overflows the head reaches the blank right end in D; what follows (parity changes, blank stretches inside the tape, resets of the counter) has no known rule, and it decides whether a halting word ever appears.",
+   "where": "README, Next steps"
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/lean/check.sh",
+  "cd holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py && python3 rules.py > ../lean/Rules.lean",
+  "python3 gmodel.py 3000000",
+  "gcc -O2 -o tmrun ../../../tools/c/tmrun.c && TMRUN=./tmrun python3 bscheck.py 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA 111010 F L 2000000",
+  "cd tools/py && python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA 6"
+ ],
+ "explainer": {
+  "lede": "Nobody knows whether it halts. Cut the tape into pairs of cells: every visit of the growing left end then applies one recursive map to the tape, and that map makes a counter in base 4 out of long blocks of the word 111010. The counter is proved, phase by phase; the rare moments when the head reaches the other end of the tape are not understood, and they decide the question.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "15 rules",
+    "text": "Pair moves and the four phases of the counter, proved in Lean for every tape."
+   },
+   {
+    "level": "trusted",
+    "value": "2·10<sup>10</sup>",
+    "text": "Steps without a halt (direct simulation)."
+   },
+   {
+    "level": "kernel",
+    "value": "X Y^8 X X",
+    "text": "A word of pairs on which a visit halts: the structure alone does not decide."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "pairs",
+    "eyebrow": "How to read the tape",
+    "heading": "Pairs of cells: X = 10, Y = 11",
+    "html": [
+     "<p>Each time the head is in state F on a 0 with only 0s to its left (a <b>wall visit</b>) the tape to its right is a word of the pairs <code>X = 10</code> and <code>Y = 11</code>. The wall is the growing end: it moves one pair to the left at every visit. The right end of the tape stays where it is for very long stretches.</p>",
+     "<p>From one wall visit to the next the word S becomes G(S):</p>",
+     "<pre>G(Y^a X X U)     = X^a Y Y Y U                 turn back at the first double X\nG(Y^a X Y^k X U) = X^a Y G^k(Y Y U)            a digit k: k visits of the rest\nG(Y^a)           = X^a Y Y                     the blank right end, reached in B</pre>",
+     "<p>What the head does: B runs right over the Y's. At a double X it turns back. At <code>X Y^k X</code> it erases the k Y's and refills two pairs, so k &minus; 1 blank pairs stay behind it. On the way home F swaps X and Y in every pair, and a blank pair sends it right again: each blank pair is a small wall for the rest of the tape. These moves are proved in Lean (<code>turn</code>, <code>digit</code>, <code>flip</code>, <code>reflect</code>).</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "What the map does",
+    "heading": "A counter in base 4, level after level",
+    "html": [
+     "<p>Write the word as digits (the number of Y's before each X). The six-cell word <code>111010</code> is the digit pair <code>1 0</code>, and the tape is <code>000 (1 0)<sup>N1</sup> w ... (1 0)<sup>N2</sup> w ... (1 0)<sup>N3</sup> w ...</code>. The digit word w behind a block goes through four phases:</p>",
+     "<pre>0000000  -&gt;  3 00000  -&gt;  0000 3  -&gt;  3 00 3  -&gt;  0000000 and a carry</pre>",
+     "<p>One phase is two wall visits. The block gains one <code>1 0</code> in the second and in the fourth phase, and in the fourth the head goes on into the rest of the tape. For the first block all of this is a Lean theorem for every block length n and every tape R behind it: eight visits take <code>000 (1 0)<sup>n</sup> 0000000 R</code> to <code>000 (1 0)<sup>n+2</sup> 0000000 R'</code>, and R' is exactly what one visit makes of R. So the rest of the tape lives the same life, eight visits to one: the second block grows four times more slowly than the first, the third sixteen times, and so on (5998, 1492, 372, 88, 21 copies after 10<sup>9</sup> steps).</p>"
+    ]
+   },
+   {
+    "id": "events",
+    "eyebrow": "What is not understood",
+    "heading": "When the head reaches the right end",
+    "html": [
+     "<p>When the last level overflows the head arrives at the blank right end in state D, and the recursion no longer applies. In the first 2·10<sup>10</sup> steps this happened at steps 1,937, 4,828, 24,290, 26,031, 17,047,480,846, 19,980,179,600. Some of these events only rewrite the last few digits; others are resets: a stretch of blank pairs is left inside the tape, a new counter starts to its right and uses the stretch as its wall, and the old blocks stay frozen until the stretch is used up.</p>",
+     "<p>The machine stops only when E reads a 1. The counter never brings that about, but some words of pairs do: on the tape <code>X Y^8 X X</code> a single wall visit halts after 257 steps (a Lean theorem; this tape does not occur in the run from blank). So whether the machine halts depends on the words that the right-end events leave behind, and nobody knows a rule for them.</p>"
+    ]
+   }
+  ],
+  "title": "One map on words, and a counter in base 4 inside it"
+ },
+ "family": "nested base-4 counter on pairs (word recursion)",
+ "decision": "open",
+ "summary": "Wall visits iterate one map on words over the pairs 10 and 11, G(Y^a X X U) = X^a YYY U, G(Y^a X Y^k X U) = X^a Y G^k(YYU): a nested base-4 counter of 111010 blocks whose four phases are proved in Lean; the rare right-end events are irregular, and some pair words halt."
+}

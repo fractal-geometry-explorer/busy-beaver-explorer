@@ -1,0 +1,156 @@
+{
+ "generated": false,
+ "group": "G12",
+ "title": "What is known about 1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---.",
+ "machine": "1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---",
+ "crumb": "holdouts / 1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean (kernel) proves the halting configurations, no halt in the first 10,000 steps (10<sup>7</sup> with <code>native_decide</code>) and three shift rules. Direct C runs find no halt in 2&middot;10<sup>10</sup> steps and show the word-and-counter structure described below; the map of the left-end rebuilds, which is where a halt could happen, is not known."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Shift rules of the sweeps",
+   "text": "<code>W 0 1^3 0 1^(2k+1) B&gt;0 0 &rarr; W 0 1 0 1 0 1 1 C&gt; 0^(2k) 1</code> (head on the first of the 2k 0s) in <code>2k+11</code> steps (the last block erased after a record); <code>B&gt; (10)^k &rarr; (01)^k B&gt;</code> and <code>B&gt; (01)^k &rarr; (11)^k B&gt;</code> in <code>2k</code> steps.",
+   "where": "<code>rec_erase</code>, <code>b_sweep10</code>, <code>b_sweep01</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 214 cells have been visited and 112 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 2&middot;10<sup>10</sup> steps",
+   "text": "Direct C runs (<code>tools/c/tmrun.c</code>, and <code>c/fevents.c</code> of 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---) reach 2&middot;10<sup>10</sup> steps; there are 133 F events (A reading 1), each followed by a 0.",
+   "where": "<code>tmrun MACHINE 20000000000 at B R</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/fixed",
+   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.071).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Records are words; time doubles",
+   "text": "At every record of the first 2&middot;10<sup>10</sup> steps outside the left-end rebuilds the tape is a word ending in <code>1^n B&gt;0</code>, <code>n</code> grows by 2 per record (to 51), the rest changes by one local rewrite, and the time between records tends to double.",
+   "where": "records of the direct run"
+  },
+  {
+   "level": "heuristic",
+   "title": "Halting only at the left end",
+   "text": "A reads a 1 (the only way to F) only while the left end of the word is rebuilt, after the moving rewrite has reached it (some of these rebuilds are restarts of the last block).",
+   "where": "F events of the direct run"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The record-to-record map and the map of the left-end rebuilds have not been derived, so there is no accelerated simulation beyond direct runs.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---/lean/check.sh",
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB--- 20000000000 at B R 100000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. Started on a blank tape, this machine writes a word of blocks of 1s whose last block grows by 2 at every record while the time between records doubles; it could only stop during rare rebuilds of the left end of the word, and none of the few seen so far did.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "2&middot;10<sup>10</sup> steps",
+    "text": "No halt in a direct run; 133 F events."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "heuristic",
+    "value": "n = 51",
+    "text": "Last block of the word at the last record seen."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.071).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"125.0\" y2=\"125.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"129.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"50.0\" y2=\"50.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"54.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><path d=\"M40.0,162.5 L59.2,162.5 L78.4,147.4 L97.6,147.4 L116.8,137.7 L136.0,130.6 L155.2,130.6 L174.4,125.0 L193.6,125.0 L212.8,120.3 L232.0,120.3 L251.2,120.3 L270.4,120.3 L289.6,120.3 L308.8,116.4 L328.0,116.4 L347.2,116.4 L366.4,116.4 L385.6,116.4 L404.8,112.9 L424.0,112.9 L443.2,112.9 L462.4,109.8 L481.6,109.8 L500.8,109.8 L520.0,109.8\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,156.5 L59.2,156.5 L78.4,147.4 L97.6,132.8 L116.8,128.6 L136.0,115.2 L155.2,106.2 L174.4,103.0 L193.6,100.2 L212.8,93.6 L232.0,85.8 L251.2,83.5 L270.4,82.8 L289.6,82.1 L308.8,81.4 L328.0,73.6 L347.2,72.6 L366.4,71.6 L385.6,71.2 L404.8,70.7 L424.0,64.8 L443.2,63.7 L462.4,63.0 L481.6,60.0 L500.8,59.3 L520.0,58.8\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 214 cells (27 left of the start, 184 right), with a density of 1s of 0.523.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>515,400,879</td><td><code>1^2 0 1^3 0 1 0 1 0 1 0 1 0 1^3 0 1^5 0 1^5 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0 1^3 0 1 0 1^3 0 1^3 0 1 0 1^3 0 1^3 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^13 0 1^7 0 1 0 1^13 0 1 0 1^7 0 1 0 1^23 B&gt;0</code></td></tr><tr><td>right</td><td>934,065,421</td><td><code>1^2 0 1 0 1 0 1^3 0 1 0 1 0 1^3 0 1^5 0 1^5 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0 1^3 0 1 0 1^3 0 1^3 0 1 0 1^3 0 1^3 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^13 0 1^7 0 1 0 1^13 0 1 0 1^7 0 1 0 1^25 B&gt;0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "records",
+    "eyebrow": "The structure",
+    "heading": "At every record, a word",
+    "html": [
+     "<p>This machine and 1RB1RF_1RC0RA_1LD1RB_1LE0LD_0RA0LB_0RB--- differ only in A1 and E0, and they behave the same way. Each time the head reaches a new cell on the right (a <em>record</em>), the tape is a <em>word</em>: blocks of 1s separated by single 0s, ending in <code>1^n B&gt;0</code>. For this machine, the word starts at the left end of the visited tape. The blocks are odd, except that the first may be 2.</p>",
+     "<p>From one record to the next the last block grows by 2. The rest of the word changes by one small, width-preserving rewrite, at a place that moves one block to the left per record. The rewrites seen are <code>3 1 1 &rarr; 1 1 3</code>, <code>b &rarr; (b&minus;2) 1</code>, <code>5 1 1 &rarr; 3 1 3</code>, <code>3 3 3 1 1 1 &rarr; 1 1 3 5 3</code> and a few others. The time between records tends to double. In the first 2&middot;10<sup>10</sup> steps the last block reaches 51 (record at step 1.57&middot;10<sup>10</sup>).</p>"
+    ]
+   },
+   {
+    "id": "interval",
+    "eyebrow": "Between records",
+    "heading": "Two counters",
+    "html": [
+     "<p>Right after a record, state D erases the last block from right to left. Only a single marker 1 remains, <code>n+1</code> cells out. This is the Lean theorem <code>rec_erase</code>: <code>W 0 1^3 0 1^(2k+1) B&gt;0 0</code> becomes <code>W 0 1 0 1 0 1 1 C&gt; 0^(2k) 1</code> (the head on the first of the 2k 0s) in <code>2k+11</code> steps. The head then zigzags. Going left, it turns the single-1 blocks at the end of the word into units <code>1 1 0 0</code>. Going right, B sweeps them back, turning <code>10</code> into <code>01</code> and <code>01</code> into <code>11</code> (<code>b_sweep10</code>, <code>b_sweep01</code>). Meanwhile the empty stretch fills with gaps <code>1 0^odd</code>.</p>",
+     "<p>Between two records of 1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---, the turning points follow a ruler sequence on both sides of a fixed cell. On the right they go 88, 90, 88, 92, 88, 90, 88, 94, &hellip;. On the left they dig 55, 65, 41, 65, 55, 65, 45, &hellip; cells deep into the word. This is the signature of two binary counters running against each other: one written in the end of the word, one in the gaps. A full count takes about 2<sup>n/2</sup> steps, and it ends at the next record.</p>"
+    ]
+   },
+   {
+    "id": "restarts",
+    "eyebrow": "Where it could stop",
+    "heading": "Rebuilds and F events",
+    "html": [
+     "<p>F is reached only from A reading a 1, and F halts on a 1. So a halt needs A to read <code>1 1</code>. In the runs, A reads a 1 only when the moving rewrite reaches the left end of the word. There the machine rebuilds the left end. Some of these rebuilds also extend the word, and the last block starts again small (a <em>restart</em>). Records during a rebuild need not be words, and the F events come in bursts there. In the first 2&middot;10<sup>10</sup> steps there are 133 F events, and each is followed by a 0.</p>",
+     "<p>Rebuilds are rare. For 1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB--- the restarts come at about 5&middot;10<sup>3</sup>, 1.4&middot;10<sup>4</sup>, 3.1&middot;10<sup>5</sup>, 1.5&middot;10<sup>7</sup>, 9.7&middot;10<sup>7</sup> and 7.0&middot;10<sup>9</sup> steps. They are rare because the rewrite moves one block per record and records come ever more slowly, so direct simulation sees only a handful. Deciding the machine needs the exact record-to-record map on words, and from it the map of the left-end rebuilds. Neither is written down yet.</p>",
+     "<p><b>Status: open.</b> Lean has the halting configurations, no halt in 10<sup>7</sup> steps, and three shift rules of the sweeps. The record structure is observed in direct runs, not proved.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "G12 word with two counters, 1RB?RF_1RC0RA_1LD1RB_1LE0LD_?L?0LB_0RB---",
+ "summary": "At every record a word of blocks with a last block growing by 2 and doubling time; halting only possible at rare rebuilds of the left end; open."
+}

@@ -1,0 +1,148 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD.",
+ "machine": "1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD",
+ "crumb": "holdouts / 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its tape is an irregular word followed by a run of ones that counts the head's visits to the right end; it can only halt if the word eats the whole run."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Lean proves that a halt needs E at the right edge, and that each trip over the run of ones adds one to it; only A crosses the run to the right, so a halt needs the word W on its left to eat the whole run. In 2·10<sup>10</sup> steps the run has grown to 137,905 cells while W eats about one cell per fifteen visits; W's own dynamics are not decoded."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (E0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 32,607 cells have been visited and 31,695 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Halts only at the right edge",
+   "text": "A closed tape language from windows of 3 cells (338 abstract configurations, found by <code>bbtools.ctl</code>, checked by <code>decide</code> in the kernel) covers every configuration of the run from blank tape; in all of them where E0 can fire, the tape after the head is blank. So every halt happens in state E with blank tape from the head on, and the machine halts iff that ever happens.",
+   "where": "<code>reach_inv</code>, <code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The run of ones counts the visits",
+   "text": "<code>descend</code>: from <code>L 0 1<sup>2n+2</sup> B&gt; 0<sup>&infin;</sup></code> the head walks down the run in C to the 0 below it (2n + 3 steps); <code>climb</code>: from <code>L A&gt; 1<sup>2n</sup> 0<sup>&infin;</sup></code> it climbs the run and adds a 1, arriving at the next visit (2n + 1 steps); with odd-length versions; for every n and every tape L.",
+   "where": "<code>lean/Rules.lean</code> (from <code>py/rules.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 2·10<sup>10</sup> steps",
+   "text": "144,695 extensions of the tape at the right end, all in B; the run of ones reaches 137,905 cells; the left end extends only 344 times (B 12, C 166, D 166), all early.",
+   "where": "<code>c/wallstat.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "An exact accelerated simulator",
+   "text": "<code>py/blocksim.py</code> crosses the run at once; at every visit to 3·10<sup>6</sup> steps its tape equals the C simulator's (<code>py/bscheck.py</code>). Over the first 31,803 visits (9.7·10<sup>8</sup> steps) the run got shorter, by 1 to 6 cells, at 2,634 visits, and W grew to about 2,000 cells.",
+   "where": "<code>py/blocksim.py</code>, <code>py/runwatch.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Only A crosses the run",
+   "text": "A is the only state that moves right over a 1 and stays the same (B and F erase the 1 they step on and D turns back), so E can reach the right edge only once W has eaten the whole run. The run grows by one per visit and W eats about one cell in fifteen: the run outgrows W, as long as W's appetite stays bounded.",
+   "where": "README"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known: it halts iff W ever eats the whole run, and W's dynamics (a sequence of local rewrites at the foot of the run) are not yet decoded.",
+   "where": "README, next steps"
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD/lean/check.sh",
+  "cd holdouts/1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD/py && python3 rules.py > ../lean/Rules.lean && python3 runwatch.py 60 5000",
+  "gcc -O2 -o wallstat holdouts/1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD/c/wallstat.c && ./wallstat 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD 20000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows whether it halts. Its tape is an irregular word followed by a long run of ones, and each visit of the right end adds one to the run. A halt needs the word to eat the whole run first; so far the run is winning, 137,905 cells after 2·10<sup>10</sup> steps.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "right edge",
+    "text": "A halt needs E at the right edge (closed tape language, in Lean)."
+   },
+   {
+    "level": "kernel",
+    "value": "+1 a visit",
+    "text": "Each trip over the run of ones adds one to it (Lean)."
+   },
+   {
+    "level": "trusted",
+    "value": "2·10<sup>10</sup>",
+    "text": "Steps without a halt; the run is 137,905 cells long."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.512).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"158.8\" y2=\"158.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"162.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"117.5\" y2=\"117.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"121.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"76.3\" y2=\"76.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"80.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,173.4 L59.2,169.1 L78.4,167.3 L97.6,163.0 L116.8,157.9 L136.0,156.2 L155.2,151.0 L174.4,144.8 L193.6,141.5 L212.8,137.7 L232.0,131.2 L251.2,126.7 L270.4,125.2 L289.6,119.5 L308.8,118.2 L328.0,116.4 L347.2,115.7 L366.4,115.7 L385.6,115.3 L404.8,115.3 L424.0,114.9 L443.2,113.1 L462.4,113.1 L481.6,113.1 L500.8,113.1 L520.0,113.1\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,183.7 L59.2,183.7 L78.4,179.4 L97.6,179.4 L116.8,173.4 L136.0,169.1 L155.2,163.0 L174.4,158.8 L193.6,148.5 L212.8,144.1 L232.0,137.9 L251.2,132.6 L270.4,124.9 L289.6,118.7 L308.8,112.0 L328.0,104.9 L347.2,99.1 L366.4,93.1 L385.6,87.6 L404.8,82.1 L424.0,76.7 L443.2,71.3 L462.4,66.0 L481.6,60.7 L500.8,55.5 L520.0,50.3\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 32,607 cells (344 left of the start, 23,544 right), with a density of 1s of 0.972.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,062,348</td><td><code>1 0 1^2 0^2 1 0 1 0 1 0 1 0 1^3 0^2 1 0 1^2 0 1^3 0 1^2 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0^2 1 0 1^8 0 1 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0^2 1 0 1^3 0^2 1 0 1^2 0 1^2 0 1 0 1^2 0 1^2 0 1 0 1 0 1 0 1^2 0 1^3 0 1^2 0^2 1 0 1^4 0^2 1^2 0 1 0 1 0 1^2 0 1 0 1 0 1^2 0 1 0^2 1 0 1 0^2 1 0 1^2 0 1^2 0 1 0^2 1 0 1^4 0 1^2 0^2 1 0 1^2 0 1^3 0 1^2 0^2</code></td></tr><tr><td>right</td><td>969,687,600</td><td><code>1 0 1^2 0^2 1 0 1 0 1 0 1 0 1^3 0^2 1 0 1^2 0 1^3 0 1^2 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0^2 1 0 1^8 0 1 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0^2 1 0 1^3 0^2 1 0 1^2 0 1^2 0 1 0 1^2 0 1^2 0 1 0 1 0 1 0 1^2 0 1^3 0 1^2 0^2 1 0 1^4 0^2 1^2 0 1 0 1 0 1^2 0 1 0 1 0 1^2 0 1 0^2 1 0 1 0^2 1 0 1^2 0 1^2 0 1 0^2 1 0 1^4 0 1^2 0^2 1 0 1^2 0 1^3 0 1^2 0^2</code></td></tr><tr><td>right</td><td>985,318,182</td><td><code>1 0 1^2 0^2 1 0 1 0 1 0 1 0 1^3 0^2 1 0 1^2 0 1^3 0 1^2 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0^2 1 0 1^8 0 1 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0^2 1 0 1^3 0^2 1 0 1^2 0 1^2 0 1 0 1^2 0 1^2 0 1 0 1 0 1 0 1^2 0 1^3 0 1^2 0^2 1 0 1^4 0^2 1^2 0 1 0 1 0 1^2 0 1 0 1 0 1^2 0 1 0^2 1 0 1 0^2 1 0 1^2 0 1^2 0 1 0^2 1 0 1^4 0 1^2 0^2 1 0 1^2 0 1^3 0 1^2 0^2</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "What the machine does",
+    "heading": "A run of ones that counts, and a word that eats",
+    "html": [
+     "<p>The tape is an irregular word W, a few thousand cells long, followed by one long run of ones. Every visit of the right end is in state B on the blank cell just past the run. From there the head writes a 0, walks down the run, and works on W; when it comes back to the foot of the run in state A it climbs the run and adds a 1 at the top. Both trips are proved in Lean for every length of the run, so the run counts the visits.</p>",
+     "<p>W is not static: now and then the head bites a few ones off the foot of the run (2,634 times in the first 31,803 visits, 1 to 6 cells each time) and W grows, to about 2,000 cells by then. But the run gains one cell every visit, and after 2·10<sup>10</sup> steps it is 137,905 cells long.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "Only past the end of the run",
+    "html": [
+     "<p>Lean proves (from a closed tape language with windows of 3 cells) that the machine halts exactly when state E reaches the blank region at the right. The only state that walks right over ones without changing them is A, and A arriving at the top just adds a 1. So E can get there only after W has eaten the whole run. Whether W's appetite ever catches up with a run that grows by one each visit is the open question; on the evidence it does not.</p>"
+    ]
+   }
+  ],
+  "title": "It can only halt at one edge"
+ },
+ "family": "unary visit counter fed to an irregular word",
+ "decision": "open",
+ "summary": "The tape is an irregular word W followed by a run of 1s that gains one cell per visit of the right end (descend/climb proved in Lean for every length); a halt needs E at the right edge (Lean), which needs W to eat the whole run first: W eats about one cell in fifteen, the run is 137,905 cells long at 2·10^10 steps."
+}

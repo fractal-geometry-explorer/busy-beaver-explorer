@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What is known about 1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</title>
+<meta name="description" content="Proof status of the six-state BB(6) holdout 1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 36px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; overflow-x: auto; font-family: var(--font-display); font-size: 0.74rem; line-height: 1.6; }
+.top { display: grid; gap: 12px; max-width: 70ch; }
+.crumb { font-size: 0.9rem; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.asof { font-size: 0.88rem; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 70ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 0.88rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.card p { font-size: 0.94rem; }
+.card .where { font-size: 0.84rem; color: var(--muted); }
+.card.open { border-left: 4px solid var(--open); }
+.empty { color: var(--muted); font-size: 0.94rem; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</p>
+    <h1>What is known about 1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</h1>
+    <p class="machine">1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</p>
+    <p>Nobody knows whether this six-state machine halts from blank tape. Its run is a pair of binary counters: one written as a long block of 1s at the right end, whose full count takes about 22·2<sup>j</sup> steps, and one written in the single 0s that separate the blocks on the left, which receives 2<sup>j</sup> at each full count. This page lists what has been established, sorted by what each result rests on.</p>
+    <p class="asof">Status as of 8 November 2026.</p>
+  </header>
+  <section aria-labelledby="h-short">
+    <h2 id="h-short">In short</h2>
+    <div class="verdict">
+      <p><b>The question is open.</b> The event rule is now proved in Lean for every size: between overflows the run is two binary counters, and the machine cannot halt there. Halting can only happen at an overflow, which follows an explicit map (with a recursive constant C(r)) that agrees with the machine on every event and overflow of a 4·10<sup>11</sup>-step run and on all 1,950 overflows with at most 9 bits; iterated for 100,000 phases it never reaches the only place where the machine can halt. The overflow map is checked, not proved.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-claims">
+    <h2 id="h-claims">What each result rests on</h2>
+    <div class="legend" aria-label="Legend">
+      <span><span class="tag t-kernel">kernel</span> checked by Lean's kernel alone</span>
+      <span><span class="tag t-native">native</span> evaluated by compiled code</span>
+      <span><span class="tag t-comp">trusted</span> C or Python in the repository, exhaustive</span>
+      <span><span class="tag t-heur">heuristic</span> sampling, extrapolation, patterns</span>
+      <span><span class="tag t-open">open</span> not known</span>
+    </div>
+    <h3><span class="tag t-kernel">kernel</span> Proved in Lean, kernel-checked</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>The halting configurations</h3>
+        <p>The machine stops exactly when it reads the symbol of a halting transition (A1); the generated statement covers every configuration.</p>
+        <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10,000 steps</h3>
+        <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
+        <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Shift rules</h3>
+        <p>E erases a block of 1s leftwards; F fills 0s rightwards; D rewrites pairs <code>1 1</code> as <code>1 0</code>; E on a separator walks left through a block, moving it one cell right. Each for every length and every surrounding tape.</p>
+        <p class="where"><code>erase</code>, <code>fill</code>, <code>pairs</code>, <code>shift</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The all-ones counter halts</h3>
+        <p>The configurations <code>1^(2M+2) 0 1^(3M−2) B&gt;0</code> on blank tape halt for M = 4, 5, 6 (after 686, 1,390 and 2,798 steps).</p>
+        <p class="where"><code>allones_4</code>, <code>allones_5</code>, <code>allones_6</code>, <code>lean/Shapes.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The event rule, for every size</h3>
+        <p>Right after each event the head, in state B, stands at the start of a binary counter written in groups <code>0 0 d</code> (lowest digit first), here <code>(0 0 0)^d 0 0 1</code>, and left of it the bit string bs in pairs <code>1 b</code> ending with the pair <code>0 1</code>: call that P(d, bs). Proved for every d, every bit string and every left context: one <em>count</em> adds 1 to the right counter and 4 to the left string (its two lowest pairs are left alone) whenever neither increment carries out (<code>count</code>); 2<sup>d</sup> counts add 2<sup>d</sup>·4 (<code>iter</code>, by induction on d); so P(d, b1 :: lo ++ h) reaches P(d+1, b1 :: lo ++ inc h) whenever lo has d bits and h has a 0, i.e. bs + 2<sup>d+1</sup> without carry out of the top bit (<code>event_rule</code>). <code>event_to_P</code> links the README's event <code>bits 0 1^(3d+4) B&gt;0</code> to P(d+1, bits + 2), and <code>blank_to_P</code> shows the run from blank reaches P(0, <code>10</code>) at step 69. The step counts are not stated. Every pair of consecutive P configurations of a run to 2·10<sup>7</sup> steps either follows the rule (22) or is an overflow (6) (<code>py/pchain.py</code>).</p>
+        <p class="where"><code>count</code>, <code>iter</code>, <code>event_rule</code>, <code>event_to_P</code>, <code>blank_to_P</code>, <code>lean/Count.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting only at an overflow</h3>
+        <p>Follows from <code>blank_to_P</code> and <code>event_rule</code> (the deduction is not itself a Lean theorem). Because <code>event_rule</code> is a statement that the machine runs (no halt) from one P configuration to the next, the machine can halt only during a phase P(d, bs) in which bs has no 0 at or above bit d+1, that is when adding 2<sup>d+1</sup> carries out of the top bit. Non-halting is exactly the statement that every such overflow phase ends in a new P configuration; the overflow map (trusted, below) says which one.</p>
+        <p class="where"><code>event_rule</code>, <code>lean/Count.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>7</sup> steps</h3>
+        <p>The same run, evaluated by compiled code.</p>
+        <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>9</sup> steps</h3>
+        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 131 cells have been visited and 63 of them hold a 1.</p>
+        <p class="where"><code>holdouts/triage.json</code></p>
+      </div>
+      <div class="card">
+        <h3>An exact accelerated run</h3>
+        <p><code>py/accel.py</code> follows the run from one P configuration to the next with the proved rules (jumps whose endpoints are proved; the step counts are checked against the direct run, not proved) and simulates only the overflows cell by cell (<code>c/transient.c</code>). The steps of a count are 30 + 6t + 8r (t, r the two carry lengths, from the step counts of the lemmas), summed over a phase in closed form; the result equals the step of every P configuration of a direct run to 2·10<sup>7</sup> steps (<code>py/pchain.py</code>). It reproduces the overflows of the direct run, the seventh ending at P(24, …) at step 1,857,557,588 after 3.7·10<sup>8</sup> simulated steps; the simulated stretch of an overflow grows quickly with the number of digits the machine eats, so this does not replace the map for long runs.</p>
+        <p class="where"><code>py/accel.py</code>, <code>c/transient.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 4·10<sup>11</sup> steps</h3>
+        <p>The run reaches 4·10<sup>11</sup> steps with 50 events and 9 overflows of the slow counter (6 resets, 3 one-bit extensions); the last reset (step 78,168,858,449) leaves 35 bits with j = 30.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The overflow map</h3>
+        <p>When adding 2<sup>j</sup> carries out of the top bit, let R = X + 2<sup>j</sup> − 2<sup>M</sup>. If R is even the next event has X = R + 1, M + 1, N + 3. If R is odd, let k be the number of trailing pairs of bits whose low bit is 1 and r = R mod 4<sup>k</sup>: the next event has X = C(r) + ⌊R / 4<sup>k</sup>⌋, M + 3k + 1 bits and N − 3(2k − 1), where C(01) = 43, C(11) = 104 and C(r) = C(⌊r/4⌋) + c<sub>t</sub>·8<sup>k−1</sup> with t the number of trailing 11 pairs, c<sub>0</sub> = 42, c<sub>t</sub> = 248·4<sup>t−1</sup> − 21 (2c<sub>k−1</sub> + 21 when all k pairs are 11). Checked against the machine on all 1,950 overflows with at most 9 bits (whose odd pairs stop below the top bit), on all 126 patterns r with k ≤ 6 and 12 random ones with k = 7, 8, and on the 9 overflows of the run to 4·10<sup>11</sup> steps.</p>
+        <p class="where"><code>py/macro.py</code> (<code>checkO</code>, <code>checkC</code>, <code>check</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Where it can halt</h3>
+        <p>In every case run with at most 9 bits, the machine halts only when the bit string is all ones and j = M (9 cases); the other 67 overflows whose odd pairs reach the top bit do not halt. The map covers everything else.</p>
+        <p class="where"><code>py/macro.py 0 checkO 9</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>100,000 phases of the map</h3>
+        <p>Iterated from the first event, the map runs 100,000 phases (each phase a run of additions ended by an overflow) without its odd pairs ever reaching the top bit: M grows to 508,578, which is about 10<sup>153,000</sup> steps of the machine. The number k of odd pairs at an overflow is 1 in 35% of phases, 2 in 15%, then roughly halves, with a long tail (largest 92). A halt needs k ≥ M/2.</p>
+        <p class="where"><code>py/macro.py 100000</code></p>
+      </div>
+      <div class="card">
+        <h3>Blockers pile up</h3>
+        <p>Computed with the trusted overflow map: at an overflow the top M − j0 bits of the remainder R are all 1 (2,998 of the first 3,000 overflows). A pair of R whose low bit is 0 is a blocker; a halt needs a string without blockers. In 20,000 overflows the number of blockers grows about linearly (639 at overflow 2,000, 3,302 at 10,000, 5,901 at 18,000). Evidence against a halt, not a proof.</p>
+        <p class="where"><code>py/macro.py</code> (the function <code>phases</code>), <code>py/blockers.py 20000</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-open">open</span> Open</h3>
+    <div class="cards">
+      <div class="card open">
+        <h3>A proof</h3>
+        <p>The event rule is proved for all sizes (kernel). Still open: the overflow map for all sizes (at an overflow the left string is reset and the right counter ends up one cell out of phase; the machine then eats the counter's low digits in pairs, which is where C(r) comes from), and an argument that the iterated map never fills a string with odd pairs. The map looks like a random process on growing strings, so an invariant that excludes the halting case is not in sight.</p>
+      </div>
+    </div>
+  </section>
+  <section aria-labelledby="h-check">
+    <h2 id="h-check">Check it yourself</h2>
+    <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
+holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/lean/check.sh
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD 1000000000
+python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/bitmodel.py exhaust 1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD B 6
+./tmrun 1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD 400000000000 at B R 400 &gt; log &amp;&amp; python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/bitmodel.py events 1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD B log</code></pre>
+  </section>
+  <footer>
+    <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/status.json</code>; edit that file and rebuild rather than editing this page.</p>
+    <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+  </footer>
+</main>
+</body>
+</html>

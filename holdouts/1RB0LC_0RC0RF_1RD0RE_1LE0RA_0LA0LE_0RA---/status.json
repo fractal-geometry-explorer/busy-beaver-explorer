@@ -1,0 +1,229 @@
+{
+ "generated": false,
+ "group": "G01",
+ "title": "What is known about 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA---.",
+ "machine": "1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA---",
+ "crumb": "holdouts / 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA---",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> This machine is in <b>frame B</b>: its table is the mirror image (L and R exchanged) of the frame-A table <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---</code> with the states renamed A&rarr;D, B&rarr;E, C&rarr;A, D&rarr;B, E&rarr;C, F&rarr;F, and it starts where that machine would be in state C. So its run from blank tape is, step for step and mirrored, the run of <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---</code> started in C (checked from the two tables by <code>frames.py</code> and by simulation). The F-transition of the analysis is this machine's B1, the halting state is F. The nested counter that drives the run is proved in Lean for every depth (<code>go_spec</code>), with its closed form, the birth of blocks and the F-event; the remaining exceptions (merges, the left end) are simulated exactly. No halt in 1.5&middot;10<sup>100</sup> steps: every F-event so far is of the proved harmless kind."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 79,313 cells have been visited and 25,225 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "One of 14 machines with the same five-state core",
+   "text": "States A to E of every machine of the family are the core 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_?--- (in frame A); the machines differ in F0 and the start state, and some are mirror images. This one is the mirror image of <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---</code>, renamed, started in its state C.",
+   "where": "<code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/frames.py</code>, <code>py/conjugacy_steps.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The visit rule for every depth",
+   "text": "A <em>visit</em> starts with the head in state A on the 0 in front of plain blocks <code>(10)^b1 1 (10)^b2 1 &#8230; 1</code> and ends when it first steps left of that cell; it never reads the tape on its left. <code>go_spec</code> proves, by induction on the depth n and for every left context, that a <em>clean</em> visit (a decidable condition: every block it spreads is odd and &ge; 7, every second block nonempty) turns the list l into <code>go n l</code> in exactly <code>goT n l</code> steps, where <code>go</code> is the recursion: spread b1, five visits to [b2+1, b3, &#8230;] with the tail bumps +3, +1, +1, +1 between them, then b1&minus;5. It is built from seven rules (PUSH, TURN, TAIL1&ndash;4, POP) proved by bbtools.symtm for all counts.",
+   "where": "<code>go_spec</code>, <code>push</code> &#8230; <code>pop</code>, <code>lean/Family.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Its closed form",
+   "text": "<code>go_closed</code>: if b1 is odd and &ge; 7 and the later blocks are even, the last &ge; 2 and block i (i = 2..k&minus;1) &ge; 2 + 18&middot;5<sup>i&minus;2</sup>, then the visit is clean and gives (b1&minus;5, b2&minus;18, b3&minus;90, &#8230;, b<sub>k&minus;1</sub>&minus;18&middot;5<sup>k&minus;3</sup>, b<sub>k</sub>+12&middot;5<sup>k&minus;2</sup>) (a single odd block gains 1); <code>visit_closed</code> states it on the tape. With the tail bump after the visit this is the measured round rule (&minus;4, &minus;18, &#8230;, +12&middot;5<sup>m&minus;2</sup>) for every m.",
+   "where": "<code>go_closed</code>, <code>visit_closed</code>, <code>lean/Family.lean</code>; closed step count in <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/cf.py</code> (trusted)"
+  },
+  {
+   "level": "kernel",
+   "title": "Rounds, births and the F-event",
+   "text": "<code>round1</code>&ndash;<code>round4</code>: a clean visit followed by one phase of the tail on its left. <code>birth</code>: a visit to a single even block [2k+4] gives [2k+2, 8] in 10k+188 steps (where new blocks come from). <code>fevent</code> and <code>fevent_reads_zero</code>: the only way into F seen in the runs (a C exit onto the 0 of a phase-1 tail, then C0, D1) makes F read the last cell of a <code>1000</code> or of <code>100</code>, which is 0 for every q and every tape around.",
+   "where": "<code>round1</code> &#8230; <code>birth</code>, <code>fevent_reads_zero</code>, <code>lean/Family.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The rules hold for this machine's own table",
+   "text": "The rules are proved on the frame-A table <code>FA.trans</code>. This machine is its mirror image: the map <code>img</code> (mirror the tape, rename the states) sends every frame-A step to a step of this machine (<code>step_img</code>, <code>steps_img</code>); <code>halts_iff</code> says that this machine halts from blank tape iff the frame-A table halts from blank in state C, and <code>visit</code> restates <code>go_spec</code> for this machine.",
+   "where": "<code>halts_iff</code>, <code>visit</code>, <code>lean/Family.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The round rule on one and two blocks (first pass)",
+   "text": "Eight theorems on the machine's own table: a round on the last block changes it by +2 (+4 from phase 1), on the last two by (&minus;4, +12), for each phase, with exact step counts. Now special cases of the rules above.",
+   "where": "<code>round_m1_p1</code> &#8230; <code>round_m2_p4</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The events follow the round rule",
+   "text": "Listing every event (A turning right with plain blocks on its right) and comparing consecutive ones: 9,952 events in 10^8 steps; transitions: same 4,793, same* 1,582, down 1,960, up1 1,278, up2 256, up3 50, up4 10, up5 1, X 21. The few exceptions (X) are the left end, the birth of a new last block, the merge after a block runs out, and the F-events.",
+   "where": "<code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/c/family.c events</code>, <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/check_rounds.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "The exact run-length simulator (macro steps over <code>(10)^n</code>, <code>(1000)^n</code>, checked against plain simulation) runs 100,000,034,756 steps from blank tape without a halt. It meets 17 left-end events and 5 F-events (first at step 40,899), and at every F-event the cell F reads is 0.",
+   "where": "<code>data/trajectory.json</code>, <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/trajectory.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The whole run as an exact map on block lists",
+   "text": "<code>hybrid.py</code> runs the machine as a map on block lists: clean visits by the closed form (a theorem), every other visit (small or even first blocks, merges after a block runs out, births, the left end) by the exact run-length simulator, recursively and memoised. It is exact, not a model: against <code>data/trajectory.json</code> (100,000,034,756 steps of the machine) it reproduces all 17 left-end events (step and block list) and all 5 F-events (step and cell read).",
+   "where": "<code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/hybrid.py</code>, <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/hybrid_run.py</code>, <code>data/hybrid.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 1.5&middot;10<sup>100</sup> steps",
+   "text": "The exact map runs 1.5&middot;10<sup>100</sup> steps (16 s): 209 left-end events, 102 F-events, every one reading 0 and every one of the proved kind (<code>010001000100[F]001010101010</code> (80&times;); <code>010001000100[F]001010110101</code> (22&times;)). The block list grows to about 40 blocks, block i of size about 5<sup>i</sup>.",
+   "where": "<code>data/hybrid.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Where a halt would have to come from",
+   "text": "F is entered only by D1 (D reads a 1 during the left sweep, where a spread block is turned back), and halts only when it then reads a 1. In this run every F-event has the same clean context (<code>010001000100[F]0010101</code> (5&times;)). Random block lists do reach a halting F-event (about 1 in 150 F-entries; e.g. <code>[15, 31, 17, 59, 31]</code> halts after 63,153 steps), so the halt is reachable in principle; whether the blank-tape run ever produces such a list is the open part. F-events get rarer as the blocks grow (the top-level round time grows about fivefold per block).",
+   "where": "<code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/random_lists.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The visit rule is proved for every depth, its closed form, births and the F-event too; what is missing is a proof that the unclean visits of the blank-tape run (merges, small first blocks, the left end) always end in a C exit of the proved kind and never in an F exit onto a 1, that is an invariant on the block lists reached from blank tape.",
+   "where": "README.md, Further work"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.519). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.03).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA---/lean/check.sh",
+  "python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_family_lean.py 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA--- H94115 > holdouts/1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA---/lean/Family.lean",
+  "python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/hybrid_run.py 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA--- 1e100     # writes data/hybrid.json",
+  "python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_lean.py 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA--- H94115 > holdouts/1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA---/lean/Rules.lean",
+  "python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/trajectory.py 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA--- 1e11 holdouts/1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA---/data/trajectory.json",
+  "cc -O2 -o family holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/c/family.c && ./family events 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---:C 1e8 > ev.txt && python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/check_rounds.py ev.txt"
+ ],
+ "explainer": {
+  "lede": "Nobody knows, but the machinery is clear. In frame A the tape is a list of blocks <code>(10)^b</code>; the head works through them like a nested counter in base 5, and the only way to halt is a rare <em>F-event</em> going wrong. The counter is proved in Lean for every depth; run as an exact map on block lists it reaches 1.5&middot;10<sup>100</sup> steps and meets 102 F-events, all harmless. This machine is the mirror image of <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---</code>, started in its state C.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "every depth",
+    "text": "The visit rule (a visit calls five visits) and its closed form, in Lean (Family.lean)."
+   },
+   {
+    "level": "trusted",
+    "value": "1.5&middot;10<sup>100</sup> steps",
+    "text": "No halt in the exact map on block lists; 102 F-events, all reading 0."
+   },
+   {
+    "level": "trusted",
+    "value": "17 top events",
+    "text": "Visits of the head to the left end, each a round on the whole list."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "family",
+    "eyebrow": "The family",
+    "heading": "Fourteen machines, one engine",
+    "html": [
+     "<p>This machine is in <b>frame B</b>: its table is the mirror image (L and R exchanged) of the frame-A table <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---</code> with the states renamed A&rarr;D, B&rarr;E, C&rarr;A, D&rarr;B, E&rarr;C, F&rarr;F, and it starts where that machine would be in state C. So its run from blank tape is, step for step and mirrored, the run of <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---</code> started in C (checked from the two tables by <code>frames.py</code> and by simulation). The F-transition of the analysis is this machine's B1, the halting state is F.</p>",
+     "<p>The table below lists the family. Frame B machines are mirror images of frame-A ones started in state C; the X machine is a mirror image started in F (and its D1 writes 1). Different F0 or start states give different runs after the first F-event, but the same rules between F-events.</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>machine</th><th>frame</th><th>F0 in frame A</th><th>D1</th><th>starts in</th><th>F-events to 10<sup>11</sup></th></tr></thead><tbody><tr><td><code><a href=\"../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/explainer.html\">1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---</a></code></td><td>A</td><td>0RA</td><td>0LF</td><td>A</td><td>13</td></tr><tr><td><code><a href=\"../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---/explainer.html\">1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---</a></code></td><td>A</td><td>0RB</td><td>0LF</td><td>A</td><td>7</td></tr><tr><td><code><a href=\"../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---/explainer.html\">1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---</a></code></td><td>A</td><td>0RE</td><td>0LF</td><td>A</td><td>8</td></tr><tr><td><code><a href=\"../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---/explainer.html\">1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---</a></code></td><td>A</td><td>1LB</td><td>0LF</td><td>A</td><td>8</td></tr><tr><td><code><a href=\"../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LC---/explainer.html\">1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LC---</a></code></td><td>A</td><td>1LC</td><td>0LF</td><td>A</td><td>5</td></tr><tr><td><code><a href=\"../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1RA---/explainer.html\">1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1RA---</a></code></td><td>A</td><td>1RA</td><td>0LF</td><td>A</td><td>4</td></tr><tr><td><code><a href=\"../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---/explainer.html\">1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---</a></code></td><td>B</td><td>0RA</td><td>0LF</td><td>C</td><td>13</td></tr><tr><td><code><a href=\"../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LE---/explainer.html\">1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LE---</a></code></td><td>B</td><td>0RB</td><td>0LF</td><td>C</td><td>7</td></tr><tr><td><code><b>1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA---</b></code></td><td>B</td><td>0LC</td><td>0LF</td><td>C</td><td>5</td></tr><tr><td><code><a href=\"../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1LD---/explainer.html\">1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1LD---</a></code></td><td>B</td><td>1RA</td><td>0LF</td><td>C</td><td>4</td></tr><tr><td><code><a href=\"../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RA---/explainer.html\">1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RA---</a></code></td><td>B</td><td>1LC</td><td>0LF</td><td>C</td><td>5</td></tr><tr><td><code><a href=\"../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---/explainer.html\">1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---</a></code></td><td>B</td><td>1LB</td><td>0LF</td><td>C</td><td>8</td></tr><tr><td><code><a href=\"../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1LD---/explainer.html\">1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1LD---</a></code></td><td>B</td><td>1RA</td><td>1LF</td><td>C</td><td>8</td></tr><tr><td><code><a href=\"../1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA/explainer.html\">1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA</a></code></td><td>X</td><td>1LB</td><td>1LF</td><td>F</td><td>6</td></tr></tbody></table></div>",
+     "",
+     "<p>The shared analysis code is in the folder of <a href=\"../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/explainer.html\"><code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---</code></a> (<code>py/</code>, <code>c/</code>). Other holdouts with the same core, for example <a href=\"../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---/explainer.html\"><code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---</code></a>, <a href=\"../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---/explainer.html\"><code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---</code></a>, <a href=\"../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LA---/explainer.html\"><code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LA---</code></a>, are studied in another group.</p>"
+    ]
+   },
+   {
+    "id": "blocks",
+    "eyebrow": "The mechanism",
+    "heading": "Blocks of 10 and a nested counter",
+    "html": [
+     "<p>Away from rare moments the tape (in frame A) is a list of <em>blocks</em>: runs <code>(10)^b</code> separated by single 1s. At an <em>event</em> the head, in state A, has just turned right at the left edge of the blocks it is about to work on; everything to its left is spread out as <code>(1000)^q</code> ending in a short tail.</p>",
+     "<svg viewBox=\"0 0 560 92\" role=\"img\" aria-label=\"the tape at an event: spread blocks on the left, the head, plain blocks on the right\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><rect x=\"4\" y=\"20\" width=\"150\" height=\"26\" fill=\"none\" stroke=\"var(--line)\"/><text x=\"79\" y=\"37\" text-anchor=\"middle\" fill=\"var(--fg2)\">(1000)^q &#8230;</text><rect x=\"158\" y=\"20\" width=\"50\" height=\"26\" fill=\"none\" stroke=\"var(--line)\"/><text x=\"183\" y=\"37\" text-anchor=\"middle\" fill=\"var(--fg2)\">tail</text><text x=\"222\" y=\"37\" text-anchor=\"middle\" fill=\"var(--head)\">A&gt;0</text><rect x=\"240\" y=\"20\" width=\"96\" height=\"26\" fill=\"none\" stroke=\"var(--accent)\"/><text x=\"288\" y=\"37\" text-anchor=\"middle\" fill=\"var(--accent)\">(10)^b1</text><text x=\"344\" y=\"37\" text-anchor=\"middle\" fill=\"var(--fg2)\">1</text><rect x=\"352\" y=\"20\" width=\"80\" height=\"26\" fill=\"none\" stroke=\"var(--accent)\"/><text x=\"392\" y=\"37\" text-anchor=\"middle\" fill=\"var(--accent)\">(10)^b2</text><text x=\"442\" y=\"37\" text-anchor=\"middle\" fill=\"var(--fg2)\">1 &#8230; 1</text><rect x=\"464\" y=\"20\" width=\"60\" height=\"26\" fill=\"none\" stroke=\"var(--accent)\"/><text x=\"494\" y=\"37\" text-anchor=\"middle\" fill=\"var(--accent)\">(10)^bk</text><text x=\"540\" y=\"37\" text-anchor=\"middle\" fill=\"var(--fg2)\">1 0&#8734;</text><text x=\"4\" y=\"68\" fill=\"var(--muted)\">spread block (left sweep A,C,D,E: 4 steps per 1000)</text><text x=\"240\" y=\"84\" fill=\"var(--muted)\">plain blocks (right sweep B: 6 steps per 1010 &#8594; 0100)</text></svg>",
+     "<p>A <em>round</em> on the last m blocks runs the head right over them (state B, six steps per <code>1010</code>, which becomes <code>0100</code>) and back (states E, A, C, D, four steps per <code>1000</code>). A round on blocks j..k contains five rounds on blocks j+1..k, so the work is nested like a counter in base 5, and a round on the last m blocks changes them by:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>blocks</th><th>change</th><th>steps</th><th>proved</th></tr></thead><tbody><tr><td>1</td><td>(+2)</td><td>10u+59 (&asymp;5b)</td><td>Lean kernel</td></tr><tr><td>2</td><td>(&minus;4, +12)</td><td>10u<sub>0</sub>+50u<sub>1</sub>+485 (&asymp;5b<sub>1</sub>+25b<sub>2</sub>)</td><td>Lean kernel</td></tr><tr><td>3</td><td>(&minus;4, &minus;18, +60)</td><td>&asymp;5b<sub>1</sub>+25b<sub>2</sub>+125b<sub>3</sub></td><td>Lean kernel</td></tr><tr><td>m</td><td>(&minus;4, &minus;18, &minus;90, &#8230;, &minus;18&middot;5<sup>m&minus;3</sup>, +12&middot;5<sup>m&minus;2</sup>)</td><td>&asymp;&Sigma; 5<sup>i</sup>b<sub>i</sub></td><td>Lean kernel, every m</td></tr></tbody></table></div>",
+     "<p>(From phase 1 of the tail the first block gets 2 more.) After the round the tail on the left has moved one phase on (<code>10, 1, 1001, 101, 11</code>); after five phases one <code>1000</code> of the spread block on the left is used up, which is how the deeper block counts down. Between consecutive events of this run: 9,952 events in 10^8 steps; transitions: same 4,793, same* 1,582, down 1,960, up1 1,278, up2 256, up3 50, up4 10, up5 1, X 21.</p>"
+    ]
+   },
+   {
+    "id": "visits",
+    "eyebrow": "The whole run",
+    "heading": "A visit calls five visits",
+    "html": [
+     "<p>Cut the run into <em>visits</em>: a visit starts when the head (state A) stands just left of a list of plain blocks and ends when it steps back out to the left. It never looks at the tape on its left, so its outcome depends on the list alone. A visit to [b1, b2, &#8230;, bk] with b1 odd spreads b1 (PUSH), then makes five visits to the shorter list [b2+1, b3, &#8230;], nudging the tail between them (+3, +1, +1, +1), and finally folds b1 back up, 5 smaller (POP). That is a counter in base 5, and it is now a Lean theorem for every depth.</p>",
+     "<svg viewBox=\"0 0 560 150\" role=\"img\" aria-label=\"a visit to blocks b1..bk calls five visits to the blocks after b1\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><rect x=\"10\" y=\"8\" width=\"540\" height=\"24\" fill=\"none\" stroke=\"var(--accent)\"/><text x=\"280\" y=\"24\" text-anchor=\"middle\" fill=\"var(--accent)\">visit [b1, b2, ..., bk]  (b1 odd: spread it, phase 1)</text><rect x=\"30\" y=\"52\" width=\"92\" height=\"24\" fill=\"none\" stroke=\"var(--line)\"/><text x=\"76\" y=\"68\" text-anchor=\"middle\" fill=\"var(--fg2)\">visit #1</text><text x=\"76\" y=\"94\" text-anchor=\"middle\" fill=\"var(--muted)\">[b2+1, ...]</text><rect x=\"132\" y=\"52\" width=\"92\" height=\"24\" fill=\"none\" stroke=\"var(--line)\"/><text x=\"178\" y=\"68\" text-anchor=\"middle\" fill=\"var(--fg2)\">visit #2</text><text x=\"178\" y=\"94\" text-anchor=\"middle\" fill=\"var(--muted)\">tail +3</text><rect x=\"234\" y=\"52\" width=\"92\" height=\"24\" fill=\"none\" stroke=\"var(--line)\"/><text x=\"280\" y=\"68\" text-anchor=\"middle\" fill=\"var(--fg2)\">visit #3</text><text x=\"280\" y=\"94\" text-anchor=\"middle\" fill=\"var(--muted)\">tail +1</text><rect x=\"336\" y=\"52\" width=\"92\" height=\"24\" fill=\"none\" stroke=\"var(--line)\"/><text x=\"382\" y=\"68\" text-anchor=\"middle\" fill=\"var(--fg2)\">visit #4</text><text x=\"382\" y=\"94\" text-anchor=\"middle\" fill=\"var(--muted)\">tail +1</text><rect x=\"438\" y=\"52\" width=\"92\" height=\"24\" fill=\"none\" stroke=\"var(--line)\"/><text x=\"484\" y=\"68\" text-anchor=\"middle\" fill=\"var(--fg2)\">visit #5</text><text x=\"484\" y=\"94\" text-anchor=\"middle\" fill=\"var(--muted)\">tail +1</text><text x=\"280\" y=\"122\" text-anchor=\"middle\" fill=\"var(--fg2)\">each visit #i is the same thing one level down: five visits to [b3, ...], and so on</text><text x=\"280\" y=\"140\" text-anchor=\"middle\" fill=\"var(--muted)\">after the fifth: POP turns the spread b1 back into the plain block b1 &#8722; 5</text></svg>",
+     "<p>When the blocks are big enough the whole visit has a closed form: b1 loses 5, block i loses 18&middot;5<sup>i&minus;2</sup>, the last gains 12&middot;5<sup>k&minus;2</sup>, in about &Sigma; 5<sup>i+1</sup>b<sub>i</sub> steps (also proved). The rest are exceptions: a single even block gives birth to a new last block 8 (proved), a block that runs out merges with its neighbour, and the left end sees an even first block.</p>",
+     "<p>Doing clean visits by formula and only the exceptions cell by cell gives an exact simulator of the machine that reaches 1.5&middot;10<sup>100</sup> steps in 16 seconds; it agrees with the plain simulation event for event for the first 10<sup>11</sup> steps.</p>"
+    ]
+   },
+   {
+    "id": "leftend",
+    "eyebrow": "The top level",
+    "heading": "What the left end sees",
+    "html": [
+     "<p>Each time the head comes back to the left end of the tape it starts a round on the whole list and the tape grows by 3 cells on the left. At these moments the block list is:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>cells left of start</th><th>blocks b1, b2, &#8230;</th></tr></thead><tbody><tr><td>3</td><td>3</td><td><code>[1]</code></td></tr><tr><td>22</td><td>6</td><td><code>[4]</code></td></tr><tr><td>215</td><td>9</td><td><code>[4, 8]</code></td></tr><tr><td>1,241</td><td>13</td><td><code>[32]</code></td></tr><tr><td>1,574</td><td>16</td><td><code>[32, 8]</code></td></tr><tr><td>5,775</td><td>19</td><td><code>[28, 16, 44]</code></td></tr><tr><td>119,932</td><td>22</td><td><code>[18, 112, 32, 236]</code></td></tr><tr><td>2,000,269</td><td>25</td><td><code>[18, 90, 10, 194, 1136]</code></td></tr><tr><td>3,834,746</td><td>28</td><td><code>[18, 214, 794, 1136]</code></td></tr><tr><td>&#8230;</td><td></td><td></td></tr><tr><td>738,126,949</td><td>37</td><td><code>[18, 160, 520, 2858, 3948, 5084, 19196]</code></td></tr><tr><td>8,056,012,692</td><td>40</td><td><code>[18, 142, 430, 2408, 1696, 51612, 41264]</code></td></tr><tr><td>30,457,707,575</td><td>43</td><td><code>[18, 124, 340, 1956, 42574, 133630, 13064]</code></td></tr><tr><td>57,596,456,428</td><td>46</td><td><code>[18, 106, 250, 1506, 40324, 122376, 352, 143984]</code></td></tr><tr><td>64,041,486,829</td><td>49</td><td><code>[18, 88, 160, 1056, 38074, 253348, 43136]</code></td></tr><tr><td>95,349,958,490</td><td>52</td><td><code>[18, 70, 70, 606, 35824, 242094, 130672, 43724]</code></td></tr></tbody></table></div>",
+     "<p>Between left-end events b<sub>2</sub> drops by 18, b<sub>3</sub> by about 90, b<sub>4</sub> by about 450 (the round rule seen from the top), while a new last block is born or grows. When a block runs out the list shortens and its neighbours merge; these steps, and the births, are the part of the map that is handled exactly by the simulator but not yet written as closed rules. Values such as 296, 524, 1136, 37496 recur in several machines of the family: they are fixed outcomes of a block being born.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "The halting condition",
+    "heading": "Where a halt could come from",
+    "html": [
+     "<p>Only D1 enters F; F1 halts, F0 = 0LC (frame A) lets the run go on. In 1.5&middot;10<sup>100</sup> steps of the exact map there are 102 F-events, all reading 0, of two kinds: <code>010001000100[F]001010101010</code> (80&times;); <code>010001000100[F]001010110101</code> (22&times;).</p>",
+     "<p>All of them happen the same way: an unclean visit ends in state C instead of B, on the 0 of a spread block's tail <code>10</code>. C0 writes 1 and steps left onto the tail's 1, D1 sends the head into F one cell further left, and that cell is the last 0 of a <code>1000</code> (or of the <code>100</code> that starts a spread block). This is proved for every tape around (<code>fevent_reads_zero</code>), so these F-events can never halt.</p>",
+     "<p>A halt would need a different way in: an unclean visit that exits into F directly, or a C exit onto some other tail. Random block lists do that now and then (about once per 150 F-entries), so the question is whether the lists that the blank-tape run builds avoid it forever. Nobody has proved that.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.519). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.03).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"161.9\" y2=\"161.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"165.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"123.8\" y2=\"123.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"127.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"85.7\" y2=\"85.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"89.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"47.6\" y2=\"47.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"51.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,180.9 L59.2,180.9 L78.4,169.8 L97.6,162.8 L116.8,158.8 L136.0,151.1 L155.2,147.1 L174.4,138.6 L193.6,132.1 L212.8,126.6 L232.0,122.8 L251.2,118.6 L270.4,112.0 L289.6,107.2 L308.8,102.7 L328.0,98.2 L347.2,93.7 L366.4,89.7 L385.6,83.5 L404.8,77.6 L424.0,73.8 L443.2,70.6 L462.4,63.5 L481.6,59.3 L500.8,54.7 L520.0,49.5\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,180.9 L59.2,173.3 L78.4,173.3 L97.6,173.3 L116.8,168.3 L136.0,168.3 L155.2,168.3 L174.4,161.1 L193.6,161.1 L212.8,158.8 L232.0,158.8 L251.2,158.8 L270.4,158.8 L289.6,156.9 L308.8,156.9 L328.0,156.9 L347.2,156.9 L366.4,155.2 L385.6,153.7 L404.8,152.4 L424.0,152.4 L443.2,152.4 L462.4,151.1 L481.6,151.1 L500.8,151.1 L520.0,151.1\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 79,313 cells (56,779 left of the start, 34 right), with a density of 1s of 0.318.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>954,527,208</td><td><code>C&gt;0 0^4 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1</code></td></tr><tr><td>left</td><td>970,233,110</td><td><code>C&gt;0 0^4 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1</code></td></tr><tr><td>left</td><td>985,873,683</td><td><code>C&gt;0 0^4 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1</code></td></tr><tr><td>right</td><td>738,126,945</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "Nested block counter (core 1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB, frames A/B/X)",
+ "summary": "Block counter: in frame A the tape is a list of (10)^b blocks run like a base-5 nested counter (visit rule for every depth and its closed form in Lean); halting needs a rare F-event (D1) to read a 1. Mirror image of 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC--- started in C. No halt in 1.5·10^100 steps of the exact block-list map, all F-events clean.",
+ "decision": "open"
+}

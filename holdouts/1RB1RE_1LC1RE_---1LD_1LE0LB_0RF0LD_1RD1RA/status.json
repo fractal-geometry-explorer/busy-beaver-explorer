@@ -1,0 +1,184 @@
+{
+ "generated": false,
+ "group": "halving rounds with a power-of-two halt condition",
+ "title": "What is known about 1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA.",
+ "machine": "1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA",
+ "crumb": "holdouts / 1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 12 November 2026.",
+ "verdict": [
+  "<b>The question is open, and Collatz-like.</b> At every visit of the left end the tape is a list of blocks <code>a<sup>x0</sup> 110 a<sup>x1</sup> 110 &hellip;</code> (<code>a = 01</code>). A round halves blocks from the left as long as a carry survives and pours the halves into the blocks on the right: a single block x becomes (3x+5)/2 when odd and [x/2&minus;1, 0, x] when even, an odd first block x0 becomes (x0&minus;3)/2. Lean proves that a first block of 1 halts the machine, so it halts if and only if a run of odd rounds starts with x0+3 a power of two (as far as the computed round map is right: it is checked against the machine, not proved). The map has been iterated for 1,000,000 rounds from blank tape, more than 10<sup>94,000</sup> steps, without a halt."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (C0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,418 cells have been visited and 25,199 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.075). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.505).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Drain trips",
+   "text": "After the halving sweep the head drains the b's (<code>b = 0111</code>) one per trip: <code>b<sup>m+1</sup> a<sup>p</sup> &hellip; a<sup>q</sup></code> becomes <code>b<sup>m</sup> a<sup>p+1</sup> &hellip; a<sup>q+2</sup></code> (<code>a = 01</code>), for every value and any list of middle blocks, with exact step counts for one and two blocks.",
+   "where": "<code>drain1</code>, <code>drain2D</code>, <code>drainS</code>, <code>drainSD</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A first block of 1 halts the machine",
+   "text": "From the left-end configuration <code>E&gt; 0 1 a s &hellip;</code> with first block 1 the machine stops after 21 steps (separator 110) or 29 (separator 110110), whatever the rest of the tape.",
+   "where": "<code>halt1S</code>, <code>halt1D</code> and their <code>_stop</code> lemmas, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 10<sup>400</sup> steps",
+   "text": "<code>py/run.py</code> runs an exact run-length simulator and extrapolates linear cycles once seen three times (here the drain trips); it reaches 10<sup>400</sup> steps from blank tape without a halt, in 2,110 rounds (1,669 of them start with more than one block). Its left-end tapes agree with <code>bbtools.cycles</code> (proved linear cycles) up to 10<sup>14</sup> steps.",
+   "where": "<code>py/run.py</code>, <code>py/genacc.py</code>, <code>py/rlsim.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The round map in closed form (large blocks)",
+   "text": "A round is a sweep that halves blocks from the left while a carry survives (the first block passes it on when odd, later blocks when even), followed by one drain trip per <code>b</code>. For lists whose halved blocks are not small this gives the next list in closed form, e.g. [x] &rarr; [(3x+5)/2] (x odd) or [x/2&minus;1, 0, x] (x even); [x0, x1, &hellip;, xk] &rarr; [x0/2+x1+2, x2, &hellip;, xk+x0] (x0 even, k &ge; 2); an odd first block always goes to (x0&minus;3)/2. Equal to the plain machine on every one of 4,037 random lists in its domain.",
+   "where": "<code>closed</code> in <code>py/roundmap.py</code>, <code>py/orbit.py test 6000</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The exact round map for every list",
+   "text": "For a fixed parity the round is affine in every block above 16, so the map cuts large blocks down, runs the small tape and its neighbours on the plain machine and extends linearly. It agrees with the plain machine on 6,000 random lists of up to 6 blocks (values up to 70) and with all 1,669 multi-block left-end tapes of the independent accelerated run to 10<sup>400</sup> steps. Checked, not proved.",
+   "where": "<code>nxt</code> in <code>py/roundmap.py</code>, <code>py/orbit.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Which rounds halt",
+   "text": "On the plain machine, among all 2,899 lists of up to three small blocks and 20,000 random lists of 2 to 6 blocks below 10, the round halts exactly when the first block is 1 and another block follows, or the tape is the single empty block. In terms of the map: the machine halts iff a run of odd first blocks starts with x0+3 a power of two, or a single block [4] occurs.",
+   "where": "<code>py/direct.py</code>, <code>py/roundmap.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 1,000,000 rounds",
+   "text": "The round map iterated from the first left-end tape of the blank-tape run ([0, 0, 2] at step 50) does not halt in 1,000,000 rounds and never leaves the family of lists; at the end the tape holds a number of a's with 314,797 bits, so the machine has made more than 10<sup>94,000</sup> steps. This rests on the computed round map.",
+   "where": "<code>py/orbit.py 1000000</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Halting would need an exact power of two",
+   "text": "Halting means x0+3 is a power of two at the start of a run of odd rounds. If those x0 behave like random numbers the chance is about 2<sup>&minus;n</sup> for n bits; past the rounds already followed they have tens of thousands of bits.",
+   "where": "<code>py/orbit.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. Deciding it means controlling whether x0+3 is ever a power of two along an exponentially growing orbit: a Collatz-like question. The reduction to the round map is computed, not yet proved in Lean (the sweep with its carry and the small-block cases are missing).",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA/lean/check.sh",
+  "python3 holdouts/1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA/py/run.py 1e100 > /tmp/rounds.txt",
+  "python3 holdouts/1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA/py/rounds.py /tmp/rounds.txt",
+  "python3 holdouts/1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA/py/orbit.py test 6000",
+  "python3 holdouts/1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA/py/orbit.py 3000 /tmp/rounds.txt",
+  "python3 holdouts/1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA/py/orbit.py 100000",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA 1000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows yet, and it looks like a Collatz problem. The tape is a list of numbers; each round halves them from the left and pours the halves to the right. The machine stops exactly when the first number reaches 1, which needs a number to be an exact power of two. In 1,000,000 rounds (more than 10<sup>94,000</sup> steps) that has not happened.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "x0 = 1 halts",
+    "text": "A first block of length 1 stops the machine, for any rest of the tape (Lean)."
+   },
+   {
+    "level": "trusted",
+    "value": "x &rarr; (3x+5)/2",
+    "text": "A single odd block; an odd first block of several goes to (x0&minus;3)/2. Computed round map, checked against the machine."
+   },
+   {
+    "level": "trusted",
+    "value": "1,000,000 rounds",
+    "text": "No halt along the orbit of the round map: more than 10<sup>94,000</sup> steps."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.075). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.505).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"160.0\" y2=\"160.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"164.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"120.0\" y2=\"120.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"124.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"80.0\" y2=\"80.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"84.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"40.0\" y2=\"40.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"44.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,184.2 L59.2,180.0 L78.4,174.2 L97.6,171.9 L116.8,171.9 L136.0,170.0 L155.2,168.3 L174.4,168.3 L193.6,165.4 L212.8,163.0 L232.0,161.9 L251.2,160.9 L270.4,160.0 L289.6,158.3 L308.8,156.8 L328.0,156.1 L347.2,154.8 L366.4,154.2 L385.6,153.0 L404.8,152.5 L424.0,151.4 L443.2,150.0 L462.4,148.7 L481.6,148.3 L500.8,147.9 L520.0,147.5\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,184.2 L59.2,176.8 L78.4,170.0 L97.6,166.8 L116.8,157.5 L136.0,150.9 L155.2,145.1 L174.4,140.7 L193.6,134.8 L212.8,129.0 L232.0,125.2 L251.2,119.1 L270.4,113.6 L289.6,109.9 L308.8,104.2 L328.0,100.2 L347.2,94.3 L366.4,88.7 L385.6,83.8 L404.8,79.7 L424.0,74.1 L443.2,70.5 L462.4,64.6 L481.6,59.0 L500.8,53.6 L520.0,50.0\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 47,418 cells (37 left of the start, 32,874 right), with a density of 1s of 0.531.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>570,398,386</td><td><code>E&gt;0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>954,245,828</td><td><code>0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1</code></td></tr><tr><td>right</td><td>969,918,848</td><td><code>0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1</code></td></tr><tr><td>right</td><td>985,660,938</td><td><code>0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "tape",
+    "eyebrow": "The tape",
+    "heading": "A list of blocks of 01",
+    "html": [
+     "<p>Every time the head comes back to the left end, the tape reads <code>1 a<sup>x0</sup> 110 a<sup>x1</sup> 110 &hellip; 110 a<sup>xk</sup></code> with <code>a = 01</code>: a list of numbers [x0, x1, &hellip;, xk]. Blocks can be empty. From blank tape the lists are [0,0,2], [2,2], [7], [13], [22], [10,0,22], [7,32], [2,57], [30,0,62], [17,92], [7,157], [2,81,0,160], &hellip;</p>"
+    ]
+   },
+   {
+    "id": "round",
+    "eyebrow": "One round",
+    "heading": "Halve with a carry, then drain",
+    "html": [
+     "<p>A round starts with one sweep to the right. Block by block it turns pairs <code>0101</code> into <code>b = 0111</code>, so a block of x a's becomes about x/2 b's, as long as a <em>carry</em> survives: the first block passes the carry on when it is odd, every later block when it is even. The block that stops the carry is still halved; the blocks after it are left alone.</p>",
+     "<p>Then the head makes one trip per b from the right end, last b first: it turns the b back into a's and returns, adding one a to the block just right of the b's and two to the last block (proved in Lean for every list of blocks). So the halves are poured to the right, and the total grows by about a quarter per round.</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>list</th><th>case</th><th>next list</th></tr></thead><tbody><tr><td>[x]</td><td>x odd</td><td>[(3x+5)/2]</td></tr><tr><td>[x]</td><td>x even</td><td>[x/2&minus;1, 0, x]</td></tr><tr><td>[x0, x1]</td><td>x0 even</td><td>[3x0/2+x1+2]</td></tr><tr><td>[x0, x1, &hellip;, xk], k &ge; 2</td><td>x0 even</td><td>[x0/2+x1+2, x2, &hellip;, xk+x0]</td></tr><tr><td>[x0, x1]</td><td>x0 odd, x1 even</td><td>[(x0&minus;3)/2, x0+3x1/2+2]</td></tr><tr><td>[x0, x1]</td><td>x0, x1 odd</td><td>[(x0&minus;3)/2, (x1+5)/2, 0, x0+x1&minus;4]</td></tr></tbody></table></div>",
+     "<p>Longer lists follow the same recipe (the carry can run through several blocks); small blocks have their own cases. The general map is computed exactly by <code>py/roundmap.py</code> and checked against the machine on thousands of tapes. Example: [7] &rarr; [13] &rarr; [22] &rarr; [10, 0, 22] &rarr; [7, 32] &rarr; [2, 57] &rarr; [30, 0, 62].</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Does it halt?",
+    "heading": "Only if a power of two turns up",
+    "html": [
+     "<p>The only halt is state C reading 0. Lean proves that a first block of length 1 (with another block after it) leads there in 21 or 29 steps, whatever else is on the tape, and on every other small tape tried the round does not halt (except the single empty block, which the run never produces). An odd first block goes to (x0&minus;3)/2, so x0+3 is halved: the machine halts exactly when a run of odd rounds starts with x0+3 a power of two (5 &rarr; 1, 13 &rarr; 5 &rarr; 1, &hellip;), or a single block [4] occurs.</p>",
+     "<p>The round map has been iterated for 1,000,000 rounds from blank tape, more than 10<sup>94,000</sup> steps of the machine, without a halt. As with Collatz-type problems, nothing in sight proves that x0+3 never will be a power of two, but for random numbers with tens of thousands of bits the chance is negligible. The map itself is computed and checked, not yet proved in Lean.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "The tape is a list of blocks a^x; each round halves blocks from the left with a carry and pours the halves to the right (a single block x goes to (3x+5)/2 when odd). It halts iff a first block reaches 1, i.e. x0+3 is a power of two at the start of a run of odd rounds. Exact round map computed and checked; no halt in 1,000,000 rounds (> 10^94,000 steps)."
+}

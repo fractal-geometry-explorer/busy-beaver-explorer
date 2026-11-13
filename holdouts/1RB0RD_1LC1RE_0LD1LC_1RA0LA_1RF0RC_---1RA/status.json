@@ -1,0 +1,136 @@
+{
+ "generated": false,
+ "group": "G11",
+ "title": "What is known about 1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA.",
+ "machine": "1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA",
+ "crumb": "holdouts / 1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its run grows a row of blocks 1^4 0 at the left end, one per visit, each visit about twice as long as the previous one. This page lists what has been established."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The macro structure is observed in a direct run of 2·10<sup>10</sup> steps without a halt; the rules behind it are not proved."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 243 cells have been visited and 192 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Sweep rules",
+   "text": "The self-loops cross runs of any length: <code>sweep_C1</code>.",
+   "where": "<code>lean/Sweeps.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where it can halt",
+   "text": "The only halting transition is F on 0. F is entered only from E on 0 (1RF), and E only from B on 1 (1RE): the machine halts exactly when B reads a 1 followed by <code>0 0</code>, <code>B&gt;1 0 0</code>.",
+   "where": "the transition table (by inspection); <code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A counter of 1^4 units at the left end",
+   "text": "At every visit of the left end in state C on 0 followed by <code>1^4</code>, the tape starts with n copies of <code>1^4 0</code>. Within a stretch n grows by 1 per visit and the gap between visits tends to double (ratios 1.08, 1.15, 1.26, 1.42, … 1.96); now and then n drops by 2 to 4 and the word to the right is rewritten. n reached 27 at step 15,886,922,696.",
+   "where": "<code>tools/c/tmrun.c</code> (<code>at C L</code>), 2·10<sup>10</sup> steps"
+  },
+  {
+   "level": "heuristic",
+   "title": "What the counter is",
+   "text": "The word after the 1^4 units (blocks 1^3, 1^7, 1^11, 1^23 …) acts as the counter's low digits: each visit changes its blocks near the right end of the tape (1^7 → 1^11 → 1^15 …), and when they overflow, units are spent and the word is rebuilt.",
+   "where": "observed"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Open; halting needs <code>B&gt;1 0 0</code>, not seen.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA 1000000000",
+  "./tmrun 1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA 20000000000 at C L 1500"
+ ],
+ "explainer": {
+  "lede": "Nobody knows whether it halts. This machine builds a row of 1^4 blocks at the left end of its tape, one per visit, each visit about twice as long as the one before, while a word of longer blocks behind them changes.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "27 blocks",
+    "text": "The row of 1^4 blocks at step 1.6·10<sup>10</sup>."
+   },
+   {
+    "level": "open",
+    "value": "halting",
+    "text": "Needs B&gt;1 0 0; not seen."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "counter",
+    "eyebrow": "The main loop",
+    "heading": "A row of 1^4 blocks that grows by one per visit",
+    "html": [
+     "<p>At each visit of the left end in state C the tape starts with a row of blocks <code>1^4 0</code>; along a stretch the row gets one block longer per visit and the time between visits tends to double. Steps and the number of 1^4 blocks (from a direct run of 2·10<sup>10</sup> steps):</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>1^4 blocks</th></tr></thead><tbody><tr><td>4,788,614</td><td>15</td></tr><tr><td>5,182,695</td><td>16</td></tr><tr><td>5,970,882</td><td>17</td></tr><tr><td>7,547,325</td><td>18</td></tr><tr><td>10,700,280</td><td>19</td></tr><tr><td>16,981,891</td><td>18</td></tr><tr><td>29,515,604</td><td>19</td></tr><tr><td>54,583,055</td><td>20</td></tr><tr><td>104,718,026</td><td>21</td></tr><tr><td>204,988,037</td><td>22</td></tr><tr><td>348,899,146</td><td>20</td></tr><tr><td>…</td><td>…</td></tr><tr><td>3,657,811,510</td><td>24</td></tr><tr><td>5,112,860,727</td><td>22</td></tr><tr><td>11,229,335,331</td><td>26</td></tr><tr><td>15,886,922,696</td><td>27</td></tr></tbody></table></div>",
+     "<p>Behind the row lies a word of longer blocks (1^3, 1^7, 1^11, 1^23 …) that changes at every visit; sometimes the row loses a few blocks while the word is rebuilt.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Can it stop?",
+    "heading": "What halting would take",
+    "html": [
+     "<p>The only halting transition is F on 0. F is entered only from E on 0 (1RF), and E only from B on 1 (1RE): the machine halts exactly when B reads a 1 followed by <code>0 0</code>, <code>B&gt;1 0 0</code>. It has not happened in 2·10<sup>10</sup> steps. The rule that rewrites the word is not yet known.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.043). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"126.3\" y2=\"126.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"130.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"52.5\" y2=\"52.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"56.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><path d=\"M40.0,170.8 L59.2,157.2 L78.4,148.2 L97.6,138.8 L116.8,133.9 L136.0,121.7 L155.2,110.4 L174.4,104.7 L193.6,94.4 L212.8,91.1 L232.0,89.0 L251.2,85.2 L270.4,78.9 L289.6,73.8 L308.8,71.6 L328.0,70.5 L347.2,69.2 L366.4,68.2 L385.6,67.3 L404.8,63.9 L424.0,62.6 L443.2,61.6 L462.4,60.9 L481.6,60.2 L500.8,59.5 L520.0,58.4\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,163.1 L59.2,163.1 L78.4,152.3 L97.6,144.7 L116.8,138.8 L136.0,133.9 L155.2,129.8 L174.4,120.3 L193.6,120.3 L212.8,120.3 L232.0,117.8 L251.2,115.5 L270.4,115.5 L289.6,113.4 L308.8,111.4 L328.0,111.4 L347.2,111.4 L366.4,111.4 L385.6,111.4 L404.8,109.5 L424.0,107.8 L443.2,107.8 L462.4,107.8 L481.6,107.8 L500.8,107.8 L520.0,106.2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 243 cells (204 left of the start, 33 right), with a density of 1s of 0.79.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>569,493,231</td><td><code>C&gt;0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^7 0 1^7 0 1^8 0 1^7 0 1^7 0 1^3 0 1^3 0 1^3 0 1^3 0 1^7 0 1^3 0 1^3 0 1^27 0 1^3 0 1^3 0 1^3 0 1^6 0 1^6 0 1^6</code></td></tr><tr><td>left</td><td>716,555,995</td><td><code>A&gt;0 0^2 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^4 0 1^7 0 1^7 0 1^8 0 1^7 0 1^7 0 1^3 0 1^3 0 1^3 0 1^3 0 1^7 0 1^3 0 1^3 0 1^23 0 1^7 0 1^3 0 1^3 0 1^6 0 1^6 0 1^6</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "counter of 1^4 blocks (left end)",
+ "summary": "A row of 1^4 0 blocks at the left end grows by one block per visit, the gaps tending to double, while a word of longer blocks behind it is rewritten and sometimes eats a few blocks; halting needs B>1 0 0."
+}

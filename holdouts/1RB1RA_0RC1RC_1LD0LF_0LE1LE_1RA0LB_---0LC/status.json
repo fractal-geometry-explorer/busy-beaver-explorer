@@ -1,0 +1,119 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC.",
+ "machine": "1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC",
+ "crumb": "holdouts / 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its run is a sequence of <em>epochs</em>, each a Collatz-like countdown; an epoch ends either in a halt or in a new, vastly longer epoch. The bbchallenge community lists it as <em>probviously halting</em>: with fair-coin parities every epoch halts with probability 1/3."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> In configurations <code>X(n, m) = C&gt;0 0^n 1^m 0 1</code> the machine sends n to about 3n/2 and m down by 1 or 2 according to n mod 4. When m runs out it halts or starts a new epoch with m ≈ 3n/2.",
+  "<b>Where the run is (computed exactly).</b> Epochs start with m = 5, 57, 210,273,201. The third epoch lasts 140,180,848 macro steps (the number reaches 82 million bits) and ends in a new epoch, whose countdown has about 24,684,623 decimal digits. Its end is out of reach of any computation. Heuristically each epoch halts with probability 1/3, so the machine halts with probability 1, after a number of steps with tens of millions of digits in its exponent."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 36,156 cells have been visited and 24,110 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The macro rules",
+   "text": "For X(n, m) = 0^∞ C&gt;0 0^n 1^m 0 1 0^∞ with n ≥ 2 even: for m ≥ 2, n ≡ 0 (mod 4) goes to X(3n/2 + 4, m − 1) and n ≡ 2 to X((3n + 10)/2, m − 2); for m = 1, n ≡ 0 gives X(3n/2 + 4, 0) and n ≡ 2 a new epoch X(4, 3n/2 + 6); for m = 0, n ≡ 0 gives X(4, 3n/2 + 5) and n ≡ 2 halts. Checked against direct simulation for every even 2 ≤ n &lt; 60 and m &lt; 12. Inside a step the head fills the run of 0s with 1s from the left, two cells per round trip while the tape grows by one at the left; then a 1 is taken off the countdown block.",
+   "where": "<code>py/macro.py check</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The first three epochs, exactly",
+   "text": "From blank tape the run reaches X(4, 5) after 50 steps; epochs start with m = 5, 57 (step 2,619) and 210,273,201. The third epoch was run exactly with a divide-and-conquer parity iteration (the parities of t steps of y ↦ ⌈3y/2⌉ depend only on y mod 2<sup>t</sup>; blocks are combined with powers of 3, GMP through gmpy2): it ends after 140,180,848 macro steps at m = 1 with n ≡ 2 (mod 4), so a fourth epoch starts with m = 3n/2 + 6, a number of 82,000,544 bits (about 24,684,623 digits; m mod 2<sup>64</sup> = 15369781771884450229). Two runs with different block sizes agree; the fast iteration agrees with plain big-integer iteration on epochs with m up to 10<sup>5</sup>.",
+   "where": "<code>py/macro.py epochs</code>, <code>py/epoch.py 210273201 22</code>, <code>py/fastwalk.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Halts with probability 1, but not soon",
+   "text": "With y = n/2 + 4 the rule is y ↦ ⌈3y/2⌉, with m −1 for y even and −2 for y odd. With fair-coin parities the countdown lands on m = 1 with probability 2/3 and on 0 with probability 1/3; m = 1 continues to 0 or starts a new epoch, and m = 0 halts or starts a new epoch, each with probability 1/2. So an epoch halts with probability 1/3 and the machine halts with probability 1, the community's reading. The fourth epoch alone lasts about 10<sup>24,684,623</sup> macro steps.",
+   "where": "<code>holdouts/known.json</code>"
+  },
+  {
+   "level": "open",
+   "title": "How does the fourth epoch end?",
+   "text": "It needs the parities of about 1.6 · 10<sup>24,684,622</sup> iterates of ⌈3y/2⌉ from y = 6: no method computes them.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC 1000000000",
+  "python3 holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/py/macro.py check && python3 holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/py/macro.py epochs",
+  "pip install gmpy2 && python3 holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/py/epoch.py 210273201 22"
+ ],
+ "explainer": {
+  "lede": "Nobody knows whether it halts, but almost everyone expects it to — eventually. This machine plays rounds of a game: a number grows by a factor 3/2 while a countdown ticks down by 1 or 2, depending on the number's last binary digits. When the countdown runs out, the machine either halts or starts a new round with a countdown about 3/2 times the number. We computed the third round exactly — 140 million steps of the game. It does not halt: it starts a fourth round whose countdown has almost 25 million digits.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "m = 5, 57, 210,273,201",
+    "text": "Countdowns of the first three epochs, computed exactly."
+   },
+   {
+    "level": "trusted",
+    "value": "24.7 million digits",
+    "text": "The fourth epoch's countdown: out of reach."
+   },
+   {
+    "level": "heuristic",
+    "value": "1/3 per epoch",
+    "text": "Chance an epoch ends in a halt with fair-coin parities."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 3000
+  },
+  "sections": [
+   {
+    "id": "epochs",
+    "eyebrow": "What the machine does",
+    "heading": "Rounds of a 3/2 game",
+    "html": [
+     "<div class=\"col\"><p>Over and over, the head stands at the left end of the tape in state C, looking at a run of 0s, then a block of 1s, then <code>0 1</code>:</p></div>",
+     "<svg viewBox=\"0 0 640 110\" role=\"img\" aria-label=\"the tape at a macro configuration\" style=\"width:100%;max-width:640px;height:auto;font:12px var(--mono)\">\n<polygon points=\"8,40 20,57 8,74\" fill=\"var(--head)\"/><text x=\"4\" y=\"92\" fill=\"var(--head)\">C</text>\n<rect x=\"24\" y=\"40\" width=\"330\" height=\"34\" fill=\"var(--cell0)\" stroke=\"var(--line-strong)\"/><text x=\"189\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">0^n — the number</text>\n<rect x=\"358\" y=\"40\" width=\"200\" height=\"34\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"458\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">1^m — the countdown</text>\n<rect x=\"562\" y=\"40\" width=\"20\" height=\"34\" fill=\"var(--cell0)\" stroke=\"var(--line-strong)\"/><rect x=\"586\" y=\"40\" width=\"20\" height=\"34\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"596\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">1</text>\n<text x=\"189\" y=\"28\" text-anchor=\"middle\" fill=\"var(--fg2)\">n → about 3n/2 per step</text><text x=\"458\" y=\"28\" text-anchor=\"middle\" fill=\"var(--fg2)\">m → m−1 or m−2</text></svg>",
+     "<div class=\"col\"><p>From there the head sweeps back and forth, filling the 0s with 1s two at a time from the left while the tape grows by one cell at the left each round trip, and then takes one or two 1s off the countdown. The net effect: <b>n becomes 3n/2 + 4 and the countdown loses 1 if n is a multiple of 4; n becomes (3n + 10)/2 and the countdown loses 2 otherwise</b>. With y = n/2 + 4 the number simply goes y ↦ ⌈3y/2⌉.</p><p>When the countdown is used up the round ends: with one parity the machine <b>halts</b>, with the other it starts a <b>new round</b> with n = 4 and a countdown of about 3n/2. Since n has grown by a factor 3/2 per step, every round's countdown is exponentially longer than the last.</p><p>From blank tape the rounds start with countdowns 5, 57 and 210,273,201. We played the third round exactly: 140,180,848 steps of the game, with the number growing to 82 million binary digits. The trick is that the parities of the next t steps depend only on the last t binary digits of y, so long stretches can be computed by divide and conquer (35 seconds instead of years). The round did not halt: it started a fourth round whose countdown has <b>about 24,684,623 decimal digits</b>. That round can never be played out.</p><p>If the parities behave like fair coins, each round halts with probability 1/3, so the machine should halt eventually — that is what <em>probviously halting</em> means — but only after a number of steps far too large to write down, and nobody can prove it.</p></div>"
+    ]
+   }
+  ],
+  "title": "A countdown that resets into a bigger one"
+ },
+ "family": "Collatz-like epochs (y ↦ ⌈3y/2⌉ countdown)",
+ "decision": "open",
+ "summary": "Epochs of y ↦ ⌈3y/2⌉ with a countdown m (−1 even, −2 odd); an epoch ends in a halt or a new epoch with m ≈ 3y. Computed exactly: epochs start at m = 5, 57, 210,273,201 and then a 24.7-million-digit m; probviously halting, but open."
+}

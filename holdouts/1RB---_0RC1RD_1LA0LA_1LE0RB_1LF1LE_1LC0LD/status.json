@@ -1,0 +1,155 @@
+{
+ "generated": false,
+ "group": "G01",
+ "title": "What is known about 1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD",
+ "description": "Proof status of the six-state BB(6) holdout 1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD.",
+ "machine": "1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD",
+ "crumb": "holdouts / 1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD",
+ "home": "../index.html",
+ "source": "holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> Between visits of the head the tape is a word over the two letters <code>1</code> and <code>10</code> (no two 0s side by side). Each sweep acts on it like one generation of a cellular automaton whose patterns look random. The run proceeds in waves: a chaotic region spreads from the left end across the whole tape and freezes behind a slower front; each wave starts with three quick bursts of growth at the left end. Successive waves take about 3.06 times longer. The bbchallenge wiki lists it as \"chaotic 1dCA in bell\"; the same table started in states C, D, E, F is four other holdouts."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (A1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 53,911 cells have been visited and 42,422 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The sweeps cross blocks of ones",
+   "text": "C crosses <code>1^n</code> to the right in 3n steps (carrying the 0 behind it), E crosses it to the left in n steps: only the isolated 0s take work.",
+   "where": "<code>c_sweep</code>, <code>e_sweep</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No 00 inside the tape",
+   "text": "At all 25,729 visits of the head to the right end in state B up to 3&middot;10<sup>8</sup> steps, the tape has no two adjacent 0s outside its last three cells: it is a word over <code>1</code> and <code>10</code>.",
+   "where": "snapshots, <code>py/sweeps.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Waves about 3.06 times longer each",
+   "text": "The left end grows in triples of bursts that start at steps 643294, 2108809, 6495092, 20126119, 60650898, 187352297, 570905460, 1767969175: ratios 3.28, 3.08, 3.10, 3.01, 3.09, 3.05, 3.10. The tape width at those moments grows by about 1.75 = &radic;3.06 each time.",
+   "where": "<code>py/analyse.py records</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Same table, other start states",
+   "text": "Started in C, D, E or F (and renamed to normal form) this table is the holdout 1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD, 1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA, 1RB1RA_1RC0RF_1RD0RD_1LE---_0LC1LF_1RA0LE or 1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF; the wiki notes that they all behave alike.",
+   "where": "relabelling check; wiki.bbchallenge.org"
+  },
+  {
+   "level": "heuristic",
+   "title": "Halting looks like a matter of chance",
+   "text": "Each wave ends with the chaotic content reaching the left end, where a halt (A reading 1) could happen. If the content arriving there were random with a fixed small chance p per wave of being a halting one, the machine would halt after about 1/p waves, i.e. after roughly 3.06<sup>1/p</sup> steps: a halt would be likely eventually but unobservably late. Whether any reachable left-end content halts is not known.",
+   "where": "reasoning from the wave structure"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.07). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.503).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. Next step: Extract the cellular automaton (the map from the word over {1, 10} before a sweep to the word after), then study the left-end boundary rule: which contents can make A read 1 there.",
+   "where": "README.md, Further work"
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD 1000000000",
+  "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/rules.py      # rewrites lean/Rules.lean",
+  "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/analyse.py image   # the defect picture",
+  "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/rules.py      # rewrites lean/Rules.lean",
+  "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/analyse.py image   # the defect picture"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. This machine runs a chaotic cellular automaton on its own tape: each sweep of the head is one generation. Chaos spreads over the tape in waves, each about three times longer than the last.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "&times;3.06",
+    "text": "Each wave lasts about 3.06 times as long as the previous one."
+   },
+   {
+    "level": "trusted",
+    "value": "1 and 10",
+    "text": "The tape is a word over these two letters, no 00 inside."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 53,911 cells visited."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "ca",
+    "eyebrow": "Emergent behaviour",
+    "heading": "A cellular automaton in waves",
+    "html": [
+     "<figure style=\"margin:1em 0\"><img src=\"defects.png\" alt=\"defect picture of 1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD\" style=\"width:100%;max-width:900px;image-rendering:pixelated;border:1px solid var(--line);background:#fff\"/><figcaption style=\"font-size:0.9em;color:var(--muted)\">One row every 6 visits of the head to the right end, in state B (time runs down), 3.8&middot;10<sup>7</sup> steps; dark where the tape differs from itself 4 cells further. Speckled triangles are the chaotic waves, vertical lines the frozen pattern they leave.</figcaption></figure>",
+     "<p>Whenever the head reaches the right end, the tape contains no <code>00</code> (except next to the head): it is a sequence of the letters <code>1</code> and <code>10</code>. The head crosses runs of 1s quickly and does real work only at the 0s, so a sweep acts like one generation of a cellular automaton on this sequence, and the patterns it makes look random.</p><p>The run goes in waves. A chaotic region (the speckled triangles) starts at the left end and spreads right to the growing end of the tape; behind it a front moves right and leaves a frozen pattern (vertical lines). Each wave begins when the left end grows in three quick bursts; the next wave starts before the front of the previous one has reached the right end. Each wave lasts about 3.06 times as long as the previous one:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>wave starts at step</th><th>ratio</th></tr></thead><tbody><tr><td>643294</td><td>&ndash;</td></tr><tr><td>2108809</td><td>3.28</td></tr><tr><td>6495092</td><td>3.08</td></tr><tr><td>20126119</td><td>3.10</td></tr><tr><td>60650898</td><td>3.01</td></tr><tr><td>187352297</td><td>3.09</td></tr><tr><td>570905460</td><td>3.05</td></tr><tr><td>1767969175</td><td>3.10</td></tr></tbody></table></div>",
+     "<p>A halt needs A to read a 1, which in practice means the right content arriving at the left end. With chaotic content, a halt would be a matter of chance per wave; since waves grow geometrically, even a likely halt could come impossibly late.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.07). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.503).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"160.3\" y2=\"160.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"164.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"120.6\" y2=\"120.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"124.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"81.0\" y2=\"81.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"85.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"41.3\" y2=\"41.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"45.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,177.0 L59.2,177.0 L78.4,170.2 L97.6,164.4 L116.8,157.9 L136.0,157.9 L155.2,155.1 L174.4,151.3 L193.6,151.3 L212.8,145.5 L232.0,145.5 L251.2,141.4 L270.4,138.2 L289.6,138.2 L308.8,135.6 L328.0,135.6 L347.2,134.5 L366.4,134.5 L385.6,132.5 L404.8,131.6 L424.0,131.6 L443.2,130.3 L462.4,129.6 L481.6,129.6 L500.8,128.1 L520.0,128.1\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,180.2 L59.2,177.0 L78.4,170.2 L97.6,165.7 L116.8,164.4 L136.0,157.1 L155.2,151.8 L174.4,146.5 L193.6,140.3 L212.8,134.2 L232.0,128.6 L251.2,122.1 L270.4,118.1 L289.6,111.0 L308.8,106.6 L328.0,100.4 L347.2,94.4 L366.4,90.7 L385.6,84.3 L404.8,80.6 L424.0,74.6 L443.2,68.6 L462.4,65.3 L481.6,59.0 L500.8,53.7 L520.0,49.9\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 53,911 cells (151 left of the start, 35,882 right), with a density of 1s of 0.787.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>570,905,460</td><td><code>E&gt;0 1 0 1^11 0 1^11 0 1^3 0 1^11 0 1^3 0 1^15 0 1^7 0 1^3 0 1^31 0 1^15 0 1^3 0 1^7 0 1^7 0 1^11 0 1^3 0 1^23 0 1^3 0 1^3 0 1^3 0 1^15 0 1^3 0 1^3 0 1^39 0 1^3 0 1^23 0 1^23 0 1^3 0 1^3 0 1^3 0 1^11 0 1^3 0 1^3 0 1^11 0 1^7 0 1^11 0 1^3 0 1^3 0 1^7 0 1^19 0 1^15 0 1^7 0 1^7 0 1^3 0 1^11 0 1^11 0 1^3 0 1^3 0 1^3 0 1^11 0 1^11 0 1^3 0 1^3 0 1^3 0 1^11 0 1^3 0 1^3 0 1^3 0 1^19 0 1^3 0 1^3 0 1^7 0 1^</code></td></tr><tr><td>right</td><td>954,212,666</td><td><code>1^2 0 1 0 1 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^5 0 1 0 1^3 0 1^5 0 1 0 1^3 0 1^3 0 1^3 0 1^5 0 1 0 1^3 0 1^3 0 1^3 0 1 0 1^7 0 1^5 0 1 0 1^3 0 1^3 0 1^5 0 1 0 1^3 0 1^3 0 1 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^7 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1^5 0 1 0 1^3 0 1 0 1^7 0 1^5 0 1 0 1 0 1^5 0 1^9 0 1 0 1 0 1 0 1^5 0 1^5 0 1^7 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^7 0 1^5 0 1 0 1^3 0</code></td></tr><tr><td>right</td><td>969,896,874</td><td><code>1^2 0 1 0 1 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^5 0 1 0 1^3 0 1^5 0 1 0 1^3 0 1^3 0 1^3 0 1^5 0 1 0 1^3 0 1^3 0 1^3 0 1 0 1^7 0 1^5 0 1 0 1^3 0 1^3 0 1^5 0 1 0 1^3 0 1^3 0 1 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^7 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1^5 0 1 0 1^3 0 1 0 1^7 0 1^5 0 1 0 1 0 1^5 0 1^9 0 1 0 1 0 1 0 1^5 0 1^5 0 1^7 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^7 0 1^5 0 1 0 1^3 0</code></td></tr><tr><td>right</td><td>985,582,099</td><td><code>1^2 0 1 0 1 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^5 0 1 0 1^3 0 1^5 0 1 0 1^3 0 1^3 0 1^3 0 1^5 0 1 0 1^3 0 1^3 0 1^3 0 1 0 1^7 0 1^5 0 1 0 1^3 0 1^3 0 1^5 0 1 0 1^3 0 1^3 0 1 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^7 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1^5 0 1 0 1^3 0 1 0 1^7 0 1^5 0 1 0 1 0 1^5 0 1^9 0 1 0 1 0 1 0 1^5 0 1^5 0 1^7 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^7 0 1^5 0 1 0 1^3 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "Chaotic one-dimensional cellular automaton in growing bursts (\"chaotic 1dCA in bell\")",
+ "summary": "Emulates a chaotic one-dimensional cellular automaton on words of 1 and 10: chaos spreads over the tape in waves, each about 3.06 times longer than the last; a halt (A reading 1) needs the right pattern at the slow left end.",
+ "decision": "open"
+}

@@ -1,0 +1,194 @@
+{
+ "generated": false,
+ "group": "G02",
+ "title": "What is known about 1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA.",
+ "machine": "1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA",
+ "crumb": "holdouts / 1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA",
+ "home": "../index.html",
+ "source": "holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The machine is a base-4 counter of walls in a sea of <code>110</code>, incremented from the right end. Lean proves one sweep for every carry chain (any length), the two kinds of merger, the walk of T after an overflow and steps of the top's cycle; an exact digit simulator, checked against the direct run to 2&middot;10<sup>9</sup> steps, ran to 8.6&middot;10<sup>15</sup> steps without a halt or an unknown event. A closed set of digit configurations is not yet assembled."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 42,541 cells have been visited and 28,357 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: exp/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.075). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.506).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The sweeps' shift rules",
+   "text": "Rightward, A (with <code>01</code> behind it) crosses <code>(110110)^n</code> unchanged, 16 steps per 6 cells; leftward, D, C and E cross the 110 sea in its three phases (<code>110</code>, <code>101</code>, <code>011</code>), 3 steps a triple.",
+   "where": "<code>a_right</code>, <code>d_left</code>, <code>c_left</code>, <code>e_left</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The shape of a halt",
+   "text": "F on a 0 halts; F is entered only from A on a 1 (writing 0, moving left), and A finds a 0 on its left only when it came from F on a 1. So it halts iff F reads a 1 with <code>1 0</code> to its left: <code>0 1 F&gt; 1</code> reaches F on a 0 in 2 steps (the converse by reading the table, not formalized).",
+   "where": "<code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Near misses",
+   "text": "In 10<sup>9</sup> steps F reads a 1 90,935,082 times; the two cells to its left (nearest first) are never <code>1 0</code>. A reads a 1 about 9.1&middot;10<sup>7</sup> times, always with a 1 to its left.",
+   "where": "<code>c/nbhd.c</code> (<code>./nbhd M 1000000000 F 1</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "One sweep adds one, for a carry chain of any length",
+   "text": "At the sample point (A on the last 1 at the right end) the tape is a list of digits <code>(110)^r W</code>. With the first non-W3 digit (the <em>stop</em>) in shape W0, W1 or W2 and any list <code>ts</code> of W3 digits after it (the carry chain, any length, any runs), one sweep turns the stop into the next shape (W0&rarr;W1 with its run 2a+1&rarr;2a, W1&rarr;W2 with 2a+2&rarr;2a, W2&rarr;W3) and every W3 of the chain into W0. Proved by induction on the list (<code>seqtm</code>).",
+   "where": "<code>sweep_w0</code>, <code>sweep_w1</code>, <code>sweep_w2</code>, <code>lean/Sweeps.lean</code>, <code>lean/Seq.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Mergers, the walk of T and the top",
+   "text": "A W1 with left run 0 that receives a carry fuses with the W0 before it (one digit fewer, <code>merge_w0_w1</code>) or turns a W2 before it into W1 and itself into W0 (<code>merge_w2_w1</code>); after an overflow a T walks left through the U's (<code>sweep_u_t</code>); two steps of the top's cycle (<code>prefix_w1</code>, <code>prefix_10_w0</code>). Each for any carry chain.",
+   "where": "<code>lean/Sweeps.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The digit model is exact",
+   "text": "<code>py/digits.py</code> maps one sample to the next by running the machine symbolically (<code>symtm</code>) on a window: the carry chain, the stop and as many digits before it as the run touches, the rest of the tape an unknown context, long runs as variables. Compared with the direct run at every sample point: the same tapes and the same step counts at all 30,218 sample points up to 2&middot;10<sup>9</sup> steps.",
+   "where": "<code>py/digits.py check</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 8.6&middot;10<sup>15</sup> steps",
+   "text": "From the sample at 2&middot;10<sup>9</sup> steps the digit model ran 6.8&middot;10<sup>7</sup> sweeps more, to 8.6&middot;10<sup>15</sup> steps: no halt and no window it could not read back as digits; 22 overflows; 303 window rules in all (72 up to the length of the carry chain). The first run behind the top was used up near 6&middot;10<sup>9</sup> steps and the run behind it took its place.",
+   "where": "<code>py/digits.py far</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Why it probably never halts",
+   "text": "Every event seen (sweeps, mergers, overflows, the T walk, the top's cycle, the first run being used up) is one of a small catalogue of local rewrites of digits, none of which passes the halting shape <code>0 1 F&gt; 1</code>; the catalogue stopped growing except for longer carry chains. A proof needs that catalogue closed under the rules.",
+   "where": "README, Notes for later"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. It would halt only through <code>0 1 F&gt; 1</code>, which no rule found produces. What is missing is a set of digit configurations (a bigram language over walls and short runs) shown closed under one sweep, the overflow rule for chains of any length, and the assembly in Lean.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/lean/check.sh",
+  "python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/digits.py check 3e6",
+  "python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/digits.py far 1e6 300000 50000",
+  "python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/sweeps.py > lean/Sweeps.lean"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. This machine counts in base 4: its tape is a sea of the word <code>110</code> with walls in it, each wall a digit, and every trip of the head from the right end adds one. The walls slowly drift into each other and merge, and from time to time the counter overflows and a new digit is born. This page shows how, with the rules proved in Lean.",
+  "facts": [
+   {
+    "level": "trusted",
+    "value": "8.6&middot;10<sup>15</sup> steps",
+    "text": "No halt in the exact digit simulator (checked against the direct run to 2&middot;10<sup>9</sup>)."
+   },
+   {
+    "level": "kernel",
+    "value": "8 sweep rules",
+    "text": "Proved in Lean for carry chains of any length."
+   },
+   {
+    "level": "heuristic",
+    "value": "&minus;4 per cycle",
+    "text": "How fast the run between two walls shrinks: walls merge."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "tape",
+    "eyebrow": "What the tape is made of",
+    "heading": "A sea of 110 with digits in it",
+    "html": [
+     "<p>Look at the tape each time the head is at the right end in state A, reading the last 1. Far from the edges it is the word <code>110</code> repeated, interrupted by short <em>walls</em>. Each wall, together with the run of <code>110</code> in front of it, is one <em>digit</em> of a counter:</p>",
+     "<table><tr><th>wall</th><th>cells</th><th>digit value</th></tr><tr><td>W0</td><td><code>11110</code></td><td>0</td></tr><tr><td>W1</td><td><code>1100</code></td><td>1</td></tr><tr><td>W2</td><td><code>1100 110 11110</code></td><td>2</td></tr><tr><td>W3</td><td><code>1100 1100</code></td><td>3</td></tr></table>",
+     "<p>A real tape (step 1,999,977,989), each digit written <code>[run]wall</code>: <code>[0]S [0]W1 [22]W1 [27]W0 [394]W3 [356]W3 [14920]W1 [4455]</code>. The last number is the run at the right end, which grows by about one <code>110</code> per trip of the head. (S is the <code>10</code> at the left end.)</p>"
+    ]
+   },
+   {
+    "id": "walls",
+    "eyebrow": "One sweep to the next",
+    "heading": "Adding one",
+    "html": [
+     "<p>From the right end the head walks left over the digits that read 3 (W3) &mdash; the <em>carry chain</em> &mdash; until it meets the first digit that does not. It moves that digit one step along W0&rarr;W1&rarr;W2&rarr;W3 and walks back, turning every W3 it crossed into W0. That is exactly adding one to a base-4 number whose lowest digit is next to the head. Most trips are short: the head goes past the k-th digit only once every 4<sup>k</sup> trips.</p>",
+     "<p>Example: <code>[2a+1]W0 [2c]W3 [2d]W3 [last]</code> becomes <code>[2a]W1 [2c+3]W0 [2d+1]W0 [last]</code>. Lean proves this for every value of the runs and for a carry chain of <em>any</em> length, by induction on the list of digits (<code>sweep_w0</code>, <code>sweep_w1</code>, <code>sweep_w2</code> in <code>lean/Sweeps.lean</code>).</p>",
+     "<p>The runs move too: around one cycle a digit's own left run goes &minus;1, &minus;2, 0, +3 (net zero), but the digit on its left takes 2 from it at each of its own W1&rarr;W2 and W3&rarr;W0 steps. So the run between two walls shrinks by 4 words each time the left wall completes a cycle. Seen from far away, the walls drift and the gaps between them close: the first pass saw this as walls moving at speeds 1, 1/4, 1/16, &hellip;</p>"
+    ]
+   },
+   {
+    "id": "events",
+    "eyebrow": "When something special happens",
+    "heading": "Mergers, overflows, a new top",
+    "html": [
+     "<p><b>Merger.</b> When a run between two walls is used up and the digit on its right is W1, the next carry cannot shorten the run. Instead the two walls fuse: <code>[2a+1]W0 [0]W1</code> becomes <code>[2a+3]W0</code>, one digit fewer (<code>merge_w0_w1</code>); <code>[2a]W2 [0]W1</code> becomes <code>[2a]W1 [3]W0</code> (<code>merge_w2_w1</code>).</p>",
+     "<p><b>Overflow.</b> When every digit reads 3 the head goes all the way to the left end. Every W3 becomes the wall U = <code>11000</code> and a new lowest digit is born at the right end: at step 18,340,104, <code>[0]S [0]W1 [36]W3 [84]W3 [32]W3 [738]W3 [1153]</code> became <code>[0]W0 [0]U [37]U [85]U [33]U [737]U [1151]W1 [1]</code>. Then a marker T = <code>1110</code> walks left through the U's, one U per carry that reaches it (<code>sweep_u_t</code>), turning them back into ordinary digits; at the left end the top goes through a short cycle of its own (<code>prefix_w1</code>, <code>prefix_10_w0</code>) before the next overflow.</p>",
+     "<p><b>The left edge.</b> The run right behind the top loses 4 words per overflow. Near 6&middot;10<sup>9</sup> steps it was used up; the top digits rearranged and the next run (about 250 words) took its place. Same rules, nothing new.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Could it stop?",
+    "heading": "Only through 0 1 F&gt; 1",
+    "html": [
+     "<p>The only way to halt is state F reading a 0, and F is entered only from A reading a 1 and moving left; Lean shows that this halts exactly when the tape around the head reads <code>0 1 F&gt; 1</code> (<code>halt_shape</code>). None of the rules above ever produces that shape.</p>",
+     "<p>A simulator that applies these rules (each one an actual symbolic run of the machine, not a model) matched the real run at all 30,218 sample points up to 2&middot;10<sup>9</sup> steps and then ran on to 8.6&middot;10<sup>15</sup> steps: no halt, and every event was one of a small catalogue (303 window rules, 72 up to the length of the carry chain). To turn that into a proof one has to describe a set of digit configurations that this catalogue maps into itself, and check it in Lean. That is the next step; see the README's notes.</p>"
+    ]
+   },
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.075). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.506).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"160.1\" y2=\"160.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"164.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"120.3\" y2=\"120.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"124.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"80.4\" y2=\"80.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"84.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"40.5\" y2=\"40.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"44.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,190.0 L59.2,190.0 L78.4,176.9 L97.6,174.2 L116.8,174.2 L136.0,174.2 L155.2,174.2 L174.4,166.9 L193.6,166.9 L212.8,166.9 L232.0,166.9 L251.2,155.5 L270.4,152.6 L289.6,150.2 L308.8,149.7 L328.0,149.7 L347.2,147.7 L366.4,146.2 L385.6,145.9 L404.8,144.6 L424.0,144.3 L443.2,143.2 L462.4,141.9 L481.6,141.6 L500.8,140.6 L520.0,140.6\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,176.9 L59.2,170.1 L78.4,170.1 L97.6,162.0 L116.8,160.1 L136.0,152.6 L155.2,146.9 L174.4,142.1 L193.6,135.8 L212.8,131.8 L232.0,127.8 L251.2,121.9 L270.4,114.9 L289.6,108.3 L308.8,103.8 L328.0,100.3 L347.2,94.5 L366.4,88.9 L385.6,84.9 L404.8,80.7 L424.0,75.1 L443.2,69.2 L462.4,64.7 L481.6,59.5 L500.8,53.9 L520.0,50.0\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 42,541 cells (61 left of the start, 33,936 right), with a density of 1s of 0.667.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>626,756,532</td><td><code>A&gt;0 1 0^2 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0</code></td></tr><tr><td>right</td><td>954,780,983</td><td><code>1 0 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2</code></td></tr><tr><td>right</td><td>970,451,269</td><td><code>1 0 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2</code></td></tr><tr><td>right</td><td>986,133,893</td><td><code>1 0 1^2 0 1^4 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0^2 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "A base-4 counter of walls in a sea of 110, incremented from the right end: one sweep turns the trailing W3 digits into W0 and steps the next digit; runs between walls shrink by 4 per cycle of the left wall, so walls merge, and overflows give birth to new digits; sweep, merger and top rules proved in Lean for any carry chain, digit model run to 8.6e15 steps.",
+ "family": "base-4 wall counter (110 sea)",
+ "decision": "open"
+}

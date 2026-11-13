@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Inside holdouts / 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB</title>
+<meta name="description" content="An interactive explainer of the 6-state machine 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB: the table, where it can halt, the machine running in the browser, a space-time diagram, and what is known about it, each result marked by what it rests on.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --sunk:#eceef2; --line:#d9dce3; --line-strong:#b9bec9;
+  --fg:#14171d; --fg2:#4a505c; --muted:#7a808c; --accent:#2350a8; --accent-soft:#e3eaf8;
+  --ink:#1b2230; --cell0:#ffffff; --head:#d2551f;
+  --kernel:#1c7a4d; --kernel-bg:#e2f3ea; --native:#2350a8; --native-bg:#e3eaf8;
+  --computed:#9a6400; --computed-bg:#fbf0d9; --heur:#7a4fb5; --heur-bg:#efe8f8; --open:#b3363a; --open-bg:#f8e3e3;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#11141a; --surface:#181c24; --sunk:#0d1015; --line:#2a303b; --line-strong:#3c4452;
+  --fg:#e9ecf2; --fg2:#b4bac6; --muted:#858c99; --accent:#8fb0f0; --accent-soft:#1d2a44;
+  --ink:#dfe5f0; --cell0:#11141a; --head:#f08a55;
+  --kernel:#5cc893; --kernel-bg:#14301f; --native:#8fb0f0; --native-bg:#1d2a44;
+  --computed:#e7b453; --computed-bg:#33280f; --heur:#b99cf0; --heur-bg:#2a2040; --open:#f08488; --open-bg:#3a1c1e;
+  color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#11141a; --surface:#181c24; --sunk:#0d1015; --line:#2a303b; --line-strong:#3c4452;
+  --fg:#e9ecf2; --fg2:#b4bac6; --muted:#858c99; --accent:#8fb0f0; --accent-soft:#1d2a44;
+  --ink:#dfe5f0; --cell0:#11141a; --head:#f08a55;
+  --kernel:#5cc893; --kernel-bg:#14301f; --native:#8fb0f0; --native-bg:#1d2a44;
+  --computed:#e7b453; --computed-bg:#33280f; --heur:#b99cf0; --heur-bg:#2a2040; --open:#f08488; --open-bg:#3a1c1e;
+  color-scheme:dark; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--body);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 64px}
+.wrap{max-width:1080px;margin:0 auto}
+.col{max-width:68ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,3.3rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(1.45rem,3vw,1.95rem);font-weight:700;margin-bottom:.6rem}
+h3{font-size:1.12rem;font-weight:700;margin:1.4rem 0 .4rem}
+p{margin:.65rem 0}
+a{color:var(--accent)}
+code,.mono{font-family:var(--mono);font-size:.86em}
+code{background:var(--sunk);padding:.08em .32em;border-radius:4px;overflow-wrap:anywhere}
+section{padding-block:44px 8px;border-top:1px solid var(--line)}
+.eyebrow{font:600 .74rem/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem;display:block}
+.lede{font-size:1.14rem;color:var(--fg2)}
+.small{font-size:.88rem;color:var(--fg2)}
+.ev{display:inline-flex;align-items:center;gap:.35em;font:600 .72rem/1 var(--body);letter-spacing:.04em;text-transform:uppercase;
+  padding:.32em .55em;border-radius:999px;white-space:nowrap;vertical-align:.12em}
+.ev.k{color:var(--kernel);background:var(--kernel-bg)} .ev.k::before{content:"\25C6"}
+.ev.n{color:var(--native);background:var(--native-bg)} .ev.n::before{content:"\25C8"}
+.ev.c{color:var(--computed);background:var(--computed-bg)} .ev.c::before{content:"\25B2"}
+.ev.h{color:var(--heur);background:var(--heur-bg)} .ev.h::before{content:"\2248"}
+.ev.o{color:var(--open);background:var(--open-bg)} .ev.o::before{content:"?"}
+header.hero{padding-block:48px 28px}
+.crumb{font-size:.88rem;color:var(--muted);overflow-wrap:anywhere;margin:0 0 18px}
+.machine-id{font-family:var(--mono);font-size:clamp(.78rem,2.2vw,1rem);color:var(--fg2);word-break:break-all;margin:.8rem 0 0}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:26px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.fact b{font:700 1.4rem/1.15 var(--display)}
+.key{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:22px;align-items:center}
+.key div{display:flex;gap:8px;align-items:center;font-size:.86rem;color:var(--fg2)}
+nav.toc{margin-top:26px;display:flex;flex-wrap:wrap;gap:6px}
+nav.toc a{font-size:.84rem;text-decoration:none;color:var(--fg2);border:1px solid var(--line);border-radius:999px;padding:.25em .7em;background:var(--surface)}
+nav.toc a:hover{border-color:var(--accent);color:var(--accent)}
+.tw{overflow-x:auto;margin:1rem 0}
+table{border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:.42rem .8rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--fg2);font-size:.8rem;letter-spacing:.03em}
+table.tt td{text-align:center;font-family:var(--mono)} table.tt th{text-align:center}
+td.halt{color:var(--open);font-weight:600}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+.grid2>*{min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin:22px 0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,select,input[type=text]{font:500 .9rem var(--body);color:var(--fg);background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:.45em .8em}
+button{cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text]{font-family:var(--mono);min-width:0;width:11em;max-width:100%}
+.readout{display:flex;flex-wrap:wrap;gap:6px 22px;margin:14px 0 6px;font-size:.9rem;color:var(--fg2)}
+.readout b{font-family:var(--mono);color:var(--fg);font-weight:600}
+.statechip{display:inline-block;min-width:1.6em;text-align:center;font:700 .9rem var(--mono);color:var(--surface);background:var(--head);border-radius:5px;padding:0 .3em}
+.cells{display:flex;gap:2px;justify-content:center;margin:14px 0 4px;overflow:hidden}
+.cell{width:22px;height:30px;flex:0 0 22px;border:1px solid var(--line-strong);border-radius:3px;background:var(--cell0);position:relative}
+.cell.one{background:var(--ink);border-color:var(--ink)}
+.cell.out{border-style:dashed;opacity:.5}
+.cell.hd{outline:2px solid var(--head);outline-offset:2px}
+.cell.hd::after{content:attr(data-s);position:absolute;top:-24px;left:50%;transform:translateX(-50%);font:700 .8rem var(--mono);color:var(--head)}
+.cellwrap{padding-top:22px}
+.config{font-family:var(--mono);font-size:.82rem;background:var(--sunk);border-radius:8px;padding:10px 12px;overflow-wrap:anywhere;margin-top:10px}
+canvas{display:block;max-width:100%}
+.stwrap{overflow-x:auto;margin-top:12px}
+.cap{font-size:.8rem;color:var(--muted);margin-top:6px}
+.log{font-family:var(--mono);font-size:.8rem;max-height:300px;overflow:auto;border-top:1px solid var(--line);margin-top:12px;padding-top:8px}
+.log div{display:grid;grid-template-columns:7.5em 1.5em 3.5em minmax(0,1fr);gap:10px;padding:2px 0}
+.log div span:last-child{overflow-wrap:anywhere}
+.log .t{color:var(--muted);text-align:right}
+.claim{border-left:3px solid var(--line-strong);padding:.15rem 0 .15rem .9rem;margin:1rem 0}
+.claim.k{border-color:var(--kernel)} .claim.n{border-color:var(--native)} .claim.c{border-color:var(--computed)}
+.claim.h{border-color:var(--heur)} .claim.o{border-color:var(--open)}
+.claim .where{font-size:.8rem;color:var(--muted);margin-top:.2rem}
+.claim p{margin:.35rem 0}
+.lfilter{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.lfilter button{font-size:.8rem;padding:.3em .7em;border-radius:999px}
+.lfilter button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.litem{display:grid;grid-template-columns:8.5em minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.litem .w{font-size:.78rem;color:var(--muted);overflow-wrap:anywhere}
+.litem p{margin:.25rem 0}
+pre{font-family:var(--mono);font-size:.8rem;background:var(--sunk);border-radius:8px;padding:12px;overflow-x:auto;line-height:1.5}
+footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;font-size:.9rem;color:var(--fg2)}
+@media (max-width:560px){ .litem{grid-template-columns:1fr;gap:4px} .log div{grid-template-columns:6em 1.2em 3em minmax(0,1fr)} }
+@media (prefers-reduced-motion:reduce){ *{scroll-behavior:auto!important;transition:none!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB / explained</p>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 9 November 2026.</span>
+  <h1>Does this machine ever halt?</h1>
+  <p class="machine-id">1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB</p>
+  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="facts">
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>17730</sup> steps</b><span class="small">No halt in the exact macro simulation (847 rebuilds).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>38 rules</b><span class="small">Rebuild rules proved in Lean for every n.</span></div>
+    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>every k</b><span class="small">One Lean theorem for an infinite family of rebuilds.</span></div>
+  </div>
+  <div class="key" aria-label="Evidence levels used on this page">
+    <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
+    <div><span class="ev n">native_decide</span> proved in Lean, one evaluation trusts the compiler</div>
+    <div><span class="ev c">Computed</span> C or Python in the repository, tested but not proved</div>
+    <div><span class="ev h">Heuristic</span> evidence and estimates</div>
+    <div><span class="ev o">Open</span> not known</div>
+  </div>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counters">Two binary counters on one tape</a><a href="#tick">One tick: U + 1, V &amp;minus; 1</a><a href="#rebuild">The rebuild as a function of the counter</a><a href="#walk">The rebuild&#x27;s stopping rule: a walk over pairs of digits</a><a href="#halting">Halting, reduced to the rebuild map</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+</header>
+<section id="machine">
+  <span class="eyebrow">The machine</span>
+  <h2>6 states, two symbols, 1 halting transition</h2>
+  <div class="grid2">
+    <div class="col">
+    <p>Each entry says what to write, which way to move and which state to enter. The machine starts in A on a blank tape (all 0s).</p>
+    <p>The machine stops when it is in D reading 1. D is entered only from C0 (writes 1, moves L): <code>1 C&gt;0</code>. So a halt is the moment this pattern appears, with the head on the cell after <code>&gt;</code>.</p>
+    </div>
+    <div class="tw"><table class="tt" aria-label="Transition table">
+      <thead><tr><th>state</th><th>reads 0</th><th>reads 1</th></tr></thead>
+      <tbody>
+        <tr><th>A</th><td>1 R B</td><td>1 L C</td></tr>
+        <tr><th>B</th><td>0 R C</td><td>0 R B</td></tr>
+        <tr><th>C</th><td>1 L D</td><td>0 L A</td></tr>
+        <tr><th>D</th><td>1 L E</td><td class="halt">halt</td></tr>
+        <tr><th>E</th><td>1 L F</td><td>0 L A</td></tr>
+        <tr><th>F</th><td>1 L A</td><td>0 L B</td></tr>
+      </tbody></table></div>
+  </div>
+</section>
+<section id="run">
+  <span class="eyebrow">Watch it run</span>
+  <h2>The tape from blank, step by step</h2>
+  <div class="col"><p>This is the real machine, simulated in your browser. Step it, play it, or jump to a step count. Below the cells is the whole visited tape in the notation of the notes: <code>1^5</code> is five 1s, and <code>C&gt;0</code> is the head in state C on a 0.</p></div>
+  <div class="panel">
+    <div class="controls">
+      <button id="step" type="button">Step</button>
+      <button id="play" class="primary" type="button">Play</button>
+      <label class="small" for="speed">Speed</label>
+      <select id="speed"><option value="1">1 step/frame</option><option value="10" selected>10 steps/frame</option><option value="1000">1,000 steps/frame</option><option value="100000">100,000 steps/frame</option></select>
+      <button id="reset" type="button">Reset</button>
+      <label class="small" for="jumpTo">Go to step</label>
+      <input type="text" id="jumpTo" inputmode="numeric" value="1000" spellcheck="false" autocomplete="off">
+      <button id="jumpGo" type="button">Go</button>
+    </div>
+    <div class="controls" style="margin-top:8px"><span class="small">Jump to:</span><button type="button" data-jump="1000">1,000</button><button type="button" data-jump="100000">100,000</button><button type="button" data-jump="1000000">1,000,000</button></div>
+    <div class="readout"><span>step <b id="rStep">0</b></span><span>state <span class="statechip" id="rState">A</span></span><span>cells visited <b id="rWidth">1</b></span><span>ones <b id="rOnes">0</b></span></div>
+    <div class="cellwrap"><div class="cells" id="cells" aria-label="Tape cells around the head"></div></div>
+    <div class="cap">Cells around the head (dark = 1, dashed = never visited).</div>
+    <div class="config" id="config" aria-live="polite"></div>
+  </div>
+</section>
+<section id="glance">
+  <span class="eyebrow">The run at a glance</span>
+  <h2>Space-time diagram and records</h2>
+  <div class="col"><p>The diagram stacks the tape at many moments. Sampling at each new cell shows the shape of the run as the visited region grows; sampling evenly in time shows where the head spends its time. The records list every step at which the head reaches a cell no earlier step reached, with the side, the width so far and the whole tape: the first place to look for a repeating macro structure.</p></div>
+  <div class="panel">
+    <div class="controls">
+      <label class="small" for="stMode">Rows</label>
+      <select id="stMode"><option value="rec" selected>at each new cell</option><option value="time">evenly in time</option></select>
+      <label class="small" for="stSteps">up to step</label>
+      <select id="stSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="20000" selected>20,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <button id="stGo" class="primary" type="button">Draw</button>
+    </div>
+    <div class="stwrap"><canvas id="st" aria-label="Space-time diagram"></canvas></div>
+    <div class="cap" id="stCap"></div>
+  </div>
+  <div class="panel">
+    <div class="controls">
+      <label class="small" for="recSteps">Records up to step</label>
+      <select id="recSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="20000" selected>20,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <button id="recGo" class="primary" type="button">List</button>
+    </div>
+    <div class="cap" id="recCap"></div>
+    <div class="log" id="recs"></div>
+  </div>
+</section>
+<section id="counters">
+  <span class="eyebrow">Macro structure</span>
+  <h2>Two binary counters on one tape</h2>
+<p>Run the machine for a while and the tape sorts itself into two numbers written in binary. On the far left, after a single 1 that acts as a sentinel, is a counter <b>U</b> whose digits are blocks of 5 cells: <code>00000</code> is a 0 and <code>00001</code> a 1, most significant digit on the left. Then come a short gap <code>00</code>, the head in state D, and a fixed <em>header</em> such as <code>0110101</code>. Right of the header is a second counter <b>V</b> whose digits are pairs, least significant first: <code>01</code> is a 1 and <code>11</code> a 0.</p>
+<p>The tick configuration is <code>1 U 00 D&gt;0110101 V</code>. Every tick adds 1 to U and takes 1 from V. Most of the time nothing else happens.</p>
+</section>
+<section id="tick">
+  <span class="eyebrow">The rule</span>
+  <h2>One tick: U + 1, V &minus; 1</h2>
+<p>The head walks left through the trailing 1-digits of U, turning them into 0-digits (the carries), writes a 1-digit, then walks right to V and turns its trailing 0-pairs into 1-pairs and its lowest 1-pair into a 0-pair (the borrows). Written with j carries and i + 1 borrows:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>before</th><th>after</th><th>steps</th></tr></thead><tbody><tr><td><code>L 00000 (00001)^j 00 D&gt;0110101 01 R</code></td><td><code>L 00001 (00000)^j 00 D&gt;0110101 11 R</code></td><td>10 * j + 34</td></tr><tr><td><code>L 00000 (00001)^j 00 D&gt;0110101 (11)^(i+1) 01 R</code></td><td><code>L 00001 (00000)^j 00 D&gt;0110101 (01)^(i+1) 11 R</code></td><td>8 * i + 10 * j + 42</td></tr></tbody></table></div>
+<p>These two shapes are proved in Lean for every j and i (<code>lean/Rules.lean</code>), for every header the run has used (<code>0110101</code>, <code>0110111</code>). Because the cost of a tick depends only on the numbers of carries and borrows, a long run of ticks has an exact cost: the sum of the trailing zeros of the numbers U+1, ..., U+k and V&minus;k+1, ..., V, which has a closed form. The accelerated simulator uses it to skip billions of ticks at once.</p>
+</section>
+<section id="rebuild">
+  <span class="eyebrow">When V runs out</span>
+  <h2>The rebuild as a function of the counter</h2>
+<p>When V reaches 0 the tape is always clean: <code>0^inf 1 U 00 D&gt;H (11)^n 1 0^inf</code>, nothing else on it. Read the up-counter with its sentinel 1 as one binary number N (U = 5287 with 13 digits is N = 2<sup>13</sup> + 5287). The state of the whole machine is then just (H, n, N): the header, the length of V and the counter.</p>
+<p>The rebuild that follows reads the lowest digits of N one at a time, writing to the right, and stops after j of them, where j depends on what it read. It ends in a clean tick configuration again: the up-counter is N' = N &gt;&gt; j (the digits it did not read), and the new V is 2<sup>n+c</sup> &minus; &delta;, nearly all 1-pairs, with c and &delta; fixed by the digits read. For the short cases this is proved in Lean (38 theorems), for example:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>header</th><th>N mod 2<sup>j</sup></th><th>new header</th><th>c</th><th>&delta;</th></tr></thead><tbody><tr><td><code>0110101</code></td><td>1 (mod 2<sup>3</sup>)</td><td><code>0110101</code></td><td>8</td><td>737</td></tr><tr><td><code>0110101</code></td><td>5 (mod 2<sup>3</sup>)</td><td><code>0110111</code></td><td>8</td><td>736</td></tr><tr><td><code>0110101</code></td><td>7 (mod 2<sup>5</sup>)</td><td><code>0110101</code></td><td>13</td><td>97281</td></tr><tr><td><code>0110101</code></td><td>8 (mod 2<sup>5</sup>)</td><td><code>0110101</code></td><td>13</td><td>12001</td></tr><tr><td><code>0110101</code></td><td>23 (mod 2<sup>5</sup>)</td><td><code>0110111</code></td><td>13</td><td>97280</td></tr><tr><td><code>0110101</code></td><td>24 (mod 2<sup>5</sup>)</td><td><code>0110111</code></td><td>13</td><td>12000</td></tr></tbody></table></div>
+<p>The phase that follows runs V' ticks, so the next counter is N' + V' = 2<sup>n'</sup> + N' &minus; &delta;: the old counter's unread top part, with a 1 placed n' digits up and &delta; subtracted at the bottom. The first rebuilds of the run from blank tape:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>rebuild</th><th>new header</th><th>digits of N</th><th>j read</th><th>c added</th><th>digits of &delta;</th><th>digits of N'</th><th>steps after</th></tr></thead><tbody><tr><td>1</td><td><code>0110101</code></td><td>14</td><td>7</td><td>18</td><td>22</td><td>7</td><td>10<sup>11</sup></td></tr><tr><td>2</td><td><code>0110101</code></td><td>32</td><td>5</td><td>13</td><td>14</td><td>27</td><td>10<sup>15</sup></td></tr><tr><td>3</td><td><code>0110111</code></td><td>46</td><td>3</td><td>8</td><td>10</td><td>43</td><td>10<sup>17</sup></td></tr><tr><td>4</td><td><code>0110101</code></td><td>54</td><td>11</td><td>28</td><td>30</td><td>43</td><td>10<sup>26</sup></td></tr><tr><td>5</td><td><code>0110101</code></td><td>82</td><td>80</td><td>206</td><td>207</td><td>2</td><td>10<sup>88</sup></td></tr><tr><td>6</td><td><code>0110101</code></td><td>287</td><td>97</td><td>243</td><td>339</td><td>190</td><td>10<sup>161</sup></td></tr><tr><td>7</td><td><code>0110111</code></td><td>530</td><td>57</td><td>143</td><td>172</td><td>473</td><td>10<sup>204</sup></td></tr><tr><td>8</td><td><code>0110101</code></td><td>674</td><td>19</td><td>48</td><td>49</td><td>655</td><td>10<sup>218</sup></td></tr><tr><td>9</td><td><code>0110111</code></td><td>722</td><td>3</td><td>8</td><td>10</td><td>719</td><td>10<sup>221</sup></td></tr><tr><td>10</td><td><code>0110111</code></td><td>730</td><td>7</td><td>18</td><td>19</td><td>723</td><td>10<sup>226</sup></td></tr></tbody></table></div>
+<p>Over the 847 rebuilds simulated, j was odd (but once) and c = (5j + 1)/2. The macro map reaches about 10<sup>17730</sup> steps in 25 minutes; it is tested state by state against the accelerated simulator.</p>
+</section>
+<section id="walk">
+  <span class="eyebrow">Where it stops</span>
+  <h2>The rebuild's stopping rule: a walk over pairs of digits</h2>
+<p>Which digits a rebuild reads is decided by a small automaton. Cut N into pairs of digits from the bottom, b<sub>1</sub>b<sub>0</sub>, b<sub>3</sub>b<sub>2</sub>, ..., and walk through this table, starting in O after header <code>0110101</code> and in Q after <code>0110111</code>:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>state</th><th>pair 00</th><th>01</th><th>10</th><th>11</th></tr></thead><tbody><tr><td>O</td><td>P</td><td>stop</td><td>Q</td><td>O</td></tr><tr><td>P</td><td>P</td><td>P</td><td>stop</td><td>Q</td></tr><tr><td>Q</td><td>R</td><td>P</td><td>P</td><td>Q</td></tr><tr><td>R</td><td>R</td><td>R</td><td>P</td><td>P</td></tr></tbody></table></div>
+<p>If the walk stops on its k-th pair, the rebuild has read j = 2k + 1 digits: N' = N &gt;&gt; j, the next header is <code>0110101</code> or <code>0110111</code> according to the last digit read, and V gains (5j + 1)/2 digits. This matches the exact rebuild for every N below 2<sup>16</sup> and for thousands of random 200-digit counters, but it is read off the data, not proved.</p>
+<p>The simplest walk stays in O on 11-pairs and stops on 01: N ends in 2k + 1 ones, a 0 and a digit b. For that whole family Lean proves the rebuild for every k at once: four short passes, four runs of 2<sup>2k</sup> &minus; 1 or 2<sup>2k+1</sup> &minus; 1 ticks and two carries, ending with &delta; = 1 + 32<sup>k+1</sup> (3 &middot; 2<sup>2k+3</sup> &minus; 1). For other walks &delta; also depends on how long the runs of equal pairs are, and the rebuild sometimes runs a smaller rebuild inside itself; no formula for every N is known yet, and so there is no proof that the machine never halts.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Where it could stop</span>
+  <h2>Halting, reduced to the rebuild map</h2>
+<p>The machine halts only on D reading a 1, and ticks never do that. Running every rebuild with N &lt; 2<sup>16</sup> shows exactly which halt: the ones where every digit of N is 1 (N = 2<sup>L+1</sup> &minus; 1), with the right parity of L and header. Since the next counter is 2<sup>n'</sup> + N' &minus; &delta;, it is all ones exactly when &delta; = N' + 1. So halting comes down to one arithmetic coincidence at some rebuild.</p>
+<p>It can happen: from <code>1 [N = 5889] 00 D&gt;0110101 (11)^13 1</code> the rebuild gives N' = 736, &delta; = 737, the counter fills up to 2<sup>21</sup> &minus; 1 and the next rebuild halts, after 545,221,856 steps in all (checked by direct simulation).</p>
+<p>In the run from blank tape it looks hopeless: from the seventh rebuild on N' has at least 301 more digits than &delta;, and the gap grows. A coincidence needs a rebuild that reads about a quarter of the counter and then a digit-for-digit match of the rest, roughly a 2<sup>&minus;0.7n</sup> chance with n in the thousands. That is why we believe it never halts, but there is no proof: it would need the rebuild for every N, not just the short cases in Lean.</p>
+</section>
+<section id="ledger">
+  <span class="eyebrow">What is known</span>
+  <h2>Every result, by what it rests on</h2>
+  <div class="col"><p>Status as of 9 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="lfilter" role="group" aria-label="Filter by evidence level">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
+    <button type="button" data-f="native" aria-pressed="false">native_decide</button>
+    <button type="button" data-f="trusted" aria-pressed="false">Computed</button>
+    <button type="button" data-f="heuristic" aria-pressed="false">Heuristic</button>
+    <button type="button" data-f="open" aria-pressed="false">Open</button>
+  </div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (D1); the generated statement covers every configuration.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (4 theorems)</div></div><div><b>The tick rules of the two counters</b><p>For each of the headers <code>0110101</code>, <code>0110111</code> the run uses, two theorems: with V odd, <code>L 00000 (00001)^j 00 D&gt;0110101 01 R</code> becomes <code>L 00001 (00000)^j 00 D&gt;0110101 11 R</code> in 10 * j + 34 steps; with V having i + 1 trailing zeros, <code>L 00000 (00001)^j 00 D&gt;0110101 (11)^(i+1) 01 R</code> becomes <code>L 00001 (00000)^j 00 D&gt;0110101 (01)^(i+1) 11 R</code> in 8 * i + 10 * j + 42 steps. That is U + 1 and V &minus; 1 for every number j of carries and i + 1 of borrows and every tape L, R beyond (proved along the symbolic run of <code>tools/py/bbtools/symtm.py</code>).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rebuild.lean</code> (38 theorems, written by <code>holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/gen_rebuild_rules.py</code>)</div></div><div><b>38 rebuild rules</b><p>For 38 residue classes of the up-counter N modulo 2<sup>j</sup> (j in [3, 5, 7], headers <code>0110101</code>, <code>0110111</code>) the rebuild after V = 0 is proved for every length n of V and every tape L left of the digits it reads: <code>L d<sub>j-1</sub>..d<sub>0</sub> 00 D&gt; H (11)^(n+k) 1 0^inf</code> becomes <code>L 00 D&gt; H' w (01)^(n+e) 1 0^inf</code>, that is: the up-counter loses its lowest j digits (N becomes N &gt;&gt; j) and the new down-counter is 2<sup>n+k+c</sup> &minus; &delta; with c and &delta; fixed by the class. For example, header <code>0110101</code> and N = 1 (mod 2<sup>3</sup>): new header <code>0110101</code>, 8 more digits, &delta; = 737. The classes were found by sampling; each theorem is then proved along the symbolic run of <code>tools/py/bbtools/symtm.py</code>.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>phase</code>, <code>lean/Phase.lean</code></div></div><div><b>Any run of ticks</b><p>For both headers, every up-counter U (of any width w), down-counter V and every k &le; V with U + k &lt; 2<sup>w</sup>: k ticks take the tick configuration to the one with U + k and V &minus; k, the widths unchanged and no cell beyond the counters read. Proved by induction on k from the tick rules.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>rebuild_family</code>, <code>val_Vfam</code>, <code>length_Vfam</code>, <code>lean/FamilyRule.lean</code></div></div><div><b>The rebuild for a whole family, every k</b><p>For every k &ge; 1, b in {0, 1}, n &ge; 2k + 3 and every tape beyond: when V = 0 has n digits, the header is <code>0110101</code> and the lowest 2k + 3 digits of N are, from the bottom, 2k + 1 ones, a 0 and b, the rebuild ends at the clean tick configuration with up-counter N &gt;&gt; (2k + 3), header <code>0110101</code> (b = 0) or <code>0110111</code> (b = 1), and a down-counter of n + 5k + 8 digits with value 2<sup>n+5k+8</sup> &minus; &delta; + b, &delta; = 1 + 32<sup>k+1</sup> (3 &middot; 2<sup>2k+3</sup> &minus; 1). One theorem for the whole family, not one per class: four local passes proved along symbolic runs (<code>lean/Family.lean</code>, written by <code>py/gen_family.py</code>), four phases of 2<sup>2k</sup> &minus; 1 or 2<sup>2k+1</sup> &minus; 1 ticks by the phase lemma, and two carries into the top word. For k = 1 it is the class N = 7 or 23 (mod 2<sup>5</sup>) of <code>lean/Rebuild.lean</code> (&delta; = 97281).</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 195 cells have been visited and 61 of them hold a 1.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in the first 10<sup>11</sup> steps (direct)</b><p><code>tools/c/tmrun.c</code> runs 100,000,000,000 steps without a halt (224 cells reached on one side, 104 on the other).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild.py</code> (<code>validate</code>)</div></div><div><b>The macro map and its simulator</b><p>At each moment V reaches 0 the tape is the clean configuration <code>0^inf F U 00 D&gt; H (11)^n 1 0^inf</code> (F the counter's top word), so the state is (H, n, N) with N the up-counter read as one number. <code>py/rebuild.py</code> writes that tape, runs the rebuild (tick runs of its sub-phases jumped by the proved tick rules, the rest cell by cell in C) to the next clean tick configuration (H', n', N', V'), and then adds the V' ticks of the phase by arithmetic: next state (H', n', N' + V'), steps by the closed formula of the tick costs. Tested: its first 7 states and step counts, up to about 10<sup>161</sup> steps, equal those of <code>py/counters.py</code> (itself tested against <code>tools/c/tmrun.c</code>).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LC_0RC0R... run</code></div></div><div><b>No halt in the first 10<sup>17730</sup> steps (macro run)</b><p>The macro run from blank tape goes through 847 rebuilds without a halt; at the end V has 58,893 digits and the step count is about 10<sup>17730</sup>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/rebuild_stats.py 1RB1LC_0RC0R... halting 16</code></div></div><div><b>The rebuilds that halt, N &lt; 2<sup>16</sup></b><p>For every N &lt; 2<sup>16</sup>, both headers, and n &minus; len(N) + 1 in {0, 1} (the only values the run produces, len(N) the number of binary digits of N with the sentinel), the rebuild halts in exactly 22 cases, all with N = 2<sup>L+1</sup> &minus; 1 (every digit 1): header <code>0110101</code> with L even (n = L or L + 1), header <code>0110111</code> with L odd and n = L. The halting step counts grow by a factor 4 per two digits (1727, 6769, 26787, ... for header <code>0110101</code>, n = L + 1). Every other rebuild returns to a clean tick configuration.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/rebuild_stats.py ... shape 14</code>, <code>c/fromtape.c</code></div></div><div><b>A halting configuration two rebuilds away</b><p>For N &lt; 2<sup>14</sup> (same inputs) the rebuild always gives N' = N &gt;&gt; j for some j, or N' = 2, and N' &minus; &delta; = &minus;1 (the next counter N' + V' all ones) only for N = 5885 and 5889, n = 12, 13, header <code>0110101</code>. For N = 5889, n = 13 that all-ones counter has the halting parity: the tape <code>1 [5889 in 5-cell digits] 00 D&gt;0110101 (11)^13 1</code>, run directly by <code>c/fromtape.c</code>, halts after 545,221,856 steps (a rebuild, 2<sup>21</sup> &minus; 737 ticks, a halting rebuild), the same count as the macro simulator's. So the machine can halt from configurations of its own family; the question is whether the run from blank tape reaches one.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/rebuild_rule.py</code> (<code>check 16</code>, <code>random 2000 200</code>, <code>run 2000 1700</code>)</div></div><div><b>Where every rebuild stops: a walk over pairs of digits</b><p>The rebuild reads N's digits from the bottom in pairs b<sub>2i+1</sub>b<sub>2i</sub> and moves a 4-state automaton (table on the explainer page); header <code>0110101</code> starts it in O, <code>0110111</code> in Q. If it stops on its k-th pair, j = 2k + 1 digits are read, N' = N &gt;&gt; j, the new header is <code>0110101</code> or <code>0110111</code> by the last digit read, and V gains c = (5j + 1)/2 digits. Compared with the exact rebuild of <code>py/rebuild.py</code>: for every N &lt; 2<sup>16</sup>, both headers and n &minus; len(N) + 1 in {0, 1}, 151,368 rebuilds follow it and none contradict it; 110,768 are not covered (the walk does not stop below the top digit of N). For 2,000 random 200-digit N, both headers, all 4,000 follow it (longest walk j = 127). In the macro run from blank tape, 940 of the first 941 rebuilds follow it (longest walk j = 5,015); the other one, rebuild 5, is not covered: its walk reaches the top of N (it read 80 of the 82 digits and left N' = 2). The automaton was read off the data; it is not proved.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">the two checks above and <code>lean/Rebuild.lean</code></div></div><div><b>The reduction: halting iff &delta; = N' + 1 once</b><p>If the halting rebuilds are the all-ones ones for every N (checked below 2<sup>16</sup>), then, since the next counter is N' + V' = 2<sup>n'</sup> + N' &minus; &delta;, the machine halts if and only if some rebuild of the run gives &delta; = N' + 1 with new header <code>0110101</code> and n' odd. A rebuild of a proved class has a fixed &delta; (at most 24 digits for j &le; 7) and N' = N &gt;&gt; j, so once N has more than 31 digits (from the second rebuild on) only the classes not yet in Lean (j &ge; 9) can do it.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/rebuild_stats.py 1RB1LC_0RC0R... run 1500</code></div></div><div><b>What the rebuild map looks like in the run</b><p>All 847 rebuilds of the macro run have N' = N &gt;&gt; j. j is odd except once (rebuild 5 read 80 of the 82 digits) and then the new V has c = (5j + 1)/2 more digits than the old. The number of digits read has a long tail (84 with j = 3, 108 with j = 5, 83 with j = 7, 77 with j = 9, 61 with j = 11, 54 with j = 13; up to j = 2481), like the stopping time of a random walk on the digits. From rebuild 7 on, N' always has at least 301 more digits than &delta; (the gap grows with n), so &delta; = N' + 1 never came close.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Probably never halts</b><p>&delta; has about 2.5j to 3.5j digits and N' about len(N) &minus; j, so &delta; = N' + 1 needs a rebuild that reads about a quarter of the counter and then an exact match of the remaining three quarters, digit for digit. Treating those digits as random, that has probability about 2<sup>&minus;0.7 n</sup> at a rebuild with n digits; n is over 45 from the third rebuild on and grows by about 70 per rebuild, so the sum over the whole run is tiny. A heuristic, not a proof: the digits of N are produced by the machine, not drawn at random.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/rebuild.py</code> (<code>trace</code>)</div></div><div><b>What &delta; depends on</b><p>Outside the family above, &delta; is not a function of the walk's path alone: for the same path it depends on the lengths of the runs of <code>00</code> and <code>11</code> pairs (growing by a factor of about 4 per pair). Inside, the rebuild runs phases of ticks with small counters over the low digits (on a grid shifted by one cell), and some of these reach V = 0 and run a smaller rebuild. No closed form of &delta; for all N was found; the family is the simplest path (O, ..., O, stop).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Lean proves the ticks, any phase of ticks, 38 short rebuild classes and the family above for every k; the stopping rule of every rebuild is a 4-state walk (checked, not proved), but &delta; outside the family has no closed form yet. So neither the rebuild for all N nor an invariant excluding &delta; = N' + 1 is proved, and non-halting from blank tape is not proved.</p></div></div>
+</section>
+<section id="check">
+  <span class="eyebrow">Check it yourself</span>
+  <h2>Commands</h2>
+  <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
+holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/lean/check.sh          # Machine, Blank, Rules (ticks), Rebuild (rebuild rules), Phase (any run of ticks), Family + FamilyRule (the family, every k)
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB validate 120          # macro run = counters.py run, state by state
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB run 1500        # the macro run, one line per rebuild
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB halting 12      # which rebuilds halt, N &lt; 2^12
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/gen_rebuild_rules.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB H49767 7 &gt; holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/lean/Rebuild.lean
+gcc -O2 -o fromtape holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/c/fromtape.c &amp;&amp; ./fromtape 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB 1000000000100001000010000000000000000000000000000000000000001000110101111111111111111111111111111 63 D 2000000000   # halts after 545221856 steps
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_rule.py check 12          # the stopping walk against the exact rebuild, N &lt; 2^12
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_rule.py random 200 60     # and for random 60-digit N
+python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/gen_family.py &gt; holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/lean/Family.lean</code></pre>
+</section>
+<footer class="foot">
+  <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>
+  <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+</footer>
+</div>
+<script type="application/json" id="spec">{"machine": "1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB"}</script>
+<script id="engine">
+var BB = (function () {
+  "use strict";
+  var STATES = "ABCDEFGHIJ";
+  function parse(text) {
+    var groups = text.trim().split("_"), n = groups.length, table = [];
+    for (var s = 0; s < n; s++) {
+      var g = groups[s], row = [];
+      if (g.length !== 6) throw new Error("bad group " + g);
+      for (var y = 0; y < 2; y++) {
+        var t = g.substr(3 * y, 3), q = STATES.indexOf(t[2]);
+        if (t === "---" || q < 0 || q >= n) { row.push(null); continue; }
+        row.push([+t[0], t[1] === "R" ? 1 : -1, q]);
+      }
+      table.push(row);
+    }
+    return { text: text.trim(), n: n, table: table };
+  }
+  function Run(m) {
+    this.m = m; this.cells = new Uint8Array(1024); this.off = 512;
+    this.lo = 0; this.hi = 0; this.head = 0; this.state = 0; this.steps = 0; this.halted = false; this.nOnes = 0;
+  }
+  Run.prototype.get = function (p) { var i = p + this.off; return i < 0 || i >= this.cells.length ? 0 : this.cells[i]; };
+  Run.prototype.grow = function () {
+    var n = this.cells.length, c = new Uint8Array(3 * n);
+    c.set(this.cells, n); this.cells = c; this.off += n;
+  };
+  Run.prototype.step = function () {
+    if (this.halted) throw new Error("halted");
+    var i = this.head + this.off, y = this.cells[i], tr = this.m.table[this.state][y];
+    this.steps++;
+    if (tr === null) { this.halted = true; return false; }
+    this.nOnes += tr[0] - y; this.cells[i] = tr[0];
+    this.head += tr[1]; this.state = tr[2];
+    if (this.head < this.lo) this.lo = this.head;
+    if (this.head > this.hi) this.hi = this.head;
+    i = this.head + this.off;
+    if (i < 1 || i >= this.cells.length - 1) this.grow();
+    return true;
+  };
+  Run.prototype.run = function (max) { while (this.steps < max) if (!this.step()) return true; return false; };
+  Run.prototype.ones = function () { return this.nOnes; };
+  Run.prototype.word = function (lo, hi) { var w = []; for (var p = lo; p <= hi; p++) w.push(this.get(p)); return w; };
+  Run.prototype.configStr = function () {
+    return formatConfig(this.word(this.lo, this.hi), this.head - this.lo, STATES[this.state]);
+  };
+  function rle(cells) {
+    var out = [], i = 0;
+    while (i < cells.length) {
+      var j = i; while (j < cells.length && cells[j] === cells[i]) j++;
+      out.push(j - i > 1 ? cells[i] + "^" + (j - i) : String(cells[i])); i = j;
+    }
+    return out;
+  }
+  function formatConfig(cells, h, state) {
+    return rle(cells.slice(0, h)).concat([state + ">" + cells[h]], rle(cells.slice(h + 1))).join(" ");
+  }
+  // [steps, "L"|"R", hi - lo, config] each time the head reaches a new cell, at most k of them.
+  function records(m, maxSteps, k) {
+    var r = new Run(m), out = [];
+    while (r.steps < maxSteps && out.length < k) {
+      var lo = r.lo, hi = r.hi;
+      if (!r.step()) break;
+      if (r.lo < lo) out.push([r.steps, "L", r.hi - r.lo, r.configStr()]);
+      else if (r.hi > hi) out.push([r.steps, "R", r.hi - r.lo, r.configStr()]);
+    }
+    return { records: out, run: r };
+  }
+  return { STATES: STATES, parse: parse, Run: Run, rle: rle, formatConfig: formatConfig, records: records };
+})();
+if (typeof module !== "undefined") module.exports = BB;
+</script>
+<script>
+(function () {
+  "use strict";
+  var spec = JSON.parse(document.getElementById("spec").textContent);
+  var M = BB.parse(spec.machine), $ = function (id) { return document.getElementById(id); };
+  var css = function (v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); };
+  var fmt = function (n) { return n.toLocaleString("en-US"); };
+  // simulator
+  var r = new BB.Run(M), playing = false, raf = 0;
+  function draw() {
+    $("rStep").textContent = fmt(r.steps);
+    $("rState").textContent = r.halted ? "halt" : BB.STATES[r.state];
+    $("rWidth").textContent = fmt(r.hi - r.lo + 1);
+    $("rOnes").textContent = fmt(r.ones());
+    var box = $("cells"), w = box.clientWidth || 600, n = Math.max(9, Math.min(41, Math.floor(w / 24) | 1)), h = n >> 1;
+    var html = "";
+    for (var p = r.head - h; p <= r.head + h; p++) {
+      var cls = "cell" + (r.get(p) ? " one" : "") + (p < r.lo || p > r.hi ? " out" : "") + (p === r.head ? " hd" : "");
+      html += '<div class="' + cls + '"' + (p === r.head ? ' data-s="' + (r.halted ? "H" : BB.STATES[r.state]) + '"' : "") + "></div>";
+    }
+    box.innerHTML = html;
+    var width = r.hi - r.lo + 1;
+    $("config").textContent = width <= 4000 ? r.configStr() : "(" + fmt(width) + " cells: too wide to print here)";
+  }
+  function advance(n) {
+    var target = r.steps + n;
+    while (!r.halted && r.steps < target) if (!r.step()) break;
+  }
+  function jump(t) { if (t < r.steps) r = new BB.Run(M); advance(t - r.steps); draw(); }
+  function loop() {
+    if (!playing) return;
+    advance(+$("speed").value); draw();
+    if (r.halted) { stop(); return; }
+    raf = requestAnimationFrame(loop);
+  }
+  function stop() { playing = false; cancelAnimationFrame(raf); $("play").textContent = "Play"; }
+  $("step").onclick = function () { stop(); advance(1); draw(); };
+  $("play").onclick = function () {
+    if (playing) { stop(); return; }
+    playing = true; $("play").textContent = "Pause"; loop();
+  };
+  $("reset").onclick = function () { stop(); r = new BB.Run(M); draw(); };
+  $("jumpGo").onclick = function () {
+    stop(); var t = parseInt($("jumpTo").value.replace(/[^0-9]/g, ""), 10);
+    if (t >= 0 && t <= 1e9) jump(t);
+  };
+  document.querySelectorAll("[data-jump]").forEach(function (b) {
+    b.onclick = function () { stop(); $("jumpTo").value = b.dataset.jump; jump(+b.dataset.jump); };
+  });
+  window.addEventListener("resize", draw);
+  draw();
+  // space-time diagram: one row per sample, the visited tape across
+  function spacetime() {
+    var mode = $("stMode").value, steps = Math.min(+$("stSteps").value, 1e9), rows = 600;
+    var q = new BB.Run(M), snaps = [];
+    function snap() { snaps.push([q.steps, q.lo, q.word(q.lo, q.hi), q.head, q.halted]); }
+    snap();
+    if (mode === "time") {
+      var every = Math.max(1, Math.floor(steps / rows));
+      while (q.steps < steps && !q.halted) { q.run(Math.min(steps, q.steps + every)); snap(); }
+    } else {
+      while (q.steps < steps && snaps.length < rows) {
+        var lo = q.lo, hi = q.hi;
+        if (!q.step()) { snap(); break; }
+        if (q.lo < lo || q.hi > hi) snap();
+      }
+    }
+    var lo = Math.min.apply(null, snaps.map(function (s) { return s[1]; }));
+    var hi = Math.max.apply(null, snaps.map(function (s) { return s[1] + s[2].length - 1; }));
+    var W = hi - lo + 1, cw = Math.max(1, Math.min(12, Math.floor(1000 / W))), ch = Math.max(1, Math.min(8, Math.floor(600 / snaps.length)));
+    var cv = $("st"), dpr = window.devicePixelRatio || 1;
+    cv.width = W * cw * dpr; cv.height = snaps.length * ch * dpr;
+    cv.style.width = W * cw + "px"; cv.style.height = snaps.length * ch + "px";
+    var g = cv.getContext("2d"); g.scale(dpr, dpr);
+    g.fillStyle = css("--cell0"); g.fillRect(0, 0, W * cw, snaps.length * ch);
+    g.fillStyle = css("--sunk");
+    snaps.forEach(function (s, i) { g.fillRect((s[1] - lo) * cw, i * ch, s[2].length * cw, ch); });
+    g.fillStyle = css("--ink");
+    snaps.forEach(function (s, i) { s[2].forEach(function (c, j) { if (c) g.fillRect((s[1] - lo + j) * cw, i * ch, cw, ch); }); });
+    g.fillStyle = css("--head");
+    snaps.forEach(function (s, i) { g.fillRect((s[3] - lo) * cw, i * ch, cw, ch); });
+    var last = snaps[snaps.length - 1];
+    $("stCap").textContent = snaps.length + " rows, steps 0 to " + fmt(last[0]) + ", " + fmt(W) + " cells" +
+      (last[4] ? "; the machine halted" : "") + ". Time runs down, the tape runs left to right; dark = 1, orange = the head.";
+  }
+  $("stGo").onclick = spacetime;
+  spacetime();
+  // records
+  function showRecords() {
+    var steps = Math.min(+$("recSteps").value, 1e9), res = BB.records(M, steps, 400), out = "";
+    res.records.forEach(function (x) {
+      out += '<div><span class="t">' + fmt(x[0]) + "</span><span>" + x[1] + '</span><span class="t">' + x[2] +
+        "</span><span>" + x[3].replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</span></div>";
+    });
+    $("recs").innerHTML = out || "<div>none</div>";
+    $("recCap").textContent = res.records.length + " records in " + fmt(res.run.steps) + " steps" +
+      (res.run.halted ? "; the machine halted" : "") + (res.records.length >= 400 ? " (the first 400 shown)" : "") + ".";
+  }
+  $("recGo").onclick = showRecords;
+  showRecords();
+  // ledger
+  document.querySelectorAll(".lfilter button").forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll(".lfilter button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+      document.querySelectorAll(".litem").forEach(function (it) {
+        it.hidden = b.dataset.f !== "all" && it.dataset.level !== b.dataset.f;
+      });
+    };
+  });
+})();
+</script>
+</body>
+</html>

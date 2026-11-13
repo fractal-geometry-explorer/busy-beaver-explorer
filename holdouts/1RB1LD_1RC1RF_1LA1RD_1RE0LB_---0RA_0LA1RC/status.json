@@ -1,0 +1,191 @@
+{
+ "generated": false,
+ "group": "G06",
+ "title": "What is known about 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC.",
+ "machine": "1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC",
+ "crumb": "holdouts / 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC",
+ "home": "../index.html",
+ "source": "holdouts/1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open, and the run is an explicit map.</b> This machine writes the same tape as 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD. Nine tick and overflow rules are proved in Lean for both. The map of the twin, using this machine's transitions, reproduces every tick boundary of the first 6&middot;10<sup>9</sup> steps exactly."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (E0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 50,611 cells have been visited and 39,628 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: fixed/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.514). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The ticks",
+   "text": "From <code>0^&infin; 1110 (111110)^(n+1) 1 A&gt; (101110)^x SEP &hellip;</code>, one tick reaches the same form with n+2, and the separator after the first block (the timer) moves one step along r = <code>10</code> &rarr; q = <code>1110</code> &rarr; p = <code>101011</code> &rarr; s = <code>11</code> &rarr; r: r &rarr; q costs the next block one, q &rarr; p costs the timer one, p &rarr; s changes nothing, s &rarr; r costs the timer one, gives the next block one and passes a borrow on. Also the <em>wall</em> cycle: with a timer of one followed by s, three ticks take two from the next block and pass no borrow. Every n, every block length, every tape to the right.",
+   "where": "<code>tick_r</code>, <code>tick_q</code>, <code>tick_p</code>, <code>tick_s</code>, <code>tick_w</code>, <code>tick_q2</code>, <code>tick_p1</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Overflow, for two and three blocks",
+   "text": "When every separator is s and the far end reads <code>1111</code>, the borrow runs to the far end. From one tick boundary to the next, the list (n+1; x<sub>1</sub>, &hellip;, x<sub>k</sub>) becomes (6; n+2, x<sub>1</sub>&minus;1, x<sub>2</sub>&minus;1, x<sub>3</sub>, &hellip;) with separators r, q, r, &hellip; and far end <code>10101111</code>: the grown w-block is the new timer. Proved for k = 2 and k = 3, for all n and block lengths.",
+   "where": "<code>overflow_2</code>, <code>overflow_3</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "An exact map reproduces the run",
+   "text": "The map of the twin (<code>holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/py/macro.py</code>), run with this machine's transitions for its events, reproduces all 22,198 tick boundaries of the first 6&middot;10<sup>9</sup> steps exactly. These boundaries are the same as the twin's.",
+   "where": "<code>holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/py/check_macro.py 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Same tape as its twin",
+   "text": "This machine and 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD write the same symbol at the same cell and move the same way at every one of the first 10<sup>9</sup> steps. Where one is in C, the other is in C or E, depending on the symbol under the head. They stay twins as long as three local patterns hold: after B reads 0 the next cell is 0, after D reads 0 it is 1, and after E reads 1 it is 1.",
+   "where": "<code>holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/c/twin.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Why it is hard",
+   "text": "The same as for its twin: the far end is reached exponentially rarely, and halting is only possible at an event once the far end has changed shape. See 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD.",
+   "where": ""
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known, the same as its twin. A proof of the twin correspondence would make every result about the twin hold here.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC/lean/check.sh",
+  "gcc -O2 -o rword holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/c/rword.c && ./rword 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC 6000000000 | awk '$2%2==0' > rows7.txt",
+  "python3 holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/py/check_macro.py 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC verify < rows7.txt",
+  "gcc -O2 -o twin holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/c/twin.c && ./twin 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC 1000000000"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. This machine runs a countdown on a list of blocks of the word 101110. The short words between blocks act like the digits of a base-4 counter, passing borrows along, while a block at the near end of the tape keeps growing. This page runs the real machine in your browser and explains the countdown. Its moves are proved in Lean for every block length. It has a twin, 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD, which writes exactly the same tape.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "9 rules",
+    "text": "Ticks, the wall cycle and two overflows, for every block length, proved in Lean."
+   },
+   {
+    "level": "trusted",
+    "value": "22,198 / 22,198",
+    "text": "Tick boundaries in the first 6&middot;10<sup>9</sup> steps that the map reproduces exactly."
+   },
+   {
+    "level": "trusted",
+    "value": "twin",
+    "text": "The same tape as 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD for 10<sup>9</sup> steps."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.514). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"160.6\" y2=\"160.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"164.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"121.2\" y2=\"121.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"125.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"81.8\" y2=\"81.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"85.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"42.4\" y2=\"42.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"46.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,184.4 L59.2,184.4 L78.4,174.5 L97.6,167.3 L116.8,162.5 L136.0,156.7 L155.2,148.7 L174.4,142.8 L193.6,136.5 L212.8,131.4 L232.0,125.1 L251.2,121.1 L270.4,117.1 L289.6,110.9 L308.8,104.5 L328.0,97.8 L347.2,93.3 L366.4,88.6 L385.6,83.0 L404.8,78.8 L424.0,75.4 L443.2,70.0 L462.4,63.5 L481.6,58.5 L500.8,55.0 L520.0,49.9\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,184.4 L59.2,174.5 L78.4,174.5 L97.6,174.5 L116.8,170.4 L136.0,165.9 L155.2,162.5 L174.4,162.5 L193.6,159.7 L212.8,159.7 L232.0,157.4 L251.2,157.4 L270.4,157.4 L289.6,153.7 L308.8,153.7 L328.0,149.9 L347.2,149.9 L366.4,148.7 L385.6,147.6 L404.8,147.6 L424.0,147.6 L443.2,146.5 L462.4,144.7 L481.6,144.7 L500.8,144.7 L520.0,143.8\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 50,611 cells (38,691 left of the start, 51 right), with a density of 1s of 0.783.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>954,407,640</td><td><code>B&gt;0 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0</code></td></tr><tr><td>left</td><td>970,072,384</td><td><code>B&gt;0 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0</code></td></tr><tr><td>left</td><td>985,767,358</td><td><code>B&gt;0 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "words",
+    "eyebrow": "The pieces",
+    "heading": "A growing block, a timer and separators",
+    "html": [
+     "<p>Watch the head when it turns in state A just past the near end of the tape. The tape reads <code>1110 (111110)^n 1 A&gt; (101110)^x1 s1 (101110)^x2 s2 &hellip;</code>. The block of w = <code>111110</code> grows by two copies every tick. The blocks of v = <code>101110</code> form the countdown, and the first one, x1, is the <b>timer</b>.</p>",
+     "<p>The separators are r = <code>10</code>, q = <code>1110</code>, p = <code>101011</code> and s = <code>11</code>. Each tick moves the separator after the timer one step along the cycle r &rarr; q &rarr; p &rarr; s &rarr; r:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>separator</th><th>becomes</th><th>blocks</th><th>Lean</th></tr></thead><tbody>",
+     "<tr><td>r <code>10</code></td><td>q</td><td>the block after it &minus;1</td><td><code>tick_r</code></td></tr>",
+     "<tr><td>q <code>1110</code></td><td>p</td><td>the block before it &minus;1</td><td><code>tick_q</code></td></tr>",
+     "<tr><td>p <code>101011</code></td><td>s</td><td>none</td><td><code>tick_p</code></td></tr>",
+     "<tr><td>s <code>11</code></td><td>r</td><td>before &minus;1, after +1, and a <b>borrow</b> moves on to the next separator</td><td><code>tick_s</code></td></tr>",
+     "</tbody></table></div>",
+     "<p>A borrow arriving at any later separator does the same. So each separator is a base-4 digit. The block before a separator loses 2 per full cycle of that separator, and the block after it loses one and gets it back.</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "The emergent behaviour",
+    "heading": "A base-4 countdown",
+    "html": [
+     "<p>The timer loses 2 units every 4 ticks. Its separator passes every fourth borrow to the next one, which passes every fourth of those, and so on. Block i, counted from the timer, loses about 2&middot;4<sup>-(i+1)</sup> per tick, while the w-block grows by 2. Here are eight consecutive tick starts, from step 1,423,348:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>timer, separator, next blocks</th></tr></thead><tbody>",
+     "<tr><td>1,423,348</td><td><code>9 q 65 s 11 p 39</code></td></tr>",
+     "<tr><td>1,439,254</td><td><code>8 p 65 s 11 p 39</code></td></tr>",
+     "<tr><td>1,455,276</td><td><code>8 s 65 s 11 p 39</code></td></tr>",
+     "<tr><td>1,472,830</td><td><code>7 r 65 r 12 s 39</code> (two s pass the borrow on)</td></tr>",
+     "<tr><td>1,489,122</td><td><code>7 q 64 r 12 s 39</code></td></tr>",
+     "<tr><td>1,505,568</td><td><code>6 p 64 r 12 s 39</code></td></tr>",
+     "<tr><td>1,522,130</td><td><code>6 s 64 r 12 s 39</code></td></tr>",
+     "<tr><td>1,539,998</td><td><code>5 r 65 q 11 s 39</code></td></tr>",
+     "</tbody></table></div>",
+     "<p>In the first 3&middot;10<sup>8</sup> steps, all 3,409 ticks whose borrow stays inside the standard blocks follow this rule exactly.</p>"
+    ]
+   },
+   {
+    "id": "events",
+    "eyebrow": "The whole run",
+    "heading": "An exact map",
+    "html": [
+     "<p>Read the tape right of the head in cell pairs: every pair starts with a 1, and the pair <code>1b</code> stands for the bit b. A block of v is <code>010</code>, and the separators r, q, p, s are <code>0</code>, <code>10</code>, <code>001</code>, <code>1</code>. The four ticks become rewrites of bits: r &rarr; q is <code>0 010</code> &rarr; <code>10</code>, q &rarr; p is <code>010 10</code> &rarr; <code>001</code>, p &rarr; s drops a <code>00</code>, and s &rarr; r is <code>010 1</code> &rarr; <code>0010</code> followed by a borrow. Written this way they also cover the separators that appear when a block in the middle runs out, such as <code>10001</code>. A tick costs 72n + 6j + 182 + 4m (+10 when it ends with q &rarr; p) steps, where j is where the borrow stops and m the number of s &rarr; r.</p>",
+     "<p>Two more moves complete it. A word <code>01 W</code> is the same tick half a step later, and moves as W does. The <b>wall</b> <code>0101 v^x</code> (a timer of one and an s) takes two from the next block every three ticks and passes no borrow. The long run makes 185,236,728 wall moves.</p>",
+     "<p>What is left are <b>events</b>. The main one is the <b>overflow</b>: when every separator is s, the borrow runs to the far end. Then the list (n; x<sub>1</sub>, &hellip;, x<sub>k</sub>) becomes (6; n+1, x<sub>1</sub>&minus;1, x<sub>2</sub>&minus;1, x<sub>3</sub>, &hellip;): the w-block grown at the near end is the new timer, which is why new timers are close to powers of 4. This is proved in Lean for two and three blocks. The other events are computed by running the machine on a copy of the tape with every block cut to 40 copies. Each event is computed twice with different cuts, and the two results must agree.</p>",
+     "<p>Against the real machine, this map reproduces all 22,198 tick boundaries of the first 6&middot;10<sup>9</sup> steps exactly, including the step counts. Run on its own, it reaches 1.0&middot;10<sup>19</sup> steps without a halting event.</p>",
+     "<p>The machine can halt only when a borrow reaches a far end that reads <code>&hellip;01</code> or a few similar words. Every far end the run has shown leads, under further borrows, into the cycle <code>11</code> &rarr; <code>0011</code>, which does not halt. In that cycle the last block loses one per overflow. So halting could only come after the last block, now 1,002, has worn away, and the far end is reached ever more rarely.</p>"
+    ]
+   },
+   {
+    "id": "twin",
+    "eyebrow": "A curiosity",
+    "heading": "Two machines, one tape",
+    "html": [
+     "<p>1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD and 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC are different tables, but from a blank tape they write the same symbol at the same cell and move the same way at every step checked, 10<sup>9</sup> of them. Their states correspond one to one except that state C of one machine is split between C and E of the other, according to the symbol under the head. The correspondence holds as long as three local patterns hold: after B reads 0 the next cell is 0, after D reads 0 it is 1, and after E reads 1 it is 1. The same Lean statements are proved for both.</p>"
+    ]
+   }
+  ]
+ },
+ "summary": "A base-4 countdown on a list of blocks of 101110, the same tape as 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD; the twin's exact map reproduces every tick boundary of the first 6e9 steps.",
+ "family": "block-list countdown with base-4 separators"
+}

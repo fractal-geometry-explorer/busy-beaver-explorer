@@ -1,0 +1,218 @@
+{
+ "generated": false,
+ "group": "G09",
+ "family": "ternary counter on runs of alternating cells",
+ "summary": "An exact ternary counter, least significant digit at the left end, whose digits are pairs of long runs of alternating cells read mod 4; every trip of the head adds one, and the increment is proved in Lean for every carry depth. Open: the transfers that happen when a shrinking run runs out, and the right end.",
+ "decision": "open",
+ "title": "What is known about 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---",
+ "description": "Proof status of the six-state BB(6) holdout 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---.",
+ "machine": "1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---",
+ "crumb": "holdouts / 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---",
+ "home": "../index.html",
+ "source": "holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The tape is an exact ternary counter: its digits are pairs of runs of alternating cells, valued by their lengths mod 4, and each trip of the head adds one. That increment is proved in Lean (kernel) for every carry depth, and it covers 99.86% of the trips in the first 3&middot;10<sup>12</sup> steps. The counter keeps shrinking one run of each digit; when such a run runs out, a <em>transfer</em> moves a long run to the right end of the tape. Transfers and the right end are not yet described by rules, so non-halting is not proved."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9</sup> steps",
+   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 76,685 cells have been visited and 38,338 of them hold a 1.",
+   "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: sqrt/sqrt",
+   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.554). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.389).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Sweep moves",
+   "text": "<code>L A&gt;(0101)^n R</code> &rarr; <code>L (1010)^n A&gt; R</code> (4n steps: going right A flips the phase of a block), <code>L (01)^n B&gt;0 R</code> &rarr; <code>L B&gt;0 (01)^n R</code> and <code>L (10)^n C&gt;1 R</code> &rarr; <code>L C&gt;1 (10)^n R</code> (2n steps: going left blocks are crossed unchanged), for every n, L, R.",
+   "where": "<code>a_right</code>, <code>b_left</code>, <code>c_left</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The pieces of a trip",
+   "text": "Eight rules for all run lengths and every surrounding tape: digit 0 going from 0 to 1 and from 1 to 2 (whole trips), the carry leaving digit 0, the carry passing a digit at 2 (a bounce), the carry stopping at a digit at 1 or at 0, and going home over a passed digit and over digit 0, with exact step counts.",
+   "where": "<code>inc0</code>, <code>inc1</code>, <code>out0</code>, <code>carry</code>, <code>absorb1</code>, <code>absorb0</code>, <code>home</code>, <code>home0</code>, <code>lean/Counter.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The increment, for every carry depth",
+   "text": "By induction over the list of digits a carry passes: from the start of a trip with digit 0 at 2, any number of digits at 2, then a digit at 1 (or at 0), the machine reaches the start of the next trip with the exact tape and step count stated. With <code>inc0</code> and <code>inc1</code> this is every kind of trip while the runs involved are long enough (r0 &ge; 7, r1 &ge; 5, a passed digit x &ge; 9, y &ge; 5, the stopping digit x &ge; 4, y &ge; 6 or x &ge; 6, y &ge; 7).",
+   "where": "<code>carry_chain</code>, <code>home_chain</code>, <code>trip_stop1</code>, <code>trip_stop0</code>, <code>lean/Counter.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The run-length table of a trip",
+   "text": "Read off the Lean statements: digit 0 changes (r0, r1) by (+2, +3) and takes one cell from x1, by (+5, &minus;1), or by (+1, +2) when it carries; a passed digit changes by (&minus;2, +2), a digit going from 1 to 2 by (+2, &minus;1), from 0 to 1 by (&minus;1, +3) and takes one cell from the next digit. Checked by expanding the statements for 2,000 random parameter choices.",
+   "where": "README, <code>py/counter.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "An exact fast simulator",
+   "text": "<code>py/rsim.py</code> runs the machine on a run-length tape with the three proved sweep moves; it agrees with a plain cell simulator on the step of every one of the 17,669 trip starts in the first 4&middot;10<sup>9</sup> steps.",
+   "where": "<code>py/rsim.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>14</sup> steps",
+   "text": "<code>py/rsim.py</code> runs 10<sup>14</sup> steps without a halt (3,153,668 trips).",
+   "where": "<code>py/rsim.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "99.86% of trips are the proved kinds",
+   "text": "Of the 726,270 trips in the first 3&middot;10<sup>12</sup> steps, 725,254 have one of the four proved shapes with the runs long enough. Of the other 1,016, the carry reaches the right end in 98, a run is too short in 269, and a digit has residues outside the table in 648 (and one is the first trip). They come, as far as we have looked, with transfers (a run x<sub>k</sub> has run out and the run y<sub>k&minus;1</sub> is shuttled, two cells at a time, to the right end of the tape, after which the digits past it are paired anew) or with the right end, where new digits are made from short runs.",
+   "where": "<code>py/classify.py</code>, README"
+  },
+  {
+   "level": "heuristic",
+   "title": "How close it comes to halting",
+   "text": "The machine halts exactly when D reads a 1 whose left neighbour is a 1. Of the 6,032,756 times D read a 1 in the first 3&middot;10<sup>12</sup> steps, the alternating stretch ending at D's cell had length 2 158 times and length 3 17 times (a halt needs length 1); those we looked at were near the right end or in transfers.",
+   "where": "<code>py/classify.py</code>, README"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The increment is proved; transfers and the right end are only observed. A halt could only come from them.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- 1000000000",
+  "gcc -O2 -o ev holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/c/ev.c && ./ev 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- 2000000000 L B 1 100000 12 | awk 'NR%100==0'",
+  ". /etc/profile.d/lean.sh && holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/lean/check.sh   # Rules.lean, Counter.lean",
+  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/counter.py > Counter.lean   # regenerates lean/Counter.lean",
+  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/rsim.py 1e12 100000",
+  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/classify.py 3e12"
+ ],
+ "explainer": {
+  "lede": "Nobody knows yet. This machine counts in base 3, least significant digit at the left end. Its tape is a row of long runs of alternating cells; each pair of neighbouring runs is a digit, valued by the run lengths mod 4, and every trip of the head from the left end and back adds one. The increment is proved; what happens when a shrinking run runs out is not.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "every depth",
+    "text": "The increment of the counter, for any carry, proved in Lean."
+   },
+   {
+    "level": "heuristic",
+    "value": "99.86%",
+    "text": "Share of the trips in 3&middot;10<sup>12</sup> steps that are the proved kinds."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>14</sup> steps",
+    "text": "No halt in the exact run-length simulator."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   },
+   {
+    "level": "heuristic",
+    "value": "sqrt/sqrt",
+    "text": "The growth shape of the two sides of the tape (see below)."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "shape",
+    "eyebrow": "First look",
+    "heading": "The shape of the run",
+    "html": [
+     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.554). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.389).</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"160.7\" y2=\"160.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"164.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"121.3\" y2=\"121.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"125.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"82.0\" y2=\"82.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"86.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><line x1=\"40\" x2=\"520\" y1=\"42.7\" y2=\"42.7\" stroke=\"var(--line)\"/><text x=\"34\" y=\"46.7\" text-anchor=\"end\" fill=\"var(--muted)\">2^16</text><path d=\"M40.0,177.2 L59.2,172.4 L78.4,168.8 L97.6,159.8 L116.8,154.3 L136.0,148.8 L155.2,147.3 L174.4,140.8 L193.6,133.5 L212.8,127.9 L232.0,122.9 L251.2,120.2 L270.4,113.9 L289.6,110.8 L308.8,110.0 L328.0,101.2 L347.2,94.6 L366.4,89.3 L385.6,83.5 L404.8,78.7 L424.0,75.7 L443.2,71.1 L462.4,64.9 L481.6,58.4 L500.8,52.9 L520.0,49.8\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,177.2 L59.2,172.4 L78.4,164.8 L97.6,164.8 L116.8,164.8 L136.0,159.8 L155.2,150.0 L174.4,147.3 L193.6,145.7 L212.8,144.2 L232.0,138.8 L251.2,129.4 L270.4,126.0 L289.6,119.2 L308.8,110.4 L328.0,109.0 L347.2,106.4 L366.4,100.2 L385.6,99.7 L404.8,94.3 L424.0,85.2 L443.2,80.1 L462.4,73.6 L481.6,73.2 L500.8,72.5 L520.0,63.1\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
+     "<p>After 10<sup>9</sup> steps the tape spans 76,685 cells (39,628 left of the start, 15,538 right), with a density of 1s of 0.5.</p>",
+     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>960,638,987</td><td><code>B&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>976,307,423</td><td><code>B&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>991,943,199</td><td><code>B&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>906,280,329</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>929,547,037</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>976,138,013</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "words",
+    "eyebrow": "Tape as runs",
+    "heading": "Runs of alternating cells",
+    "html": [
+     "<p>Cut the tape into maximal runs of alternating cells, <code>0101&hellip;</code> or <code>1010&hellip;</code>. Two neighbouring runs meet at a doubled cell, <code>00</code> or <code>11</code>, so the list of run lengths says everything (the first run starts with 0). At the start of a trip (A at the left end) the runs are, at step 10,000,025,550:</p>",
+     "<p><code>82476 16507 | 82426 3897 | 36473 2653 | 33442 423 | 75 75 | 18 9 | 13 184</code></p>",
+     "<p>Name them <code>r0 r1 | x1 y1 | x2 y2 | &hellip;</code>: digit 0 is (r0, r1), digit k is (x<sub>k</sub>, y<sub>k</sub>).</p>",
+     "<svg viewBox=\"0 0 520 92\" width=\"100%\" role=\"img\" aria-label=\"the runs at step 10^10 as bars, paired into digits\" style=\"max-width:640px;font:11px sans-serif\"><rect x=\"10.0\" y=\"22\" width=\"110.9\" height=\"26\" rx=\"3\" fill=\"var(--accent)\" opacity=\"0.85\"/><text x=\"65.5\" y=\"39\" text-anchor=\"middle\" fill=\"var(--bg, #fff)\">r0</text><text x=\"65.5\" y=\"64\" text-anchor=\"middle\" fill=\"var(--muted)\">82476</text><rect x=\"122.9\" y=\"22\" width=\"48.5\" height=\"26\" rx=\"3\" fill=\"var(--accent)\" opacity=\"0.5\"/><text x=\"147.2\" y=\"39\" text-anchor=\"middle\" fill=\"var(--bg, #fff)\">r1</text><text x=\"147.2\" y=\"64\" text-anchor=\"middle\" fill=\"var(--muted)\">16507</text><text x=\"97.7\" y=\"14\" text-anchor=\"middle\" fill=\"var(--fg2)\">digit 0</text><rect x=\"173.5\" y=\"22\" width=\"110.9\" height=\"26\" rx=\"3\" fill=\"var(--head)\" opacity=\"0.85\"/><text x=\"228.9\" y=\"39\" text-anchor=\"middle\" fill=\"var(--bg, #fff)\">x1</text><text x=\"228.9\" y=\"64\" text-anchor=\"middle\" fill=\"var(--muted)\">82426</text><rect x=\"286.4\" y=\"22\" width=\"22.6\" height=\"26\" rx=\"3\" fill=\"var(--head)\" opacity=\"0.5\"/><text x=\"297.7\" y=\"39\" text-anchor=\"middle\" fill=\"var(--bg, #fff)\">y1</text><text x=\"274.1\" y=\"14\" text-anchor=\"middle\" fill=\"var(--fg2)\">digit 1</text><rect x=\"310.9\" y=\"22\" width=\"73.1\" height=\"26\" rx=\"3\" fill=\"var(--accent)\" opacity=\"0.85\"/><text x=\"347.5\" y=\"39\" text-anchor=\"middle\" fill=\"var(--bg, #fff)\">x2</text><text x=\"347.5\" y=\"64\" text-anchor=\"middle\" fill=\"var(--muted)\">36473</text><rect x=\"386.0\" y=\"22\" width=\"18.3\" height=\"26\" rx=\"3\" fill=\"var(--accent)\" opacity=\"0.5\"/><text x=\"395.2\" y=\"39\" text-anchor=\"middle\" fill=\"var(--bg, #fff)\">y2</text><text x=\"375.9\" y=\"14\" text-anchor=\"middle\" fill=\"var(--fg2)\">digit 2</text><rect x=\"406.3\" y=\"22\" width=\"69.9\" height=\"26\" rx=\"3\" fill=\"var(--head)\" opacity=\"0.85\"/><text x=\"441.3\" y=\"39\" text-anchor=\"middle\" fill=\"var(--bg, #fff)\">x3</text><text x=\"441.3\" y=\"64\" text-anchor=\"middle\" fill=\"var(--muted)\">33442</text><rect x=\"478.2\" y=\"22\" width=\"6.1\" height=\"26\" rx=\"3\" fill=\"var(--head)\" opacity=\"0.5\"/><text x=\"474.2\" y=\"14\" text-anchor=\"middle\" fill=\"var(--fg2)\">digit 3</text><rect x=\"486.3\" y=\"22\" width=\"1.7\" height=\"26\" rx=\"3\" fill=\"var(--accent)\" opacity=\"0.85\"/><rect x=\"490.0\" y=\"22\" width=\"1.7\" height=\"26\" rx=\"3\" fill=\"var(--accent)\" opacity=\"0.5\"/><text x=\"488.1\" y=\"14\" text-anchor=\"middle\" fill=\"var(--fg2)\">digit 4</text><rect x=\"493.7\" y=\"22\" width=\"1.7\" height=\"26\" rx=\"3\" fill=\"var(--head)\" opacity=\"0.85\"/><rect x=\"497.3\" y=\"22\" width=\"1.7\" height=\"26\" rx=\"3\" fill=\"var(--head)\" opacity=\"0.5\"/><rect x=\"501.0\" y=\"22\" width=\"1.7\" height=\"26\" rx=\"3\" fill=\"var(--accent)\" opacity=\"0.85\"/><rect x=\"504.7\" y=\"22\" width=\"3.3\" height=\"26\" rx=\"3\" fill=\"var(--accent)\" opacity=\"0.5\"/><text x=\"10\" y=\"84\" fill=\"var(--muted)\">widths ~ square root of the run length; each pair of runs is one ternary digit, least significant at the left</text></svg>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "Macro behaviour",
+    "heading": "A counter in base 3",
+    "html": [
+     "<p>A digit's value is read from its two run lengths mod 4:</p>",
+     "<table><thead><tr><th>value</th><th>digit 0 (r0, r1) mod 4</th><th>digit k (x, y) mod 4</th></tr></thead><tbody><tr><td>0</td><td>(0, 3)</td><td>(2, 3)</td></tr><tr><td>1</td><td>(2, 2)</td><td>(0, 2)</td></tr><tr><td>2</td><td>(3, 1)</td><td>(1, 1)</td></tr></tbody></table>",
+     "<p>(After digit k changes, x<sub>k</sub> can be one cell longer than this reading, until digit k&minus;1 next goes from 0 to 1 and takes that cell.) Each trip adds one, and the runs change by a few cells:</p>",
+     "<table><thead><tr><th>digit</th><th>change</th><th>runs</th></tr></thead><tbody><tr><td>0</td><td>0 &rarr; 1</td><td>r0 + 2, r1 + 3, x1 &minus; 1</td></tr><tr><td>0</td><td>1 &rarr; 2</td><td>r0 + 5, r1 &minus; 1</td></tr><tr><td>0</td><td>2 &rarr; 0, carry</td><td>r0 + 1, r1 + 2</td></tr><tr><td>k</td><td>2 &rarr; 0, carry</td><td>x &minus; 2, y + 2</td></tr><tr><td>k</td><td>1 &rarr; 2</td><td>x + 2, y &minus; 1</td></tr><tr><td>k</td><td>0 &rarr; 1</td><td>x &minus; 1, y + 3, next x &minus; 1</td></tr></tbody></table>",
+     "<p>Going right, A flips every cell it passes. A carry is a bounce: B meets the <code>00</code> at the start of x<sub>k</sub>, runs back over y<sub>k&minus;1</sub>, turns, and goes on through digit k. Where the carry stops the head turns and goes home, B and C carrying the pattern one cell along; the left end grows by 4 cells per trip.</p>",
+     "<p>All of this is proved in Lean, for all run lengths and for every carry depth at once (an induction over the digits the carry passes): <code>trip_stop1</code>, <code>trip_stop0</code>, <code>inc0</code>, <code>inc1</code> in <code>lean/Counter.lean</code>.</p>"
+    ]
+   },
+   {
+    "id": "example",
+    "eyebrow": "Example",
+    "heading": "Four trips at step 10<sup>10</sup>",
+    "html": [
+     "<table><thead><tr><th>step</th><th>runs (digits 0 to 3)</th><th>digits 0, 1, 2, 3</th></tr></thead><tbody><tr><td>10,000,025,550</td><td><code>82476 16507 | 82426 3897 | 36473 2653 | 33442 423</code></td><td>0, 2, 2, 0 (x1 one cell long)</td></tr><tr><td>10,000,223,520</td><td><code>82478 16510 | 82425 3897 | 36473 2653 | 33442 423</code></td><td>1, 2, 2, 0 (digit 0 took a cell of x1)</td></tr><tr><td>10,000,388,480</td><td><code>82483 16509 | 82425 3897 | 36473 2653 | 33442 423</code></td><td>2, 2, 2, 0</td></tr><tr><td>10,000,951,218</td><td><code>82484 16511 | 82423 3899 | 36471 2655 | 33441 426</code></td><td>0, 0, 0, 1: the carry passed digits 1 and 2 and stopped at digit 3, taking a cell of x4 (75 &rarr; 74)</td></tr></tbody></table>"
+    ]
+   },
+   {
+    "id": "drift",
+    "eyebrow": "Why it is not a proof yet",
+    "heading": "Runs that run out",
+    "html": [
+     "<p>Over one cycle of digit k (3<sup>k+1</sup> trips) x<sub>k</sub> loses 4 cells and y<sub>k</sub> gains 4, so every x<sub>k</sub> eventually runs out. Then the next carry does not bounce through: the head shuttles between the end of y<sub>k&minus;1</sub> and the right end of the tape, moving y<sub>k&minus;1</sub> two cells at a time to the far right (a <em>transfer</em>; these are the long pauses of the run and the reason the right side grows). Afterwards the digits past it are paired anew and counting goes on. For example at step 39,282 the runs <code>187 97 2 31 25 7 7</code> become <code>186 43 27 5 13 177</code>. New digits are made at the right end from short runs.</p>",
+     "<p>In the first 3&middot;10<sup>12</sup> steps 99.86% of the 726,270 trips are the proved kinds; the rest come with transfers or the right end, which are only observed.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Halting",
+    "heading": "What a halt would need",
+    "html": [
+     "<p>The only halting transition is F on a 1. F comes from E (on a cell B has just made 0, so F reads that 0) or from D, and D only from C on a 0. So the machine halts exactly when D reads a 1 whose left neighbour is also a 1. In the proved trips that never happens. In the first 3&middot;10<sup>12</sup> steps D read a 1 about six million times; the alternating stretch ending at D's cell was 2 cells long 158 times and 3 cells long 17 times (a halt needs 1), in the cases we looked at near the right end or in a transfer.</p>",
+     "<p>So a halt, if any, would come from a transfer or from the right end. The exact simulator finds none in 10<sup>14</sup> steps.</p>"
+    ]
+   }
+  ]
+ }
+}

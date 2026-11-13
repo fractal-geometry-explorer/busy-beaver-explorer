@@ -1,0 +1,135 @@
+{
+ "generated": false,
+ "group": "G07",
+ "title": "What is known about 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC",
+ "description": "Proof status of the six-state BB(6) holdout 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC.",
+ "machine": "1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC",
+ "crumb": "holdouts / 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC",
+ "home": "../index.html",
+ "source": "holdouts/1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC/status.json",
+ "intro": [
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+ ],
+ "asof": "Status as of 8 November 2026.",
+ "verdict": [
+  "<b>The question is open.</b> The tape is a list of levels, each a run of ones <code>1<sup>X</sup></code> followed by <code>1111110 00</code> and a run of words <code>(1111110)<sup>Y</sup></code>. On the active level each cycle removes one word and adds 15 ones; when the words run out the head rebuilds the ones into a new run of words, about one per 7 ones. Lean proves that the machine can only halt at the right end of the tape, where the active level works."
+ ],
+ "claims": [
+  {
+   "level": "kernel",
+   "title": "The halting configurations",
+   "text": "The machine stops exactly when it reads the symbol of a halting transition (E0); the generated statement covers every configuration.",
+   "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10,000 steps",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A halt can only happen past the right end",
+   "text": "A closed tape language from windows of 4 cells covers the run from blank tape; in it the halting transition E0 can only fire with blank tape from the head on: the machine halts iff E steps onto the blank region right of the tape (after D0 &rarr; 1RE on the last cell's neighbour).",
+   "where": "<code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>7</sup> steps",
+   "text": "The same run, evaluated by compiled code.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 1.2&middot;10<sup>10</sup> steps",
+   "text": "Direct C run; at step 7,293,164,582 the tape (133,715 cells) reads 11111 000 a 1111 a 00 1<sup>39759</sup> a 00 a<sup>7934</sup> 1111 a 00 1<sup>34254</sup> a 00 a<sup>584</sup> 11111 0 11111 0000 10 (a = 1111110).",
+   "where": "<code>tools/c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The cycle of the active level",
+   "text": "Every 8 visits of the right end, X + 15 and Y &minus; 1 on the last level, until Y = 0; read off direct runs to 1.2&middot;10<sup>10</sup> steps.",
+   "where": ""
+  },
+  {
+   "level": "heuristic",
+   "title": "Rebuilds at about 7 ones per word",
+   "text": "When a level is used up the ones are rebuilt into words; sizes grow by about 15/7 per round.",
+   "where": ""
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape: fixed/sqrt",
+   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).",
+   "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "open",
+   "title": "Does it halt from blank tape?",
+   "text": "Not known. The level cycle and the rebuild rule are read off the run, not proved; a halt needs D at the right end, which depends on the remainders of the rebuilds.",
+   "where": ""
+  }
+ ],
+ "check": [
+  ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
+  "holdouts/1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC/lean/check.sh",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 1000000000",
+  "(cd tools/py && python3 -m bbtools.ctl 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 4 lean H92170 Blank) | diff - holdouts/1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC/lean/EdgeCert.lean"
+ ],
+ "explainer": {
+  "lede": "Nobody knows. This machine turns ones into seven-cell words and back, level by level, a little like a 3n+1 game with the numbers 15 and 7. This page runs the real machine in your browser and explains the levels.",
+  "facts": [
+   {
+    "level": "kernel",
+    "value": "right edge",
+    "text": "The only place a halt can happen (proved)."
+   },
+   {
+    "level": "heuristic",
+    "value": "&times;15/7",
+    "text": "Growth of a level per round."
+   },
+   {
+    "level": "trusted",
+    "value": "1.2&middot;10<sup>10</sup>",
+    "text": "Steps without a halt (direct C run)."
+   },
+   {
+    "level": "native",
+    "value": "10<sup>7</sup> steps",
+    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+   }
+  ],
+  "presets": [
+   1000,
+   100000,
+   1000000
+  ],
+  "spacetime": {
+   "steps": 20000
+  },
+  "sections": [
+   {
+    "id": "levels",
+    "eyebrow": "Macro structure",
+    "heading": "Levels of ones and seven-cell words",
+    "html": [
+     "<p>Write <code>a</code> for the word <code>1111110</code>. At step 1.589&middot;10<sup>9</sup> the tape (right part) reads <code>&hellip; 1<sup>13027</sup> a 00 a<sup>2598</sup> 1<sup>30874</sup> a 00 a<sup>9</sup> [right end]</code>. Every 8 visits of the right end the last run of words loses one word and the run of ones before it gains 15: <code>1<sup>30874</sup> a 00 a<sup>9</sup></code> &rarr; <code>1<sup>30889</sup> a 00 a<sup>8</sup></code> &rarr; &hellip; &rarr; <code>1<sup>31009</sup> a 00</code>.</p>",
+     "<p>When the words are gone, the head rebuilds: runs of ones become runs of words, one word for about seven ones, and a deeper level becomes active. At step 9.5&middot;10<sup>9</sup>, for instance, <code>1<sup>54794</sup> a 00 a<sup>10924</sup></code> appears. So each round multiplies sizes by about 15/7, and the remainders mod 7 decide how the levels are rebuilt: a Collatz-like system with several counters.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "Only at the right edge",
+    "html": [
+     "<p>The machine stops only when E reads a 0, and E is entered only from D reading a 0 (D0 &rarr; 1RE). A <em>closed tape language</em> (a finite description, from windows of 4 cells, of every tape the run can produce, checked by Lean's kernel) shows that this can only happen when D stands on the blank cell just past the right end of the tape. Patterns such as <code>a 00 a</code> inside the tape never produce a halt.</p>",
+     "<p>The right end is exactly where the active level works (state C visits it every hundred steps or so), so whether the machine stops depends on the state in which the head arrives there after a rebuild: a question about the remainders of the rebuilds, which is open.</p>"
+    ]
+   }
+  ]
+ },
+ "family": "nested counters with growth about 15/7, halting only at the right edge",
+ "summary": "A list of levels 1^X 1111110 00 (1111110)^Y: the active level trades one word for 15 ones every 8 visits of the right end and rebuilds the ones into words when the words run out (growth about 15/7, remainders mod 7 steer it); Lean proves a halt can only happen as D steps off the right end of the tape.",
+ "decision": "open"
+}

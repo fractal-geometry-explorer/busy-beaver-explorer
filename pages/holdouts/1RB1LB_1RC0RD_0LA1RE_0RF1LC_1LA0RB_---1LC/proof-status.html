@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What is known about 1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC</title>
+<meta name="description" content="Proof status of the six-state BB(6) holdout 1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 36px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; overflow-x: auto; font-family: var(--font-display); font-size: 0.74rem; line-height: 1.6; }
+.top { display: grid; gap: 12px; max-width: 70ch; }
+.crumb { font-size: 0.9rem; }
+.machine { font-family: var(--font-display); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.asof { font-size: 0.88rem; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 70ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 0.88rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.card p { font-size: 0.94rem; }
+.card .where { font-size: 0.84rem; color: var(--muted); }
+.card.open { border-left: 4px solid var(--open); }
+.empty { color: var(--muted); font-size: 0.94rem; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC</p>
+    <h1>What is known about 1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC</h1>
+    <p class="machine">1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p class="asof">Status as of 8 November 2026.</p>
+  </header>
+  <section aria-labelledby="h-short">
+    <h2 id="h-short">In short</h2>
+    <div class="verdict">
+      <p><b>The question is open.</b> Left of the start the tape is a block of <code>1011</code> words, which grows by one word every two rounds, then a <em>binary counter</em> (about three cells a bit), then <em>junk</em>: a run of <code>1110</code> words and a second, slower counter. Lean proves the left-end turns and the counter's two carries for all lengths, and that a counter of 2m digits counts through all 4<sup>m</sup> values (<code>count</code>). Each overflow of the counter eats one or two junk words; when the junk is used up the machine <em>restarts</em>: the whole block turns into junk and the counter into the new slow counter. The blank-tape run restarts at round 25,515,382 with 12,757,674 words of new junk. Jumping from overflow to overflow (checked against the machine at small sizes, extrapolated beyond) the next two epochs also end in restarts, not halts; the one after that starts with a junk length of about 2<sup>17,010,257</sup> words, and whether it halts depends on arithmetic properties of that number that are out of reach. Halting configurations do exist in the same family, so no closed family of configurations avoids them without that arithmetic.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-claims">
+    <h2 id="h-claims">What each result rests on</h2>
+    <div class="legend" aria-label="Legend">
+      <span><span class="tag t-kernel">kernel</span> checked by Lean's kernel alone</span>
+      <span><span class="tag t-native">native</span> evaluated by compiled code</span>
+      <span><span class="tag t-comp">trusted</span> C or Python in the repository, exhaustive</span>
+      <span><span class="tag t-heur">heuristic</span> sampling, extrapolation, patterns</span>
+      <span><span class="tag t-open">open</span> not known</span>
+    </div>
+    <h3><span class="tag t-kernel">kernel</span> Proved in Lean, kernel-checked</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>The halting configurations</h3>
+        <p>The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.</p>
+        <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10,000 steps</h3>
+        <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
+        <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The turns at the left end, for every block length</h3>
+        <p>From <code>0^inf 0 0 (1110)^(n+1) A&gt; 1011 R</code> the machine crosses the whole block leftwards (rewriting each word as it passes), bounces off the blank tape and crosses it back, reaching <code>0^inf 111 (0111)^(n+1) 111 E&gt; R</code> in 20n+38 steps; and from the record in B, <code>0^inf B&gt; 0 10 (1011)^n R</code>, it reaches <code>0^inf 111 (0111)^n 0 B&gt; R</code> in 8n+11 steps. For all n and every tape R.</p>
+        <p class="where"><code>left_turn</code>, <code>right_sweep</code>, <code>lean/Rules.lean</code> (generated by <code>lean/rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The counter's carries, and a full count, for every width</h3>
+        <p>Write the counter with digit i as <code>1010</code>/<code>1111</code> (0/1) for even i and <code>10</code>/<code>11</code> for odd i, least significant first, right after the junction <code>1010 1011</code>. Two rounds turn <code>B&gt; 0 10 (1011)^n 1010 1011 (111111)^m 1010 R</code> into the same with <code>(1011)^(n+1)</code> and <code>(101010)^m 1111 R</code> (26m+40n+122 steps), and <code>(111111)^m 1111 10 R</code> into <code>(101010)^m 1010 11 R</code> (26m+40n+128 steps). By induction on m, a counter of 2m digits goes from all zeros to all ones while the block gains 4<sup>m</sup>&minus;1 words, for every n and every tape R right of it.</p>
+        <p class="where"><code>inc_even</code>, <code>inc_odd</code> (<code>lean/Rules.lean</code>, from <code>lean/rules.py</code>); <code>count</code>, <code>lean/Counter.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>7</sup> steps</h3>
+        <p>The same run, evaluated by compiled code.</p>
+        <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>9</sup> steps</h3>
+        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 28,354 cells have been visited and 21,267 of them hold a 1.</p>
+        <p class="where"><code>holdouts/triage.json</code></p>
+      </div>
+      <div class="card">
+        <h3>The block grows by one word every two rounds</h3>
+        <p>At the records in B the tape is <code>0^inf B&gt; 0 10 (1011)^N J T</code> with the junction J alternately <code>1010 1011</code> and <code>11 1011</code>; N goes up by one every two rounds and the left end moves out by two cells a round. Checked for the first 24,522 rounds (3&middot;10<sup>9</sup> steps).</p>
+        <p class="where"><code>c/m3red.c</code>, records of the full machine</p>
+      </div>
+      <div class="card">
+        <h3>A reduced run, checked against the machine</h3>
+        <p>Since the block is crossed word by word, the part right of it does not depend on N. <code>c/m3red.c</code> keeps the block at 40 words; for the first 24,522 rounds its tape right of the block agrees with the full machine at every round.</p>
+        <p class="where"><code>c/m3red.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt before the first restart (round 25,515,382)</h3>
+        <p>The reduced run (<code>c/m3red.c</code>, block cut to 40 words) is faithful as long as the block is only crossed, which holds until the first restart at round 25,515,382 (about 3&middot;10<sup>15</sup> machine steps); up to there it shows no halt. The region right of the block widens by two cells only at the overflows of rounds 349,558, 8,738,166 and 25,515,382. <b>Correction:</b> an earlier version of this page claimed 10<sup>8</sup> rounds without a halt from the same run; past the restart the cut block makes the reduced run wrong (the real block becomes junk there), so only the rounds before it count.</p>
+        <p class="where"><code>c/m3red.c 40 25515382 0</code></p>
+      </div>
+      <div class="card">
+        <h3>The part right of the block is a binary counter</h3>
+        <p>Counting, from one round to the next, how far into T the changes reach, 2,000,000 rounds give depths 12, 14, 18, 20, 24, 26, ... cells with 499,998, 250,000, 124,999, 62,499, 31,249, ... rounds: each depth half as often as the one before, about three cells a bit. This is the carry pattern of a binary counter that goes up by one every two rounds.</p>
+        <p class="where"><code>c/m3depth.c 40 2000000 0</code></p>
+      </div>
+      <div class="card">
+        <h3>What an overflow does</h3>
+        <p>Right of the counter lies junk <code>(1110)^a T</code>, T a second counter in the same digit code. When the main counter is all ones at even width w, the next two rounds leave it at width w+2 with value 2<sup>w+1</sup> and take 1 and 2 words of <code>1110</code> in turn (three every two overflows), and every second overflow adds one to T. Simulated for small w and a (w &le; 8, a from 6 to 9, 30 overflows in a row): the result does not depend on w or a. The overflows predicted this way fall on rounds 349,559, 8,738,167 and 25,515,383, one after the observed widenings of the visited region.</p>
+        <p class="where"><code>py/macro.py</code>, <code>py/epoch.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Restarts</h3>
+        <p>When the <code>1110</code> words are used up the main counter absorbs the slow counter. If a leftover terminator remains, the next overflow restarts the machine: within three rounds the block <code>(1011)^N</code> becomes <code>(1110)^N</code>, the main counter of width W becomes the new slow counter <code>1111 1110 (1010)^(3W/4) 11</code> (or <code>... 1011</code> when W &equiv; 2 mod 4) and a new, empty main counter starts. If nothing remains, the next overflow reads 0 in F and halts. From fresh epochs with a &le; 40 words of junk and slow counters of widths 4, 6 and 8 (<code>py/closure.py 40 4,6,8</code>): 107 of the 120 runs restart in exactly this form (leftover <code>11</code>), 6 restart with other leftovers and a variant tail (the second epoch's is <code>1111 1110 (1010)^(3W/4+1) 1011 1011</code>), and 7 halt.</p>
+        <p class="where"><code>py/closure.py</code>, <code>py/epoch.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting configurations exist in the family</h3>
+        <p>Starting from a fresh epoch <code>(1110)^a</code> plus the slow counter of width w, some junk lengths lead to a halt: for w = 6, a = 15, 18, 39, 42, 99, 102, 105, 108, 117, 120, 123, 126, ...; for w = 8, a = 51, 54, ..., 72, 87, 90, 147, 150, .... All are multiples of 3, in a Cantor-like pattern set by the digits of the slow counter. For the tail family left by the second epoch (<code>... 1011 1011</code>) no halts were found for widths 8, 12, 16 and a &lt; 150.</p>
+        <p class="where"><code>py/shortcut.py</code>, <code>py/gen.py</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>The second and third epochs end in restarts</h3>
+        <p>Skipping the 2k+2 overflows that only count the slow counter up (a shortcut checked against full runs at small sizes), the second epoch, junk 12,757,674 words, ends after its last overflows in a restart at counter width 17,010,256, with a block of N<sub>2</sub> words, N<sub>2</sub> a number of 17,010,257 bits (N<sub>2</sub> &equiv; 1 mod 3). The third epoch, junk N<sub>2</sub>, also ends in a restart: its last overflows absorb a slow counter of 17,010,257 digits and leave the terminator <code>11</code>, simulated at the real width (17,010,270, then 17,010,272 counter digits). Extrapolated from small sizes, hence heuristic.</p>
+        <p class="where"><code>py/epoch2.py</code>, <code>py/epoch3.py</code>, <code>py/ep3real.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Where the open question sits</h3>
+        <p>Each epoch's junk length is about the number of words the block grew in the epoch before, so the lengths grow like a tower: 12,757,674, then N<sub>2</sub> &asymp; 2<sup>17,010,257</sup>, then a number of about (4/3)N<sub>2</sub> bits. The machine halts if and when an epoch's junk length falls in the halting set of its tail family, which is decided by residues and binary digits of these numbers. The fourth epoch needs the digits of a number of about 2<sup>17,010,257</sup> bits.</p>
+      </div>
+    </div>
+    <h3><span class="tag t-open">open</span> Open</h3>
+    <div class="cards">
+      <div class="card open">
+        <h3>Does it halt from blank tape?</h3>
+        <p>Open. A proof of non-halting by a family of configurations closed under carry, overflow and restart is not possible as such: the family that the restarts produce contains halting members, so any such proof has to carry the exact arithmetic of the junk lengths from epoch to epoch. Not proved in Lean: the overflow round (the head sweeping into the junk, in two alignments), the slow counter's increment (symtm stops with NeedSplit on <code>(11)^k</code>), the absorption and the restart, and counters given as arbitrary bit lists rather than all zeros or all ones.</p>
+      </div>
+    </div>
+  </section>
+  <section aria-labelledby="h-check">
+    <h2 id="h-check">Check it yourself</h2>
+    <pre><code>. /etc/profile.d/lean.sh
+holdouts/1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC/lean/check.sh
+gcc -O2 -o m3red holdouts/1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC/c/m3red.c &amp;&amp; ./m3red 40 25515382 0      # to the first restart
+gcc -O2 -o m3depth holdouts/1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC/c/m3depth.c &amp;&amp; ./m3depth 40 2000000 0  # carry-depth histogram
+cd holdouts/1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC/py &amp;&amp; python3 macro.py &amp;&amp; python3 closure.py 40 4,6,8 &amp;&amp; python3 shortcut.py
+python3 epoch2.py &amp;&amp; python3 epoch3.py &amp;&amp; python3 ep3real.py   # epochs 2 and 3, a few minutes</code></pre>
+  </section>
+  <footer>
+    <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>
+    <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
+  </footer>
+</main>
+</body>
+</html>
