@@ -35,6 +35,17 @@ A section may carry, besides its `html`, a "stepper": a panel that applies the m
               rule; `guard` is a list of {form, text}, each form having to be >= 0 for the rule to apply; `level`
               is the evidence level of the rule, as in the ledger
     note      a closing remark (HTML)
+A section may instead carry a "rewriter", for machines whose law is a rewriting of the tape right of some cell
+(a stream) that depends only on how the stream begins:
+
+  rewriter    {start, prefix, rules, level, note}
+    start     the stream at the start, as a string of 0s and 1s (zeros follow for ever)
+    prefix    what a round writes in front of the stream before visiting it
+    rules     [{match, write, visits, name}] or [{match, halt: true, name}]: a visit to a stream that begins with
+              `match` writes `write` in its place and then makes `visits` visits to the rest
+    level     the evidence level of the rules
+  The engine's `BB.visit` applies the rules; tools/tests and the hand-back notes compare it with the machine.
+
   The stepper does arithmetic only: it is as right as the rules typed into it, which is why each rule shows its
   evidence level and should name the Lean theorem in `text`.
 
@@ -127,9 +138,9 @@ header.hero{padding-block:48px 28px}
 .blocks{display:flex;flex-wrap:wrap;gap:3px;align-items:center;margin-top:10px;font-family:var(--mono);font-size:.78rem;max-height:9.5em;overflow:auto}
 .blocks .bk{border-radius:4px;padding:1px 5px;border:1px solid var(--line-strong);white-space:nowrap;background:var(--surface)}
 .blocks .bk sup{font-weight:700;font-size:.9em}
-.blocks .bk.b0{background:var(--kernel-bg);border-color:var(--kernel)} .blocks .bk.b1{background:var(--native-bg);border-color:var(--native)}
-.blocks .bk.b2{background:var(--computed-bg);border-color:var(--computed)} .blocks .bk.b3{background:var(--heur-bg);border-color:var(--heur)}
-.blocks .bk.b4{background:var(--open-bg);border-color:var(--open)} .blocks .bk.b5{background:var(--sunk);border-color:var(--fg2)}
+.bk.b0{background:var(--kernel-bg);border-color:var(--kernel)} .bk.b1{background:var(--native-bg);border-color:var(--native)}
+.bk.b2{background:var(--computed-bg);border-color:var(--computed)} .bk.b3{background:var(--heur-bg);border-color:var(--heur)}
+.bk.b4{background:var(--open-bg);border-color:var(--open)} .bk.b5{background:var(--sunk);border-color:var(--fg2)}
 .blocks .lit{color:var(--fg2);overflow-wrap:anywhere}
 .blocks .hd{color:var(--surface);background:var(--head);border-radius:4px;padding:1px 5px;font-weight:700}
 #st{cursor:crosshair}
@@ -148,6 +159,12 @@ header.hero{padding-block:48px 28px}
 .stp button:disabled{opacity:.4;cursor:not-allowed}
 .stp .log div{grid-template-columns:3em minmax(0,1fr)}
 @media (max-width:560px){ .stp .rule{grid-template-columns:1fr} .stp .rule .controls{justify-content:flex-start} }
+.rw .stream{display:flex;flex-wrap:wrap;gap:2px;font-family:var(--mono);font-size:.8rem;background:var(--sunk);border-radius:8px;padding:10px;max-height:11em;overflow:auto;margin:10px 0}
+.rw .stream span{padding:0 3px;border-radius:3px;border:1px solid var(--line-strong)}
+.rw .rules{width:100%;margin:8px 0} .rw .rules td,.rw .rules th{padding:.3rem .6rem;font-size:.86rem}
+.rw .rules td:nth-child(1),.rw .rules td:nth-child(2){font-family:var(--mono)}
+.rw .trace{font-family:var(--mono);font-size:.78rem;max-height:16em;overflow:auto;border-top:1px solid var(--line);margin-top:10px;padding-top:8px;white-space:pre}
+.rw .halted{color:var(--open);font-weight:700}
 .else{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:18px}
 .else>div{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--heur);border-radius:10px;padding:12px 16px;font-size:.93rem}
 .else>div.proof{border-left-color:var(--kernel)} .else>div.report{border-left-color:var(--native)}
@@ -306,7 +323,32 @@ var BB = (function () {
     }
     return { records: out, run: r };
   }
-  return { STATES: STATES, parse: parse, Run: Run, rle: rle, formatConfig: formatConfig, records: records };
+  // A visit by rewriting rules [{match, write, visits} | {match, halt}] to the stream `a` (array of 0/1, zeros
+  // beyond its end) from cell i.  Returns "ok", "halt", "stuck" (no rule matches) or "budget"; `log` receives
+  // [depth, position, rule index] for the first `log.max` rule applications, `st.n` counts them all and
+  // `st.uses[k]`, if given, those of rule k.
+  function visit(rules, a, i, st, log, depth) {
+    depth = depth || 0;
+    for (var k = 0; k < rules.length; k++) {
+      var m = rules[k].match, ok = true;
+      for (var j = 0; j < m.length; j++) if ((a[i + j] || 0) !== +m[j]) { ok = false; break; }
+      if (!ok) continue;
+      if (++st.n > st.max) return "budget";
+      if (st.uses) st.uses[k]++;
+      if (log && log.length < log.max) log.push([depth, i, k]);
+      if (rules[k].halt) return "halt";
+      var w = rules[k].write;
+      while (a.length < i + w.length) a.push(0);
+      for (j = 0; j < w.length; j++) a[i + j] = +w[j];
+      for (var v = 0; v < (rules[k].visits || 0); v++) {
+        var r = visit(rules, a, i + w.length, st, log, depth + 1);
+        if (r !== "ok") return r;
+      }
+      return "ok";
+    }
+    return "stuck";
+  }
+  return { STATES: STATES, parse: parse, Run: Run, rle: rle, formatConfig: formatConfig, records: records, visit: visit };
 })();
 if (typeof module !== "undefined") module.exports = BB;
 """
@@ -576,6 +618,58 @@ UI = r"""
     }
     reset();
   });
+  // rewriters: a visit law applied to a stream, round by round
+  document.querySelectorAll("[data-rewriter]").forEach(function (box) {
+    var S = spec.rewriters[box.dataset.rewriter], a, round, uses, status, last, lastN;
+    var lv = spec.levels[S.level || "trusted"], BUDGET = 3000000;
+    function reset() { a = S.start.split("").map(Number); round = 0; uses = S.rules.map(function () { return 0; }); status = "ok"; last = []; lastN = 0; render(); }
+    function oneRound() {
+      if (status !== "ok") return false;
+      var b = S.prefix.split("").map(Number).concat(a), st = { n: 0, max: BUDGET, uses: S.rules.map(function () { return 0; }) }, log = []; log.max = 400;
+      var res = BB.visit(S.rules, b, 0, st, log, 0);
+      if (res === "budget") { status = "budget"; return false; }
+      st.uses.forEach(function (x, i) { uses[i] += x; });
+      a = b; while (a.length && !a[a.length - 1]) a.pop();
+      round++; last = log; lastN = st.n; status = res; return res === "ok";
+    }
+    function tokens() {
+      var out = "", i = 0;
+      while (i < a.length) {
+        var k = -1;
+        for (var r = 0; r < S.rules.length && k < 0; r++) { var m = S.rules[r].match, ok = true; for (var j = 0; j < m.length; j++) if ((a[i + j] || 0) !== +m[j]) { ok = false; break; } if (ok) k = r; }
+        var len = k < 0 ? 1 : S.rules[k].match.length;
+        out += '<span class="bk b' + (k < 0 ? 5 : k % 6) + '">' + a.slice(i, i + len).concat([0, 0, 0, 0, 0, 0]).slice(0, len).join("") + "</span>";
+        i += len;
+      }
+      return out + "<span>0&infin;</span>";
+    }
+    function render() {
+      var h = '<div class="readout"><span>round <b>' + fmt(round) + "</b></span><span>stream length <b>" + fmt(a.length) + "</b></span><span>rule applications in the last round <b>" + fmt(lastN) + "</b></span></div>";
+      h += '<div class="controls"><button type="button" class="primary" data-n="1">One round</button><button type="button" data-n="5">5 rounds</button><button type="button" data-n="20">20 rounds</button><button type="button" data-n="0">Start over</button></div>';
+      if (status === "halt") h += '<p class="halted">A visit met a halting pattern in round ' + fmt(round) + ": the machine halts there.</p>";
+      if (status === "stuck") h += '<p class="halted">A visit met a stream that none of the rules listed here covers; the widget stops.</p>';
+      if (status === "budget") h += '<p class="small">The next round needs more than ' + fmt(BUDGET) + " rule applications, which is where this page stops. The number of visits doubles every two rounds.</p>";
+      h += '<div class="stream" aria-label="The stream">' + tokens() + "</div>";
+      h += '<div class="cap">The stream after the head\u2019s <code>' + S.prefix + "</code>, cut into the blocks a visit would read from the left (each colour is one rule); zeros follow for ever.</div>";
+      h += '<div class="tw"><table class="rules"><thead><tr><th>stream begins</th><th>becomes</th><th>then</th><th>rule</th><th>times used</th></tr></thead><tbody>';
+      S.rules.forEach(function (r, i) {
+        h += "<tr><td><span class=\"bk b" + (i % 6) + '" style="padding:0 3px;border-radius:3px;border:1px solid">' + r.match + "</span> s</td><td>" + (r.halt ? '<span class="halted">halt</span>' : r.write + " s") + "</td><td>" +
+          (r.halt ? "" : ["no visit to s", "one visit to s", "two visits to s"][r.visits || 0]) + "</td><td>" + (r.name ? "<code>" + r.name + "</code>" : "") + "</td><td>" + fmt(uses[i]) + "</td></tr>";
+      });
+      h += '</tbody></table></div><div class="cap"><span class="ev ' + lv[0] + '">' + lv[1] + "</span> The rules are the machine\u2019s, for every stream. This panel applies them; it does not run the machine.</div>";
+      if (last.length) {
+        h += '<div class="trace">' + last.map(function (x) { var r = S.rules[x[2]]; return new Array(Math.min(x[0], 40) + 1).join("\u00b7 ") + "cell " + x[1] + ": " + r.match + " s \u2192 " + (r.halt ? "halt" : r.write + (r.visits ? " + " + r.visits + (r.visits > 1 ? " visits" : " visit") : "")); }).join("\n") +
+          (lastN > last.length ? "\n\u2026 " + fmt(lastN - last.length) + " more" : "") + "</div>";
+        h += '<div class="cap">The last round, rule by rule; each dot is one level of nesting.</div>';
+      }
+      if (S.note) h += '<div class="cap">' + S.note + "</div>";
+      box.innerHTML = h;
+      box.querySelectorAll("button[data-n]").forEach(function (b) {
+        b.onclick = function () { var n = +b.dataset.n; if (!n) { reset(); return; } for (var i = 0; i < n; i++) if (!oneRound()) break; render(); };
+      });
+    }
+    reset();
+  });
   // side by side with a related machine
   if (spec.compare && $("cmpGo")) {
     var cmpDraw = function () {
@@ -784,11 +878,16 @@ def build(spec, home="../index.html"):
           f'      <select id="recSteps">{_steps_options(max(st_steps, 10000))}</select>',
           '      <button id="recGo" class="primary" type="button">List</button>', "    </div>",
           '    <div class="cap" id="recCap"></div>', '    <div class="log" id="recs"></div>', "  </div>", "</section>"]
-    steppers = {}
+    steppers, rewriters = {}, {}
     for s in sections:
         body = s["html"] if isinstance(s["html"], str) else "\n".join(s["html"])
         o += [f'<section id="{html.escape(s["id"])}">', f'  <span class="eyebrow">{s.get("eyebrow", "")}</span>',
               f'  <h2>{s["heading"]}</h2>', body]
+        if s.get("rewriter"):
+            if s["rewriter"].get("level", "trusted") not in LEVEL:
+                raise ValueError(f"unknown level in the rewriter of section {s['id']!r}")
+            rewriters[s["id"]] = s["rewriter"]
+            o.append(f'  <div class="panel rw" data-rewriter="{html.escape(s["id"])}"></div>')
         if s.get("stepper"):
             for r in s["stepper"]["rules"]:
                 if r.get("level", "trusted") not in LEVEL:
@@ -838,7 +937,8 @@ def build(spec, home="../index.html"):
           '  <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">'
           "github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>", "</footer>", "</div>"]
     data = json.dumps({"machine": m.text, **({"compare": cmp_} if cmp_ else {}),
-                       **({"steppers": steppers, "levels": {k: list(v) for k, v in LEVEL.items()}} if steppers else {})},
+                       **({"steppers": steppers} if steppers else {}), **({"rewriters": rewriters} if rewriters else {}),
+                       **({"levels": {k: list(v) for k, v in LEVEL.items()}} if steppers or rewriters else {})},
                       ensure_ascii=False).replace("</", "<\\/")
     o += [f'<script type="application/json" id="spec">{data}</script>',
           f'<script id="engine">{ENGINE}</script>', f"<script>{UI}</script>", "</body>", "</html>"]

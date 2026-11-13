@@ -210,6 +210,55 @@
     ]
    },
    {
+    "id": "try-visits",
+    "eyebrow": "Try it",
+    "heading": "Run the visit law yourself",
+    "html": "<div class=\"col\"><p>Here the rules of the table above are applied to the stream, one round at a time. A round writes <code>10</code> in front of the stream and makes one visit; a <code>1010</code> block passes each visit on twice, so the work doubles every two rounds. Watch the blocks behind the doublers count in binary, and look at which rules are used: the dangerous ones stay at zero for as long as this page can follow.</p></div>",
+    "rewriter": {
+     "start": "1",
+     "prefix": "10",
+     "rules": [
+      {
+       "match": "0",
+       "write": "1",
+       "visits": 0,
+       "name": "vis_0"
+      },
+      {
+       "match": "100",
+       "write": "000",
+       "visits": 1,
+       "name": "vis_100"
+      },
+      {
+       "match": "110",
+       "write": "000",
+       "visits": 1,
+       "name": "vis_110"
+      },
+      {
+       "match": "1010",
+       "write": "1010",
+       "visits": 2,
+       "name": "vis_1010"
+      },
+      {
+       "match": "1011",
+       "write": "1000",
+       "visits": 0,
+       "name": "vis_1011"
+      },
+      {
+       "match": "111",
+       "halt": true,
+       "name": "vis_111_halts"
+      }
+     ],
+     "level": "kernel",
+     "note": "Starts from <code>0<sup>&infin;</sup> A&gt; 1 0 1 0<sup>&infin;</sup></code>, which the machine reaches from blank tape after 4 steps (<code>start</code>, <code>lean/Visit.lean</code>). The first 35 rounds of this panel were compared with the machine itself, cell by cell (3&middot;10<sup>7</sup> steps); they agree. That is a check of the panel, not a result about the machine."
+    }
+   },
+   {
     "id": "picture",
     "eyebrow": "The big picture",
     "heading": "Two counters and a messenger",
