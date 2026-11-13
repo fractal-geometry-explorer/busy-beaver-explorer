@@ -8,6 +8,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# A newer push to the same branch or pull request replaces the run in progress.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
