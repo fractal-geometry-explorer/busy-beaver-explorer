@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -82,6 +86,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> The machine halts exactly from <code>C&gt; x 1 1</code> (both directions in Lean), never seen in 10<sup>11</sup> steps. The run goes in phases: inside a phase every new right cell in state E takes twice as long as the previous one (up to a few hundred steps), one more 0 is appended to the list and a carry walks one number to the left. The phases seen end at steps 142,951,915, 776,063,293 and 1,601,996,125, each after the carry has reached the left end and changed the first number; the fourth ended at step 136,228,769,152 exactly as the earlier ones (first number 4, then 1, <code>1 3</code>, 5, end), and the fifth repeats the corrections to doubling of the fourth, record for record, 7.7 times slower.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Shift-overflow counter</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

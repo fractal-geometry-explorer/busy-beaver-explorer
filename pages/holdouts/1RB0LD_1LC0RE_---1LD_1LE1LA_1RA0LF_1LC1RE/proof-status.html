@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -82,6 +86,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>The question is open.</b> Lean proves the head's fast moves through the background and the halting situations (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
       <p><b>What it does.</b> The tape is the alternating pattern <code>1010&hellip;</code> with defects: places where two equal cells meet (<code>11</code>, <code>111</code>, <code>1111</code>, <code>00</code>). About 16% of neighbouring pairs are <code>11</code> and about 4% are <code>00</code>, and these fractions hardly change as the tape grows. The head does not sweep cleanly: it crosses the tape in zig-zags of tens to hundreds of cells, moving the defects around, and no regular word or counter shows up.</p>
       <p><b>Where a halt would come from.</b> Only C reading a 0 halts. C is entered from B and from F reading a 0 (each writes a 1 and steps left), so <code>0 B&gt;0</code> and <code>0 F&gt;0</code> halt (<code>halt_B</code>, <code>halt_F</code>). In the run, whenever B or F reads a 0 the cell to its left is a 1.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Spaghetti</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

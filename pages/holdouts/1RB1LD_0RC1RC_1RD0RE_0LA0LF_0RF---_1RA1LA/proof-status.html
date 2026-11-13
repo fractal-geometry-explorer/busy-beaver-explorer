@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -81,6 +85,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="verdict">
       <p><b>The question is open.</b> The machine's two bulk phases are proved in Lean for every length (<code>growth_phase</code>, <code>stall_phase</code> in <code>lean/Phase.lean</code>): they cannot halt. What is left is the short zone at the left end of the tape, which the head rewrites at the end of every phase; it is the only place a halt could happen, and its rule (as a function of the residue of the tape length) has not been worked out. Direct simulation follows 32 phases (1.5&middot;10<sup>10</sup> steps, length 104,205) without a halt.</p>
       <p>A closed-set search with all remainders of the length allowed (13 November) found no halting class but did not close: the zone is not a finite engine.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Bell-like</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -83,6 +87,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>What it does.</b> The tape is <code>1010&hellip;</code> cut into blocks <code>(10)<sup>n</sup></code> by single extra cells, the separators (1 or 0). A round trip from the right end, a <i>tick</i>, sweeps left over some separators, turns at one, and sweeps back, complementing everything it crosses. Which separator it turns at, and how the block lengths change, depends on the separators and the parities of the blocks; two families of rules cover 30,528 of the 30,932 ticks of the first 10<sup>10</sup> steps. The last block grows by one or two each tick, so the right edge grows smoothly.</p>
       <p><b>The rebuilds.</b> 238 of those ticks reach the left end instead. There the head works for a long time and rebuilds the front of the list; the same sequences of lists then recur with more blocks on the right, on larger and larger scales.</p>
       <p><b>Where a halt would come from.</b> Only F reading a 1 halts. Two steps before a halt the machine must be at <code>B&gt;0 1 1</code> (<code>halt_route</code>): E is entered only from A reading a 1, which leaves a 0 to E's right, so <code>E&gt;1 1</code> never occurs. In block terms B would have to stand on the last 0 of a block followed by a separator 1; in the run F always reads a 0.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Unknown</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

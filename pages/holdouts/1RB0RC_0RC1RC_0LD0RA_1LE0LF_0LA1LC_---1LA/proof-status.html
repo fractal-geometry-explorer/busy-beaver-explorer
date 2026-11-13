@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>It does not halt (Lean theorem <code>nonhalt</code>, level native).</b> From step 1,818,198,163,340,705 on, the configuration <code>E&gt; 0 (1011001)^59 1011 00000 1101100110110 (011)^16 001101100110 (011)^r</code> comes back with r larger by 321,042,928 after 116,320,154 arrivals at the left end, for every odd r &ge; 65. In Lean, a symbolic executor whose every move is proved to be a run of the machine (kernel) replays the arrival from blank tape and one period with r = 65 + 2x, x free; the two replays and the twelve cycle rules they use are evaluated by <code>native_decide</code>, so the result rests on the Lean kernel and the Lean compiler. The exact step and visit counts are computed by the Python and C++ simulators (trusted), not part of the Lean statement.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card proof">
+        <h3>Also proved in Coq</h3>
+        <p>A second proof assistant checks the same result: <code>H65826.nonhalt : ~ halts tm c0</code>, stated on busycoq's own definitions of a Turing machine and of halting, in <code>holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/coq</code>. Coq 8.18 compiles it and <code>Print Assumptions</code> reports no axioms; the build log is next to the files.</p>
+      </div>
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Unknown</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

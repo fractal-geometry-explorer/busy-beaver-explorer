@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> Lean (kernel) proves the six regular macro steps and the two main shapes of the anomaly for all parameter values, and no halt in the first 10,000 steps (10<sup>7</sup> with <code>native_decide</code>). Lean also shows that the pattern of the word and of the gaps is not an invariant by itself: a short Q configuration of the same form halts after 190 steps. Non-halting therefore depends on sizes: every collision cascade must end before the word runs out. In the simulated run it is always won, by at least 8.0 bits. <b>Update, 12 November.</b> Lean now also proves this machine's own form of the anomaly with a one-unit counter, 20 collision rules, and a partial macro map (a function from one word-and-counter configuration to the next, proved to be followed by the machine wherever it is defined). The map is far from complete: of the 236 collisions in the simulated run, 187 follow a proved rule. For the sister machine 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC--- the map is complete; here the collisions have many more cases, and they keep a misaligned gap alive instead of clearing it.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Shift-overflow counter</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

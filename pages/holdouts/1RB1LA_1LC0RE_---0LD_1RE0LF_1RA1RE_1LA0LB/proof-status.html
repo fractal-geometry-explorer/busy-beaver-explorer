@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>Open, Collatz-like, reduced in Lean to an explicit map.</b> It is a Lean theorem (kernel-checked) that the machine halts from blank tape if and only if the orbit of one configuration under an explicit map G on two lists of block lengths halts. The tape is a list of blocks of 1s with the head between two of them; a long block next to an empty one is dismantled two 1s at a time, half going to each neighbour, down to 2 or 3 ones by its parity. The machine halts exactly when the blocks left of the head are used up, which needs every one of them to be <code>111</code> at the same moment; for a lone block that means 3&middot;(2<sup>m</sup> &minus; 1) ones. The orbit has been followed for 10<sup>9</sup> applications of the accelerated map (1.5&middot;10<sup>24</sup> steps of the machine) without a halt.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Cubic Mess</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

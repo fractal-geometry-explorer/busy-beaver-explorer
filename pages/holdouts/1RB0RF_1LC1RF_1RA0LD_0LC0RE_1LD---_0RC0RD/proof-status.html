@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open, and reduced to a counter.</b> Write the tape as gap words <code>0^g 1</code>. At the sample points it is <code>0^&infin; 1 1 1 C&gt; 0 0 1 [0^g1 1] ... [0^gk 1]</code>, so a state is the list of gaps; most are 3, forming blocks. Read the separators <code>1 1 1</code>, <code>1</code>, <code>5</code> between blocks as digits 2, 1, 0: one round trip of the head is a ternary decrement (a 2 gives a 3 to the block before it, a 1 takes a 3 from the block after it, the zeros below become 2, the first block gains a 3). A second kind of digit (<code>1 0 1</code>, <code>2 1</code>, <code>0</code>) stops the borrow and drains the block after it; blocks that run out bring merges and a <em>special</em> return. Every rule is proved in Lean for all sizes, and the machine halts from blank tape <b>iff</b> this model reaches the gaps (0,0,0) or (4,0) (<code>halts_iff_model</code>, kernel-checked, assuming the model never meets a pattern it does not cover; since 12 November also <code>halts_iff_hybrid</code>, with nothing assumed, for the model completed by plain machine steps on the uncovered patterns). The model matches the machine at all 129,587 bounces to 2&middot;10<sup>10</sup> steps and runs about 10<sup>89</sup> bounces without halting or getting stuck.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Skelet 1-like Class 1</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">

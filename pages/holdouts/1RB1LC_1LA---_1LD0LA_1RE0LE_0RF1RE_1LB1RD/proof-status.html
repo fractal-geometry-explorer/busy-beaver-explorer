@@ -65,6 +65,10 @@ section { display: grid; gap: 14px; }
 .card.open { border-left: 4px solid var(--open); }
 .empty { color: var(--muted); font-size: 0.94rem; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
 </style>
 </head>
 <body>
@@ -80,6 +84,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> The right end of the tape is <code>... 1 0 1^P 0 (10)^Q 1^5</code>. Lean proves the <em>round</em> (P, Q) &rarr; (P &minus; 2, Q + 2) for every P &ge; 7, even Q &ge; 2 and every tape to the left, and k rounds by induction. When the ones are used up the phase end walks into the rest of the tape, which is an irregular mixture of short words that grows with every phase, and starts the next phase: often with P = 9, sometimes with P' = 2P + 11, and then again and again (a chain 37, 85, 181, ..., 3,145,717 of 16 doublings). 156 phases, more than 3&middot;10<sup>13</sup> steps, have been followed exactly without a halt. What decides the next phase: a phase end either reads at most a few dozen cells next to the block and gives P&prime; = 2P + c (the doublings), or crosses the whole tape left of the block and restarts with P&prime; in {9, 29, 41, 65, 169}; the long ends rewrite the left tape, and nothing regular has been found in what they leave.</p>
+    </div>
+  </section>
+  <section aria-labelledby="h-else">
+    <h2 id="h-else">Other proofs and outside reports</h2>
+    <div class="else">
+      <div class="card label">
+        <h3>Community label</h3>
+        <p>In the community's BB(6) tracker the machine's class is <b>Chaotic Ack-like Bell</b>. These are labels read off the run by others, not results.</p>
+      </div>
     </div>
   </section>
   <section aria-labelledby="h-claims">
