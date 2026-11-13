@@ -1,0 +1,51 @@
+{
+ "rules": [
+  [
+   "erase",
+   "L 0 1^n E> 1 R",
+   "L E> 0 0^n 0 R",
+   "E erases a block of 1s leftwards: `0 1^n E>1` becomes `E>0 0^(n+1)`."
+  ],
+  [
+   "fill",
+   "L F> 0^n 1 R",
+   "L 1^n F> 1 R",
+   "F fills a run of 0s rightwards with 1s."
+  ],
+  [
+   "pairs",
+   "L D> (11)^n R",
+   "L (10)^n D> R",
+   "D crosses pairs `1 1` rightwards, rewriting each as `1 0`."
+  ],
+  [
+   "shift",
+   "L 1^n E> 0 R",
+   "L E> 0 1^n R",
+   "E on a separator 0 walks left through a block of 1s, moving the block one cell right."
+  ]
+ ],
+ "halts": [
+  [
+   "allones_4",
+   "111111111101111111111",
+   "",
+   "B",
+   "The all-ones left counter of 4 bits with the right block at the top bit: `1^10 0 1^10 B>0`."
+  ],
+  [
+   "allones_5",
+   "11111111111110111111111111",
+   "",
+   "B",
+   "The all-ones left counter of 5 bits with the right block at the top bit: `1^12 0 1^13 B>0`."
+  ],
+  [
+   "allones_6",
+   "1111111111111111011111111111111",
+   "",
+   "B",
+   "The all-ones left counter of 6 bits with the right block at the top bit: `1^14 0 1^16 B>0`."
+  ]
+ ]
+}

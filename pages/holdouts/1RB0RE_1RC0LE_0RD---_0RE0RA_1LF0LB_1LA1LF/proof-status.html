@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is a string of words <code>(10)^d 0 1</code>, read as digits d (mostly 1 to 4). The head never makes a long straight run. After step 3.3&middot;10<sup>6</sup> it makes no run of 10 or more cells, and after step 2,791,354 it never again crosses the whole tape. It zigzags over the right part, rewriting digits as it goes. The first ~1,900 cells have not changed since step 3.3&middot;10<sup>6</sup>. Lean proves two shift rules. The rewriting rule on digits has not been found.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules</h3>
+        <p><code>e_right</code>: E runs right over a block of <code>10</code> words. <code>d_right</code>: D runs right over a block of <code>110</code> words, shifting it by one cell. Both hold for every n and every surrounding tape.</p>
+        <p class="where"><code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +124,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 28,954 cells have been visited and 15,412 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No full sweeps, a frozen prefix</h3>
+        <p>Up to step 3&middot;10<sup>9</sup> the last time the head reaches one end of the tape after having been at the other is step 2,791,354. In the first 10<sup>9</sup> steps only 24 straight runs of 10 or more cells occur, the last at step 211,281,720 (tape 14,879 cells). From step 3,401,999 on, successive snapshots agree on their first 1,850 to 2,000 cells.</p>
+        <p class="where"><code>edges</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.421).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Why it is hard</h3>
+        <p>There is no sweep to speed up: the head moves in steps of a few cells, and each zigzag rewrites the digits next to it. The digit string the run leaves behind looks irregular, with no visible period. So no simple block rule describes it. The right end still grows, like the square root of the step count.</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The machine halts if C reads a 1.</p>
       </div>
     </div>
   </section>

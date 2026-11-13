@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows yet. A block of 1s doubles in chains while a run of 10 pairs pays for it, as in a Collatz-like sibling; the chain step is proved, the end of a chain is still a puzzle.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>chain step</b><span class="small">one doubling step, for all sizes and any tape further left, proved in Lean</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>776 / 776</b><span class="small">chain steps in the first 10<sup>9</sup> steps that follow the rule</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 9,158 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>power/power</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#chain">A block that doubles while pairs pay for it</a><a href="#stack">A stack of pair runs</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="chain">
+  <span class="eyebrow">What it does</span>
+  <h2>A block that doubles while pairs pay for it</h2>
+<p>Write <code>a</code> for the pair <code>1 0</code>. Look at the run each time the head is in state A at the right end of the tape, on a 0. The tape then ends in a run of pairs and a block of 1s, <code>P a^k 1^m</code>, where P is everything further left.</p>
+<p>Most of the time the machine is in a <b>doubling chain</b>: P stays the same and (k, m) goes (k, 5), (k, 11), (k&minus;1, 18), (k&minus;14, 48), (k&minus;41, 110), (k&minus;100, 232), (k&minus;219, 478), &hellip; The block grows from m to 2m+12 or 2m+14 (alternately), and each step costs about m/2 pairs. For example at step 90,524 the tape ends in <code>a^164 0 1^5</code>, and the next samples are <code>a^164 1^11</code>, <code>a^163 1^18</code>, <code>a^150 1^48</code>, <code>a^123 1^110</code>, <code>a^64 1^232</code>.</p>
+<p>One chain step is a zigzag: the head carries the block of 1s to the right as pairs, then walks back and forth, each round trip moving two pairs from the left run into the 1s and using up two pairs on the right. Lean proves one step for every size and every P.</p>
+</section>
+<section id="stack">
+  <span class="eyebrow">The rest of the tape</span>
+  <h2>A stack of pair runs</h2>
+<p>P is itself a list of pair runs with markers between them: <code>1 0 0</code> (written 0 below) or <code>1 1 0</code> (written 1), for example <code>a^209 1 a^344 0 a^32 0 a^112 0 1^5</code> at step 4,999,243. When a chain runs out of pairs, the block of 1s is turned back into pairs and the runs near the right end are merged, doubled or split, and a new chain starts. These chain ends come in several kinds, and they are not yet written as a map.</p>
+<p>The machine halts when it reads a 1 in state E. In the sibling machine the halt needs a chain to use up its pairs exactly; something similar may hold here, but that is a guess until the chain ends are understood.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +249,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 9,158 cells have been visited and 4,948 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/power</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.284). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.348).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>chain_even</code>, <code>chain_odd</code>, <code>chain_start</code>, <code>cycN</code>, <code>lean/Chain.lean</code>; pieces in <code>lean/Rules.lean</code></div></div><div><b>One doubling step, for all parameters</b><p>For every tape L and all K, j: <code>L (10)^(K+2j+5) 1^(4j+2) A&gt;0</code> reaches <code>L (10)^K 1^(8j+16) A&gt;0</code>, and <code>L (10)^(K+2j+5) 1^(4j+4) A&gt;0</code> reaches <code>L (10)^K 1^(8j+22) A&gt;0</code>; the start of a chain, <code>L (10)^(k+1) 0 1^5 A&gt;0</code>, reaches <code>L (10)^k 1^18 A&gt;0</code>. Each step is a start piece, j or j+1 inner cycles (each moves two pairs from the left run into the 1s; chained by an induction written by hand) and an end piece, the pieces proved by <code>bbtools.symtm</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/chains.py 1000000000</code></div></div><div><b>The run follows the chain rule</b><p>Sampling each time the head is in A at the right end on a 0, the first 10<sup>9</sup> steps contain 162 chain starts and 776 chain steps, all as the rule says (no mismatch); the other 406 transitions are chain ends.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Chain ends work on a stack of pair runs</b><p>Left of the last pair run the tape is a list of pair runs separated by markers <code>1 0 0</code> or <code>1 1 0</code>, for example <code>(10)^209 1 (10)^344 0 (10)^32 0 (10)^112 0 1^5</code> at step 4,999,243. When a chain's pairs run out, the block 1^m is turned back into pairs and runs are merged, split or doubled; the examples show several different cases.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>absorb0</code>, <code>eat</code>, <code>cycR</code>, <code>lean/Rules.lean</code>; <code>end0</code>, <code>lean/ChainEnd.lean</code></div></div><div><b>A chain end at a 0 marker</b><p>When the pairs run out at a <code>0</code> marker, the marker is absorbed (<code>absorb0</code>), and a second cycle (<code>eat</code>) follows: <code>L (10)^(x+2) C&gt;(10)^(k+1) 110 (1010)^(n+1) R</code> reaches <code>L (10)^x C&gt;(10)^(k+5) 110 (1010)^n R</code>. <code>end0</code> chains them for t turns, for all parameters and any tapes L, R. The inner cycle is also proved with any tape on the right (<code>cycR</code>). What happens when x or the blocks run out is not proved.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/ends.py</code>, <code>c/ev.c</code>, <code>c/end0.c</code></div></div><div><b>How far back the chain ends read</b><p>Of the 1,506 sample transitions in the first 10<sup>9</sup> steps, 229 stay in the final ones, 1,015 read into the last pair run, 115 into the run before it, 1 into the third, and 146 reach the left end of the tape. The run passes 51 times through the start of <code>absorb0</code> and 73 times through an E frame. So the samples are not a finite set of frames, and the whole-tape frame-map method does not apply as it is.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The chain step is proved; the missing piece is a map for the chain ends (a stack machine on the pair runs), and then the halting question for that map, which is probably Collatz-like.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC 1000000000
+python3 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/py/chains.py 1000000000
+python3 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/py/ends.py 1000000000
+cc -O2 -o end0 holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/c/end0.c &amp;&amp; ./end0 1000000000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RF_1RC0RB_0RD1LF_1LE1RE_1LA---_1RA0LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

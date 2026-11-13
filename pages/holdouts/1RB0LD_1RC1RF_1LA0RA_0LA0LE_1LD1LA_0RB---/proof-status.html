@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and reduced in Lean to a Collatz-like orbit.</b> The machine follows (Lean, kernel) the map (3k, y) &rarr; (4k+1, y+4), (3k+1, y) &rarr; (4k+5, y+6), (3k+2, y) &rarr; (4k+8, y&minus;1) on its walls, and never halts as long as that orbit, started at (0, 0), never reaches y = 0 with z not a multiple of 3 (<code>not_halts_of_orbit</code>). With <code>native_decide</code>: the first 10,000 macro steps stay inside the rules, so no halt in the first 10<sup>2400</sup> steps. In Python the orbit ran 10<sup>6</sup> macro steps (z has 124,940 digits) and y only grew, to 2,999,377; it never came below 4. The counter y behaves like a random walk with drift +3 per step, so an exit looks hopeless, but proving that is a Collatz-type problem, like bbchallenge's Antihydra.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -99,6 +99,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
+        <h3>The cell rules</h3>
+        <p>One sweep <code>A&gt;0 (10)^x 0 10 0^(z+3)</code> &rarr; <code>A&gt;0 (10)^(x+2) 0 10 0^z</code> in 4x + 11 steps, for every x, z and every tape to the right; and the six ends of a wall (z = 0, 1, 2 left, x = 0 or x &ge; 1), for every x and y. Written by <code>bbtools.symtm.prove</code>.</p>
+        <p class="where"><code>sweep_cells</code>, <code>end0s</code> &hellip; <code>end2z</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The macro rules</h3>
+        <p>With the wall <code>C z y = A&gt;0 0 10 0^z (10)^y 0 1</code>: k sweeps at once (<code>sweeps</code>, cost 4k&sup2; + 7k from x = 0), and the three ends <code>end0</code>: S x 0 (y) &rarr; C (2x+1) (y+4), <code>end1</code>: S x 1 (y+1) &rarr; C (2x+5) (y+7), <code>end2</code>: S x 2 (y+1) &rarr; C (2x+8) y.</p>
+        <p class="where"><code>sweep</code>, <code>sweeps</code>, <code>end0</code>, <code>end1</code>, <code>end2</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The machine follows the map on (z, y)</h3>
+        <p><code>next z y</code>: (3k, y) &rarr; (4k+1, y+4); (3k+1, y) &rarr; (4k+5, y+6); (3k+2, y) &rarr; (4k+8, y&minus;1), the last two for y &ge; 1. <code>next_sound</code>: the machine goes from <code>C z y</code> to the next wall in exactly <code>mcost z y</code> steps. From blank tape the first wall <code>C 0 0</code> comes after 7 steps (<code>init_wall</code>).</p>
+        <p class="where"><code>next_sound</code>, <code>init_wall</code>, <code>lean/Reduce.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Non-halting reduced to the orbit</h3>
+        <p>If the orbit of (0, 0) under <code>next</code> never leaves the rules, the machine never halts from blank tape; and the orbit can leave them only at y = 0 with z not a multiple of 3.</p>
+        <p class="where"><code>not_halts_of_orbit</code>, <code>orb_exit</code>, <code>lean/Reduce.lean</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
@@ -106,6 +126,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>2400</sup> steps</h3>
+        <p>The orbit with its step counts, evaluated by compiled code for 10,000 macro steps (proved to be a run of the machine, <code>orbT_sound</code>, kernel): it stays inside the rules and takes more than 10<sup>2400</sup> steps.</p>
+        <p class="where"><code>orbit_runs</code>, <code>orb_some_10000</code>, <code>blank_runs_orbit</code>, <code>lean/OrbitRun.lean</code></p>
+      </div>
       <div class="card">
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
@@ -115,13 +140,23 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 44,644 cells have been visited and 14,390 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>The map agrees with the machine</h3>
+        <p><code>py/check.py 1e9</code> runs the machine 10<sup>9</sup> steps and finds every wall at the step and with the tape that the map predicts, and no other wall.</p>
+        <p class="where"><code>py/check.py</code></p>
+      </div>
+      <div class="card">
+        <h3>10<sup>6</sup> macro steps of the orbit</h3>
+        <p><code>py/orbit.py 1e6</code>: no exit; after 10<sup>6</sup> steps y = 2,999,377 and z has 124,940 decimal digits; y never fell below 4 after the first step; the three residues of z mod 3 came 332,673 / 333,716 / 333,611 times.</p>
+        <p class="where"><code>py/orbit.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>Why an exit looks hopeless</h3>
+        <p>If z mod 3 behaves like a fair die, y is a random walk with steps +4, +6, &minus;1 (drift +3). From height y it ever reaches 0 with probability about 0.335<sup>y</sup>; y is 2,999,377 after 10<sup>6</sup> steps and was never below 4. Every exit would still have to halt from <code>C z 0</code>, which only some do (C 92 0 halts after 54,805 steps; C 8 0 does not in 10<sup>6</sup>).</p>
+        <p class="where"><code>py/orbit.py</code>, <code>README.md</code></p>
+      </div>
       <div class="card">
         <h3>Growth shape: fixed/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.5). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
@@ -131,8 +166,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>Does the orbit ever exit?</h3>
+        <p>Not known: whether the orbit of (0, 0) ever has y = 0 with z not a multiple of 3 is a Collatz-type question about the digits of z in base 3, like Antihydra.</p>
       </div>
     </div>
   </section>
@@ -140,7 +175,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB--- 1000000000</code></pre>
+python3 holdouts/1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---/py/gen_rules.py      # rewrites lean/Rules.lean
+python3 holdouts/1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---/py/check.py 1e9
+python3 holdouts/1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---/py/orbit.py 1e6</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

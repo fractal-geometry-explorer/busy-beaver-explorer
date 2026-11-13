@@ -127,7 +127,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LC_1LC0RB_0LE0LD_1LC---_0RA1LF_1LA1LF</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows yet. This machine sweeps a tape whose right part is one six-cell word repeated and whose left part changes like a counter. This page runs it in your browser.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 54,112 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#parts">A counter in front of a crystal</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="parts">
+  <span class="eyebrow">Macro structure</span>
+  <h2>A counter in front of a crystal</h2>
+<p>Stop the simulator each time the head turns at the left end, and write <code>a</code> for <code>0011</code> and <code>b</code> for <code>010111</code>:</p>
+<pre>  445,663  0 0 1 b a<sup>13</sup> 0 1<sup>3</sup> a<sup>7</sup> 0 1<sup>2</sup> 0 1<sup>3</sup> b<sup>161</sup> 0 1<sup>4</sup> b<sup>2</sup> 0 1
+  495,569  0 0 1 a<sup>5</sup> 0 1<sup>3</sup> a<sup>13</sup> 0 1 0 1<sup>2</sup> a<sup>2</sup> 0 1<sup>3</sup> a<sup>2</sup> b<sup>170</sup> 0 1<sup>4</sup> b<sup>2</sup> 0 1
+2,965,211  0 0 1 a<sup>22</sup> 0 1<sup>3</sup> a<sup>18</sup> 0 1<sup>2</sup> 0 1<sup>3</sup> b<sup>442</sup> 0 1<sup>4</sup> b<sup>2</sup> 0 1</pre>
+<p>The long run of <code>b</code> is the bulk of the tape. It gets one more copy on most round trips (198 of the first 227), so the tape grows like the square root of the step count. In front of it is a short left part of <code>a</code>-blocks and separators, which is rewritten on each trip like the low digits of a counter.</p>
+<p>Each pass is a fast rewrite of one word at a time. Moving right, B turns every <code>011101</code> into <code>010001</code> (14 steps a word) and every <code>1001</code> into <code>1010</code>; moving left, C turns every <code>000101</code> into <code>101110</code> and E turns every <code>1010</code> back into <code>0011</code>. For example <code>0 0 B&gt;011101 011101</code> becomes <code>010001 010001 0 0 B&gt;</code> after 28 steps. Lean proves all four rules for every n.</p>
+<p>The only halt is <code>1 C&gt;1</code> (<code>halt_C</code>): C writes a 0 and steps left onto a 1 in state D, which has no transition for 1. In the run C reads a 1 only as <code>100[1]111</code>. The open step is the exact rule of the left part and why it never puts a 1 to the left of C there.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +246,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 54,112 cells have been visited and 24,090 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: sqrt/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.509). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.496).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)</div></div><div><b>Every way to a halt</b><p>Two steps before any halt the machine is in <code>1 1 A&gt;1</code>, <code>1 1 B&gt;0</code> or <code>1 1 D&gt;0</code>; no other configuration halts within three steps.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>pass_right_b</code>, <code>pass_left_b</code>, <code>pass_right_a</code>, <code>pass_left_a</code>, <code>lean/Rules.lean</code></div></div><div><b>Four passes</b><p>B moving right turns <code>0 0 (011101)<sup>n</sup></code> into <code>(010001)<sup>n</sup> 0 0</code> and <code>0 0 (1001)<sup>n</sup></code> into <code>(1010)<sup>n</sup> 0 0</code>; moving left, C turns <code>(000101)<sup>n</sup> 0</code> into <code>0 (101110)<sup>n</sup></code> and E turns <code>(1010)<sup>n</sup> 1</code> into <code>1 (0011)<sup>n</sup></code>. All for any n.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_C</code>, <code>lean/Rules.lean</code></div></div><div><b>The halting situation</b><p><code>1 C&gt;1</code> halts after two steps; D is entered only from C reading a 1.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/near_halt.py 1e6</code></div></div><div><b>Never close to halting</b><p>In the first 10<sup>6</sup> steps C reads a 1 36,496 times, always as <code>100[1]111</code>, with a 0 to its left.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/turns.py 3e6 L</code></div></div><div><b>The shape at the left end</b><p>At the left-end turns of the first 3&middot;10<sup>6</sup> steps the tape is <code>0 0 1</code>, a part made of <code>a</code>-blocks and short separators, <code>b<sup>n</sup></code>, and <code>0 1<sup>4</sup> b<sup>2</sup> 0 1</code>. In the first 10<sup>6</sup> steps n grows by 1 on 198 round trips, by 2 on 23 and by 0 on 6.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/ctl.py</code>, <code>py/turns.py</code></div></div><div><b>The left part at 2&middot;10<sup>9</sup> steps</b><p>At step 1,982,205,406 the left-end turn reads <code>C&gt; (01)<sup>4</sup> (1100)<sup>20</sup> 1 1 0 1 0 1<sup>3</sup> (0011)<sup>111</sup> 0 1 (0110)<sup>21</sup> 1<sup>3</sup> (0011)<sup>71</sup> 0 1<sup>3</sup> (0011)<sup>4</sup> (010111)<sup>12563</sup> 0 1<sup>4</sup> &hellip;</code>. The left part is a few runs of the word <code>0011</code> (in its rotations) with counts in the hundreds. Window-based closed tape languages with windows of 3 to 7 cells find no closed set.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The next step is the rule by which a round trip rewrites the left part, and when it hands a copy of b to the right part.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_1LC0RB_0LE0LD_1LC---_0RA1LF_1LA1LF/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1LC0RB_0LE0LD_1LC---_0RA1LF_1LA1LF 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1LC0RB_0LE0LD_1LC---_0RA1LF_1LA1LF 1000000000
+python3 holdouts/1RB0LC_1LC0RB_0LE0LD_1LC---_0RA1LF_1LA1LF/py/route.py   # writes lean/Route.lean
+python3 holdouts/1RB0LC_1LC0RB_0LE0LD_1LC---_0RA1LF_1LA1LF/py/rules.py   # writes lean/Rules.lean
+python3 holdouts/1RB0LC_1LC0RB_0LE0LD_1LC---_0RA1LF_1LA1LF/py/turns.py 3e6 L</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LC_1LC0RB_0LE0LD_1LC---_0RA1LF_1LA1LF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

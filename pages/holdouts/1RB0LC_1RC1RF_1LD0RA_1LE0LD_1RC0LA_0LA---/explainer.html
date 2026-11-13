@@ -124,14 +124,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 12 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows, but probably not. Seen from the left end, the tape is a list of runs of <code>100</code>; the first run quadruples and the second pays for it. The machine stops only if the second run is used up to the last copy at the wrong moment, an exact hit that has not happened in 10<sup>18</sup> steps.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 45,595 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>18</sup> steps</b><span class="small">No halt in the macro simulator.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>13 rules</b><span class="small">The list rules; they predict all 46 events from blank tape to step 1.95&middot;10<sup>11</sup>.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>exact hit</b><span class="small">Halting needs the second run to equal one of about log b values; chance about (log b)/b per phase.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#what">A counter that doubles while it lasts</a><a href="#quad">A counter that quadruples</a><a href="#list">A list of runs, and one way to stop</a><a href="#next">What is left</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,32 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="what">
+  <span class="eyebrow">What it does</span>
+  <h2>A counter that doubles while it lasts</h2>
+<p>At some moments the tape is n copies of <code>101</code> and then <code>10</code>: call it Y(n). From blank tape, n = 23, 69, 349, 965, 4657, 11789.</p>
+<p>In between, the right end holds a counter of <code>110</code> blocks. Each round doubles it (34 &rarr; 68, 84 &rarr; 168 &rarr; &hellip; &rarr; 348) and uses up some of the <code>101</code>s on the left; when those are gone, the counter is rewritten as the next block of <code>101</code>s. So n grows by a factor that depends on how many rounds the <code>101</code>s can pay for, between about 2.5 and 5 so far.</p>
+</section>
+<section id="quad">
+  <span class="eyebrow">The engine</span>
+  <h2>A counter that quadruples</h2>
+<p>Look at the tape whenever the head is back at the left end in state C reading <code>000</code>. It then reads <code>000 (100)^c (010)^b &hellip;</code>: a counter of c copies of <code>100</code>, a block of b copies of <code>010</code>, then the rest of the tape. Each pass multiplies the counter by four and pays for it with 2c+1 copies of <code>010</code>:</p>
+<p style="text-align:center"><code>(100)^c (010)^(b+2c+1) &rarr; (100)^(4c) (010)^b</code> &nbsp; in 60c&sup2;+13c+39 steps,</p>
+<p>whatever lies further right. In the run the counter starts at 10 and goes 10, 40, 160, 640, &hellip; until the block cannot pay; what happens then depends on what is left and starts the next stage.</p>
+<p>This table is the same as the one of <a href="../1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---/explainer.html">1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---</a> with the states renamed; the two holdouts differ only in the state they start in.</p>
+</section>
+<section id="list">
+  <span class="eyebrow">The whole picture</span>
+  <h2>A list of runs, and one way to stop</h2>
+<p>Write [n1 s1, n2 s2, &hellip;] for the tape <code>000 (100)^n1 s1 (100)^n2 s2 &hellip;</code>. The machine only ever works on the front of this list. While the second run can pay, the first quadruples: [c 0, b &hellip;] &rarr; [4c 0, b&minus;2c&minus;1 &hellip;]. When it cannot, a <em>flip</em> rewrites the two runs, for example [c 0, b 1] &rarr; [2c&minus;b&minus;1 1, 2b+2 1] when b is even, and the parity of b decides whether a new small head [2 0 &hellip;] is pushed in front, which restarts the counter at 10. Odd remainders carry the flip deeper into the list.</p>
+<p>From blank tape: [160 0, 148 1], [171 1, 298 1], [43 0, 598 1], [172 0, 511 1], [688 0, 166 1], &hellip;, [163840 0, 27983 1] at step 195,343,860,508. All 46 events are the ones the rules give.</p>
+<p>The machine halts when a quadrupling round leaves <b>exactly zero</b> copies of the second run while further runs follow: [c 0, 2c+1 1, d &hellip;] &rarr; [4c 01, d &hellip;] &rarr; halt. For a second run of a hundred thousand copies only a handful of values do this, and the run doubles at each flip, so the chances shrink quickly. That is why the machine probably runs forever, and also why this is hard to prove: one has to show the exact hit never happens.</p>
+</section>
+<section id="next">
+  <span class="eyebrow">Further work</span>
+  <h2>What is left</h2>
+<p>Write the flip for every parity pattern of the list (the thirteen rules cover the cases met so far, not lists with odd runs further down), so that the list map can be iterated with big integers; make the halting chance precise; and prove the quadrupling round in Lean for all c.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -221,7 +247,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 12 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -235,14 +261,26 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 45,595 cells have been visited and 22,562 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.461). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.094).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">C simulator, events at state A on the right end</div></div><div><b>The Y-events of the run from blank tape</b><p>Y(n) = <code>(101)^n 10 A&gt; 0</code> at steps 2,879 (n = 23), 23,111 (69), 556,423 (349), 4,542,211 (965), 121,371,567 (4657) and 804,211,967 (11789).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/explore.py 23</code>, <code>py/explore.py 30</code>, <code>py/explore.py 69</code></div></div><div><b>A doubling counter in between</b><p>From Y(23): (101)<sup>3</sup> 100 (110)<sup>32</sup>, (101)<sup>3</sup> (110)<sup>34</sup>, (110)<sup>68</sup>, then Y(69). From Y(69): (101)<sup>38</sup> (110)<sup>84</sup>, (101)<sup>5</sup> 0 (110)<sup>168</sup>, &hellip;, (110)<sup>348</sup>, then Y(349). Synthetic starts show b &rarr; 2b+4 rounds (10, 24, 52, 108, 220).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">the two tables, state by state</div></div><div><b>Same transition table as 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---</b><p>Renaming the states A→D, B→E, C→B, D→C, E→A, F→F turns this table into the one of 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD--- (found by comparing all 720 renamings with every holdout); only the start state differs, so the two runs from blank tape are different runs of one machine and every rule found for one holds for the other.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/py/quadround.py</code></div></div><div><b>The quadrupling round, exact</b><p><code>C&gt; 000 (100)^c (010)^(b+2c+1) X &rarr; C&gt; 000 (100)^(4c) (010)^b X in 60c&sup2;+13c+39 steps (c &ge; 3)</code>, for any tape X to the right: checked by direct simulation for c = 3..39, b = 0..7 and four tails X (1,184 cases, step counts included); the round never looks at X.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/py/listmap.py check</code></div></div><div><b>The tape is a list of runs of 100, with exact rules</b><p>Sampled when the head is at the left end in state C reading <code>000</code>, the tape is <code>000 (100)^n1 s1 (100)^n2 s2 &hellip; (100)^nk 1</code> with separators 0, 1 or 00, written [n1 s1, &hellip;, nk 1]. The first run quadruples, paid 2c+1 at a time by the second ([c 0, b s, &hellip;] &rarr; [4c 0, b&minus;2c&minus;1 s, &hellip;]); when the second run cannot pay, a flip rewrites the front ([c 0, b 1] &rarr; [2c&minus;b&minus;1 1, 2b+2 1] for b even, [2 0, 2c&minus;b&minus;3 0, 2b+2 1] for b odd; [c 1, d 1] &rarr; [2c&minus;d&minus;1 0, 2d+2 1] or [2c&minus;d+1 0, 2d+1 1]; carries into a third and fourth run), and [2 0, x &hellip;] restarts the counter at 10. Thirteen rules, each checked against direct simulation for every parameter below 40: 60,000 cases, all agree. Lists with odd runs below the front follow rules not yet written.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/py/listmap.py blank</code>, <code>data/blank_events.txt</code> there</div></div><div><b>The run from blank tape follows the rules to step 1.95&middot;10<sup>11</sup></b><p>The first 46 events of the run from blank tape (direct simulation), from [2 0, 2 1] at step 91 to [163840 0, 27983 1] at step 195,343,860,508, are each the one the rules predict. The two start states of this table (the two holdouts) give the same events at the same steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/py/listmap.py check</code></div></div><div><b>One exact way to halt</b><p>[c 0, 2c+1 1, d s, &hellip;] &rarr; [4c 01, d s, &hellip;] &rarr; halt before the next event, for c &ge; 3: a quadrupling round that uses up the second run exactly, in a list of at least three runs with second separator 1. Checked for c = 3..39 with many tails (3,498 cases); [640 0, 98 01, 162 1] halts after 5,029,947 steps. With two runs only, [4c 01] does not halt.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- 1e18</code> (macro simulator <code>c/msim.c</code> there, checked against the direct simulator at 10<sup>9</sup> steps by <code>check_msim.py check</code>)</div></div><div><b>No halt in the first 10<sup>18</sup> steps</b><p>A macro simulator (blocks of 6 cells, whole runs of equal blocks crossed at once, exact step counts) runs 10<sup>18</sup> steps from blank tape without a halt.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>bb6-1RB0LF_1RC0LB/c/pds.c</code></div></div><div><b>No pushdown certificate with a DFA of at most 6 states</b><p>The pushdown reduction of <code>bb6-1RB0LF_1RC0LB/c/pds.c</code> (one side of the tape kept exactly, the other abstracted by a DFA, reachability by post* saturation) reaches a halt for every DFA with at most 6 states, on either side (run for 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---; the twin has the same table).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">the rules above</div></div><div><b>Probably non-halting</b><p>The known halt needs the second run to be hit exactly: b = (2c+1) + (8c+1) + &hellip; for the counter c at which a phase starts (10 or 8 after a restart). For a second run of size b that is about log<sub>4</sub> b targets among b values, a chance of about (log b)/b per phase, and b roughly doubles from flip to flip (it is above 10<sup>5</sup> now). The sum converges and is small. This assumes the remainders behave like random numbers and that no other list shape halts; neither is proved.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. One exact way to halt is known (a quadrupling round that uses up the second run exactly, in a list of three or more runs); the run from blank tape has not met it in 10<sup>18</sup> steps and the chance that it ever does looks small, but nothing is proved. The rules for lists with odd runs below the front are not written, so other ways to halt are not excluded.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- 1000000000
+python3 holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/py/listmap.py check
+python3 holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- 1e18</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

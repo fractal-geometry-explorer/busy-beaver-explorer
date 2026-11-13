@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB0RD_0LC0LF_1RD1LB_0RE---_1RA0LC_0LA1LF",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RD_0LC0LF_1RD1LB_0RE---_1RA0LC_0LA1LF.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The head sweeps between the ends over a background of <code>100</code> blocks, and the tape grows by 3 cells every few sweeps. A handful of short defects ride on the background, change phase each sweep and drift left at different speeds. Lean proves the shift rules over the background and the two halting patterns; the run has not halted in 10<sup>10</sup> steps, but the defects' interactions are not decoded."
  ],
  "claims": [
   {
@@ -34,6 +34,18 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules, for every length",
+   "text": "Going right: A turns <code>(100)^n</code> into <code>(001)^n</code> and <code>(1010)^n</code> into <code>(0101)^n</code>; D turns <code>(001)^n</code> into <code>(010)^n</code> and <code>(0101)^n</code> into <code>(1010)^n</code>; E turns <code>(0101)^n</code> into <code>(1010)^n</code>; each for every n and every tape around.",
+   "where": "<code>right_A_100</code>, <code>right_D_001</code>, <code>right_A_1010</code>, <code>right_D_0101</code>, <code>right_E_0101</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The two ways to halt",
+   "text": "The only halt is D reading a 1, and D is entered only from A1 = 0RD and C0 = 1RD. So A reading <code>1 1</code>, or C reading <code>0 1</code>, halts at once, whatever the tape around.",
+   "where": "<code>halts_A_11</code>, <code>halts_C_01</code>, <code>lean/Rules.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 67,084 cells have been visited and 22,367 of them hold a 1.",
@@ -46,9 +58,27 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in 10<sup>10</sup> steps",
+   "text": "<code>tools/c/tmrun.c</code>: 10<sup>10</sup> steps from blank tape without a halt (69,643 ones). In 10<sup>9</sup> steps D was entered about 12.5 million times and always read a 0.",
+   "where": "<code>tools/c/tmrun.c</code>, <code>tools/c/tm.h</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No closed tape language from windows up to 7",
+   "text": "<code>bbtools.ctl</code> with K = 2 to 7 closes but allows a halt (6 to 429 abstract halting configurations).",
+   "where": "<code>tools/py/bbtools/ctl.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Defects drifting on a 100 background",
+   "text": "At the steps where E reaches a new cell on the right, written with a<sup>k</sup> = <code>(100)^k</code>: <code>10 a52 0 a22 10101010 a283 0 a358 1010 a102 0</code> (step 1,237,212), <code>10 a15 101010101010 a108 10101010 a1199 1110 a1 0 a954 1110 a747 1010 a3157 0</code> (step 59,431,697). The defects flip between forms such as <code>1010</code> and <code>1110</code> from one sample to the next, move left by about one block every few samples, and new ones appear at the right end; the leftmost one has moved from a64 to a15 between steps 2&middot;10<sup>5</sup> and 6&middot;10<sup>7</sup>. Width 18,579 at step 59,431,697 (about 0.17&middot;w<sup>2</sup> steps).",
+   "where": "a Python run of <code>bbtools.machine.records</code>"
+  },
+  {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "title": "Does it halt?",
+   "text": "Not known. What is left is how the defects behave when they meet each other or the left end, and whether any meeting puts A on <code>11</code> or C on <code>01</code>.",
    "where": ""
   }
  ],
@@ -86,6 +116,24 @@
   },
   "sections": [
    {
+    "id": "tape",
+    "eyebrow": "What the tape looks like",
+    "heading": "A 100 background with defects",
+    "html": [
+     "<p>Writing a<sup>k</sup> for <code>(100)^k</code>, at the steps where E reaches a new cell on the right the tape reads:</p>",
+     "<div class=\"config\">step 1,237,212: &nbsp; 10 a52 0 a22 10101010 a283 0 a358 1010 a102 0<br>step 1,312,414: &nbsp; 10 a52 0 a21 11101010 a278 1 a344 1010 a162 0<br>step 59,431,697: 10 a15 101010101010 a108 10101010 a1199 1110 a1 0 a954 1110 a747 1010 a3157 0</div>",
+     "<p>Each right sweep shifts the background by one cell (A turns <code>100</code> into <code>001</code>, D turns <code>001</code> into <code>010</code>), and each defect alternates between two or three forms. The defects drift left at different speeds and new ones are born at the right end, so the gaps between them change slowly.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Can it halt?",
+    "heading": "A on 11, or C on 01",
+    "html": [
+     "<p>The only halt is D reading a 1. D comes only from A reading a 1 (it writes 0 and moves right) or from C reading a 0 (it writes 1 and moves right), so the machine halts exactly when A meets <code>11</code> or C meets <code>01</code>. Defects such as <code>1110</code> contain <code>11</code>; the sweeps reach them in a phase where this does not happen. Whether a collision of defects, or a defect reaching the left end, can change that is the open question.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +146,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A bouncer over a background of (100)^n that carries small defects (1010, 1110, 10101010, ...): each sweep shifts the background and flips the defects between two phases, new defects are born at the right end and drift left at different speeds; it halts if A ever lands on 11 or C on 01.",
+ "family": "Bouncer with drifting defects (gliders)",
+ "decision": "open"
 }

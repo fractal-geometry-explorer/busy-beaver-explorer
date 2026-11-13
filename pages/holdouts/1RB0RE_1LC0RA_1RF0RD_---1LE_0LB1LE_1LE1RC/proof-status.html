@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open.</b> The run is a bouncer inside a bouncer: an inner tape 1<sup>x</sup>(10)<sup>y</sup>11 is swept linearly, its resets double it, and each inner reset takes a slowly growing amount (12, 13, 14, 15, 16, &hellip;) from an outer block (10)<sup>C</sup> with C = 32,751 at 5&middot;10<sup>9</sup> steps. The outer counter will last about 250 inner resets, so the next outer event is about 2<sup>250</sup> steps away. Lean proves that any halt happens at the right edge of the tape (state D reading blank tape).</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,41 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Halting only at the right edge</h3>
+        <p>A closed tape language of windows of 4 cells covers the whole run from blank tape; in it the halting transition D0 fires only with blank tape from the head onward. So the machine halts iff state D reaches the blank region to the right.</p>
+        <p class="where"><code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The sweep rules</h3>
+        <p>Three one-sweep rules found and proved by <code>bbtools.cycles</code>: one sweep turns one 11 pair into two 10 pairs, for all sizes (with and without the outer context).</p>
+        <p class="where"><code>rule0</code>&ndash;<code>rule2</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The doubling rounds</h3>
+        <p>With P(x, y) = 0 1<sup>x</sup> 0 (10)<sup>y</sup> 1 B&gt; and D(m, c) = C&gt; 0 (10)<sup>m</sup> 1<sup>c</sup> at the left end: the sweep P(x+2, y) &rarr; P(x, y+2) whatever lies to the left; a top-level empty tank P(1, y+2) (blank tape to the left) reaches D(1, 2y+12); and one round D(m, c+2m+6) &rarr; D(2m+3, c+2) for all m, c and tapes to the right (left block 1, 5, 13, 29, 61, &hellip;), any number of rounds by induction. Leaf rules by <code>bbtools.symtm.prove</code>.</p>
+        <p class="where"><code>p_sweeps</code>, <code>top_reset</code>, <code>round</code>, <code>rounds</code>, <code>lean/Top.lean</code>, <code>lean/Leaves.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The halting resets, for every j</h3>
+        <p>A top-level reset from <code>(10)<sup>y+1</sup> 1 B&gt;</code> (the tank (10)<sup>y</sup> 11 two steps later) on blank tape halts whenever y = 2<sup>j</sup> &minus; j &minus; 5, j &ge; 4: after j &minus; 2 rounds exactly two 1s are left, and D reaches blank tape.</p>
+        <p class="where"><code>reset_halts</code>, <code>rUse_closed</code>, <code>d_halt</code>, <code>lean/Top.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>How a top-level reset ends</h3>
+        <p>With K(C, y) = <code>(10)<sup>C</sup> 0 (10)<sup>y</sup> 1 B&gt;</code> (an inner empty tank): a doubling round D(q+j+1, 2j+6) on blank tape, too short for a full round, leaves 2q+1 ones on the left as the outer stock and reaches K(2j, 7) to their right, the outer block being (10)<sup>2j</sup> (<code>round_end</code>, through <code>top_end</code>: <code>1^(p+1) B&gt; 1 0 (10)^(i+2) 1 1</code> &rarr; <code>1^(p+1) 0 (10)^i 0 (10)^7 1 B&gt;</code>). This is how the second level starts.</p>
+        <p class="where"><code>round_end</code>, <code>top_end</code>, <code>lean/Level2.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The inner reset map</h3>
+        <p>For every C, y and every tape on the left: an inner tank K(C+2, y) turns into 2y+7 ones and uses two outer pairs (<code>g_entry</code>); then <b>inner rounds</b> run, each using one more outer pair and doubling its block, k &rarr; 2k+6 (6, 18, 42, 90, &hellip;; <code>g_step</code>, <code>g_end</code>); when the rounds run out with one 1 on the right a new inner bouncer starts and sweeps to the next tank (<code>g_term</code>, <code>p_sweeps</code>). <code>inner_reset</code>: <code>innerMap C y = some (C&prime;, y&prime;)</code> implies K(C, y) reaches K(C&prime;, y&prime;), with <code>innerMap</code> an explicit Lean function. It is <code>none</code> only when the outer block is too short (an outer event) or a round starts with exactly three 1s on the right (further nesting); those cases are not covered.</p>
+        <p class="where"><code>inner_reset</code>, <code>lean/Level2.lean</code> (leaves in <code>lean/Level2Leaves.lean</code>, by <code>py/gen_level2.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The top-level tanks 8187 and 16379, followed</h3>
+        <p>From the top-level empty tank y = 16,379 of the run (blank tape on the left): 12 doubling rounds, the outer stock 1<sup>32,737</sup>, the outer block (10)<sup>24</sup>, then inner tanks y = 7, 19, 43, 91, 187 with outer blocks 24, 20, 15, 9, 2 (<code>tank_16379</code>). From y = 8187: 11 rounds, stock 1<sup>16,355</sup>, inner tanks 7, 19, 43, 91 with outer blocks 22, 18, 13, 7 (<code>tank_8187</code>). The outer block drops by 4, 5, 6, 7: two pairs for the entry and one per inner round. That the run reaches these tanks is not in Lean (the README&rsquo;s plain runs).</p>
+        <p class="where"><code>tank_16379</code>, <code>tank_8187</code>, <code>lean/Level2.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +154,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 32,789 cells have been visited and 26,426 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Which resets halt</h3>
+        <p>Started on otherwise blank tape from <code>(10)<sup>y</sup> 11</code> (head in B on the last cell), the machine halts for y = 2<sup>j</sup> &minus; j &minus; 5 (j = 4..11: 7, 22, 53, 116, 243, 498, 1009, 2032) and y = 12, and for no other y &lt; 2500 within 3y&sup2; + 10<sup>5</sup> steps. (That the whole family 2<sup>j</sup> &minus; j &minus; 5 halts is now a Lean theorem, below.)</p>
+        <p class="where"><code>c/hscan.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +167,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.266). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.415).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>The two levels</h3>
+        <p>At the moments B is at the right end the tape is 1<sup>10</sup>(10)<sup>C</sup>1<sup>x</sup>(10)<sup>y</sup>11 (after 5&middot;10<sup>9</sup> steps). Sweeps move x &rarr; x&minus;2, y &rarr; y+2; inner resets roughly double x+y and lower C by 12, 13, 14, 15, 16, &hellip; (one more each time). Read off the run up to 2&middot;10<sup>10</sup> steps.</p>
+        <p class="where"><code>tools/c</code> simulator; README</p>
+      </div>
+      <div class="card">
+        <h3>The near misses</h3>
+        <p>By the same count, the tanks y = 2<sup>j</sup> &minus; 5 of the run from blank tape leave 2j + 2 ones after j &minus; 2 rounds instead of 2; the leftover becomes the second-level structure. Why the run keeps landing on 2<sup>j</sup> &minus; 5 is not explained.</p>
+        <p class="where"><code>lean/Top.lean</code> (the round count), README</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known; the next outer event is about 2<sup>250</sup> steps away. The end of a top-level reset and the inner reset of the second level are now theorems (<code>lean/Level2.lean</code>); not yet in Lean: the outer event (an inner round that finds the outer block used up, which hands the run back to a top-level bouncer), the rare inner round that starts with exactly three 1s, and hence the full two-level map.</p>
       </div>
     </div>
   </section>
@@ -140,7 +190,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC 1000000000
+cd holdouts/1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC &amp;&amp; python3 py/gen_edge.py 1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC H127123 4 D lean &amp;&amp; python3 py/gen_rules.py 1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC H127123 2 1e9 3 &gt; lean/Rules.lean
+gcc -O2 -o hscan holdouts/1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC/c/hscan.c &amp;&amp; ./hscan 1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC &#x27;&#x27; 10 11 2 600 B 3</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

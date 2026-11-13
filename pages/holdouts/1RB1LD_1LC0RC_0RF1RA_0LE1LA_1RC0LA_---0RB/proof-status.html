@@ -74,12 +74,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB</h1>
     <p class="machine">1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 9 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> A few huge blocks of 1s; an odd block is split by a bouncer that moves 4 ones per round, 1 to the left neighbour and 3 to the right, and an even block at the left end is folded into its neighbour 2 for 3 (both proved in Lean for every size); a Collatz-like map with factors 1/4, 3/4 and 3/2; open.</p>
+      <p>Lean proves no halt in the first 10<sup>7</sup> steps (the first 10,000 by the kernel alone), the quarter split, the fold for every size and the first steps of the split endings; the rest of the description below is observation of the run, marked as such.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +104,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>One round of the quarter split</h3>
+        <p>For every odd M ≥ 11, every b and every tape around: <code>1 E&gt; 0 0 1^M 0 0 1^b 0</code> becomes <code>1 1 E&gt; 0 0 1^(M−4) 0 0 1^(b+3) 0</code> (three theorems for M mod 6 = 5, 1, 3).</p>
+        <p class="where"><code>quarter1</code>, <code>quarter3</code>, <code>quarter5</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The fold, for every size</h3>
+        <p>For every n, every M ≥ 1 and every tape R to the right: <code>0^inf A&gt; 0 1^(2n) 0 0 1^M R</code> reaches <code>0^inf A&gt; 0 0 0 1^(M+3n) R</code>, and then <code>0^inf A&gt; 0 1 1 0 1^(M+3n) R</code>: a left-end block of 2n ones is merged into its neighbour as 3n. Three symbolic rules (<code>fold_step</code>, 12n + 23 steps per zig-zag; <code>fold_last</code>; <code>fold_open</code>) and an induction over n.</p>
+        <p class="where"><code>fold</code>, <code>fold_full</code>, <code>lean/Fold.lean</code>; rules in <code>lean/FoldRules.lean</code> (<code>py/fold_rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The first steps of a split ending</h3>
+        <p>For every tape around: <code>1 E&gt; 0 0 1 0 0 1 1</code> → <code>1 1 0 0 0 0 0 1 A&gt;</code> (M = 1, 11 steps, <code>end1</code>); <code>1 E&gt; 0 0 1 1 1 0 0</code> → <code>1 1 0 1 0 0 0 1 A&gt;</code> (M = 3, 17 steps, <code>end3</code>); the carrier <code>0 1 A&gt;</code> crosses a block of m ones in 5m steps (<code>carry</code>); A runs left over 1s (<code>lsweep</code>).</p>
+        <p class="where"><code>lean/FoldRules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +135,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 12,322 cells have been visited and 12,317 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The quarter round for odd M from 5; the small and even cases</h3>
+        <p>Checked by simulation for odd M = 5…59 and several neighbours; for M = 0, 2, 4 the same start halts (E meets three 0s: E0 → C0 → F0).</p>
+        <p class="where"><code>py/split.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Where a halt can happen (closed tape language, 5-cell windows)</h3>
+        <p>The closure search of <code>bbtools.ctl</code> with windows of 5 cells is closed but allows halts; the halting abstract configurations constrain the neighbourhood of a halt: a halt (F reading 0) needs <code>00000</code> or <code>00110</code> to the left and <code>01001</code>, <code>0111x</code>, <code>01110</code> or <code>01111</code> on the right (8 abstract configurations). A Python check, not a Lean certificate (the Lean library only has the right-edge and no-halt corollaries, which do not apply).</p>
+        <p class="where"><code>python3 -m bbtools.ctl 1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB 5</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +153,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.398). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.121).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Macro structure: Collatz-like: blocks split 1:3 by quarters</h3>
+        <p>After the start the tape is always a handful of long blocks of 1s, separated by gaps of one, two or four 0s, e.g. <code>1^1840 0 1^1387 0 1^1041 0^2 1^780 0^4 1^2338 0 1</code> at step 298,989,466. Everything the machine does is arithmetic on these block lengths.</p>
+        <p class="where">README; <code>tmrun</code>, <code>tokrun</code> runs</p>
+      </div>
+      <div class="card">
+        <h3>Parity pattern in the run</h3>
+        <p>In the first 3·10<sup>8</sup> steps every block that a split starts on is odd (23,443 split rounds start, 14,388 with M ≡ 3 and 9,055 with M ≡ 1 mod 4), every block folded at the left end is even (7,115 zig-zags), and every round that starts at the left end with <code>A&gt;1^K</code> has K odd. A split on an even block is what halts (it ends at M = 0, 2 or 4 and E meets three 0s), so a proof that this parity pattern is preserved by the split endings would prove the machine never halts. The endings depend on the neighbouring blocks (the carrier <code>0 1</code> runs right to the next gap, then a left sweep, then a new split or fold), and that case analysis is not written down yet.</p>
+        <p class="where"><code>ev3</code> event log (scratch), README</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. F reading 0 halts. On small examples the split halts when it ends with M = 0, 2 or 4 in the shape above (the head meets three 0s in state E: E0 → C0 → F0), so halting is a question about remainders mod 4 of the blocks met by the splits: open, Collatz-like.</p>
       </div>
     </div>
   </section>
@@ -140,7 +176,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB 1000000000
+python3 holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB/py/split.py</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

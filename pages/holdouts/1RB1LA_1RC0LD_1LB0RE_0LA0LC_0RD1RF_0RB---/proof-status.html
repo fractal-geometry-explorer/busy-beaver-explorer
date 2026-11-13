@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---</h1>
     <p class="machine">1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 12 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open, not decoded.</b> A multi-level counter on a background of <code>110</code>: copies of a unit <code>t^13 D</code> are added one by one while a reservoir on the right is used up, then units of size 51, 241, 1191 appear in turn, each level built while the one before is consumed. This page shows the levels; no rule has been proved.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,20 +119,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 70,849 cells have been visited and 35,479 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
-    </div>
-    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
-    <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.57).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Units of growing size, to 2&middot;10<sup>10</sup> steps</h3>
+        <p>Written with t = <code>110</code> and the defect D = <code>0 t^2 1 0 1 0</code>, the tape is a sequence of units <code>t^s D</code>. In direct simulation the unit sizes come in levels s = 13, 51, 241, 1191 (ratios about 4, 4.7, 4.9): units of one level are added one at a time at the left end of the active region, about six t of a reservoir on the right being spent for each, and when the reservoir is empty the next level's units are built. No halt.</p>
+        <p class="where"><code>holdouts/1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---/c/reservoir.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The level-1 rule, with its step count</h3>
+        <p>With t = <code>110</code>, the unit U = <code>t^13 0 t^2 1 0 1 0</code> and the left end P = <code>1 0 t 1 0 1 0</code>: the tape <code>P U^n t^(r+6)</code> with the head in E on the blank cell at its right becomes <code>P U^(n+1) t^r</code> with the head again in E at the right, after exactly 972n + 48r + 1014 steps. Four sweeps add one unit and use six t; the tape grows by 14 cells on the left and 18 on the right. Checked by direct simulation for all n &#8804; 8, r &#8804; 12 (117 cases); from blank tape it first applies at step 6,335 with n = 2, r = 5. Not proved in Lean: the symbolic prover does not find the rule, because a sweep does not cross a unit as one shift.</p>
+        <p class="where"><code>holdouts/1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---/py/level1.py</code></p>
       </div>
     </div>
+    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
+    <p class="empty">Nothing yet.</p>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>The rule by which a level is built from the one before it, and what happens at the moment a reservoir runs out (where a halt, F reading 1, could occur), have not been written down; the question is not reduced.</p>
       </div>
     </div>
   </section>
@@ -140,7 +144,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB--- 1000000000
+gcc -O2 -o reservoir holdouts/1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---/c/reservoir.c &amp;&amp; ./reservoir 20000000000
+python3 holdouts/1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---/py/level1.py</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

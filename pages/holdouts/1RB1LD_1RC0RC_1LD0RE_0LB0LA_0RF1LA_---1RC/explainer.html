@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine has a generator on the left of its tape that keeps producing new, irregular material. On every round trip of the head, the material already produced is carried two cells further right, without a single change. This page runs the real machine in your browser and shows what is known.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 30,011 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>436 / 436</b><span class="small">Round trips after which the stream is the old one shifted right by exactly 2 cells.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>+2 cells</b><span class="small">Growth of the tape per round trip.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#stream">A generator and a conveyor</a><a href="#growth">Both parts grow</a><a href="#open">What would decide it</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +218,30 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,674,897</td><td><code>1^3 0 1 0^3 1^2 0 1^4 0 1 0^3 1^2 0 1^3 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0^2 1^3 0 1 0 1^3 0 1 0 1^3 0 1^3 0 1 0^2 1^3 0 1 0 1^2 0 1^2 0 1^5 0 1 0^2 1^5 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0 1^3 0^2 1^3 0 1 0^2 1^4 0^2 1 0^2 1^2 0 1 0 1^4 0 1 0 1 0^3 1^2 0^2 1^5 0 1 0 1^4 0 1 0^2 1^2 0 1^2 0 1^2 0^2 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^3 1^2 0^3 1^2 0^3 1^2 0^2 1^2 0^2 1^2 0 1^3 0 1 0^2 1^2 0</code></td></tr><tr><td>right</td><td>970,328,329</td><td><code>1^3 0 1 0^3 1^2 0 1^4 0 1 0^3 1^2 0 1^3 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0^2 1^3 0 1 0 1^3 0 1 0 1^3 0 1^3 0 1 0^2 1^3 0 1 0 1^2 0 1^2 0 1^5 0 1 0^2 1^5 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0 1^3 0^2 1^3 0 1 0^2 1^4 0^2 1 0^2 1^2 0 1 0 1^4 0 1 0 1 0^3 1^2 0^2 1^5 0 1 0 1^4 0 1 0^2 1^2 0 1^2 0 1^2 0^2 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^3 1^2 0^3 1^2 0^3 1^2 0^2 1^2 0^2 1^2 0 1^3 0 1 0^2 1^2 0</code></td></tr><tr><td>right</td><td>986,066,775</td><td><code>1^3 0 1 0^3 1^2 0 1^4 0 1 0^3 1^2 0 1^3 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0^2 1^3 0 1 0 1^3 0 1 0 1^3 0 1^3 0 1 0^2 1^3 0 1 0 1^2 0 1^2 0 1^5 0 1 0^2 1^5 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0 1^3 0^2 1^3 0 1 0^2 1^4 0^2 1 0^2 1^2 0 1 0 1^4 0 1 0 1 0^3 1^2 0^2 1^5 0 1 0 1^4 0 1 0^2 1^2 0 1^2 0 1^2 0^2 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^3 1^2 0^3 1^2 0^3 1^2 0^2 1^2 0^2 1^2 0 1^3 0 1 0^2 1^2 0</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="stream">
+  <span class="eyebrow">The emergent behaviour</span>
+  <h2>A generator and a conveyor</h2>
+<p>Follow the head after step 10<sup>8</sup>. It runs from the right end of the tape back to about cell 3,400&ndash;3,600 in a tight zigzag (about 3.6 steps per cell), and then all the way back. One round trip takes about 43,000 steps.</p>
+<p>Compare the tape at two consecutive arrivals at the right end. Beyond a boundary near the turning point, the new tape is the old one shifted right by exactly two cells, with no other change. This held for all 436 round trips between steps 10<sup>8</sup> and 1.2&middot;10<sup>8</sup>. So the right part of the tape is a conveyor: whatever the region near the turning point produces is carried off to the right and never touched again.</p>
+<p>The stream itself looks irregular. A piece of it at step 100,130,996, cells 6,001&ndash;6,100:</p>
+<p><code>0001011101011101000110111010001100011011101000110001100011011101011100111010001100011000110111010111</code></p>
+</section>
+<section id="growth">
+  <span class="eyebrow">Measurements</span>
+  <h2>Both parts grow</h2>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>step</th><th>tape width</th><th>rigid stream starts at cell</th></tr></thead><tbody>
+<tr><td>10<sup>6</sup></td><td>1,105</td><td>777&ndash;808</td></tr>
+<tr><td>10<sup>7</sup></td><td>3,161</td><td>1,532&ndash;1,572</td></tr>
+<tr><td>10<sup>8</sup></td><td>9,467</td><td>3,446&ndash;3,531</td></tr>
+<tr><td>10<sup>9</sup></td><td>30,011</td><td>11,845&ndash;11,890</td></tr>
+</tbody></table></div>
+<p>The tape grows by two cells per round trip, so its width grows like the square root of the time. The generator, left of the boundary, keeps roughly 40% of it.</p>
+</section>
+<section id="open">
+  <span class="eyebrow">Where it gets hard</span>
+  <h2>What would decide it</h2>
+<p>The conveyor is harmless: the stream is only copied. Everything rests on the generator, and the machine halts only when E reads 0 with a 0 to its right. A next step would be the transducer of one sweep across the stream, as rules on short words, proved in Lean. Then one could study the generator as a map from one round trip to the next.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -235,14 +259,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 30,011 cells have been visited and 19,605 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.514).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/arrivals.c</code>, <code>py/check_translation.py</code></div></div><div><b>The stream is translated rigidly</b><p>Between consecutive arrivals of the head at the right end, the tape right of a boundary cell is exactly the previous tape shifted right by 2 cells. This held for 436 of 436 round trips between steps 10<sup>8</sup> and 1.2&middot;10<sup>8</sup>, with the boundary between cells 3,446 and 3,817 of a tape of 9,467 to 10,339 cells.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c</code></div></div><div><b>The generator grows too</b><p>For 39 round trips after each of 10<sup>6</sup>, 10<sup>7</sup>, 10<sup>8</sup> and 10<sup>9</sup> steps, the tape is 1,105, 3,161, 9,467 and 30,011 cells wide. The boundary of the rigid part lies between cells 777&ndash;808, 1,532&ndash;1,572, 3,446&ndash;3,531 and 11,845&ndash;11,890. In the first 10<sup>9</sup> steps the left end of the tape is last extended at step 731,206.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Why it is hard</b><p>The head drifts across the stream in a short local zigzag, not over a repeated word, so the shift rules used for other holdouts do not apply directly. The generator region has no visible block structure. The machine halts only when E reads 0 with a 0 to its right (F reading 0 is its only undefined transition). Whether the generator ever produces that is open.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The open part is the generator: what it emits and how it changes.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC 1000000000</code></pre>
+gcc -O2 -o arrivals holdouts/1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC/c/arrivals.c &amp;&amp; ./arrivals 1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC 120000000 1000 -1000 100000000 | python3 holdouts/1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC/py/check_translation.py</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

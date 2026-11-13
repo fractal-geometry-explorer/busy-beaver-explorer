@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open, but the whole map is now known and no halt is in sight.</b> Sample the run when the head is in state D at the left end: the tape is DL(m, T) = <code>D&gt; 1 00 (10)^m T</code> with a short tail word T. One round multiplies m by 4/3 and rewrites T; for m &ge; 30 it depends on m only through m mod 3, so the round map (m, T) &rarr; ((4m + c(r,T))/3, &tau;(r,T)) is computed exactly from small representatives. It matches every DL event of the direct run up to 5&middot;10<sup>9</sup> steps and was iterated for 100,000 rounds (past 10<sup>24990</sup> steps) without a halt. The P-map of the first analysis (T = 1) is proved in Lean for every n. No (residue, tail) pair met so far, among 90,000 explored, halts.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The P-map, for every n</h3>
+        <p>With P(n) = <code>(101)^n 01 A&gt;</code> and Q(n) = <code>(101)^n 110101 A&gt;</code>: P(3k) &rarr; P(4k+2) in 27k&sup2;+87k+35 steps, P(3k+1) &rarr; P(4k+3) in 27k&sup2;+105k+62, P(3k+2) &rarr; Q(4k+4) in 27k&sup2;+123k+117, for all k. Built from five generated rules (the D-loop, iterated by induction, and the right sweep) .</p>
+        <p class="where"><code>p0</code>, <code>p1</code>, <code>p2</code>, <code>lean/Macro.lean</code>; rules in <code>lean/Rules.lean</code> from <code>py/rules.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Blank tape to the first excursion</h3>
+        <p>The machine reaches P(1) after 14 steps and then, through P(3), 6, 10, 15, 22, 31, 43, 59, the excursion start Q(80) after exactly 27,264 steps.</p>
+        <p class="where"><code>blank_Q80</code>, <code>lean/Macro.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +129,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 46,085 cells have been visited and 26,884 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The round map matches the direct run</h3>
+        <p>DL(m, T) = <code>D&gt; 1 00 (10)^m T</code> (head at the left end). Every one of the 31 DL events of the direct C run up to 5&middot;10<sup>9</sup> steps is the one the round map predicts, step count included.</p>
+        <p class="where"><code>py/roundmap.py check 5e9</code></p>
+      </div>
+      <div class="card">
+        <h3>A round depends on m only mod 3</h3>
+        <p>For each (r, tail) pair used, four representatives m = 3j + r (j = 10..13) give the same tail &tau;(r,T), the same c = 3m' &minus; 4m and a step count quadratic in j; the iteration relies on this. A Lean proof would state each round with symbolic k (the D-loop lemma already allows any tail).</p>
+        <p class="where"><code>py/roundmap.py</code> (<code>round_rep</code>)</p>
+      </div>
+      <div class="card">
+        <h3>100,000 rounds without a halt</h3>
+        <p>Iterating the round map from blank tape: 100,000 rounds, the last one beyond 10<sup>24990</sup> steps, m &asymp; 10<sup>12494</sup>; the tail returns to T = 1 in 9,214 rounds and is never longer than 106 cells; 18,555 (residue, tail) pairs are used.</p>
+        <p class="where"><code>py/roundmap.py iterate 100000</code> (1 min)</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +152,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.509). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.079).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>No halting round is known at all</h3>
+        <p>The tail behaves like a recurrent random process (driven by m mod 3, which is pseudo-random) on a language of block lists. Exploring the tail graph breadth-first with every residue allowed (30,000 tails, 90,000 rounds) finds no round that halts. So a halt is not merely unlikely: no reachable way to halt is known; this hints at an invariant that a stronger decider could prove.</p>
+        <p class="where"><code>py/roundmap.py bfs 30000 90</code> (25 min)</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not proved either way. The round map is a finite-state rewrite of the tail word, so a proof of non-halting would be an invariant on the tail language that excludes the halting pattern (D reading 0 with a 0 on its left).</p>
       </div>
     </div>
   </section>
@@ -140,7 +170,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA--- 1000000000</code></pre>
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/roundmap.py check 5e9
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/roundmap.py iterate 100000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

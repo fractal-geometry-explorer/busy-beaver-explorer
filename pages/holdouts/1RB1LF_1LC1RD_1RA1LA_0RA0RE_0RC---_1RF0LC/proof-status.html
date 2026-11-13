@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC</h1>
     <p class="machine">1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 12 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and reduced to an orbit.</b> A step takes <code>W A&gt; 0 b^N 1</code> (b = 110) to <code>W' A&gt; 0 b^N' 1</code> with N' = (3N + c)/2, where the new wall W' and c are computed from the wall W and the parity of N. Lean proves the transfer loop behind the 3/2, the step map for every wall on which its simulator answers, and that, as long as it answers along the orbit, the machine halts from blank tape exactly when the orbit reaches a halting step. The map has been iterated for 40,000 steps without a halt (the plain-simulation map for 300,000), and no wall with a halting step has been found in a search of the wall graph: no halting mechanism is known for this machine, but no invariant excluding one is proved.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,31 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The transfer loop</h3>
+        <p>At a junction <code>L 1 b^(x+2) 111 F&gt; b^(y+1) 1</code> (b = 110, any tape L, blank on the right) one sweep of 18y + 50 steps gives <code>L 1 b^x 111 F&gt; b^(y+4) 1</code>; by induction t sweeps move 2t copies out of the left block and 3t into the right one.</p>
+        <p class="where"><code>sweep</code>, <code>lean/Rules.lean</code>; <code>one_sweep</code>, <code>sweeps</code>, <code>lean/Sweeps.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The start of a step</h3>
+        <p>From the wall 1, <code>1 A&gt; 0 b^(n+6) 1</code> reaches the first junction in 5n + 66 steps.</p>
+        <p class="where"><code>first</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The step map for every wall</h3>
+        <p>A step from <code>W A&gt; 0 b^N 1</code> has three parts: the head crosses the block and builds the junction <code>L 1 b^x 111 F&gt; b^(y+1) 1</code> with x = N − const; the transfer loop makes x mod 2, y + 3⌊x/2⌋ of it; the end of the step works on the wall and leaves <code>W' A&gt; 0 b^N' 1</code>. The first and third parts are computed by a simulator that steps cell by cell near the wall and near the right end and crosses the middle of the long block only whole, by three shift rules; it never looks at the number of copies it crosses. Lean proves that whatever it answers is what the machine does: if <code>stepMap (W, N) = (W', N')</code> the machine goes from the first step start to the second, and if it answers <code>halt</code> the machine halts in that step. For every wall W and every N for which the simulator answers; it may answer <code>stuck</code> (N too small for the working room (about two copies of b per wall cell), a meeting with the block that the three rules do not cover, or out of fuel), which has not been seen along the orbit.</p>
+        <p class="where"><code>step_next</code>, <code>step_halt</code>, <code>lean/Reduction.lean</code>; <code>arun_sound</code>, <code>arun_halt</code>, <code>lean/Zone.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Reduction to the orbit</h3>
+        <p>The run from blank tape reaches the step start <code>11101101111101 A&gt; 0 b^48 1</code> after 10,206 steps. Let <code>orbit</code> be the orbit of the step map from there. If the map never answers <code>stuck</code> along the orbit, the machine halts from blank tape if and only if the orbit reaches a halting step. Without any hypothesis: a halting step in the orbit gives a halt, and an orbit that goes on for ever gives a run that never halts.</p>
+        <p class="where"><code>blank_to_start</code>, <code>halts_iff</code>, <code>halts_of_orbit</code>, <code>not_halts_of_orbit</code>, <code>lean/Reduction.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The first 40 steps of the orbit</h3>
+        <p>Lean's kernel evaluates the step map along the orbit: it answers with a next step for each of the first 40 steps (no halt, never stuck); after five steps the wall is <code>1</code> and N = 468 (step 1,133,743 of the run).</p>
+        <p class="where"><code>first_steps</code>, <code>orbit_5</code>, <code>lean/Reduction.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +144,31 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 44,753 cells have been visited and 32,396 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The Lean step map agrees with plain simulation</h3>
+        <p><code>py/zonemap.py</code> is the same simulator in Python. Along the orbit from <code>1 A&gt; 0 b^468 1</code> it gives the same (W', N') as the plain step map of <code>py/stepmap.py</code> (one step simulated in C, three values of N per case) for 4,000 steps, when N has 2,349 bits and walls have up to 563 cells.</p>
+        <p class="where"><code>py/zonemap.py check 4000</code></p>
+      </div>
+      <div class="card">
+        <h3>Orbit of the Lean step map: 40,000 steps, never stuck</h3>
+        <p>From the step start at step 10,206 of the run the map answers with a next step 40,000 times in a row (no halt, never stuck); N then has 23,405 bits and 83 walls have occurred. A breadth-first search of all walls of at most 300 cells reachable from <code>1</code> with either parity of N (279 walls, 558 steps) finds no halting step and no stuck one.</p>
+        <p class="where"><code>py/zonemap.py orbit 40000</code> (about 15 minutes), <code>py/zonemap.py graph 300</code></p>
+      </div>
+      <div class="card">
+        <h3>The step map by plain simulation</h3>
+        <p>A step goes from <code>W A&gt; 0 b^N 1</code> to <code>W' A&gt; 0 b^N' 1</code> with N' = (3N + c)/2 and (W', c) depending only on (W, N mod 2), checked on three values of N per case (<code>py/stepmap.py</code>, one step simulated by <code>c/stepc.c</code>). It agrees with the machine for the first ten steps after step 1,133,743 of the run (to step 4.1·10<sup>9</sup>).</p>
+        <p class="where"><code>py/stepmap.py</code>, <code>c/stepc.c</code></p>
+      </div>
+      <div class="card">
+        <h3>300,000 steps, no halt</h3>
+        <p>From <code>1 A&gt; 0 b^468 1</code> (step 1,133,743 of the run) the map runs 300,000 steps without a halt; N then has about 175,000 bits; 117 walls occur, the wall <code>1</code> in 24% of the steps.</p>
+        <p class="where"><code>py/stepmap.py orbit 300000</code> (about 5 minutes)</p>
+      </div>
+      <div class="card">
+        <h3>No halting wall found</h3>
+        <p>Breadth-first search of the walls reachable from <code>1</code> with either parity (100 walls): no step halts. The halt needs <code>A&gt; 0 111</code> (A writes 1, B and D read the next two 1s, E reads a third); none of the tested steps with small N (3 to 39, the first 80 walls) gets there either.</p>
+        <p class="where"><code>py/stepmap.py graph</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +177,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.047). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.494).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Why it may never halt</h3>
+        <p>The numbers in the wall grow like N only along runs of odd N and are absorbed into N by two even steps in a row, so the wall stays short; a halting configuration would need a wall shape the map has not produced in any explored branch. This is evidence, not an argument.</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. By the reduction it halts iff the orbit of the step map reaches a halting step (given that the map keeps answering). No halting step is known at all; a proof of non-halting would need a description of every reachable wall (a tower of 3/2-counters) and of the steps on it.</p>
       </div>
     </div>
   </section>
@@ -140,7 +194,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC 1000000000
+python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/zonemap.py check 1500
+python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/zonemap.py orbit 20000
+python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/stepmap.py graph 100</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

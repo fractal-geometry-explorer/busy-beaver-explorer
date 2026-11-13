@@ -131,7 +131,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 47,556 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>300 epochs</b><span class="small">The exact epoch map, iterated to about 10<sup>110</sup> steps: no halt.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#epochs">A counter that grows by half each time, and a stack it writes into</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="epochs">
+  <span class="eyebrow">The macro rule</span>
+  <h2>A counter that grows by half each time, and a stack it writes into</h2>
+<p>Watch the left end of the tape. Every so often it looks like this: the head in state A just left of the tape, a single 1, a long gap of <b>g</b> zeros, and then a short, slowly changing part <b>R</b>:</p>
+<pre>E(g, R) = 0^inf A&gt; 0 1 0^g R</pre>
+<p>These moments are the <em>epochs</em>. The gap sizes are 18, 24, 30, 42, 60, 84, 120, 174, 258, 378, 564, 840, 1254, 1878, ...: each about one and a half times the last.</p>
+<svg viewBox='0 0 560 120' role='img' aria-label='one sweep: the block of ones grows by 6, the marker moves 4 to the right' style='width:100%;max-width:560px;height:auto;font:12px var(--mono)'><rect x='10' y='20' width='150' height='22' fill='var(--ink)'/><text x='85' y='35' text-anchor='middle' fill='var(--bg)'>1^n</text><rect x='190' y='20' width='28' height='22' fill='var(--head)'/><text x='204' y='58' text-anchor='middle' fill='var(--fg2)'>1111</text><rect x='218' y='20' width='300' height='22' fill='none' stroke='var(--line-strong)'/><text x='368' y='35' text-anchor='middle' fill='var(--fg2)'>gap 0^m</text><rect x='10' y='76' width='186' height='22' fill='var(--ink)'/><text x='103' y='91' text-anchor='middle' fill='var(--bg)'>1^(n+6)</text><rect x='222' y='76' width='28' height='22' fill='var(--head)'/><rect x='250' y='76' width='268' height='22' fill='none' stroke='var(--line-strong)'/><text x='384' y='91' text-anchor='middle' fill='var(--fg2)'>gap 0^(m-4)</text></svg>
+<p>Inside an epoch the machine sweeps back and forth. Each sweep adds 6 ones to a block at the left and pushes a marker <code>1111</code> 4 cells further into the gap (this rule is proved in Lean for every n). When the marker reaches R, the block has grown to about 3g/2 cells; the machine rewrites the front of R and turns the block into the next gap. So</p>
+<pre>g  -&gt;  3g/2 + c        c in {-9, -6, -3, +6}</pre>
+<p>a Collatz-like map, the same kind as the famous Antihydra's. Which c, and how R changes, depends only on g mod 4 and on R. The residues of g are pseudo-random, and they are written one per epoch into R, which acts like a stack: only its top few runs change each time.</p>
+<h3>Can it halt?</h3><p>The machine halts only when, in state A, it reads a 1 followed by a 0 in a particular place. Every halting R found by search contains a lone 1, which the run does not produce. A halt needs the front of R to dig deep, but R keeps growing (about 0.6 runs per epoch). Iterating the exact map 300 epochs (to about 10<sup>110</sup> steps) shows no halt. Nobody can yet prove that it never happens, for the same reason as for Antihydra: we cannot control the residues of a 3/2 map.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,7 +247,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,556 cells have been visited and 46,581 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.52). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code> (tape samples)</div></div><div><b>Tape structure</b><p>The tape is a list of runs of 1s and gaps of 0s. At 10<sup>9</sup> steps (runs of 1s, with <code>0^k</code> for k+1 zeros in a row): <code>44842 1688 0^2 4 0^848 11 0^7 4 0^15 4 0^17 4 0^19 4 0^11 4 0^17 8 0^27 4 0 4</code>; the end <code>4 0^11 4 0^17 8 0^27 4 0 4</code> has been the same since 10<sup>7</sup> steps, and the long runs and gaps at the left end change between visits.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>xstep</code> (<code>lean/Rules.lean</code>, generated by <code>py/rules.py</code>), <code>sweep</code>, <code>sweeps</code>, <code>sweeps_steps_eq</code> (<code>lean/Phase.lean</code>)</div></div><div><b>One sweep, and many sweeps</b><p><code>X(n,m) = 0^inf A&gt; 0 1^n 000 1111 0^m R</code>: one sweep takes X(2k+2, m+4) to X(2k+8, m) in 6k+50 steps, for every k and every tape R; iterated, X(2k+2, 4j) R reaches X(2k+2+6j) R in j(6k+50)+9j(j-1) steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/epochs.py direct</code>, <code>py/epochs.py uniform</code></div></div><div><b>The epoch map</b><p>From <code>E(g,R) = 0^inf A&gt; 0 1 0^g R</code> the next epoch is E(3g/2 + c, R'), where c (one of -9, -6, -3, +6) and R' depend only on g mod 4 and R. Checked for four values of g in each class for every R tried, and against direct simulation epoch by epoch up to 3&middot;10<sup>11</sup> steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/epochs.py abstract 300</code></div></div><div><b>300 epochs without a halt</b><p>Iterating the epoch map with g an exact integer from g = 4206: 300 epochs, g up to about 10<sup>55</sup> (about 10<sup>110</sup> steps), no halt; the right part R grows from 13 to about 190 runs. This rests on the epoch map being independent of g within a class, which is checked, not proved.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code></div></div><div><b>Why a halt looks unlikely</b><p>Each epoch rewrites only the first few runs of R, like the top of a stack, and R grows by about 0.6 runs per epoch, with the real residues and with random ones alike. Every halting R found in a random search contains a lone 1, which the run never makes near the front; a halt would need the front to dig down through a stack that keeps getting deeper.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w">README.md</div></div><div><b>Does it halt from blank tape?</b><p>Not known. The epoch map g &rarr; 3g/2 + c is Collatz-like; next steps: prove the class map in Lean for the R that occur, and describe R exactly as a stack automaton.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

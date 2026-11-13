@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine alternates two phases: in one, each sweep moves one unit from the first block of the tape to a growing tail of small blocks; in the other, the head bounces at the left end and rebuilds a much longer first block from the whole list.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 62,666 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>4 rules</b><span class="small">One sweep of each phase, proved for every length.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>3 rounds</b><span class="small">Right phases ending at 8&middot;10<sup>4</sup>, 2&middot;10<sup>7</sup>, 1.2&middot;10<sup>9</sup> steps, each round much longer.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>11</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#phases">Countdown and rebuild</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="phases">
+  <span class="eyebrow">Emergent behaviour</span>
+  <h2>Countdown and rebuild</h2>
+<figure style="margin:1em 0"><img src="defects.png" alt="defect picture of 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---" style="width:100%;max-width:900px;image-rendering:pixelated;border:1px solid var(--line);background:#fff"/><figcaption style="font-size:0.9em;color:var(--muted)">Defect picture of the first 3&middot;10<sup>7</sup> steps (time runs down, rows at equal step spacing); white where the tape repeats with period 2, dark at the separators between blocks.</figcaption></figure>
+<p>In the <b>right phase</b> the tape is <code>(10)^a 1 (10)^b 1 &hellip; 1 (10)^3 1 (10)^3 1 &hellip;</code>. Each sweep takes one <code>10</code> from the first block and appends a <code>(10)^3 1</code> on the right; the blocks in between are left as they are:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>step</th><th>first block</th><th>list (compressed)</th></tr></thead><tbody><tr><td>8,470,124</td><td>626</td><td>485 24 83 264 [19,35]&times;15 &hellip; 3&times;427</td></tr><tr><td>679,059,433</td><td>3728</td><td>288 [541,917]&times;11 235 84 [323,163]&times;2 &hellip; 3&times;927</td></tr><tr><td>1,191,833,933</td><td>228</td><td>the same list, 3&times;4427</td></tr></tbody></table></div>
+<p>When the first block is empty, the head stops reaching the right end and the <b>left phase</b> starts: the head bounces between the left end and a marker (a single <code>0</code> or <code>1</code>), adding copies to the first block while taking them from the block behind the marker; the marker then moves on through the list, so the first block collects a share of every block. The next right phase starts with this long first block.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +243,20 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 62,666 cells have been visited and 29,712 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.553). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.04).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep_tail</code>, <code>sweep_mid</code>, <code>lean/Rules.lean</code></div></div><div><b>Right-phase sweep</b><p>From the head at the right end in state B, one sweep turns <code>(10)^(a+2) 1 [(10)^(b+2) 1] ((10)^3 1)^(n+1)</code> into the same with one 10 less in the first block and one more block of three, in 4a+24n+53 steps (4a+4b+24n+73 with the middle block).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>left_a</code>, <code>left_b</code>, <code>lean/Rules.lean</code></div></div><div><b>Left-phase bounces</b><p>From the head at the left end in state C: <code>(01)^(x+2) 0 (01)^(y+3) 00110</code> goes to the marker and back in 4x+22 steps, the first block three copies longer and the marker now a 1; the next bounce (4x+26 steps) adds one more copy and restores the marker 0.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/c/longrun.c</code></div></div><div><b>No halt in the first 10<sup>11</sup> steps</b><p>A plain C simulator (<code>longrun.c</code>, on <code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps from blank tape without a halt; at the end the head has visited cells -586,772 to 108,199 and 329,462 cells hold a 1.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">README.md</div></div><div><b>The phases in the run</b><p>In the direct run the right phases end (first block 0) at 8.0&middot;10<sup>4</sup>, 1.96&middot;10<sup>7</sup> and 1.234&middot;10<sup>9</sup> steps; the left phases between them last until 8.3&middot;10<sup>6</sup> and 6.5&middot;10<sup>8</sup> steps, and the third lasts past 3&middot;10<sup>9</sup>. From 1.234&middot;10<sup>9</sup> to 2&middot;10<sup>9</sup> steps the head reaches only the left end (47,163 times in state A, 23,587 in C), and the tail of 4655 blocks of three is left as it is.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README.md</div></div><div><b>Growing phases, no sign of a halt</b><p>Each right phase is longer than the last (its first block is built from the whole list in the left phase), and the list behind it is periodic in large stretches (<code>[19,35]&times;15</code>, <code>[541,917]&times;11</code>, <code>[5,13]&times;13</code>), the signature of a deterministic hierarchical counter rather than a random walk.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w">README.md, Further work</div></div><div><b>Does it halt from blank tape?</b><p>Not known. The two phases are understood one sweep at a time, but the rebuilding of the list in the left phase has not been reduced to a map.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA--- 1000000000
+python3 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---/py/gen_rules.py      # rewrites lean/Rules.lean</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

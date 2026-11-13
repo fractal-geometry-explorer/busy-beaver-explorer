@@ -74,12 +74,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0LD_1RC0RB_1RD1RF_1LE0LD_1RB1LA_---0RE</h1>
     <p class="machine">1RB0LD_1RC0RB_1RD1RF_1LE0LD_1RB1LA_---0RE</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p><p>Unlike most machines of its group, this one is not slow on the right: the head sweeps the whole tape again and again, and the tape grows like a power of the step count (about t<sup>0.66</sup>: 57,266 cells after 10<sup>9</sup> steps). Almost all of the tape is one long periodic run: the word <code>0110</code> repeated when the head has just reached the left end, the word <code>1110</code> when it has just reached the right end. Each sweep turns every word into the other one (the rightward sweep turns <code>0110</code> into <code>1110</code>, the leftward one back). Near the left end sits a short irregular part (<code>0 (110)^32 0 (110)^3 0 110 &hellip;</code> around step 2.5·10<sup>8</sup>) that acts as a counter and decides how far the next sweeps go; the width grows in jumps (by 1,621, 3,237, 3,217, 6,473 and 6,477 cells between the turns listed below), which roughly double every second jump.</p></p>
+    <p class="asof">Status as of 12 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine can halt only from <code>C&gt; 1 0</code> (proved in Lean); in 20,000,000,000 steps that never happens, and in the first 10<sup>9</sup> steps C never even reads a 1 followed by a 0.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +104,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The halting context</h3>
+        <p>From <code>C&gt; 1 0</code> the machine reaches F on a 0, its halting transition, in one step (<code>halt_ctx</code>, then <code>step_none_iff</code>). F is entered only from C reading a 1, which moves right.</p>
+        <p class="where"><code>halt_ctx</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Shift rules</h3>
+        <p>Four shift rules (for example <code>B&gt; (1)^n</code> becomes <code>(0)^n B&gt;</code> in n steps, <code>(110)^n A&gt; 1</code> becomes <code>A&gt; 1 (110)^n</code>), proved for every n.</p>
+        <p class="where"><code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>60 event rules for every size</h3>
+        <p>From an event (E on cell 135) to the next: 8-step events such as <code>E&gt; 0 1 0 0 0 1</code> &rarr; <code>E&gt; 1 1 0 1 1 1</code>, and events that turn a run of <code>1110</code> words on the left into <code>1101</code> words (8a+28 steps), each proved for every value of its repeat counts.</p>
+        <p class="where"><code>lean/Events.lean</code>, <code>py/mined.txt</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +135,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 57,266 cells have been visited and 28,671 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 20,000,000,000 steps</h3>
+        <p><code>tools/c/tmrun.c</code> runs 20,000,000,000 steps without a halt; the tape then holds 203,768 ones.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No near misses</h3>
+        <p>In the first 10<sup>9</sup> steps C read <code>1 1</code>, <code>0 0</code> or <code>0 1</code> ahead, never <code>1 0</code>: every 1 that C reads is followed by another 1.</p>
+        <p class="where"><code>c/ctxcount.c</code> of <code>holdouts/1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA</code></p>
+      </div>
+      <div class="card">
+        <h3>Coverage: 99.7% of the events</h3>
+        <p>2,088,696 events in 3&middot;10<sup>9</sup> steps, 6,155 not matched by a rule. The events are a small part of the run: most steps are sweeps over the long run, which lie inside uncovered events.</p>
+        <p class="where"><code>c/rules.txt</code> with the batch's <code>c/evcov.c</code></p>
+      </div>
+      <div class="card">
+        <h3>C&gt; 1 0 never occurs</h3>
+        <p>In 3&middot;10<sup>9</sup> steps C never has <code>1 0</code> ahead.</p>
+        <p class="where"><code>evcov ... C:10</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +163,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.069). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.659).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Power-law growth</h3>
+        <p>The width grows like t<sup>0.66</sup> (triage fit); the head turns at the ends at the steps listed on the explainer page, with the width jumping by roughly doubling amounts.</p>
+        <p class="where"><code>tools/c/tokrun.c</code>, <code>holdouts/triage.json</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. C reads a 1 only inside the words <code>0110</code>/<code>1110</code> of the long run or in the counter at the left end, and so far always with a 1 after it; a proof would need the rule of the counter and of how far the sweeps reach.</p>
       </div>
     </div>
   </section>
@@ -140,7 +181,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_1RC0RB_1RD1RF_1LE0LD_1RB1LA_---0RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_1RC0RB_1RD1RF_1LE0LD_1RB1LA_---0RE 1000000000</code></pre>
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LD_1RC0RB_1RD1RF_1LE0LD_1RB1LA_---0RE 20000000000
+gcc -O2 -o ctxcount holdouts/1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/c/ctxcount.c &amp;&amp; ./ctxcount 1RB0LD_1RC0RB_1RD1RF_1LE0LD_1RB1LA_---0RE 1e9 C 3</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LD_1RC0RB_1RD1RF_1LE0LD_1RB1LA_---0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

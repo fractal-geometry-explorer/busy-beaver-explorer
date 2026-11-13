@@ -1,6 +1,9 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G09",
+ "family": "nested crossing counter",
+ "summary": "A few long blocks of 3-cell words and a final block of a 9-cell word; phases (drain, cross, absorb, feed; one period of each proved in Lean) change block lengths linearly and each round multiplies the tape by about 2.2, with a residue-dependent choice between two round maps; an exact accelerated simulation reaches 1.2e300 steps without a halt.",
+ "decision": "open",
  "title": "What is known about 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---.",
  "machine": "1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---",
@@ -10,9 +13,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> One period of every phase the run uses is proved in Lean for all block lengths (kernel). How a phase ends depends on residues of the counts; an exact accelerated simulation, checked against direct simulation, follows the run to 1.2&middot;10<sup>300</sup> steps without a halt (trusted). Its mirror image with states A and D exchanged is <code>1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---</code>."
  ],
  "claims": [
   {
@@ -46,34 +49,80 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Absorb, three visits",
+   "text": "<code>0^∞ D&gt;0 0 0 (100)^a (010)^(b+2) 1 R</code> reaches <code>0^∞ D&gt;0 0 0 (100)^(a+4) (010)^b 1 R</code> in 18a + 66 steps, for every a, b and every tape R.",
+   "where": "<code>absorb</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Traverse, one cycle",
+   "text": "<code>L (101)^(x+6) (110)^y 1 0 (011)^(n+1) (010011011)^(k+1) (010)^3 1 1 D&gt;0^∞</code> reaches the same with x, y+6, k+2 in 396k + 132n + 132y + 1561 steps, for every x, y, n, k and every tape L.",
+   "where": "<code>traverse</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Six phase periods",
+   "text": "One period of each kind of phase the run uses after step 10<sup>20</sup>: drain (final block &minus;11, a marker moves 18 words, a new block +36), cross (marker moves 6 words, final block +1), two double crossings (12 words), absorb (left block +4, neighbour &minus;2) and feed (middle block &minus;18, left block +30, final +1), each for every value of its variables.",
+   "where": "<code>drain11</code>, <code>cross6</code>, <code>cross12</code>, <code>cross12b</code>, <code>absorb2</code>, <code>feed30</code>, <code>lean/Phases.lean</code>, <code>lean/PhasesDrain.lean</code>, <code>lean/PhasesFeed.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Exact accelerated simulation",
+   "text": "<code>py/accel.py</code> applies a period as many times as the blocks allow after re-running it symbolically, so its tape and step count are exactly the machine's; compared with direct C simulation after every jump up to 1.6&middot;10<sup>10</sup> steps, no mismatch.",
+   "where": "<code>py/accel.py</code>, <code>py/check_accel.py</code>, <code>c/tapeat.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 1.2&middot;10<sup>300</sup> steps",
+   "text": "The exact accelerated run from blank tape reaches 1.2&middot;10<sup>300</sup> steps (399 drain phases, 140 s) without a halt; the number of distinct periods it needs levels off (183 by 10<sup>21</sup>, 245 by 10<sup>251</sup>).",
+   "where": "<code>py/rounds.py</code>, <code>py/rounds_1e300.log</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Round maps",
+   "text": "With X the first long block and Y the final block at the start of a drain: a short round gives X' = 2X + 36Y/11, Y' = X/6 &minus; 3Y/11; a long round X' = 56X/11 + 444Y/121, Y' = 31X/132 + 17Y/242 (up to O(1)). Which one comes next depends on residues of the counts. Both keep Y/X between about 0.04 and 0.08, so every block stays long.",
+   "where": "README, from the exact run"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. A proof would need every residue case of every phase end; <code>py/closure.py</code> tries this with abstract counts but forgets the relation Y &lt; X/10 and does not close.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 1000000000",
+  ". /etc/profile.d/lean.sh && holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/lean/check.sh   # Rules.lean",
+  "gcc -O2 -o ev holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/c/ev.c && ./ev 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 2000000000 L D 1 100000 12 | awk 'NR%300==0'",
+  "python3 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/rounds.py 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 1e300 > rounds.log",
+  "gcc -O2 -o /tmp/tapeat holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/c/tapeat.c && python3 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/check_accel.py 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 2e10 /tmp/tapeat",
+  ". /etc/profile.d/lean.sh && holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/lean/check.sh   # Phases*.lean (several minutes)"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet. This machine's tape is a handful of long blocks. In each phase a marker crawls through a block, or one block eats its neighbour, and a few block lengths change at fixed rates; when a block runs out the next phase starts. A round multiplies the tape by about 2.2, and an exact fast-forward simulation has followed it for 10<sup>300</sup> steps without a halt.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 39,707 cells visited."
+    "level": "kernel",
+    "value": "6 phases",
+    "text": "One period of each phase, proved in Lean for every block length."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "10<sup>300</sup> steps",
+    "text": "No halt in an exact accelerated simulation (399 drain phases)."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>10</sup> steps",
+    "text": "No halt in the plain C simulator."
    },
    {
     "level": "heuristic",
-    "value": "sqrt/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "&times;2.2",
+    "text": "Typical growth of the tape per drain phase."
    }
   ],
   "presets": [
@@ -95,6 +144,45 @@
      "<p>After 10<sup>9</sup> steps the tape spans 39,707 cells (12,229 left of the start, 10,276 right), with a density of 1s of 0.594.</p>",
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>707,027,360</td><td><code>D&gt;0 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1</code></td></tr><tr><td>left</td><td>722,655,564</td><td><code>D&gt;0 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1</code></td></tr><tr><td>left</td><td>738,314,936</td><td><code>D&gt;0 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1</code></td></tr><tr><td>right</td><td>958,891,009</td><td><code>1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0</code></td></tr><tr><td>right</td><td>974,748,413</td><td><code>1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0</code></td></tr><tr><td>right</td><td>990,377,832</td><td><code>1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "words",
+    "eyebrow": "Tape as words",
+    "heading": "Long blocks and a final block",
+    "html": [
+     "<p>Seen at the right end, the tape is a few long blocks of the 3-cell words <code>101</code> and <code>100</code>, separated by short junctions, and a final block of the 9-cell word <code>110110100</code>. For example, at step 2.5&middot;10<sup>37</sup>:</p>",
+     "<p><code>(101)^1582952799333970411 1 (101)^208107605938307397 0 0 1 (101)^416215211876614794 0 0 1 0 (110110100)^42 &hellip;</code></p>",
+     "<p>At the left end the same blocks read <code>001</code> (the head going left rewrites them) and the final block reads as a rotation like <code>010110010</code>. The exponents are what changes: the whole run is a sequence of linear changes of five or six numbers.</p>"
+    ]
+   },
+   {
+    "id": "phases",
+    "eyebrow": "Macro rules",
+    "heading": "Five kinds of phase",
+    "html": [
+     "<table><thead><tr><th>phase</th><th>per period</th><th>Lean</th></tr></thead><tbody><tr><td>drain</td><td>final block &minus;11; a marker moves 18 words through the first block; a new block +36</td><td><code>drain11</code></td></tr><tr><td>cross</td><td>a marker moves 6 words left; final block +1</td><td><code>cross6</code></td></tr><tr><td>double cross</td><td>two markers move 12 words; final block +1</td><td><code>cross12</code>, <code>cross12b</code></td></tr><tr><td>absorb</td><td>at the left end: left block +4, its neighbour &minus;2</td><td><code>absorb2</code></td></tr><tr><td>feed</td><td>at the left end: a middle block &minus;18, left block +30, final block +1</td><td><code>feed30</code></td></tr></tbody></table>",
+     "<p>Each row is a theorem for every value of the block lengths: from the configuration with lengths x<sub>i</sub> + c<sub>i</sub> the machine reaches the same shape with the stated changes, in a number of steps linear in the x<sub>i</sub>. A phase lasts until one of its shrinking blocks is too short; what is left over (a remainder modulo 6, 11, 12 or 18) decides the junction the next phase starts from.</p>"
+    ]
+   },
+   {
+    "id": "round",
+    "eyebrow": "Round map",
+    "heading": "One round, two ways",
+    "html": [
+     "<p>Call X the first long block and Y the final block when a drain starts. The drain empties the final block, splitting the first block and making a new block of 36Y/11 words; a cross builds a new final block of (X &minus; 18Y/11)/6 words; the left end then absorbs, doubling the first block. Then, depending on residues:</p>",
+     "<table><thead><tr><th>branch</th><th>X'</th><th>Y'</th></tr></thead><tbody><tr><td>short</td><td>2X + 36Y/11</td><td>X/6 &minus; 3Y/11</td></tr><tr><td>long</td><td>56X/11 + 444Y/121</td><td>31X/132 + 17Y/242</td></tr></tbody></table>",
+     "<p>(up to a few words). Both keep Y/X between about 0.04 and 0.08, so no block is ever about to run out at the wrong moment: the tape keeps growing, about 2.2 times per drain. Whether it ever halts comes down to the junctions left by the remainders, a finite but Collatz-like choice.</p>"
+    ]
+   },
+   {
+    "id": "sim",
+    "eyebrow": "Evidence",
+    "heading": "Fast-forwarding exactly",
+    "html": [
+     "<p>The simulator <code>py/accel.py</code> spots a phase when the shape of the tape repeats with the same change of lengths, re-runs one period with the lengths as unknowns to prove the change holds for all of them, and then applies the phase thousands of billions of times at once, adding up the steps in closed form. Its tape is exactly the machine's (checked against plain simulation up to 1.6&middot;10<sup>10</sup> steps).</p>",
+     "<table><thead><tr><th>steps</th><th>drain phases</th><th>distinct periods used</th></tr></thead><tbody><tr><td>10<sup>21</sup></td><td>15</td><td>183</td></tr><tr><td>10<sup>101</sup></td><td>123</td><td>225</td></tr><tr><td>1.2&middot;10<sup>300</sup></td><td>399</td><td>245</td></tr></tbody></table>",
+     "<p>No halt so far. The only halting transition is F reading a 1; F is entered only from A reading a 1, and in every proved phase the cell F reads is 0.</p>"
     ]
    }
   ]

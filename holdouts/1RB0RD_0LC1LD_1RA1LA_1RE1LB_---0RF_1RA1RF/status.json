@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G13",
  "title": "What is known about 1RB0RD_0LC1LD_1RA1LA_1RE1LB_---0RF_1RA1RF",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RD_0LC1LD_1RA1LA_1RE1LB_---0RF_1RA1RF.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0RD_0LC1LD_1RA1LA_1RE1LB_---0RF_1RA1RF/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state machine halts from blank tape. This page describes what its run looks like at the level of words and counters, what a halt would need, and what is still missing. The description comes from simulation (first look, about an hour of study); nothing beyond the bounded runs is proved."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps, the C simulator none in 10<sup>9</sup>. The macro structure described below is observed in the simulation, not proved."
  ],
  "claims": [
   {
@@ -46,10 +46,33 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "Full sweeps",
+   "text": "The head sweeps between the two ends of the tape; in 10<sup>8</sup> steps it reaches the right end in F 6,291 times and the left end 7,245 times (B or D).",
+   "where": "",
+   "hand": true
+  },
+  {
+   "level": "heuristic",
+   "title": "Square-root growth",
+   "text": "Width 2,000 at 1.5&middot;10<sup>6</sup> steps, 16,000 at 8.4&middot;10<sup>7</sup>: the width doubles when the time quadruples.",
+   "where": "",
+   "hand": true
+  },
+  {
+   "level": "kernel",
+   "title": "Shift rules, for every n",
+   "text": "A crosses <code>(1010)^n</code> to the right and leaves <code>(0101)^n</code>; F crosses <code>(0101)^n</code> and leaves <code>(1010)^n</code>; for any tapes on both sides.",
+   "where": "<code>shiftA</code>, <code>shiftF</code>, <code>lean/Rules.lean</code>",
+   "hand": true,
+   "addon": true
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "text": "Not known. No macro rule has been proved for this machine yet; see the README's Later section for the next steps.",
+   "where": "",
+   "hand": true
   }
  ],
  "check": [
@@ -58,8 +81,13 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RD_0LC1LD_1RA1LA_1RE1LB_---0RF_1RA1RF 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet. The head sweeps an irregular word of short blocks back and forth; the word grows at both ends and the tape width grows like the square root of the time.",
   "facts": [
+   {
+    "level": "heuristic",
+    "value": "&radic;t",
+    "text": "tape width grows like the square root of the step count"
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -69,11 +97,6 @@
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/linear",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +108,32 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "what",
+    "eyebrow": "What it does",
+    "heading": "Full sweeps over an irregular word",
+    "html": [
+     "<p>The tape is a word of short blocks of 1s, each followed by a single 0, for example (step 93,864,904, from the left) <code>1 0 1^7 0 1^3 0 1 0 1 0 1 0 1^3 0 1 0 1^2 0 1 0 1^5 0 &hellip;</code>. Long stretches are <code>1 0 1 0 &hellip;</code>, the longer blocks have up to about 20 ones.</p>",
+     "<p>The head sweeps the whole word: in the first 10<sup>8</sup> steps it reaches the right end in state F 6,291 times and the left end in state B 3,656 times and in D 3,589 times. Most of the word is unchanged from one sweep to the next; the changes are near the two ends. The visited width roughly doubles each time the step count quadruples (2,000 cells at 1.5&middot;10<sup>6</sup> steps, 4,000 at 5.9&middot;10<sup>6</sup>, 8,000 at 2.1&middot;10<sup>7</sup>, 16,000 at 8.4&middot;10<sup>7</sup>), so it grows like the square root of the time, as for a bouncer whose sweeps get longer by a constant.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The halting question",
+    "heading": "What a halt would need",
+    "html": [
+     "<p>The machine halts when it reads a 0 in state E (E0 is the halting transition). E is entered from D on a 0 (D0 = 1RE); so a halt needs <code>D&gt;0 0</code>, the head in D moving right onto two 0s in a row. In ten snapshots of the tape, one every 10<sup>7</sup> steps up to 10<sup>8</sup>, there are no two adjacent 0s anywhere between the ends, so such a halt would have to happen at an end of the tape.</p>"
+    ]
+   },
+   {
+    "id": "phase2",
+    "eyebrow": "Phase 2",
+    "heading": "The sweep over the 1 0 stretches",
+    "html": [
+     "<p>The long <code>1 0 1 0 &hellip;</code> stretches are crossed by two shift rules, proved for every length: A turns <code>(1010)^n</code> into <code>(0101)^n</code>, and F turns <code>(0101)^n</code> back. No exact map from one sweep to the next was found.</p>"
+    ],
+    "addon": true
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +147,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "two-ended sweeper over an irregular block word",
+ "summary": "The head sweeps the whole tape back and forth; the tape is an irregular word of short blocks of 1s separated by single 0s, rewritten at both ends, and it grows like the square root of the step count."
 }

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open, and probably never halting.</b> The run from blank tape is, provably, the orbit of a Collatz-like map E(a, m) &rarr; E(a', m') with m' &asymp; 4m/3 and a counter a that changes by +6, &minus;1 or +4 according to m mod 3 (Lean, kernel-checked for all a &ge; 1 and m &ge; 2). The machine can only halt if the counter runs out; Lean checks that it does not in the first 20,000 map steps (more than 10<sup>5000</sup> machine steps). The counter drifts up by 3 per step, so the chance that it ever comes back down to 0 is about 10<sup>&minus;28,000</sup>: the same kind of question as Antihydra.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The E-step map, for every counter and gap</h3>
+        <p>With E(a, m) = <code>1 0 0 (10)^a 0^m E&gt; 1</code> on blank tape: for a &ge; 1 and m &ge; 2 the machine goes to E(a+6, 4k+4) if m = 3k, to E(a&minus;1, 4k+7) if m = 3k+1, and to E(a+4, 4k+4) if m = 3k+2, in exactly 4k&sup2;+23k+16a+94, 4k&sup2;+23k+28 and 4k&sup2;+23k+8a+56 steps. Proved from symbolic rules (a loop that turns three 0s of the gap into two <code>10</code>, iterated by induction, and the three ends) for all values.</p>
+        <p class="where"><code>emap_sound</code>, <code>lean/Map.lean</code>; rules in <code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The run from blank tape follows the map</h3>
+        <p>The machine reaches E(4, 124) at step 9,008, and from there the run is the orbit of (4, 124) under the map for as long as the counter stays positive. Hence: if the counter never runs out, the machine never halts.</p>
+        <p class="where"><code>blank_reaches_E</code>, <code>orbit_sound</code>, <code>not_halts_of_good</code>, <code>lean/Orbit.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 1,000 map steps (more than 10<sup>250</sup> machine steps)</h3>
+        <p>The counter stays positive for the first 1,000 E-steps, evaluated by the kernel; the step count reached has more than 250 digits.</p>
+        <p class="where"><code>orbit_kernel</code>, <code>no_halt_kernel</code>, <code>kernel_bound</code>, <code>lean/Orbit.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -111,28 +126,33 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 20,000 map steps (more than 10<sup>5000</sup> machine steps)</h3>
+        <p>The same check for 20,000 E-steps with <code>native_decide</code>; the counter is then 60,462.</p>
+        <p class="where"><code>orbit_native</code>, <code>no_halt_native</code>, <code>native_bound</code>, <code>lean/Orbit.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 42,637 cells have been visited and 19,809 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>10<sup>6</sup> map steps without the counter running out</h3>
+        <p>Python iterates the map (exact big integers) 10<sup>6</sup> steps past the E-event at step 1.08&middot;10<sup>10</sup>; the counter never goes below 58. The map was also checked against direct simulation: 25 consecutive E-events of the run from blank tape (up to 1.1&middot;10<sup>10</sup> steps, step counts exact) and 546 starts E(a, m) with 1 &le; a &le; 7, 2 &le; m &le; 79.</p>
+        <p class="where"><code>py/emap.py far</code>, <code>py/emap.py blank</code>, <code>py/emap.py grid</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: exp/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.087). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.505).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Probviously non-halting: a random walk drifting away from 0</h3>
+        <p>If m mod 3 behaves like a fair three-sided die, the counter is a random walk with steps +6, &minus;1, +4 (drift +3). The chance of ever coming down by d is about &lambda;<sup>d</sup> with &lambda; = 0.33489 the root in (0,1) of &lambda;<sup>7</sup>+&lambda;<sup>5</sup>+1 = 3&lambda;: about 10<sup>&minus;27.6</sup> from a = 58 at 1.08&middot;10<sup>10</sup> steps and about 10<sup>&minus;28,700</sup> from a = 60,462 where Lean leaves it. bbchallenge lists the machine as an Antihydra-like cryptid (Racheline, November 2024).</p>
+        <p class="where">README, <code>holdouts/known.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known: it halts only if the counter of a Collatz-like orbit runs out (and then only in some cases: at a = 0 with m = 1 mod 3 some gaps halt, others turn into a translated cycler or restart the counter). Deciding this is a problem of the Antihydra kind.</p>
       </div>
     </div>
   </section>
@@ -140,7 +160,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB 1000000000</code></pre>
+python3 holdouts/1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB/py/emap.py blank 1.1e10
+python3 holdouts/1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB/py/emap.py far 1000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -1,6 +1,9 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G07",
+ "family": "Collatz-like (3z/2) phases with a growing block stack",
+ "summary": "Phases in which a zero block z becomes about 3z/2 (z = 4k+1 gives 6k+1, z = 4k+3 gives 6k+7), while a stack of blocks on its left records z mod 4; the stack is rewritten only near its right end, and 900 phases (about 10^319 steps, reduced simulation) show no halt; open.",
+ "decision": "open",
  "title": "What is known about 1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA.",
  "machine": "1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA",
@@ -12,7 +15,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The run is a sequence of phases whose length grows by a factor of about 9/4 each time, driven by a Collatz-like map z &rarr; about 3z/2 on one zero block. Simulating the phases with a reduced (small stand-in) zero block, no halt occurs in the first 900 phases, roughly 10<sup>319</sup> steps; that reduction is checked against full simulation for the first 25 phases but not proved."
  ],
  "claims": [
   {
@@ -46,45 +49,135 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "The sweep rule",
+   "text": "For all a, b and any tape L on the left: <code>L (00)^(a+2) (11)^(b+3) A&gt;</code> followed by blank tape reaches <code>L (00)^a 1^(2b+12) A&gt;</code> in 10b + 38 steps. This is one sweep of a phase: four 0s eaten, six 1s gained.",
+   "where": "<code>sweep</code>, <code>lean/Sweep.lean</code> (written by <code>bbtools.symtm.prove</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Phases match direct simulation",
+   "text": "The phase structure (start <code>P 0^z B&gt;</code>, z' = zmap(z) + c) was checked cell for cell for the first 26 phases, with the true z, by <code>c/phase.c</code>; the phase starts are at steps 218, 546, 1220, 2618, 5394, 10908, &hellip; as in the plain simulator.",
+   "where": "<code>py/check_full.py</code>, <code>c/phase.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No halt in the first 742 phases (about 10<sup>264</sup> steps)",
+   "text": "Each phase is computed with a stand-in zero block of the same residue mod 4, larger than the prefix (rechecked every 25 phases with one twice as large), while the true z is carried exactly. No phase halts; z reaches 133 digits. The stand-in rests on the observation, not a proof, that a phase depends on z only through z mod 4 once z is large.",
+   "where": "<code>py/drive.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The sweep rule",
+   "text": "For all a, b and any tape L on the left: <code>L (00)^(a+2) (11)^(b+3) A&gt;</code> followed by blank tape reaches <code>L (00)^a 1^(2b+12) A&gt;</code> in 10b + 38 steps. This is one sweep of a phase: four 0s eaten, six 1s gained.",
+   "where": "<code>sweep</code>, <code>lean/Sweep.lean</code> (written by <code>bbtools.symtm.prove</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Phases match direct simulation",
+   "text": "The phase structure (start <code>P 0^z B&gt;</code>, z' = zmap(z) + c) was checked cell for cell for the first 21 phases, with the true z, by <code>c/phase.c</code>; the phase starts are at steps 218, 546, 1220, 2618, 5394, 10908, &hellip; as in the plain simulator.",
+   "where": "<code>py/check_full.py</code>, <code>c/phase.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No halt in the first 742 phases (about 10<sup>264</sup> steps)",
+   "text": "Each phase is computed with a stand-in zero block of the same residue mod 4, larger than the prefix (rechecked every 25 phases with one twice as large), while the true z is carried exactly. No phase halts; z reaches 133 digits. The stand-in rests on the observation, not a proof, that a phase depends on z only through z mod 4 once z is large.",
+   "where": "<code>py/drive.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The sweep rule",
+   "text": "For all a, b and any tape L on the left: <code>L (00)^(a+2) (11)^(b+3) A&gt;</code> followed by blank tape reaches <code>L (00)^a 1^(2b+12) A&gt;</code> in 10b + 38 steps. This is one sweep of a phase: four 0s eaten, six 1s gained.",
+   "where": "<code>sweep</code>, <code>lean/Sweep.lean</code> (written by <code>bbtools.symtm.prove</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Phases match direct simulation",
+   "text": "The phase structure (start <code>P 0^z B&gt;</code>, z' = zmap(z) + c) was checked cell for cell for the first 25 phases, with the true z, by <code>c/phase.c</code>; the phase starts are at steps 218, 546, 1220, 2618, 5394, 10908, &hellip; as in the plain simulator.",
+   "where": "<code>py/check_full.py</code>, <code>c/phase.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No halt in the first 900 phases (about 10<sup>319</sup> steps)",
+   "text": "Each phase is computed with a stand-in zero block of the same residue mod 4, larger than the prefix (rechecked every 25 phases with one twice as large), while the true z is carried exactly. No phase halts; z reaches 160 digits. The stand-in rests on the observation, not a proof, that a phase depends on z only through z mod 4 once z is large.",
+   "where": "<code>py/drive.py</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. Halting needs state C on a 0 with <code>0 1</code> to its left. It would have to come from a phase end that walks unusually deep into the stack; no phase end has rewritten more than the last 7 blocks (106 cells) of it, and its first 60 cells have not changed since phase 5.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA 1000000000",
+  "gcc -O2 -o phase holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/c/phase.c && python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/drive.py 200 out.txt",
+  "python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/check_full.py out.txt 20 ./phase",
+  "gcc -O2 -o phase holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/c/phase.c && python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/drive.py 200 out.txt",
+  "python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/check_full.py out.txt 20 ./phase",
+  "gcc -O2 -o phase holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/c/phase.c && python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/drive.py 200 out.txt",
+  "python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/check_full.py out.txt 20 ./phase"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine runs in <em>phases</em>: in each one a block of 0s is eaten four cells per sweep while a block of 1s grows six cells per sweep, and the 1s then turn into the next, half-again-larger block of 0s. The page runs the real machine and explains the phases.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 40,047 cells visited."
-   },
-   {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
     "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "900 phases",
+    "text": "No halt in about 10<sup>319</sup> steps (reduced phase simulation)."
+   },
+   {
+    "level": "trusted",
+    "value": "z &rarr; ~3z/2",
+    "text": "The zero block of each phase is half again as long as the last."
+   },
+   {
+    "level": "kernel",
+    "value": "sweep rule",
+    "text": "One sweep proved in Lean for every size."
    }
   ],
   "presets": [
    1000,
-   100000,
+   50000,
    1000000
   ],
   "spacetime": {
-   "steps": 20000
+   "steps": 60000
   },
   "sections": [
+   {
+    "id": "phases",
+    "eyebrow": "Macro structure",
+    "heading": "Phases: eating zeros, growing ones",
+    "html": [
+     "<p>Look at the tape whenever the head reaches a new cell on the right. After the first few hundred steps it always has the form <code>P 0^z 1^b</code>, where P is a short, fixed-looking prefix. Each sweep the head zig-zags left through the 1s, bites four 0s off the zero block and comes back, leaving the 1s six cells longer: <code>0^z 1^b</code> becomes <code>0^(z-4) 1^(b+6)</code>. Lean proves this sweep for every size.</p>",
+     "<svg viewBox=\"0 0 560 150\" role=\"img\" aria-label=\"a phase: the zero block shrinks by 4 and the block of ones grows by 6 each sweep\" style=\"width:100%;max-width:560px;height:auto;font:12px var(--mono)\">\n<rect x=\"10\" y=\"20\" width=\"90\" height=\"26\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"55\" y=\"38\" text-anchor=\"middle\" fill=\"var(--fg2)\">P</text>\n<rect x=\"100\" y=\"20\" width=\"300\" height=\"26\" fill=\"var(--cell0)\" stroke=\"var(--line-strong)\"/><text x=\"250\" y=\"38\" text-anchor=\"middle\" fill=\"var(--fg2)\">0^z</text>\n<text x=\"410\" y=\"38\" fill=\"var(--head)\">B&gt;</text>\n<rect x=\"10\" y=\"70\" width=\"90\" height=\"26\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"55\" y=\"88\" text-anchor=\"middle\" fill=\"var(--fg2)\">P</text>\n<rect x=\"100\" y=\"70\" width=\"180\" height=\"26\" fill=\"var(--cell0)\" stroke=\"var(--line-strong)\"/><text x=\"190\" y=\"88\" text-anchor=\"middle\" fill=\"var(--fg2)\">0^(z-4j)</text>\n<rect x=\"280\" y=\"70\" width=\"190\" height=\"26\" fill=\"var(--ink)\" stroke=\"var(--ink)\"/><text x=\"375\" y=\"88\" text-anchor=\"middle\" fill=\"var(--cell0)\">1^(6j+...)</text>\n<text x=\"480\" y=\"88\" fill=\"var(--head)\">A&gt;</text>\n<rect x=\"10\" y=\"120\" width=\"100\" height=\"26\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"60\" y=\"138\" text-anchor=\"middle\" fill=\"var(--fg2)\">P&#8242;</text>\n<rect x=\"110\" y=\"120\" width=\"440\" height=\"26\" fill=\"var(--cell0)\" stroke=\"var(--line-strong)\"/><text x=\"330\" y=\"138\" text-anchor=\"middle\" fill=\"var(--fg2)\">0^z&#8242;,  z&#8242; &#8776; 3z/2</text>\n</svg>",
+     "<p>When fewer than four 0s are left (one or three, since z is odd), the head walks into P, changes its right end, and on the way back turns the whole block of 1s into 0s. That starts the next phase with a zero block about one and a half times as long:</p>",
+     "<p class=\"config\">z = 4k+1 &rarr; z' = 6k+1 &nbsp;&nbsp; z = 4k+3 &rarr; z' = 6k+7</p>",
+     "<p>So z runs 11, 19, 31, 49, 73, 109, 163, 247, 373, 559, 841, &hellip; a Collatz-like map, z' &asymp; 3z/2, whose residue mod 4 behaves like a coin toss (466 phases with z &equiv; 1, 434 with z &equiv; 3 in the first 900). A phase takes about 9/4 times as many steps as the last; the phase starting at z begins near step 0.77&middot;z<sup>2</sup>.</p>"
+    ]
+   },
+   {
+    "id": "stack",
+    "eyebrow": "The prefix",
+    "heading": "A stack that remembers the residues",
+    "html": [
+     "<p>The prefix P is a list of blocks, 1s in multiples of 6 and even runs of 0s: after phase 30 it looks like <code>1^6 0^24 1^6 0^24 1^12 0^18 1^6 0^4 1^12 0^18 1^6 0^4 1^6 0^10 1^6 0^8 1^6 0^4 1^6</code>. Each phase end rewrites only its last few blocks, depending on z mod 4: with z &equiv; 3 the last zero block shrinks by 4 and the last block of 1s grows by 8 (the same game one level down); with z &equiv; 1 a new pair <code>0^12 1^6</code> or similar is split off. When an inner zero block runs out, the head reaches one level deeper and the next zero block of the outer phase gets a small bonus c (62 five times, and 56, 98, 146, 26 and 50 once each, in the first 900 phases; 0 in all the others).</p>",
+     "<p>P grows by about 4.5 cells per phase, 4,056 cells after 900 phases, and its first 60 cells have not changed since phase 5. The machine halts only if state C reads a 0 with <code>0 1</code> to its left; that never happens inside a sweep, so a halt would have to come from one of these phase-end walks into the stack.</p>"
+    ]
+   },
+   {
+    "id": "far",
+    "eyebrow": "Evidence",
+    "heading": "Simulating 10<sup>319</sup> steps",
+    "html": [
+     "<p>Phases grow too fast for direct simulation (phase 26 is already about 10<sup>10</sup> steps). But a phase seems to depend on its zero block only through z mod 4, as long as z is larger than anything in P. So <code>py/drive.py</code> runs each phase with a small stand-in zero block of the right residue and carries the true z exactly as a big integer. The first 25 phases were also run full size and agree. In this way 900 phases ran without a halt, by then z has 160 digits and the machine has made about 10<sup>319</sup> steps.</p>",
+     "<p>What is missing for a proof: (1) prove the phase-end walks for general z (a fixed number of shift rules per prefix shape), and (2) understand the stack well enough to show the halting pattern can never appear, which looks like a question about the coin-toss sequence z mod 4, the kind of question that is open for Collatz-like maps.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",

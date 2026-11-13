@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> A block of 1s grows by two each sweep; the 2,987-cell region behind it (from sweep 1482) is transformed by a fixed map, checked against direct simulation for 6,000 sweeps. The counter inside it advances very regularly, about 28 cells per doubling of the number of sweeps; after 3&middot;10<sup>7</sup> sweeps (about 1.7&middot;10<sup>15</sup> steps) it is still 2,346 cells from the far end, where a halt (<code>B&gt;1 1 0</code>) could happen. At that speed the next event is about 2<sup>80</sup> sweeps away.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,9 +119,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 39,306 cells have been visited and 26,537 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The sweep map ignores the block</h3>
+        <p>At each visit of the left end in state D the tape is <code>D&gt;0 1^n R</code>; with the block cut to 40 or 41 cells at every visit, R agrees with the true run at all of the first 6,000 visits except the events at visits 97 and 1481.</p>
+        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code>, <code>check</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt and no event in 3&middot;10<sup>7</sup> sweeps</h3>
+        <p>From visit 1490 the shortened run makes 3&middot;10<sup>7</sup> sweeps (about 1.7&middot;10<sup>15</sup> steps of the true run) with R constant (2,987 cells) and no halt.</p>
+        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>Next event about 2<sup>80</sup> sweeps away</h3>
+        <p>The front advances in steps of 12, 24, 36 cells per doubling (683 cells deep after 2<sup>24</sup> sweeps) with about 2,300 cells to go.</p>
+        <p class="where">FRONT=1 runs of resetsim</p>
+      </div>
       <div class="card">
         <h3>Growth shape: fixed/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.428). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
@@ -132,7 +147,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The run is a fixed map applied to a region of fixed length, interrupted by rare events whose spacing grows exponentially; whether some event halts is not known.</p>
       </div>
     </div>
   </section>
@@ -140,6 +155,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD/lean/check.sh
+gcc -O2 -o resetsim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c -I tools/c
+./resetsim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD L D 1 40 2 6000 check
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD 1000000000</code></pre>
   </section>
   <footer>

@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine keeps a list of blocks of <code>01</code>s that grows at the right end; little markers travel through the list and nudge the block lengths, and the far end of the list freezes.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 139,537 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>shift rules</b><span class="small">How the head crosses the (01) background, proved for every length.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>11</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>mirror twin</b><span class="small">Same rule table as 1RB0LE_0RC0RA&hellip;, reflected.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#markers">Markers running through a list</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="markers">
+  <span class="eyebrow">Emergent behaviour</span>
+  <h2>Markers running through a list</h2>
+<figure style="margin:1em 0"><img src="defects.png" alt="defect picture of 1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB" style="width:100%;max-width:900px;image-rendering:pixelated;border:1px solid var(--line);background:#fff"/><figcaption style="font-size:0.9em;color:var(--muted)">Defect picture of the first 3&middot;10<sup>7</sup> steps (time runs down, rows at equal step spacing); white where the tape repeats with period 2, dark at markers and block boundaries.</figcaption></figure>
+<p>Read at the moments the head reaches the growing end, the tape is <code>(01)^n1 0 (01)^n2 0 &hellip;</code> with a handful of markers in place of some single 0s. The head crosses each block in two steps per copy (proved), and at a marker it turns or changes phase; each sweep moves markers by a block or so and changes the lengths of the blocks around them.</p>
+<p>Early on (up to about 2&middot;10<sup>6</sup> steps) the blocks change by &minus;1, +2, &minus;2, +2 on alternate passes, and all signs flip when the first block is absorbed at the end wall. Later a zone of active markers changes blocks by multiples of 15 while the rest of the list stays frozen. How these signals are generated and what they compute is the next thing to work out.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +242,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 139,537 cells have been visited and 69,737 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.095). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.517).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code></div></div><div><b>Shift rules over the (01) background</b><p>How the head crosses <code>(01)^n</code> and <code>(10)^n</code> in each direction, for every n (2n steps each).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/c/longrun.c</code></div></div><div><b>No halt in the first 10<sup>11</sup> steps</b><p>A plain C simulator (<code>longrun.c</code>, on <code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps from blank tape without a halt; at the end the head has visited cells -296 to 856,865 and 428,540 cells hold a 1.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">README.md</div></div><div><b>Same rule table as 1RB0LE_0RC0RA_1LC1RD_0LB0LE_1LA0LF_1LE---</b><p>Reflecting the tape and renaming the states turns this machine into <code>1RB0LE_0RC0RA_1LC1RD_0LB0LE_1LA0LF_1LE---</code>; this machine starts in the state that corresponds to F there. The two runs from blank tape are different orbits of the same rule table (they do not meet in the first 2&middot;10<sup>4</sup> steps), with the same kind of behaviour.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">the picture <code>defects.png</code></div></div><div><b>Frozen list, active front</b><p>In the defect picture the walls far from the growing end stop moving while new ones are born at that end and slow down as they move inward. This is the shape of a counter-like process, with no visible drift toward a halting configuration.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w">README.md, Further work</div></div><div><b>Does it halt from blank tape?</b><p>Not known. The marker dynamics on the list has not been reduced to a map.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB 1000000000
+python3 holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/py/gen_rules.py      # rewrites lean/Rules.lean</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

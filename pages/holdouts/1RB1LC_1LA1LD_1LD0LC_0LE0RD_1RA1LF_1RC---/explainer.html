@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine keeps a stack of blocks on its tape. Round after round it eats the top block one word at a time, which is a Lean theorem for all sizes. When the top block is gone, an epoch ends and a new, larger top is built from the stack. That step follows a Collatz-like rule that is not worked out yet.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 44,794 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>1 round</b><span class="small">One round of an epoch, proved for all sizes.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>6641</b><span class="small">Top of the stack at the epoch that starts at step 2.9&middot;10<sup>9</sup>.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#round">A round eats one word of the top block</a><a href="#epochs">Epochs on a stack</a><a href="#open">Where a halt would have to come from</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="round">
+  <span class="eyebrow">The basic move</span>
+  <h2>A round eats one word of the top block</h2>
+<p>Write p = <code>10110</code>, q = <code>10000</code>, S = <code>1011</code>, r = <code>1000</code>. At the start of each round the head is in state D at the left end and the tape reads</p><pre>0 q 0 p^a S p^b S q^c r q^c1 r q^c2 r ... (tail)</pre><p>The head sweeps right to the q-block, turns its first q into a p and comes back, adding a p at the left as well: <code>p^(a+1) S p^(b+1) S q^(c-1)</code>. This is the theorem <code>round</code> (50a + 50b + 287 steps for b &ge; 1), for every tape to the right. So the tape grows by 5 cells a round, and a round costs about ten steps per word of the p-zone.</p>
+</section>
+<section id="epochs">
+  <span class="eyebrow">The emergent behaviour</span>
+  <h2>Epochs on a stack</h2>
+<p>When the top block q^c is used up, an epoch ends. The machine walks into the stack, turns the p's back into q's and builds a new top. The next epoch starts again with <code>D&gt; 0 q 0 S p^3 S</code>, and a stack whose top is much larger:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>epoch starts at step</th><th>stack, top first</th></tr></thead><tbody><tr><td>16,041</td><td>9 r 6 r 3 r 1 r 1 ...</td></tr><tr><td>62,133</td><td>25 r 12 r 6 r 3 r 4 ...</td></tr><tr><td>214,904</td><td>50 r 28 r 12 r 6 r 3 r 2 ...</td></tr><tr><td>774,673</td><td>102 S 53 S 28 S 12 S 6 S 3 ... (S-type)</td></tr><tr><td>2,911,979</td><td>306 r 53 r 28 r 12 r 6 r 3 r 6 ...</td></tr><tr><td>11,690,814</td><td>414 r 309 r 53 r 28 ...</td></tr><tr><td>46,478,522</td><td>829 r 417 r 309 r 53 ...</td></tr><tr><td>184,543,635</td><td>1658 S 832 S 417 S 309 ... (S-type)</td></tr><tr><td>735,578,720</td><td>4975 r 832 r 417 r 309 ...</td></tr><tr><td>2,944,031,436</td><td>6641 r 4978 r 832 r 417 ...</td></tr></tbody></table></div><p>The old entries are kept or grow by 3. The new top is about twice or three times the old one (25 to 50, 414 to 829, 829 to 1658, 1658 to 4975 = 3&middot;1658 + 1), or about the sum of the stack. Which one happens depends on the epoch type (r or S separators) and on the entries further down. Each epoch about doubles the tape and costs about four times as many steps, so the tape grows like the square root of the step count (on the left, where the head turns); the other end hardly moves.</p>
+</section>
+<section id="open">
+  <span class="eyebrow">Why it is open</span>
+  <h2>Where a halt would have to come from</h2>
+<p>The only halting transition is F on a 1. F is entered only from E reading a 1, so a halt needs E on a 1 with a 1 to its left. The proved round never does that, so a halt could only come at the end of an epoch. The next step is to prove the end of an epoch with symtm, at least for the two types seen, and to turn the stack update into a map that can be iterated (see the README).</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +250,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 44,794 cells have been visited and 13,753 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.488). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.024).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>round</code>, <code>lean/Rules.lean</code></div></div><div><b>One round of an epoch</b><p>From state D at the left end of <code>0 q 0 p^a S p^(b+1) S q^(c+1) R</code> (p = <code>10110</code>, q = <code>10000</code>, S = <code>1011</code>) the machine reaches state D at the left end of <code>0 q 0 p^(a+1) S p^(b+2) S q^c R</code> in 50a + 50b + 287 steps, for every a, b, c and every tape R to the right.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/tok.c</code> (direct simulation, 3&middot;10<sup>9</sup> steps)</div></div><div><b>Epochs on a stack of q-blocks</b><p>An epoch starts at <code>D&gt; 0 q 0 S p^3 S q^(c0) r q^(c1) r q^(c2) ...</code> (or with S in place of r). The first block c0 at successive epochs went 3, 9, 25, 50, 102, 306, 414, 829, 1658, 4975, 6641 (step 2,944,031,436). The older entries of the stack move down unchanged or +3 (829, 832; 414, 417; 306, 309). The new top is close to 2 or 3 times the old one, or to the sum of the stack, depending on the epoch type: the Collatz-like part.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The halting transition is F1, and F is entered only from E reading a 1 (<code>1LF</code>), so a halt needs E on a 1 with a 1 to its left. A round never does that, so a halt could only come at the end of an epoch. The epoch map has not been extracted.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC--- 1000000000
+PYTHONPATH=tools/py python3 holdouts/1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---/py/gen_rules.py   # rewrites lean/Rules.lean
+gcc -O2 -o tok holdouts/1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---/c/tok.c &amp;&amp; ./tok 1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC--- 300000000 at D L p=10110,q=10000,S=1011,r=1000 10000000 | grep -E &#x27;D&gt; 0 q 0 (S p\^3|p) S q&#x27;</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

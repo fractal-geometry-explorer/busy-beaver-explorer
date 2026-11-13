@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The sweep, the phase and the two clean phase ends are proved in Lean for all values (kernel); blank tape reaches the clean regime at step 58,429 (<code>native_decide</code>) and four clean phases follow by the kernel. The exact cycle accelerator runs 10<sup>1000</sup> steps without a halt. The phase end for <i>y</i> ≡ 1 (mod 3) and the resets of deeper levels are not yet closed rules.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>One sweep, for all values</h3>
+        <p>From <code>0^∞ C&gt; 0 1 0 (110)^p 1111 (110)^x 11100 (100)^(y+3) R</code> the machine reaches the same form with <code>(x+4, y)</code> in 8p + 24x + 75 steps, for every p, x, y and every tape R.</p>
+        <p class="where"><code>sweep</code>, <code>lean/Macro.lean</code> (from <code>sweep0/1/2</code>, <code>lean/Rules.lean</code>)</p>
+      </div>
+      <div class="card">
+        <h3>A phase of k sweeps</h3>
+        <p><code>(x, 3k + y)</code> to <code>(x + 4k, y)</code>, by induction on k, with the exact step count <code>pst</code>.</p>
+        <p class="where"><code>phase</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The clean phase ends</h3>
+        <p>When y comes down to 0 or 2 the front level is reset to (0, x) or (0, x + 2), the counter p gains 2 and the next level (z, w) becomes (z + 2, w − 2). Together: on an empty front level y ↦ 4y/3 (y ≡ 0) and y ↦ 4(y − 2)/3 + 2 (y ≡ 2).</p>
+        <p class="where"><code>end0</code>, <code>end2</code>, <code>cleanA</code>, <code>cleanB</code>, <code>lean/Macro.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -111,28 +126,33 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Blank tape enters the clean regime</h3>
+        <p>After 58,429 steps the tape is <code>cfg 2 (lv 0 72 (lv 12 26 (lv 10 3 (lv 2 1 (lv 2 0 (lv 2 0 11))))))</code>; four clean phases (kernel) take y through 72, 96, 128, 170, 226 and reach step 399,523, exactly where the simulator sees that tape.</p>
+        <p class="where"><code>start</code>, <code>clean_chain</code>, <code>lean/Start.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 46,692 cells have been visited and 18,015 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 10<sup>1000</sup> steps</h3>
+        <p>The shared cycle accelerator (<code>bbtools.cycles</code> on 3-cell blocks; every jump applies a cycle rule proved symbolically) runs 10<sup>1000</sup> steps in about seven minutes, with 5,609 rules and 3,726 jumps, and no halt.</p>
+        <p class="where"><code>py/run_accel.py 1000</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.604). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A Collatz-like counter</h3>
+        <p>The residue of y mod 3 at the end of each phase looks irregular; y ≡ 1 starts a secondary bouncer that rebuilds the left part, and the run returns to the clean form with p = 0. Levels further right are reset in turn, each a bit longer than before.</p>
+        <p class="where">README</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It halts exactly when D reads a 1 with a 1 to its left (C at <code>1 1 C&gt;1</code> or E at <code>1 1 E&gt;0</code>); the proved rules never do that, but the y ≡ 1 regime and the deep resets are not closed rules yet.</p>
       </div>
     </div>
   </section>
@@ -140,7 +160,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB--- 1000000000</code></pre>
+python3 holdouts/1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---/py/gen_rules.py
+python3 holdouts/1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---/py/run_accel.py 1000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

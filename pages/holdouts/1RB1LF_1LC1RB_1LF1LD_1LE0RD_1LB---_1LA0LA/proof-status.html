@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA</p>
     <h1>What is known about 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA</h1>
     <p class="machine">1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Seen in pairs of cells, each visit of the growing left end applies one recursive map to the tape; that map runs a counter in base 4 whose levels are long blocks of the word 111010. The counter itself can never halt; what the head does on the rare occasions it reaches the right end is not understood.</p>
+    <p class="asof">Status as of 12 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The map from one wall visit to the next is known exactly as a recursion on words of pairs, and the four phases of the counter are proved in Lean for every block length and every tape to the right. Direct simulation runs 2·10<sup>10</sup> steps without a halt. But there are words of pairs on which a visit halts (proved in Lean), so everything depends on the words the right-end events leave behind.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The pair moves</h3>
+        <p>With X = 10, Y = 11, O = 00: F moving left swaps X and Y and turns round on a blank pair (<code>reflect</code>, <code>flipX0/1</code>, <code>flipY0/1</code>); <code>Y B&gt; X X</code> becomes <code>&lt;F Y Y Y</code> (<code>turn0/1</code>); <code>Y B&gt; X Y<sup>d</sup> X</code> becomes <code>X O<sup>d-1</sup> Y Y Y B&gt;</code> (<code>digit1</code>, <code>digit</code>). For every count and every surrounding tape.</p>
+        <p class="where"><code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The first-block counter, phase by phase</h3>
+        <p><code>bounce</code>, <code>phase1</code>, <code>phase2</code>, <code>phase4_in</code>, <code>phase4_out</code>: eight wall visits take <code>000 (1 0)<sup>n</sup> 0000000 R</code> (digits) to <code>000 (1 0)<sup>n+2</sup> 0000000 R'</code>, for every n and every tape R, in 104n + 407 steps plus the time spent in R; R' is what one visit makes of R.</p>
+        <p class="where"><code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A word of pairs that halts</h3>
+        <p>The wall visit of the tape <code>X Y^7 X X</code> halts after 253 steps. It is not a tape of the run from blank; it shows that the pair structure alone does not exclude a halt.</p>
+        <p class="where"><code>pure_tape_halts</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +134,40 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 56,686 cells have been visited and 39,117 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
-    </div>
-    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
-    <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.57). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Where a halt can come from</h3>
+        <p>A closed tape language from windows of 6 cells (closed: yes) covers the run; the only places it lets the halting transition E1 fire are E reading a 1 with the abstract left side in a window of 0s, followed by at least six 1s. With windows of 4 and 8 the same picture.</p>
+        <p class="where"><code>python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 6   # from tools/py</code></p>
+      </div>
+      <div class="card">
+        <h3>An exact accelerated simulator</h3>
+        <p><code>py/blocksim.py</code> keeps the tape as runs of <code>111010</code> and crosses each run with a shift rule; at every visit of the left wall up to 2·10<sup>6</sup> steps its tape equals the C simulator's (<code>py/bscheck.py</code>).</p>
+        <p class="where"><code>py/blocksim.py</code>, <code>py/bscheck.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The visit map is a recursion on words</h3>
+        <p>V(S) = G(S) with G(Y<sup>a</sup> X X U) = X<sup>a</sup> Y Y Y U, G(Y<sup>a</sup> X Y<sup>k</sup> X U) = X<sup>a</sup> Y G<sup>k</sup>(Y Y U), G(Y<sup>a</sup>) = X<sup>a</sup> Y Y: checked against the machine on 20,000 random words and on every covered wall visit of the run from blank tape (the recursion does not cover the right-end events).</p>
+        <p class="where"><code>py/gmodel.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in direct simulation</h3>
+        <p>The C simulator runs 2·10<sup>10</sup> steps from blank tape without a halt; the head reaches the right end of the tape at steps 1,937, 57,942, 61,755, 63,313, 83,647, 125,133, 48,737,226.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
       </div>
     </div>
+    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
+    <p class="empty">Nothing yet.</p>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The counter cannot halt; a right-end event could leave a halting word, and no rule for these events is known.</p>
+        <p class="where">README</p>
+      </div>
+      <div class="card open">
+        <h3>The right-end events</h3>
+        <p>When the last level of the counter overflows the head reaches the blank right end in D; what follows (parity changes, blank stretches inside the tape, resets of the counter) has no known rule, and it decides whether a halting word ever appears.</p>
+        <p class="where">README, Next steps</p>
       </div>
     </div>
   </section>
@@ -140,7 +175,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 1000000000</code></pre>
+cd holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/py &amp;&amp; python3 rules.py &gt; ../lean/Rules.lean
+python3 gmodel.py 3000000
+gcc -O2 -o tmrun ../../../tools/c/tmrun.c &amp;&amp; TMRUN=./tmrun python3 bscheck.py 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 111010 F L 2000000
+cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 6</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

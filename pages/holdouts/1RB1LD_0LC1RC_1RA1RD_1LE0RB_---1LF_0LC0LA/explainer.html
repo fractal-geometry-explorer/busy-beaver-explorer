@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine runs in phases: a run of long blocks 1^11 is eaten and turned into short blocks 1^5 at a fixed rate, 3 for 8; then the short blocks are folded back into long ones and a new phase starts, about 4/3 larger. Seven sweeps are proved in Lean; the phase map is not worked out yet.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 42,914 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>7 sweeps</b><span class="small">Shift rules over the left zone, proved for all sizes.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>&times;4/3</b><span class="small">Growth from one phase to the next.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Short blocks, a gadget and long blocks</a><a href="#phases">Phases that grow by about four thirds</a><a href="#open">Where a halt would have to come from</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>Short blocks, a gadget and long blocks</h2>
+<p>Read from the left end, the tape at a typical moment is</p><pre>0 0 (0 1^5)^a   [gadget]   0 1^15 (0 1^11)^b   [tail]</pre><p>with a gadget of a few blocks of length 5, 7, 9, 11, 13 or 17 that cycles through 12 shapes, and a tail of a few more odd blocks. The head walks from the left end to the gadget and back again and again. On each walk it crosses the zone of short blocks several times and re-encodes it as it goes. Pairs <code>011111 011111</code> become <code>101011011011</code>, then other 12-cell words, and finally the pairs again. These crossings are the seven shift rules in <code>lean/Rules.lean</code>.</p>
+</section>
+<section id="phases">
+  <span class="eyebrow">The emergent behaviour</span>
+  <h2>Phases that grow by about four thirds</h2>
+<p>Every 12 visits to the left end the gadget is back in the same shape, the short run is 16 blocks longer and the long run is 6 blocks shorter: three long blocks (36 cells) become eight short ones (48 cells). When the long run is used up, the short run is folded into about half as many long blocks and the next phase starts with 9 short blocks:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>phase starts at step</th><th>long blocks b</th><th>short blocks at the end</th></tr></thead><tbody><tr><td>39,532,853</td><td>661</td><td>1,751</td></tr><tr><td>71,423,946</td><td>900</td><td>2,391</td></tr><tr><td>126,481,725</td><td>1,197</td><td>3,180</td></tr><tr><td>224,215,632</td><td>1,604</td><td>4,268</td></tr><tr><td>399,346,367</td><td>2,147</td><td>5,718</td></tr><tr><td>710,764,488</td><td>2,868</td><td>7,639</td></tr><tr><td>1,266,145,539</td><td>3,834</td><td>10,215</td></tr><tr><td>2,251,904,944</td><td>5,113</td><td></td></tr></tbody></table></div><p>A phase costs about the square of the tape length, so one side grows like the square root of the step count. The tail at the right end is rewritten at each phase change, and so are the exact offsets: this is where the Collatz-like part sits.</p>
+</section>
+<section id="open">
+  <span class="eyebrow">Why it is open</span>
+  <h2>Where a halt would have to come from</h2>
+<p>The only halting transition is E on a 0. E is entered only from D reading a 0, so a halt needs <code>0 0</code> with D arriving on the right-hand 0. Inside a phase the same 12 shapes repeat, so (given the period rule, which is computed but not checked in Lean) a phase that does not halt in its first period does not halt until it ends. A halt can only come at a phase change. Settling it means working out the phase change exactly (how the tail and the residue of b mod 3 determine the next phase) and iterating that map. See the README.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +250,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 42,914 cells have been visited and 33,496 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.526). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.086).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>bR_f</code>, <code>dL</code>, <code>cR</code>, <code>aL</code>, <code>dR</code>, <code>fL</code>, <code>bR</code>, <code>lean/Rules.lean</code></div></div><div><b>Sweeps over the left zone</b><p>Seven shift rules: the head crosses any number of pairs of blocks <code>0 1^5 0 1^5</code>, or of the 12-cell words they are re-encoded into during a visit, in states B, D, C, A, D, F, B in turn. Each rule turns one 12-cell word into another.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 -m bbtools.cycles MACHINE 12 3e8</code></div></div><div><b>One period of a phase: 6 blocks of 1^11 into 16 of 1^5</b><p>In the middle of a phase the tape at the moment the head is in state C at the left end repeats its shape every 12 such moments: the run of <code>1^5</code> blocks has grown by 16 and the run of <code>1^11</code> blocks has shrunk by 6. <code>bbtools.cycles</code> proves these cycles symbolically, but the Lean files it writes are about a megabyte per rule, so they are not kept or checked.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/tok.c</code> and <code>py/blocks.py</code> (direct simulation, 3&middot;10<sup>9</sup> steps)</div></div><div><b>Phases grow by about 4/3</b><p>A phase starts with 9 blocks of <code>1^5</code> and b blocks of <code>1^11</code> and ends with about 8b/3 blocks of <code>1^5</code>, which are folded into about half as many <code>1^11</code> blocks. The starting b runs 24, 33, 53, 78, 111, 143, 196, 269, 374, 500, 661, 900, 1197, 1604, 2147, 2868, 3834, 5113 (the last at step 2,251,904,944), and the tail of a few odd blocks at the right end is different almost every time.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The halting transition is E0. E is entered only from D reading a 0 (which writes 1 and steps left), so a halt needs D to read a 0 with another 0 to its left. Whether a phase change, which depends on the tail and on residues of b, can ever produce that is open.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA 1000000000
+PYTHONPATH=tools/py python3 holdouts/1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA/py/gen_rules.py   # rewrites lean/Rules.lean
+gcc -O2 -o tok holdouts/1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA/c/tok.c &amp;&amp; ./tok 1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA 300000000 at C L &#x27;&#x27; 100000000 | python3 holdouts/1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA/py/blocks.py</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

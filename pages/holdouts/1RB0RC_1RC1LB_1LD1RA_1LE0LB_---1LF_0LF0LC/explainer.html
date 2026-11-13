@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Layers of 1110 and 111100</a><a href="#edge">A few cells that count epochs</a><a href="#halting">Only at the left edge</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,24 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape looks like</span>
+  <h2>Layers of 1110 and 111100</h2>
+<p>The head reaches a new cell at the left end only rarely (16 times in 10<sup>10</sup> steps, each about 7.7 times later than the one before). At those moments, writing t = <code>1110</code>, u = <code>111100</code> and t<sup>k</sup> as the number k, the tape is:</p>
+<div class="config">step 225,725: &nbsp; 0111101100 u9u1u15u1u15u1uu2u1u4u1u2uu4u1u2uu4u&hellip;u1u111<br>step 1,519,748: 01111111111100 2u14u1(u15u1)^5 uu2u1u4u1(u2uu4u1)^19 &hellip;<br>step 11,381,069: 0111111100 1u5u1(u15u1)^15 uu2u1u4u1(u2uu4u1)^56 &hellip;</div>
+<p>Each epoch the sweeps of the head between the ends rewrite the layers, and the repeat counts grow about 2.8 times (2, 5, 15, 40, 114 for the outer layer). The tape width grows the same way: 597, 1533, 4173, 11509, 31981.</p>
+</section>
+<section id="edge">
+  <span class="eyebrow">The left end</span>
+  <h2>A few cells that count epochs</h2>
+<p>The left 6 to 8 cells change only when the head comes back to the left end, and they run through a short cycle of patterns built from pairs <code>11</code> and <code>01</code> (<code>110101</code>, <code>110111</code>, <code>111101</code>, <code>111111</code>, then a longer prefix), much like a small binary counter. The leftmost written cell always holds a 1 while the head is to its right.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Can it halt?</span>
+  <h2>Only at the left edge</h2>
+<p>The only halt is E reading a 0. Lean proves, from a closed tape language with windows of 4 cells, that any halt from blank tape has nothing but blank cells to the left of the head. By hand: the way to get there is F stepping onto the leftmost cell and reading its 1; then F writes 0 and goes left as C, C writes 1 and goes left as D, D writes 1 and goes left as E, and E halts on a blank cell.</p>
+<p>F has come to the second cell 4 times in 10<sup>10</sup> steps and to the leftmost cell never. Whether the left-end counter can ever let it is the open question.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,9 +251,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (E0); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_left_blank</code>, <code>lean/HaltLeft.lean</code>, certificate <code>lean/CTL4.lean</code></div></div><div><b>Every halt is at the left edge</b><p>In the run from blank tape, any configuration where the machine halts is in state E reading a 0 with only blank cells to the left of the head. Proved from a closed tape language with windows of 4 cells (472 abstract configurations), whose only halting configurations have a left state that accepts the blank stream alone; <code>halt_left_of</code> is the left-hand mirror of <code>TM.CTL.halt_tail_blank</code>, proved in this folder.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>right_C_100</code>, <code>right_A_001</code>, <code>right_A_1101</code>, <code>lean/Rules.lean</code></div></div><div><b>Shift rules, for every length</b><p>Going right: C turns <code>(100)^n</code> into <code>(111)^n</code>, A turns <code>(001)^n</code> into <code>(111)^n</code> and passes over <code>(1101)^n</code> unchanged; each for every n and every tape around.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 37,093 cells have been visited and 29,159 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.026). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.516).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/leftedge.c</code></div></div><div><b>No halt in 10<sup>10</sup> steps; the left end</b><p><code>c/leftedge.c</code>: 10<sup>10</sup> steps from blank tape without a halt; 16 new leftmost cells (at steps 5, 12, 49, &hellip;, 664,325,733, 5,128,930,040; width 88,956 at the last); the leftmost cell held 1 every time the head was to its right; F stood on the second cell 4 times (reading a 1) and never on the leftmost.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">the transition table</div></div><div><b>Only F on the leftmost cell can halt (by hand)</b><p>An argument by hand, not checked by machine: A is entered only by moving right, so it never stands on the leftmost cell; the 0-writers that do (D on a 1, F) step off it at once, so the leftmost cell holds 1 while the head is to its right. With the Lean result, a halt needs E on a 0 beyond that cell; the one way there is F reading the leftmost 1 (F1 = 0LC), after which C, D and E step onto blank cells and E halts. F on the second cell reading a 0 leads to the same.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">a Python run of <code>bbtools.machine.records</code></div></div><div><b>Layers that grow about 2.8 times per epoch</b><p>At the left-end records, with t = 1110 and u = 111100, the tape is a short left prefix and then layers of periodic words, the outer one with period <code>u t^15 u t</code> and an inner one with period <code>u t u t^2 u u t^4</code>. Their repeat counts at the records from step 225,725 on: 2, 5, 15, 40, 114 and 6, 19, 56, 159, 446; width 597, 1533, 4173, 11509, 31981 (ratio about 2.76); the time between records grows about 7.7 times.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt?</b><p>Not known. What is left is whether the few cells at the left end ever let F reach the leftmost cell (or the second cell on a 0).</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

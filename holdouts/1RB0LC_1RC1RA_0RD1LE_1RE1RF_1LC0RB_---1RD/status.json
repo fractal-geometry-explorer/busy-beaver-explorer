@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G01",
  "title": "What is known about 1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The head shuttles out from the right end over the background word <code>1110111110</code>, which it rewrites in a second phase and back (proved in Lean). It turns back at a defect or passes it depending on the defect's shape, and the excursions follow the ruler sequence of a binary counter whose bits are the defects. At the left end sits a unary counter <code>(0111)^n</code>: n grows by one at each of the rare events at that end (17 events between 3929 and 2.27&middot;10<sup>9</sup> steps, n from 6 to 22). Between the ends, domains of another pattern grow at the right end and dissolve into gliders that travel left."
  ],
  "claims": [
   {
@@ -40,6 +40,30 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "kernel",
+   "title": "The sweeps over the background",
+   "text": "Right: B crosses <code>(1110111110)^n</code> in 22n steps, leaving <code>(0111010111)^n</code>; left: C crosses the same word, leaving <code>(1101110101)^n</code>; and the two rules that restore the word from the other phase (18n steps each).",
+   "where": "<code>b_sweep</code>, <code>c_sweep</code>, <code>a_sweep</code>, <code>c_sweep2</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A unary counter at the left end",
+   "text": "Each time the left end grows (steps 3929, 5610, 11471, 15584, 50005, 101010, 405859, 851096, 2437041, 6477694, 16747343, 27831296, 79148713, 162337150, 471362435, 980924104, 2265696633) it grows by exactly one cell, and the tape there reads <code>0111 01 (0111)^n 0101&hellip;</code> with n one more than at the previous event (n = 6 at 3929, 22 at 2265696633).",
+   "where": "<code>py/analyse.py records</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Excursions follow a binary ruler sequence",
+   "text": "Between consecutive visits of the head to the right end in state B, near 2&middot;10<sup>8</sup> steps, the head turns back after about 900, 15,600, 900, 22,900, 900, 15,600, 900, 28,500, &hellip; cells: the ruler sequence of a binary counter, each defect passing the head on every other visit.",
+   "where": "<code>py/analyse.py excursions</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Domains and gliders",
+   "text": "In the defect picture, regions of a different pattern (black wedges) grow at the right end; when one stops growing, it is eaten from its left edge and sends gliders to the left; gliders slow down near the left end. The intervals between counter events grow irregularly (ratios 1.4 to 4).",
+   "where": "the picture <code>pages/holdouts/1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD/defects.png</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.049). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).",
@@ -48,18 +72,32 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "text": "Not known. Next step: Identify the domain types at the right end and their erosion, the gliders they release, and how a glider increments the counter; then accelerate the run event by event.",
+   "where": "README.md, Further work"
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD 1000000000",
+  "python3 holdouts/1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD/py/rules.py      # rewrites lean/Rules.lean",
+  "python3 holdouts/1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD/py/analyse.py image   # the defect picture",
+  "python3 holdouts/1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD/py/rules.py      # rewrites lean/Rules.lean",
+  "python3 holdouts/1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD/py/analyse.py image   # the defect picture"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine keeps a unary counter at one end of its tape and a repeated 10-cell word everywhere else; patches of another pattern appear at the far end and dissolve into gliders, and every now and then the counter goes up by one.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "4 sweeps",
+    "text": "The head's sweeps over the two phases of the background, proved for every length."
+   },
+   {
+    "level": "trusted",
+    "value": "n = 22",
+    "text": "The left-end counter at 2.3&middot;10<sup>9</sup> steps, up by one per event."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -69,11 +107,6 @@
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +118,17 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "counter",
+    "eyebrow": "Emergent behaviour",
+    "heading": "A counter fed by gliders",
+    "html": [
+     "<figure style=\"margin:1em 0\"><img src=\"defects.png\" alt=\"defect picture of 1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD\" style=\"width:100%;max-width:900px;image-rendering:pixelated;border:1px solid var(--line);background:#fff\"/><figcaption style=\"font-size:0.9em;color:var(--muted)\">One row every 2 visits of the head to the right end, in state B (time runs down), 3&middot;10<sup>7</sup> steps; dark where the background of period 10 is broken. The left end of the tape is at the left.</figcaption></figure>",
+     "<p>Almost everywhere the tape repeats <code>0 1^3 0 1^5</code>. At the right end, now and then, a patch of a different pattern starts growing with the tape (the black wedges). When a wedge stops growing it is eroded from its left side, and the erosion sends gliders to the left (the thin lines). At the left end the tape reads <code>0111 01 (0111)^n</code>: a number n written in unary. It goes up by one at each event at that end:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>n</th></tr></thead><tbody><tr><td>3929</td><td>6</td></tr><tr><td>5610</td><td>7</td></tr><tr><td>11471</td><td>8</td></tr><tr><td>&hellip;</td><td>&hellip;</td></tr><tr><td>471362435</td><td>20</td></tr><tr><td>980924104</td><td>21</td></tr><tr><td>2265696633</td><td>22</td></tr></tbody></table></div>",
+     "<p><b>A binary counter.</b> The head does not cross the whole tape each time. Leaving the right end, around 2&middot;10<sup>8</sup> steps, it turns back after about 900 cells on every other excursion, after about 15,600 on every fourth, 22,900 on every eighth, 26,600 to 29,500 on every sixteenth and beyond: the ruler sequence 1, 2, 1, 3, 1, 2, 1, 4, &hellip; of a binary counter whose bits are the defects, each letting the head through on every other visit. The left end, and with it the unary counter, is reached only when every bit lets the head through: an overflow.</p><p>A halt needs F reading 0, which the background never offers. Whether some glider can bring the right pattern to the head is open.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +142,8 @@
     ]
    }
   ]
- }
+ },
+ "family": "Glider collider with a unary counter (0111)^n at the slow end",
+ "summary": "A bouncer over the period-10 background 0 1^3 0 1^5; the slow left end holds a unary counter (0111)^n that gains one copy at each rare event (n = 22 at 2.3*10^9 steps), fed by gliders and domains coming from the right end.",
+ "decision": "open"
 }

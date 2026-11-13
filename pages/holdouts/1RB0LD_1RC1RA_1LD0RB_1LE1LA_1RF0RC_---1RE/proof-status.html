@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and reduced to a parity question about one fixed integer sequence.</b> Lean proves (kernel) that the machine halts from blank tape <em>if and only if</em> some epoch ends with an even number of <code>1 0</code> pairs (<code>halts_iff</code>), and (<code>native_decide</code>) that the first three epochs end odd, so a halt can come at the end of the fourth epoch at the earliest, after more than 10<sup>79,981</sup> steps; its outcome depends on the parity of a term of the sequence with an index of 39,991 digits, which nobody can compute.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -94,18 +94,38 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-kernel">kernel</span> Proved in Lean, kernel-checked</h3>
     <div class="cards">
       <div class="card">
-        <h3>The halting configurations</h3>
-        <p>The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.</p>
-        <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+        <h3>The macro step</h3>
+        <p>From every phase start <code>0^∞ 1^a 0 0 (10)^K 1^(2j+1) C&gt; 0^∞</code> the machine reaches the next phase start given by <code>mstep</code>, for all a, K, j, or halts exactly when a = 0 and K is even. The pieces (one sweep, the two phase ends, the reset, the halt) are runs proved for all values of the variables.</p>
+        <p class="where"><code>mstep_sound</code>, <code>mstep_halt</code>, <code>lean/Macro.lean</code>; <code>inner</code>, <code>end_even</code>, <code>end_odd</code>, <code>reset_a</code>, <code>reset_b</code>, <code>to_halt</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting reduced to the macro machine</h3>
+        <p>The machine halts from blank tape iff the orbit of <code>mstep</code> from <code>(3, 0, 1)</code> (reached after 18 steps) gets stuck.</p>
+        <p class="where"><code>halts_iff_mstep</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting reduced to a parity question</h3>
+        <p>Let <code>seq</code> be the orbit of the map g(K, j) = (j + 3⌊K/2⌋ + 1, 0) for even K and (j + 3⌊K/2⌋ + 3, 1) for odd K, from (0, 1). The walls are A₁ = 3 and A<sub>i+1</sub> = 2(j + 3⌊K/2⌋) + 7 where (K, j) = seq A<sub>i</sub>, as long as K is odd. The machine halts iff some (seq A<sub>i</sub>).K is even.</p>
+        <p class="where"><code>halts_iff</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The first two epochs</h3>
+        <p>The walls of epochs 2 and 3 are 25 and 227,097 (epochs 1 and 2 end with K = 7 and K = 75,697, both odd).</p>
+        <p class="where"><code>epochs_small</code>, <code>lean/Macro.lean</code></p>
       </div>
       <div class="card">
         <h3>No halt in the first 10,000 steps</h3>
-        <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
+        <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
+      <div class="card">
+        <h3>The third epoch ends odd too</h3>
+        <p>(seq 227097).K, a number of 132,845 bits, is odd, so the machine survives the third epoch; if it halts, it is at the end of epoch 4 or later.</p>
+        <p class="where"><code>epoch3_odd</code>, <code>halts_late</code>, <code>lean/Epoch3.lean</code></p>
+      </div>
       <div class="card">
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
@@ -115,24 +135,23 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 42,338 cells have been visited and 28,353 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>How long that is</h3>
+        <p>With the exact step counts of the rules, epoch 2 ends after about 10<sup>10</sup> steps and epoch 3 after about 10<sup>79,981</sup> (<code>py/macro.py epochs</code>, 5 minutes of big-integer arithmetic); the fourth epoch has a wall of about 5.6·10<sup>39990</sup> ones, so it takes more than 10^(10^39989) steps. The macro step and its step counts agree with the direct simulator for the first 18 phases (1.8 million steps) (<code>py/macro.py check</code>).</p>
+        <p class="where"><code>py/macro.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.497).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Probably halts, unimaginably late</h3>
+        <p>If the parity of K at the end of each epoch behaves like a fair coin, the machine halts at the end of epoch 4 with probability 1/2, of epoch 5 with probability 1/4, and so on: it halts with probability 1, but no one can compute when, nor prove it.</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known: it halts iff (seq A).K is even for one of the walls A = A₄, A₅, …; A₄ has 39,991 digits, so even the next parity is out of reach of direct computation.</p>
       </div>
     </div>
   </section>
@@ -140,7 +159,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE 1000000000</code></pre>
+python3 holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/py/macro.py check 18     # macro step against the simulator
+python3 holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/py/macro.py epochs       # walls and step counts of the first three epochs</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

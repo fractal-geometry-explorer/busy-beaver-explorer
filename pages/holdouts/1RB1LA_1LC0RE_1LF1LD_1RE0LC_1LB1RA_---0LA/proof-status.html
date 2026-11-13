@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open, probably halting; reduced in Lean to an exact map.</b> The run is a sequence of phases. In a phase, a block of x ones grows to &lfloor;3x/2&rfloor;+7 while a counter c of copies of <code>01</code> counts down by 2. When c runs out the machine halts if x is in one residue class out of four, and otherwise starts a new phase with c about x. The step, the resets and <code>halts_iff</code> (halts iff the orbit of (4, 4, 3) under the map meets a halt) are proved in Lean for all x; phases 0, 1 and 2 are evaluated exactly and do not halt. The end of phase 3, after about 10<sup>203</sup> steps, depends on the residue mod 4 of a number with 10<sup>101</sup> digits. Heuristically each phase halts with chance 1/4.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The step: S<sub>t</sub>(x, c+2) reaches S<sub>t</sub>(&lfloor;3x/2&rfloor;+7, c)</h3>
+        <p>S<sub>t</sub>(x, c) is the head in state A on the first cell of <code>1^x (01)^2 1^6 (01)^c 1^t 0 1^2</code>, t = 3 or 6. For every x &#8805; 1, every c and every rest of the tape: S(x, c+2) reaches S(&lfloor;3x/2&rfloor;+7, c). Each round (a 0 walking through the left block) takes two ones off the left block and adds three to the middle one, <code>W(x+2, b+1) &#8594; W(x, b+4)</code>; at x = 2 or 1 the middle block becomes the new left block and two copies of <code>01</code> rebuild the marker.</p>
+        <p class="where"><code>step_rule</code>, <code>lean/Step.lean</code>; the rounds and ends in <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The reset, as an exact map</h3>
+        <p>When c reaches 0 or 1 (the last step ends on the tail <code>1^t 0 1^2</code>), the middle block becomes a block <code>1^B</code> behind <code>1^4 0</code> or <code>1^5 0</code>, with B = 3&lfloor;x/2&rfloor;+7 (+t if c = 0). Depending on the parity of B this either halts (state F reads a 0) or is converted, maybe with a short restart, into a new phase: S<sub>3</sub>(4, (B&minus;5)/2), S<sub>3</sub>(6, (B&minus;8)/2) or S<sub>3</sub>(5, (B&minus;5)/2) after c = 0; S<sub>6</sub>(4, (B&minus;3)/2), S<sub>6</sub>(6, (B&minus;6)/2) or S<sub>6</sub>(5, (B&minus;3)/2) after c = 1, t = 3; and after c = 1, t = 6 a short phase that ends at S<sub>3</sub>(&lfloor;3y/2&rfloor;+4, 1), y = B or B+1. With the step this is a map <code>next</code> on (x, c, t), and S<sub>t</sub>(x, c) leads to <code>next</code>(x, c, t) for every x &#8805; 1 and c, by 34 more symbolic rules and induction.</p>
+        <p class="where"><code>next_spec</code>, <code>lean/Reset.lean</code>; the conversions in <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halts iff the orbit of (4, 4, 3) under the map reaches a halt</h3>
+        <p>Blank tape reaches S<sub>3</sub>(4, 4) at step 388, so the machine halts from blank tape if and only if some iterate of <code>next</code> from (4, 4, 3) is a halt.</p>
+        <p class="where"><code>halts_iff</code>, <code>start</code>, <code>lean/Reset.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -110,6 +125,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in phases 0, 1 and 2</h3>
+        <p>The first 585 terms of the orbit of (4, 4, 3) contain no halt: phase 0 from S<sub>3</sub>(4, 4), phase 1 from S<sub>3</sub>(4, 22), phase 2 from S<sub>3</sub>(6, 1138) (568 steps, ending at S<sub>3</sub>(x, 2) with x &#8776; 2.06&middot;10<sup>101</sup>, x &#8801; 7 mod 8), and term 585 is S<sub>3</sub>(6, c) with c odd and above 10<sup>101</sup> (c &#8776; 2.3&middot;10<sup>101</sup>), reached after about 10<sup>203</sup> machine steps. Evaluated with exact integers by compiled code; with <code>halts_iff</code> this rules out a halt before phase 3.</p>
+        <p class="where"><code>orbit_585</code>, <code>lean/Reset.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -119,20 +139,33 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 29,502 cells have been visited and 28,395 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The reset table by residue classes</h3>
+        <p>Read off <code>next</code>: from S<sub>t</sub>(x, 2) (one step to c = 0, then the reset) it halts exactly for x &#8801; 1, 6 (mod 8) if t = 3 and x &#8801; 2, 5 (mod 8) if t = 6; from S<sub>3</sub>(x, 1) for x &#8801; 2 (mod 4); from S<sub>6</sub>(x, 1) (through the short phase) for x &#8801; 0, 9, 11, 14 (mod 16). One class in four each time; otherwise c&prime; = 9x/8, 3x/4 or 27x/16 plus a constant. The table agrees with <code>next</code> for every x &lt; 3000 and with direct simulation for every x &lt; 200.</p>
+        <p class="where"><code>holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/py/model.py next 3000</code>, <code>holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/py/model.py verify 200</code></p>
+      </div>
+      <div class="card">
+        <h3>The run from blank, by simulation</h3>
+        <p>Direct simulation: the run reaches S<sub>3</sub>(4, 4) at step 388, S<sub>3</sub>(4, 22) at step 2,684 after a reset at x = 13, and S<sub>3</sub>(6, 1138) at step 6,224,444 after a reset at x = 1007; the first 16 steps of phase 2 follow the step rule exactly (x = 6, 16, 31, 53, 86, &hellip;, 8600 at step 9.5&middot;10<sup>7</sup>).</p>
+        <p class="where"><code>holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/py/model.py</code>, <code>holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/py/rules_check.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.432). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Phase 3 is out of reach</h3>
+        <p>Phase 3 ends at S<sub>3</sub>(y, 1) with y the result of (c&minus;1)/2 applications of x &#8614; &lfloor;3x/2&rfloor;+7 to 6, and halts iff y &#8801; 2 (mod 4). y has about 10<sup>101</sup> digits and cannot be computed; no shortcut for its residue is known.</p>
+      </div>
+      <div class="card">
+        <h3>Probably halts, after an astronomical time</h3>
+        <p>Every reset halts for exactly one residue class in four, and the residue of x after many steps of &lfloor;3x/2&rfloor;+7 behaves like a random number. So each phase from phase 3 on halts with chance about 1/4, independently, and the machine halts with probability 1 in this model, most likely within a few phases. Each phase is exponentially longer than the one before (c&prime; is about x, and x grows like 1.5<sup>c</sup>), so a halt, if it comes, comes after a tower of exponentials of steps. This is the &laquo;probviously halting&raquo; situation: no proof either way is in sight.</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Exactly when the orbit of (4, 4, 3) under <code>next</code> reaches a halt (proved). The first chance is the end of phase 3, where the question is whether the ((c&minus;1)/2)-th iterate of x &#8614; &lfloor;3x/2&rfloor;+7 from 6, for a known c &#8776; 2.3&middot;10<sup>101</sup>, is 2 mod 4.</p>
       </div>
     </div>
   </section>
@@ -140,7 +173,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA 1000000000
+python3 holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/py/rules_check.py step 60
+python3 holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/py/model.py verify 200
+python3 holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/py/model.py next 3000
+python3 holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/py/model.py</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

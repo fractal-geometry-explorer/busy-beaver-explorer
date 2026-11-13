@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB1LB_1RC1LD_1LA1RE_1RD0LA_0RB0RF_0RA---",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LB_1RC1LD_1LA1RE_1RD0LA_0RB0RF_0RA---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> At the visits of the head (state A) to the left end the tape is <code>A&gt;0 P (110)^N 1</code> with a short word P; N grows by about 3/2 per visit (…, 1080, 2457, 3690, 8325, 12492, 28122). Lean proves the eleven shift rules of the sweeps; the map is only observed."
  ],
  "claims": [
   {
@@ -46,9 +46,21 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules",
+   "text": "Eleven rules over words of 1–3 cells, each for every n and every tape around; e.g. F turns (011)<sup>n</sup> into (110)<sup>n</sup> going right, D turns (111)<sup>n</sup> into (110)<sup>n</sup> going left.",
+   "where": "<code>lean/Rules.lean</code> (from <code>py/rules.py</code>)"
+  },
+  {
+   "level": "heuristic",
+   "title": "The samples",
+   "text": "Visits of the left end in state A on a 0 (step: tape): 6,250,987: <code>0 a^7 1 0 1 0 a^1080 1</code>; 32,338,359: <code>0 a 1 0 1 0 a^2457 1</code>; 73,227,424: <code>0 a^3 1 0 1 0 a^3690 1</code>; 373,255,331: <code>0 a^8325 1</code>; 841,543,081: <code>0 a 1 0 1 0 a^12492 1</code>; 4,268,612,169: <code>0 a 1 0 a^2 1 0 a^28122 1</code> (a = 110). Consecutive ratios of N are 1.5 or 1.5² (a visit skipped).",
+   "where": "<code>/home/user/w/bin/ev M 1e10 A L a=110</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Open: the exact map (N, P) → (N', P') is not extracted, so the halting condition (F reading 1) is not reduced.",
    "where": ""
   }
  ],
@@ -58,22 +70,22 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LB_1RC1LD_1LA1RE_1RD0LA_0RB0RF_0RA--- 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The tape is a long run of the 3-cell word 110 that grows by half again between visits of the left end, while a short word at the left end keeps changing: the signature of a Collatz-like map.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 44,763 cells visited."
+    "value": "10<sup>10</sup> steps",
+    "text": "No halt (C simulator)."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "11 shift rules",
+    "text": "Proved for all lengths."
    },
    {
     "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "×3/2",
+    "text": "Growth of the run of 110 per visit of the left end."
    }
   ],
   "presets": [
@@ -96,7 +108,27 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>841,543,072</td><td><code>B&gt;0 1 0 1^2 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2</code></td></tr><tr><td>right</td><td>955,656,139</td><td><code>1^6 0 1^3 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2</code></td></tr><tr><td>right</td><td>971,367,710</td><td><code>1^6 0 1^3 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2</code></td></tr><tr><td>right</td><td>987,088,295</td><td><code>1^6 0 1^3 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "tape",
+    "eyebrow": "What the tape looks like",
+    "heading": "A long run of 110",
+    "html": [
+     "<p>With a = <code>110</code>, when the head reaches the left end in state A the tape is a short word followed by a long run: at step 841,543,081 it is <code>A&gt;0 a 1 0 1 0 a^12492 1</code>, at step 4,268,612,169 <code>A&gt;0 a 1 0 a^2 1 0 a^28122 1</code>. In between, the head sweeps the run, turning blocks of it into runs of 1s and back (the shift rules over 110, 011, 101, 111 are proved in Lean).</p>",
+     "<p>From one sample to the next N goes to about 3N/2 (12492 → 18738 would be one step; 28122 = 12492 · 2.25 is two), and the short left word, with counts 1 to 7, changes each time: the same picture as other Collatz-like holdouts, where that word acts as a counter fed by remainders of N.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Does it halt?",
+    "heading": "Open",
+    "html": [
+     "<p>The halting transition is F reading 1. Reducing it needs the exact sample map, which has not been extracted.</p>"
+    ]
    }
   ]
- }
+ },
+ "summary": "A long run of the word 110 that grows by a factor of about 3/2 from one visit of the left end to the next (a Collatz-like 3n/2 map), with a short left-end word of small counts that changes at each visit.",
+ "family": "Collatz-like 3n/2 map + prefix",
+ "decision": "open"
 }

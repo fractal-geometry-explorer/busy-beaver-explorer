@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G05",
  "title": "What is known about 1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The machine is a sweep counter: each sweep adds a 1 to the youngest block and moves a one or two 1s between older blocks at a place fixed by the binary digits of the sweep number. Lean proves ten whole-sweep rules for every block length (the generic parity patterns), and that the run from blank tape reaches such a sweep; the C simulator finds no halt in the first 1.03&middot;10<sup>11</sup> steps (226,517 sweeps)."
  ],
  "claims": [
   {
@@ -34,46 +34,59 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Ten whole-sweep rules",
+   "text": "With block counts written last block first, a sweep from <code>B&gt;0</code> at the right end back to it changes them by: (E | O ?) &rarr; (+1, +1, &minus;1); (E | E E ?) &rarr; (+1, &minus;1, +2, &minus;1); (E | E O E ?) &rarr; (+1, &minus;1, 0, +2, &minus;1); (O | E E E ?) and (O | E O O E) &rarr; (+1, 0, 0, +1, &minus;1); (O | E E O E E) &rarr; (+1, 0, 0, &minus;1, +2, &minus;1), where E/O is the parity of a count (inner counts at least 4, the last at least 5), for every value of the counts and every tape further left; the step counts are linear (e.g. 8c + 16y<sub>1</sub> + 76 for the first). Written by <code>bbtools.symtm.prove</code>.",
+   "where": "<code>sweep_E_OE</code> &hellip; <code>sweep_O_EEOEE</code>, <code>lean/Rules.lean</code> (<code>py/gen_rules.py</code>)"
+  },
+  {
+   "level": "native",
+   "title": "From blank tape to a generic sweep",
+   "text": "After 2,183 steps the tape is <code>(10)^27 0 (10)^12 0 (10)^4 0 (10)^9 1 B&gt;0</code> (counts 27, 12, 4, 10), and the next sweep is the rule <code>sweep_E_EEO</code>, ending at step 2,367 as the simulator says.",
+   "where": "<code>reach_2183</code>, <code>sweep_2367</code>, <code>lean/Reach.lean</code>"
+  },
+  {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 44,255 cells have been visited and 22,113 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 1.03&middot;10<sup>11</sup> steps",
+   "text": "<code>c/sweeps.c</code> (a plain simulator that also counts sweeps) runs 1.03&middot;10<sup>11</sup> steps, 226,517 sweeps, without a halt. The sweeps that reach the leftmost 1 of the tape (the only ones that add new blocks there) are rare: 2, 3, 4, 6, 7, 8, 10, 12, 16, 32, 48, 64, 160, 192, 448, 1472, 1984, 2496, 3008, 3520, 11712, 28096, 60864 and 126400 (none more up to sweep 226,517).",
+   "where": "<code>c/sweeps.c</code>"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.527).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "The sweep number is a binary counter",
+   "text": "In the 31,158 sweeps of the first 2&middot;10<sup>9</sup> steps, every sweep adds 1 to the last block and, except a handful where the number of blocks changes, makes exactly one more change: a <em>move</em> M<sub>k</sub> (block 2k+1 gains a 1, block 2k+2 loses one; blocks counted from the last, which is block 0) or a <em>split</em> S<sub>k,j</sub> (block 2k+1 loses one, a block j places further left gains two, the next one loses one). The level k is the number of trailing zeros of the sweep number n in binary (n odd: k = 0; n = 2 mod 4: k = 1; ...), and M or S follows n mod 2<sup>k+2</sup> and the parities of the blocks further left. Frequencies halve with each level, like the carries of a binary counter.",
+   "where": "computed from <code>tmrun ... at B R</code> snapshots (see README)"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "The only halting transition is D reading 1: the left-moving head (C, D, E, B rotating over the 10s) meeting two adjacent 1s. None of the generic sweep rules does that; whether a sweep over short blocks (counts below 4, the empty blocks that sometimes appear) or the arrival of a carry at the left end can do it is not settled.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE 1000000000"
+  "python3 holdouts/1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE/py/gen_rules.py   # rewrites lean/Rules.lean",
+  "gcc -O2 -o sweeps holdouts/1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE/c/sweeps.c && ./sweeps 103079215104"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The tape is a row of blocks of 10s. Each sweep adds a 1 to the newest block, which therefore counts the sweeps, and makes one small change further back, at a place chosen by the binary digits of the sweep number: the old blocks behave like the digits of a binary counter. Lean proves the sweep rules for the common block patterns; the simulator finds no halt in 1.03&middot;10<sup>11</sup> steps.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 44,255 cells visited."
+    "level": "kernel",
+    "value": "10 sweep rules",
+    "text": "Whole sweeps for every block length, proved in Lean."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "1.03·10<sup>11</sup> steps",
+    "text": "No halt in the C simulator (226,517 sweeps)."
    },
    {
     "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "level = trailing zeros of n",
+    "text": "Where the sweep makes its change, read off the sweep number n."
    }
   ],
   "presets": [
@@ -96,7 +109,56 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,298,386</td><td><code>1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0^2 1 0 1 0^2 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>970,009,758</td><td><code>1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>985,688,498</td><td><code>1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "tape",
+    "eyebrow": "Structure",
+    "heading": "What the tape is made of",
+    "html": [
+     "<p>Almost every cell pair on the tape is <code>10</code>. The exceptions are single extra 0s, which cut the tape into <em>blocks</em> of 10s. Count the 1s in each block: right after a sweep the tape reads, for example, 4, 3, 26, 13, 3, 24. The last (rightmost) block is special: it gains exactly one 1 per sweep, so it simply counts the sweeps.</p>",
+     "<svg viewBox=\"0 0 560 110\" role=\"img\" aria-label=\"the tape as blocks of 10s\" style=\"width:100%;max-width:560px;height:auto;font:12px var(--mono);\"><text x=\"10\" y=\"20\" fill=\"var(--muted)\">blank</text><rect x=\"60\" y=\"30\" width=\"28\" height=\"26\" rx=\"3\" fill=\"none\" stroke=\"var(--accent)\"/><text x=\"74.0\" y=\"48\" text-anchor=\"middle\" fill=\"var(--fg2)\">4</text><rect x=\"96\" y=\"30\" width=\"21\" height=\"26\" rx=\"3\" fill=\"none\" stroke=\"var(--accent)\"/><text x=\"106.5\" y=\"48\" text-anchor=\"middle\" fill=\"var(--fg2)\">3</text><rect x=\"125\" y=\"30\" width=\"182\" height=\"26\" rx=\"3\" fill=\"none\" stroke=\"var(--accent)\"/><text x=\"216.0\" y=\"48\" text-anchor=\"middle\" fill=\"var(--fg2)\">26</text><rect x=\"315\" y=\"30\" width=\"91\" height=\"26\" rx=\"3\" fill=\"none\" stroke=\"var(--accent)\"/><text x=\"360.5\" y=\"48\" text-anchor=\"middle\" fill=\"var(--fg2)\">13</text><rect x=\"414\" y=\"30\" width=\"21\" height=\"26\" rx=\"3\" fill=\"none\" stroke=\"var(--accent)\"/><text x=\"424.5\" y=\"48\" text-anchor=\"middle\" fill=\"var(--fg2)\">3</text><rect x=\"443\" y=\"30\" width=\"150\" height=\"26\" rx=\"3\" fill=\"none\" stroke=\"var(--accent)\"/><text x=\"518.0\" y=\"48\" text-anchor=\"middle\" fill=\"var(--fg2)\">n = 24</text><text x=\"597\" y=\"48\" fill=\"var(--head)\">B</text><text x=\"60\" y=\"80\" fill=\"var(--muted)\">(10)^4 0 (10)^3 0 (10)^26 0 (10)^13 0 (10)^3 0 (10)^23 1 B&gt;0</text><text x=\"60\" y=\"100\" fill=\"var(--muted)\">each box: a run of 10s; between boxes one extra 0; the last box grows by one 1 per sweep</text></svg>",
+     "<p>The head never stays long anywhere: in state C it runs left over 10s shifting each 1 one cell left (four steps per two 1s), in A/B it runs right shifting them back; inside the region it is working on it zigzags, crossing a 1010 in 12 steps.</p>"
+    ]
+   },
+   {
+    "id": "sweep",
+    "eyebrow": "One sweep",
+    "heading": "One sweep, in numbers",
+    "html": [
+     "<p>A sweep starts with the head in state B on the blank cell right of the tape, runs left over the last block, works its way further left through a few blocks, and comes back. What it does depends only on the parities of the block counts it meets (E even, O odd), read from the right. Writing the counts last block first:</p>",
+     "<table><tr><th>parities (last | inner &hellip;)</th><th>change of the counts</th><th>steps</th></tr><tr><td>E | O ?</td><td>+1, +1, &minus;1</td><td>8c + 16y<sub>1</sub> + 76</td></tr><tr><td>E | E E ?</td><td>+1, &minus;1, +2, &minus;1</td><td>8c + 16y<sub>1</sub> + 16y<sub>2</sub> + 104</td></tr><tr><td>E | E O E ?</td><td>+1, &minus;1, 0, +2, &minus;1</td><td>8c + 16(y<sub>1</sub>+y<sub>2</sub>+y<sub>3</sub>) + 148</td></tr><tr><td>O | E E E ?</td><td>+1, 0, 0, +1, &minus;1</td><td>8c + 16y<sub>1</sub> + 32y<sub>2</sub> + 16y<sub>3</sub> + 168</td></tr><tr><td>O | E E O E E</td><td>+1, 0, 0, &minus;1, +2, &minus;1</td><td>8c + 16y<sub>1</sub> + 32y<sub>2</sub> + 16y<sub>3</sub> + 16y<sub>4</sub> + 212</td></tr></table>",
+     "<p>(c, y<sub>i</sub>: a count is 2y+4 or 2y+5, the last 2c+5 or 2c+6.) These are proved in Lean for every value of the counts. Deeper patterns behave the same way: always one move of a single 1 to the right neighbour, or a split where a block takes one 1 from each side (sometimes skipping a few odd blocks).</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "Emergent behaviour",
+    "heading": "A binary counter made of block pairs",
+    "html": [
+     "<p>Which block a sweep changes is decided by the sweep number n, the length of the last block. In the first 31,158 sweeps (2&middot;10<sup>9</sup> steps) it was, with a handful of exceptions where the number of blocks changes:</p>",
+     "<table><tr><th>sweep number</th><th>change (blocks counted from the last = 0)</th></tr><tr><td>n &equiv; 1 (mod 4)</td><td>M<sub>0</sub>: block 1 +1, block 2 &minus;1</td></tr><tr><td>n &equiv; 3 (mod 4)</td><td>S<sub>0,j</sub>: block 1 &minus;1, block 2+j +2, block 3+j &minus;1</td></tr><tr><td>n &equiv; 2 (mod 4)</td><td>M<sub>1</sub> or S<sub>1,j</sub> (blocks 3, 4 and beyond)</td></tr><tr><td>n &equiv; 4 (mod 8)</td><td>M<sub>2</sub> or S<sub>2,j</sub> (blocks 5, 6 and beyond)</td></tr><tr><td>n = 2<sup>k</sup> &middot; odd</td><td>M<sub>k</sub> or S<sub>k,j</sub> (blocks 2k+1, 2k+2 and beyond)</td></tr></table>",
+     "<p>So blocks 1 and 2 are the units digit of a binary counter, blocks 3 and 4 the twos digit, and so on: the pair 2k+1, 2k+2 is touched only by sweeps whose number has exactly k trailing zeros, half as often as the pair before. A split S also passes a 1 further left, like a carry. When a carry reaches the left end, a few new blocks of 3s and 4s appear there; that happened at sweeps 2, 3, 4, 6, 7, 8, 10, 12, 16, 32, 48, 64, 160, 192, 448, 1472, 1984, 2496, 3008, 3520, 11712, 28096, 60864 and 126400 (none more up to sweep 226,517).</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could halt",
+    "heading": "Where it could halt",
+    "html": [
+     "<p>The only missing transition is D reading 1. D is entered when C, running left, erases a 1; it halts if the next cell to the left is a 1 too. Over runs of 10s that never happens, and none of the sweep rules does it. A halt would need a sweep over very short blocks (counts below 4, including the empty blocks that sometimes form between two extra 0s) or the arrival of a carry at the left end to produce two adjacent 1s in front of C. Nobody has shown that this cannot happen, and the closed-tape-language method fails on this machine for every window up to 6.</p>"
+    ]
+   },
+   {
+    "id": "proved",
+    "eyebrow": "Status",
+    "heading": "What is proved",
+    "html": [
+     "<p><b>Lean (kernel):</b> ten whole-sweep rules for all block lengths (<code>lean/Rules.lean</code>). <b>Lean (native_decide):</b> from blank tape the machine reaches the sweep start with counts 27, 12, 4, 10 after 2,183 steps, and the next sweep is one of the rules (<code>lean/Reach.lean</code>); no halt in the first 10<sup>7</sup> steps (<code>lean/Blank.lean</code>). <b>Computed:</b> no halt in 1.03&middot;10<sup>11</sup> steps. <b>Open:</b> a proof that the binary-counter picture holds for every sweep, and that short blocks and the left end never produce a halt.</p>"
+    ]
    }
   ]
- }
+ },
+ "family": "binary counter of block pairs (sweep counter)",
+ "summary": "The tape is a row of blocks of 10s; every sweep adds one 1 to the last block (a sweep counter n) and makes one small change further left whose place is set by the binary digits of n, like a binary counter whose digits are pairs of blocks; open.",
+ "decision": "open"
 }

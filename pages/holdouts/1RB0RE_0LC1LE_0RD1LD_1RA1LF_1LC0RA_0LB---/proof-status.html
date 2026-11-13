@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and Collatz-like.</b> The run is a sequence of phases Z &rarr; (3Z + c)/2 on a run of zeros (the sweeps are proved in Lean); Z mod 4 drives a counter in a short word D at the fixed left end. 1,500 phases from blank tape (far past 10<sup>350</sup> steps) do not halt, With the residues chosen freely, words D on which a phase halts are reachable; the real orbit has not produced one.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweeps of a phase</h3>
+        <p>With 4j + 4 zeros left of <code>1 0 0 0 (100)^n 0 A&gt;</code> at the right end, j sweeps eat 4j zeros and add 2j words <code>100</code> to the wall (one sweep: 18n + 64 steps, any tape to the left).</p>
+        <p class="where"><code>sweep</code>, <code>wall_left</code>, <code>lean/Rules.lean</code>; <code>sweeps</code>, <code>lean/Sweeps.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +124,35 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 34,606 cells have been visited and 2,752 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The phase map</h3>
+        <p>From PS(D, Z) = <code>D 0^Z 1 0 0 E&gt;</code> the next phase start is PS(D', Z') with Z' = (3Z + c)/2, where D' and c depend only on D and Z mod 4: found by running the machine at three Z of the same residue and extrapolating, checked against the plain machine on the 16 phase starts from blank tape (to step 8.7&middot;10<sup>7</sup>).</p>
+        <p class="where"><code>py/phases.py</code>, <code>c/nextps.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The counter in D</h3>
+        <p>For D(a, b) = <code>0 1 0^a 1 0 1 (001)^b</code>: Z &equiv; 1 leaves D alone, Z &equiv; 3 makes it D(a&minus;1, b+1), Z stays odd; at a = 0 a phase with Z &equiv; 3 resets D to <code>0 1 0^(3b+5) 1</code>, which continues as D(3b+4, 0) if Z &equiv; 3 mod 8 and leaves the family otherwise. Checked for a, b &lt; 16.</p>
+        <p class="where"><code>py/phases.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 1,500 phases</h3>
+        <p>Iterating the phase map from the first phase start (assuming the linear extrapolation, checked as above): resets of the counter at phases 5, 29, 92, 332 stay in the family (cycles of length 11, 35, 107, 323); at phase 1001 (Z has 178 digits) the word leaves it and a second-level counter starts. No halt up to phase 1,500.</p>
+        <p class="where"><code>py/phases.py 1500</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.525).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Halting words exist</h3>
+        <p>With the residue Z mod 4 chosen freely at every phase, 23,305 words of at most 24 cells are reachable from the first phase start, and 7,145 of the (word, residue) pairs met halt, for example <code>0 1 0 0 1 1 1 0 1</code> with Z &equiv; 3. So halting is not excluded by the words alone; it depends on the residues along the real orbit.</p>
+        <p class="where"><code>py/search.py 24</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It reduces to the orbit of the map Z &rarr; (3Z + c)/2 and the nested counters it drives in D: whether the residues along the orbit ever build a halting word.</p>
       </div>
     </div>
   </section>
@@ -140,7 +160,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- 1000000000</code></pre>
+python3 holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/py/phases.py</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

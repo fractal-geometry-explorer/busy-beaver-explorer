@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A word in two 4-cell letters</a><a href="#xor">Every leftward sweep computes a running parity</a><a href="#epochs">Epochs, each about 1.75 times longer</a><a href="#halt">Only on F&gt; 1 0 1</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,27 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape looks like</span>
+  <h2>A word in two 4-cell letters</h2>
+<p>Between sweeps the tape is a long run of blocks <code>1<sup>4k+3</sup>0</code>, that is a word in two letters, <code>u = 1110</code> and <code>v = 1111</code>. At step 2,003,981 the tape begins</p><pre>u^3 v u v^2 u v u v u^3 v^2 u v u v u v^2 u^2 v^3 u v^2 u v^3 u v u^3 ...</pre><p>about 650 letters in all, plus a short end on the right. Read <code>u</code> as 1 and <code>v</code> as 0: the tape holds a binary string about 650 bits long (the side that grows like a square root), next to a short fixed part on the right (the side that grows like a logarithm).</p>
+</section>
+<section id="xor">
+  <span class="eyebrow">The rule</span>
+  <h2>Every leftward sweep computes a running parity</h2>
+<p>Going left, the head is in state D ("even so far") or C ("odd so far"). Each time it crosses a letter: if the letter is <code>u</code> the parity flips. It writes <code>1111</code> behind it when the new parity is even and <code>0101</code> when it is odd. These four cases (and the long runs over <code>1111</code>) are proved in Lean.</p>
+<p>Worked example: the word <code>v u u v u</code> (bits 0 1 1 0 1) swept from the right, starting even: <code>u</code> → odd, <code>v</code> → odd, <code>u</code> → even, <code>u</code> → odd, <code>v</code> → odd: the new bits, left to right, are 1 1 0 1 1. The next rightward sweep turns <code>0101</code> back into a letter; repeating "replace by running XOR" is the rule that generates Pascal's triangle modulo 2, which is why the space-time diagram is full of Sierpinski triangles.</p>
+</section>
+<section id="epochs">
+  <span class="eyebrow">The emergent behavior</span>
+  <h2>Epochs, each about 1.75 times longer</h2>
+<p>The head does not always cross the whole tape. Inside an epoch it bounces between the left end and an inner wall; the wall moves left a little on each bounce, and the zone between them is rewritten by the parity rule while the tape right of the wall stays frozen. When the zone has shrunk away, a full crossing starts a new epoch. Epochs began at steps 47,799, 145,962, 487,979, 1,427,948, 4,277,179, 13,419,889, 40,483,837, 124,076,294, 383,276,545 and 1,162,585,978, with the tape's left end at 374, 703, 1,319, 2,265, 4,020, 7,237, 12,641, 22,085, 38,918 and 68,091 cells.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Can it stop?</span>
+  <h2>Only on F> 1 0 1</h2>
+<p>The machine stops only when B reads a 1; B is entered only from A reading 0, and A only from F reading 1. So it stops exactly when state F stands on <code>1 0 1</code>. F runs right over <code>1111</code> (proved), so the danger is at the letters it meets on the way right and at the two walls. The parity rule itself never stops the machine; the open part is the rightward sweep and the turns, which were not decoded.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,15 +254,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (B1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>d_u0</code> ... <code>c_v1</code>, <code>d_run</code>, <code>e_run</code>, <code>f_run</code>, <code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</div></div><div><b>The leftward sweep is a running parity</b><p>With the head in D (even) or C (odd) on the last cell of a 4-cell word <code>111x</code>: D on <code>u = 1110</code> leaves <code>0101</code> and goes to C; D on <code>v = 1111</code> leaves <code>1111</code> and stays D; C on <code>u</code> leaves <code>1111</code> and goes to D; C on <code>v</code> leaves <code>0101</code> and stays C. So the word written behind the head is the running XOR (from the right) of the u's, as 1111 (even) or 0101 (odd). Plus the runs <code>(1111)<sup>n</sup></code> for D, E and F.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>Where it can halt</b><p>Only B reading 1 halts; B is entered only from A reading 0 and A only from F reading 1, so the machine halts exactly on <code>F&gt; 1 0 1</code>. Read off the table.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/epochs.c</code> (copy of the tool in the first machine of this batch)</div></div><div><b>Epochs to 3·10<sup>9</sup> steps</b><p>Sweeps across 80% of the tape begin epochs at steps 2,284, 5,873, 13,248, 47,799, 145,962, 487,979, 1,427,948, 4,277,179, 13,419,889, 40,483,837, 124,076,294, 383,276,545 and 1,162,585,978, with the left end at 56, 103, 172, 374, 703, 1,319, 2,265, 4,020, 7,237, 12,641, 22,085, 38,918 and 68,091 cells; the right end grows by about 10 cells per epoch (130 at the end). Ratio per epoch: about 1.75 in length, 3 in time.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>How an epoch works</b><p>Inside an epoch the head bounces between the left end of the tape and an inner wall that moves left; between the two the word is replaced by its running parity on every bounce, which draws Sierpinski triangles; to the right of the wall the tape is frozen. When the wall reaches the left end the head crosses the whole tape and a new epoch starts. Observed, not proved.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/c/dump.c</code></div></div><div><b>A twin machine</b><p>The holdout <a href="../1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/explainer.html">1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF</a> has exactly this machine's configuration (tape, head position, state) at 12 of the 13 epoch starts up to 1.7·10<sup>9</sup> steps, reaching each about 1.5 times later.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/ctl.py</code>, <code>invariants.py</code></div></div><div><b>No closed tape language with small windows</b><p><code>bbtools.ctl</code> with K = 3, 4, 5, 6 leaves abstract halting configurations; the n-gram CPS decider (widths 3 to 7, with history and LRU) fails; no conserved quantity a·ones + b·pos + W[state] mod 2..12 (<code>bbtools.invariants</code>).</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 64,917 cells have been visited and 53,447 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.501). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.064).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The rightward half of a sweep and the turns at the two walls were not decoded into word rules; halting needs <code>F&gt; 1 0 1</code>, so the question is whether the turns ever leave that pattern in front of F.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/check.sh
+python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/rules.py &gt; holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/Rules.lean
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF 1000000000</code></pre>
 </section>
 <footer class="foot">

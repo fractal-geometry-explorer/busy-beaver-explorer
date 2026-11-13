@@ -79,7 +79,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves the sweeps, the ticks of the two common families for chains of any length and blocks of any size, one rebuild for every length of its last block, and that every halt must come from <code>B&gt;0 1 1</code> (kernel). It also proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>). A C program checks the block form at all 30,932 right-end turns of the first 10<sup>10</sup> steps.</p>
+      <p><b>What it does.</b> The tape is <code>1010&hellip;</code> cut into blocks <code>(10)<sup>n</sup></code> by single extra cells, the separators (1 or 0). A round trip from the right end, a <i>tick</i>, sweeps left over some separators, turns at one, and sweeps back, complementing everything it crosses. Which separator it turns at, and how the block lengths change, depends on the separators and the parities of the blocks; two families of rules cover 30,528 of the 30,932 ticks of the first 10<sup>10</sup> steps. The last block grows by one or two each tick, so the right edge grows smoothly.</p>
+      <p><b>The rebuilds.</b> 238 of those ticks reach the left end instead. There the head works for a long time and rebuilds the front of the list; the same sequences of lists then recur with more blocks on the right, on larger and larger scales.</p>
+      <p><b>Where a halt would come from.</b> Only F reading a 1 halts. Two steps before a halt the machine must be at <code>B&gt;0 1 1</code> (<code>halt_route</code>): E is entered only from A reading a 1, which leaves a 0 to E's right, so <code>E&gt;1 1</code> never occurs. In block terms B would have to stand on the last 0 of a block followed by a separator 1; in the run F always reads a 0.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +106,31 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Every way to a halt</h3>
+        <p>Two steps before any halt the machine is at <code>B&gt;0 1 1</code>. In particular <code>E&gt;1 1</code>, which would halt (<code>halt_E</code>), is never reached.</p>
+        <p class="where"><code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The sweeps</h3>
+        <p>Moving left, A crosses <code>1010</code> in four steps and complements it; moving right, B crosses <code>10</code> in two steps and writes <code>01</code>. Both for any number of copies.</p>
+        <p class="where"><code>sweep_left</code>, <code>sweep_right</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Two whole ticks</h3>
+        <p>From the right-end turn back to the next one: <code>x | e</code> becomes <code>x . e+2</code> for every even e (8k+8 steps for e = 2k), and <code>x | o | o'</code> becomes <code>x . o+1 | o'+1</code> for all odd o, o' &ge; 3 (written in the block notation: lengths of <code>(10)</code>-blocks, <code>|</code> a separator 1, <code>.</code> a 0).</p>
+        <p class="where"><code>tick_last</code>, <code>tick_oo</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Tick chains of any length</h3>
+        <p>The two tick families, for chains of any length and blocks of any size: <code>x | a . b<sub>1</sub> . c<sub>1</sub> . &hellip; . b<sub>k</sub> . c<sub>k</sub> . d . e</code> with all blocks even (<code>tick_chain</code>) and <code>x | p | a . b<sub>1</sub> . c<sub>1</sub> . &hellip; . d . e</code> with p, a odd and the rest even (<code>tick_chain_oo</code>), from one right-end turn to the next, for every list of pairs, every size and every tape x. With <code>tick_last</code> and <code>tick_oo</code> (no pairs) this covers the families <code>x | e (. e . e)<sup>k</sup></code> and <code>x | o | o (. e . e)<sup>k</sup></code> for every k. The proof splits a tick into five pieces: entering, one pair on the way left, the turn, one pair on the way right, and leaving. Each piece is a symbolic run with unknown tape around it, and the passes over the pairs are inductions on the list.</p>
+        <p class="where"><code>tick_chain</code>, <code>tick_chain_oo</code>, <code>left_pass</code>, <code>right_pass</code>, <code>lean/Chain.lean</code> (written by <code>py/chain.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>One rebuild, for every last block</h3>
+        <p>The left-end tick at step 22,986, <code>3|3|12|15|1.48.94</code> to <code>88|6|2|13|21|94</code>, holds with the last block of any even length 2v+4 (8v + 16,500 steps). The rebuild reads the block 48 cell by cell, so that block cannot be made a variable this way.</p>
+        <p class="where"><code>rebuild_3_3_12_15_1_48</code>, <code>lean/Rebuild.lean</code> (written by <code>py/rebuild.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +147,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 76,681 cells have been visited and 38,337 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The block form</h3>
+        <p>At every right-end turn of the first 10<sup>10</sup> steps (30,932 turns) the tape is <code>(10)<sup>n<sub>0</sub></sup> s<sub>1</sub> (10)<sup>n<sub>1</sub></sup> &hellip; s<sub>k</sub> (10)<sup>n<sub>k</sub></sup> A&gt;1 1</code> with single separators s<sub>i</sub>; the program stops if not.</p>
+        <p class="where"><code>c/blocks.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The tick rules</h3>
+        <p>Each tick of the first 10<sup>10</sup> steps, run symbolically with the last block lengths as variables, follows a rule valid for all lengths of the same parities: 30,528 ticks are in the families <code>x | e (. e . e)<sup>k</sup></code> and <code>x | o | o (. e . e)<sup>k</sup></code> (the separator 1 becomes 0, the 0s after it become 1s, the blocks after it change by +1, &minus;1, &hellip;, +1, +1), 30,674 follow one of 61 patterns, 238 reach the left end and 20 have a block of length 1 that the templates do not cover.</p>
+        <p class="where"><code>py/ticks.py</code> (symbolic runs with <code>bbtools.symtm</code>, not Lean)</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +165,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.389). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.554).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Recurrence on growing scales</h3>
+        <p>The rebuild at step 22,986 (<code>3|3|12|15|1.48.94</code> to <code>88|6|2|13|21|94</code>) recurs at step 778,692 with three blocks more on the right (<code>&hellip;1.48.212.258.468</code> to <code>88|6|2|13|21|210|259|469</code>), and likewise 81,286 / 1,452,208; the list has 8 blocks at 10<sup>6</sup> steps, 12 at 10<sup>9</sup>, 14 at 10<sup>10</sup>.</p>
+        <p class="where"><code>c/blocks.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The ordinary ticks of the two common families are proved for every length. Still missing: the other tick patterns (166 of the 30,932 ticks of the first 10<sup>10</sup> steps, besides the 238 rebuilds), rules for the left-end rebuilds, and an invariant of the block lists, kept by all rules, that keeps B off <code>0 1 1</code>. A rebuild reads its blocks cell by cell. It also comes back to the right in a state that depends on the blocks there, so it does not split into the pass pieces of the ordinary ticks. A general rebuild rule would have to follow the counter it runs on the block after the turning point.</p>
       </div>
     </div>
   </section>
@@ -140,7 +183,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- 1000000000
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/blocks.py 40000
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/rules.py   # writes lean/Rules.lean
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/route.py   # writes lean/Route.lean
+gcc -O2 -o blocks holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/c/blocks.c &amp;&amp; ./blocks 1e8 | python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/ticks.py
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/chain.py     # writes lean/Chain.lean
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/rebuild.py   # writes lean/Rebuild.lean</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

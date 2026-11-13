@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The head shuttles out from the left end over a periodic background, rewriting the word <code>1^8 00</code> as <code>(011)^3 0</code> on the way right and back on the way left (shift rules proved in Lean). It turns back at the first defect of the background or passes it, depending on the defect's current shape, so the defects work like the digits of a counter, and the far right end is reached only when all of them let the head through. The defects also move, as gliders between a glider gun at the left end and a slowly growing structure at the right end. No map between macro configurations is known yet, so neither halting nor non-halting is in reach.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The two sweeps over the background</h3>
+        <p>Going right, E crosses <code>(1^5 00 1^3)^n</code> in 30n steps and leaves <code>(1100110110)^n</code>, a rotation of <code>(011)^3 0</code>; going left, A crosses <code>((011)^3 0)^n</code> in 38n steps and leaves <code>(1^4 00 1^4)^n</code>. At the left end, <code>A&gt; 0^3 1^2 0^2 (1^8 00)^(n+1)</code> turns and crosses all n+1 words to the right in 30n+49 steps.</p>
+        <p class="where"><code>e_sweep</code>, <code>a_sweep</code>, <code>left_end</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,9 +124,34 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 32,978 cells have been visited and 22,841 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The right end grows in rare events</h3>
+        <p>Up to 3&middot;10<sup>9</sup> steps the right end of the tape grows in 33 short bursts after the start-up (at steps 3029, 7914, 14085, 27710, &hellip;, 536503257, 802505958, 1259208777), each adding 3 or 4 cells with the same local pattern (<code>&hellip;(011)^5 E&gt;00</code> then <code>F&gt;000</code>, <code>E&gt;1100</code>); between 1.26&middot;10<sup>9</sup> and 3&middot;10<sup>9</sup> there is none.</p>
+        <p class="where"><code>py/analyse.py records</code></p>
+      </div>
+      <div class="card">
+        <h3>Each right-end event makes the left end emit a glider</h3>
+        <p>The left end shows the shape <code>0^5 1^6</code>, the birth of a new glider, shortly (one excursion of the head) after every one of the 33 bursts (the delay grows from 218 to 135818 steps); 41 births up to 1.26&middot;10<sup>9</sup> steps, so a few births come without a burst.</p>
+        <p class="where"><code>py/sweeps.py</code>, the defect view</p>
+      </div>
+      <div class="card">
+        <h3>Defects act as the digits of a counter</h3>
+        <p>Between consecutive returns of the head to the left end (state A), near 2&middot;10<sup>8</sup> steps, the head turns back at the first defect, about 9,300 cells out, on 5 of every 7 excursions and passes it on 2 (pattern long, short, short, short, short, long, short, repeating).</p>
+        <p class="where"><code>py/analyse.py excursions</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>Gliders, merges and a counter</h3>
+        <p>In the defect picture gliders leave the left end, travel right at about 0.4 words per return of the head to the left end, slow down, merge with each other and pile up as nearly stationary defects some 50&ndash;400 words from the right end. The time between bursts grows irregularly (ratios 1.1 to 2.5), which is why the right side grows like a logarithm while the left grows like a square root.</p>
+        <p class="where">the picture <code>pages/holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/defects.png</code></p>
+      </div>
+      <div class="card">
+        <h3>Where a halt would come from</h3>
+        <p>The machine halts only on C reading 1, i.e. after B reads a 0 that has a 1 just right of it. Normally this never happens in the background; it needs an unusual defect to reach the left end, where the head turns. All gliders seen so far move away from the left end. No probability estimate is attempted: the defects do not look random, and their interactions have not been catalogued.</p>
+        <p class="where"><code>step_none_iff</code> (kernel) and observation</p>
+      </div>
       <div class="card">
         <h3>Growth shape: exp/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.473). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.077).</p>
@@ -132,7 +162,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. Next step: Catalogue the glider shapes and their speeds, the merge rules, the reaction of the left end to an arriving signal and of the right end to an arriving glider; with that catalogue the run becomes a particle system that a program can accelerate (one step per glider event instead of per sweep), and the question becomes whether a defect of the right shape can ever reach the left end.</p>
+        <p class="where">README.md, Further work</p>
       </div>
     </div>
   </section>
@@ -140,7 +171,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB 1000000000
+python3 holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/py/rules.py      # rewrites lean/Rules.lean
+python3 holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/py/analyse.py image   # the defect picture
+python3 holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/py/rules.py      # rewrites lean/Rules.lean
+python3 holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/py/analyse.py image   # the defect picture</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

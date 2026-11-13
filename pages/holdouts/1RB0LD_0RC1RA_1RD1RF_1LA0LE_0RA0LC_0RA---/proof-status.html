@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps and proves the sweeps and the turn at the right end for every length (<code>lean/Sweep.lean</code>). The plain C simulator finds no halt in the first 10<sup>11</sup> steps. The counter at the left, which decides where each sweep turns back, is described only from observation.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweeps and the turn at the right end</h3>
+        <p>With <code>P = 11111010</code>, <code>Q = 01010010</code> and <code>W = 11110101</code> (so <code>P^n 1 = 1 W^n</code>): state A turns <code>A&gt; Q^n</code> into <code>P^n A&gt;</code> in 8n steps; state C turns <code>W^n 1010 C&gt; 101</code> into <code>1010 C&gt; 101 Q^n</code> in 30n steps (a shift rule with a word carried on each side, so the file proves <code>cross_l2</code>). Composed with the turn at the right end: <code>A&gt; Q^(n+4) 0101</code> comes back as <code>1 1010 C&gt; 101 Q^(n+4)</code> in 38n + 169 steps, and <code>A&gt; Q^(n+4)</code> as <code>1 1010 C&gt; 101 Q^(n+3) 0101</code> in 38n + 139 steps, for every n.</p>
+        <p class="where"><code>sweep_right</code>, <code>sweep_left</code>, <code>turn_a</code>, <code>turn_b</code>, <code>round_a</code>, <code>round_b</code>, <code>lean/Sweep.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,24 +120,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 52,296 cells have been visited and 37,690 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>The plain simulator of <code>tools/c/tm.h</code> (<code>c/snap.c</code>) runs 10<sup>11</sup> steps from blank tape without a halt.</p>
+        <p class="where"><code>c/snap.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.522).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A counter of groups at the left</h3>
+        <p>Left of the long run of <code>P</code> the tape is a row of groups <code>11 P^a s P^b s' P^c</code>, the separators <code>s, s'</code> being one of <code>111010</code>, <code>101111</code>, <code>101011</code>, <code>111111</code>. Each leftward sweep passes through the last few groups and changes their separators and lengths by one; the group lengths grow roughly geometrically from left to right. Right of the long run lie runs of <code>Q</code> (for example <code>Q^269 010101 Q^542</code> at 3&middot;10<sup>7</sup> steps); the nearest one loses 8 words every two round trips while the last group gains 8, and when it is used up a new group is built.</p>
+        <p class="where"><code>c/sweeps.c</code>, <code>c/snap.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The machine halts only when state F reads a 1. The sweeps and turns proved in Lean never do; a halt could only come from the work at the left turn, on the counter, whose exact rule has not been found.</p>
       </div>
     </div>
   </section>
@@ -140,7 +145,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA--- 1000000000</code></pre>
+python3 holdouts/1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---/py/gen_sweep.py &gt; holdouts/1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---/lean/Sweep.lean   # regenerate the sweeps
+gcc -O2 -o snap holdouts/1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---/c/snap.c &amp;&amp; ./snap 1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA--- 0 100000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

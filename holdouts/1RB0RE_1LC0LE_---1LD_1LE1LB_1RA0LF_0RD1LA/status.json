@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The run is a sequence of linear phases: in each, the head bounces at the left end and moves one word w = 1111110 from a block into a run of 1s (or builds w's out of a run), at constant rates; seen to 3·10<sup>9</sup> steps. Lean proves the eight shift rules across the words. Halting needs B to read 0 with a 0 on its left; where a phase ends and the next begins is where that could happen, and the map from one phase to the next was not derived."
  ],
  "claims": [
   {
@@ -34,6 +34,36 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules across the words",
+   "text": "E and A run right across blocks of <code>w = 1111110</code> and <code>x = 111110</code> (rewriting their rotations), and B, C, D, E run left across rotations of w.",
+   "where": "<code>e_w</code>, <code>a_w</code>, <code>e_x</code>, <code>a_x</code>, <code>b_l</code>, <code>c_l</code>, <code>d_l</code>, <code>e_l</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where it can halt",
+   "text": "Only C reading 0 halts; C is entered only from B reading 0 (1LC), so the machine halts exactly when B reads a 0 that has a 0 on its left (<code>0 B&gt; 0</code>). Read off the table.",
+   "where": "the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Linear phases",
+   "text": "Sampled with the head in A at the left end: in a <em>drain</em> phase <code>w x w<sup>a</sup> 0 0 1<sup>b</sup> R</code> becomes <code>w x w<sup>a−1</sup> 0 0 1<sup>b+15</sup> R</code> every 3 visits (the tape grows by 8 cells); in a <em>build</em> phase <code>w x w<sup>a</sup> 1111 0 w<sup>c</sup> 0 0 1<sup>b</sup> R</code> becomes <code>w x w<sup>a+2</sup> 1111 0 w<sup>c−3</sup> 0 0 1<sup>b+15</sup> R</code>. E.g. w<sup>103</sup> 0 0 1<sup>424</sup> at step 2,001,556, w<sup>102</sup> 0 0 1<sup>439</sup> at 2,016,698, w<sup>101</sup> 0 0 1<sup>454</sup> at 2,031,696. Observed in the run, not proved.",
+   "where": "README"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt to 3·10<sup>9</sup> steps; the registers",
+   "text": "At step 1,366,620,342 the tape (55,573 cells) reads <code>1 0<sup>4</sup> x<sup>2</sup> w<sup>19</sup> 1<sup>4</sup> 0 1<sup>4</sup> 0 w<sup>2279</sup> 0<sup>2</sup> 1<sup>11707</sup> w x w<sup>2311</sup> 0<sup>2</sup> 1<sup>11514</sup> w<sup>2</sup> 1<sup>9</sup> w<sup>2</sup> 0<sup>2</sup> 1<sup>5</sup></code>: three blocks of w and two runs of 1s.",
+   "where": "a word-view run of the tape (the <code>tokrun</code> view of <code>tools/c</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No closed tape language with small windows",
+   "text": "<code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS widths 3 to 7 fails; no invariant a·ones + b·pos + W mod 2..12.",
+   "where": "<code>tools/py/bbtools/ctl.py</code>, <code>invariants.py</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 41,072 cells have been visited and 36,943 of them hold a 1.",
@@ -48,13 +78,14 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The phases are linear and the halting pattern <code>0 B&gt; 0</code> could only come at a change of phase; the map from one phase's end to the next phase's start (a Collatz-like map on the register values, presumably) was not derived.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA/lean/check.sh",
+  "python3 holdouts/1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA/py/rules.py > holdouts/1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA/lean/Rules.lean",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA 1000000000"
  ],
  "explainer": {
@@ -86,6 +117,31 @@
   },
   "sections": [
    {
+    "id": "tape",
+    "eyebrow": "What the tape looks like",
+    "heading": "Blocks of 7-cell words and long runs of 1s",
+    "html": [
+     "<p>Write <code>w</code> for the seven cells <code>1111110</code> and <code>x</code> for <code>111110</code>. At step 2,001,556 the tape (1,843 cells) is</p><pre>[A1] 1 0 0 w x w^103 0 0 1^424 w^2 x^105 0 0 1^2 w x^2 0 0 1^10</pre><p>The head is at the left end. The tape is a few <em>registers</em>: blocks <code>w<sup>a</sup></code> and runs <code>1<sup>b</sup></code> separated by <code>0 0</code>. The left part grows (like a square root of time); the far right end hardly moves.</p>"
+    ]
+   },
+   {
+    "id": "phases",
+    "eyebrow": "The rule",
+    "heading": "Draining one register into another",
+    "html": [
+     "<p>Every three visits to the left end, one <code>w</code> leaves the block and the run of 1s gains 15: <code>w<sup>103</sup> 0 0 1<sup>424</sup></code> at step 2,001,556, <code>w<sup>102</sup> 0 0 1<sup>439</sup></code> at 2,016,698, <code>w<sup>101</sup> 0 0 1<sup>454</sup></code> at 2,031,696. When the block is empty a different phase starts: one block grows by 2 and another shrinks by 3 per round, while a run of 1s grows by 15. The head crosses the words with the shift rules proved in Lean (A and E going right, B, C, D, E going left).</p>",
+     "<p>This is the behavior of a small register machine: linear phases, each one emptying a register, and a change of phase whose outcome depends on the values left over. Later the tape holds more registers, e.g. at step 1,366,620,342: <code>... w<sup>2279</sup> 0 0 1<sup>11707</sup> w x w<sup>2311</sup> 0 0 1<sup>11514</sup> ...</code>.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Can it stop?",
+    "heading": "Only on 0 B> 0",
+    "html": [
+     "<p>The machine stops only when C reads a 0, and C is reached only from B reading 0 and stepping left. So it stops exactly when B reads a 0 next to another 0. Inside the phases the head never does that; the question is what happens at the changes of phase, where the leftover register values decide the next phase. That map was not derived, so the question is open.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +154,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A register machine on the tape: blocks of 7-cell words w = 1111110 and long runs of 1s, which phases of bounces at the left end drain one into the other at fixed rates (one w becomes fifteen 1s), with new registers appearing as the tape grows.",
+ "family": "multi-register linear phases (w = 1111110 and 1-runs)",
+ "decision": "open"
 }

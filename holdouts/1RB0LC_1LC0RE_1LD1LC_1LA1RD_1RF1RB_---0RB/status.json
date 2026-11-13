@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G13",
  "title": "What is known about 1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state machine halts from blank tape. Seen from the left end, its tape is a few long blocks of 1s separated by single 0s; the block lengths keep being cut into halves and thirds (2,666 and 1,332; 1,318, 1,975 and 655; 332, 1,489, 1,652 and 494). Seen from the right end, the left part of the tape is an alternating stretch <code>1 0 1 0 …</code> and the rest a solid block."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps; the C simulator shows none in 10<sup>9</sup>. How the block lengths are cut is not yet understood."
  ],
  "claims": [
   {
@@ -40,40 +40,59 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "Tape shape",
+   "text": "At the last left-end extensions before 10<sup>9</sup> steps the tape is two to four blocks of 1s split by single 0s, e.g. <code>0 1^2666 0 1^1332</code> at step 999,181,386, <code>0 1^1318 0 1^1975 0 1^655</code> at step 959,766,361, <code>0 1^332 0 1^1489 0 1^1652 0 1^494</code> at step 974,655,988. At the right-end side switches the left part is alternating, with holes, and the rest a solid block or more alternating cells: <code>(10)^1333 1^1336 0</code> at step 999,185,396, <code>(10)^666 0 (10)^993 1^664 0</code> at step 981,117,700, <code>(10)^1328 0 (10)^661</code> at step 978,904,600.",
+   "where": "<code>py/shape.py</code>, <code>py/switches.py</code> on a <code>tmrun … records</code> log"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: power/power",
    "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.336). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.334).",
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "Growth like t<sup>1/3</sup>",
+   "text": "After step 5·10<sup>8</sup>: 291 side switches, 1,720,135 steps apart on average (≈ 0.107·w<sup>2</sup>, w = 4002), about 2.9 cells of width per switch; fitted width exponent 0.335 after step 10<sup>7</sup>.",
+   "where": "<code>py/switches.py</code>, <code>py/shape.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "How it could halt",
+   "text": "The halting transition is F reading 0. F is entered only from E reading 0, moving right. So a halt is exactly <code>E&gt;0 0</code>: E on a 0 with a 0 to its right. E is entered only from B reading 1, which writes 0, so equivalently <code>B&gt;1 0 0</code>.",
+   "where": "the transition table"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The shapes above hold at every extension printed; what rule cuts the blocks, and why B never meets a 1 followed by two 0s, are open.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB 1000000000",
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB 1000000000 records 100000 > rec.txt && python3 holdouts/1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB/py/shape.py rec.txt a=10 && python3 holdouts/1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB/py/switches.py rec.txt a=10"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The tape is a few long blocks of 1s with single 0s between them, and on each trip the block lengths are cut in halves or thirds and rejoined. Each trip crosses the whole tape and costs about the width squared, for a few cells of growth: the width grows like the cube root of the time.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 4,003 cells visited."
+    "value": "4,002",
+    "text": "Width of the tape at its last extension before step 10<sup>9</sup>."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "1401",
+    "text": "Side switches in the first 10<sup>9</sup> steps."
    },
    {
     "level": "heuristic",
-    "value": "power/power",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "t<sup>1/3</sup>",
+    "text": "Growth of the width (fitted exponent 0.335)."
    }
   ],
   "presets": [
@@ -85,6 +104,24 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "blocks",
+    "eyebrow": "What it does",
+    "heading": "Blocks of 1s, cut and rejoined",
+    "html": [
+     "<p>The tape at a few left-end extensions near the end of the first 10<sup>9</sup> steps (head at the far left):</p>",
+     "<pre>step 959,766,361   0 1^1318 0 1^1975 0 1^655\nstep 972,952,841   0 1^661 0 1^2312 0 1^989\nstep 974,655,988   0 1^332 0 1^1489 0 1^1652 0 1^494\nstep 978,900,620   0 1^2651 0 1^1323\nstep 999,181,386   0 1^2666 0 1^1332</pre>",
+     "<p>The first block keeps being halved (1,318, 661, 332) and then the blocks merge back into a 2:1 pair (2,651 and 1,323). At the right end the left part of the tape reads as an alternating stretch: <code>(10)^1333 1^1336 0</code> at step 999,185,396, about a third of the width alternating, then a solid block.</p>"
+    ]
+   },
+   {
+    "id": "growth",
+    "eyebrow": "Growth law",
+    "heading": "Why the width grows like t<sup>1/3</sup>",
+    "html": [
+     "<p>The head goes back and forth across the whole tape. After step 5·10<sup>8</sup> there are 291 side switches (extensions of the tape on the other side from the last one), on average 1,720,135 steps apart, which is about 0.107·w<sup>2</sup> for the final width w = 4002; each adds about 2.9 cells to the width. A constant gain per w<sup>2</sup> steps gives w<sup>3</sup> ~ t. The fitted exponent of the width after step 10<sup>7</sup> is 0.335.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +135,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "blocks of 1s split in halves and thirds",
+ "summary": "At the left end the tape is two to four blocks of 1s separated by single 0s, with lengths in ratios near 2:1 or halved again; at the right end it is an alternating stretch followed by a solid block. Width ~ t^(1/3)."
 }

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open; the phase map is now proved far beyond the first m ≡ 2 case.</b> The tape at a phase start is <code>A&gt; 1110 10 1<sup>m</sup></code> followed by a list of <em>remnants</em> <code>0 (10)<sup>k</sup> 1<sup>c</sup></code>. Lean proves a phase map on (m, remnant list) with exact step counts that covers every case except m ≡ 2 (mod 3) in front of a remnant with c = 2 (or in front of a non-final remnant with c ≤ 1). In particular the m ≡ 2 case of a clean phase is S(3j+2) → S(10j−2) followed by the remnant <code>0 (10)<sup>6</sup> 1111</code> (j ≥ 2). From blank tape the proved map carries the run through 61,963 phases (m of 107,632 bits), so if the machine halts it does so after more than 2<sup>6953</sup> steps (kernel) / 2<sup>215260</sup> steps (compiled evaluation). Phase 61,964 is the first uncovered case: m ≡ 2 in front of the remnant <code>0 (10)<sup>75</sup> 11</code>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,31 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The round, and the end of a phase</h3>
+        <p>Write <code>T(x, m, R)</code> for the tape <code>1 1 1 0 (10)<sup>x</sup> 1<sup>m</sup> R</code> with the head in A at its left end. One round: <code>T(x, m+3, R) → T(x+5, m, R)</code> in 6x + 51 steps. With no 1s left, <code>(10)<sup>x</sup></code> becomes <code>C&gt; (11)<sup>x+6</sup></code> (4x + 37 steps); with one 1 left, <code>C&gt; (11)<sup>x+7</sup></code> (4x + 41 steps); and <code>C&gt; 1 1</code> at the left end restarts with x = 1 (16 steps).</p>
+        <p class="where"><code>round</code>, <code>zero</code>, <code>one</code>, <code>restart</code>, <code>lean/Rules.lean</code> (from <code>py/rules.py</code>); <code>rounds</code> (induction), <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The phase map</h3>
+        <p>With S(m) = <code>0<sup>∞</sup> A&gt; 1 1 1 0 1 0 1<sup>m</sup> 0<sup>∞</sup></code>: S(3j) reaches S(10j + 12) and S(3j + 1) reaches S(10j + 14).</p>
+        <p class="where"><code>phase0</code>, <code>phase1</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt before S(31,957,652)</h3>
+        <p>The machine reaches S(12) in 75 steps and then, by the map, S(52), S(184), S(624), S(2,092), S(6,984), S(23,292), S(77,652), S(258,852), S(862,852), S(2,876,184), S(9,587,292), S(31,957,652). Adding the proved step counts gives step 168,344,857,095,747 for the last one (the Lean theorem states that it is reached; the count is from <code>py/orbit.py</code>, and the first four agree with a direct run: 620, 6,070, 65,728).</p>
+        <p class="where"><code>reaches_S31957652</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The case m ≡ 2 (mod 3), and phases in front of remnants</h3>
+        <p>With the remnant G(k, c) = <code>0 (10)<sup>k</sup> 1<sup>c</sup></code> and P(m, W) = <code>A&gt; 1110 10 1<sup>m</sup></code> followed by the remnants W: after the rounds (x' = x + 5⌊m/3⌋), m ≡ 0 sends G(k+1, c) to P(2x'+11, G(k, c)…) and G(0, c) to P(2x'+10+c, …); m ≡ 1 joins the first remnant to the phase (the tape <em>is</em> T(x'+k+1, c)); m ≡ 2 with x' ≥ 8 gives P(2x'−4, [G(6, 4)]) on blank tape, P(2x', G(k+7, c)…) before G(k, c+3), and P(2x'−4, [G(6, 2k+4)]) / P(2x'−4, [G(6, 2k+6)]) before a last G(k, 0) / G(k, 1). Each case is a run of the machine with its exact step count. For a clean phase: S(3j+2) → P(10j−2, [G(6, 4)]) for j ≥ 2.</p>
+        <p class="where"><code>phase</code>, <code>phase_correct</code>, <code>phase2_clean</code>, <code>lean/Remnant.lean</code>; rules <code>zero_r</code>, <code>one_00</code>, <code>two_b</code>, <code>two_c</code>, <code>two_0</code>, <code>two_1</code> in <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>If it halts, it takes more than 2<sup>6953</sup> steps</h3>
+        <p>Iterating the proved map from S(12) (step 75), every phase start it reaches is a configuration of the run at the computed step (<code>orbit_reaches</code>), and a halt comes after all of them (<code>lt_of_halts</code>). The kernel evaluates 2,000 phases: step &gt; 2<sup>6953</sup>.</p>
+        <p class="where"><code>halt_time_kernel</code>, <code>lean/Remnant.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -111,9 +136,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>61,963 phases: a halt takes more than 2<sup>215260</sup> steps</h3>
+        <p>The same, evaluated by compiled code through 61,963 phases (m then has 107,632 bits). The next phase is the first case the map does not cover: m ≡ 2 (mod 3) in front of the remnant <code>0 (10)<sup>75</sup> 11</code>.</p>
+        <p class="where"><code>halt_time_native</code>, <code>lean/Remnant.lean</code>; <code>py/remnant.py orbit</code></p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
+      <div class="card">
+        <h3>Where it can halt</h3>
+        <p>Only F reading 1 halts; F is entered only from E reading 1 (0LF), so the machine halts exactly on <code>1 E&gt; 1</code>. Read off the table.</p>
+        <p class="where">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No closed tape language with small windows</h3>
+        <p><code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS widths 3 to 7 fails; no invariant a·ones + b·pos + W mod 2..12.</p>
+        <p class="where"><code>tools/py/bbtools/ctl.py</code></p>
+      </div>
       <div class="card">
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 82,012 cells have been visited and 78,899 of them hold a 1.</p>
@@ -122,6 +162,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>The uncovered case: m ≡ 2 before a remnant with c = 2</h3>
+        <p>There the leftover pair of 1s meets the remnant's pair, and small runs show a nested process whose outcome depends on k (from T(10, 2) before G(k, 2): k = 0 → P(26, [G(1, 7)]), k = 1 → P(18, [G(9, 1)]), k = 2 → a phase T(17, 4) with no remnant, k = 3 → P(26, [G(0, 2), G(4, 4)]), k = 4 → P(16, [G(13, 1)])). Its rule was not worked out. Before the remnant rules: direct runs S(2) → S(28), S(5) → S(112), S(8) → S(276), S(11) → S(128), S(20) → S(228), S(29) → S(328).</p>
+        <p class="where"><code>py/remnant.py</code>, <code>py/phase_m2.py</code></p>
+      </div>
       <div class="card">
         <h3>Growth shape: exp/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.487). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.032).</p>
@@ -132,7 +177,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The proved map covers the run through 61,963 phases; whether the machine halts depends on the nested case (m ≡ 2 before a remnant with c = 2) and on the cases after it. The machine can stop only on <code>1 E&gt; 1</code>, which none of the proved cases produce.</p>
       </div>
     </div>
   </section>
@@ -140,6 +185,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---/lean/check.sh
+python3 holdouts/1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---/py/orbit.py
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD--- 1000000000</code></pre>
   </section>
   <footer>

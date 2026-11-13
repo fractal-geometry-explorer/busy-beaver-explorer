@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Blocks of 10, and fossils</a><a href="#dynamics">A bouncer trading units between blocks</a><a href="#halting">Only F on a 1</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>Blocks of 10, and fossils</h2>
+<p>Each time the head is at the left end in state B, the tape is a list of blocks of the word <code>a = 10</code> separated by <code>0 1 a 0</code> (= <code>01100</code>). At step 2,999,883,891 (width 116,432) it begins</p>
+<div class="config">B&gt;0 a^3636 0 1 a 0 a^5830 0 1 a 0 a^16251 0 1 a 0 a^2626 0 1 a 0 a^5075 &hellip; a^113 0 1 a 0 a^369 0 1 a 0 a^113 0 1 a 0 a^369 &hellip; a^9 0 1 a 0 a^41 0 1 a 0 a^9 &hellip; a 0 1 a 0 a 0 1 a 0 1</div>
+<p>The first few blocks are where the work happens; further right the blocks repeat periodically. They are fossils: each long phase of the left-end activity leaves a periodic stretch behind it.</p>
+</section>
+<section id="dynamics">
+  <span class="eyebrow">What a round trip does</span>
+  <h2>A bouncer trading units between blocks</h2>
+<p>Going right, the head shifts each block it crosses by one cell (<code>A&gt; (10)^n &rarr; (01)^n A&gt;</code> and <code>C&gt; (01)^n &rarr; (10)^n C&gt;</code>, proved in Lean for every n). Each round trip changes the first blocks by about one unit and adds about 2 cells at the left end; in long phases a unit at a time moves from one block to another, as in the leftmost block shrinking from 3,644 to 3,636 over 8 round trips. Rarely, a phase carries the head all the way to the right end (the logarithmic side).</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Can it halt?</span>
+  <h2>Only F on a 1</h2>
+<p>The only halt is F reading a 1. F is entered from E after D, moving left, has read a 0 and E a 1. In the first 10<sup>9</sup> steps F was entered 626,994 times and always found a 0, always with <code>11001</code> to its right. The question is whether the block dynamics can ever put a <code>1 1 0</code> in front of a left-moving D; it is open.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,9 +250,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>right_A</code>, <code>right_C</code>, <code>lean/Rules.lean</code></div></div><div><b>Shift rules over the blocks</b><p>Going right, <code>A&gt; (10)^n</code> becomes <code>(01)^n A&gt;</code> and <code>C&gt; (01)^n</code> becomes <code>(10)^n C&gt;</code>, each in 2n steps, for every n and every tape around.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 67,481 cells have been visited and 33,280 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.498). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.0).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in 10<sup>10</sup> steps</b><p><code>tools/c/tmrun.c</code>: 10<sup>10</sup> steps from blank tape without a halt (114,618 ones).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/ctl.py</code></div></div><div><b>No closed tape language from windows up to 7</b><p><code>bbtools.ctl</code> with K = 2 to 6 closes but allows F to read a 1 (18 to 584 abstract halting configurations); at K = 7 it finds no closed set within its round limit; n-gram CPS (widths 3 to 7, -H, -U) fails.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tokrun.c</code></div></div><div><b>Blocks and fossils</b><p>With the head in B at the left end the tape is <code>(10)^n1 0 1 10 0 (10)^n2 0 1 10 0 &hellip;</code>, blocks of <code>10</code> separated by <code>01100</code>. The first block changes by one unit per round trip and the first few blocks trade units in long phases (the leftmost block fell from 3,644 to 3,636 in 8 round trips near step 3&middot;10<sup>9</sup>); the blocks further right repeat periodically (113, 369, 113, 369, &hellip;; 9, 41, 9, 41, &hellip;; 1, 1, 1, &hellip;), left there by earlier phases. The tape grows by about 2 cells per round trip at the left end (square root of the steps); the head reaches the right end only in rare phases (932 times in 9&middot;10<sup>8</sup> steps), which is the logarithmic side.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tm.h</code> (transition counts and windows)</div></div><div><b>Where a halt would come from</b><p>F is entered only from E reading a 1, after D read a 0, going left; in 10<sup>9</sup> steps (626,994 visits) F always read a 0, always with <code>11001</code> to its right and <code>01101</code> or <code>10101</code> (or the blank end) to its left. A halt needs D, moving left, to meet <code>1 1 0</code>.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt?</b><p>Not known; the rule by which the first blocks trade units, and the rare phases that reach the right end, are not decoded.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

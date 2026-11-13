@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves the transfer cycle for every block length and every rest of the tape, k cycles at once, and that the run from blank tape reaches it (step 16,718) and finishes the first phase with it (step 29,508). The phases of the first regime follow a Collatz-like map that ends at step about 435,764; what follows has no description yet. No halt in the first 10<sup>11</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The transfer cycle</h3>
+        <p>With the gadget <code>G = 0 1 0 1 0 111 0 1 00 1 0 11 0</code> at the left end, the head in state C on its first cell and blank tape to the left: <code>G (10)^(2x+12) 111 0 R</code> reaches <code>G (10)^(2x) 111 0 (10)^15 R</code> in 120x + 878 steps, for every x and every tape R (the cycle never reads R). Iterated: <code>G (10)^(2x+12k) 111 0 R</code> reaches <code>G (10)^(2x) 111 0 (10)^(15k) R</code> in ccost x k = k(120x+878) + 360k(k&minus;1) steps (the closed form is stated in the comment; the theorem uses the recursive cost).</p>
+        <p class="where"><code>cycle_cells</code>, <code>lean/Rules.lean</code> (<code>py/gen_rules.py</code>, <code>bbtools.symtm.prove</code>); <code>cycle</code>, <code>cycles</code>, <code>lean/Cycle.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -111,28 +116,38 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>From blank tape to the cycle</h3>
+        <p>After 16,718 steps the configuration is <code>cyc 32 R0</code> (<code>G (10)^64 111 0 (10)^15 0 (10)^3 1</code>); five cycles later, at step 29,508, it is <code>cyc 2 ((10)^75 R0)</code>, as the simulator says.</p>
+        <p class="where"><code>reach_16718</code>, <code>phase_end_29508</code>, <code>lean/Reach.lean</code> (<code>py/gen_reach.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 29,224 cells have been visited and 14,610 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p><code>tmrun</code> (the group's run-length simulator) runs 10<sup>11</sup> steps from blank tape without a halt. At the end 176,677 cells hold a 1.</p>
+        <p class="where"><code>tmrun</code> run, see README</p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.571). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Regime 1: a Collatz-like phase map</h3>
+        <p>Each phase starts with <code>G (10)^X 111 0 (10)^Y 0 (10)^t</code> and X even. The cycles take X down to its remainder r = X mod 12; then the head reorganizes the right part and a new phase starts with X' = Y + 15&lfloor;X/12&rfloor; + a(r, t), so X grows by about 5/4 per phase. Observed phase starts (step: X, Y, t): 16,718: 64, 15, 4; 33,824: 90, 8, 3; 61,598: 118, 5, 2; 102,230: 152, 0, 5; 169,786: 190, 2, 4; 283,966: 230, 14, 3. With r = 2 (X = 230) the phase ends differently and regime 1 stops.</p>
+        <p class="where">event list of C at the left end, see README</p>
+      </div>
+      <div class="card">
+        <h3>Regime 2: a row of units</h3>
+        <p>From step 435,764 on, right of the gadget the tape is a row of units <code>(10)^a 1110 (10)^b</code> separated by extra 0s: at step 3&middot;10<sup>9</sup> there are 13 of them, with a up to 17,222, after a short irregular stretch next to the gadget. Each excursion of the head from the left end changes a few units; the changes do not follow a pattern found so far.</p>
+        <p class="where">event list of C at the left end, see README</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>The only halting transition is E reading 1, reached when D reads a 1, erases it and moves left onto another 1. The proved cycle never does that; whether regime 2 can is open.</p>
       </div>
     </div>
   </section>
@@ -140,7 +155,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB 1000000000</code></pre>
+python3 holdouts/1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB/py/gen_rules.py   # rewrites lean/Rules.lean
+python3 holdouts/1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB/py/gen_reach.py   # rewrites lean/Reach.lean</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

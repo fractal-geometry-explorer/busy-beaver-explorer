@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LD_0RC1RA_1RD1RE_1LA0LE_0RA0RF_1RC---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine keeps a stack of counters on its tape. It works on the top one with a simple proved rule, and each time that counter runs out it rebuilds it about 10/3 times larger, either borrowing from the next counter or making the next counter take a step, depending on the counter's size modulo 3. Followed exactly with the proved rules, it has not halted in 10<sup>39,417</sup> steps.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 87,950 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>39,417</sup> steps</b><span class="small">No halt, following the Lean-proved rules epoch by epoch.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>6m + 45</b><span class="small">Steps of one trip, proved for every m.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>8 rules</b><span class="small">The trip and the common epoch ends, proved for all sizes.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>&times; 10/3</b><span class="small">Growth of level 1 per epoch (steps &times; about 11).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#stack">A stack of levels</a><a href="#trip">Trips: three ones become five 01</a><a href="#events">Rebuilding level 1, by n mod 3</a><a href="#recursion">Every level is the same counter, run slower</a><a href="#halt">Not in any proved rule</a><a href="#proved">Proved, computed, observed</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +219,56 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>955,267,318</td><td><code>1^17383 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>970,895,593</td><td><code>1^17158 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>986,692,618</td><td><code>1^16933 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="stack">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>A stack of levels</h2>
+<p>Every time the head is at the right end of the tape in state C, the tape left of it reads as a stack of <em>levels</em>, each a run of ones followed by a run of <code>01</code>, separated by single zeros:</p>
+<p><code>0^&infin; [1^n<sub>k</sub> (01)^m<sub>k</sub> 0] &hellip; [1^n<sub>2</sub> (01)^m<sub>2</sub> 0] 1^n<sub>1</sub> (01)^m<sub>1</sub> C&gt; 0^&infin;</code></p>
+<svg viewBox="0 0 640 120" role="img" aria-label="the stack of levels on the tape" style="width:100%;max-width:640px;height:auto;font:11px var(--mono);">
+<rect x="10" y="40" width="70" height="30" fill="var(--line)"/><text x="45" y="30" text-anchor="middle" fill="var(--muted)">level 3</text>
+<rect x="84" y="40" width="4" height="30" fill="var(--head)"/>
+<rect x="92" y="40" width="40" height="30" fill="var(--accent)" opacity="0.7"/><rect x="132" y="40" width="70" height="30" fill="var(--fg2)" opacity="0.3"/>
+<text x="147" y="30" text-anchor="middle" fill="var(--fg2)">level 2</text>
+<rect x="206" y="40" width="4" height="30" fill="var(--head)"/>
+<rect x="214" y="40" width="200" height="30" fill="var(--accent)" opacity="0.7"/><rect x="414" y="40" width="170" height="30" fill="var(--fg2)" opacity="0.3"/>
+<text x="314" y="60" text-anchor="middle" fill="var(--bg)">1^n</text><text x="499" y="60" text-anchor="middle" fill="var(--fg2)">(01)^m</text>
+<text x="400" y="30" text-anchor="middle" fill="var(--fg2)">level 1</text>
+<text x="596" y="60" fill="var(--head)">C&gt;</text>
+<text x="208" y="90" text-anchor="middle" fill="var(--muted)">0</text><text x="86" y="90" text-anchor="middle" fill="var(--muted)">0</text>
+<text x="320" y="112" text-anchor="middle" fill="var(--muted)">levels are separated by a single 0; the head turns at the right end</text>
+</svg>
+<p>Level 1 is the one next to the head. It is huge; the levels above it are small and change rarely. A level never has exactly one 1: <code>0 1 (01)^m</code> is just <code>(01)^(m+1)</code> on the level above.</p>
+</section>
+<section id="trip">
+  <span class="eyebrow">The fast part</span>
+  <h2>Trips: three ones become five 01</h2>
+<p>From <code>1^(n+3) (01)^(m+1) C&gt;</code> the head runs left to the ones, turns three of them into <code>01</code> pairs, runs back and adds two more at the right end: <code>1^n (01)^(m+6) C&gt;</code>, in 6m + 45 steps. Lean proves this for every m and every tape further left (<code>trip</code>), and k trips in a row by induction (<code>trips</code>). So level 1 = <code>1^n (01)^m</code> becomes, after n/3 trips, <code>1^r (01)^(m + 5n/3)</code> with r = n mod 3.</p>
+</section>
+<section id="events">
+  <span class="eyebrow">The end of an epoch</span>
+  <h2>Rebuilding level 1, by n mod 3</h2>
+<p>With M copies of <code>01</code> left and r ones:</p>
+<ul><li><b>r = 0.</b> The head rebuilds level 1 as <code>1^(2M+7) (01)^3</code>, taking the last <code>01</code> of level 2; if level 2 has no <code>01</code> it joins instead: <code>1^(2M+6+n<sub>2</sub>) (01)^3</code> (<code>zero_dec</code>, <code>zero_merge</code>, <code>zero_blank</code>).</li><li><b>r = 1.</b> Nothing happens: <code>0 1 (01)^M</code> is level 2 with M + 1 more copies of <code>01</code>. Level 1 is popped and level 2 carries on with its ones (by trips, now at the right end).</li><li><b>r = 2.</b> Level 2 takes one step and level 1 becomes <code>1^(2M-4) (01)^3</code> after a trip of level 2, <code>1^(2M-8) (01)^3</code> otherwise. A level-2 step is a trip <code>1^(n+3) (01)^q</code> &rarr; <code>1^n (01)^(q+7)</code>, or, with no ones, a rebuild to <code>1^(2q+5) (01)^6</code> that takes from level 3; on blank tape a new level <code>1^4 (01)^6</code> is pushed (<code>two_trip</code>, <code>two_dec</code>, <code>two_merge</code>, <code>two_blank</code>).</li></ul>
+<p>All of these are proved in Lean for every size. Each epoch multiplies level 1 by about 10/3 (M is about 5n/3 and the new n is about 2M), so the step count grows about elevenfold per epoch. The first epochs:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>epoch</th><th>ends at step</th><th>new level 1</th><th>level 2</th></tr></thead><tbody><tr><td>1</td><td>170</td><td><code>1^24 (01)^3</code></td><td>&mdash;</td></tr><tr><td>2</td><td>1,683</td><td><code>1^92 (01)^3</code></td><td>&mdash;</td></tr><tr><td>3</td><td>17,146</td><td><code>1^298 (01)^3</code></td><td><code>1^4 (01)^6</code></td></tr><tr><td>4</td><td>173,477</td><td><code>1^1,028 (01)^3</code></td><td>&mdash;</td></tr><tr><td>5</td><td>1,949,244</td><td><code>1^3,418 (01)^3</code></td><td><code>1^4 (01)^6</code></td></tr><tr><td>6</td><td>21,514,055</td><td><code>1^11,428 (01)^3</code></td><td>&mdash;</td></tr><tr><td>7</td><td>239,377,489</td><td><code>1^38,104 (01)^3</code></td><td>&mdash;</td></tr><tr><td>8</td><td>2,659,896,027</td><td><code>1^127,024 (01)^3</code></td><td>&mdash;</td></tr><tr><td>11</td><td>3.6&middot;10<sup>12</sup></td><td><code>1^4,704,738 (01)^3</code></td><td><code>1^4 (01)^6</code></td></tr><tr><td>12</td><td>4.1&middot;10<sup>13</sup></td><td><code>1^15,682,473 (01)^3</code></td><td><code>1^4 (01)^5</code></td></tr></tbody></table></div>
+</section>
+<section id="recursion">
+  <span class="eyebrow">The recursion</span>
+  <h2>Every level is the same counter, run slower</h2>
+<p>A level k &ge; 2 moves only when the level below it ends an epoch with two ones left, and then it takes one step of the same kind: a trip (adding 7 copies of <code>01</code> instead of 5), a rebuild to <code>1^(2m+5) (01)^6</code> when it has no ones, or, when it has two ones, a carry: level k+1 takes a step and level k is rebuilt to <code>1^(2m-6) (01)^6</code> or <code>1^(2m-10) (01)^6</code>. A level left with one 1 pops into the level above. This is a multi-level counter in which each digit is itself a counter of the same kind.</p>
+<p>In practice the stack stays shallow: level 1 is popped whenever its size is 1 mod 3, which takes level 2 with it. In 37,692 epochs from blank tape a carry into level 3 happened once, at epoch 30,402 (level 2 = <code>1^2 (01)^72</code>, rebuilt as <code>1^134 (01)^6</code> with a new level 3 <code>1^4 (01)^6</code>).</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Where it could halt</span>
+  <h2>Not in any proved rule</h2>
+<p>The machine halts when state F reads a 1. None of the proved rules does, so a halt would have to come from a case they do not cover: a carry, or a level whose run of <code>01</code> is very short. Simulating every event with level 1 large and up to two small levels above it (8,064 cases) found no halt. Whether the run ever reaches a bad case depends on the sizes of level 1 modulo 3, epoch after epoch, which nobody knows how to predict.</p>
+</section>
+<section id="proved">
+  <span class="eyebrow">What is proved</span>
+  <h2>Proved, computed, observed</h2>
+<p><b>Lean, kernel:</b> the halting configurations; no halt in 10,000 steps; the start (<code>start</code>, 89 steps), the trip and k trips, and the seven epoch-end rules (<code>lean/Rules.lean</code>). <b>Lean, native_decide:</b> no halt in 10<sup>7</sup> steps.</p>
+<p><b>Computed (trusted):</b> following the proved rules from blank tape, no halt in 10<sup>39,417</sup> steps (<code>py/stack.py</code>, checked against the plain simulator for the first 3&middot;10<sup>10</sup> steps). <b>Observed:</b> the rule at levels 3 and up, and the 10/3 growth.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -234,15 +285,20 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 87,950 cells have been visited and 52,346 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.525).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>trip</code>, <code>trips</code>, <code>start</code>, <code>lean/Rules.lean</code></div></div><div><b>The trip and the start</b><p><code>1^3 (01)^(m+1) C&gt;</code> at the right end (blank to the right) becomes <code>(01)^(m+6) C&gt;</code> in 6m + 45 steps, whatever lies further left; by induction, <code>1^(3k) (01)^(m+1) C&gt;</code> becomes <code>(01)^(m+1+5k) C&gt;</code> in k(6m + 30) + 15k&sup2; steps. From blank tape the machine reaches <code>(01)^9 C&gt;</code> in 89 steps.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code></div></div><div><b>The epoch ends, in the common cases</b><p>With level 1 = <code>1^r (01)^M</code>, r = 0 or 2: <code>zero_blank</code>, <code>zero_dec</code>, <code>zero_merge</code> (r = 0: level 1 becomes <code>1^(2M+6) (01)^3</code> or <code>1^(2M+7) (01)^3</code>, taking a <code>01</code> or the ones of level 2), <code>two_blank</code>, <code>two_trip</code>, <code>two_dec</code>, <code>two_merge</code> (r = 2: level 2 takes one step and level 1 becomes <code>1^(2M-4) (01)^3</code> or <code>1^(2M-8) (01)^3</code>). Each holds for every M, the sizes of the other levels and the rest of the tape, with the exact step count. Not covered: a carry from level 2 into level 3, and level-2 runs of <code>01</code> shorter than 4.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/stack.py</code>, <code>c/canon.c</code></div></div><div><b>No halt in the first 10<sup>39,417</sup> steps</b><p><code>py/stack.py</code> keeps the tape as its list of levels, does the trips of an epoch at once and ends each epoch with the proved rules (when none applies, by plain simulation with level 1 cut down to 30, 31 and 32 copies, extrapolated linearly). In two minutes it runs 37,692 epochs and reaches 10<sup>39,417</sup> steps; 37,691 epoch ends are instances of the Lean rules, one is a carry into level 3. The first 9 epochs (3&middot;10<sup>10</sup> steps) agree with the plain C simulator in step count and tape (<code>py/stack.py check 9</code>).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/stack.py</code></div></div><div><b>The rule at every level</b><p>A level k &ge; 2 changes only when the level below it ends an epoch with two ones left. It then takes one step: a trip, <code>1^(n+3) (01)^m</code> to <code>1^n (01)^(m+7)</code>; or, with no ones, a rebuild to <code>1^(2m+5) (01)^6</code> (or <code>1^(2m+4+p) (01)^6</code>), taking from level k+1; or, with two ones, a carry into level k+1 and a rebuild to <code>1^(2m-6) (01)^6</code> after a trip there, <code>1^(2m-10) (01)^6</code> otherwise. A level reduced to a single one is the same tape as one more <code>01</code> on the level above (a pop). Observed in every simulated case with m &ge; 5; smaller m behaves differently and is not tabulated.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts only when state F reads a 1; no proved rule does that, and plain simulation of all 8,064 event configurations with up to two small extra levels found no halt. A proof of non-halting would need rules for every case (the carries and small levels too) closing over all stacks that can arise; the order in which the cases come is set by sizes modulo 3.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_0RC1RA_1RD1RE_1LA0LE_0RA0RF_1RC---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_0RC1RA_1RD1RE_1LA0LE_0RA0RF_1RC--- 1000000000</code></pre>
+python3 holdouts/1RB0LD_0RC1RA_1RD1RE_1LA0LE_0RA0RF_1RC---/py/gen_rules.py &gt; holdouts/1RB0LD_0RC1RA_1RD1RE_1LA0LE_0RA0RF_1RC---/lean/Rules.lean   # regenerate the rules
+python3 holdouts/1RB0LD_0RC1RA_1RD1RE_1LA0LE_0RA0RF_1RC---/py/stack.py check 8      # the stack simulator against the plain one
+python3 holdouts/1RB0LD_0RC1RA_1RD1RE_1LA0LE_0RA0RF_1RC---/py/stack.py run 120      # one line per epoch, for two minutes</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LD_0RC1RA_1RD1RE_1LA0LE_0RA0RF_1RC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

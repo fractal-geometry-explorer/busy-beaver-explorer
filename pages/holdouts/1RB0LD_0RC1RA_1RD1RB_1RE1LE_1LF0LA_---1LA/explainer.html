@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this machine sweeps back and forth over a tape made of a few kinds of word, such as 001010 010101 111111 and 0 1111111, which it keeps rewriting and rearranging. No pattern in the arrangement has been found.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 48,898 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>sqrt/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>10<sup>4</sup> steps</b><span class="small">No halt, checked by Lean's kernel (10<sup>7</sup> by compiled code).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>6,990,496</b><span class="small">Entries into the halting state F in 10<sup>8</sup> steps, all onto a 1.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#halt">The one way to halt</a><a href="#words">A tape of words</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="halt">
+  <span class="eyebrow">Where it could stop</span>
+  <h2>The one way to halt</h2>
+<p>The only halting entry is F reading a 0. F is entered only from E reading a 0 (E writes 1 and moves left), so the machine halts exactly when <code>0 E&gt;0</code> occurs: E on a 0 with another 0 left of it. In the first 10<sup>8</sup> steps that happens 7 million times with a 1 to the left every time; the most common windows as F is entered are <code>110[1]110</code>, <code>101[1]110</code>, <code>011[1]111</code> and <code>101[1]111</code>.</p>
+</section>
+<section id="words">
+  <span class="eyebrow">Macro structure</span>
+  <h2>A tape of words</h2>
+<p>When the head reaches a new cell at the left end, the start of the tape looks like</p>
+<p><code>A&gt;0 (01)^3 1^4 001010 (01)^3 1^6 001010 (01)^3 1^6 (00101)^3 1^4 (00101)^3 0 1^7 (00101)^3 1^4 &hellip;</code> (step 4,319,542)<br><code>A&gt;0 1 (10)^3 1^7 0 1^5 0 (01)^3 1^6 (00101)^3 1^4 001010 (01)^3 1^6 (00101)^3 1^4 001010 (01)^3 1^6 &hellip;</code> (step 9,863,880)</p>
+<p>The second sample has seven copies of <code>(00101)^3 1^4 001010 (01)^3 1^6</code> in a row, but they do not last: the next sweeps rewrite the stretch into other words. The right side is built the same way from other words, such as <code>1010 111 010110 (101)^3 (01101)^3</code>. Nothing here is proved; the run has not been reduced to rules.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,13 +247,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 48,898 cells have been visited and 29,096 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: sqrt/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.446). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.532).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/haltwatch.c</code>, first 10<sup>8</sup> steps</div></div><div><b>E never reads 0 with a 0 to its left (so far)</b><p>The only halting entry is F reading a 0, and F is entered only from <code>E&gt;0</code> (write 1, move left): the machine halts exactly when <code>0 E&gt;0</code> occurs. In the first 10<sup>8</sup> steps F is entered 6,990,496 times, always onto a 1.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/snapshots.py</code></div></div><div><b>A tape of words</b><p>Left of the start the tape is a sequence of the words <code>001010 (01)^3 1^6</code>, <code>(00101)^k 1^4</code>, <code>0 1^7</code> and a few others; right of the start, words such as <code>1010 111 010110 (101)^3 (01101)^3</code> and <code>(10110)^4 (11010)^3 1</code>. Long stretches are periodic for a while (e.g. <code>((00101)^3 1^4 001010 (01)^3 1^6)^7</code> at step 9,863,880) and are then rewritten.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. No regular macro structure has been found; the words are rewritten as the head passes and the sequence they form has no visible period. A proof would need the set of words to be closed under the head's passes (a closed-language argument) or a counter structure hidden in the word sequence.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA/lean/check.sh
+python3 holdouts/1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA/py/snapshots.py 1e7 L 100
+gcc -O2 -o haltwatch holdouts/1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA/c/haltwatch.c &amp;&amp; ./haltwatch 1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA 100000000
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA 1000000000</code></pre>
 </section>
 <footer class="foot">

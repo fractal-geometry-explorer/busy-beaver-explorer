@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB</h1>
     <p class="machine">1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 9 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves only the generated bounded runs (no halt in 10<sup>7</sup> steps). Computed: no halt in the first 10<sup>10</sup> steps; between resets the tape is a list of digits following one exact rule (282 of 289 transitions), and the resets, where the digits are rewritten, grow so fast that the seventh one, started at step 9,477,912, is still running at step 10<sup>10</sup>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -115,24 +115,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 59,010 cells have been visited and 39,426 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 10<sup>10</sup> steps</h3>
+        <p>The C simulator <code>tmrun</code> runs 10<sup>10</sup> steps without a halt. D visits the left end of the tape 290 times, the last at step 9,477,912; each time the tape is a list of digits made of the words <code>0 1 1</code> and <code>0 0 1 1</code>.</p>
+        <p class="where"><code>py/digits.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The simple phase</h3>
+        <p>In 282 of the 289 transitions between left-end visits, a digit 2 is inserted after the first digit and the last digit loses 1: <code>[1, d<sub>2</sub>, &hellip;, d<sub>k</sub>, n+1] &rarr; [1, 2, d<sub>2</sub>, &hellip;, d<sub>k</sub>, n]</code>. The other seven are the first visit and six resets, which start when the last digit is 1 and last 202, 838, 12,278, 42,214, 580,526 and 6,080,814 steps.</p>
+        <p class="where"><code>py/digits.py check</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.466).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A reset longer than 10<sup>10</sup> steps</h3>
+        <p>The seventh reset starts from a 278-digit tape at step 9,477,912 and has not ended by step 10<sup>10</sup>; during it the tape is rewritten into other words (<code>0 1 0 1^4</code> repeated), an inner counter not yet described.</p>
+        <p class="where"><code>README.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Open. It halts exactly when B reads a 0 with a 0 on its left (<code>0 B&gt;0</code>, then C reads 0). Deciding it needs a description of the resets.</p>
       </div>
     </div>
   </section>
@@ -140,7 +145,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB 1000000000</code></pre>
+/home/user/w/tmrun 1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB 10000000000 at D L 1000000 | python3 holdouts/1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB/py/digits.py check</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

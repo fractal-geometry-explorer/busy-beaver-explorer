@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G08",
  "title": "What is known about 1RB0LD_0RC0RF_1LD0RB_1LE---_0LA0LB_0LE0RA",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LD_0RC0RF_1LD0RB_1LE---_0LA0LB_0LE0RA.",
@@ -12,7 +12,9 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves the two conversions the sweeps make and the situations that lead to a halt (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.",
+  "<b>What it does.</b> At the left end the tape is a handful of long blocks of 1s, for example <code>A&gt; 000 1<sup>3</sup> 00 1<sup>x</sup> 00 1<sup>7</sup> 000 1<sup>y</sup> 0001000 1<sup>z</sup></code>. Going right, C packs every <code>1111</code> into <code>1000</code>; going left, E unpacks every <code>0001</code> back into <code>1111</code>. One round trip changes the counts by fixed amounts: in the example x and y lose 8 and z gains 32. When a count runs out the blocks are rearranged and a new <em>epoch</em> starts with larger counts (epochs begin with a block of 285, 851, 1,145 and 1,553 ones in the first 6&middot;10<sup>6</sup> steps).",
+  "<b>Where a halt would come from.</b> Only D reading a 1 halts; D is entered from A reading a 1 or C reading a 0 with a 1 to the left. In 2&middot;10<sup>8</sup> steps D always reads a 0. A proof would follow the counters through every epoch change, as for a counter machine."
  ],
  "claims": [
   {
@@ -46,10 +48,34 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules",
+   "text": "Going right, C turns each <code>1111</code> into <code>1000</code> (ten steps a copy); going left, E with <code>00</code> ahead turns each <code>0001</code> into <code>1111</code> (28 steps a copy).",
+   "where": "<code>pack</code>, <code>unpack</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The halting situations",
+   "text": "<code>1 A&gt;1</code> and <code>1 C&gt;0</code> halt after one step, <code>1 1 E&gt;0</code> after two.",
+   "where": "<code>halt_A</code>, <code>halt_C</code>, <code>halt_E</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Counters and epochs",
+   "text": "At every left-end visit with A in front of <code>000</code> in the first 10<sup>7</sup> steps, the tape is a short list of blocks of 1s; within an epoch the counts change by the same amounts every round trip (for example x &minus; 8, y &minus; 8, z + 32, or x &minus; 12, y &minus; 4, z + 32), and an epoch ends when one of them runs out.",
+   "where": "<code>py/turns.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "D never reads a 1 in 2&middot;10<sup>8</sup> steps",
+   "text": "In the first 2&middot;10<sup>8</sup> steps the machine is in state D 26,324,186 times, every time on a 0: the halting transition D1 is never close to firing in a way the run shows.",
+   "where": "<code>c/visits.c</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "where": "",
+   "text": "Not known. The counts behave like the registers of a counter machine; a proof needs the rules for every epoch change, and nobody has them yet."
   }
  ],
  "check": [
@@ -58,7 +84,7 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LD_0RC0RF_1LD0RB_1LE---_0LA0LB_0LE0RA 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine is a counter machine in disguise: its tape holds a few long blocks of 1s whose lengths go up and down by fixed amounts on every trip. This page runs it in your browser and shows the counters.",
   "facts": [
    {
     "level": "trusted",
@@ -86,6 +112,30 @@
   },
   "sections": [
    {
+    "id": "pack",
+    "eyebrow": "The sweeps",
+    "heading": "Packing and unpacking",
+    "html": [
+     "<p>The head sweeps the whole tape. Going right, C packs each group of four 1s into <code>1000</code>, ten steps a group:</p>",
+     "<pre>C&gt; 1 1 1 1 1 1 1 1 0      \n1 0 0 0 1 0 0 0 C&gt; 0      (20 steps later)</pre>",
+     "<p>Going left, E (with <code>0 0</code> ahead of it) unpacks each <code>0001</code> back into <code>1111</code>, 28 steps a group:</p>",
+     "<pre>0 0 0 1 0 0 0 1 E&gt; 0 0      \nE&gt; 0 0 1 1 1 1 1 1 1 1      (56 steps later)</pre>",
+     "<p>Lean proves both for any number of groups (<code>pack</code>, <code>unpack</code>). So at the right end the tape is in the packed form <code>(1000)<sup>n</sup></code>, at the left end in the unpacked form.</p>"
+    ]
+   },
+   {
+    "id": "counters",
+    "eyebrow": "Macro structure",
+    "heading": "A few counters",
+    "html": [
+     "<p>Stop the simulator each time A reaches the left end. The tape is a handful of long blocks, for instance at step 2,438,703</p>",
+     "<pre>A&gt; 000 1<sup>3</sup> 00 1<sup>351</sup> 00 1<sup>7</sup> 000 1<sup>1109</sup> 0001000 1<sup>170</sup></pre>",
+     "<p>and one round trip later</p>",
+     "<pre>A&gt; 000 1<sup>3</sup> 00 1<sup>343</sup> 00 1<sup>7</sup> 000 1<sup>1101</sup> 0001000 1<sup>202</sup></pre>",
+     "<p>Two blocks lost 8 ones and the last gained 32. This goes on for many trips, like the registers of a counter machine. When a block runs out, the blocks are rearranged and a new epoch starts with other increments and larger counts. Nothing so far looks close to <code>1 A&gt;1</code> or <code>1 C&gt;0</code>, the two ways to halt.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +148,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A counter machine in disguise: the tape is a few long blocks of 1s whose lengths change by fixed amounts on every round trip (for long stretches 8 ones leave two blocks and 32 join a third), until a block runs out and the tape is reorganised into a longer epoch. Open.",
+ "family": "two-sided bouncer, words 1111 | 1000, a few counters in epochs",
+ "decision": "open"
 }

@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF</p>
     <h1>What is known about 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF</h1>
     <p class="machine">1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head sweeps over the whole tape; on both sides it leaves sequences of a few kinds of unit, in an order with no visible period. This page lists what has been established, sorted by what each result rests on.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves the halting configurations and no halt in the first 10<sup>7</sup> steps. The unit structure below is observed in simulations, not proved. No halt in the first 10<sup>9</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 58,887 cells have been visited and 28,304 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>A never reads 1 with a 1 to its left (so far)</h3>
+        <p>The only halting entry is E reading a 1, and E is entered only from <code>A&gt;1</code> (write 0, move left): the machine halts exactly when <code>1 A&gt;1</code> occurs. In the first 10<sup>8</sup> steps E is entered 12,501,222 times, always onto a 0.</p>
+        <p class="where"><code>c/haltwatch.c</code>, first 10<sup>8</sup> steps</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +132,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.496). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.493).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Two sequences of units</h3>
+        <p>Right of the start the tape is a sequence of runs <code>(01)^k 0</code> with k = 12 most of the time, 3 or 21 now and then, and 9, 15 or 18 in the youngest part near the right end, which is a long run <code>(01)^126 (10)^16 1</code> at step 2&middot;10<sup>7</sup>. Left of the start it is a sequence of units <code>000 (110100)^k 110 (010011)^j 01</code> with k = 3 or 6 and j = 4 or 7. The settled lengths differ by multiples of 3, and no period is visible in the order of the units.</p>
+        <p class="where"><code>py/snapshots.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The unit sequences look like the fixed point of a substitution, generated one unit per sweep near each end; a proof would need that substitution (how the run at the right end is cut into units, and what decides between 3, 12 and 21), and then a check that the head's passes over the units never produce <code>1 A&gt;1</code>.</p>
       </div>
     </div>
   </section>
@@ -140,6 +150,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/lean/check.sh
+python3 holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/py/snapshots.py 2e7 R 100
+gcc -O2 -o haltwatch holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/c/haltwatch.c &amp;&amp; ./haltwatch 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF 100000000
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF 1000000000</code></pre>
   </section>
   <footer>

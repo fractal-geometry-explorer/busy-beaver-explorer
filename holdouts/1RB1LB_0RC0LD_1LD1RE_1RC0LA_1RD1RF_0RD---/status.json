@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB1LB_0RC0LD_1LD1RE_1RC0LA_1RD1RF_0RD---",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LB_0RC0LD_1LD1RE_1RC0LA_1RD1RF_0RD---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The tape is a short word at the left and two big blocks of ones; each round trip moves 3 ones out of one block and 4 into the other, so each regime multiplies the count by about 4/3. Lean proves the 35 one-cycle rules used on the run to 10<sup>15</sup> steps; the accelerated run reaches 10<sup>40</sup> steps without a halt."
  ],
  "claims": [
   {
@@ -46,9 +46,27 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "The cycle rules",
+   "text": "35 one-cycle rules, each for all values of its variables, e.g. <code>cycle23</code>: a block of 3-cell words <code>(111)^n1</code> grows by 8 words while <code>(111)^n3</code> shrinks by 6, in 36·n3 + 198 steps. They are exactly the rules the cycle accelerator applied on the run to 10<sup>15</sup> steps.",
+   "where": "<code>lean/Cycles.lean</code> (from <code>py/cycles_rules.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt up to 10<sup>40</sup> steps",
+   "text": "<code>bbtools.cycles</code> with blocks of 3 cells: 145 jumps, 70 proved rules, no halt by 10<sup>40</sup> steps (each jump checked by the proved rule it applies; the steps between are exact macro steps).",
+   "where": "<code>python3 -m bbtools.cycles M 3 1e40</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The 4/3 map",
+   "text": "The number of cycles per regime goes 3, 7, 12, 17, 25, 36, 49, 67, 89, 117, 159, 218, 290, 385, 511, …, 4498, 6003, 8005, 10672, 14230, 18972, 25273, 33701, 44967: each about 4/3 of the last, with an offset of a few units that depends on the remainder mod 3 and on the word at the left end.",
+   "where": "<code>py/cycles_rules.py</code> (the jumps)"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Open. The end-of-regime rule (what the remainder mod 3 does to the left-end word) is not worked out, so the halting condition (F reading 1) is not yet reduced to a statement about the map.",
    "where": ""
   }
  ],
@@ -58,22 +76,22 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LB_0RC0LD_1LD1RE_1RC0LA_1RD1RF_0RD--- 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Two big blocks of ones trade cells, four in for every three out, so their size grows by a factor of about 4/3 per round: a Collatz-like map, with a little word at the left end listening to the remainders.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 48,667 cells visited."
+    "value": "10<sup>40</sup> steps",
+    "text": "No halt in the accelerated (proved-rule) run."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "35 rules",
+    "text": "The cycle rules of the run to 10<sup>15</sup>, proved in Lean."
    },
    {
     "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "4n/3",
+    "text": "Each regime is about 4/3 as long as the one before."
    }
   ],
   "presets": [
@@ -96,7 +114,34 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>544,985,952</td><td><code>B&gt;0 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2</code></td></tr><tr><td>right</td><td>962,001,520</td><td><code>1 0 1^39 0 1^10071 0 1^38043 D&gt;0</code></td></tr><tr><td>right</td><td>977,699,488</td><td><code>1 0 1^39 0 1^10903 0 1^37419 D&gt;0</code></td></tr><tr><td>right</td><td>993,432,220</td><td><code>1 0 1^39 0 1^11751 0 1^36783 D&gt;0</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "tape",
+    "eyebrow": "What the tape looks like",
+    "heading": "A short word and two big blocks of ones",
+    "html": [
+     "<p>After 10<sup>9</sup> steps the right part of the tape is <code>1 0 1^39 0 1^10903 0 1^37419</code> with the head in D at the right end; the 75 cells left of the start are a short structure of words 100. Each round trip takes 3 ones from the right block and adds 4 to the block before it: at step 60,479 the end of the tape is <code>1^181 0 1^156</code>, 25 round trips later <code>1^281 0 1^81</code>. When the right block runs out a new regime starts.</p>"
+    ]
+   },
+   {
+    "id": "rule",
+    "eyebrow": "The rule",
+    "heading": "Four in, three out",
+    "html": [
+     "<p>Seen through blocks of 3 cells, a typical cycle (Lean: <code>cycle23</code>) turns <code>(111)^(n1+1) … (111)^(n3+7)</code> into the same tape with n1 + 8 and n3 + 1: 24 cells gained for 18 lost. So when the shrinking block of n cells is used up, the other has grown by about 4n/3, and the next regime is 4/3 as long. The counts of cycles per regime: 3, 7, 12, 17, 25, 36, 49, 67, 89, 117, 159, …, 6003, 8005, 10672, 14230, 18972.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Does it halt?",
+    "heading": "Open",
+    "html": [
+     "<p>The only halting transition is F reading 1. As for other machines of this family, it is decided by how the remainders of the count mod 3 drive the short word at the left end; that end-of-regime rule has not been extracted, so the question is not reduced to a clean map yet. The accelerated run (each jump a proved rule) reaches 10<sup>40</sup> steps with no halt.</p>"
+    ]
    }
   ]
- }
+ },
+ "summary": "Two long blocks of ones on the right trade cells, 4 gained for every 3 lost per round trip, so the run is a Collatz-like map n → about 4n/3 (offset set by n mod 3 and a short left-end word); the halting question is not reduced yet.",
+ "family": "Collatz-like 4n/3 map + prefix",
+ "decision": "open"
 }

@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G12",
  "title": "What is known about 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD.",
@@ -8,83 +8,189 @@
  "home": "../index.html",
  "source": "holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "This is <b>Space Needle</b>, a six-state machine found by mxdys in January 2025 and listed by the bbchallenge community as a <em>cryptid</em>: its halting from blank tape is equivalent to an open number-theory question. This page records what is established here, sorted by what each result rests on.",
+  "The tape is a few long blocks of 1s. From one visit of the left edge to the next, the machine applies mxdys's map to the lengths (b, c) of the two blocks of <code>0^&infin; A&gt;0 1^b 0 0 1^c 0^&infin;</code>. Lean proves the map, for all b and c, and proves that the machine halts exactly when Katelyn Doucette's one-variable sequence 6, 10, 17, 41, 101, 251, ... reaches a power of two."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open, and equivalent to a question about a simple sequence.</b> Lean proves, checked by the kernel alone, that the machine halts from blank tape if and only if some term of the sequence D<sub>0</sub> = 6, D<sub>k+1</sub> = D<sub>k</sub> + v + 3a, where D<sub>k</sub> = 2<sup>v</sup>(2a+1), is a power of two (<code>halts_iff_pow2</code>).",
+  "<b>None of the first 300,000 terms is</b> (Lean, <code>native_decide</code>; the first 20,000 by the kernel), nor of the first 3&middot;10<sup>6</sup> (C). The terms grow by a factor of about 1.92 per step and their number of factors 2 stays small (at most 24 so far), so a power of two would be an extraordinary coincidence: the machine is <em>probviously</em> non-halting. A proof would need control of the 2-adic valuations of a sequence defined by additions, which is beyond current methods."
  ],
  "claims": [
   {
    "level": "kernel",
    "title": "The halting configurations",
-   "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
+   "text": "The machine stops exactly when F reads a 0.",
    "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
   },
   {
    "level": "kernel",
+   "title": "Shift rules",
+   "text": "Fifteen rules on symbolic tapes, for all values of their parameters and any surrounding tape: one bounce of the bouncer (<code>L 0 1^(m+3) C&gt;0 R</code> to <code>L 1 0 1^(m+1) C&gt;0 1 R</code>), one zig-zag, the ends of the phases, the halt of (1, c), and blank tape to (3, 1) in 45 steps. Written by <code>tools/py/bbtools/symtm.py</code> as chains of <code>rfl</code> steps and the crossing lemmas.",
+   "where": "<code>lean/Rules.lean</code>, <code>py/gen_rules.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "mxdys's macro rules",
+   "text": "Write X(b, c) for <code>0^&infin; A&gt;0 1^b 0 0 1^c 0^&infin;</code>. For every b and c &ge; 1: X(0, c) reaches X(c + 2, 1); X(2k + 2, c) reaches X(5k + c + 7, 1); X(2k + 3, c) reaches X(k, k + c + 4); X(1, c) halts 13 steps later. Proved by three inductions (the bouncer, the zig-zag, the shift of a block) over the shift rules.",
+   "where": "<code>even_rule</code>, <code>odd_rule</code>, <code>zero_rule</code>, <code>halt_rule</code>, <code>lean/Macro.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The reduction to mxdys's map",
+   "text": "Let g be the map above on pairs (b, c), and orbit n its n-th iterate from (3, 1). The machine halts from blank tape if and only if some orbit n has b = 1.",
+   "where": "<code>halts_iff</code>, <code>lean/Macro.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The reduction to Doucette's sequence",
+   "text": "Let D<sub>0</sub> = 6 and D<sub>k+1</sub> = F(D<sub>k</sub>) with F(D) = D + v + 3a for D = 2<sup>v</sup>(2a + 1). The configurations X(b, 1) of the orbit are exactly b = D<sub>k</sub> &minus; 3; between two of them come v odd steps, each halving b + 3, and one even step. So the machine halts from blank tape if and only if some D<sub>k</sub> is a power of two.",
+   "where": "<code>halts_iff_pow2</code>, <code>macro_F</code>, <code>macro_pow2</code>, <code>lean/Collatz.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No power of two in the first 20,000 terms",
+   "text": "Checked by the kernel's arithmetic (numbers up to about 19,000 bits). By the reduction, no halt before the machine's 20,000th visit to a configuration X(b, 1).",
+   "where": "<code>Fit_kernel</code>, <code>lean/Bound.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No power of two in the first 300,000 terms",
+   "text": "The same check by compiled code (numbers up to about 282,000 bits).",
+   "where": "<code>Fit_native</code>, <code>lean/Bound.lean</code>"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
-   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "text": "Direct run of the list simulator from blank tape.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
   },
   {
    "level": "native",
    "title": "No halt in the first 10<sup>7</sup> steps",
-   "text": "The same run, evaluated by compiled code.",
+   "text": "The same run by compiled code.",
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 3,249 cells have been visited and 3,246 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "The macro rules against the machine",
+   "text": "A direct run of 3&middot;10<sup>10</sup> steps (<code>c/verify.c</code>) meets the shape X(b, c) exactly at the configurations the orbit of g predicts, in order, and at no others: 19 of them, from X(3, 1) at step 45 to X(7483, 1) at step 10,608,569,291 and X(3740, 3745) at step 10,636,589,390.",
+   "where": "<code>c/verify.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No power of two in the first 3&middot;10<sup>6</sup> terms",
+   "text": "Multi-precision C (<code>c/doucette.c</code>, checked against Python for the first 10<sup>5</sup> terms: bit length and largest v agree). The 3&middot;10<sup>6</sup>th term has about 2.8&middot;10<sup>6</sup> bits; the largest v seen is 24, the mean v is 0.998. The community reports 10<sup>8</sup> terms with at most 25 factors of 2.",
+   "where": "<code>c/doucette.c</code>"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: exp/power",
-   "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.311). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.059).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Probviously non-halting",
+   "text": "If the low bits of D<sub>k</sub> behave like random bits, v is geometric with mean 1, D grows by an average factor of about 1.920 per term (0.9412 bits, LegionMammal978's estimate; 0.9414 measured), and the chance that a term of n bits is a power of two is about 2<sup>&minus;n</sup>. Summed over the terms after the ones checked, the chance of a halt is far below 10<sup>&minus;10000</sup>.",
+   "where": "<code>c/doucette.c</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. Equivalent (in Lean) to: does Doucette's sequence ever reach a power of two? No method is known that controls the 2-adic valuation of terms of such a sequence.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
-  "holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD 1000000000"
+  "holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/lean/check.sh      # about 2 minutes",
+  "cd holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD && python3 py/gen_rules.py | diff - lean/Rules.lean",
+  "gcc -O2 -o verify c/verify.c && ./verify 30000000000 | tail -3",
+  "gcc -O2 -o doucette c/doucette.c && ./doucette 3000000 500000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Space Needle is one of the community's cryptids: whether it halts is equivalent to whether a simple sequence of numbers, 6, 10, 17, 41, 101, 251, 626, ..., ever reaches a power of two. This page shows how the machine computes that sequence, and what is proved about it.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 3,249 cells visited."
+    "level": "kernel",
+    "value": "Halts &hArr; 2<sup>n</sup>",
+    "text": "Lean: halts from blank tape iff Doucette's sequence hits a power of two."
    },
    {
     "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "value": "300,000 terms",
+    "text": "None of them a power of two (Lean); 20,000 by the kernel alone."
+   },
+   {
+    "level": "trusted",
+    "value": "3&middot;10<sup>6</sup> terms",
+    "text": "None of them a power of two (C); at most 24 factors of 2."
    },
    {
     "level": "heuristic",
-    "value": "exp/power",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "probviously never",
+    "text": "The terms grow by &times;1.92 each; hitting 2<sup>n</sup> exactly is a vanishing coincidence."
    }
   ],
   "presets": [
-   1000,
-   100000,
-   1000000
+   45,
+   158,
+   2640,
+   31346,
+   434602
   ],
   "spacetime": {
-   "steps": 20000
+   "steps": 3000
   },
   "sections": [
+   {
+    "id": "blocks",
+    "eyebrow": "The tape",
+    "heading": "Blocks of 1s, and a state that keeps coming back",
+    "html": [
+     "<p>Run the simulator to step 45 and the tape reads <code>A&gt;0 1 1 1 0 0 1</code>: the head, in state A, on the 0 just left of everything, then a block of three 1s, a gap of two 0s, a block of one 1. Call this shape</p>",
+     "<p style=\"text-align:center\"><code>X(b, c) = 0^&infin; A&gt;0 1^b 0 0 1^c 0^&infin;</code></p>",
+     "<p>so step 45 is X(3, 1). The machine keeps coming back to this shape: X(0, 5) at step 64, X(7, 1) at 107, X(2, 7) at 158, X(14, 1) at 274, X(38, 1) at 2,640, X(98, 1) at 31,346, X(248, 1) at 434,602. In between, the tape holds two or three long blocks of 1s separated by single 0s, and the head works on them in long regular phases. Nothing else ever happens: the whole run is these visits and the phases between them.</p>"
+    ]
+   },
+   {
+    "id": "phases",
+    "eyebrow": "One macro step",
+    "heading": "Bouncer, zig-zag, shift",
+    "html": [
+     "<p>Take X(14, 1). Three kinds of motion carry it to X(38, 1):</p>",
+     "<ul><li><b>The bouncer.</b> A writes a 1 left of the block and the head runs to the right end of the block. From <code>0 1^(m+3) C&gt;0</code>, states C, F, D erase two 1s, A runs left, B and E run right: the middle block loses two 1s and each side gains one, <code>1 0 1^(m+1) C&gt;0 1</code>. Repeated, the block of 14 shrinks to 2 while blocks of 7 grow on both sides. Each bounce crosses the whole block, so this phase takes time quadratic in b.</li>",
+     "<li><b>The zig-zag.</b> Then the head stands at the left end in state A, before <code>1^a 0 1^b</code>. Going back and forth it moves the 0 between the two blocks one cell at a time, ending with the first block one shorter, the second two longer, and the whole picture one cell further left: <code>A&gt;0 1^(a+1) 0 1^b</code> becomes <code>A&gt;0 1^a 0 1^(b+2)</code>. Repeated a times, the first block disappears into the second.</li>",
+     "<li><b>The merges.</b> When the first block is empty, the gap of two 0s closes up and the next block becomes the first; with no block left after it, the tape is X(m, 1) again.</li></ul>",
+     "<p>For X(14, 1): the bouncer leaves <code>1^7 0 1^2 C&gt;0 1^7</code>, then <code>A&gt;0 1^6 0 1^2 0 1^8</code>; six zig-zags give <code>A&gt;0 0 1^14 0 1^8</code>; a merge gives <code>A&gt;0 1^15 0 1^8</code>; fifteen zig-zags give <code>A&gt;0 0 1^38</code>, and the last merge X(38, 1). Each of these steps is a lemma in Lean, proved for all values of the lengths.</p>"
+    ]
+   },
+   {
+    "id": "map",
+    "eyebrow": "The map",
+    "heading": "mxdys's rules",
+    "html": [
+     "<p>Done in general, the phases give one rule per case of b:</p>",
+     "<table><thead><tr><th>from</th><th>to</th><th>what happens</th></tr></thead><tbody><tr><td>X(0, c)</td><td>X(c + 2, 1)</td><td>the empty block merges</td></tr><tr><td>X(1, c)</td><td><b>halt</b></td><td>13 steps later F reads a 0</td></tr><tr><td>X(2k + 2, c)</td><td>X(5k + c + 7, 1)</td><td>bouncer, k zig-zags, merge, 2k + 3 zig-zags, merge</td></tr><tr><td>X(2k + 3, c)</td><td>X(k, k + c + 4)</td><td>bouncer ends on an odd block: b roughly halves</td></tr></tbody></table>",
+     "<p>An even b multiplies b by about 5/2 and resets c to 1; an odd b halves b and stores the rest in c. The machine halts when b reaches 1, which can only happen by halving. Lean proves the four rules and that the machine halts from blank tape exactly when the orbit of (3, 1) reaches b = 1 (<code>halts_iff</code> in <code>lean/Macro.lean</code>).</p>",
+     "<p>The orbit: (3, 1) &rarr; (0, 5) &rarr; (7, 1) &rarr; (2, 7) &rarr; (14, 1) &rarr; (38, 1) &rarr; (98, 1) &rarr; (248, 1) &rarr; (623, 1) &rarr; (310, 315) &rarr; (1092, 1) &rarr; (2733, 1) &rarr; (1365, 1370) &rarr; (681, 2055) &rarr; (339, 2398) &rarr; (168, 2570) &rarr; (2992, 1) &rarr; &hellip;</p>"
+    ]
+   },
+   {
+    "id": "doucette",
+    "eyebrow": "One number",
+    "heading": "Doucette's sequence",
+    "html": [
+     "<p>Look only at the visits X(b, 1) and write D = b + 3. Between two of them, the odd rule applies v times, where 2<sup>v</sup> is the largest power of two dividing D: each odd step halves D exactly (b + 3 becomes (b + 3)/2) and adds to c. Then one even step uses everything stored in c. Adding it up, the next D is</p>",
+     "<p style=\"text-align:center\"><code>F(D) = D + v + 3a</code>, &nbsp; where <code>D = 2^v &middot; (2a + 1)</code>.</p>",
+     "<p>From X(3, 1), D = 6, and the sequence runs 6, 10, 17, 41, 101, 251, 626, 1095, 2736, 2995, 7486, 13100, &hellip; If some D is a power of two, the halvings run down to D = 4, which is b = 1: the machine halts. If not, they always stop at an odd D &ge; 3 and the even step follows. Lean proves this equivalence (<code>halts_iff_pow2</code> in <code>lean/Collatz.lean</code>): <b>Space Needle halts if and only if Doucette's sequence reaches a power of two.</b></p>",
+     "<p>Each term is a visit to the left edge, and each costs far more machine steps than the last (a cubic number in b): the visit X(2992, 1) (D = 2995) comes at step 519,524,312, the next one, X(7483, 1), at step 10,608,569,291. The sequence itself is cheap: Lean's kernel checks the first 20,000 terms, compiled Lean 300,000, and C 3&middot;10<sup>6</sup>. None is a power of two.</p>"
+    ]
+   },
+   {
+    "id": "hard",
+    "eyebrow": "Why it is open",
+    "heading": "A coincidence that should never happen",
+    "html": [
+     "<p>F(D) is about D &middot; (1 + 3/2<sup>v+1</sup>): an odd D grows by a factor of about 5/2, a D with many factors 2 by much less. If the low bits of the terms are like random bits, v is 0 half the time, 1 a quarter of the time, and so on, and D gains about 0.94 bits per step (a factor of 1.92). A number of n bits is a power of two with chance about 2<sup>&minus;n</sup>, so the chance that any term after the first few dozen is a power of two is astronomically small. In 3&middot;10<sup>6</sup> terms, v has never exceeded 24.</p>",
+     "<p>So the machine almost certainly never halts. Proving it is another matter: one would have to show that a sequence built by additions never has all its bits but one equal to 0, that is, control the 2-adic valuation of every term. Questions of this kind (like the Collatz problem) are beyond present mathematics, which is why Space Needle is called a cryptid. Run backwards, the condition is a chain of congruences: a power of two 2<sup>n</sup> can be reached from a multiple of 2<sup>k</sup> only for special n (for k = 0, only n &equiv; 0 mod 4), and the smallest powers of two reachable within a few steps are already enormous; but no one has turned this into a proof.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +204,8 @@
     ]
    }
   ]
- }
+ },
+ "family": "Collatz-like map on block lengths (2-adic valuation map)",
+ "summary": "Space Needle: halts iff Doucette's sequence 6, 10, 17, 41, 101, ... (D -> D + v + 3a for D = 2^v(2a+1)) hits a power of two; proved equivalent in Lean, probviously non-halting.",
+ "decision": "open"
 }

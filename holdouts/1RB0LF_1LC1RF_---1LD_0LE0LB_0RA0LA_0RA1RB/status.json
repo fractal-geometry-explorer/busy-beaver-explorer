@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G05",
  "title": "What is known about 1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB.",
@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves only the generated bounded runs (no halt in 10<sup>7</sup> steps). Computed: no halt in the first 10<sup>10</sup> steps; between resets the tape is a list of digits following one exact rule (282 of 289 transitions), and the resets, where the digits are rewritten, grow so fast that the seventh one, started at step 9,477,912, is still running at step 10<sup>10</sup>."
  ],
  "claims": [
   {
@@ -35,45 +35,51 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 59,010 cells have been visited and 39,426 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 10<sup>10</sup> steps",
+   "text": "The C simulator <code>tmrun</code> runs 10<sup>10</sup> steps without a halt. D visits the left end of the tape 290 times, the last at step 9,477,912; each time the tape is a list of digits made of the words <code>0 1 1</code> and <code>0 0 1 1</code>.",
+   "where": "<code>py/digits.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The simple phase",
+   "text": "In 282 of the 289 transitions between left-end visits, a digit 2 is inserted after the first digit and the last digit loses 1: <code>[1, d<sub>2</sub>, &hellip;, d<sub>k</sub>, n+1] &rarr; [1, 2, d<sub>2</sub>, &hellip;, d<sub>k</sub>, n]</code>. The other seven are the first visit and six resets, which start when the last digit is 1 and last 202, 838, 12,278, 42,214, 580,526 and 6,080,814 steps.",
+   "where": "<code>py/digits.py check</code>"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.466).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "A reset longer than 10<sup>10</sup> steps",
+   "text": "The seventh reset starts from a 278-digit tape at step 9,477,912 and has not ended by step 10<sup>10</sup>; during it the tape is rewritten into other words (<code>0 1 0 1^4</code> repeated), an inner counter not yet described.",
+   "where": "<code>README.md</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Open. It halts exactly when B reads a 0 with a 0 on its left (<code>0 B&gt;0</code>, then C reads 0). Deciding it needs a description of the resets.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB 1000000000"
+  "/home/user/w/tmrun 1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB 10000000000 at D L 1000000 | python3 holdouts/1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB/py/digits.py check"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet. Most of the time this machine keeps its tape as a list of digits and changes it in the simplest way: each round trip of the head puts a new digit 2 at the front and takes one off the last digit. When the last digit runs out, a long sweep rewrites everything, and these rewrites grow explosively: the seventh one has been running for more than 10<sup>10</sup> steps.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 59,010 cells visited."
+    "value": "10<sup>10</sup> steps",
+    "text": "No halt in the C simulator."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "282 of 289",
+    "text": "Transitions between left-end visits that follow the simple digit rule."
    },
    {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "open",
+    "value": "0 B&gt;0",
+    "text": "The only way to halt: B reads a 0 with a 0 on its left."
    }
   ],
   "presets": [
@@ -96,7 +102,53 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,739,613</td><td><code>0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4</code></td></tr><tr><td>right</td><td>970,380,038</td><td><code>0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4</code></td></tr><tr><td>right</td><td>986,033,795</td><td><code>0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4 0 1 0 1^4</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "tape",
+    "eyebrow": "Structure",
+    "heading": "What the tape is made of",
+    "html": [
+     "<p>Each time the head comes back to the left end in state D, the tape is made of two words, <code>0 1 1</code> and <code>0 0 1 1</code>. Read every <code>0 0 1 1</code> as the start of a new digit and every <code>0 1 1</code> after it as one more; the tape is then a list of digits, such as <code>[1, 2<sup>25</sup>, 4, 4, 10, 10, 40, 28, 1]</code> at step 98,599.</p>"
+    ]
+   },
+   {
+    "id": "simple",
+    "eyebrow": "The basic move",
+    "heading": "One round trip",
+    "html": [
+     "<p>Almost always, one round trip of the head inserts a digit 2 after the first digit and takes one off the last digit:</p>",
+     "<svg viewBox=\"0 0 440 90\" role=\"img\" aria-label=\"one round trip: a 2 is inserted at the front, the last digit loses one\" style=\"width:100%;max-width:440px;height:auto;font:11px var(--mono);\"><rect x=\"10\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"18\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"26\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"34\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"42\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"50\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"58\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"66\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"74\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"82\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"90\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"98\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"106\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"114\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"122\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"130\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"138\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"146\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"154\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"162\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"170\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"178\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"186\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"194\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"202\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"210\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"218\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"226\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"234\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"242\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"250\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"258\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"266\" y=\"15\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><text x=\"280\" y=\"26\" fill=\"var(--fg2)\">[1, 2, 4, 3]</text><text x=\"10\" y=\"50\" fill=\"var(--muted)\">&darr; one round trip of the head</text><rect x=\"10\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"18\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"26\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"34\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"42\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"50\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"58\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"66\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"74\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"82\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"90\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"98\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"106\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"114\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"122\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"130\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"138\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"146\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"154\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"162\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"170\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"178\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"186\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"194\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"202\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"210\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"218\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"226\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"234\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"242\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"250\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"258\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"266\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"274\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"282\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"290\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"298\" y=\"62\" width=\"7\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><text x=\"312\" y=\"73\" fill=\"var(--fg2)\">[1, 2, 2, 4, 2]</text></svg>",
+     "<p style=\"text-align:center\"><code>[1, d<sub>2</sub>, &hellip;, d<sub>k</sub>, n+1] &rarr; [1, 2, d<sub>2</sub>, &hellip;, d<sub>k</sub>, n]</code></p>",
+     "<p>This held in 282 of the 289 transitions seen in 10<sup>10</sup> steps. It is not yet proved in Lean.</p>"
+    ]
+   },
+   {
+    "id": "reset",
+    "eyebrow": "The emergent behaviour",
+    "heading": "Resets that grow explosively",
+    "html": [
+     "<p>When the last digit is down to 1, a long sweep rewrites the list instead. The 2s at the front become 4s, and the digits behind them are recombined into new ones: <code>[1, 2<sup>25</sup>, 4<sup>2</sup>, 10<sup>2</sup>, 40, 28, 1]</code> becomes <code>[1, 4<sup>26</sup>, 10, 84, 82, 153]</code>. The resets took 202, 838, 12,278, 42,214, 580,526 and 6,080,814 steps; the next one, from a list of 278 digits, has been running since step 9,477,912 and was still running at 10<sup>10</sup>. During it the tape is written in yet other words, so a counter of its own is at work.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The danger",
+    "heading": "Where it could halt",
+    "html": [
+     "<p>The halting transition is C reading 0, and C is entered only when B reads a 0 and steps left. So the machine stops exactly when B meets a 0 with a 0 on its left. In 10<sup>10</sup> steps that never happened.</p>"
+    ]
+   },
+   {
+    "id": "proved",
+    "eyebrow": "Status",
+    "heading": "What is proved",
+    "html": [
+     "<p><b>Lean:</b> the halting configurations and no halt in 10<sup>7</sup> steps (generated). <b>Computed:</b> no halt in 10<sup>10</sup> steps, and the digit rule above. <b>Open:</b> what a reset does, and the decision.</p>"
+    ]
    }
   ]
- }
+ },
+ "family": "digit list with a simple phase and fast-growing resets",
+ "summary": "Between long reorganising sweeps the tape is a list of digits in which each round trip inserts a 2 at the front and takes 1 off the last digit; the reorganising sweeps grow fast and the seventh one has run past 10<sup>10</sup> steps; no halt so far.",
+ "decision": "open"
 }

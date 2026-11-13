@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine's tape is a long row of blocks of 1s, every block of odd length and every gap a single 0. Each sweep of the head rewrites the row, and the pattern looks disordered.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 62,751 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>11,687 blocks</b><span class="small">Odd blocks of 1s on the tape at 10<sup>9</sup> steps, all gaps single 0s.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>shift rules</b><span class="small">Crossing a block of 1s both ways, proved for every length.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#blocks">Odd blocks, single gaps</a><a href="#second">Each sweep rewrites the whole tape</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -193,7 +193,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
       <label class="small" for="stMode">Rows</label>
       <select id="stMode"><option value="rec" selected>at each new cell</option><option value="time">evenly in time</option></select>
       <label class="small" for="stSteps">up to step</label>
-      <select id="stSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="20000" selected>20,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <select id="stSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="60000" selected>60,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
       <button id="stGo" class="primary" type="button">Draw</button>
     </div>
     <div class="stwrap"><canvas id="st" aria-label="Space-time diagram"></canvas></div>
@@ -202,12 +202,24 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="panel">
     <div class="controls">
       <label class="small" for="recSteps">Records up to step</label>
-      <select id="recSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="20000" selected>20,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <select id="recSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="60000" selected>60,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
       <button id="recGo" class="primary" type="button">List</button>
     </div>
     <div class="cap" id="recCap"></div>
     <div class="log" id="recs"></div>
   </div>
+</section>
+<section id="blocks">
+  <span class="eyebrow">Macro structure</span>
+  <h2>Odd blocks, single gaps</h2>
+<p>Stop the simulator after the first few steps: every run of 0s inside the tape is a single 0 and every block of 1s has odd length, except for at most one or two runs (in 27 snapshots up to 10<sup>9</sup> steps), presumably where the sweep is at work. At step 10<sup>9</sup> there are 11,687 blocks:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>length</th><th>1</th><th>3</th><th>5</th><th>7</th><th>9</th><th>11</th><th>13</th><th>15</th></tr></thead><tbody><tr><td>blocks</td><td>5,058</td><td>2,443</td><td>1,297</td><td>1,128</td><td>431</td><td>487</td><td>163</td><td>261</td></tr></tbody></table></div>
+<p>The head sweeps across the whole tape and crosses each block with a simple shift rule (proved in Lean for every length), so all the changes happen at the single 0s between blocks. How a sweep transforms the list is the next thing to find; for now the order of the blocks looks disordered. The halt (state E reading a 1) needs a particular local pattern the sweeps have never produced.</p>
+</section>
+<section id="second">
+  <span class="eyebrow">Second look</span>
+  <h2>Each sweep rewrites the whole tape</h2>
+<div class="col"><p>After 3&middot;10<sup>8</sup> steps the tape is 33,829 cells of odd blocks of 1s split by single 0s, and it has no long repeated stretch anywhere. Every sweep of the head changes the whole of it, and not in a local way: no rule that computes each new cell from a window of up to 15 old cells explains the change. Information travels along the tape during a sweep, as when a number is multiplied digit by digit with carries. Finding that arithmetic is the next step.</p></div>
 </section>
 <section id="shape">
   <span class="eyebrow">First look</span>
@@ -235,7 +247,10 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 62,751 cells have been visited and 51,067 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.505).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Shifts.lean</code> (written by <code>bbtools.symtm.prove</code>)</div></div><div><b>Shift rules</b><p>For every length n of the run and any tape around it: <code>L A&gt; 1^n R</code> reaches <code>L 1^n A&gt; R</code>; <code>L 1^n C&gt; 1 R</code> reaches <code>L C&gt; 1 1^n R</code>. These are the moves the head makes across the long uniform stretches of the tape.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Shifts.lean</code> (written by <code>bbtools.symtm.prove</code>)</div></div><div><b>Shift rules</b><p>For every length n of the run and any tape around it: <code>L A&gt; 1^n R</code> reaches <code>L 1^n A&gt; R</code>; <code>L 1^n C&gt; 1 R</code> reaches <code>L C&gt; 1 1^n R</code>. These are the moves the head makes across the long uniform stretches of the tape.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">README</div></div><div><b>No periodic structure, no cellular-automaton rule</b><p>Up to 3&middot;10<sup>8</sup> steps the tape has no long periodic stretch, and no sliding-block code of radius up to 7 (with any fixed shift) maps the tape at one visit of the right end to the next on the last 400 sweeps.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts exactly when state E reads a 1.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

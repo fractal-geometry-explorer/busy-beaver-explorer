@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows, and now we know exactly why. Lean proves that this machine's whole run is the orbit of a two-number map: a block of ones grows by a factor of about 8/3 each phase while a stack of <code>1011</code> words drains. It halts only if the stack runs out in one particular way, a residue question about a Collatz-like sequence. Twice it has not; the third chance comes after about 10<sup>2901</sup> phases.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 105,361 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>halts ⇔ map hits (1, n≡1)</b><span class="small">The run from blank tape is the orbit of an explicit map, proved in Lean.</span></div>
+    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>2899</sup> steps</b><span class="small">No halt: two full cycles of the map evaluated by compiled code.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>1/5 per cycle</b><span class="small">Chance that a cycle ends in a halt, if residues are random.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A stack, a block, and a bouncer</a><a href="#map">The map, case by case</a><a href="#cycles">Cycles, each astronomically longer than the last</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,35 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">The picture</span>
+  <h2>A stack, a block, and a bouncer</h2>
+<p>Every so often the tape has exactly this shape, a <em>phase start</em> <code>P m n</code>: on the left a stack of <code>m</code> copies of the word <code>1011</code>, then a solid block of <code>n</code> ones, then <code>101010</code> with the head (state A) on a 1 at the right end.</p>
+<svg viewBox="0 0 560 120" role="img" aria-label="the phase-start tape" style="width:100%;max-width:560px;height:auto;font:12px var(--mono);">
+<rect x="10" y="30" width="200" height="34" fill="var(--accent)" opacity="0.25"/><text x="110" y="52" text-anchor="middle" fill="var(--fg)">(1011)^m  stack</text>
+<rect x="215" y="30" width="230" height="34" fill="var(--head)" opacity="0.25"/><text x="330" y="52" text-anchor="middle" fill="var(--fg)">1^n  block</text>
+<rect x="450" y="30" width="80" height="34" fill="var(--line)" opacity="0.6"/><text x="490" y="52" text-anchor="middle" fill="var(--fg)">101010</text>
+<text x="536" y="52" fill="var(--fg)">A&gt;1</text>
+<text x="330" y="90" text-anchor="middle" fill="var(--muted)">each round: 3 ones eaten here, four 10s added there →</text>
+<text x="110" y="90" text-anchor="middle" fill="var(--muted)">end of phase: 1 or 2 words used</text>
+</svg>
+<p>During a phase the head bounces at the right end. Each round it bites three ones off the block and adds four copies of <code>10</code> at the right, so after about <code>n/3</code> rounds the block is gone and there are about <code>4n/3</code> copies of <code>10</code>. Then one long sweep turns every <code>10</code> into <code>11</code>: the new block has about <code>8n/3</code> ones. Meanwhile the left end of the block has bitten into the stack and used up one or two words <code>1011</code>, depending on what was left over (<code>n mod 3</code>).</p>
+</section>
+<section id="map">
+  <span class="eyebrow">The rule</span>
+  <h2>The map, case by case</h2>
+<p>Write <code>n = 3k + 3 + r</code> with <code>r</code> = 0, 1 or 2. From <code>P m n</code> the machine reaches:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th></th><th>stack m ≥ 2</th><th>m = 1</th><th>m = 0</th></tr></thead><tbody><tr><td>r = 0</td><td><code>P (m−1) (8k+19)</code></td><td><code>P 0 (8k+19)</code></td><td><code>P (2k+4) 5</code> (reset)</td></tr><tr><td>r = 1</td><td><code>P (m−2) (8k+29)</code></td><td><b>halt</b></td><td><code>P 0 (8k+18)</code></td></tr><tr><td>r = 2</td><td><code>P (m−2) (8k+35)</code></td><td><code>P (2k+8) 5</code> (reset)</td><td><code>P 0 (8k+18)</code></td></tr></tbody></table></div>
+<p>Every entry is a theorem in Lean (<code>next_reach</code>, <code>halts_P1</code>); together with the start (<code>P 14 5</code> after 1,098 steps) this gives <code>halts_iff</code>: the machine halts exactly when the orbit reaches the bold cell.</p>
+<p>A <em>reset</em> happens when the stack is empty: the sweep pairs the copies of <code>10</code> into a brand-new stack of about <code>2n/3</code> words, and the block restarts at 5 ones.</p>
+</section>
+<section id="cycles">
+  <span class="eyebrow">What happens</span>
+  <h2>Cycles, each astronomically longer than the last</h2>
+<p>From blank tape the orbit starts at <code>(14, 5)</code>. The stack of 14 drains in 8 phases (block: 5, 35, 115, 325, 885, 2371, 6341, 16931) and ends at <code>m = 1</code> with <code>r = 2</code>: a reset, to a stack of 11,292 words, at step 445,346,602.</p>
+<p>That stack drains in 6,811 phases, while the block grows to 2,903 digits. It ends at <code>m = 0</code>: a reset again, to a stack of about 8.3·10<sup>2901</sup> words. Draining that takes some 5·10<sup>2901</sup> phases, and nobody can compute that far. Lean checks the two cycles (by compiled evaluation) and concludes that the machine runs at least 10<sup>2899</sup> steps without halting.</p>
+<p>So the question is whether some future cycle ends in the bold cell, <code>m = 1</code> with <code>r = 1</code>. If the residues mod 3 behave like dice, a cycle ends that way with probability 1/5, and the machine eventually halts with probability 1, after a tower of exponentials of steps. This is the same kind of question as for the cryptid Antihydra: easy to state, hopeless to prove with current mathematics.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -234,15 +263,20 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 105,361 cells have been visited and 82,022 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.534).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>next</code>, <code>next_reach</code>, <code>halts_P1</code>, <code>phase_r0</code> … <code>phase_r2_zero</code>, <code>loop</code>, <code>lean/Map.lean</code>; the pieces in <code>lean/Rules.lean</code> (generated by <code>lean/rules.py</code>)</div></div><div><b>The phase start and the map</b><p>A phase start is <code>P m n = 0^inf (1011)^m 1^n (10)^3 A&gt; 1 0^inf</code>. Writing <code>n = 3k + 3 + r</code> with <code>r &lt; 3</code>, from <code>P m n</code> the machine reaches: for <code>r = 0</code>, <code>P (m-1) (8k+19)</code> if <code>m ≥ 1</code> and <code>P (2k+4) 5</code> if <code>m = 0</code>; for <code>r = 1</code>, <code>P (m-2) (8k+29)</code> if <code>m ≥ 2</code>, a halt if <code>m = 1</code>, <code>P 0 (8k+18)</code> if <code>m = 0</code>; for <code>r = 2</code>, <code>P (m-2) (8k+35)</code> if <code>m ≥ 2</code>, <code>P (2k+8) 5</code> if <code>m = 1</code>, <code>P 0 (8k+18)</code> if <code>m = 0</code>. Each case is a chain of symbolic runs proved step by step plus an induction over the inner bouncer.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>init_P</code>, <code>lean/Map.lean</code></div></div><div><b>Blank tape reaches P 14 5</b><p>After 1,098 steps from blank tape the configuration is <code>P 14 5</code>.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>lean/Map.lean</code></div></div><div><b>The reduction</b><p>The machine halts from blank tape if and only if the orbit of <code>(14, 5)</code> under <code>next</code> reaches a point <code>(1, n)</code> with <code>n % 3 = 1</code>.</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>orbit_6819</code>, <code>orbit_stays</code>, <code>runs_long</code>, <code>lean/Orbit.lean</code></div></div><div><b>Two cycles without a halt; no halt in 10<sup>2899</sup> steps</b><p>Compiled evaluation of the map shows the orbit at phase 6,819 is <code>(M, 5)</code> with <code>M &gt; 10<sup>2900</sup></code> (2,902 digits). Each later phase removes at most two words of the stack and the map can only stop at <code>m = 1</code>, so the next 10<sup>2899</sup> phases exist, and the machine does not halt in its first 10<sup>2899</sup> steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/m6check.py</code>, <code>c/m6c.c</code></div></div><div><b>The map against the machine</b><p>Simulating the machine from <code>P m n</code> for 598 pairs (all <code>m ≤ 7</code> with <code>3 ≤ n &lt; 59</code>, and 150 random pairs up to <code>m = 60</code>, <code>n = 400</code>) gives the next phase start the map predicts, or a halt exactly at <code>m = 1</code>, <code>n ≡ 1 (mod 3)</code>; the run from blank tape passes through the phase starts the map predicts up to step 3.6·10<sup>9</sup>. (Lean proves the map for all values; this is an independent check.)</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/m6check.py</code></div></div><div><b>Halting probability 1/5 per cycle</b><p>Within a cycle the stack drops by 2 (when <code>r ≠ 0</code>) or 1 (<code>r = 0</code>); if the residues are like fair dice the stack lands on 1 with probability 3/5, and then halts with probability 1/3: 1/5 per cycle. Simulating 4,000 cycles of the map from random large starts gives 0.19 to 0.20. The machine would then halt with probability 1, but cycle <code>c+1</code> is about <code>(8/3)^(m_c/1.8)</code> times longer than cycle <code>c</code>.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Equivalent to: does the orbit of <code>(14, 5)</code> under <code>next</code> ever reach <code>(1, n)</code> with <code>n ≡ 1 (mod 3)</code>? The third cycle starts with a stack of about 8.3·10<sup>2901</sup> words and is out of reach of computation; nothing like a proof for the residues is in sight (it is a Collatz-type question).</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA 1000000000</code></pre>
+python3 holdouts/1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA/py/m6check.py      # the map against the machine (needs gcc)</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

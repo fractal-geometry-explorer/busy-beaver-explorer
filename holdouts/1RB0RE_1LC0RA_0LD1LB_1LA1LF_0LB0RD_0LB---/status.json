@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves the twelve shift rules that make the leftward sweep turn v-words into u-words. The tape is a growing run of v on the left and a region of u-blocks separated by short markers on the right whose sizes form a counter-like hierarchy; the rule by which the markers move was not derived. The machine halts only on <code>1 D&gt; 1</code>."
  ],
  "claims": [
   {
@@ -34,6 +34,36 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules: v becomes u going left",
+   "text": "Leftward, B, C, D and F cross runs of the rotations of <code>v = 10100100</code> and leave the matching rotations of <code>u = 11111010</code>; A and B cross <code>(01)<sup>n</sup></code> and <code>(10)<sup>n</sup></code> rightward, B and C fill them with 1s leftward.",
+   "where": "<code>v_b1</code> ... <code>v_c3</code>, <code>a_right</code>, <code>b_right</code>, <code>b_left</code>, <code>c_left</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where it can halt",
+   "text": "Only F reading 1 halts; F is entered only from D reading 1 (1LF), so the machine halts exactly on <code>1 D&gt; 1</code>. Read off the table.",
+   "where": "the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The tape at step 10<sup>9</sup>",
+   "text": "<code>v<sup>1269</sup> 0 1 0 v<sup>392</sup> 1 0 [A0] 1 0 1 0 u<sup>859</sup> 1<sup>3</sup> 0 1 0 u<sup>208</sup> 1<sup>3</sup> 0 1 0 u<sup>208</sup> 1<sup>2</sup> u<sup>992</sup> 1<sup>6</sup> u<sup>234</sup> ... u<sup>98</sup> 1<sup>3</sup> 0 1 0 u<sup>44</sup> 1<sup>3</sup> 0 1 0 u<sup>44</sup> 1<sup>2</sup> u<sup>46</sup> ... u<sup>23</sup> 1<sup>2</sup> u<sup>23</sup> ... u<sup>11</sup> ... u<sup>10</sup> ... u<sup>11</sup> ... 1<sup>9</sup></code>: the u-blocks come in groups of about three similar sizes, each group about half the size of the one before.",
+   "where": "a direct run (<code>tools/c/tmrun.c</code> equivalent)"
+  },
+  {
+   "level": "heuristic",
+   "title": "A bouncer with a counter",
+   "text": "The visited tape grows like the square root of time at the left end; the markers between u-blocks drift (the dark curves of the space-time diagram) and their spacings halve from group to group, the pattern of a binary counter stored in the gaps. Observed only.",
+   "where": "README"
+  },
+  {
+   "level": "trusted",
+   "title": "No closed tape language with small windows",
+   "text": "<code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS 3 to 7 fails; no invariant mod 2..12.",
+   "where": "<code>tools/py/bbtools/ctl.py</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,247 cells have been visited and 30,463 of them hold a 1.",
@@ -48,13 +78,14 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The halting pattern <code>1 D&gt; 1</code> could arise at the markers between u-blocks or at the turn; the markers' rule (how a group of gaps is rewritten when the head passes) was not derived.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---/lean/check.sh",
+  "python3 holdouts/1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---/py/rules.py > holdouts/1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---/lean/Rules.lean",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB--- 1000000000"
  ],
  "explainer": {
@@ -86,6 +117,39 @@
   },
   "sections": [
    {
+    "id": "tape",
+    "eyebrow": "What the tape looks like",
+    "heading": "Two 8-cell words and a row of markers",
+    "html": [
+     "<p>Write <code>v</code> for <code>10100100</code> and <code>u</code> for <code>11111010</code>. At step 10<sup>9</sup> the tape is</p><pre>v^1269 0 1 0 v^392 1 0 [A0] 1 0 1 0 u^859 111 0 1 0 u^208 111 0 1 0 u^208 11 u^992 1^6 u^234 ... u^44 111 0 1 0 u^44 11 u^46 ... u^23 11 u^23 ... 1^9</pre><p>a long run of v on the left (it grows like the square root of time), then a region of u split into blocks by short markers like <code>111 0 1 0</code>, <code>11</code> and <code>1^6</code>.</p>"
+    ]
+   },
+   {
+    "id": "rule",
+    "eyebrow": "The rule",
+    "heading": "Going left, v turns into u",
+    "html": [
+     "<p>Lean proves twelve shift rules: whenever the head runs left over a run of v-words (in any of their rotations, in states B, C, D or F), it leaves u-words behind (<code>lean/Rules.lean</code>). The way back is not a clean shift: the head works through the markers, which is where the block sizes change.</p>",
+     "<p>The block sizes of u form a hierarchy: groups of about three nearly equal blocks (44, 44, 46; 22, 23, 23; 11, 10, 11), each group about half the size of the one before. That is the look of a counter whose digits are the gaps. In the space-time diagram the markers are dark curves drifting slowly.</p>"
+    ]
+   },
+   {
+    "id": "sibling",
+    "eyebrow": "Its sibling",
+    "heading": "Same first three states, different machine",
+    "html": [
+     "<p>This machine shares states A, B and C with <a href=\"../1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---/explainer.html\">1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---</a>, whose rounds were decoded into a Collatz-like map. Here the same sweeps over <code>10</code> and <code>11</code> appear (the shift rules <code>a_right</code>, <code>b_right</code>, <code>b_left</code>, <code>c_left</code> are the same), but D, E and F differ and the tape is organised in 8-cell words instead.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Can it stop?",
+    "heading": "Only on 1 D> 1",
+    "html": [
+     "<p>The machine stops only when F reads a 1, and F is entered only from D reading a 1 and stepping left; so it stops exactly when D reads a 1 that has a 1 on its left. The marker rule decides whether that ever happens; it was not derived.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +162,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A bouncer over 8-cell words: going left the head turns v = 10100100 into u = 11111010; the u side carries separators whose spacings shrink by about half from one group to the next, like the digits of a counter; sibling of 1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---.",
+ "family": "bouncer of 8-cell words + separator counter",
+ "decision": "open"
 }

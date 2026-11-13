@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The run is a sequence of phases on a few long blocks. The drain, split and copy phases are proved in Lean as one-cycle rules for all block sizes (kernel). An accelerated simulator whose jumps are checked symbolically, and which agrees cell for cell with plain simulation at 5&middot;10<sup>10</sup> steps, finds no halt up to 1.05&middot;10<sup>15</sup> steps. The level-to-level map is not derived exactly.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The drain cycle</h3>
+        <p><code>0^∞ E&gt;(011)^4 (010)^(a+6) 1 1 1 (01011)^(b+1) 0 1 0^∞</code> reaches <code>0^∞ E&gt;(011)^4 (010)^(a+2) 1 1 1 (01011)^(b+15) 0 1 0^∞</code> in 168a + 224b + 2978 steps, for every a and b.</p>
+        <p class="where"><code>drain</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The split cycle</h3>
+        <p><code>0^∞ B&gt;0 0 (110101)^c 1 1 0 1 (100)^(d+3) 1 0 1 1 1 (01011)^(b+1) 0 1 0^∞</code> reaches the same with c+1, d+1, b+3 in 32b + 50c + 24d + 228 steps, for every b, c, d.</p>
+        <p class="where"><code>split</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The copy cycle</h3>
+        <p>One visit of the right end in the copy phase: <code>L (01111)^(n+2) (010)^(m+1) 0 1111 (00111)^(m+1) B&gt; 0^&infin;</code> takes 28m+55 steps and moves one word of the old final block into a new <code>(010)</code> block and a new final block <code>(00111)</code>, for every n, m and every tape L on the left.</p>
+        <p class="where"><code>copy</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +134,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 53,968 cells have been visited and 29,068 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>15</sup> steps</h3>
+        <p><code>c/hsim2.cpp</code>, a block macro simulator that takes a linear jump over k cycles only after checking the cycle symbolically for every larger count (step count summed exactly), runs to 1.05&middot;10<sup>15</sup> steps without a halt. At 5&middot;10<sup>10</sup> steps its state and every cell agree with plain simulation (<code>py/cmpc.py</code>).</p>
+        <p class="where"><code>c/hsim2.cpp</code>, <code>py/cmpc.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The feed round</h3>
+        <p>A fourth phase feeds the block <code>(110101)^c</code> back into the final block at about 5.08 words per word, through a small counter of 3-cell digits. One round, for every c, d, b, is a symbolic trace of 32b+34c+24d+3813 steps found by <code>bbtools.symtm</code>; it is too long for the Lean kernel to check in reasonable time and memory, so it is not in <code>Rules.lean</code>.</p>
+        <p class="where"><code>py/rules.py</code> (history)</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +152,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.638). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.46).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>The level sequence</h3>
+        <p>Final-block size at each copy, from the accelerated simulator: 13 (5.4&middot;10<sup>3</sup> steps), 108 (2.8&middot;10<sup>5</sup>), 907 (2.0&middot;10<sup>7</sup>), 7,265 (1.26&middot;10<sup>9</sup>), 14,531 after a split (6.1&middot;10<sup>9</sup>), 33,000 (1.67&middot;10<sup>10</sup>), 83,545 (1.66&middot;10<sup>11</sup>), 375,963 (3.37&middot;10<sup>12</sup>), about 3.0&middot;10<sup>6</sup> (2.15&middot;10<sup>14</sup>), about 6.0&middot;10<sup>6</sup> after a split (5.4&middot;10<sup>14</sup>), 6,015,471 (1.05&middot;10<sup>15</sup>). The ratios (about 8, 4.5, 2 at a split) depend on which phase starts, so the level map looks like a Collatz-style map on residues; its exact form is not derived.</p>
+        <p class="where">C run, <code>c/ev.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The phases are regular and two of them are proved, but the transitions between phases and a small counter that appears in the third phase type are not, so a non-halting proof is not in reach yet.</p>
       </div>
     </div>
   </section>
@@ -140,7 +170,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE 1000000000
+. /etc/profile.d/lean.sh &amp;&amp; holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/lean/check.sh   # Rules.lean (about 30 s)
+gcc -O2 -o ev holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/c/ev.c &amp;&amp; ./ev 1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE 2000000000 L B 1 100000 12 | awk &#x27;NR%200==0&#x27;
+python3 holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/py/cmpc.py 5e10      # hsim2 against plain simulation, cell for cell (about 4 min)</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RA_1LC0RB_1LE0LD_0LB1LD_0RA0LF_---0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

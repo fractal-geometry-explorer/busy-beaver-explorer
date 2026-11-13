@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G10",
  "title": "What is known about 1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Read in four-cell words (<code>d = 0100</code>, <code>c = 0111</code>), the tape is a list of alternating runs. Near the left the run lengths are nearly all 1 mod 3, further right nearly all multiples of 3, and between them a stretch repeats the lengths 10, 4, 13, 10, 4, 13. Three leftward crossings of runs are proved in Lean. The way the lengths change is not worked out, so halting (F reading a 1) is not ruled out."
  ],
  "claims": [
   {
@@ -46,9 +46,21 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Leftward crossings",
+   "text": "<code>(0001)^n D&gt; 0 &rarr; D&gt; 0 (0001)^n</code>, <code>(0010)^n C&gt; 0 &rarr; C&gt; 0 (0010)^n</code>, <code>(1000)^n B&gt; 1 &rarr; B&gt; 1 (1000)^n</code>, for every n.",
+   "where": "<code>d_cross</code>, <code>c_cross</code>, <code>b_cross</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Lengths in base 3",
+   "text": "At step 199,354,683 (22,052 cells), read as <code>a = 0001, b = 1101, c = 0111, d = 0100</code>, the tape is <code>D&gt;0 a^11 11 b^16 a</code>, then <code>(d^10 c^4 d^13 c^10 d^4 c^13)</code> repeated 12 times, then runs <code>d^16 c^7 d^22 c^28 ... d^149</code> (lengths 1 mod 3), then groups <code>c^3 d c^k d^3 c d^m</code> with k and m multiples of 3 (36, 21, 9, 42, ...; 66, 51, 57, 69, ...).",
+   "where": "<code>tokrun M 200000000 a=0001,b=1101,c=0111,d=0100,e=1000 L</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The machine halts only when F reads a 1. F is entered from E on a 1 (writing 0, moving left). The sweeps handle runs in a way that keeps the mod-3 pattern in the samples, but this is not proved, and an exception could put F on a 1. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.",
    "where": ""
   }
  ],
@@ -60,6 +72,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "3 rules",
+    "text": "D, C and B crossing whole runs to the left."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -86,6 +103,23 @@
   },
   "sections": [
    {
+    "id": "runs",
+    "eyebrow": "Structure",
+    "heading": "Runs of two four-cell words",
+    "html": [
+     "<p>With <code>c = 0111</code> and <code>d = 0100</code>, the tape at step 199,354,683 reads (abridged):</p><pre>D&gt;0 (0001)^11 11 (1101)^16 0001\n  [d^10 c^4 d^13 c^10 d^4 c^13] x 12\n  d^16 c^7 d^22 c^28 d^22 c^22 d^16 c^25 d^22 c^28 d^19 c^34 ... d^52 c^52 d^67 c^34 d^34 c^70 d^149\n  c^11 d c d^2 c d^18 c^3 d c^15 d^3 c d^66 c^3 d c^36 d^3 c d^51 c^3 d c^21 d^3 c d^57 ...</pre>",
+     "<p>The leftmost part (the sqrt-growing side) is a reservoir of <code>0001</code>. D, C and B cross runs of the one-1 words to the left in one go (proved in Lean).</p>"
+    ]
+   },
+   {
+    "id": "mod3",
+    "eyebrow": "Dynamics",
+    "heading": "Base three",
+    "html": [
+     "<p>The run lengths in the middle part are 1 mod 3 (4, 10, 13, 16, 7, 22, 28, 25, 19, 34, 37, 52, 67, 70). Further right they come in groups <code>c^3 d c^k d^3 c d^m</code> with k and m multiples of 3. So the sweeps seem to read and write the lengths in base 3, much like the splitting by thirds of 1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF in this batch. The repeated stretch <code>d^10 c^4 d^13 c^10 d^4 c^13</code> grows by whole periods and acts as a wall between the two regimes.</p><p><b>What halting would need.</b> F reading a 1, at a run boundary that breaks the mod-3 pattern. Proving that the pattern is kept would be the first step towards non-halting.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +132,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A list of runs of the four-cell words 0100 and 0111 whose lengths are nearly all 1 mod 3 (near the left) or multiples of 3 (further right), with a periodic stretch (10, 4, 13, 10, 4, 13, …) between; the lengths further out look irregular.",
+ "family": "run list in base 3 with a periodic wall",
+ "decision": "open"
 }

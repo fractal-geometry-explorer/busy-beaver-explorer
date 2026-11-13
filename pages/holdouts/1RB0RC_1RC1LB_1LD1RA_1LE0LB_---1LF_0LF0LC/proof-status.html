@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, but it is reduced to the left end.</b> Lean proves from a closed tape language (windows of 4 cells) that any halt from blank tape happens with blank tape to the left of the head. By hand and in simulation, the only way there is F reaching the leftmost written cell, which it has never done in 10<sup>10</sup> steps (it came to the second cell 4 times and read a 1 each time).</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Every halt is at the left edge</h3>
+        <p>In the run from blank tape, any configuration where the machine halts is in state E reading a 0 with only blank cells to the left of the head. Proved from a closed tape language with windows of 4 cells (472 abstract configurations), whose only halting configurations have a left state that accepts the blank stream alone; <code>halt_left_of</code> is the left-hand mirror of <code>TM.CTL.halt_tail_blank</code>, proved in this folder.</p>
+        <p class="where"><code>halt_left_blank</code>, <code>lean/HaltLeft.lean</code>, certificate <code>lean/CTL4.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Shift rules, for every length</h3>
+        <p>Going right: C turns <code>(100)^n</code> into <code>(111)^n</code>, A turns <code>(001)^n</code> into <code>(111)^n</code> and passes over <code>(1101)^n</code> unchanged; each for every n and every tape around.</p>
+        <p class="where"><code>right_C_100</code>, <code>right_A_001</code>, <code>right_A_1101</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +129,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 37,093 cells have been visited and 29,159 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in 10<sup>10</sup> steps; the left end</h3>
+        <p><code>c/leftedge.c</code>: 10<sup>10</sup> steps from blank tape without a halt; 16 new leftmost cells (at steps 5, 12, 49, &hellip;, 664,325,733, 5,128,930,040; width 88,956 at the last); the leftmost cell held 1 every time the head was to its right; F stood on the second cell 4 times (reading a 1) and never on the leftmost.</p>
+        <p class="where"><code>c/leftedge.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +142,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.026). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.516).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Only F on the leftmost cell can halt (by hand)</h3>
+        <p>An argument by hand, not checked by machine: A is entered only by moving right, so it never stands on the leftmost cell; the 0-writers that do (D on a 1, F) step off it at once, so the leftmost cell holds 1 while the head is to its right. With the Lean result, a halt needs E on a 0 beyond that cell; the one way there is F reading the leftmost 1 (F1 = 0LC), after which C, D and E step onto blank cells and E halts. F on the second cell reading a 0 leads to the same.</p>
+        <p class="where">the transition table</p>
+      </div>
+      <div class="card">
+        <h3>Layers that grow about 2.8 times per epoch</h3>
+        <p>At the left-end records, with t = 1110 and u = 111100, the tape is a short left prefix and then layers of periodic words, the outer one with period <code>u t^15 u t</code> and an inner one with period <code>u t u t^2 u u t^4</code>. Their repeat counts at the records from step 225,725 on: 2, 5, 15, 40, 114 and 6, 19, 56, 159, 446; width 597, 1533, 4173, 11509, 31981 (ratio about 2.76); the time between records grows about 7.7 times.</p>
+        <p class="where">a Python run of <code>bbtools.machine.records</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>Does it halt?</h3>
+        <p>Not known. What is left is whether the few cells at the left end ever let F reach the leftmost cell (or the second cell on a 0).</p>
       </div>
     </div>
   </section>

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The run is a sequence of phases whose length grows by a factor of about 9/4 each time, driven by a Collatz-like map z &rarr; about 3z/2 on one zero block. Simulating the phases with a reduced (small stand-in) zero block, no halt occurs in the first 900 phases, roughly 10<sup>319</sup> steps; that reduction is checked against full simulation for the first 25 phases but not proved.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweep rule</h3>
+        <p>For all a, b and any tape L on the left: <code>L (00)^(a+2) (11)^(b+3) A&gt;</code> followed by blank tape reaches <code>L (00)^a 1^(2b+12) A&gt;</code> in 10b + 38 steps. This is one sweep of a phase: four 0s eaten, six 1s gained.</p>
+        <p class="where"><code>sweep</code>, <code>lean/Sweep.lean</code> (written by <code>bbtools.symtm.prove</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The sweep rule</h3>
+        <p>For all a, b and any tape L on the left: <code>L (00)^(a+2) (11)^(b+3) A&gt;</code> followed by blank tape reaches <code>L (00)^a 1^(2b+12) A&gt;</code> in 10b + 38 steps. This is one sweep of a phase: four 0s eaten, six 1s gained.</p>
+        <p class="where"><code>sweep</code>, <code>lean/Sweep.lean</code> (written by <code>bbtools.symtm.prove</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The sweep rule</h3>
+        <p>For all a, b and any tape L on the left: <code>L (00)^(a+2) (11)^(b+3) A&gt;</code> followed by blank tape reaches <code>L (00)^a 1^(2b+12) A&gt;</code> in 10b + 38 steps. This is one sweep of a phase: four 0s eaten, six 1s gained.</p>
+        <p class="where"><code>sweep</code>, <code>lean/Sweep.lean</code> (written by <code>bbtools.symtm.prove</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +134,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 40,047 cells have been visited and 22,701 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Phases match direct simulation</h3>
+        <p>The phase structure (start <code>P 0^z B&gt;</code>, z' = zmap(z) + c) was checked cell for cell for the first 26 phases, with the true z, by <code>c/phase.c</code>; the phase starts are at steps 218, 546, 1220, 2618, 5394, 10908, &hellip; as in the plain simulator.</p>
+        <p class="where"><code>py/check_full.py</code>, <code>c/phase.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Phases match direct simulation</h3>
+        <p>The phase structure (start <code>P 0^z B&gt;</code>, z' = zmap(z) + c) was checked cell for cell for the first 21 phases, with the true z, by <code>c/phase.c</code>; the phase starts are at steps 218, 546, 1220, 2618, 5394, 10908, &hellip; as in the plain simulator.</p>
+        <p class="where"><code>py/check_full.py</code>, <code>c/phase.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Phases match direct simulation</h3>
+        <p>The phase structure (start <code>P 0^z B&gt;</code>, z' = zmap(z) + c) was checked cell for cell for the first 25 phases, with the true z, by <code>c/phase.c</code>; the phase starts are at steps 218, 546, 1220, 2618, 5394, 10908, &hellip; as in the plain simulator.</p>
+        <p class="where"><code>py/check_full.py</code>, <code>c/phase.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +157,27 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.489).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 742 phases (about 10<sup>264</sup> steps)</h3>
+        <p>Each phase is computed with a stand-in zero block of the same residue mod 4, larger than the prefix (rechecked every 25 phases with one twice as large), while the true z is carried exactly. No phase halts; z reaches 133 digits. The stand-in rests on the observation, not a proof, that a phase depends on z only through z mod 4 once z is large.</p>
+        <p class="where"><code>py/drive.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 742 phases (about 10<sup>264</sup> steps)</h3>
+        <p>Each phase is computed with a stand-in zero block of the same residue mod 4, larger than the prefix (rechecked every 25 phases with one twice as large), while the true z is carried exactly. No phase halts; z reaches 133 digits. The stand-in rests on the observation, not a proof, that a phase depends on z only through z mod 4 once z is large.</p>
+        <p class="where"><code>py/drive.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 900 phases (about 10<sup>319</sup> steps)</h3>
+        <p>Each phase is computed with a stand-in zero block of the same residue mod 4, larger than the prefix (rechecked every 25 phases with one twice as large), while the true z is carried exactly. No phase halts; z reaches 160 digits. The stand-in rests on the observation, not a proof, that a phase depends on z only through z mod 4 once z is large.</p>
+        <p class="where"><code>py/drive.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. Halting needs state C on a 0 with <code>0 1</code> to its left. It would have to come from a phase end that walks unusually deep into the stack; no phase end has rewritten more than the last 7 blocks (106 cells) of it, and its first 60 cells have not changed since phase 5.</p>
       </div>
     </div>
   </section>
@@ -140,7 +185,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA 1000000000
+gcc -O2 -o phase holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/c/phase.c &amp;&amp; python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/drive.py 200 out.txt
+python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/check_full.py out.txt 20 ./phase
+gcc -O2 -o phase holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/c/phase.c &amp;&amp; python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/drive.py 200 out.txt
+python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/check_full.py out.txt 20 ./phase
+gcc -O2 -o phase holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/c/phase.c &amp;&amp; python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/drive.py 200 out.txt
+python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/check_full.py out.txt 20 ./phase</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

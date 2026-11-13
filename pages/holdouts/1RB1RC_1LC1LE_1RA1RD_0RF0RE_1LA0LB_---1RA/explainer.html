@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows, and the reason is the same as for Antihydra: the machine multiplies a number by about 3/2 each round and keeps score of its parities. Even values push a counter up by two, odd values pull it down by one; it stops only if the counter ever falls below zero. Lean proves that this is exactly what the machine does.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 62,542 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>halts ⇔ counter &lt; 0</b><span class="small">Halting reduced to an Antihydra-like map, proved in Lean.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>m = 50,008</b><span class="small">The counter after 10<sup>5</sup> rounds; never below 1.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>≈ 10<sup>−11</sup></b><span class="small">Chance it ever falls below zero, by a random-walk model.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A number and a counter</a><a href="#rule">Three halves, and a score of parities</a><a href="#halt">Only if the odd values win</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,29 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">The tape</span>
+  <h2>A number and a counter</h2>
+<p>Every round starts with the head in state A at the left end of the tape, which reads</p>
+<pre>R n m  =  A&gt; 0 11 (01)^n 0 11 (01)^m      (the number n, then the counter m)
+Z k    =  A&gt; 0 11 (01)^k                  (the counter used up)</pre>
+<p>In a round the head sweeps between the left end and the first <code>11</code>. Each sweep takes two copies of <code>01</code> from the right of the <code>11</code> and writes three on its left, so the <code>11</code> walks through the number and the number grows by a factor 3/2. What is left over at the end, nothing or one copy, is the parity of <code>n</code>, and it decides what happens to the counter.</p>
+<p>A round costs about <code>n²</code> steps, and <code>n</code> grows geometrically: the left part of the tape (the number) grows like the square root of the step count, the counter on the right like its logarithm.</p>
+</section>
+<section id="rule">
+  <span class="eyebrow">The rule</span>
+  <h2>Three halves, and a score of parities</h2>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>start</th><th>n even</th><th>n odd, m ≥ 1</th><th>n odd, m = 0</th></tr></thead><tbody><tr><td><code>R n m</code></td><td><code>R (3n/2+2) (m+2)</code></td><td><code>R ((3n+7)/2) (m−1)</code></td><td><code>Z ((3n+9)/2)</code></td></tr></tbody></table></div>
+<p><code>Z k</code> goes to <code>R ((3k+1)/2) 1</code> for odd <code>k</code> and halts for even <code>k</code> (the head runs off the right end in state F, which has no rule for a blank). Reading <code>Z k</code> as <code>R (k−1) (−1)</code>, the machine halts exactly when an odd number meets the counter at −1. From blank tape it reaches <code>Z 1</code> after 10 steps:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>round</th><th>n</th><th>parity</th><th>counter m</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>even</td><td>−1</td></tr><tr><td>1</td><td>2</td><td>even</td><td>1</td></tr><tr><td>2</td><td>5</td><td>odd</td><td>3</td></tr><tr><td>3</td><td>11</td><td>odd</td><td>2</td></tr><tr><td>4</td><td>20</td><td>even</td><td>1</td></tr><tr><td>5</td><td>32</td><td>even</td><td>3</td></tr><tr><td>6</td><td>50</td><td>even</td><td>5</td></tr><tr><td>7</td><td>77</td><td>odd</td><td>7</td></tr><tr><td>8</td><td>119</td><td>odd</td><td>6</td></tr><tr><td>9</td><td>182</td><td>even</td><td>5</td></tr><tr><td>10</td><td>275</td><td>odd</td><td>7</td></tr></tbody></table></div>
+<p>In Lean: <code>next</code>, <code>round</code> and <code>round_halt</code> in <code>lean/Macro.lean</code>, <code>halts_iff'</code> in <code>lean/Reduction.lean</code>.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>Only if the odd values win</h2>
+<p>The counter goes up by 2 for each even <code>n</code> and down by 1 for each odd one; the machine halts iff it ever falls below zero. Its lowest values were 1, at rounds 1 and 4; after 10<sup>5</sup> rounds it is 50,008 (49,997 odd rounds, 50,003 even ones).</p>
+<p>If the parities behave like fair coin flips, the counter drifts upward by one half a round, and the chance of ever coming back down from <code>m</code> is <code>φ<sup>−(m+2)</sup></code> with φ the golden ratio: about 10<sup>−11</sup> already from round 100. This is Antihydra's situation: everyone expects it to run forever, and nobody can prove that the parities of a 3/2-map are balanced enough.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,7 +258,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 62,542 cells have been visited and 44,391 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.484). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.052).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>round</code>, <code>round_halt</code>, <code>lean/Macro.lean</code>; rules in <code>lean/Rules.lean</code> (generated by <code>lean/rules.py</code>)</div></div><div><b>Every round, in closed form</b><p>For all <code>n</code>, <code>m</code>: from <code>R n m = A&gt; 0 11 (01)^n 0 11 (01)^m</code> the machine reaches <code>R (3n/2+2) (m+2)</code> for even <code>n</code>, <code>R ((3n+7)/2) (m−1)</code> for odd <code>n</code> and <code>m ≥ 1</code>, <code>Z ((3n+9)/2)</code> for odd <code>n</code> and <code>m = 0</code>; from <code>Z k = A&gt; 0 11 (01)^k</code> it reaches <code>R ((3k+1)/2) 1</code> for odd <code>k</code> and halts for even <code>k</code>. Built from 8 symbolic rules and an induction on the sweeps.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>halts_iff'</code>, <code>lean/Reduction.lean</code></div></div><div><b>Halting reduced to the map</b><p>The machine halts from blank tape iff the orbit of <code>next</code> from <code>Z 1</code> (reached in 10 steps) reaches <code>Z k</code> with <code>k</code> even.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>first_rounds</code>, <code>lean/Reduction.lean</code></div></div><div><b>No halt in the first 10,000 rounds</b><p>The map, evaluated by the kernel; <code>n</code> then has about 5,800 bits.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/orbit.py</code></div></div><div><b>No halt in the first 10<sup>5</sup> rounds</b><p>The counter is never below 1 (lowest at rounds 1 and 4) and is 50,008 after 10<sup>5</sup> rounds (49,997 odd rounds, 50,003 even). The first round starts of a direct simulation agree with the map.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>Why it is expected never to halt</b><p>If the parities of <code>n</code> behave like coin flips, the counter is a random walk with steps +2 and −1 (drift +1/2), which falls from <code>m</code> to −2 with chance <code>φ<sup>−(m+2)</sup></code>, φ the golden ratio: about 10<sup>−11</sup> from the counter's value after 100 rounds.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known; a proof either way needs control of the parity sequence of an Antihydra-like orbit. A cryptid, probviously non-halting.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

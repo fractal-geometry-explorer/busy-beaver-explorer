@@ -1,6 +1,9 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G09",
+ "family": "nested crossing counter",
+ "summary": "Exactly the mirror image of 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- with states A and D exchanged (that machine's table started in state D): long blocks of 3-cell words and a final block of a 9-cell word changed by the same five kinds of phase (periods proved in Lean, drain for the twin only); an exact accelerated simulation reaches 1.06e300 steps without a halt.",
+ "decision": "open",
  "title": "What is known about 1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---.",
  "machine": "1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---",
@@ -10,9 +13,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> This machine is the mirror image of <code>1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---</code> with states A and D exchanged, so its run is that table started in state D. One period of four of its five kinds of phase is proved in Lean for all block lengths (kernel; the fifth, drain, is kernel-checked for the twin only); an exact accelerated simulation, checked against direct simulation, follows the run to 1.06&middot;10<sup>300</sup> steps without a halt (trusted). How a phase ends depends on residues of the counts."
  ],
  "claims": [
   {
@@ -46,34 +49,80 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Traverse, one cycle",
+   "text": "<code>0^∞ A&gt;0 1 1 (010110110)^(p+1) (110)^(q+1) (010)^(r+1) (110)^(s+1) 1 1 1 (011)^(t+6) 0 1 0^∞</code> reaches the same with p+2, s+7, t in 396p + 132q + 132r + 132s + 1363 steps (nine visits of the left end), for every p, q, r, s, t.",
+   "where": "<code>traverse</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Mirror twin",
+   "text": "Reflecting <code>1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---</code> (L and R swapped) and renaming A to D and D to A gives this machine's table exactly; its start state A is the twin's D. Checked by a script comparing the two tables under all relabellings (only this one matches).",
+   "where": "<code>py/mirror.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Five phase periods",
+   "text": "One period of four of the five kinds of phase the run uses after step 10<sup>20</sup> (mirror images of the twin's): cross (marker moves 6 words, final block +1), two double crossings, absorb (right block +4, neighbour &minus;2), feed (middle block &minus;18, right block +30, final +1), each for every value of its variables. The drain period (final block &minus;11, marker 18 words, new block +36) is not in Lean here: its generated proof needs more than 9 GB of memory; the mirror-image period is kernel-checked for the twin.",
+   "where": "<code>cross6</code>, <code>cross12</code>, <code>absorb2</code> in <code>lean/Phases.lean</code>; <code>feed30</code>, <code>cross12b</code> in <code>lean/PhasesFeed.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 1.06&middot;10<sup>300</sup> steps",
+   "text": "The twin's exact accelerated simulator (with crossings of long blocks also counted as events, <code>ACCEL_X=1</code>), compared with direct C simulation after every jump up to 1.08&middot;10<sup>10</sup> steps with no mismatch, reaches 1.06&middot;10<sup>300</sup> steps (401 drain phases) without a halt; the tape grows 1.98 to 4.01 times per drain phase (median 2.23).",
+   "where": "<code>../1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/accel.py</code>, <code>py/rounds_1e300.log</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Drain period",
+   "text": "Final block &minus;11, a marker moves 18 words, a new block +36 per period: verified by the symbolic run of the accelerated simulator for all block lengths, not by Lean (memory).",
+   "where": "<code>py/phases.py</code> (RULES, <code>drain11</code>), <code>../1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/accel.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Round maps",
+   "text": "The same two residue-chosen round maps as the twin (see its page), mirrored.",
+   "where": "README of the twin"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The phase periods are proved; their ends, which depend on residues of the counts, are known from simulation only.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA--- 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA--- 1000000000",
+  ". /etc/profile.d/lean.sh && holdouts/1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---/lean/check.sh   # Rules.lean",
+  "gcc -O2 -o ev holdouts/1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---/c/ev.c && ./ev 1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA--- 2000000000 L E 1 100000 12 | awk 'NR%300==0'",
+  ". /etc/profile.d/lean.sh && holdouts/1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---/lean/check.sh   # Phases.lean, PhasesFeed.lean (about 90 s)",
+  "ACCEL_X=1 python3 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/rounds.py 1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA--- 1e300 > rounds.log",
+  "python3 holdouts/1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---/py/mirror.py"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet. This machine is the mirror image of another holdout with two states renamed, started in a different state. Its tape is a handful of long blocks; in each phase a marker crawls through a block or a block eats its neighbour, and when a block runs out the next phase starts. An exact fast-forward simulation has followed it for 10<sup>300</sup> steps without a halt.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 34,812 cells visited."
+    "value": "mirror",
+    "text": "Of 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---, with A and D exchanged."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "5 periods",
+    "text": "Of four kinds of phase, proved in Lean for every block length."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>300</sup> steps",
+    "text": "No halt in an exact accelerated simulation (401 drain phases)."
    },
    {
     "level": "heuristic",
-    "value": "sqrt/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "&times;2.2",
+    "text": "Typical growth of the tape per drain phase."
    }
   ],
   "presets": [
@@ -95,6 +144,43 @@
      "<p>After 10<sup>9</sup> steps the tape spans 34,812 cells (9,917 left of the start, 19,053 right), with a density of 1s of 0.548.</p>",
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>953,183,878</td><td><code>E&gt;0 0^2 1 0 1 0 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1</code></td></tr><tr><td>left</td><td>968,946,971</td><td><code>E&gt;0 0^2 1 0^2 1 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1</code></td></tr><tr><td>left</td><td>984,720,342</td><td><code>A&gt;0 1^2 0^2 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0</code></td></tr><tr><td>right</td><td>515,641,258</td><td><code>1 0 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2</code></td></tr><tr><td>right</td><td>531,276,874</td><td><code>1 0 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2</code></td></tr><tr><td>right</td><td>546,919,364</td><td><code>1 0 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2 1^2 0 1 0^2 1 0^2</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "mirror",
+    "eyebrow": "Twin",
+    "heading": "A mirror image, started elsewhere",
+    "html": [
+     "<p>Take <code>1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---</code>, swap every L and R, and rename state A to D and D to A. The result is this machine's table, entry for entry:</p>",
+     "<table><thead><tr><th>state here</th><th>read 0</th><th>read 1</th><th>twin state</th></tr></thead><tbody><tr><td>A</td><td>1RB</td><td>1RE</td><td>D (1LB 1LE)</td></tr><tr><td>B</td><td>1LC</td><td>0RA</td><td>B (1RC 0LD)</td></tr><tr><td>C</td><td>1LA</td><td>0LD</td><td>C (1RD 0RA)</td></tr><tr><td>D</td><td>1LB</td><td>0LF</td><td>A (1RB 0RF)</td></tr><tr><td>E</td><td>0RB</td><td>0LE</td><td>E (0LB 0RE)</td></tr><tr><td>F</td><td>0LA</td><td>---</td><td>F (0RD ---)</td></tr></tbody></table>",
+     "<p>Both start on a blank tape, but this one starts in the twin's state D, so the two runs are different orbits of the same dynamics. They use the same kinds of phase, mirrored: the final block of 9-cell words sits at the left end here.</p>"
+    ]
+   },
+   {
+    "id": "words",
+    "eyebrow": "Tape as words",
+    "heading": "Long blocks and a final block",
+    "html": [
+     "<p>At the left end (state E) the tape reads like <code>0 0 0 (101101100)^509 (101)^4551 (100)^856 (101)^5329 (110)^10179 1</code> (step 3,039,097,886): a final block of the 9-cell word <code>101101100</code>, then long blocks of 3-cell words.</p>"
+    ]
+   },
+   {
+    "id": "phases",
+    "eyebrow": "Macro rules",
+    "heading": "Five kinds of phase",
+    "html": [
+     "<table><thead><tr><th>phase</th><th>per period</th><th>Lean</th></tr></thead><tbody><tr><td>cross</td><td>a marker moves 6 words right; final block +1</td><td><code>cross6</code></td></tr><tr><td>drain</td><td>final block &minus;11; a marker moves 18 words; a new block +36</td><td>twin only</td></tr><tr><td>double cross</td><td>two markers move 12 words; final block +1</td><td><code>cross12</code>, <code>cross12b</code></td></tr><tr><td>absorb</td><td>at the right end: right block +4, its neighbour &minus;2</td><td><code>absorb2</code></td></tr><tr><td>feed</td><td>at the right end: a middle block &minus;18, right block +30, final block +1</td><td><code>feed30</code></td></tr></tbody></table>",
+     "<p>Each row but drain is a Lean theorem here for every value of the block lengths (drain is proved for the twin; here its proof is too large to check). A phase lasts until a shrinking block is too short; the remainder decides the junction the next phase starts from. The twin's page describes the resulting round maps (two branches, chosen by residues).</p>"
+    ]
+   },
+   {
+    "id": "sim",
+    "eyebrow": "Evidence",
+    "heading": "Fast-forwarding exactly",
+    "html": [
+     "<p>The twin's simulator proves each period symbolically and applies it many times at once, so it reproduces the machine's tape and step count exactly (checked against plain simulation up to 10<sup>10</sup> steps). For this run it also counts the crossing of a long block as an event, because here the head spends long stretches zig-zagging inside the tape.</p>",
+     "<table><thead><tr><th>steps</th><th>drain phases</th></tr></thead><tbody><tr><td>10<sup>21</sup></td><td>17</td></tr><tr><td>10<sup>101</sup></td><td>124</td></tr><tr><td>1.06&middot;10<sup>300</sup></td><td>401</td></tr></tbody></table>",
+     "<p>No halt so far. The only halting transition is F reading a 1; F is entered only from D reading a 1, and in every proved phase that cell is 0.</p>"
     ]
    }
   ]

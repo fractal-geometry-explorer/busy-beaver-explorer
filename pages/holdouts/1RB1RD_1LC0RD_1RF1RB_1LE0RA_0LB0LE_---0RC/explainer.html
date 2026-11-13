@@ -124,14 +124,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 12 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows yet, but the question is now about one explicit map. Each round works on one or two blocks of 1s: an even block grows by a factor 5/2, an odd block is divided by 6 digit by digit, and the machine stops only if such a division ends exactly. The map has been iterated for 1,000,000 rounds from blank tape without stopping.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 34,257 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>n ↦ 5n/2 + 1</b><span class="small">Every even round, proved in Lean; so are the odd sweep and the top-level ends.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>1,000,000 rounds</b><span class="small">Of the computed round map from blank tape, no halt; the block has about 205,000 digits.</span></div>
+    <div class="fact"><span class="ev o">Open</span><b>repunits</b><span class="small">A halt needs a base-6 repunit-like number on the orbit: very unlikely, not excluded.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Blocks of ones, read in rounds</a><a href="#rule">Base 6, digit by digit, with nested rounds</a><a href="#halt">Not in a million rounds</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,35 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">The tape</span>
+  <h2>Blocks of ones, read in rounds</h2>
+<p>Every round starts with the head in state B at the left end of the tape, followed by one block of 1s or two:</p>
+<pre>E n     =  B&gt; 0 0 1^n
+(a, b)  =  B&gt; 0 0 1^a 0 1^b</pre>
+<p>For an even block the head sweeps between the two ends; each sweep takes two 1s off the block and writes a <code>10101</code> on the left, and the last sweep fills those words to 1s. So <code>E (2p+4)</code> becomes <code>E (5p+11)</code>: the block grows by a factor 5/2. A round costs about <code>n²</code> steps, so the tape grows like the square root of the step count.</p>
+<p>In Lean: <code>even_round</code> in <code>lean/Macro.lean</code>, for every <code>p</code>.</p>
+</section>
+<section id="rule">
+  <span class="eyebrow">The rule</span>
+  <h2>Base 6, digit by digit, with nested rounds</h2>
+<p>One step into a round the tape is <code>w^i C&gt; 0 1 0 1^x 0 R</code> with <code>w = 10101</code>, <code>i = 0</code>, <code>x</code> the first block and <code>R</code> the other blocks. Each <code>w</code> becomes five 1s at the end of the round.</p>
+<ul><li><b>Odd <code>x ≥ 7</code></b> (Lean): a sweep takes six 1s off the block, writes a <code>w</code> and adds one to the next block. So the block is divided by 6: the quotient goes to the next block, the remainder 1, 3 or 5 stays.</li><li><b>Even <code>x</code></b>: the machine first runs a whole <em>nested round</em> on the blocks to the right and merges its result into the block; with nothing to the right the sweep is just <code>x → x − 2</code> and a new <code>w</code>, which gives <code>n ↦ 5n/2 + 1</code> (Lean).</li><li><b>Remainders</b> end the round. At top level: 3 merges everything into one block <code>5i + 6 + y</code>, 5 leaves two blocks <code>(5i + 6, y + 1)</code> (both Lean), and 1 starts a new round on the quotient and adds <code>5i + 2</code> to its result; if there is no quotient the machine <b>halts</b> (Lean). In a nested round the roles are shifted: 1 merges, 3 leaves a block, and 5 recurses on the quotient minus one, halting if there is none.</li></ul>
+<p>For one block this is the table</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th><code>m</code> in <code>n = 6^j·m + (6^j − 1)/5</code>, <code>m ≢ 1 (mod 6)</code></th><th>next</th></tr></thead><tbody><tr><td>0 (n = 1, 7, 43, 259, …)</td><td>halts</td></tr><tr><td>even, &gt; 0</td><td><code>E (n + 3m/2 + 1 + j)</code></td></tr><tr><td>≡ 3 (mod 6)</td><td><code>E (n + 3 + j)</code></td></tr><tr><td><code>6q + 5</code></td><td><code>(n − q + 1 + j, q + 1)</code></td></tr></tbody></table></div>
+<p>Worked example, <code>(36, 7)</code>: 36 is even, so the 7 is run as a nested round: one odd sweep leaves remainder 1 with quotient 1, which merges to <code>5 + 1 = 6</code>. The block becomes <code>36 − 2 + 6 = 40</code> with one <code>w</code>; twenty even sweeps later there are 21 <code>w</code>s and nothing left, and the round ends in <code>5·21 + 1 = 106</code> ones.</p>
+<p>The map as a whole is computed (<code>py/roundmap.py</code>): it agrees with direct simulation on more than 15,000 random lists of up to six blocks.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>Not in a million rounds</h2>
+<p>From blank tape the rounds are</p>
+<pre>2 → 6 → 16 → 41 → (36, 7) → 106 → 266 → 666 → 1666 → 4166 → 10416 → 26041
+  → 32553 → 32556 → 81391 → (79133, 2261) → (65946, 15450) → 130718 → 326796
+  → 816991 → 851035 → (827398, 23640) → 2216246 → …</pre>
+<p>Lean proves the orbit up to <code>E 26041</code>; direct simulation reaches <code>E 326796</code> after 34,276,754,745 steps; the map has been iterated for 1,000,000 rounds, where the block has about 205,000 digits. The tape never has more than two blocks.</p>
+<p>To halt, the orbit has to meet a number whose base-6 digits end the recursion exactly, such as a repunit <code>11…1</code>. For a number of <code>D</code> digits the chance is about <code>6<sup>−D</sup></code>, so a halt is astronomically unlikely, but excluding it means controlling the base-6 digits of a 5/2-type orbit, a Collatz-like problem nobody knows how to solve.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -221,7 +250,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 12 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -235,14 +264,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 34,257 cells have been visited and 32,343 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.062). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.46).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>even_round</code>, <code>lean/Macro.lean</code>; rules in <code>lean/Rules.lean</code> (generated by <code>lean/rules.py</code>)</div></div><div><b>Every even round, in closed form</b><p>For every <code>p</code>: from <code>E (2p+4) = B&gt; 0 0 1^(2p+4)</code> the machine reaches <code>E (5p+11)</code>, that is <code>n ↦ 5n/2 + 1</code>. Built from 4 symbolic rules (entry, a sweep, two ends) and an induction on the sweeps.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>reaches_26041</code>, <code>lean/Macro.lean</code></div></div><div><b>From blank tape to E 26041</b><p>The machine reaches <code>E 26041</code> through <code>E 2, 6, 16, 41, (36, 7), 106, 266, 666, 1666, 4166, 10416</code>: eight even rounds and three concrete runs.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>odd_sweep</code>, <code>odd_sweep_new</code>, <code>end2</code>, <code>end3</code>, <code>end3_new</code>, <code>end5</code>, <code>end5_new</code>, <code>halt1</code>, <code>lean/Rules.lean</code></div></div><div><b>The odd sweep and the top-level ends</b><p>With the phase state <code>P(i, x, R) = w^i C&gt; 0 1 0 1^x 0 R</code>, <code>w = 10101</code>: for odd <code>x ≥ 7</code> one sweep takes six 1s off the block, writes a <code>w</code> and adds one to the next block (or makes a new block), for any tape on both sides. At top level, <code>x = 2</code> with nothing after ends the round in <code>5i + 6</code> ones, <code>x = 3</code> in one block <code>5i + 6 + y</code>, <code>x = 5</code> in blocks <code>5i + 6</code> and <code>y + 1</code>, and <code>x = 1</code> with nothing after reaches the halting transition.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/roundmap.py check</code>, <code>py/rounds.py check 2000</code>, <code>c/evc.c</code></div></div><div><b>The complete round map</b><p>A round is a recursion on phase states: odd blocks are divided by 6 by the odd sweep; an even block first runs a <em>nested round</em> on the blocks to its right and merges the result (with nothing to its right this is <code>x → x − 2</code>, so <code>n ↦ 5n/2 + 1</code>); the remainders 0, 1, 3, 5 end the round, differently at top level and nested (table in the README). A round halts only at top level with remainder 1 and nothing after, or nested with remainder 5 and nothing after. Compared with direct simulation on more than 15,000 random lists of up to six blocks (blocks up to 3000) with no mismatch; for one block it is the earlier table (<code>n = 6^j·m + (6^j − 1)/5</code>: repunits halt, even <code>m</code> gives <code>n + 3m/2 + 1 + j</code>, <code>m ≡ 3</code> gives <code>n + 3 + j</code>, <code>m = 6q + 5</code> gives <code>(n − q + 1 + j, q + 1)</code>), checked for every <code>n &lt; 200,000</code> against the map.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/rounds.py orbit</code></div></div><div><b>No halt to E 326796</b><p>Direct simulation of the rounds from blank tape: <code>… E 26041, 32553, 32556, 81391, (79133, 2261), (65946, 15450), 130718, 326796</code>, reached at step 34,276,754,745. The round map gives the same orbit.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/roundmap.py orbit 1000000</code></div></div><div><b>No halt in 1,000,000 rounds of the map</b><p>The round map iterated from blank tape with big integers: 1,000,000 rounds without a halt. The tape never has more than two blocks (a round on at most two blocks ends with at most two), about 23% of the rounds start with two, and after 1,000,000 rounds the first block has about 205,000 decimal digits. This rests on the computed map.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>Why a halt is unlikely</b><p>A round halts only when a digit recursion ends exactly: the block, after stripping trailing base-6 digits 1, must be 0 (a repunit), or in a nested round the quotients after digits 5 must come down to 0. For numbers of <code>D</code> base-6 digits that has chance about <code>6<sup>−D</sup></code>; second blocks are quotients of the first by a small power of 6, so they are long too. Summed over the rounds after the computed ones this is astronomically small. Small tapes do halt: <code>(a, 5)</code>, <code>(a, 41)</code>, <code>(a, 257)</code> for even <code>a ≥ 4</code>, and <code>E 7</code>, <code>E 43</code>, <code>E 259</code>.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts exactly when the orbit of <code>(2)</code> under the round map reaches a halting round (given the computed map). What is missing: the nested rules as Lean theorems and the reduction stated in Lean; and an argument that the orbit avoids the halting numbers, which is a Collatz-like question.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC 1000000000</code></pre>
+python3 holdouts/1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC/py/rounds.py check 2000
+python3 holdouts/1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC/py/roundmap.py check 3000 40 4
+python3 holdouts/1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC/py/roundmap.py orbit 100000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

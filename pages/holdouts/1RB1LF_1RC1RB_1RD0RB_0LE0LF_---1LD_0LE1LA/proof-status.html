@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open, with the way to halt pinned down and the run followed exactly to 10<sup>18</sup> steps.</b> The tape is a list of blocks <code>(01)^x (1)^y</code>; Lean proves (kernel) that a merge at the left end halts the machine when the right block has at least two pairs more than the left one, and that a run-length block machine follows the Turing machine exactly from blank tape. Its C twin finds no halt in 10<sup>18</sup> steps: at all 49 merges at the left end with a left block of 50 pairs or more the right block was at most 0.35 times the left one (0.6 at the tiny early ones).</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The merge zigzag</h3>
+        <p><code>L (01)^(a+1) A&gt;0 1 (11)^n 0 (01)^(k+1) R</code> becomes <code>L (01)^a A&gt;0 1 (11)^(n+2) 0 (01)^k R</code> in 4n+10 steps, for every a, n, k and every tape L, R; iterated j times by induction.</p>
+        <p class="where"><code>zig</code> in <code>lean/Rules.lean</code>, <code>zig_iter</code> in <code>lean/Merge.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A short left block halts the machine</h3>
+        <p>At the left end, <code>0^∞ 1 1 1 (01)^a A&gt;0 1 (11)^n 0 (01)^(a+k+2) R</code> halts, for every a, n, k and R: the zigzag uses up the left block and E reads the blank cell at the left end.</p>
+        <p class="where"><code>left_merge_halts</code> in <code>lean/Merge.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>An exact abstract machine for the whole run</h3>
+        <p>The tape cut into blocks of two cells, each side of the head run-length coded: one step of this block machine runs the Turing machine on the block the head faces (two 48-entry window tables, each entry checked by <code>rfl</code>) and crosses a whole run of equal blocks at once when the head leaves a block in the state it entered with. Every block-machine step is a run of the Turing machine, a block-machine halt is a halt, and the empty block configuration is the blank tape.</p>
+        <p class="where"><code>mstep_spec</code>, <code>init_cfg</code>, <code>mrun_blank</code> in <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 1,199,390 steps</h3>
+        <p>30,000 steps of the block machine from blank tape, evaluated by Lean's kernel.</p>
+        <p class="where"><code>macro_runs_kernel</code>, <code>lean/MacroRun.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -110,6 +130,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 124,890,717,366 steps</h3>
+        <p>18,000,000 steps of the block machine, evaluated by compiled code.</p>
+        <p class="where"><code>macro_runs_native</code>, <code>lean/MacroRun.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -119,6 +144,31 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 41,232 cells have been visited and 23,700 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The sweep law</h3>
+        <p>Between two visits of the left end, every block <code>(01)^x</code> becomes <code>(01)^(x+1)</code> and every block <code>(1)^y</code> becomes <code>(1)^(y-2)</code>: 289,603 checks in the first 10<sup>10</sup> steps, no exception.</p>
+        <p class="where">scratch analysis of the C run (<code>py/analyze.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The merge law</h3>
+        <p>When a block <code>(1)^y</code> between <code>(01)^a</code> and <code>(01)^b (1)^c</code> runs out, the zigzag leaves <code>(01)^(a-b) (1)^(4b+c)</code>; seen at every merge of the first 10<sup>10</sup> steps.</p>
+        <p class="where"><code>py/analyze.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>18</sup> steps</h3>
+        <p>The block machine in C (<code>c/msim.c</code>, the same window tables and run crossing; it agrees with Lean's evaluation of <code>mrun</code> on the step counts after 1,000, 4,635,164 and 18,000,000 block steps) runs 10<sup>18</sup> steps in about 8 minutes without a halt.</p>
+        <p class="where"><code>c/msim.c</code>, <code>py/leftmerges.py</code></p>
+      </div>
+      <div class="card">
+        <h3>49 merges at the left end, none close to halting</h3>
+        <p>In the first 10<sup>18</sup> steps there are 49 merges at the left end; the right block was at most 0.6 times the left one at the tiny early merges (3 to 13 pairs), at most 0.346 once the left block had 50 pairs, and between 0.22 and 0.34 once it had 100 (halting needs about 1). At every merge inside the tape the left block was at least 1.67 times the right one, and at least 2.89 times when the right block had 15 pairs or more.</p>
+        <p class="where"><code>c/msim.c</code>, <code>py/leftmerges.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Each left-end merge protects the next one</h3>
+        <p>With X0, X1, X2 the first three blocks of pairs at a left-end merge, the next left-end merge is safe if X0 &minus; X1 &gt; X2, because X0 &minus; X1 never decreases between two left-end merges (an argument from the sweep and merge laws; checked at 11,085,706 consecutive left-end visits to 10<sup>15</sup> steps, one exception at step 2,871 with blocks of at most 10 pairs). At every left-end merge with X0 &ge; 100 up to 2&middot;10<sup>17</sup> steps (47 merges), (X0 &minus; X1)/X2 was at least 5.8.</p>
+        <p class="where"><code>py/leftmerges.py</code>; README, <em>Reduction</em></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +177,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.505). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.505).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>The left block stays about 3 times longer</h3>
+        <p>At the 23 merges at the left end in the first 10<sup>10</sup> steps the left block was 2.9 to 4.3 times the right one (last: 30,587 against 9,616), and a longer run of the left end alone found a 24th at about 1.2&middot;10<sup>10</sup> steps with 45,881 against 12,860 (ratio 3.6); at all 1,497 merges with a right block of at least 15 pairs the ratio was at least 2.9.</p>
+        <p class="where"><code>py/analyze.py</code></p>
+      </div>
+      <div class="card">
+        <h3>A roughly self-similar cascade</h3>
+        <p>From one left-end merge to the next the left block grows by a factor of 1.3 to 1.5 (often exactly 3/2 up to rounding: 571,835, 857,753, 1,286,629) and follows X0' = X0 + X1 + m2 (&plusmn;1). Each block of pairs is longer than all later ones together at every left-end visit (smallest ratio 1.65 to 10<sup>14</sup> steps), but neither this nor any simple inequality on the blocks survives both sweeps and merges, so it is not an inductive invariant.</p>
+        <p class="where">README, <em>Why it is hard</em></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The machine halts if a merge at the left end ever meets a right block not shorter than the left one (by 2). The block machine of <code>lean/Macro.lean</code> is exact, so a halt would show up in it; a proof of non-halting needs an invariant of the whole cascade of merges, which is not known.</p>
       </div>
     </div>
   </section>
@@ -140,7 +200,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA 1000000000</code></pre>
+. /etc/profile.d/lean.sh &amp;&amp; holdouts/1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA/lean/check.sh   # Rules, Merge, Macro, MacroRun: about a minute
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA 1000000000
+python3 holdouts/1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA/py/analyze.py 1000000000   # sweep and merge laws, ratios
+python3 holdouts/1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA/py/macro_lean.py | diff - holdouts/1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA/lean/Macro.lean
+python3 holdouts/1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA/py/leftmerges.py 1e15   # left-end merges from the C block machine (1e18: ~8 min)</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

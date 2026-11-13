@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G07",
  "title": "What is known about 1RB1RA_0LC1RF_0LD1LD_1LE1LC_0RB0RA_---1RE",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RA_0LC1RF_0LD1LD_1LE1LC_0RB0RA_---1RE.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB1RA_0LC1RF_0LD1LD_1LE1LC_0RB0RA_---1RE/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its tape is a list of blocks of 1s, and Lean now proves that the machine is exactly a simple rule on that list: a carry walks left through the blocks, turning each block of length v into one of length 4v + 3, paid for by the last block, which is refilled from the blocks before it. A halt needs a block of length one in a place the carry skips, and in 10<sup>4000</sup> steps that never happens."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open, and it is now a question about a list of numbers.</b> Lean proves, for every block list, that one sweep of the machine does what the rule <code>sweep</code> says, and that if the orbit of the list [1] under that rule never fails, the machine never halts. An exact accelerated run of the rule (checked against the machine) reaches 10<sup>4000</sup> steps with no halt. A halt can only happen at a <em>jump</em>, and only if three block lengths satisfy an exact equation (for example x = z0/2 + 2); in the run they never come close, and nothing found so far rules the coincidence out, so the machine is very likely non-halting but a proof looks Collatz-hard."
  ],
  "claims": [
   {
@@ -40,40 +40,110 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "kernel",
+   "title": "The machine is a block-list system (every case)",
+   "text": "With the tape at a visit of the right end in B written as the list of its blocks of 1s, <code>sweep</code> is one visit: the last block z is the target if it is odd, otherwise the last even block e before it (the blocks between must all be odd and at least 3); the block x left of the target loses one 1 (or, if x is empty, becomes a new block of two and the target gives back three); the target gains 4 (z gains 2); z loses 2, and an empty z is removed while the block before it loses 2. Theorem <code>visit</code>: for every list on which <code>sweep</code> is defined, the machine goes from that tape to the tape of the result in at least one step. <code>sweep</code> is undefined exactly at the halting shapes (no even block, a block of one 1 crossed on the way back, an empty target after an empty block).",
+   "where": "<code>visit</code>, <code>lean/Macro.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The reduction",
+   "text": "Theorem <code>nonhalt_of_orbit</code>: if the orbit of the list [1] (the tape after the first step) under <code>sweep</code> is defined for ever, the machine does not halt from blank tape. So the machine halts if and only if the block-list system reaches one of its halting shapes (the converse direction is the machine's own halting case, not stated in Lean).",
+   "where": "<code>nonhalt_of_orbit</code>, <code>lean/Macro.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "What a halt looks like",
+   "text": "<code>halt_case</code>: from <code>L 0 1<sup>2d+2</sup> 0 1<sup>2c+2</sup> 0 1 0 1<sup>2b+2</sup> B&gt; 0<sup>&infin;</sup></code> the head reaches F on a 0 (the halting transition) in 2b + 4c + 15 steps. The closed tape language from windows of 6 cells shows that in the run from blank tape this pattern can only arise at the far left end.",
+   "where": "<code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The rule checked against the machine",
+   "text": "<code>py/blocks.py</code>: the rule agrees with a direct (run-length) simulation of the machine on 20,000 random block lists (3,953 of them halting, at the same place) and at every one of the first 20,000 visits from blank tape (2·10<sup>8</sup> steps); the Python mirror of the Lean definition agrees with it on 100,000 random lists.",
+   "where": "<code>python3 py/blocks.py random 20000</code>, <code>run 20000</code>, <code>lean 100000</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>4000</sup> steps",
+   "text": "<code>py/fastrun.py</code> runs the rule with runs of equal blocks kept as counts and many visits applied at once, with the exact step count of each visit (2D + 5, D the cells from the target to the right end); it agrees with the machine in blocks and step count at 200 sample visits up to 60,000 (10<sup>9</sup> steps). It reaches more than 10<sup>4000</sup> steps (about 10<sup>2000</sup> visits) without a halt.",
+   "where": "<code>python3 py/fastrun.py check 60000</code>, <code>far 4000 600</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The carry: v becomes 4v + 3",
+   "text": "At almost every visit the target is a carry block just left of a run of finished blocks: it eats its left neighbour x one 1 per visit (gaining 4) and, when x is empty, x becomes a fresh carry of 2 and the old one has length 4x + 3. So a pass of the carry shifts each block one place right and maps v to 4v + 3 (3 → 15 → 63 → 255 …), while at the front it creates new blocks of length 3. The fuel is the last block z, which pays 2 per visit; when z runs out, the last finished block is drained into a new z (the odd phase: y loses 1, z gains 2) and a new carry of 2 starts next to it.",
+   "where": "<code>py/blocks.py</code>, README"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt could still come from",
+   "text": "In the carry's ordinary work every block it crosses on the way back is a finished block 4v + 3 ≥ 3, so the halting shapes can only appear at a <em>jump</em>: z runs out while the new carry is still next to it, z becomes even and the next target is the last even block further left, skipping a stretch of odd blocks. A halt needs a block of length 1 in that stretch (or no even block at all). Up to 10<sup>1000</sup> steps there are 188 jumps (183 skip at least one block); the shortest block any of them skips has length 3.",
+   "where": "<code>python3 py/fastrun.py far 1000 300</code> (jump list)"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt can come from",
+   "text": "A closed tape language from windows of 6 cells (7,371 abstract configurations) allows F0 only with the left side reading <code>1</code> and then blank: next to the left end. The left end is visited about 2,500 times in 3·10<sup>8</sup> steps, almost always in E on a 0 before <code>1^3 0</code>.",
+   "where": "<code>python3 -m bbtools.ctl 1RB1RA_0LC1RF_0LD1LD_1LE1LC_0RB0RA_---1RE 6   # from tools/py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The sweep rules",
+   "text": "With z the last block, y, x, w before it, at the right end in B: z odd: (y, z) → (y − 1, z + 2); z even ≥ 4, y even: (x, y, z) → (x − 1, y + 4, z − 2); z even ≥ 4, y odd ≥ 3, x even: (w, x, y, z) → (w − 1, x + 4, y + 2, z − 2); for every length and every tape to the left. Proved from symbolic traces (shift rules, <code>rfl</code>, <code>omega</code>).",
+   "where": "<code>lean/Rules.lean</code> (from <code>py/rules.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "The jump remnant, at every jump up to 10<sup>2000</sup> steps",
+   "text": "At a refuel the list ends <code>&hellip; u x 2 z0</code>. If x &ge; z0/2 + 1 the fuel runs out while the new carry is still next to z (a jump), and x keeps the remnant <b>r = x &minus; z0/2 &minus; 1</b>; the machine then halts iff r = 1, or r = 0 and u = 0, or the stretch of odd blocks the head skips contains a 1 or reaches the left end (e.g. <code>[2, 3, 3, 11, 2, 18]</code>, r = 1, halts). <code>py/jumps.py</code> records all 358 jumps of the exact run to 10<sup>2000</sup> steps: the smallest remnant is 583, r is never below 2<sup>&minus;9</sup> times the fuel F = z0/2 + 1, r mod 8 is spread like a random odd number, and the sum of 1/r is 0.003.",
+   "where": "<code>python3 py/jumps.py 2000 300</code>"
+  },
+  {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.557).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Why a halt looks unlikely",
+   "text": "A halt needs an exact coincidence at a jump, such as x = z0/2 + 2 (remnant 1), between block lengths that come from different generations of the carry and show no arithmetic relation (no congruence forbids it, no inequality keeps the remnant large). The heuristic chance is about the sum of 1/F over the future jumps, and the fuel F grows roughly exponentially along the jumps (9 bits at the first, 3,315 bits at the 358th), so the expected number of halts is far below one: the machine very likely never halts.",
+   "where": "README"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "text": "Not known. A proof needs an invariant of <code>sweep</code> (a set of block lists containing [1], closed under the rule, with no halting shape). Since a halt is an exact equation between block lengths with thousands of digits, such an invariant would have to pin down the values of the large blocks, not just their sizes and parities; this looks as hard as a Collatz-type question. Plain parity-and-size abstractions are too coarse (e.g. [2, 4, 2] &rarr; [1, 8, 0] &rarr; [10] halts).",
+   "where": "README, next steps"
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RA_0LC1RF_0LD1LD_1LE1LC_0RB0RA_---1RE/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_0LC1RF_0LD1LD_1LE1LC_0RB0RA_---1RE 1000000000"
+  "cd holdouts/1RB1RA_0LC1RF_0LD1LD_1LE1LC_0RB0RA_---1RE/py",
+  "python3 blocks.py random 20000 && python3 blocks.py run 20000 && python3 blocks.py lean 100000",
+  "python3 fastrun.py check 60000 && python3 fastrun.py far 1000 300",
+  "python3 jumps.py 2000 300",
+  "python3 rules.py > ../lean/Rules.lean",
+  "cd ../../../tools/py && python3 -m bbtools.ctl 1RB1RA_0LC1RF_0LD1LD_1LE1LC_0RB0RA_---1RE 6"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows whether it halts. Lean proves that the machine is a simple rule on a list of numbers: a carry walks left through the blocks of 1s, turning a block of length v into one of 4v + 3. The machine could only stop if a block of length one were ever skipped by the carry, and in 10<sup>4000</sup> steps none is.",
   "facts": [
    {
+    "level": "kernel",
+    "value": "every list",
+    "text": "One sweep of the machine is the block rule <code>sweep</code>, proved in Lean for every block list."
+   },
+   {
+    "level": "kernel",
+    "value": "reduction",
+    "text": "If the rule never fails from [1], the machine never halts (Lean)."
+   },
+   {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 61,049 cells visited."
+    "value": "10<sup>4000</sup> steps",
+    "text": "No halt in an exact accelerated run of the rule."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "188 jumps",
+    "text": "The only moments a halt could happen, up to 10<sup>1000</sup> steps; all safe."
    }
   ],
   "presets": [
@@ -96,7 +166,62 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>953,570,872</td><td><code>0 1^2 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1</code></td></tr><tr><td>right</td><td>969,205,957</td><td><code>0 1^2 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1</code></td></tr><tr><td>right</td><td>984,847,247</td><td><code>0 1^2 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "structure",
+    "eyebrow": "What the machine does",
+    "heading": "A list of blocks",
+    "html": [
+     "<p>Stop the machine each time its head is at the right end of the tape in state B. The tape is then a row of blocks of 1s, each separated from the next by a single 0 (a block may be empty: two 0s in a row). Write down the block lengths, and the machine becomes a rule that turns one list of numbers into the next. Here are the first visits:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>visit</th><th>step</th><th>blocks</th></tr></thead><tbody><tr><td>1</td><td>1</td><td><code>1</code></td></tr><tr><td>5</td><td>36</td><td><code>5</code></td></tr><tr><td>10</td><td>126</td><td><code>2 3 2 3</code></td></tr><tr><td>20</td><td>391</td><td><code>2 2 16</code></td></tr><tr><td>40</td><td>1,394</td><td><code>2 3 3 3 0 14 15 0</code></td></tr><tr><td>80</td><td>5,472</td><td><code>2 3 3 3 3 11 15 15 14 11</code></td></tr><tr><td>160</td><td>18,471</td><td><code>2 3 3 3 1 10 47 47 44</code></td></tr></tbody></table></div>",
+     "<p>Lean proves this for <em>every</em> list, not just the ones the run produces: theorem <code>visit</code> says one sweep of the machine does exactly what the rule <code>sweep</code> says, and theorem <code>nonhalt_of_orbit</code> says that if the rule can be applied for ever starting from the list <code>[1]</code>, the machine never halts.</p>"
+    ]
+   },
+   {
+    "id": "rules",
+    "eyebrow": "One sweep",
+    "heading": "The rule",
+    "html": [
+     "<p>Call the last block z. The head walks left from the right end. It passes z if z is even, then passes every odd block, and stops at the first block that would leave it in the wrong state: z itself if z is odd, otherwise the last even block e before z. That block is the <em>target</em>. Then:</p><ul><li>the block x just left of the target loses one 1 and the target gains 4 (z gains 2 if it is the target);</li><li>if x is empty (or the target is the first block), x becomes a new block of two 1s instead and the target gains only 1;</li><li>on the way back z loses 2 (if z is not the target); if z is already empty it disappears and the block before it loses 2.</li></ul>",
+     "<svg viewBox=\"0 0 560 150\" role=\"img\" aria-label=\"one sweep: x loses one, the target gains four, z loses two\" style=\"width:100%;max-width:560px;height:auto;font:12px var(--mono);\"><defs><marker id=\"ar7\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto\"><path d=\"M0 0 L10 5 L0 10z\" fill=\"var(--head)\"/></marker></defs><rect x=\"20\" y=\"50\" width=\"70\" height=\"30\" rx=\"4\" fill=\"var(--sunk)\" stroke=\"var(--line)\"/><text x=\"55\" y=\"70\" text-anchor=\"middle\" fill=\"var(--fg)\">x = 15</text><rect x=\"100\" y=\"50\" width=\"90\" height=\"30\" rx=\"4\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"145\" y=\"70\" text-anchor=\"middle\" fill=\"var(--fg)\">e = 6</text><rect x=\"200\" y=\"50\" width=\"90\" height=\"30\" rx=\"4\" fill=\"var(--sunk)\" stroke=\"var(--line)\"/><text x=\"245\" y=\"70\" text-anchor=\"middle\" fill=\"var(--fg)\">47 (odd)</text><rect x=\"300\" y=\"50\" width=\"90\" height=\"30\" rx=\"4\" fill=\"var(--sunk)\" stroke=\"var(--line)\"/><text x=\"345\" y=\"70\" text-anchor=\"middle\" fill=\"var(--fg)\">47 (odd)</text><rect x=\"400\" y=\"50\" width=\"110\" height=\"30\" rx=\"4\" fill=\"var(--sunk)\" stroke=\"var(--head)\"/><text x=\"455\" y=\"70\" text-anchor=\"middle\" fill=\"var(--fg)\">z = 38</text><text x=\"520\" y=\"70\" fill=\"var(--head)\">B&gt;</text><path d=\"M500 42 C 420 10, 200 10, 110 44\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"1.5\" marker-end=\"url(#ar7)\"/><text x=\"300\" y=\"22\" text-anchor=\"middle\" fill=\"var(--fg2)\">left over odd blocks to the last even one</text><text x=\"280\" y=\"115\" text-anchor=\"middle\" fill=\"var(--fg2)\">next visit:  14   10   47   47   36</text><text x=\"280\" y=\"137\" text-anchor=\"middle\" fill=\"var(--muted)\">x − 1, e + 4, blocks passed unchanged, z − 2</text></svg>"
+    ]
+   },
+   {
+    "id": "carry",
+    "eyebrow": "Emergent behaviour",
+    "heading": "A carry that multiplies by four",
+    "html": [
+     "<p>Repeat the rule and a pattern appears. The target is a <em>carry</em> sitting just right of a block x. Each visit it takes one 1 from x and grows by 4, while z pays 2. When x is empty, x becomes a fresh carry of 2, and the old carry, now odd, has length 2 + 4x + 1 = <b>4x + 3</b>. The new carry then eats the next block to the left. So one pass of the carry moves every block one place to the right and replaces its length v by 4v + 3:</p>",
+     "<p style=\"text-align:center\"><code>3 → 15 → 63 → 255 → 1023 → 4095 → …</code></p>",
+     "<p>At the far left there is nothing to eat (the blank tape counts as empty blocks), and the carry instead creates a new block of length 3 at each visit. That is why the tape is made of long runs of blocks of lengths 3, 15, 63, …, each run one level up from where it was one pass before. Late in the run, at 10<sup>7</sup> visits:</p>",
+     "<p><code style=\"font-size:85%\">2 3×21508 11 15×828 7 34 63×2541 191 255×2097 127 703 1023×194 3071 4095×60 2047 8239 16383×42 …</code></p>",
+     "<p>The fuel for all this is the last block z. When it runs out, the last finished block is poured into a new z (z odd: the block before it loses 1 and z gains 2 at each visit) and a new carry of 2 starts next to it. The fuel grows with the blocks, so the passes go further and further.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "Only at a jump, and only on a block of one",
+    "html": [
+     "<p>The machine stops only when F reads a 0. In the rule that means one of three shapes: there is no even block for the head to stop at (it then runs into the left end), a block of exactly one 1 lies between the target and z (F meets the 0 after it on the way back), or an empty target follows an empty block.</p>",
+     "<p>In the carry's ordinary work none of these can happen: the blocks between the carry and z are all finished blocks 4v + 3, at least 3 long, and the carry itself is even. The only moment the target moves somewhere unexpected is a <em>jump</em>: the fuel runs out while the new carry is still right next to z, z becomes even, and the head now runs left past a stretch of odd blocks to the last even block before them. Up to 10<sup>1000</sup> steps there are 188 jumps; some pass more than 10<sup>19</sup> blocks, and the shortest block any jump passes has length 3.</p>",
+     "<p>Blocks of length 1 do exist: they are what is left of a block of 3 when the fuel ran out after the carry had taken two of its 1s, and they always have the (even) carry just to their right, which stops any later jump before it reaches them. A halt would need a jump at the exact moment such a carry is being drained and is odd. That is a coincidence of probability roughly one over the size of the blocks involved, and the blocks grow by a factor of four per pass; so the machine very likely never halts. Proving it needs an invariant of the list rule that captures this structure, which is the open step.</p>"
+    ]
+   },
+   {
+    "id": "coincidence",
+    "eyebrow": "Why it is hard",
+    "heading": "A halt is an equation between huge numbers",
+    "html": [
+     "<p>Zoom in on a jump. After a refuel the end of the list looks like <code>&hellip; u x 2 z0</code>: a new carry of 2 next to the fuel z0, about to eat the block x. Eating x takes x + 1 visits, and the fuel lasts z0/2 + 1 visits. If the fuel is enough, nothing special happens. If it is not, the carry is stuck next to z when the fuel runs out, it becomes the new fuel, and x is left with a remainder</p><p style=\"text-align:center\"><b>r = x &minus; z0/2 &minus; 1</b>.</p><p>The head then looks for the last even block. If r is odd it skips r, and if r is exactly 1 the machine stops. (Two similar coincidences, r = 0 next to an empty block, or a skipped block of length 1, also stop it.)</p>",
+     "<svg viewBox=\"0 0 560 120\" role=\"img\" aria-label=\"a jump: x is left with r = x minus z0/2 minus 1\" style=\"width:100%;max-width:560px;height:auto;font:12px var(--mono);\"><rect x=\"20\" y=\"20\" width=\"60\" height=\"30\" rx=\"4\" fill=\"var(--sunk)\" stroke=\"var(--line)\"/><text x=\"50\" y=\"40\" text-anchor=\"middle\" fill=\"var(--fg)\">u</text><rect x=\"90\" y=\"20\" width=\"170\" height=\"30\" rx=\"4\" fill=\"var(--sunk)\" stroke=\"var(--line)\"/><text x=\"175\" y=\"40\" text-anchor=\"middle\" fill=\"var(--fg)\">x</text><rect x=\"270\" y=\"20\" width=\"40\" height=\"30\" rx=\"4\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"290\" y=\"40\" text-anchor=\"middle\" fill=\"var(--fg)\">2</text><rect x=\"320\" y=\"20\" width=\"120\" height=\"30\" rx=\"4\" fill=\"var(--sunk)\" stroke=\"var(--line)\"/><text x=\"380\" y=\"40\" text-anchor=\"middle\" fill=\"var(--fg)\">fuel z0</text><rect x=\"20\" y=\"75\" width=\"60\" height=\"30\" rx=\"4\" fill=\"var(--sunk)\" stroke=\"var(--line)\"/><text x=\"50\" y=\"95\" text-anchor=\"middle\" fill=\"var(--fg)\">u</text><rect x=\"90\" y=\"75\" width=\"60\" height=\"30\" rx=\"4\" fill=\"var(--sunk)\" stroke=\"var(--head)\"/><text x=\"120\" y=\"95\" text-anchor=\"middle\" fill=\"var(--fg)\">r</text><rect x=\"160\" y=\"75\" width=\"280\" height=\"30\" rx=\"4\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"300\" y=\"95\" text-anchor=\"middle\" fill=\"var(--fg)\">new fuel 2&middot;z0 + 4</text><text x=\"450\" y=\"95\" fill=\"var(--muted)\">r = x &minus; z0/2 &minus; 1</text></svg>",
+     "<p>So whether the machine halts comes down to whether this equation between three block lengths ever holds exactly. Those lengths have hundreds or thousands of digits and are built from earlier ones by 4v + 3, sums and halvings. In the exact run to 10<sup>2000</sup> steps there are 358 jumps; the remainder is never smaller than 583 (the very first jump), never below 1/512 of the fuel, and its last binary digits look like those of a random odd number. If the numbers really behave randomly, the chance of ever hitting r = 1 is about the sum of 1/(fuel) over all future jumps: far below one in a googol.</p><p>That is why a proof is hard: it would have to show that an equation between huge, unrelated-looking numbers never holds, the same kind of difficulty as the Collatz problem. Lean already reduces the machine to the list rule; what is missing is a way to control those exact values.</p>"
+    ]
    }
-  ]
- }
+  ],
+  "title": "A carry that multiplies by four"
+ },
+ "family": "block list with a 4v+3 carry",
+ "decision": "open",
+ "summary": "Proved in Lean to be a block-list system: a carry walks left turning each block v into 4v + 3, paid for by the last block; a halt needs an exact coincidence of block lengths at a rare jump (remnant x - z0/2 - 1 = 1), which never comes close in 10^4000 steps."
 }

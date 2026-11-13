@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is a list of blocks <code>(10)^n</code> separated by single 1s. In the <b>right phase</b> each sweep (head at the right end in state B) takes one <code>10</code> off the first block and appends a block <code>(10)^3 1</code> at the right end; this rule is proved in Lean for every length. When the first block is used up, the <b>left phase</b> starts: the head bounces between the left end and a marker, the first block grows by 4 copies per two bounces while the block after the marker shrinks by 2, the marker moves through the list and rebuilds it (the left phase rules are also proved). Then a new right phase starts with a much longer first block (3,728 copies at 6.8&middot;10<sup>8</sup> steps, used up at 1.234&middot;10<sup>9</sup>). No closed map yet.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Right-phase sweep</h3>
+        <p>From the head at the right end in state B, one sweep turns <code>(10)^(a+2) 1 [(10)^(b+2) 1] ((10)^3 1)^(n+1)</code> into the same with one 10 less in the first block and one more block of three, in 4a+24n+53 steps (4a+4b+24n+73 with the middle block).</p>
+        <p class="where"><code>sweep_tail</code>, <code>sweep_mid</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Left-phase bounces</h3>
+        <p>From the head at the left end in state C: <code>(01)^(x+2) 0 (01)^(y+3) 00110</code> goes to the marker and back in 4x+22 steps, the first block three copies longer and the marker now a 1; the next bounce (4x+26 steps) adds one more copy and restores the marker 0.</p>
+        <p class="where"><code>left_a</code>, <code>left_b</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +129,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 62,666 cells have been visited and 29,712 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>A plain C simulator (<code>longrun.c</code>, on <code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps from blank tape without a halt; at the end the head has visited cells -586,772 to 108,199 and 329,462 cells hold a 1.</p>
+        <p class="where"><code>holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/c/longrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The phases in the run</h3>
+        <p>In the direct run the right phases end (first block 0) at 8.0&middot;10<sup>4</sup>, 1.96&middot;10<sup>7</sup> and 1.234&middot;10<sup>9</sup> steps; the left phases between them last until 8.3&middot;10<sup>6</sup> and 6.5&middot;10<sup>8</sup> steps, and the third lasts past 3&middot;10<sup>9</sup>. From 1.234&middot;10<sup>9</sup> to 2&middot;10<sup>9</sup> steps the head reaches only the left end (47,163 times in state A, 23,587 in C), and the tail of 4655 blocks of three is left as it is.</p>
+        <p class="where">README.md</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +147,18 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.553). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.04).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Growing phases, no sign of a halt</h3>
+        <p>Each right phase is longer than the last (its first block is built from the whole list in the left phase), and the list behind it is periodic in large stretches (<code>[19,35]&times;15</code>, <code>[541,917]&times;11</code>, <code>[5,13]&times;13</code>), the signature of a deterministic hierarchical counter rather than a random walk.</p>
+        <p class="where">README.md</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The two phases are understood one sweep at a time, but the rebuilding of the list in the left phase has not been reduced to a map.</p>
+        <p class="where">README.md, Further work</p>
       </div>
     </div>
   </section>
@@ -140,7 +166,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA--- 1000000000
+python3 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---/py/gen_rules.py      # rewrites lean/Rules.lean</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

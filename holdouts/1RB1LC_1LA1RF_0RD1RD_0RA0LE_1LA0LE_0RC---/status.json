@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G03",
+ "generated": false,
+ "group": "Collatz-like (travelling marks in runs of 110)",
  "title": "What is known about 1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---.",
  "machine": "1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Four shift rules of the crossings are proved in Lean for all sizes (<code>lean/Rules.lean</code>); the motion of the marks and the merges are only described from simulation."
  ],
  "claims": [
   {
@@ -46,34 +46,48 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Crossings of the runs",
+   "text": "D crosses <code>010</code> words to the right and restores them to <code>110</code>; E crosses <code>110</code> words to the left writing <code>010</code>, and <code>011</code> words writing <code>001</code>; C crosses <code>001</code> words to the right restoring <code>110</code>.",
+   "where": "<code>dR</code>, <code>eL</code>, <code>eL2</code>, <code>cR</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Marks move through the runs and merge",
+   "text": "At the moments the tape grows on the right it reads <code>d^x 0 0 1 1 d^y M d^z ...</code> (d = 110, M another mark). Between such moments the mark <code>0 0 1 1</code> moves right by a fixed number of words (8 per round around step 1.2&middot;10<sup>8</sup>, with z growing by 2), so x + y stays fixed within a phase; when y reaches 0 the marks merge and a new phase starts with x small. The sum x + y at the start of a phase went 25, 44, 64, 94, 147, 196, 204, 272, 325, 425, 459, 688, 785, 993, 1203, 1409, 1899, 2073, 2507 (step 1.5&middot;10<sup>8</sup>).",
+   "where": "<code>c/tok.c</code> (direct simulation, 2&middot;10<sup>8</sup> steps)"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The halting transition is F1, and F is entered only from B reading a 1 (<code>1RF</code>), so a halt needs <code>B&gt; 1 1</code>. A crossing never does that, so a halt could only come at a merge of two marks. The merges have not been worked out.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC--- 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC--- 1000000000",
+  "PYTHONPATH=tools/py python3 holdouts/1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---/py/gen_rules.py   # rewrites lean/Rules.lean",
+  "gcc -O2 -o tok holdouts/1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---/c/tok.c && ./tok 1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC--- 200000000 rec d=110,a=100 100000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The tape is long runs of the word 110 with a few marks in between. The head shuttles between the marks and the right end, and each shuttle carries a mark a little further right. When a mark reaches the next one, the two merge and a new, longer phase starts. The crossings are proved in Lean; the merges are not worked out.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 22,729 cells visited."
-   },
-   {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "4 crossings",
+    "text": "Shift rules over runs of 3-cell words, proved for all lengths."
    },
    {
     "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "2507",
+    "text": "Length of the main run, in words, at the phase start at step 1.5&middot;10<sup>8</sup>."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator."
    }
   ],
   "presets": [
@@ -85,6 +99,30 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "tape",
+    "eyebrow": "What the tape is made of",
+    "heading": "Runs of 110 and travelling marks",
+    "html": [
+     "<p>Write d for the word <code>110</code>. Each time the tape grows on the right it reads something like</p><pre>d^607 0 0 1 1 d^1899 1^6 d^149 1 1 d^2 1 1 d 1^4 d^2 1 0 [A&gt;]</pre><p>(step 117,127,344): long runs of d, a mark <code>0 0 1 1</code>, more marks, and the head at the right end. The head shuttles between the marks and the right end. On the way it re-encodes the runs it crosses, <code>110</code> into <code>010</code> or <code>011</code>/<code>001</code> and back, and these crossings are the four shift rules in <code>lean/Rules.lean</code>. In this example, after one round of about 2.2&middot;10<sup>5</sup> steps the tape reads <code>d^615 0 0 1 1 d^1891 1^6 d^151 ...</code>: the mark has moved 8 words to the right and the run after <code>1^6</code> has gained 2.</p>"
+    ]
+   },
+   {
+    "id": "phases",
+    "eyebrow": "The emergent behaviour",
+    "heading": "Phases",
+    "html": [
+     "<p>So within a phase x + y is fixed and the mark crosses the run at a steady rate, while the runs further right grow. When y reaches 0 the mark meets the next one, the marks merge, the runs are redistributed and a new phase starts with x small. The length x + y of the main run at the start of each phase went</p><p>25, 44, 64, 94, 147, 196, 204, 272, 325, 425, 459, 688, 785, 993, 1203, 1409, 1899, 2073, 2507 (step 1.5&middot;10<sup>8</sup>),</p><p>so the phases grow by irregular factors between about 1.04 and 1.8. The rate at which a mark moves (8 or 16 words per round in the phases looked at) and what a merge produces depend on the marks further right: a nested, Collatz-like counter.</p>"
+    ]
+   },
+   {
+    "id": "open",
+    "eyebrow": "Why it is open",
+    "heading": "Where a halt would have to come from",
+    "html": [
+     "<p>The only halting transition is F on a 1. F is entered only from B reading a 1, so a halt needs the head in state B on <code>1 1</code>. The crossings never do that; a halt could only come at a merge. The next step is to list the marks, prove one round and each merge with symtm, and turn them into a map on the run lengths (see the README).</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +136,6 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Long runs of the word d = 110 with a few marks between them (0 0 1 1, 1 0 1 1, 1^6, ...). The head shuttles between the marks and the right end, and each shuttle moves a mark a few words to the right; when a mark reaches the next one they merge and the runs are redistributed, a nested counter whose phases grow irregularly."
 }

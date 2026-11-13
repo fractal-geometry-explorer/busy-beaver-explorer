@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G01",
  "title": "What is known about 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA.",
@@ -10,9 +10,10 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 12 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>Open; the whole map is now known and no halt is in sight.</b> Sample the run when the head is in state E at the left end reading 1: the tape is EL(m, T) = <code>E&gt; 1 00 1^m T</code> where T is a short list of runs <code>0 1^a1 0 1^a2 &hellip;</code>. One round sends m to (4m + c)/3 and T to T&prime;, where c and T&prime; depend only on m mod 3 and T (once m is large compared with T). This exact round map matches every EL event of the direct run up to 5&middot;10<sup>9</sup> steps and was iterated 100,000 rounds (past 10<sup>24990</sup> steps) without a halt. The tail is mostly a single growing run that is absorbed into m whenever m &equiv; 1 (mod 3); none of the 4,545 rounds tried, including synthetic tails, halts.",
+  "<b>Third pass.</b> The halting condition is found: with the list T = [a, &hellip;], the first run a is swallowed when m = 1 mod 3 and otherwise grows by 4/3 while the main run pays, m&prime; = (4m &minus; a)/3; the machine halts when a reaches 4m (+14). That needs about 4m/a rounds in a row without m = 1 mod 3, so it is probviously non-halting; and because a regular language cannot compare a with m, no closed tape language can prove it (the pushdown reduction fails with every DFA tried). No halt in 10<sup>18</sup> steps by macro simulation."
  ],
  "claims": [
   {
@@ -46,34 +47,101 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "The round map matches the direct run",
+   "text": "EL(m, T) = <code>E&gt; 1 00 1^m T</code> (head at the left end, reading 1). From EL(11, <code>0 1^2</code>) at step 213, every one of the 30 EL events of the direct C run up to 5&middot;10<sup>9</sup> steps is the one the round map predicts, step count included.",
+   "where": "<code>py/roundmap.py check 5e9</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A round depends on m only mod 3",
+   "text": "For each (r, tail) pair used, five representatives m = 3j + r with m large compared with the tail (j from max(10, 4|T|/3+1)) give the same new tail, the same c = 3m&prime; &minus; 4m, and step counts on one quadratic polynomial in j.",
+   "where": "<code>py/roundmap.py</code>, engine <code>../1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/rounds.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "100,000 rounds without a halt",
+   "text": "From blank tape: 100,000 rounds, the last beyond 10<sup>24990</sup> steps with m &asymp; 10<sup>12495</sup>; the tail is back to <code>0 1^2</code> in 47,685 rounds, is never longer than 249 cells, and only 44 (residue, tail) pairs occur.",
+   "where": "<code>py/roundmap.py iterate 100000</code> (25 s)"
+  },
+  {
+   "level": "heuristic",
+   "title": "No halting round is known",
+   "text": "The tail is essentially one run of length a: while m &equiv; 0 or 2 (mod 3) it grows by about 4/3 (sometimes with a short run 2 or 7 behind it), and when m &equiv; 1 (mod 3) it is absorbed into m (m&prime; = (4m + 3a + 8)/3). Every round with tail [a] + suffix, a &lt; 300, suffix in {[], [2], [7,2], [17,2], [17,7,2]}, all residues (4,485 rounds), and every tail reachable within 400 cells, comes back to the EL form without halting.",
+   "where": "<code>py/roundmap.py bfs 3000 400</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The halting condition: the first run of the list reaches four times the main run",
+   "text": "EL(m, [a, &hellip;]) halts before the next event when m is not 1 mod 3 and a &ge; 4m + 14 (m = 0 mod 3) or a &ge; 4m (m = 2 mod 3), up to 12 less when more runs follow; for m = 1 mod 3 it never halts (a is swallowed). Every m &lt; 30, a &lt; 200, suffixes [], [2], [7, 2].",
+   "where": "<code>py/drain.py halt 30 200</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The drain law",
+   "text": "While the first run a survives a round (r = 0 or 2 and a outside three residues of twelve), a&prime; = 4a/3 + O(1) and m&prime; = (4m &minus; a)/3 + O(1), so 1/x&prime; = 1/x &minus; 1/4 for x = a/m; for r = 1, m&prime; = (4m + 3a + 8)/3 and the run is gone.",
+   "where": "<code>py/drain.py law 110</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>18</sup> steps",
+   "text": "A macro simulator (blocks of 6 cells, whole runs of equal blocks crossed at once, exact step counts) runs 10<sup>18</sup> steps from blank tape without a halt.",
+   "where": "<code>holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA 1e18</code> (macro simulator <code>c/msim.c</code> there, checked against the direct simulator at 10<sup>9</sup> steps by <code>check_msim.py check</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No pushdown certificate with a DFA of at most 6 states",
+   "text": "The pushdown reduction of <code>bb6-1RB0LF_1RC0LB/c/pds.c</code> (one side of the tape kept exactly, the other abstracted by a DFA, reachability by post* saturation) reaches a halt for every DFA with at most 6 states, on either side: <code>TM=1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA ./pds 6 L</code> and <code>R</code>.",
+   "where": "<code>bb6-1RB0LF_1RC0LB/c/pds.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No regular invariant can exclude the halt",
+   "text": "The first run of the list is unbounded along the run unless the residues m mod 3 conspire; a regular set that contains the run then contains, by pumping, configurations with a &ge; 4m + 14, which halt. The pushdown reduction also fails with windows of up to 4 cells with counters mod 3 and with DFAs learned from the run (up to 16,638 states).",
+   "where": "<code>py/pdsx.py</code>; README"
+  },
+  {
+   "level": "heuristic",
+   "title": "Probviously non-halting",
+   "text": "A halt needs a first run to survive about 4m/a rounds in a row, each with probability about 1/2; with m &gt; 2&middot;10<sup>6</sup> from round 40 on and growing by 4/3 per round, the total chance is below 2<sup>&minus;100,000</sup>.",
+   "where": "README"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not proved either way; a proof would describe the tail runs symbolically (a in residue classes) and show that no round halts.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA 1000000000"
+  "python3 holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/py/roundmap.py check 5e9",
+  "python3 holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/py/roundmap.py iterate 100000",
+  "python3 holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/py/drain.py halt 30 200 && python3 holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/py/drain.py law 110"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet, but its map is now fully known: a run of 1s grows by 4/3 every round while a short list after it is rewritten. In 100,000 rounds, far beyond any computer's reach of direct simulation, it never stops.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 44,865 cells visited."
-   },
-   {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "value": "a &ge; 4m",
+    "text": "The halting condition: the first run of the list reaches four times the main run."
    },
    {
     "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "&lt; 2<sup>&minus;100,000</sup>",
+    "text": "Chance of that from round 40 on: probviously non-halting."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>24990</sup> steps",
+    "text": "100,000 rounds of the exact round map without a halt."
+   },
+   {
+    "level": "trusted",
+    "value": "30 events",
+    "text": "The map agrees with the direct run up to 5&middot;10<sup>9</sup> steps."
    }
   ],
   "presets": [
@@ -85,6 +153,43 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "what",
+    "eyebrow": "What it does",
+    "heading": "A 4/3 counter and a short list",
+    "html": [
+     "<p>Look at the tape whenever the head is at its left end in state E reading a 1. It always reads <code>1 00 1^m T</code>: a run of m ones and then a short list of runs T = <code>0 1^a 0 1^b &hellip;</code>. Between two such moments (a round) the head sweeps the run, rewrites it as about 4m/3 ones, rewrites the list a little, and comes back. Like its cousin 1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---, the outcome depends only on the list and on m mod 3.</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>list T (run lengths)</th><th>m mod 3 = 0</th><th>= 1</th><th>= 2</th></tr></thead><tbody><tr><td>[ ]</td><td>[2]</td><td>[ ]</td><td>[2]</td></tr><tr><td>[2]</td><td>[7, 2]</td><td>[ ]</td><td>[2]</td></tr><tr><td>[7, 2]</td><td>[2]</td><td>[2]</td><td>[17, 2]</td></tr><tr><td>[17, 2]</td><td>[17, 7, 2]</td><td>[2]</td><td>[7, 2]</td></tr><tr><td>[39, 2]</td><td>[54]</td><td>[2]</td><td>[ ]</td></tr></tbody></table></div>",
+     "<p>So the first run of the list is a second counter: it grows by about 4/3 while m mod 3 avoids 1, and when m &equiv; 1 it is swallowed by m (m&prime; = (4m + 3a + 8)/3).</p>"
+    ]
+   },
+   {
+    "id": "run",
+    "eyebrow": "From blank tape",
+    "heading": "Exact far beyond simulation",
+    "html": [
+     "<p>From step 213 (m = 11) the round map reproduces every event of a direct simulation up to 5&middot;10<sup>9</sup> steps. Iterated with exact big integers, 100,000 rounds take it past 10<sup>24990</sup> steps; the list is back to <code>[2]</code> in about half of the rounds and only 44 different (remainder, list) cases ever occur.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Halting",
+    "heading": "No way to stop has been found",
+    "html": [
+     "<p>A halt would have to happen while a list is being rewritten (state F reading a 1). Every case met in the run, every list reachable within 400 cells, and 4,485 synthetic rounds with a first run up to 300 all come back without halting. With m growing by 4/3 per round and the list resetting every few rounds, the machine is <em>probviously</em> non-halting.</p>"
+    ]
+   },
+   {
+    "id": "drain",
+    "eyebrow": "Third pass",
+    "heading": "How it could halt: a second counter drains the first",
+    "html": [
+     "<p>The list behind the main run starts with a run of <i>a</i> ones. In a round where m leaves remainder 1 when divided by 3, that run is swallowed by the main run. In the other rounds it usually survives and grows to about 4a/3, and the main run pays: m becomes about (4m &minus; a)/3 instead of 4m/3.</p>",
+     "<p>If the run survived long enough to reach four times the main run, the main run would be used up and the machine would halt: for every m below 30 that is not 1 mod 3, every a from 4m + 14 on (4m for m = 2 mod 3) halts, apart from a few values.</p>",
+     "<table class=\"tbl\"><thead><tr><th>m mod 3</th><th>what happens to the first run a</th><th>halts when</th></tr></thead><tbody><tr><td>1</td><td>swallowed: m&prime; = (4m + 3a + 8)/3</td><td>never</td></tr><tr><td>0</td><td>grows to about 4a/3, m&prime; = (4m &minus; a)/3 (or swallowed)</td><td>a &ge; 4m + 14</td></tr><tr><td>2</td><td>the same</td><td>a &ge; 4m</td></tr></tbody></table>",
+     "<p>A new run starts with 2 to 17 ones, while m is in the millions after 40 rounds and keeps growing. It would have to survive hundreds of thousands of rounds in a row, each a coin flip. That is why the machine almost certainly never halts, and also why no simple pattern-based proof (a regular invariant) can exist: such a proof cannot compare the sizes of two counters, and it would have to show that the second counter stays small.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +203,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "4/3 Bell with a draining second counter (lottery)",
+ "summary": "A 4/3 map on a run of 1s whose tail list holds a second counter that drains the main one: it halts exactly if that counter reaches four times the main run, which needs an astronomically long streak of m mod 3 ≠ 1; probviously non-halting, and no regular invariant can prove it."
 }

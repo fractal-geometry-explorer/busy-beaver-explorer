@@ -131,7 +131,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 32,052 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>length &times;2 per phase</b><span class="small">Phases last about 4 times longer each.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#sweep">Rewriting the right part, back and forth</a><a href="#phases">A tape that doubles</a><a href="#halt">Never a 1 behind D</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="sweep">
+  <span class="eyebrow">One sweep</span>
+  <h2>Rewriting the right part, back and forth</h2>
+<p>At step 16,085,367 the tape (as runs) is <code>11 0^6 111 0^8 1^21 0^7 1^2670 0^1377</code> with C on a 0 at the right end. Going left, D and E fill the zeros with ones, then A and F turn the big block of ones into <code>(10)^1334</code>. Near the left the head turns, and a slow zigzag (10 steps a pair) turns the <code>(10)</code> back into ones; then C, crossing the ones that were zeros, turns them back into zeros. After 18,762 steps the tape is <code>... 1^21 0^6 1^2669 0^1381</code>: the block of ones lost one cell, the zeros gained four. All these passes are shift rules proved in Lean.</p>
+</section>
+<section id="phases">
+  <span class="eyebrow">Many sweeps</span>
+  <h2>A tape that doubles</h2>
+<p>The short counter on the left (<code>21/7</code>, <code>21/6</code>, <code>21/2 2/3</code>, <code>21/2 2/2</code>, <code>22/7</code>, ...) ticks once a sweep and decides whether the block of ones loses 1 or 3 cells. When the block is gone, the zeros become the new block and a new phase starts. The tape length at the starts of the phases is</p>
+<pre class="config">838  1678  3358  6718  13446  26894</pre>
+<p>about doubling, at steps about four times apart (5.8&middot;10<sup>5</sup> to 6.0&middot;10<sup>8</sup>).</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Could it stop?</span>
+  <h2>Never a 1 behind D</h2>
+<p>E reading a 1 halts. Working backwards through the table, the only way there is D reading a 0 with a 1 just to its left (Lean: <code>halt_shape</code>). D reads a 0 in every leftward pass over the zeros, but the cell to its left is then still a 0: in 10<sup>9</sup> steps it read a 0 66.7 million times, always with a 0 on its left.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +252,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 32,052 cells have been visited and 22,709 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.111). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.508).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>d_run</code>, <code>a_run</code>, <code>d_zigzag</code>, <code>b_run</code>, <code>c_run</code>, <code>lean/Rules.lean</code></div></div><div><b>The sweeps' shift rules</b><p>Leftward, D and E turn <code>(00)^n</code> into <code>(11)^n</code>, then A and F turn <code>(11)^n</code> into <code>(10)^n</code>, 2 steps a pair; rightward, a zigzag from <code>0 0 D&gt;</code> turns <code>(10)^n</code> back into <code>(11)^n</code>, 10 steps a pair; B crosses ones unchanged and C turns them into zeros.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code></div></div><div><b>The shape of a halt</b><p>E on a 1 halts; E is entered only from D on a 0 (1LE). D comes from C on a 0 moving right (C wrote a 0 where E would land) or from E on a 0 moving left. So it halts iff D reads a 0 with a 1 to its left: <code>1 D&gt; 0</code> puts E on that 1 (the converse by reading the table, not formalized).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/nbhd.c</code> (<code>./nbhd M 1000000000 D 0</code>)</div></div><div><b>Near misses</b><p>In 10<sup>9</sup> steps D reads a 0 66,714,267 times; the cell to its left is always 0. E reads a 0 about 6.67&middot;10<sup>7</sup> times, never with <code>1 0</code> (nearest first <code>0 1</code>) to its left.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/tok.c</code></div></div><div><b>Sweeps and phases</b><p>Sampled with C on a 0 at the right end (once a sweep), the tape is a short counter followed by <code>1^K 0^Z</code>. One sweep (about 4.6 times the tape length in steps) takes K down by 1 or 3 and Z up by 4 while the counter on the left ticks. When K is used up a new phase starts with K about the whole tape: phases began near steps 5.8&middot;10<sup>5</sup>, 2.3&middot;10<sup>6</sup>, 9.4&middot;10<sup>6</sup>, 3.8&middot;10<sup>7</sup>, 1.5&middot;10<sup>8</sup>, 6.0&middot;10<sup>8</sup> with tape lengths 838, 1678, 3358, 6718, 13446, 26894.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Halting needs <code>1 D&gt; 0</code>, which the sweeps never produce; it would have to come from the counter on the left or from the change of phase, whose rules have not been worked out.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA 1000000000
+gcc -O2 -o nbhd holdouts/1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA/c/nbhd.c &amp;&amp; ./nbhd 1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA 1000000000 D 0</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

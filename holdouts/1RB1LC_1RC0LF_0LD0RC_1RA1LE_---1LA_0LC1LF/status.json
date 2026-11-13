@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G12",
  "title": "What is known about 1RB1LC_1RC0LF_0LD0RC_1RA1LE_---1LA_0LC1LF",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LC_1RC0LF_0LD0RC_1RA1LE_---1LA_0LC1LF.",
@@ -12,7 +12,8 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps; the C simulator finds none in 10<sup>11</sup>.",
+  "<b>Reduced to one machine.</b> Lean proves this is <code>1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF</code> with renamed states, started in state B. See that machine for the mechanism."
  ],
  "claims": [
   {
@@ -40,22 +41,46 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
-   "level": "heuristic",
-   "title": "Growth shape: exp/fixed",
-   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.078). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "<code>tools/c/tmrun.c</code> runs 100,000,000,000 steps without a halt; the head reached 189 cells on the left side and 174 on the right (record positions).",
+   "where": "<code>tools/c/tmrun.c MACHINE 100000000000 records 1000000</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "M3 is T with its states renamed",
+   "text": "<code>1RB1LC_1RC0LF_0LD0RC_1RA1LE_---1LA_0LC1LF</code> is <code>1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF</code> with the states renamed A→D, B→A, C→B, D→C (every transition, halts included), so its run from blank tape is the run of <code>1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF</code> started in state B on blank tape: one 1 fewer at the left than T's own run after its first step. <code>m3_iff</code>.",
+   "where": "<code>lean/Family.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "T and M1 make the same run until a 0 sits within two cells left of A reading a 1",
+   "text": "The two machines differ only in the 1-transitions of A, B and E, which all write 1 and move left. The seven-state machine S = <code>1RB1LE_1RC---_1RD0LF_0LA0RD_---1LG_0LD1LF_---1LD</code> is the part they share (B split into B entered from A0 and E entered from A1). Every step S makes, both make on the same tape (<code>shadow</code>); in S, B entered from A0 always reads a 0, because A is entered only by D0 = 0LA (<code>star_good</code>); so S stops only where A has read a 1 and then meets a 0 one cell (S's E0) or two cells (S's G0) further left, and there exactly one of T and M1 halts and the other goes on with B0 = 1RC (<code>deviation</code>). Hence S halts iff T or M1 halts (<code>star_halts_iff</code>), and if neither halts they make the same run step for step (<code>same_run</code>).",
+   "where": "<code>lean/Family.lean</code>, <code>lean/Link.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "T and M1 agree for the first 10<sup>7</sup> steps",
+   "text": "S runs 10<sup>7</sup> steps from blank tape without stopping (and 10,000 checked by the kernel), so by <code>shadow</code> the two machines have the same tape and head at each of those steps.",
+   "where": "<code>star_runs_native</code>, <code>same_first_steps</code>, <code>1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF</code>/<code>lean/Link.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "T and M1 agree for the first 10<sup>11</sup> steps",
+   "text": "The C simulator runs S for 10<sup>11</sup> steps without a stop; with the Lean simulation theorem this means the two machines make the same run through 10<sup>11</sup> steps (which is why their record outputs were identical).",
+   "where": "<code>tmrun 1RB1LE_1RC---_1RD0LF_0LA0RD_---1LG_0LD1LF_---1LD 100000000000</code> (7.5 minutes)"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. It halts iff T started in state B halts (proved); the rules of T's higher counter levels are not known, so there is no argument either way.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LC_1RC0LF_0LD0RC_1RA1LE_---1LA_0LC1LF/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LC_1RC0LF_0LD0RC_1RA1LE_---1LA_0LC1LF 1000000000"
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LC_1RC0LF_0LD0RC_1RA1LE_---1LA_0LC1LF 100000000000 records 1000000"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
@@ -86,17 +111,62 @@
   },
   "sections": [
    {
-    "id": "shape",
-    "eyebrow": "First look",
-    "heading": "The shape of the run",
+    "id": "family",
+    "eyebrow": "One machine",
+    "heading": "Three holdouts, one machine",
     "html": [
-     "<p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.078). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>",
-     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"120.2\" y2=\"120.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"124.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"40.4\" y2=\"40.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"44.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><path d=\"M40.0,153.7 L59.2,140.2 L78.4,126.2 L97.6,120.2 L116.8,115.3 L136.0,111.1 L155.2,98.5 L174.4,93.9 L193.6,86.3 L212.8,81.7 L232.0,80.3 L251.2,79.0 L270.4,77.8 L289.6,76.5 L308.8,74.3 L328.0,73.2 L347.2,72.2 L366.4,71.2 L385.6,70.2 L404.8,69.3 L424.0,68.4 L443.2,64.2 L462.4,62.7 L481.6,61.3 L500.8,60.6 L520.0,59.9\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,168.4 L59.2,168.4 L78.4,160.1 L97.6,160.1 L116.8,140.2 L136.0,140.2 L155.2,140.2 L174.4,140.2 L193.6,133.7 L212.8,133.7 L232.0,133.7 L251.2,133.7 L270.4,133.7 L289.6,124.1 L308.8,124.1 L328.0,124.1 L347.2,124.1 L366.4,124.1 L385.6,124.1 L404.8,124.1 L424.0,124.1 L443.2,120.2 L462.4,120.2 L481.6,120.2 L500.8,120.2 L520.0,113.8\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
-     "<p>After 10<sup>9</sup> steps the tape spans 152 cells (129 left of the start, 19 right), with a density of 1s of 0.651.</p>",
-     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>871,887,282</td><td><code>F&gt;0 1^73 0 1^3 0 1 0 1^13 0 1 0 1 0 1 0 1^2 0 1^3 0 1^2 0 1^3 0 1^3 0 1 0 1^3 0 1 0 1 0 1^3 0 1^3 0 1^3 0 1^3 0 1 0 1^2 0</code></td></tr></tbody></table></div>",
-     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+     "<p>Three holdouts of this group have the same tape shape, and Lean proves why. Call T = <code>1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF</code>. The holdout <code>1RB1LC_1RC0LF_0LD0RC_1RA1LE_---1LA_0LC1LF</code> is T with its states renamed; started on blank tape it is T started in state B instead of A, which only removes one 1 at the left edge. The holdout M1 = <code>1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF</code> differs from T in what A, B and E do on a 1; all of these write a 1 and move left, so the two can only part when A has read a 1 and then meets a 0 one or two cells further left. At that moment one of them halts and the other goes on. Until then (and the C simulator shows this does not happen in 10<sup>11</sup> steps) they make exactly the same run.</p>",
+     "<table><tr><th>state</th><th>T</th><th>M1</th><th>shared part S</th></tr><tr><td>A</td><td>1RB 1LE</td><td>1RB 1LB</td><td>1RB 1LE</td></tr><tr><td>B</td><td>1RC 1LD</td><td>1RC 1LE</td><td>1RC (B1 never happens)</td></tr><tr><td>E</td><td>--- 1LB</td><td>--- 1LD</td><td>E: --- 1LG, G: --- 1LD</td></tr><tr><td>C, D, F</td><td colspan=3>1RD 0LF, 0LA 0RD, 0LD 1LF in all three</td></tr></table>",
+     "<p>In S, E is \"B entered from A1\" and G is \"what comes after\". M1 is S with E read as B and G as E; T is S with G read as B. S halts on E0 exactly where T halts and on G0 exactly where M1 halts.</p>"
+    ]
+   },
+   {
+    "id": "m3",
+    "eyebrow": "This machine",
+    "heading": "This page's machine is T started in B",
+    "html": [
+     "<p>This machine is T with renamed states, started in T's state B. Its run is T's run from a slightly different start, so it has the same counters with different contents; everything said here about T's mechanism applies, but the epoch numbers above are for T's own run.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it can stop",
+    "heading": "The only way to halt: 0, 1, 0",
+    "html": [
+     "<p>T halts only when E reads a 0. E comes only from A reading a 1, A only from D reading a 0, and D reading a 0 can only lead there if D moved <i>left</i> onto that 0 (from F reading 0 or B reading 1) with a 1 and then a 0 further left. Lean proves the exact statement: the run halts iff it ever has F reading 0, or B reading 1, with <code>0 1 0</code> just to the left of the head. In 2·10<sup>9</sup> steps this never happens; F stops at a 0 next to <code>1 1 0</code> or <code>0 1 1</code> only 15 times, all early.</p>"
+    ]
+   },
+   {
+    "id": "counters",
+    "eyebrow": "What it does",
+    "heading": "Counters inside counters",
+    "html": [
+     "<p>The digits are 3-cell blocks: <code>000</code> is a 0 and <code>111</code> a 1. The left part of the tape is a binary counter written this way, split into sections that each begin with a <code>111</code> and are separated by a single blank cell. A small region in the middle, where the head spends nearly all its time, adds 1 to the counter at a perfectly regular rate. A snapshot at step 10,000,794 (dots are 0s, F is the head):</p>",
+     "<p><code>111111111......111...111.111......111111.111111...111...111.111111..F1111111111111111.1.1.1111..11.11.1111.11.1.1.1.11..1.111.</code></p>",
+     "<p>When the whole counter is at all ones it is a single run of 1s reaching the left edge. The head then runs over it to the left end, wipes it, and the counter starts again from zero with one more digit. So the time between these visits doubles: each <i>epoch</i> has 2<sup>k</sup> counts. Each epoch also changes a short tail at the right end once, and every few epochs the long runs of 1s in the middle (unary numbers such as 1<sup>22</sup>, then 1<sup>16</sup>, then 1<sup>10</sup>) are rewritten: a third level of counting.</p>"
+    ]
+   },
+   {
+    "id": "epochs",
+    "eyebrow": "Measured",
+    "heading": "The clock is exact",
+    "html": [
+     "<p>Within each stretch of the run, every count costs exactly the same number of steps on average, so the epoch lengths double exactly:</p>",
+     "<table><tr><th>stretch (steps)</th><th>steps per count</th></tr><tr><td>1.7·10<sup>5</sup> – 3.6·10<sup>6</sup></td><td>851.5</td></tr><tr><td>3.9·10<sup>6</sup> – 3.2·10<sup>7</sup></td><td>27,345.5</td></tr><tr><td>6.0·10<sup>7</sup> – 2.9·10<sup>8</sup></td><td>7,377.5</td></tr><tr><td>5.9·10<sup>8</sup> – 1.0·10<sup>10</sup></td><td>2,385.5</td></tr><tr><td>1.86·10<sup>10</sup> – 9.9·10<sup>10</sup></td><td>154.375</td></tr></table>",
+     "<p>At step 98,851,039,064 the counter has 29 digits. The changes between stretches come from the higher levels, whose rules are not known.</p>"
+    ]
+   },
+   {
+    "id": "open",
+    "eyebrow": "Why it is open",
+    "heading": "What would settle it",
+    "html": [
+     "<p>A halt needs the pattern <code>0 1 0</code> where the head turns, which the low-level counter never produces. Whether a higher level ever produces it depends on rules that have not been decoded: how the middle unary numbers and the tail change at each stretch boundary. With those rules one could write the run as a map on a few numbers and either prove it never makes the pattern or find when it does. Until then there is no heuristic either way.</p>"
     ]
    }
   ]
- }
+ },
+ "family": "One machine and its shadow, 3-cell binary counters (G12 family 3a)",
+ "summary": "Family 3a: T = 1RB1LE_1RC1LD_... with states renamed, started in state B (Lean); same counter hierarchy; open.",
+ "decision": "open"
 }

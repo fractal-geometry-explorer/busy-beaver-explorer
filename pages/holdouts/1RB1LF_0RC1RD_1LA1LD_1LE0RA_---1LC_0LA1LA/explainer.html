@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows, but the question is now a question about a simple map. Started on a blank tape, this machine keeps two blocks of ones on its tape, of lengths a and c; each round replaces (a, c) by a difference and a triple of them. Lean proves it halts exactly when that map hits one of four exact differences. This page runs the real machine and explains the map.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 32,377 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>halts ⇔ orbit hits</b><span class="small">The reduction to the map, proved in Lean for all block lengths.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>6</sup> rounds</b><span class="small">Of the map, with exact integers: no halt; c has 306,184 bits.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">Blocks of ones, two or three at a time</a><a href="#map">A map on two numbers</a><a href="#halting">Four exact differences</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +218,28 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>954,802,464</td><td><code>A&gt;0 1^5740 0 1^20417 0 1^5628</code></td></tr><tr><td>left</td><td>970,532,002</td><td><code>A&gt;0 1^5538 0 1^20215 0 1^6234</code></td></tr><tr><td>left</td><td>986,168,806</td><td><code>A&gt;0 1^5334 0 1^20011 0 1^6846</code></td></tr><tr><td>right</td><td>797,174,771</td><td><code>1^7614 0 1^22294 0 1^2 D&gt;0</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="tape">
+  <span class="eyebrow">What it does</span>
+  <h2>Blocks of ones, two or three at a time</h2>
+<p>Between rounds the tape is a few blocks of ones separated by single 0s, with the head in state A on the blank cell just left of them. Write <code>K[x1, x2, ..., xk]</code> for <code>A&gt;0 1^x1 0 1^x2 0 ... 0 1^xk</code>. The head sweeps right across all the blocks and back; each round changes only two or three blocks by a few ones, depending on parities:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>round start</th><th>next round start</th></tr></thead><tbody><tr><td><code>K[f, m, z]</code>, f even ≥ 4, m odd ≥ 3</td><td><code>K[f−2, m−2, z+6]</code> (the main loop)</td></tr><tr><td><code>K[f, 1, z]</code>, f ≥ 6</td><td><code>K[f−2, z+9]</code></td></tr><tr><td><code>K[2, m, z]</code>, m ≥ 3</td><td><code>K[m+1, z+6]</code></td></tr><tr><td><code>K[4, 1, z]</code> or <code>K[2, 1, z]</code></td><td><b>halts</b></td></tr><tr><td><code>K[a, c]</code>, both even</td><td><code>K[a, c−4, 9]</code>, then the 9 shrinks to 1 in four rounds while the last block gains 6 per round, then merges</td></tr><tr><td><code>K[a, c]</code>, c odd</td><td><code>K[a−2, c−2, 6]</code></td></tr></tbody></table></div>
+<p>So with three blocks the first two each lose two ones per round and the last gains six, until the first block is down to 2 or the middle one to 1; then the three blocks become two again. That whole <em>phase</em> is one step of a map on the pair of blocks.</p>
+</section>
+<section id="map">
+  <span class="eyebrow">The rule</span>
+  <h2>A map on two numbers</h2>
+<p>With two blocks <code>(a, c)</code> (a is always even), one phase gives:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>c</th><th>condition</th><th>next (a, c)</th></tr></thead><tbody><tr><td>even</td><td>c ≤ a + 8</td><td>(a − c + 12, 3c − 6)</td></tr><tr><td>even</td><td>c = a + 10 or a + 12</td><td><b>halt</b></td></tr><tr><td>even</td><td>c ≥ a + 14</td><td>(c − a − 10, 3a + 27)</td></tr><tr><td>odd</td><td>c ≤ a − 5</td><td>(a − c − 1, 3c + 6)</td></tr><tr><td>odd</td><td>c = a − 1 or a − 3</td><td><b>halt</b></td></tr><tr><td>odd</td><td>c &gt; a</td><td>(c − a + 3, 3a)</td></tr></tbody></table></div>
+<p>The new first block is a difference of the old ones and the new second block is three times one of them: a subtractive Euclid algorithm with a factor 3, so c grows by about 1.236 per phase. From blank tape the machine reaches <code>K[74, 30]</code> at step 6,998 and then follows the map:</p>
+<p><code>(74, 30) → (56, 84) → (18, 195) → (180, 54) → (138, 156) → (8, 441) → (436, 24) → (424, 66) → (370, 192) → (190, 570) → (370, 597) → (230, 1110) → (870, 717) → (152, 2157) → …</code></p>
+<p>For example (74, 30): c is even and 30 ≤ 82, so a' = 74 − 30 + 12 = 56 and c' = 3·30 − 6 = 84. On the tape this is the block 9 split off 30, shrunk to 1 and merged (five rounds), then 15 rounds of the main loop (the middle block 15 down to 1, the first block 72 down to 58), then the merge.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>Four exact differences</h2>
+<p>Lean proves (all by the kernel) that the machine halts from blank tape <b>if and only if</b> the orbit from (74, 30) reaches a halting case, that is c − a = 10 or 12 with c even, or a − c = 1 or 3 with c odd (the first block runs out while the middle one is still there, and the head walks off the left end in state E). The statement assumes the orbit never meets one of a few cases with very short blocks, which it does not in the 10<sup>6</sup> phases computed.</p>
+<p>Along the orbit |c − a| is always about as large as c itself, and c has 306,184 bits after 10<sup>6</sup> phases. If |c − a| behaved like a random number of that size, the chance of ever hitting one of the four values would be astronomically small. So the machine is very probably a non-halter; a proof would need to control an exact difference along the orbit of a Collatz-like map, and none is known.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -235,13 +257,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 32,377 cells have been visited and 32,373 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.056).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code>, <code>lean/Rounds.lean</code> (<code>loopN</code>, <code>phase_lt</code>, <code>phase_ge</code>, <code>phase_halt</code>)</div></div><div><b>The rounds, for all block lengths</b><p>28 rules taking one round start <code>A&gt;0 1^x1 0 1^x2 0 ...</code> to the next, each for every value of its counts, generated by <code>py/rules.py</code> with the shared symbolic simulator and checked by Lean; restated on blocks, the main loop <code>(f, m, z) → (f-2, m-2, z+6)</code> iterated by induction, and whole phases.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>round_ok</code>, <code>round_halt</code>, <code>lean/Map.lean</code></div></div><div><b>The map</b><p>From the round start <code>A&gt;0 1^a 0 1^c</code> the machine reaches the round start of <code>mapc a c</code>, or halts when <code>mapc</code> says so: c even: (a-c+12, 3c-6) if c ≤ a+8, halt if c = a+10, a+12, (c-a-10, 3a+27) if c ≥ a+14; c odd: (a-c-1, 3c+6) if c ≤ a-5, halt if c = a-1, a-3, (c-a+3, 3a) if c &gt; a.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>lean/Map.lean</code></div></div><div><b>Halts iff the orbit reaches the halting set</b><p>Step 6,998 from blank tape is the round start (74, 30) (<code>init_reach</code>). If the orbit of <code>mapc</code> from (74, 30) never meets a case with blocks too short for the rules (<code>.small</code>), the machine halts from blank tape if and only if the orbit reaches <code>.halt</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/orbit.py</code></div></div><div><b>10<sup>6</sup> rounds of the map: no halt, no small case</b><p>The orbit from (74, 30), iterated with exact integers for 10<sup>6</sup> rounds, never reaches <code>.halt</code> or <code>.small</code>; c then has 306,184 bits (growth about ×1.236 a round). The first rounds agree with the machine's own round starts.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>Probably never halts</b><p>Halting needs |c − a| to equal one of four small values, while along the orbit |c − a| has about as many bits as c (never more than 26 fewer after round 40). If it behaved like a random number of that size, the chance of a hit after round n would be about Σ 4/c<sub>k</sub>, astronomically small.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known: it would take a proof that the orbit of the map never hits the four exact differences, a Collatz-like question.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA/lean/check.sh
+python3 holdouts/1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA/py/orbit.py 1000000 --check
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA 1000000000</code></pre>
 </section>
 <footer class="foot">

@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G13",
  "title": "What is known about 1RB0LD_0RC0LE_1RD1RA_0RE1RF_1LF0RC_0LA---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LD_0RC0LE_1RD1RA_0RE1RF_1LF0RC_0LA---.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0LD_0RC0LE_1RD1RA_0RE1RF_1LF0RC_0LA---/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state machine halts from blank tape. This page describes what its run looks like at the level of words and counters, what a halt would need, and what is still missing. The description comes from simulation (first look, about an hour of study); nothing beyond the bounded runs is proved."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps, the C simulator none in 10<sup>9</sup>. The macro structure described below is observed in the simulation, not proved."
  ],
  "claims": [
   {
@@ -46,10 +46,33 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "Nested counters",
+   "text": "Runs of 1 0^2 and of 1 0 1^2 0 grouped by markers 1 0 1^2 0^2; the first a-run grows by 6 while the first c-run shrinks by 2 between consecutive samples shown in the README (observed up to 10<sup>9</sup> steps).",
+   "where": "",
+   "hand": true
+  },
+  {
+   "level": "heuristic",
+   "title": "Slow growth",
+   "text": "Only the left side grows, 27,455 cells at 1.86&middot;10<sup>9</sup> steps.",
+   "where": "",
+   "hand": true
+  },
+  {
+   "level": "kernel",
+   "title": "Shift rules, for every n",
+   "text": "C crosses <code>(100)^n</code> to the right and leaves <code>(110)^n</code>; A crosses <code>(001)^n</code> and leaves <code>(101)^n</code>; E crosses <code>(11010)^n</code> and leaves <code>(01010)^n</code>.",
+   "where": "<code>shiftC</code>, <code>shiftA</code>, <code>shiftE</code>, <code>lean/Rules.lean</code>",
+   "hand": true,
+   "addon": true
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "text": "Not known. No macro rule has been proved for this machine yet; see the README's Later section for the next steps.",
+   "where": "",
+   "hand": true
   }
  ],
  "check": [
@@ -58,8 +81,13 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LD_0RC0LE_1RD1RA_0RE1RF_1LF0RC_0LA--- 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet. The tape is made of two words in runs that behave like nested counters; the outermost counter grows to the left, slowly.",
   "facts": [
+   {
+    "level": "heuristic",
+    "value": "nested",
+    "text": "runs of two words behave like the levels of a counter"
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -69,11 +97,6 @@
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/power",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +108,32 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "what",
+    "eyebrow": "What it does",
+    "heading": "Nested counters",
+    "html": [
+     "<p>Write <code>a</code> for <code>1 0^2</code> and <code>c</code> for <code>1 0 1^2 0</code>. When the head is at the left end in state A, the tape reads, for example at step 513,296,770, <code>A&gt;0 0 1 0 1 0 a^465 1 0 c^86 1 0 1^2 0^2 a^21 1 0 a 1 0 c^8 1 0 1^2 0^2 a^7 1 0 a 1 0 c^63 1 0 1^2 0^2 a 1 0 a 1 0 c^1454 1^2 0 c^3018 1 0 1</code>: runs of a and runs of c, grouped by the marker <code>1 0 1^2 0^2</code>.</p>",
+     "<p>From one such sample to the next shown here (a few samples apart) the first run of a grows by 6 while the first run of c shrinks by 2, and the runs further right change more rarely, like the digits of a counter with several levels. The tape grows only to the left, and slowly (triage exponent 0.19): 27,455 cells at 1.86&middot;10<sup>9</sup> steps.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The halting question",
+    "heading": "What a halt would need",
+    "html": [
+     "<p>The machine halts when it reads a 1 in state F (F1 is the halting transition). F is entered from D on a 1 (D1 = 1RF) and from E on a 0 (E0 = 1LF).</p>"
+    ]
+   },
+   {
+    "id": "phase2",
+    "eyebrow": "Phase 2",
+    "heading": "Shift rules over the runs",
+    "html": [
+     "<p>Runs of a and of c are crossed by shift rules proved for every length: C over <code>(100)^n</code> leaves <code>(110)^n</code>, A over <code>(001)^n</code> leaves <code>(101)^n</code>, and E over <code>(11010)^n</code> leaves <code>(01010)^n</code>. The counter map between left-end samples was not found.</p>"
+    ],
+    "addon": true
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +147,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "nested counters built from two words, growing left",
+ "summary": "The tape is made of two words, 1 0^2 and 1 0 1^2 0, in runs separated by markers 1 0 1^2 0^2; the runs behave like nested counters, the outermost run on the left growing while inner ones are used up."
 }

@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Read in blocks of six cells, this machine's tape is one repeating word with a few places where the pattern slips; the head moves those slips around, and the longest block grows by about a third each time. That is the signature of a Collatz-like map, which has not been pinned down.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 50,991 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>50 rules</b><span class="small">The sweep rules of the first 10<sup>9</sup> steps, proved in Lean.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>9&middot;10<sup>11</sup> steps</b><span class="small">No halt, with every jump a proved rule.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>&times;4/3</b><span class="small">Growth of the largest block per phase.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#blocks">A periodic word with defects</a><a href="#halting">Open</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +218,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>554,843,952</td><td><code>D&gt;0 0 1 0 1 0 1^2 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0^2 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0</code></td></tr><tr><td>left</td><td>868,338,696</td><td><code>D&gt;0 0 1 0 1 0 1^2 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0^2 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0</code></td></tr><tr><td>right</td><td>962,398,202</td><td><code>0 1^2 0 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0</code></td></tr><tr><td>right</td><td>978,085,163</td><td><code>0 1^2 0 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0</code></td></tr><tr><td>right</td><td>993,794,402</td><td><code>0 1^2 0 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0^2 1^2 0 1 0</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="blocks">
+  <span class="eyebrow">The structure</span>
+  <h2>A periodic word with defects</h2>
+<p>Cut the tape into blocks of 6 cells and almost every block is <code>110100</code> or one of its rotations (<code>101001</code>, <code>010011</code>, &hellip;), with some stretches of <code>110110</code>. Between them sit a few <em>defects</em> where the period slips. At step 906,804,978,838 the tape is</p>
+<pre>000000 110110^2 110101 101001^3 101011 011011^2 010011^238 010110 110110^2 100110^9523 101101^3 001101^230878 B&gt;</pre>
+<p>The head sweeps over these blocks; every sweep is a linear cycle, and the 50 cycles used in the first 10<sup>9</sup> steps are proved in Lean. Over a phase of many sweeps the longest block grows by a factor near 4/3 and the step count by about its square.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>Open</h2>
+<p>The machine stops only if the head, in state B and moving left, meets two blank cells in a row. The accelerated run, every jump of which is a proved rule, reaches 9&middot;10<sup>11</sup> steps without that happening. Deciding the question would need the map from one phase to the next, which is probably Collatz-like and has not been found.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -235,13 +247,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 50,991 cells have been visited and 29,836 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.024). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.455).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Cycles.lean</code></div></div><div><b>50 cycle rules</b><p>The linear cycles (sweeps over blocks of 6-cell words) that <code>bbtools.cycles</code> uses in the first 10<sup>9</sup> steps, each proved for all values of its counts with an exact step count.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/cycles_run.py</code></div></div><div><b>No halt in 9&middot;10<sup>11</sup> steps</b><p><code>bbtools.cycles</code> on 6-cell blocks, every jump k applications of a proved cycle rule, reaches 906,804,978,838 steps from blank tape without a halt.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/cycles_run.py</code> output</div></div><div><b>Growth by about 4/3 per phase</b><p>The largest block runs 13491, 18582, 24715, 32860, 43683, 58247, 77410, 101379, 134093, 175559, 230878 at the ends of successive phases: a factor between 1.31 and 1.38, with the step count growing by about its square.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The map from one phase to the next (the block lengths between the defects) has not been written down; if it is Collatz-like, as the growth factor near 4/3 suggests, halting would depend on residues of an exponentially growing orbit.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE/lean/check.sh
+python3 holdouts/1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE/py/cycles_run.py 1e10
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE 1000000000</code></pre>
 </section>
 <footer class="foot">

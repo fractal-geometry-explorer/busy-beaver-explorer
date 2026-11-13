@@ -79,7 +79,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps and proves the shift rules of the bouncer part (the sweeps and the turn at the right end) for every length. The run, followed exactly by a segment simulator with cycle jumps, has not halted in 2.5&middot;10<sup>72</sup> steps.</p>
+      <p><b>What it does.</b> The head bounces between a <em>wall</em> near the left and the right end of the tape, adding two cells at the right end per round trip. Between them lies a long run of one 8-cell word. Behind the wall the tape is a long run of an 18-cell word. In phase A the wall slowly eats the 18-cell run and the 8-cell run grows; in phase B the wall marches right, turning the 8-cell run back into 18-cell words. Each such epoch multiplies the lengths by about 9/4.</p>
+      <p><b>Why it is hard.</b> At every turn from phase A to B the wall works on the debris left of it: counters made of a 36-cell word, which lose 0, 1 or 2 copies per epoch in an irregular pattern. Now and then (at about 1.7&middot;10<sup>14</sup>, 5&middot;10<sup>21</sup> and 2.6&middot;10<sup>72</sup> steps) the whole 18-cell run is turned into a new counter of 36-cell words (345,724 copies, then 1,710,343,625, then about 3.9&middot;10<sup>34</sup>) and the bouncer starts again from small sizes. Whether the machine halts depends on how these nested counters run out, which follows the residues of numbers that grow by 9/4 per epoch.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +105,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweeps and the turn at the right end</h3>
+        <p>With <code>P = 10011010</code> and <code>Q = 11110001</code>: a leftward sweep turns <code>P^n 1 0 E&gt;0</code> into <code>1 0 E&gt;0 Q^n</code> in 36n steps; a rightward sweep turns <code>0 D&gt; Q^n</code> into <code>P^n 0 D&gt;</code> in 32n steps; at the right end <code>0 D&gt;1</code> then blank becomes <code>1 0 E&gt;0 1</code> in 5 steps. Together: from <code>0 D&gt; Q^n 1</code> the head comes back to the wall as <code>1 0 E&gt;0 Q^n 1</code>, two cells wider, in 68n + 5 steps, for every n. The leftward sweep carries a word on both sides of the head, so the file proves <code>cross_l2</code>, a two-sided form of the library's shift rule.</p>
+        <p class="where"><code>sweep_left</code>, <code>sweep_right</code>, <code>turn_right</code>, <code>round_right</code>, <code>cross_l2</code>, <code>lean/Sweep.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The sweeps and the turn at the right end</h3>
+        <p>With <code>P = 10011010</code> and <code>Q = 11110001</code>: a leftward sweep turns <code>P^n 1 0 E&gt;0</code> into <code>1 0 E&gt;0 Q^n</code> in 36n steps; a rightward sweep turns <code>0 D&gt; Q^n</code> into <code>P^n 0 D&gt;</code> in 32n steps; at the right end <code>0 D&gt;1</code> then blank becomes <code>1 0 E&gt;0 1</code> in 5 steps. Together: from <code>0 D&gt; Q^n 1</code> the head comes back to the wall as <code>1 0 E&gt;0 Q^n 1</code>, two cells wider, in 68n + 5 steps, for every n. The leftward sweep carries a word on both sides of the head, so the file proves <code>cross_l2</code>, a two-sided form of the library's shift rule.</p>
+        <p class="where"><code>sweep_left</code>, <code>sweep_right</code>, <code>turn_right</code>, <code>round_right</code>, <code>cross_l2</code>, <code>lean/Sweep.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,24 +127,34 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 30,464 cells have been visited and 16,609 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 2.5&middot;10<sup>72</sup> steps</h3>
+        <p><code>py/segsim.py</code> keeps the tape as cells and repeats of words and crosses long repeats with shift rules it finds and checks on one copy; <code>py/accel.py</code> jumps many periods of a regime whose counts change by constant amounts (checked over three periods, step counts summed exactly). The tape agrees cell for cell with the plain C simulator after 10<sup>9</sup> and 10<sup>10</sup> steps (<code>py/run.py check</code>). Run for 30 minutes, it reaches 2.5&middot;10<sup>72</sup> steps without a halt.</p>
+        <p class="where"><code>py/run.py</code>, <code>py/segsim.py</code>, <code>py/accel.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 4&middot;10<sup>9</sup> steps (plain simulator)</h3>
+        <p>The C simulator, with every long excursion of the head logged (<code>c/sweeps.c</code>), shows the bouncer: in phase A the left turning point drifts left by 72 cells per 36 round trips, in phase B it moves right by exactly 18 cells per round trip. Phase B lasted 86, 203, 463, 1,051 and 2,359 round trips in the epochs ending near 3.8&middot;10<sup>6</sup>, 1.9&middot;10<sup>7</sup>, 9.3&middot;10<sup>7</sup>, 4.7&middot;10<sup>8</sup> and 2.4&middot;10<sup>9</sup> steps (ratios 2.36, 2.28, 2.27, 2.24).</p>
+        <p class="where"><code>c/sweeps.c</code>, <code>c/dump.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.512).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Epochs grow by about 9/4</h3>
+        <p>Phase A: per round trip the 18-cell run loses 2 cells and the 8-cell run gains 4 (2 from the wall, 2 from the right end), so x copies of the 18-cell word last 9x round trips and leave about 4.5x copies of the 8-cell word. Phase B: per round trip one 18-cell word is made from two 8-cell words, so y copies give about y/2 new 18-cell words. One epoch maps x to about 9x/4. Read off the simulator, not proved.</p>
+        <p class="where"><code>py/run.py epochs</code></p>
+      </div>
+      <div class="card">
+        <h3>Nested counters, used up irregularly</h3>
+        <p>Left of the 18-cell run the tape holds runs of the 36-cell word <code>101001100110010011101001101010100110</code> (10 copies at first). When phase A ends the wall works on the nearest such run and removes 0, 1 or 2 copies, in no visible pattern. Three times so far the whole 18-cell run was turned into such a counter and the bouncer restarted from small sizes: at 1.7&middot;10<sup>14</sup> steps (345,724 copies, plus a new small counter of 5) and at 4.96&middot;10<sup>21</sup> steps (1,710,343,625 copies, plus 38) and at 2.57&middot;10<sup>72</sup> steps (38,924,542,121,409,275,697,275,846,796,041,586 copies, followed by one of 732,592,001,087,343,578). Between restarts the epochs replay the same sizes.</p>
+        <p class="where"><code>py/run.py epochs</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The bouncer part is proved; the wall's work at the end of each phase A (on the counters and the debris between them) is the open part. It changes the counters by amounts that depend on residues of the epoch sizes, which is the kind of question (like the Collatz-type BB(6) cryptids) that has no known method.</p>
       </div>
     </div>
   </section>
@@ -140,7 +162,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD 1000000000</code></pre>
+python3 holdouts/1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD/py/run.py check 1e10     # the fast simulator against the plain one
+python3 holdouts/1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD/py/run.py epochs 600     # one line per epoch, for ten minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

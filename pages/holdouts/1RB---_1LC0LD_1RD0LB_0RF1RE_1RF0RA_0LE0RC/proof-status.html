@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine converts long runs of short words one into another, a word at a time at the right end and a run at a time when walking back; the runs it leaves behind have nearly doubling lengths, but the exact map has not been found.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 52,266 cells have been visited and 29,986 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Steady conversion and doubling runs</h3>
+        <p>Between 1.6&middot;10<sup>10</sup> and 2&middot;10<sup>10</sup> steps the tape ends in <code>(1011)^X (10)^Y</code> with X falling by 800 and Y rising by 2,400 every 4,000 right-end visits; the runs before it have lengths 221, 585, 650, 3,828, 2,242, 1,117, 555, 4,498, 3,791, 4,143, 3,966, 1,982, 991.</p>
+        <p class="where"><code>python3 py/view.py 2e10 4000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -140,7 +145,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_1LC0LD_1RD0LB_0RF1RE_1RF0RA_0LE0RC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_1LC0LD_1RD0LB_0RF1RE_1RF0RA_0LE0RC 1000000000</code></pre>
+python3 holdouts/1RB---_1LC0LD_1RD0LB_0RF1RE_1RF0RA_0LE0RC/py/view.py   # the views of the run quoted in the README</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB---_1LC0LD_1RD0LB_0RF1RE_1RF0RA_0LE0RC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LA_1LC0RA_0LF0LD_1RE1LD_1RE0RB_---0LC</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. The tape is a chain of long solid blocks separated by single 0s; the last block is halved over and over, each half moving into the block before it, and the chain is rebuilt, sometimes as a ladder of doubling lengths.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 4,093 cells visited.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>12</sup> steps</b><span class="small">No halt in an exact macro simulator (blocks of 16 cells).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>halving</b><span class="small">The last solid block is halved again and again while the blocks before it are rearranged.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>power/power</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 4,093 cells visited.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#structure">What the machine does</a><a href="#halting">Where a halt would have to come from</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,20 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="structure">
+  <span class="eyebrow">Macro structure</span>
+  <h2>What the machine does</h2>
+<p>Stop the machine whenever its head first reaches a new cell on the right, in state B. With <code>e</code> for <code>10</code>, around step 4.3&middot;10<sup>7</sup>:</p>
+<ul><li>step 42,818,030: <code>1^323 e 1^320 e 1^642 e 1^114 e B&gt;0</code></li><li>step 43,323,699: <code>1^323 e 1^673 e 1^349 e 1^57 e B&gt;0</code></li><li>step 43,327,240: <code>1^323 e 1^673 e 1^381 e 1^28 e B&gt;0</code></li><li>step 43,486,171: <code>1^323 e 1^874 e 1^197 e 1^14 e B&gt;0</code></li></ul>
+<p>Between the separating 0s the tape is solid. The <b>last</b> block is halved again and again (114, 57, 28, 14, &hellip;), and the blocks before it are rearranged at the same time (642 becomes 349 and 381 and 197 while 320 grows to 673 and 874): the machine is doing arithmetic on the list of block lengths. After some rounds the chain is rebuilt; one rebuilt chain, at step 55,813,373, is a ladder of nearly doubling lengths: <code>1^5 e 1^2 e 1^6 e 1^13 e 1^27 e 1^55 e 1^111 e 1^223 e 1^447 e 1^546 e 1^66 e e A&gt;0</code>.</p>
+<p>Each halving passes over the block many times, so a round costs much more than the width of the tape; the visited width grows like a power of the step count near 1/3 (fitted 0.29 and 0.35 for the two sides at 10<sup>9</sup> steps). The density of 1s is close to 1: 4,081 of the 4,093 visited cells hold a 1 after 10<sup>9</sup> steps.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">The halting transition</span>
+  <h2>Where a halt would have to come from</h2>
+<p>The halting transition is F reading a 0. F is entered only from C reading a 0 (<code>0LF</code>), so a halt needs C to step left from a 0 onto another 0: two adjacent 0s. In the first 10<sup>8</sup> steps F was entered 93,754 times, every time on a 1. On a tape whose 0s are single, that is automatic; a halt needs a block of length 0 between two separators, or C reading the 0 just inside the left end of the tape.</p>
+<p>Whether the halving arithmetic ever produces two adjacent 0s there is open.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +250,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 4,093 cells have been visited and 4,081 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/power</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.285). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.347).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB1LA_1LC0RA_0LF0LD_1RE1LD_1RE0RB_---0LC/c/mrun.c</code></div></div><div><b>No halt in the first 10<sup>12</sup> steps</b><p>An exact macro simulator (blocks of 16 cells) runs 10<sup>12</sup> steps without a halt. The macro simulator cuts the tape into blocks of K cells, run-length codes them, and crosses a whole run at once when the head leaves it on the far side in the state it entered with; it agrees with the plain simulator <code>tools/c/tmrun</code> cell for cell.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tmrun.c</code> records</div></div><div><b>A chain of blocks, the last one halved</b><p>At the moments the head reaches a new cell on the right in state B, the tape is solid blocks separated by single 0s; successive moments show the last block halved (114, 57, 28, 14 between steps 4.28&middot;10<sup>7</sup> and 4.35&middot;10<sup>7</sup>) while the blocks before it are rearranged.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/sstat.c</code></div></div><div><b>The halting state, seen from the run</b><p>In the first 10<sup>8</sup> steps state F was entered 93,754 times, always reading a 1 (F0 halts).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LA_1LC0RA_0LF0LD_1RE1LD_1RE0RB_---0LC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_1LC0RA_0LF0LD_1RE1LD_1RE0RB_---0LC 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_1LC0RA_0LF0LD_1RE1LD_1RE0RB_---0LC 1000000000
+gcc -O2 -o mrun holdouts/1RB1LA_1LC0RA_0LF0LD_1RE1LD_1RE0RB_---0LC/c/mrun.c &amp;&amp; ./mrun 1RB1LA_1LC0RA_0LF0LD_1RE1LD_1RE0RB_---0LC 16 1000000000000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LA_1LC0RA_0LF0LD_1RE1LD_1RE0RB_---0LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

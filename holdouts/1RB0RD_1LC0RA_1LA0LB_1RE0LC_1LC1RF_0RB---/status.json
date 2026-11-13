@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G06",
  "title": "What is known about 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---.",
@@ -8,11 +8,13 @@
  "home": "../index.html",
  "source": "holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
+  "It is one of a pair, <code>1RB0RD_1LC0RA_1LA0LB_1RE0LC_1L?1RF_0RB---</code>, that differ only in E0 (here <code>1LC</code>, there <code>1LD</code>). The outer sweeps never read E0, so the two machines share them; the inner phases differ."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The outer sweeps are proved in Lean, but the inner phases, which decide how the blocks grow, are only observed; no invariant that would exclude a halt is known.",
+  "<b>Where a halt would have to come from.</b> The machine halts only in F reading a 1. F is entered only from E reading a 1, and E only from D reading a 0; so a halt needs the head in D on <code>0 1 1</code> (and as D is entered only from A reading a 1, the head in A on <code>1 0 1 1</code>). F is entered constantly (in the regular sweeps), 343,472,060 times in 2·10<sup>10</sup> steps, and always reads a 0: the cell after <code>…0011</code> is always the start of <code>0101…</code>."
  ],
  "claims": [
   {
@@ -40,40 +42,77 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "kernel",
+   "title": "Single-token sweeps",
+   "text": "Moving right, B turns <code>c = 1101010</code> into <code>0011001</code> and <code>a = 10</code> into <code>01</code>; moving left, C crosses an <code>a</code> (shifted by one cell) unchanged.",
+   "where": "<code>b_c</code>, <code>b_a</code>, <code>c_a</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The outer sweep pair",
+   "text": "With the head in C on the leftmost cell and the tape <code>11010 w (10)<sup>k+2</sup> 1</code>, one round trip gives <code>11010 c w (10)<sup>k+1</sup> 1</code>, in 24·#c(w) + 4·#a(w) + 4k + 41 steps. Proved for every w with up to four blocks of c's: <code>w = c<sup>n</sup></code>, <code>c<sup>n</sup> a<sup>x+1</sup> c<sup>m</sup></code>, and so on, for all exponents.",
+   "where": "<code>sweep0</code>, <code>sweep1</code>, <code>sweep2</code>, <code>sweep3</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "From the blank tape to the first outer phase",
+   "text": "After 12262 steps the tape is <code>11010 w (10)<sup>k</sup> 1</code> with w = c a<sup>27</sup> c a<sup>8</sup> c a<sup>2</sup> c, k = 43.",
+   "where": "<code>init_run</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The sweep rule holds for every w seen",
+   "text": "Every arrival at the left end in the first 4·10<sup>8</sup> steps whose last block has k ≥ 2 is followed by the sweep pair above, with the exact step count, whatever w is: 3,216 sweep pairs, no exception.",
+   "where": "<code>py/sweepcheck.py</code>, <code>c/edges.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "F always reads 0",
+   "text": "In 2·10<sup>10</sup> steps state F is entered 343,472,060 times, always on a 0; no halt. The context is always <code>…0011 F&gt;0</code>, followed by <code>101…</code> or by cells not yet visited.",
+   "where": "<code>c/jumps.c</code> (counts), <code>c/fhit.c</code> (contexts)"
+  },
+  {
+   "level": "trusted",
+   "title": "Inner phases",
+   "text": "When the last block is used up the head stops reaching the left end for a long time. Recorded inner phases: the step of the last left-end arrival before the jump, the step of the first one after it, and the tape at these two arrivals, tokenised (a token is <code>c</code>, <code>a<sup>n</sup></code> or a stray bit), without its first cells (<code>11010</code> or <code>1</code>) and its trailing <code>1</code>s:<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>stop</th><th>resume</th><th>before</th><th>after</th></tr></thead><tbody><tr><td>53,616</td><td>745,695</td><td><code>c<sup>47</sup> a<sup>27</sup> c a<sup>8</sup> c a<sup>2</sup></code></td><td><code>c a<sup>3</sup> (c a<sup>2</sup> c a<sup>10</sup>)<sup>23</sup> c a<sup>31</sup> c a<sup>335</sup></code></td></tr><tr><td>3,154,621</td><td>55,649,188</td><td><code>c<sup>337</sup> a<sup>7</sup> (c a<sup>2</sup> c a<sup>10</sup>)<sup>23</sup> c a<sup>31</sup></code></td><td><code>764 tokens, last ones a<sup>589</sup> c a<sup>1155</sup></code></td></tr><tr><td>106,595,396</td><td>208,093,169</td><td><code>c<sup>1157</sup> …, 765 tokens</code></td><td><code>763 tokens, last a<sup>1690</sup></code></td></tr><tr><td>381,017,882</td><td>2,194,023,171</td><td><code>c<sup>2851</sup> …, 761 tokens</code></td><td><code>759 tokens, last ones a<sup>17217</sup> c a<sup>19492</sup></code></td></tr></tbody></table></div>",
+   "where": "<code>c/jumps.c</code>"
+  },
+  {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Why it is hard",
+   "text": "The inner phase is a smaller machine of the same kind working on the right end of the tape: short sweeps move one <code>a</code> at a time from one block into a longer one, so blocks get multiplied rather than added. Each outer phase takes time about quadratic in the tape length, and each inner phase produces a much longer last block, so the phases grow quickly and nothing in sight closes the loop.",
+   "where": ""
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. It halts only if the head is ever in D on <code>0 1 1</code>; it never was in 2·10<sup>10</sup> steps.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB--- 1000000000"
+  "python3 holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/py/sweepcheck.py 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB--- 400000000",
+  "gcc -O2 -o jumps holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/c/jumps.c && ./jumps 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB--- 20000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine sweeps back and forth across a tape made of two words, and every round trip moves a little of the last block to the front; when the last block runs out, a long phase of shorter sweeps rebuilds the tape bigger. This page runs the real machine in your browser; the round trips are proved in Lean.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 84,091 cells visited."
+    "value": "2·10<sup>10</sup> steps",
+    "text": "No halt in the C simulator."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "sweep pairs",
+    "text": "The outer round trip is a theorem (up to four blocks)."
    },
    {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "F on a 0",
+    "text": "F is entered 343,472,060 times, always on a 0."
    }
   ],
   "presets": [
@@ -85,6 +124,33 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "words",
+    "eyebrow": "The picture",
+    "heading": "A tape of two words",
+    "html": [
+     "<p>Each time the head comes back to the left end of the tape (in state C, on the leftmost cell) the tape reads <code>11010 w (10)<sup>k</sup> 1</code>, where <code>w</code> is a word made of <code>c = 1101010</code> and <code>a = 10</code>. Moving right, the head turns every <code>c</code> into <code>0011001</code> and every <code>a</code> into <code>01</code>; moving left it turns them back, shifted.</p>"
+    ]
+   },
+   {
+    "id": "outer",
+    "eyebrow": "The rule",
+    "heading": "Round trips move the last block to the front",
+    "html": [
+     "<p>One round trip takes one <code>a</code> off the last block and puts a new <code>c</code> at the front:</p>",
+     "<p><code>11010 w (10)<sup>k+2</sup> 1 → 11010 c w (10)<sup>k+1</sup> 1</code> in 24·#c + 4·#a + 4k + 41 steps.</p>",
+     "<p>The middle of the tape is untouched. This is proved in Lean for every <code>w</code> with up to four blocks of <code>c</code>s and all block lengths, and the simulation finds no exception for any <code>w</code>. So an outer phase lasts as many round trips as the last block has <code>a</code>s, and the front block of <code>c</code>s grows by that many.</p>"
+    ]
+   },
+   {
+    "id": "inner",
+    "eyebrow": "Why it is hard",
+    "heading": "When the last block runs out",
+    "html": [
+     "<p>When the last block is used up (it then eats the last <code>c</code> as well), the head stops returning to the left end. A long inner phase of shorter sweeps runs near the right part of the tape. It moves <code>a</code>s one at a time between neighbouring blocks, multiplying their lengths, and leaves a new, much longer last block. Then the outer phase starts again.</p>",
+     "<p>The two machines of the pair differ only in E0, which the outer sweeps never read; they differ in the inner phases. Halting needs the head in D on <code>0 1 1</code>. F, the state before a halt, is entered all the time (343,472,060 times in 2·10<sup>10</sup> steps), but always on a 0.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +164,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "sweeping c/a-word counter with multiplying inner phases (1RB0RD_1LC0RA_1LA0LB_1RE0LC_1L?1RF_0RB--- pair)",
+ "summary": "Outer phase: full sweeps over a tape 11010 w (10)^k 1 (w a word over c = 1101010, a = 10) each move one a from the last block into a new c at the front, proved in Lean; when the last block is used up, a long inner phase of short sweeps rebuilds and lengthens the blocks. F is entered all the time but always reads 0."
 }

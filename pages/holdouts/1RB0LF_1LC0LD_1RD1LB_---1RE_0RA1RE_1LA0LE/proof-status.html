@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE</h1>
     <p class="machine">1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 9 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and reduced in Lean to a block machine.</b> Lean proves (kernel) that the machine follows an exact block machine and halts <em>if and only if</em> it reaches a left block of exactly four 1s with only single 1s on its right (<code>halts_iff</code>, <code>halts_iff_four</code>), and that every outer configuration <code>1^N F&gt;0 0 1^3</code> with N = 2<sup>n+4</sup> &minus; 2n &minus; 10 halts (<code>outer_halts</code>). With <code>native_decide</code>: no halt in the first 1.9&middot;10<sup>14</sup> steps. Computed: the outer orbit from blank tape is 10, 27, 60, 118, 254, 514, 1014, 2106, 17220, 8534636888060 (about 6.5&middot;10<sup>25</sup> steps), never in that set; for N &le; 3000 the set is exactly where an epoch halts.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -99,40 +99,75 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
-        <h3>No halt in the first 10,000 steps</h3>
-        <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
-        <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+        <h3>The cell rules</h3>
+        <p>Fourteen rules for every value of their variables, written by <code>bbtools.symtm.prove</code>: the walk of F over a unit, a round (the left block and the first block that is not a unit each lose two 1s, two units appear), a merge (units, a 0 and the next block become one block 2k + Z + 5), a restart at the left end, the moves at a left block of 2, the endings at the right end, and the halt at a left block of 4.</p>
+        <p class="where"><code>lean/Rules.lean</code>, <code>py/gen_rules.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The block machine</h3>
+        <p><code>mstep</code> maps a configuration <code>0^&infin; 1^X F&gt;0 0 (10)^a [mid] (10)^b [tail]</code> (mid nothing, a 0 or an even block, tail nothing or an odd block) to the next with its exact step count; the machine follows it (<code>mstep_sound</code>) and where it says halt the machine halts (<code>mstep_halt</code>). Blank tape reaches <code>1^10 F&gt;0 0 111</code> in 102 steps (<code>init_cfg</code>).</p>
+        <p class="where"><code>lean/Macro.lean</code>, <code>lean/Sound.lean</code>, <code>lean/Reduce.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting reduced to the block machine</h3>
+        <p>An invariant kept by every macro step excludes the cases the rules do not cover (<code>inv_next</code>); so the machine halts from blank tape iff the block machine reaches <code>halt</code> (<code>halts_iff</code>), iff it reaches a left block of exactly 4 with nothing but units on its right (<code>halts_iff_four</code>).</p>
+        <p class="where"><code>lean/Reduce.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Doubling passes, and where they halt</h3>
+        <p>A pass against the block 2q + 3 takes the left block x + 2q + 7 to x + 1 and the block to 2(2q + 4) + 3 (<code>pass</code>); it halts if the left block is 2q + 6 (<code>pass_halt</code>). Hence the outer configuration <code>1^N F&gt;0 0 1^3</code> halts for every N = 2<sup>n+4</sup> &minus; 2n &minus; 10 (6, 20, 50, 112, 238, 492, ...) (<code>outer_halts</code>).</p>
+        <p class="where"><code>lean/Outer.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>7</sup> steps</h3>
-        <p>The same run, evaluated by compiled code.</p>
-        <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+        <h3>No halt in the first 1.9&middot;10<sup>14</sup> steps</h3>
+        <p>20,000,000 macro steps of the block machine evaluated by compiled code, with the runner proved to be a run of the machine: no halt in the first 191,906,825,348,151 steps.</p>
+        <p class="where"><code>macro_runs</code>, <code>blank_runs_macro</code>, <code>lean/MacroRun.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>7</sup> steps, directly</h3>
+        <p>The list simulator from blank tape (the first 10,000 by the kernel alone).</p>
+        <p class="where"><code>blank_runs_native</code>, <code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 41,641 cells have been visited and 31,377 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>The block machine agrees with the machine</h3>
+        <p><code>py/macro.py check 1e8</code> compares the whole tape and the step count at each of the 15,261 macro configurations of the first 10<sup>8</sup> steps with the block machine: all agree.</p>
+        <p class="where"><code>py/macro.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The outer orbit</h3>
+        <p>With rounds batched and inner epochs jumped by their closed form (checked for every j &lt; 400): from blank tape the outer configurations are N = 10 (step 102), 27, 60, 118, 254, 514, 1014, 2106 (step 2,911,484), 17220 (step 251,528,266) and 8534636888060 (about 6.54&middot;10<sup>25</sup> steps). None is of the form 2<sup>n+4</sup> &minus; 2n &minus; 10.</p>
+        <p class="where"><code>py/outer.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Where an epoch halts</h3>
+        <p>For 5 &le; N &le; 3000 the epoch from <code>1^N F&gt;0 0 1^3</code> halts iff N = 2<sup>n+4</sup> &minus; 2n &minus; 10 for some n; otherwise it reaches the next outer configuration.</p>
+        <p class="where"><code>py/outer.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.439). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>The inner epochs</h3>
+        <p>After the doubling passes the units in front of a stored block feed inner epochs: X<sub>j</sub> = 24&middot;2<sup>j</sup> &minus; 3 becomes X<sub>j+1</sub>, using j + 4 units, in 1152&middot;4<sup>j</sup> &minus; 216&middot;2<sup>j</sup> + 10 steps. Found from the run and checked for j &lt; 400, not proved; so N' is about 2<sup>c&radic;N</sup> with c about 1/3.</p>
+        <p class="where"><code>README.md</code>, <code>py/outer.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Why it probably never halts</h3>
+        <p>The halting set has one element per doubling of N, so a random N of its size lies in it with chance about 1/N; the orbit is already at 8.5&middot;10<sup>12</sup> and grows doubly exponentially, so the chance of a later hit is negligible.</p>
+        <p class="where"><code>README.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Open: it halts iff the outer orbit hits 2<sup>n+4</sup> &minus; 2n &minus; 10 (the <em>if</em> direction proved in Lean, the converse computed for N &le; 3000). The map N &rarr; N' depends on the remainder of the doubling passes, a Collatz-like question.</p>
       </div>
     </div>
   </section>
@@ -140,7 +175,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE 1000000000</code></pre>
+python3 holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/py/macro.py check 1e8
+python3 holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/py/macro.py run 20000000
+python3 holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/py/outer.py 9</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

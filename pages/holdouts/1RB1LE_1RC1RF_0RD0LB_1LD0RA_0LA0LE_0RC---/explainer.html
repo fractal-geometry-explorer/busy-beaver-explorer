@@ -129,6 +129,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <p class="machine-id">1RB1LE_1RC1RF_0RD0LB_1LD0RA_0LA0LE_0RC---</p>
   <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>2 rules</b><span class="small">C crossing runs of <code>011</code> and <code>011111</code>.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 48,128 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#background">One word, repeated</a><a href="#defects">Defects between phases</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,20 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="background">
+  <span class="eyebrow">Structure</span>
+  <h2>One word, repeated</h2>
+<p>Compressed by repeats, the tape at the left end looks like this (E at the left end):</p><pre>step  64,104,641   E&gt; 0^6 (100100100100100000100000)^125 001000 001000 (001)^9 (000001)^4 (001)^8 (000001)^4 ...
+step 128,097,531   E&gt; 0^6 (100100100100100000100000)^176 (100)^5 000 1 00 ...
+step 256,099,511   E&gt; 000 10 11 (001001000001000001001001)^250 001 001 0000 10 11 ...</pre>
+<p>The word <code>100100100100100000100000</code> (five <code>100</code>, then <code>000</code>, <code>100</code>, <code>000</code>) and its shifts cover about half of the tape and more as the run goes on; related periodic words such as <code>(001)^8 (000001)^4</code> fill most of the rest. When the right sweep passes, it shifts the pieces by one cell (<code>C&gt; (011)^n &rarr; (110)^n C&gt;</code>, proved), and the left sweep shifts them back.</p>
+</section>
+<section id="defects">
+  <span class="eyebrow">Dynamics</span>
+  <h2>Defects between phases</h2>
+<p>Between regions of different phase sit short defects such as <code>0 10 1111</code> or <code>101 101</code>. Each sweep moves them. The leftmost region grows by about one copy of the word every few sweeps (15, 21, 30, 62, 125, 176 copies at steps 10<sup>6</sup>, 2&middot;10<sup>6</sup>, 4&middot;10<sup>6</sup>, 1.6&middot;10<sup>7</sup>, 6.4&middot;10<sup>7</sup>, 1.28&middot;10<sup>8</sup>). In the samples the number of defects stays small, so the machine looks like a bouncer whose wall has a fixed period but irregular phase.</p>
+<p><b>What halting would need.</b> F reading a 1. F is entered from B reading a 1 (writing 1, moving right), which happens at defects. A proof of non-halting would list the defect types, prove how each passes through a sweep, and show the list stays inside a closed family.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,7 +250,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 48,128 cells have been visited and 21,941 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.502). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.193).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>c_cross_3</code>, <code>c_cross_6</code>, <code>lean/Rules.lean</code></div></div><div><b>Right-sweep crossings</b><p><code>C&gt; (011)^n &rarr; (110)^n C&gt;</code> and <code>C&gt; (011111)^n &rarr; (111110)^n C&gt;</code>, for every n.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tmrun M N records</code>, compressed</div></div><div><b>A periodic background</b><p>At step 256,099,511 the tape (24,498 cells) is <code>E&gt;000 10 11 W^250 ...</code> with W = <code>001001000001000001001001</code>. At the left-end samples at 10<sup>6</sup>, 2&middot;10<sup>6</sup>, ..., 6.4&middot;10<sup>7</sup> steps, copies of this word (in any phase) cover 48% to 63% of the tape, a share that slowly rises. Most of the rest is made of related periodic words such as <code>(001)^8 (000001)^4</code>.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts only when F reads a 1, and F is entered from B on a 1. The defects between phase regions are where unusual neighbourhoods occur. Without a rule for how defects are created and moved, halting cannot be ruled out. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

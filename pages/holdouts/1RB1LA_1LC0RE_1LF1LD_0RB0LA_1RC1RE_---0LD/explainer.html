@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Space Needle is one of the community's cryptids: whether it halts is equivalent to whether a simple sequence of numbers, 6, 10, 17, 41, 101, 251, 626, ..., ever reaches a power of two. This page shows how the machine computes that sequence, and what is proved about it.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 3,249 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/power</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>Halts &hArr; 2<sup>n</sup></b><span class="small">Lean: halts from blank tape iff Doucette's sequence hits a power of two.</span></div>
+    <div class="fact"><span class="ev n">native_decide</span><b>300,000 terms</b><span class="small">None of them a power of two (Lean); 20,000 by the kernel alone.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>3&middot;10<sup>6</sup> terms</b><span class="small">None of them a power of two (C); at most 24 factors of 2.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>probviously never</b><span class="small">The terms grow by &times;1.92 each; hitting 2<sup>n</sup> exactly is a vanishing coincidence.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#blocks">Blocks of 1s, and a state that keeps coming back</a><a href="#phases">Bouncer, zig-zag, shift</a><a href="#map">mxdys&#x27;s rules</a><a href="#doucette">Doucette&#x27;s sequence</a><a href="#hard">A coincidence that should never happen</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -177,7 +178,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
       <input type="text" id="jumpTo" inputmode="numeric" value="1000" spellcheck="false" autocomplete="off">
       <button id="jumpGo" type="button">Go</button>
     </div>
-    <div class="controls" style="margin-top:8px"><span class="small">Jump to:</span><button type="button" data-jump="1000">1,000</button><button type="button" data-jump="100000">100,000</button><button type="button" data-jump="1000000">1,000,000</button></div>
+    <div class="controls" style="margin-top:8px"><span class="small">Jump to:</span><button type="button" data-jump="45">45</button><button type="button" data-jump="158">158</button><button type="button" data-jump="2640">2,640</button><button type="button" data-jump="31346">31,346</button><button type="button" data-jump="434602">434,602</button></div>
     <div class="readout"><span>step <b id="rStep">0</b></span><span>state <span class="statechip" id="rState">A</span></span><span>cells visited <b id="rWidth">1</b></span><span>ones <b id="rOnes">0</b></span></div>
     <div class="cellwrap"><div class="cells" id="cells" aria-label="Tape cells around the head"></div></div>
     <div class="cap">Cells around the head (dark = 1, dashed = never visited).</div>
@@ -193,7 +194,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
       <label class="small" for="stMode">Rows</label>
       <select id="stMode"><option value="rec" selected>at each new cell</option><option value="time">evenly in time</option></select>
       <label class="small" for="stSteps">up to step</label>
-      <select id="stSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="20000" selected>20,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <select id="stSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="3000" selected>3,000</option><option value="10000">10,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
       <button id="stGo" class="primary" type="button">Draw</button>
     </div>
     <div class="stwrap"><canvas id="st" aria-label="Space-time diagram"></canvas></div>
@@ -202,12 +203,50 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="panel">
     <div class="controls">
       <label class="small" for="recSteps">Records up to step</label>
-      <select id="recSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="20000" selected>20,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <select id="recSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000" selected>10,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
       <button id="recGo" class="primary" type="button">List</button>
     </div>
     <div class="cap" id="recCap"></div>
     <div class="log" id="recs"></div>
   </div>
+</section>
+<section id="blocks">
+  <span class="eyebrow">The tape</span>
+  <h2>Blocks of 1s, and a state that keeps coming back</h2>
+<p>Run the simulator to step 45 and the tape reads <code>A&gt;0 1 1 1 0 0 1</code>: the head, in state A, on the 0 just left of everything, then a block of three 1s, a gap of two 0s, a block of one 1. Call this shape</p>
+<p style="text-align:center"><code>X(b, c) = 0^&infin; A&gt;0 1^b 0 0 1^c 0^&infin;</code></p>
+<p>so step 45 is X(3, 1). The machine keeps coming back to this shape: X(0, 5) at step 64, X(7, 1) at 107, X(2, 7) at 158, X(14, 1) at 274, X(38, 1) at 2,640, X(98, 1) at 31,346, X(248, 1) at 434,602. In between, the tape holds two or three long blocks of 1s separated by single 0s, and the head works on them in long regular phases. Nothing else ever happens: the whole run is these visits and the phases between them.</p>
+</section>
+<section id="phases">
+  <span class="eyebrow">One macro step</span>
+  <h2>Bouncer, zig-zag, shift</h2>
+<p>Take X(14, 1). Three kinds of motion carry it to X(38, 1):</p>
+<ul><li><b>The bouncer.</b> A writes a 1 left of the block and the head runs to the right end of the block. From <code>0 1^(m+3) C&gt;0</code>, states C, F, D erase two 1s, A runs left, B and E run right: the middle block loses two 1s and each side gains one, <code>1 0 1^(m+1) C&gt;0 1</code>. Repeated, the block of 14 shrinks to 2 while blocks of 7 grow on both sides. Each bounce crosses the whole block, so this phase takes time quadratic in b.</li>
+<li><b>The zig-zag.</b> Then the head stands at the left end in state A, before <code>1^a 0 1^b</code>. Going back and forth it moves the 0 between the two blocks one cell at a time, ending with the first block one shorter, the second two longer, and the whole picture one cell further left: <code>A&gt;0 1^(a+1) 0 1^b</code> becomes <code>A&gt;0 1^a 0 1^(b+2)</code>. Repeated a times, the first block disappears into the second.</li>
+<li><b>The merges.</b> When the first block is empty, the gap of two 0s closes up and the next block becomes the first; with no block left after it, the tape is X(m, 1) again.</li></ul>
+<p>For X(14, 1): the bouncer leaves <code>1^7 0 1^2 C&gt;0 1^7</code>, then <code>A&gt;0 1^6 0 1^2 0 1^8</code>; six zig-zags give <code>A&gt;0 0 1^14 0 1^8</code>; a merge gives <code>A&gt;0 1^15 0 1^8</code>; fifteen zig-zags give <code>A&gt;0 0 1^38</code>, and the last merge X(38, 1). Each of these steps is a lemma in Lean, proved for all values of the lengths.</p>
+</section>
+<section id="map">
+  <span class="eyebrow">The map</span>
+  <h2>mxdys's rules</h2>
+<p>Done in general, the phases give one rule per case of b:</p>
+<table><thead><tr><th>from</th><th>to</th><th>what happens</th></tr></thead><tbody><tr><td>X(0, c)</td><td>X(c + 2, 1)</td><td>the empty block merges</td></tr><tr><td>X(1, c)</td><td><b>halt</b></td><td>13 steps later F reads a 0</td></tr><tr><td>X(2k + 2, c)</td><td>X(5k + c + 7, 1)</td><td>bouncer, k zig-zags, merge, 2k + 3 zig-zags, merge</td></tr><tr><td>X(2k + 3, c)</td><td>X(k, k + c + 4)</td><td>bouncer ends on an odd block: b roughly halves</td></tr></tbody></table>
+<p>An even b multiplies b by about 5/2 and resets c to 1; an odd b halves b and stores the rest in c. The machine halts when b reaches 1, which can only happen by halving. Lean proves the four rules and that the machine halts from blank tape exactly when the orbit of (3, 1) reaches b = 1 (<code>halts_iff</code> in <code>lean/Macro.lean</code>).</p>
+<p>The orbit: (3, 1) &rarr; (0, 5) &rarr; (7, 1) &rarr; (2, 7) &rarr; (14, 1) &rarr; (38, 1) &rarr; (98, 1) &rarr; (248, 1) &rarr; (623, 1) &rarr; (310, 315) &rarr; (1092, 1) &rarr; (2733, 1) &rarr; (1365, 1370) &rarr; (681, 2055) &rarr; (339, 2398) &rarr; (168, 2570) &rarr; (2992, 1) &rarr; &hellip;</p>
+</section>
+<section id="doucette">
+  <span class="eyebrow">One number</span>
+  <h2>Doucette's sequence</h2>
+<p>Look only at the visits X(b, 1) and write D = b + 3. Between two of them, the odd rule applies v times, where 2<sup>v</sup> is the largest power of two dividing D: each odd step halves D exactly (b + 3 becomes (b + 3)/2) and adds to c. Then one even step uses everything stored in c. Adding it up, the next D is</p>
+<p style="text-align:center"><code>F(D) = D + v + 3a</code>, &nbsp; where <code>D = 2^v &middot; (2a + 1)</code>.</p>
+<p>From X(3, 1), D = 6, and the sequence runs 6, 10, 17, 41, 101, 251, 626, 1095, 2736, 2995, 7486, 13100, &hellip; If some D is a power of two, the halvings run down to D = 4, which is b = 1: the machine halts. If not, they always stop at an odd D &ge; 3 and the even step follows. Lean proves this equivalence (<code>halts_iff_pow2</code> in <code>lean/Collatz.lean</code>): <b>Space Needle halts if and only if Doucette's sequence reaches a power of two.</b></p>
+<p>Each term is a visit to the left edge, and each costs far more machine steps than the last (a cubic number in b): the visit X(2992, 1) (D = 2995) comes at step 519,524,312, the next one, X(7483, 1), at step 10,608,569,291. The sequence itself is cheap: Lean's kernel checks the first 20,000 terms, compiled Lean 300,000, and C 3&middot;10<sup>6</sup>. None is a power of two.</p>
+</section>
+<section id="hard">
+  <span class="eyebrow">Why it is open</span>
+  <h2>A coincidence that should never happen</h2>
+<p>F(D) is about D &middot; (1 + 3/2<sup>v+1</sup>): an odd D grows by a factor of about 5/2, a D with many factors 2 by much less. If the low bits of the terms are like random bits, v is 0 half the time, 1 a quarter of the time, and so on, and D gains about 0.94 bits per step (a factor of 1.92). A number of n bits is a power of two with chance about 2<sup>&minus;n</sup>, so the chance that any term after the first few dozen is a power of two is astronomically small. In 3&middot;10<sup>6</sup> terms, v has never exceeded 24.</p>
+<p>So the machine almost certainly never halts. Proving it is another matter: one would have to show that a sequence built by additions never has all its bits but one equal to 0, that is, control the 2-adic valuation of every term. Questions of this kind (like the Collatz problem) are beyond present mathematics, which is why Space Needle is called a cryptid. Run backwards, the condition is a chain of congruences: a power of two 2<sup>n</sup> can be reached from a multiple of 2<sup>k</sup> only for special n (for k = 0, only n &equiv; 0 mod 4), and the smallest powers of two reachable within a few steps are already enormous; but no one has turned this into a proof.</p>
 </section>
 <section id="shape">
   <span class="eyebrow">First look</span>
@@ -230,19 +269,28 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <button type="button" data-f="heuristic" aria-pressed="false">Heuristic</button>
     <button type="button" data-f="open" aria-pressed="false">Open</button>
   </div>
-    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.</p></div></div>
-    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
-    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
-    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 3,249 cells have been visited and 3,246 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/power</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.311). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.059).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when F reads a 0.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code>, <code>py/gen_rules.py</code></div></div><div><b>Shift rules</b><p>Fifteen rules on symbolic tapes, for all values of their parameters and any surrounding tape: one bounce of the bouncer (<code>L 0 1^(m+3) C&gt;0 R</code> to <code>L 1 0 1^(m+1) C&gt;0 1 R</code>), one zig-zag, the ends of the phases, the halt of (1, c), and blank tape to (3, 1) in 45 steps. Written by <code>tools/py/bbtools/symtm.py</code> as chains of <code>rfl</code> steps and the crossing lemmas.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>even_rule</code>, <code>odd_rule</code>, <code>zero_rule</code>, <code>halt_rule</code>, <code>lean/Macro.lean</code></div></div><div><b>mxdys's macro rules</b><p>Write X(b, c) for <code>0^&infin; A&gt;0 1^b 0 0 1^c 0^&infin;</code>. For every b and c &ge; 1: X(0, c) reaches X(c + 2, 1); X(2k + 2, c) reaches X(5k + c + 7, 1); X(2k + 3, c) reaches X(k, k + c + 4); X(1, c) halts 13 steps later. Proved by three inductions (the bouncer, the zig-zag, the shift of a block) over the shift rules.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>lean/Macro.lean</code></div></div><div><b>The reduction to mxdys's map</b><p>Let g be the map above on pairs (b, c), and orbit n its n-th iterate from (3, 1). The machine halts from blank tape if and only if some orbit n has b = 1.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff_pow2</code>, <code>macro_F</code>, <code>macro_pow2</code>, <code>lean/Collatz.lean</code></div></div><div><b>The reduction to Doucette's sequence</b><p>Let D<sub>0</sub> = 6 and D<sub>k+1</sub> = F(D<sub>k</sub>) with F(D) = D + v + 3a for D = 2<sup>v</sup>(2a + 1). The configurations X(b, 1) of the orbit are exactly b = D<sub>k</sub> &minus; 3; between two of them come v odd steps, each halving b + 3, and one even step. So the machine halts from blank tape if and only if some D<sub>k</sub> is a power of two.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>Fit_kernel</code>, <code>lean/Bound.lean</code></div></div><div><b>No power of two in the first 20,000 terms</b><p>Checked by the kernel's arithmetic (numbers up to about 19,000 bits). By the reduction, no halt before the machine's 20,000th visit to a configuration X(b, 1).</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>Fit_native</code>, <code>lean/Bound.lean</code></div></div><div><b>No power of two in the first 300,000 terms</b><p>The same check by compiled code (numbers up to about 282,000 bits).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>Direct run of the list simulator from blank tape.</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run by compiled code.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/verify.c</code></div></div><div><b>The macro rules against the machine</b><p>A direct run of 3&middot;10<sup>10</sup> steps (<code>c/verify.c</code>) meets the shape X(b, c) exactly at the configurations the orbit of g predicts, in order, and at no others: 19 of them, from X(3, 1) at step 45 to X(7483, 1) at step 10,608,569,291 and X(3740, 3745) at step 10,636,589,390.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/doucette.c</code></div></div><div><b>No power of two in the first 3&middot;10<sup>6</sup> terms</b><p>Multi-precision C (<code>c/doucette.c</code>, checked against Python for the first 10<sup>5</sup> terms: bit length and largest v agree). The 3&middot;10<sup>6</sup>th term has about 2.8&middot;10<sup>6</sup> bits; the largest v seen is 24, the mean v is 0.998. The community reports 10<sup>8</sup> terms with at most 25 factors of 2.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/doucette.c</code></div></div><div><b>Probviously non-halting</b><p>If the low bits of D<sub>k</sub> behave like random bits, v is geometric with mean 1, D grows by an average factor of about 1.920 per term (0.9412 bits, LegionMammal978's estimate; 0.9414 measured), and the chance that a term of n bits is a power of two is about 2<sup>&minus;n</sup>. Summed over the terms after the ones checked, the chance of a halt is far below 10<sup>&minus;10000</sup>.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Equivalent (in Lean) to: does Doucette's sequence ever reach a power of two? No method is known that controls the 2-adic valuation of terms of such a sequence.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
-holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD 1000000000</code></pre>
+holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/lean/check.sh      # about 2 minutes
+cd holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD &amp;&amp; python3 py/gen_rules.py | diff - lean/Rules.lean
+gcc -O2 -o verify c/verify.c &amp;&amp; ./verify 30000000000 | tail -3
+gcc -O2 -o doucette c/doucette.c &amp;&amp; ./doucette 3000000 500000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

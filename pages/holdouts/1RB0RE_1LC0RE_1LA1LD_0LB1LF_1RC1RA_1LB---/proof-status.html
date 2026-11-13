@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is a list of blocks. On the way right the head rewrites them as copies of <code>10</code>, and on the way left it turns them back into ones. Each time the head reaches the left end, block i has lost about 2<sup>i+2</sup> ones: the list counts like the digits of a binary counter, refilling blocks that run low. Lean proves the three shift rules of the sweeps. The list map, with its refills, has not been worked out.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules of the sweeps</h3>
+        <p><code>f_left</code>: going left, each <code>1010</code> becomes <code>1111</code> (8 steps a word). <code>e_right</code>: going right, each <code>1111</code> becomes <code>1010</code> again (4 steps a word). <code>a_right</code>: A turns a block of 2n ones into <code>(01)^n</code>. All three hold for every n and every surrounding tape.</p>
+        <p class="where"><code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +124,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 81,751 cells have been visited and 45,246 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Lists at the left end</h3>
+        <p>At the left end the tape is <code>1^x0 0 1^x1 0 ... 0 1^xr</code>. At steps 69,844,480 and 267,430,903 the lists are [110,366,822,558,166,834,330,1562,...] and [110,358,806,526,102,706,74,1050,...]. The differences are 0, &minus;8, &minus;16, &minus;32, &minus;64, &minus;128, ... until a block runs low and is refilled. No halt in 4&middot;10<sup>9</sup> steps.</p>
+        <p class="where">README</p>
+      </div>
+      <div class="card">
+        <h3>The law between refills</h3>
+        <p>Between visits to the left end where no block runs out and the list does not start with a lone 1, block i (i &ge; 1) loses exactly 2<sup>i+2</sup> ones and a new last block appears, e.g. [145,118,6,70,118,374] after [146,126,22,102,182] (differences &minus;1, &minus;8, &minus;16, &minus;32, &minus;64). This was checked on 4 such pairs up to 1.5&middot;10<sup>10</sup> steps; the other pairs involve refills or a leading block of length 1.</p>
+        <p class="where">README, second round</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.477).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A binary counter with refills</h3>
+        <p>The halving and doubling between ones and copies of <code>10</code> make the blocks lose amounts in powers of 2, like the digits of a binary counter counting down. When a block runs low, it is refilled by an amount that depends on its neighbours. This refill is the irregular step.</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The machine halts if F reads a 1.</p>
       </div>
     </div>
   </section>

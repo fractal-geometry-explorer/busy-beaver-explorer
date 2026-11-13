@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G10",
  "title": "What is known about 1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The tape is always a handful of blocks of 1s separated by short runs of 0s. One elementary move is proved in Lean (a 0 travelling through a block). The way block lengths change from sweep to sweep looks chaotic: blocks merge, and large blocks are cut in a ratio close to 1:2. No rule on the lengths is known, so nothing is known about halting (E reading a 1)."
  ],
  "claims": [
   {
@@ -46,9 +46,33 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Travelling 0",
+   "text": "<code>0 C&gt; 1^n</code> becomes <code>1^n 0 C&gt;</code> in 3n steps, for every n and any tape around.",
+   "where": "<code>c_shift</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Block picture",
+   "text": "In 3&middot;10<sup>9</sup> steps, every time C stands at the right end the tape is 2 to 8 blocks of 1s separated by 0^2, 0^3 or 0^5, with <code>0 1 0 C&gt;0</code> at the end. The last block is close to twice the one before it in most samples (347, 700; 1,113, 2,230; 730, 1,468).",
+   "where": "<code>tmrun ... at C R</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Travelling 0",
+   "text": "<code>0 C&gt; 1^n</code> becomes <code>1^n 0 C&gt;</code> in 3n steps, for every n and any tape around.",
+   "where": "<code>c_shift</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Block picture",
+   "text": "In 3&middot;10<sup>9</sup> steps, every time C stands at the right end the tape is 2 to 8 blocks of 1s separated by 0^2, 0^3 or 0^5, with <code>0 1 0 C&gt;0</code> at the end. The last block is close to twice the one before it in most samples (347, 700; 1,113, 2,230; 730, 1,468).",
+   "where": "<code>tmrun ... at C R</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The machine halts only when E reads a 1. The block lengths change chaotically, and no invariant that keeps E away from a 1 has been found. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, with history) fail.",
    "where": ""
   }
  ],
@@ -60,6 +84,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "1 rule",
+    "text": "A 0 travelling right through a block of 1s (<code>c_shift</code>)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -86,6 +115,24 @@
   },
   "sections": [
    {
+    "id": "abacus",
+    "eyebrow": "Structure",
+    "heading": "A few blocks of 1s",
+    "html": [
+     "<p>When state C stands at the right end, the tape is a short list of blocks of 1s (lengths below, separated by 0s):</p><pre>step  12,164,477   1^2 0^2 1^13 0^2 1^1009 0 1 C&gt;0\nstep  12,902,116   1^347 0^2 1^700 0 1 C&gt;0\nstep  13,724,275   1^14 0^2 1^345 0^5 1^693 0 1 C&gt;0\nstep  14,048,610   1^14 0^2 1^345 0^2 1^231 0^2 1^464 0 1 C&gt;0</pre>",
+     "<p>In between, sweeps move single 0s through the blocks. A 0 next to C travels right through a block of 1s, three steps per cell (<code>0 C&gt; 1^n &rarr; 1^n 0 C&gt;</code>, proved in Lean). This moves one unit from one block to its neighbour per step of three. Blocks touching across a single 0 merge (for example 126 and 40 become 168 at step 150,135).</p>"
+    ]
+   },
+   {
+    "id": "split",
+    "eyebrow": "Dynamics",
+    "heading": "Splitting by thirds",
+    "html": [
+     "<p>Large blocks are cut up in a ratio close to 1:2. At step 12,174,442 the tape is essentially one block of 1,041; at step 12,902,116 it is 347 and 700. The next sweeps cut the 700 again (345, 231, 464). This splitting by thirds is reminiscent of Collatz-like maps. Here, though, several blocks interact, and the lengths do not follow any rule found so far. The total number of 1s grows slowly (6,891 after 3&middot;10<sup>9</sup> steps), the left side grows like the square root of the step count and the right side like a smaller power.</p>",
+     "<p><b>What halting would need.</b> The machine stops when E reads a 1. E is entered from D on a 0 (writing 0, moving left). A halt would need some block arrangement that sends D left onto a 1 where it usually finds a 0. Ruling that out needs a description of the block dynamics, which is not known yet.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +145,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "An abacus of a few blocks of 1s: sweeps move units between neighbouring blocks, blocks merge, and a big block is split into about a third and two thirds; the block lengths evolve chaotically.",
+ "family": "abacus of 1-blocks, splits by thirds (chaotic)",
+ "decision": "open"
 }

@@ -124,14 +124,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 12 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Every sweep rewrites the tape, a word over <code>1</code> and <code>10</code>. At the left end a block of ones doubles again and again, once for each item <code>1^7 0</code> that follows it; that part is proved. What the sweeps do to the rest of the word is not decoded.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 37,047 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>1<sup>49142</sup></b><span class="small">The largest block of ones seen, at step 2.8&middot;10<sup>9</sup>.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#story">A word rewritten at every sweep</a><a href="#chain">The transfer and the doubling chain</a><a href="#shape">The shape of the run</a><a href="#why">Finding the transducer</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,25 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="story">
+  <span class="eyebrow">What it does</span>
+  <h2>A word rewritten at every sweep</h2>
+<p>The head sweeps the whole tape, and at each end the tape reads as a word over two tokens, a single <code>1</code> and <code>a = 10</code>, written here run-length coded. Early on the word looks irregular and changes at every sweep:</p>
+<table class="tbl"><thead><tr><th>step</th><th>tape</th></tr></thead><tbody><tr><td>295</td><td><code>1^6 a 1^10 a 1^7</code></td></tr><tr><td>340</td><td><code>1^8 a^6 1^11</code></td></tr><tr><td>380</td><td><code>1^2 a^4 1^12 a^5</code></td></tr><tr><td>430</td><td><code>a^2 1^2 a 1^2 a^7 1^2 a 1^2 a 1^3</code></td></tr></tbody></table>
+<h3>Giant blocks</h3>
+<p>Then come long stretches in which the head never reaches both ends, and after them one token run fills most of the tape:</p>
+<table class="tbl"><thead><tr><th>step</th><th>tape width</th><th>giant block</th></tr></thead><tbody><tr><td>11,869</td><td>144</td><td><code>1^102</code></td></tr><tr><td>3,472,160</td><td>1,918</td><td><code>1^1730</code></td></tr><tr><td>2,820,772,373</td><td>52,484</td><td><code>1^49142</code></td></tr></tbody></table>
+<p>The following sweeps rewrite it in a regular way: <code>1^49144</code> becomes <code>a^24572</code>, then <code>(1^2 a)^k</code>, <code>(1^4 a^2)^k</code>, <code>(1^6 a)^k</code>, <code>(1^2 a^3)^k</code> and so on, as if each sweep were a fixed transducer on the word. The ratios between the giant blocks, 17 and 28, and the times, 290 and 810, say that the next one is far away (a guess from the growth of these ratios: 10<sup>12</sup> to 10<sup>13</sup> steps).</p>
+</section>
+<section id="chain">
+  <span class="eyebrow">Decoded</span>
+  <h2>The transfer and the doubling chain</h2>
+<p>The long stretches without a full sweep are spent at the left end of the tape. Write G for <code>0^inf 1 1 1 0 1 0 1 1 0</code> with the head in state C on a 0.</p>
+<p><b>Transfer.</b> <code>G (10)^(2j+1) 1^3 R</code> becomes <code>G (10)^(2j+3) 1 R</code> in 28j+64 steps: the head turns the copies of <code>10</code> into ones on its way right, takes two ones off the block, comes back writing copies of <code>10</code>, and does this twice; the tape grows by two cells on the left. A block of m ones is emptied in about m/2 transfers and 3.5&middot;m<sup>2</sup> steps.</p>
+<p><b>Doubling.</b> When two ones are left and the word <code>(10)^3 1^5 0 1^7 0</code> follows, one more pass turns the 2j+1 copies of <code>10</code> into 4j+16 ones and uses up the item <code>1^7 0</code>. Together: a block of x ones becomes 2x+12 ones.</p>
+<table class="tbl"><thead><tr><th>step</th><th>ones in the block when its transfer ends</th></tr></thead><tbody><tr><td>4,850,530</td><td>181</td></tr><tr><td>5,345,184</td><td>373</td></tr><tr><td>7,366,430</td><td>757</td></tr><tr><td>15,537,436</td><td>1,525</td></tr><tr><td>48,394,266</td><td>3,061</td></tr><tr><td>180,167,960</td><td>6,133</td></tr><tr><td>707,956,246</td><td>12,277</td></tr><tr><td>2,820,497,172</td><td>24,565</td></tr></tbody></table>
+<p>(The count includes the first one of the following <code>(10)^3</code>: 181 = 180 + 1, and 372 = 2&middot;180 + 12.) Both rules are proved in Lean for every j and every tape to the right. A chain goes on as long as items <code>1^7 0</code> follow; later chains reach 786,429 ones. Which items the sweeps leave there is the part that is not decoded.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -218,10 +237,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>954,599,826</td><td><code>C&gt;0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>970,233,890</td><td><code>C&gt;0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>985,974,050</td><td><code>C&gt;0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="why">
+  <span class="eyebrow">What is left</span>
+  <h2>Finding the transducer</h2>
+<p>To get further one would write the effect of a full sweep on the token word as rules (symtm can prove each once found), find what invariant the word keeps between giant blocks, and so reduce the run to a map on a few numbers. None of that has been done.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 12 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -234,15 +258,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 37,047 cells have been visited and 28,773 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.392). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA/c/sweeps.c</code> with <code>3000000000 1000</code></div></div><div><b>Three giant blocks of ones, to 3&middot;10<sup>9</sup> steps</b><p>Run from blank tape, the tape at a full sweep is a word over the tokens <code>1</code> and <code>a = 10</code>. Three times so far one token run dominates: a block of 102 ones at step 11,869 (tape 144 cells), 1,730 ones at step 3,472,160 (1,918 cells) and 49,142 ones at step 2,820,772,373 (52,484 cells). Each comes after a long stretch with no full sweep, and is followed by sweeps that rewrite it as <code>a^k</code> and then into periodic words (<code>(1^2 a)^k</code>, <code>(1^4 a^2)^k</code>, <code>(1^6 a)^k</code>, &hellip;). No halt.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>transfer</code> (<code>lean/Rules.lean</code>, generated by <code>lean/rules.py</code>), <code>transfer_n</code>, <code>cost_eq</code> (<code>lean/Transfer.lean</code>)</div></div><div><b>The transfer at the left end</b><p>Write G for the left end of the tape <code>0^inf 1 1 1 0 1 0 1 1 0</code> with the head in C on a 0. Then <code>G (10)^(2j+1) 1^3 R</code> becomes <code>G (10)^(2j+3) 1 R</code> in 28j+64 steps, for every j and every tape R to the right: two ones become two more copies of <code>10</code>, and the tape grows by two cells on the left. Repeated n times it costs n(28j+14n+50) steps.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>double7</code> (<code>lean/Rules.lean</code>), <code>chain7</code>, <code>chain</code>, <code>dbl_eq</code> (<code>lean/Transfer.lean</code>)</div></div><div><b>The doubling chain</b><p><code>G 10 1^x (10)^3 1^5 0 1^7 0 R</code> with x = 2n+2 becomes <code>G 10 1^(2x+12) (10)^3 1^5 0 R</code>: the transfer empties the block of ones, one more pass turns the 2n+1 copies of <code>10</code> into 4n+16 ones, and the item <code>1^7 0</code> is used up. With c items in a row the block grows to 2<sup>c</sup>(x+12)&minus;12 ones.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA/c/transfer.c</code> with <code>10000000000000 150 1000</code>; <code>holdouts/1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA/py/check_transfer.py</code></div></div><div><b>No halt in the first 7.3&middot;10<sup>12</sup> steps</b><p>A C simulator that applies the transfer in closed form and steps the machine cell by cell otherwise reaches step 7,298,767,517,608 (tape 5,146,290 cells) without a halt. Its left-end configurations are checked against the plain machine for the first 3&middot;10<sup>8</sup> steps (122 configurations, all on the plain run). Chains seen: blocks of 181, 373, &hellip;, 24,565 ones (ending at step 2.8&middot;10<sup>9</sup>), then up to 786,429 ones (step 2.9&middot;10<sup>12</sup>) and 786,421 ones (step 5.8&middot;10<sup>12</sup>); every long chain so far passes through 3,061, 6,133, 12,277 ones.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>The chain at the left end is understood, but its length is set by how many items <code>1^7 0</code> stand in a row after the block, and these are made by the sweeps over the rest of the word, which act like a transducer that has not been decoded. Halting needs the head in D on a 0 followed by <code>1</code> or by <code>0 0</code>; whether the word can ever present that is not known.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA 1000000000
+gcc -O2 -o sweeps holdouts/1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA/c/sweeps.c &amp;&amp; ./sweeps 3000000000 1000
+gcc -O2 -o transfer holdouts/1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA/c/transfer.c &amp;&amp; ./transfer 10000000000000 150 1000
+python3 holdouts/1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA/py/check_transfer.py</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

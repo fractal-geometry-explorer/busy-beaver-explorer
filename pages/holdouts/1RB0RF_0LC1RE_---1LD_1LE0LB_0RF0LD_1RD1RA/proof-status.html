@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves the odd branch of the phase map for every odd e: <code>C(2i+1) &rarr; C(3i+5)</code>, and the first, halving stage of the even branch for every even e ≥ 4: <code>C(2i+4)</code> reaches <code>E&gt; 110 (10)<sup>i</sup> 1100 (10)<sup>i+4</sup></code>. The rest of the even branch was tabulated by simulation for e &le; 300: e &equiv; 0 (mod 4) goes to (3e+6)/2, e &equiv; 6 (mod 8) to (3e+12)/2, e &equiv; 2 (mod 8) recursively, and e = 2<sup>k</sup> &minus; 6 halts. Whether the blank orbit ever hits a halting value is the open question.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The odd branch of the map</h3>
+        <p>For every i: <code>C(2i+1) &rarr; C(3i+5)</code>, i.e. e &#8614; (3e+7)/2 for odd e, through <code>P(a,b) = 0<sup>&infin;</sup> 111 (0111)<sup>a</sup> 01 E&gt; 0 (01)<sup>b</sup></code>: <code>C(2i+1) &rarr; P(i,2)</code>, <code>P(a+1,b) &rarr; P(a,b+3)</code> in 6b+10 steps, <code>P(0,b) &rarr; C(b+3)</code>.</p>
+        <p class="where"><code>odd_step</code>, <code>rounds</code>, <code>enter_pack</code>, <code>finish_P</code>, <code>lean/Macro.lean</code>; rules <code>enter</code>, <code>pack</code>, <code>round</code>, <code>finish</code> in <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The even branch: the halving stage</h3>
+        <p>For every i, C(2i+4) reaches <code>0<sup>∞</sup> E&gt; 1 1 0 (10)<sup>i</sup> 1 1 0 0 (10)<sup>i+4</sup></code>: the 01-run is packed into 0111 words (<code>even_pack</code>), and then each 0111 becomes one <code>10</code> on each side of a marker <code>1100</code> (<code>half0</code>, <code>half1</code>, <code>half</code>, by induction <code>halving</code>). The next pass packs these 10s in pairs, so the continuation depends on the parity of i, which is the split e ≡ 0 / 2 (mod 4). Two later building blocks are proved as rules: E going left turns a 0111 word into three more 10s of the right-hand run (<code>absorb_1011</code>) and takes in a single 10 (<code>absorb_10</code>); chaining them into the whole even map is not done.</p>
+        <p class="where"><code>even_start</code>, <code>halving</code>, <code>lean/Even.lean</code>; rules in <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,6 +125,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
+        <h3>Where it can halt</h3>
+        <p>Only C reading 0 halts; C is entered only from B reading 0 (0LC), so the machine halts exactly on <code>0 B&gt; 0</code>. Read off the table.</p>
+        <p class="where">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The even branch, tabulated</h3>
+        <p>By simulation from C(e) for e = 1..300 (<code>c/phasemap.c</code>): odd e gives (3e+7)/2 every time (now proved); e &equiv; 0 (mod 4), e &ge; 8, gives (3e+6)/2; e &equiv; 6 (mod 8) gives (3e+12)/2; e &equiv; 2 (mod 8) has no single formula (a cascade that halves the 01-run, e.g. 18 &rarr; 41, 74 &rarr; 101, 90 &rarr; 167); the machine halts from C(e) exactly for e = 2, 10, 26, 58, 122, 250 in that range, and also for 506 and 1018: e = 2<sup>k</sup> &minus; 6.</p>
+        <p class="where"><code>c/phasemap.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The blank orbit</h3>
+        <p>From blank tape the run reaches C(4) at step 67, then C(17), C(29), C(47), C(74), C(101), C(155), C(236), C(357), C(539), C(812), C(1221), C(1835), C(2756), C(4137), C(6209), C(9317), C(13979), C(20972), C(31461), C(47195), C(70796) (step 9,357,982,502). The even values met are 4, 74 (&equiv; 2 mod 8) and otherwise &equiv; 0 (mod 4).</p>
+        <p class="where"><code>c/phasemap.c 0 0 10000000000 blank</code></p>
+      </div>
+      <div class="card">
+        <h3>No closed tape language with small windows</h3>
+        <p><code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS fails; no invariant mod 2..12.</p>
+        <p class="where"><code>tools/py/bbtools/ctl.py</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 41,952 cells have been visited and 23,260 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
@@ -122,6 +152,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>Why it is hard</h3>
+        <p>Like a Collatz map: the orbit grows by about 3/2 per phase, and it halts only if it lands on 2<sup>k</sup> &minus; 6 (or on another halting value of the even cascade). A random-looking orbit hits such a sparse set with small probability, so it probably never halts, but nothing proves that.</p>
+        <p class="where">README</p>
+      </div>
       <div class="card">
         <h3>Growth shape: exp/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.04). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.552).</p>
@@ -132,7 +167,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. Lean proves the odd branch of the map; the even branch (and the halting values 2<sup>k</sup> &minus; 6) are from simulation, and whether the blank orbit, now past C(70796), ever reaches a halting value is a Collatz-like question.</p>
       </div>
     </div>
   </section>
@@ -140,6 +175,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RF_0LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA/lean/check.sh
+python3 holdouts/1RB0RF_0LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA/py/rules.py &gt; holdouts/1RB0RF_0LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA/lean/Rules.lean
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RF_0LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA 1000000000</code></pre>
   </section>
   <footer>

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The run is a sequence of phases; in each, rounds (proved in Lean) move two <code>10</code>s from a stack into a growing gap of 0s, and at the end the gap is turned back into a stack about 3/2 times as large. The phase map, checked by simulation for every x ≤ 120 in the decoded cases, takes the blank-tape orbit through 63 phases, to P(1, 2,162,240,868,156,300); the next phase is in the case x ≡ 4 (mod 8) with the leading 1, which splits further by higher powers of 2 (e.g. 32i + 20 → 243i + 202) and was not decoded.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Rounds of a phase</h3>
+        <p>With the stack <code>(10)<sup>x+2</sup> 1 1 1 0</code>, a gap of 2g + 2 zeros and D at the right end, one round removes two <code>10</code>s and adds six zeros: <code>(10)<sup>x+2</sup> 1110 (00)<sup>g</sup> 00 D&gt;</code> → <code>(10)<sup>x</sup> 1110 (00)<sup>g+3</sup> 00 D&gt;</code> in 4g + 26 steps (and the first round, from no gap, in 22 steps). Plus the shift rules: C erases 1s going right, D and E fill 0s going left.</p>
+        <p class="where"><code>round</code>, <code>first_round</code>, <code>c_ones</code>, <code>d_zeros</code>, ..., <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,6 +120,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
+        <h3>The phase map</h3>
+        <p>P(pre, x) = <code>[1] (10)<sup>x</sup> 1110 D&gt;</code> at the right end of blank tape. Checked by direct simulation for all 225 decoded cases with x ≤ 120: P(0, x) → P(x mod 2, 3⌊x/2⌋ + 6); P(1, 2i+1) → P(0, 3i + 6); P(1, 4i+2) → P(1, 9i + 15); P(1, 8i) → P(1, 27i + 18). The slopes 3/2, 9/4, 27/8 are powers of 3/2.</p>
+        <p class="where"><code>py/phasemap.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The case P(1, 8i+4)</h3>
+        <p>It splits further: 32i + 20 → P(0, 243i + 202) and 32i + 28 → P(0, 243i + 264) for i ≤ 3 (243 = 3<sup>5</sup>, 32 = 2<sup>5</sup>), while 4 → P(0, 193), 12 → P(1, 3771), 36 → P(1, 492), and 44, 68 take more than 10<sup>8</sup> steps. No halt in any of these runs.</p>
+        <p class="where"><code>py/phasemap.py</code> (<code>run</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Where it can halt</h3>
+        <p>Only B reading 1 halts; B is entered only from A reading 0, and A only from E reading 1, so the machine halts exactly on <code>E&gt; 1 0 1</code>. Read off the table.</p>
+        <p class="where">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No closed tape language with small windows</h3>
+        <p><code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS 3 to 7 fails; no invariant mod 2..12.</p>
+        <p class="where"><code>tools/py/bbtools/ctl.py</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 63,228 cells have been visited and 26,115 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
@@ -122,6 +147,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>63 phases, then the undecoded case</h3>
+        <p>From blank tape the machine reaches P(1, 3) at step 34; the map then gives P(0, 9), P(1, 18), P(1, 51), P(0, 81), P(1, 126), P(1, 294), P(1, 672), P(1, 2286), P(1, 5154), P(1, 11607), P(0, 17415), ... (the first 14 agree with the run to 1.8·10<sup>9</sup> steps) and stays in the decoded cases for 63 phases, to P(1, 2,162,240,868,156,300), which is ≡ 4 (mod 8). The map itself is only checked for small x, so the long orbit is a prediction, not a proof.</p>
+        <p class="where"><code>py/phasemap.py</code></p>
+      </div>
       <div class="card">
         <h3>Growth shape: exp/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.051). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.496).</p>
@@ -132,7 +162,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The decoded cases multiply x by (3/2)<sup>k</sup>; which case applies depends on the low binary digits of x, and each further level of 2-adic digits brings another factor 3/2. Deciding halting means understanding this map on all of its 2-adic levels (and whether some level produces <code>E&gt; 1 0 1</code>), a Collatz-type problem.</p>
       </div>
     </div>
   </section>
@@ -140,6 +170,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF/lean/check.sh
+python3 holdouts/1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF/py/phasemap.py
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF 1000000000</code></pre>
   </section>
   <footer>

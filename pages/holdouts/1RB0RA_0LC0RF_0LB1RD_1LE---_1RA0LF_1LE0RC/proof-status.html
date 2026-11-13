@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The two long passes of an excursion over the <code>11010</code> block are proved in Lean for every block length (kernel). In between, the head works on a counter whose digits and carry rule are not decoded yet. The C simulator runs 10<sup>11</sup> steps without a halt.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The two passes, for all lengths</h3>
+        <p><code>pass_left</code>: from <code>L 1 1 0 0 0 1 1 0 1 0 (11010)^(n+2) B&gt; 0^∞</code> the head crosses the block to the counter in 17n + 54 steps. <code>pass_right</code>: from <code>L A&gt; 1 1 1 0 (11010)^(n+1) 0^∞</code> it crosses back to a new cell at the right end in 27n + 44 steps. Both hold for every n and every tape L.</p>
+        <p class="where"><code>pass_left</code>, <code>pass_right</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,24 +120,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 34,618 cells have been visited and 20,728 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>A direct C simulation runs 10<sup>11</sup> steps without a halt; the tape is then 202,789 cells wide.</p>
+        <p class="where">README</p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.493).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>One word per excursion, a counter on the left</h3>
+        <p>Each excursion lengthens the <code>11010</code> block by one word (961, 962, … at 3·10<sup>7</sup> steps, 6,038 at 10<sup>9</sup>). The head turns inside the counter at depths in classes 25 cells apart, each class about 2.6 times rarer than the one before, the signature of a counter with 25-cell digits. Every digit has the form <code>11a0 11b0 1100 110c 0 11d0 11e0</code>: five bits, 28 of the 32 patterns seen. The first 1,260 cells of the tape are the same at steps 3·10<sup>7</sup> and 10<sup>9</sup>.</p>
+        <p class="where">README</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It halts exactly when C reads a 1 with a 1 on its right. The passes never do this; the counter work between them is not a closed rule yet.</p>
       </div>
     </div>
   </section>
@@ -140,7 +145,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC 1000000000</code></pre>
+python3 holdouts/1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC/py/gen_rules.py</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

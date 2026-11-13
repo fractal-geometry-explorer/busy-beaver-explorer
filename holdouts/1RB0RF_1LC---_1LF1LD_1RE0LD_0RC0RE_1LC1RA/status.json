@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G06",
  "title": "What is known about 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA.",
@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 12 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>Open, probviously halting.</b> The run alternates between two kinds of sweep that multiply a count k of copies of <code>10</code> by about 3/2 per half-phase (the zigzag is proved in Lean). A short word w at the left end is a memory: the next w and the exact correction depend only on w and the parity of k, by a table read off simulation. The machine halts exactly when w reaches a pattern with four ones in a row together with the wrong parity of k. The orbit avoids it for 2,000,005 half-phases; with random parities it is reached after about 2<sup>40</sup> half-phases."
  ],
  "claims": [
   {
@@ -40,25 +40,59 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "kernel",
+   "title": "The zigzag that turns (10)<sup>k</sup> into ones",
+   "text": "For every j, x, y and every tape L on the left: <code>L (10)^(x+2j) 1 1 E&gt; 0 1 1^(2y+1) 0^inf</code> reaches <code>L (10)^x 1 1 E&gt; 0 1 1^(2y+6j+1) 0^inf</code>. Each round uses up two copies of <code>10</code> at the junction and adds six ones at the right end of the tape, the head sweeping over the whole block of ones and back.",
+   "where": "<code>zig</code>, <code>lean/Zig.lean</code>; the round <code>e_round</code> in <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "34 half-phases, 7.6&middot;10<sup>13</sup> steps, no halt",
+   "text": "With the macro simulator the run reaches step 7.6&middot;10<sup>13</sup>. At the end of each half-phase the tape is a short word w followed by k copies of <code>10</code> or of <code>01</code>, with k = 4, 10, 19, 35, 55, 86, 133, 203, 307, 464, 700, 1055, 1585, 2381, 3578, &hellip;, 7,950,370; the two words alternate.",
+   "where": "<code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/phases.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The exact half-phase map on (w, k)",
+   "text": "At a half-phase end the tape is <code>w (10)^k F&gt;</code> (or <code>w (01)^k A&gt;</code>). The next end is <code>w&prime; (10)^k&prime;</code> with <b>k&prime; = (3k + c)/2</b>, where w&prime; and c depend only on w and the parity of k. Each entry of the table is read off direct simulation for 12 values of k of that parity between 60 and 140 and is the same for all of them; the 50 entries the orbit uses so far give c &#8712; {5, 7, 8, 9, 11, 14, 17}. Along the run from blank tape the table reproduces all 21 half-phases simulated directly (k up to 61,267) and the 34 of the macro simulator (k up to 7,950,370).",
+   "where": "<code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py check 60000</code>, <code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/c/halfphase.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "2,000,005 half-phases without a halt",
+   "text": "Run with the table, the orbit from blank tape makes 2,000,005 half-phases without meeting a halting entry; k then has 352,184 digits (about 10<sup>704,000</sup> machine steps; others report direct simulation to 1.1&middot;10<sup>79</sup>). It visits only 42 word states, most often w = '', '1', '1000', '101', '11000' (each about half as often as the one before), and never one where the other parity of k would have halted. The shortest way to a halting entry needs 41 prescribed parities in a row, so a halt is expected only after about 2<sup>40</sup> half-phases (the estimate below), when k has about 10<sup>12</sup> bits: out of reach of this method.",
+   "where": "<code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py long 2000000</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where it halts: words with four ones in a row",
+   "text": "A half-phase halts (B reads 1 near the left end) only from a few (w, parity) pairs, all with <code>1111</code> in w: ('1111', odd), ('111101', odd), ('11111', even), &hellip; Among the 2,958 word states reachable from the start under some sequence of parities (|w| &#8804; 18) there are 45 halting entries. The shortest way there takes 41 half-phases with prescribed parities: w counts up through '1', '1000', '101', '11000', '1101', '1000000', &hellip;, '1111000', '111101' and then needs an odd k.",
+   "where": "<code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py markov 18</code>"
+  },
+  {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.51).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Probviously halting, after about 2<sup>40</sup> half-phases",
+   "text": "If the parities of k behave like fair coins, the word state is a Markov chain on these states, and the chance of a halt within 2<sup>e</sup> half-phases is 6&middot;10<sup>-8</sup> for e = 16, 4&middot;10<sup>-3</sup> for e = 32, 0.62 for e = 40 and 0.9996 for e = 43. So the machine halts with probability 1 in this model, but only after about 10<sup>12</sup> half-phases, when k has about 2&middot;10<sup>11</sup> digits.",
+   "where": "<code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py markov 18</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Given the table (sampled, not proved), exactly when the orbit of (w = '', k = 4) meets a halting entry, i.e. a word with four ones in a row and the wrong parity of k. That is a question about the parities of the &times;3/2 sequence k, coupled to the word: Collatz-like.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA 1000000000",
+  "python3 holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/phases.py 1e13",
+  "python3 holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py check 60000",
+  "python3 holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py long 2000000",
+  "python3 holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py markov 18"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The tape is a short word followed by k copies of <code>10</code> or <code>01</code>; every half-phase multiplies k by about 3/2, and the parity of k edits the short word at the left end. This page shows the two sweeps (one proved in Lean), the half-phases, and what the question comes down to.",
   "facts": [
    {
     "level": "trusted",
@@ -71,9 +105,19 @@
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
    },
    {
+    "level": "kernel",
+    "value": "k &#8594; 3k ones",
+    "text": "The zigzag eating copies of <code>10</code>, proved for every size."
+   },
+   {
+    "level": "trusted",
+    "value": "2,000,005 half-phases",
+    "text": "No halt with the exact (sampled) map; k has 352,184 digits."
+   },
+   {
     "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "~2<sup>40</sup>",
+    "text": "Half-phases before a halt if the parities of k are coin flips."
    }
   ],
   "presets": [
@@ -86,6 +130,21 @@
   },
   "sections": [
    {
+    "id": "story",
+    "eyebrow": "What it does",
+    "heading": "Multiplying by 3/2, over and over",
+    "html": [
+     "<p>The left end of the tape barely moves (33 cells left of the start); everything grows to the right. At the end of each <em>half-phase</em> the tape is a short word w at the left end followed by k copies of a two-cell word, <code>10</code> or <code>01</code>, and the head is at the right end.</p>",
+     "<h3>Two sweeps</h3>",
+     "<p>First the copies of <code>10</code> are eaten from the right: in each round the head, at the junction between the copies and a growing block of ones, uses up two copies and the block gains six ones, the head running over the whole block and back (proved in Lean for every size):</p>",
+     "<p style=\"text-align:center\"><code>L (10)^(x+2) 1 1 E&gt; 0 1 1^y</code> &nbsp;&#8594;&nbsp; <code>L (10)^x 1 1 E&gt; 0 1 1^(y+6)</code></p>",
+     "<p>So k copies become about 3k ones. A second sweep then turns the block of ones into copies of <code>01</code> (or <code>10</code>), one copy per two ones: about 3k/2 copies. Then it starts again, with the roles of the two words exchanged.</p>",
+     "<h3>The half-phases</h3>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>left word w</th><th>copies</th><th>c = k&prime; &minus; 3k/2</th></tr></thead><tbody><tr><td>34</td><td><code>&middot;</code></td><td><code>(10)^4</code></td><td></td></tr><tr><td>198</td><td><code>11</code></td><td><code>(01)^10</code></td><td>+4</td></tr><tr><td>540</td><td><code>&middot;</code></td><td><code>(10)^19</code></td><td>+4</td></tr><tr><td>1,624</td><td><code>&middot;</code></td><td><code>(01)^35</code></td><td>+6.5</td></tr><tr><td>4,148</td><td><code>01</code></td><td><code>(10)^55</code></td><td>+2.5</td></tr><tr><td>9,772</td><td><code>0100</code></td><td><code>(01)^86</code></td><td>+3.5</td></tr><tr><td>22,792</td><td><code>01</code></td><td><code>(10)^133</code></td><td>+4</td></tr><tr><td>51,894</td><td><code>0100</code></td><td><code>(01)^203</code></td><td>+3.5</td></tr><tr><td>117,586</td><td><code>0101</code></td><td><code>(10)^307</code></td><td>+2.5</td></tr><tr><td>264,838</td><td><code>1100</code></td><td><code>(01)^464</code></td><td>+3.5</td></tr><tr><td>598,024</td><td><code>11</code></td><td><code>(10)^700</code></td><td>+4</td></tr><tr><td>1,348,482</td><td><code>10</code></td><td><code>(01)^1,055</code></td><td>+5</td></tr><tr><td>3,038,086</td><td><code>11</code></td><td><code>(10)^1,585</code></td><td>+2.5</td></tr><tr><td>6,827,066</td><td><code>&middot;</code></td><td><code>(10)^2,381</code></td><td>+3.5</td></tr><tr><td>15,390,394</td><td><code>&middot;</code></td><td><code>(01)^3,578</code></td><td>+6.5</td></tr><tr><td>34,672,270</td><td><code>&middot;</code></td><td><code>(10)^5,371</code></td><td>+4</td></tr><tr><td>78,078,074</td><td><code>&middot;</code></td><td><code>(01)^8,063</code></td><td>+6.5</td></tr><tr><td>175,749,246</td><td><code>01</code></td><td><code>(10)^12,097</code></td><td>+2.5</td></tr><tr><td>395,485,244</td><td><code>0100</code></td><td><code>(01)^18,149</code></td><td>+3.5</td></tr><tr><td>889,909,398</td><td><code>0101</code></td><td><code>(10)^27,226</code></td><td>+2.5</td></tr><tr><td>2,002,227,674</td><td><code>11</code></td><td><code>(01)^40,843</code></td><td>+4</td></tr><tr><td>4,505,229,696</td><td><code>1000</code></td><td><code>(10)^61,267</code></td><td>+2.5</td></tr><tr><td>10,137,229,372</td><td><code>11</code></td><td><code>(01)^91,906</code></td><td>+5.5</td></tr><tr><td>22,808,769,154</td><td><code>&middot;</code></td><td><code>(10)^137,863</code></td><td>+4</td></tr><tr><td>51,321,525,950</td><td><code>&middot;</code></td><td><code>(01)^206,801</code></td><td>+6.5</td></tr><tr><td>115,475,435,592</td><td><code>01</code></td><td><code>(10)^310,204</code></td><td>+2.5</td></tr><tr><td>259,820,181,322</td><td><code>&middot;</code></td><td><code>(01)^465,311</code></td><td>+5</td></tr><tr><td>584,600,512,334</td><td><code>01</code></td><td><code>(10)^697,969</code></td><td>+2.5</td></tr><tr><td>1,315,354,861,228</td><td><code>0100</code></td><td><code>(01)^1,046,957</code></td><td>+3.5</td></tr><tr><td>2,959,553,193,206</td><td><code>0101</code></td><td><code>(10)^1,570,438</code></td><td>+2.5</td></tr><tr><td>6,658,991,588,026</td><td><code>11</code></td><td><code>(01)^2,355,661</code></td><td>+4</td></tr><tr><td>14,982,744,465,998</td><td><code>1000</code></td><td><code>(10)^3,533,494</code></td><td>+2.5</td></tr><tr><td>33,711,191,974,972</td><td><code>1011</code></td><td><code>(01)^5,300,245</code></td><td>+4</td></tr><tr><td>75,850,188,269,700</td><td><code>011000</code></td><td><code>(10)^7,950,370</code></td><td>+2.5</td></tr></tbody></table></div>",
+     "<h3>The memory word</h3><p>Write the end of a half-phase as (w, k). The next one is (w&prime;, (3k + c)/2), and w&prime; and c depend only on w and on whether k is even or odd. For instance from w = '' an even k gives w&prime; = '1', c = 8 and an odd k gives w&prime; = '', c = 11; from '1' an odd k gives '1000', c = 5. So w is a small automaton driven by the parities of k, a little like a counter: from the start, a lucky sequence of 41 parities walks it up to '111101', and from there an odd k halts the machine. The real orbit has done 20,000 half-phases with w staying among 25 short words.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -96,7 +155,17 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,446,677</td><td><code>1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>970,092,789</td><td><code>1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>985,749,463</td><td><code>1 0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "why",
+    "eyebrow": "Why it is hard",
+    "heading": "A 3/2 map and a small memory",
+    "html": [
+     "<p>The count k follows k &#8594; (3k + 2c)/2 with a small c that depends on the parity of k and on the word w at the left end, and w itself is rewritten by each half-phase. This is the signature of a Collatz-like iteration: whether the halting transition (state B reading a 1, near the left end) is ever met depends on the parities of a sequence that grows by 3/2 at each step, which nobody knows how to control.</p>"
+    ]
    }
   ]
- }
+ },
+ "summary": "k copies of 10 -> (3k+c)/2 per half-phase, with a memory word w edited by the parity of k; halts when w gets 1111 with the wrong parity: probviously halting after ~2^40 half-phases.",
+ "family": "Collatz-like x3/2 map with a memory word (probviously halting)"
 }

@@ -124,14 +124,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LA_0RC1RF_0LD1RE_1LA0RB_0RD---_1RA1RD / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 12 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LA_0RC1RF_0LD1RE_1LA0RB_0RD---_1RA1RD</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. The tape is a list of numbers that the head rewrites from runs of 1s into gaps of 0s and back; around the start cell it works like a binary counter, and all but 0.02% of its events there follow rules proved for every size. The one way to stop has never come up.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 218 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/power</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>40 rules</b><span class="small">Event rules proved in Lean for every size.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>99.98%</b><span class="small">Of the 101,546,466 events of 3&middot;10<sup>9</sup> steps follow them.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>B&gt; 0 1 1</b><span class="small">From it the machine halts (Lean <code>halt_ctx</code>); every halt passes through it (from the table).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>0</b><span class="small">Times it occurred in 3&middot;10<sup>9</sup> steps.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ends">What the tape looks like</a><a href="#halt">The one way to stop</a><a href="#open">What a proof would need</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,10 +219,32 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>555,494,226</td><td><code>A&gt;0 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^4 1 0^8 1 0^5 1 0^23 1 0^5 1 0^8 1 0^5 1 0^8 1 0^10 1 0^3 1 0^4 1 0^5 1 0^2 1 0^2 1 0^2 1 0^2 1 0^5 1 0^2 1 0</code></td></tr><tr><td>left</td><td>740,043,586</td><td><code>A&gt;0 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^4 1 0^8 1 0^5 1 0^23 1 0^5 1 0^8 1 0^5 1 0^5 1 0^2 1 0^10 1 0^3 1 0^4 1 0^5 1 0^2 1 0^2 1 0^2 1 0^2 1 0^5 1 0^2 1 0</code></td></tr><tr><td>right</td><td>787,392,542</td><td><code>1 0 1 0^3 1 0^3 1 0 1 0 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0 1 0 1 0^3 1 0 1 0 1 0^3 1 0^3 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^4 0 1^8 0 1^5 0 1^23 0 1^5 0 1^8 0 1^5 0 1^5 0 1^17 0 1^34 A&gt;0</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="ends">
+  <span class="eyebrow">Structure</span>
+  <h2>What the tape looks like</h2>
+<p>The tape is a list of numbers written in two ways. When the head is at the right end, they are runs of 1s separated by single 0s (<code>1^4 0 1^8 0 1^5 0 1^23 0 &hellip;</code>); when it is at the left end, the same numbers are gaps of 0s between single 1s (<code>1 0^4 1 0^8 1 0^5 1 0^23 &hellip;</code>). State A, running left over a run of 1s, erases it (Lean: <code>(1)^n A&gt; 1</code> becomes <code>A&gt; 1 (0)^n</code>), and the sweep right writes the runs back. The left end is a run <code>A&gt;0 0 (10)^n</code> lengthened by one at each visit (45 to 48 between steps 7.4·10<sup>8</sup> and 1.5·10<sup>9</sup>); the right end is one run of 1s lengthened by one at each new cell on the right (34 to 38 in the same stretch). In between, the list changes slowly and irregularly.</p>
+<p>The ends of the tape at the last moments the head reached a new cell (run-length coded: <code>(10)^n</code> is n copies of <code>10</code>; the state is the head's):</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>step</th><th>width</th><th>state</th><th>left end of the tape</th></tr></thead><tbody><tr><td>5,923,406,522</td><td>240</td><td>A</td><td><code>00 (01)^51 ..0000100000</code></td></tr><tr><td>5,923,406,527</td><td>241</td><td>A</td><td><code>0 (01)^52 ..0000100000</code></td></tr><tr><td>8,895,660,676</td><td>245</td><td>A</td><td><code>00 (01)^52 ..0000100000</code></td></tr><tr><td>8,895,660,681</td><td>246</td><td>A</td><td><code>0 (01)^53 ..0000100000</code></td></tr><tr><td>11,848,450,672</td><td>247</td><td>A</td><td><code>00 (01)^53 ..0000100000</code></td></tr><tr><td>11,848,450,677</td><td>248</td><td>A</td><td><code>0 (01)^54 ..0000100000</code></td></tr><tr><td>17,792,959,072</td><td>252</td><td>A</td><td><code>00 (01)^54 ..0000100000</code></td></tr><tr><td>17,792,959,077</td><td>253</td><td>A</td><td><code>0 (01)^55 ..0000100000</code></td></tr></tbody></table></div>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>step</th><th>width</th><th>state</th><th>right end of the tape</th></tr></thead><tbody><tr><td>7,049,906,741</td><td>242</td><td>A</td><td><code>1111111110.. (1)^49 0</code></td></tr><tr><td>7,049,906,742</td><td>243</td><td>B</td><td><code>1111111110.. (1)^50 0</code></td></tr><tr><td>7,049,906,743</td><td>244</td><td>C</td><td><code>1111111110.. (1)^50 00</code></td></tr><tr><td>12,974,973,586</td><td>249</td><td>A</td><td><code>1111111110.. (1)^52 0</code></td></tr><tr><td>12,974,973,587</td><td>250</td><td>B</td><td><code>1111111110.. (1)^53 0</code></td></tr><tr><td>12,974,973,588</td><td>251</td><td>C</td><td><code>1111111110.. (1)^53 00</code></td></tr></tbody></table></div>
+</section>
+<section id="halt">
+  <span class="eyebrow">Halting</span>
+  <h2>The one way to stop</h2>
+<p>The halting transition is E reading a 1. E is entered only from C reading a 1 (C writes 1 and moves right), and C only from B reading a 0 (B writes 0 and moves right). So the machine halts exactly when it produces <code>B&gt; 0 1 1</code>; Lean proves the steps from there to the halt (<code>halt_ctx</code>).</p>
+<p>How close does it come? What B has ahead of it, counted at every step of the first 10<sup>9</sup> steps:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>B reads (from the head rightwards)</th><th>times in the first 10<sup>9</sup> steps</th><th>last time</th></tr></thead><tbody><tr><td><code>0 0 0</code></td><td>52,620,305</td><td>999,999,989</td></tr><tr><td><code>0 0 1</code></td><td>38,173,560</td><td>999,999,943</td></tr><tr><td><code>0 1 0</code></td><td>45,487,487</td><td>999,999,978</td></tr><tr><td><code>1 0 0</code></td><td>45,487,409</td><td>999,999,986</td></tr><tr><td><code>1 0 1</code></td><td>25</td><td>740,088,686</td></tr><tr><td><code>1 1 0</code></td><td>10</td><td>740,066,058</td></tr></tbody></table></div>
+<p>In the first 10<sup>9</sup> steps B had <code>1 0 1</code> ahead 25 times and <code>1 1 0</code> 10 times (the last at step 740,088,686, just after a visit to the left end), and never <code>0 1 1</code>.</p>
+</section>
+<section id="open">
+  <span class="eyebrow">What is left</span>
+  <h2>What a proof would need</h2>
+<p>Not known. Halting needs B to meet <code>0 1 1</code>; the list keeps every 1-run followed by a 0 where B could meet one, but without the rule of the list this is not proved.</p>
+<p>The basic moves are proved in Lean for every length (<code>lean/Rules.lean</code>: crossing a run of one word in a fixed number of steps per copy), so a proof would need only the rule of the counter on top of them.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 12 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -235,14 +258,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 218 cells have been visited and 65 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/power</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.074). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.125).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_ctx</code>, <code>lean/Rules.lean</code></div></div><div><b>The halting context</b><p>From <code>B&gt; 0 1 1</code> the machine reaches its halting transition (proved step by step, then <code>step_none_iff</code>). The halting transition is E reading a 1. E is entered only from C reading a 1 (C writes 1 and moves right), and C only from B reading a 0 (B writes 0 and moves right).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (generated by <code>lean/rules.py</code>)</div></div><div><b>Shift rules</b><p>8 shift rules over the words of the tape (for example <code>(1)^n A&gt; 1</code> becomes <code>A&gt; 1 (0)^n</code> in n steps and <code>B&gt; (100)^n</code> becomes <code>(111)^n B&gt;</code> in 3n steps), proved for every n.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in the first 20,000,000,000 steps</b><p><code>tools/c/tmrun.c</code> runs 20,000,000,000 steps without a halt; the visited tape is 254 cells wide and holds 66 ones.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/ctxcount.c</code> and <code>c/forbid.c</code> of <code>holdouts/1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA</code></div></div><div><b>Near misses</b><p>In the first 10<sup>9</sup> steps B had <code>1 0 1</code> ahead 25 times and <code>1 1 0</code> 10 times (the last at step 740,088,686, just after a visit to the left end), and never <code>0 1 1</code>.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">records of <code>tools/c/tmrun.c</code></div></div><div><b>Growth</b><p>The left run of <code>10</code> and the right run of 1s each gain one copy per visit of the head to that end, and the visits come at exponentially spaced times.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Events.lean</code>, <code>py/mined.txt</code></div></div><div><b>40 event rules for every size</b><p>From an event (A on the start cell) to the next: the 4-step <code>A&gt; 0 0 0 0</code> &rarr; <code>A&gt; 1 1 0 0</code>, the 18-step <code>0 0 A&gt; 1 1 0^7</code> &rarr; <code>0 1 A&gt; 0^6 1 0 0</code>, and 38 longer ones with up to two repeat counts, each proved for every value of its counts.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/rules.txt</code> with the batch's <code>c/evcov.c</code></div></div><div><b>Coverage: 99.98% of the events</b><p>101,546,466 events in 3&middot;10<sup>9</sup> steps, 18,500 not matched by a rule. The three most frequent rules fire 50,773,233, 16,777,216 (= 2<sup>24</sup>) and 8,388,597 times.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>evcov ... B:011</code></div></div><div><b>B&gt; 0 1 1 never occurs</b><p>In 3&middot;10<sup>9</sup> steps B never has <code>0 1 1</code> ahead.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Halting needs B to meet <code>0 1 1</code>; the list keeps every 1-run followed by a 0 where B could meet one, but without the rule of the list this is not proved.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LA_0RC1RF_0LD1RE_1LA0RB_0RD---_1RA1RD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LA_0RC1RF_0LD1RE_1LA0RB_0RD---_1RA1RD 1000000000</code></pre>
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LA_0RC1RF_0LD1RE_1LA0RB_0RD---_1RA1RD 20000000000
+gcc -O2 -o ctxcount holdouts/1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/c/ctxcount.c &amp;&amp; ./ctxcount 1RB0LA_0RC1RF_0LD1RE_1LA0RB_0RD---_1RA1RD 1e9 B 3</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LA_0RC1RF_0LD1RE_1LA0RB_0RD---_1RA1RD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

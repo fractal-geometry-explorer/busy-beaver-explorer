@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open, and probably never halting.</b> Every so often the tape is P(n) = <code>(10)^n A&gt; 0</code>. Lean (kernel) proves a computable macro step from P(n) to P(n&prime;) or to a halt, for every n, from 21 symbolic rules. Its value follows a closed form (checked, not proved, for every n &le; 200,000): with h<sub>k</sub> = 5&middot;2<sup>k</sup> &minus; k &minus; 6 (3, 12, 31, 70, 149, &hellip;) and h<sub>k</sub> &lt; n &lt; h<sub>k+1</sub>, P(n) goes to P(3n &minus; 10&middot;2<sup>k</sup> + 3k + 14), and P(h<sub>k</sub>) halts. So the machine halts if and only if the orbit of 4 ever lands exactly on some h<sub>k</sub>. Lean checks that it does not for 200 map steps by the kernel (10<sup>86</sup> machine steps) and 2,000 by <code>native_decide</code> (10<sup>798</sup>); Python follows it for 10<sup>5</sup> map steps. A target is hit by chance about once in 2<sup>k</sup> tries while k grows by about two thirds of a bit per step, so the chance of a halt later on is about 10<sup>&minus;20,000</sup>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The macro step from P(n), for every n</h3>
+        <p>With P(n) = <code>0^inf (10)^n A&gt; 0^inf</code>, the function <code>pstep n</code> returns either P(n&prime;) with an exact step count, or a halt, and <code>pstep_sound</code> proves for every n that the machine does exactly that. Inside: the head sweeps left turning the tape into 2n+2 ones (T phase); a doubling counter c = 1, 6, 16, 36, &hellip; eats 2c+6 ones per round through a zigzag (<code>zig_iter</code>, induction) and becomes 2c+4 (<code>t_round</code>); when fewer than 2c+6 ones are left the remainder decides: 0 or 1 left halts, otherwise a final sweep (<code>x_iter</code>) writes the new <code>(10)^n&prime;</code>. The step counts are closed polynomials (no recursion), so <code>pstep</code> can be evaluated.</p>
+        <p class="where"><code>pstep_sound</code>, <code>tend_sound</code>, <code>tphase_sound</code>, <code>lean/Macro.lean</code>; rules in <code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The run from blank tape follows the macro step</h3>
+        <p>The machine is at P(4) after 31 steps; <code>orbit k 4</code> applies the macro step k times, and <code>orbit_sound</code> turns any value of it into a statement about the machine.</p>
+        <p class="where"><code>init_P4</code>, <code>orbit_sound</code>, <code>no_halt_of_orbit</code>, <code>lean/Orbit.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 200 macro steps (more than 10<sup>86</sup> machine steps)</h3>
+        <p>The orbit of 4 survives 200 macro steps, evaluated by the kernel (<code>decide +kernel</code>); the step count reached is above 10<sup>86</sup>.</p>
+        <p class="where"><code>orbit_200</code>, <code>no_halt_200</code>, <code>orbitT_200_big</code>, <code>lean/Orbit.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -110,6 +125,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 2,000 macro steps (more than 10<sup>798</sup> machine steps)</h3>
+        <p>The same for 2,000 macro steps with <code>native_decide</code>; n then has 1,326 bits.</p>
+        <p class="where"><code>orbit_2000</code>, <code>no_halt_2000</code>, <code>orbitT_2000_big</code>, <code>lean/Orbit.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -119,20 +139,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 38,387 cells have been visited and 21,118 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The closed form of the macro step</h3>
+        <p>For h<sub>k</sub> &lt; n &lt; h<sub>k+1</sub> with r = n &minus; h<sub>k</sub> &minus; 1: n&prime; = 5&middot;2<sup>k</sup> &minus; 1 + 3r in 12r&sup2; + (40&middot;2<sup>k</sup>+6)r + (100&middot;4<sup>k</sup>+23)/3 &minus; 10&middot;2<sup>k</sup> steps; P(h<sub>k</sub>) halts. A Python transcription of the Lean <code>pstep</code> agrees with this for every 1 &le; n &le; 200,000 (the closed form itself is not proved in Lean). Direct simulation agrees too: all 16 P-events of the run from blank tape up to 10<sup>10</sup> steps (n = 4, 9, 24, 52, 99, 163, 198, 303, 618, 1246, 2493, 4957, 9792, 19180, 37107, 70411; the last at step 9,108,900,940) match in n and step.</p>
+        <p class="where"><code>py/macro.py check 200000</code>, <code>py/macro.py orbit 1e10</code>, <code>c/pevents.c</code></p>
+      </div>
+      <div class="card">
+        <h3>10<sup>5</sup> macro steps without a halt</h3>
+        <p>Python iterates the closed form (exact big integers) for 10<sup>5</sup> macro steps from P(4) without landing on an h<sub>k</sub>; n then has 66,605 bits and the step count is about 10<sup>40,100</sup>.</p>
+        <p class="where"><code>py/macro.py far 1e5</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: exp/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.524). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.055).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Probviously non-halting</h3>
+        <p>At level k, n&prime; ranges over about 5&middot;2<sup>k</sup> values in steps of 3, and on average 2/3 of a target h<sub>j</sub> per level lies among them; treating r as random, the chance of a halt is about 2<sup>&minus;k</sup> per macro step. The level grows by about 0.66 per macro step (n multiplies by about 1.58), so the sum converges: from the end of the 10<sup>5</sup> checked steps (k about 66,605) the chance that it ever halts is about 10<sup>&minus;20,000</sup>. The machine is a cousin of the &ldquo;Cryptids&rdquo;: its halting is a question about the digits of an orbit, which no known method decides.</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It halts if and only if the orbit of 4 under the map reaches some h<sub>k</sub> (given the closed form; with only the Lean macro step: if and only if <code>pstep</code> ever returns a halt along the orbit).</p>
       </div>
     </div>
   </section>
@@ -140,7 +169,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE 1000000000</code></pre>
+python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py check 200000
+python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py orbit 1e10
+gcc -O2 -o pevents holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/c/pevents.c &amp;&amp; ./pevents 10000000000
+python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py far 1e5</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G03",
+ "generated": false,
+ "group": "binary counter with paying blocks",
  "title": "What is known about 1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD.",
  "machine": "1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD",
@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The left end runs a binary decrement over bits separated by blocks of <code>10</code> (proved in Lean for one to three borrows); a halt needs the head in A on four 0s in a row (proved in Lean), which the counter makes only when two neighbouring blocks are empty at once. Perturbing the block lengths of a real configuration makes the machine halt, so non-halting depends on the arithmetic of the lengths; the rewriting rule for an empty block is not yet decoded."
  ],
  "claims": [
   {
@@ -46,9 +46,45 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "The sweeps",
+   "text": "Eight shift rules over <code>(10)^n</code>, <code>(01)^n</code> and <code>(011)^n</code>, for all n and any tapes around (one copy by <code>rfl</code>, all copies by <code>TM.cross_r</code> / <code>TM.cross_l</code>).",
+   "where": "<code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Right-end events to 4.5·10<sup>9</sup> steps",
+   "text": "A C run to 5·10<sup>9</sup> steps, sampled each time the tape grows on the right (62 times): a list of blocks <code>a^x</code> (a = 10) separated by <code>1^4 0</code>; block j from the right loses 2<sup>j</sup> copies of a from one event to the next, and fresh leftmost blocks have length 2<sup>m</sup>−3.",
+   "where": "<code>README.md</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The binary decrement at the left end",
+   "text": "At a left-end visit the tape is <code>A&gt; 0 (10)^x b1 (10)^y1 b2 (10)^y2 …</code> with one-cell bits. With the lowest set bit first, second or third, one visit clears it, sets the bits below it, takes one copy from the block after it and adds two copies to the first block, for all lengths.",
+   "where": "<code>dec_1</code>, <code>dec_2</code>, <code>dec_3</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A halt needs four 0s in a row",
+   "text": "Four steps before any halting configuration the head is in state A on <code>0 0 0 0 1</code> (E is entered only from D on 0, D next to a 1 only from C on 0, C only from B on 0, B only from A on 0).",
+   "where": "<code>halt_needs_four_zeros</code>, <code>lean/Halting.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Runs of zeros stay short",
+   "text": "A run of zeros grows for good only when B reads <code>1 1 0^r</code>. In 10<sup>9</sup> steps from blank tape a run of three zeros (<code>(10)^k 11 000 (10)^m</code>) is made 37 times and a run of four never.",
+   "where": "<code>c/zeroruns.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Non-halting depends on the block lengths",
+   "text": "Replacing the block lengths of the real configuration at the right-end event of step 173,780,460 by random ones makes the machine halt: 4 of 100 trials with lengths in [1, 60] within 2·10<sup>7</sup> steps, 3 of 300 with lengths in [5, 300] of the real parity within 5·10<sup>7</sup>. Each halt comes from two neighbouring blocks running out together (<code>(10)^x 0 0 0 (10)^y</code>). So no tape language that forgets the lengths can be closed and halt-free.",
+   "where": "<code>c/pert.c</code>, <code>README.md</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. It halts exactly if two neighbouring blocks are ever empty together with zero bits around them; the rule that rewrites the list when the borrow meets an empty block is not decoded, so this is not yet a question about a map.",
    "where": ""
   }
  ],
@@ -58,22 +94,27 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The left end of the tape is a binary counter: one-cell bits between blocks of 10s, and every time a bit is cleared the block after it pays one copy. It can only halt if two neighbouring blocks run out at the same time.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 85,032 cells visited."
+    "value": "5·10<sup>9</sup> steps",
+    "text": "No halt in the C simulator."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "0 0 0 0 1",
+    "text": "A halt needs the head in A on four 0s in a row (Lean)."
    },
    {
-    "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "kernel",
+    "value": "binary decrement",
+    "text": "One visit of the left end decrements the counter, proved for one to three borrows."
+   },
+   {
+    "level": "trusted",
+    "value": "7 / 400",
+    "text": "Perturbed block lengths halt in about 2% of trials: the lengths matter."
    }
   ],
   "presets": [
@@ -85,6 +126,29 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "tape",
+    "eyebrow": "What it does",
+    "heading": "A binary counter that pays with blocks",
+    "html": [
+     "<p>Write <code>a</code> for <code>10</code>. Each time the head reaches a new cell at the left end the tape reads</p>",
+     "<pre>A&gt; 0 a^x  b1 a^y1  b2 a^y2  …  bk a^yk  tail</pre>",
+     "<p>with single-cell bits <code>b</code> (0 or 1) between blocks. One visit of the left end is one binary decrement (b1 is the lowest bit):</p>",
+     "<ul><li>the lowest bit that is 1 becomes 0 and the bits below it become 1;</li><li>the block just after that bit loses one copy;</li><li>the first block gains two copies.</li></ul>",
+     "<table class=\"tbl\"><thead><tr><th>step</th><th>left end</th></tr></thead><tbody><tr><td>144,588,740</td><td><code>a^3 1 a^637 0 a^3421 1 a^1070 …</code></td></tr><tr><td>144,588,768</td><td><code>a^5 0 a^636 0 a^3421 1 a^1070 …</code></td></tr><tr><td>144,613,150</td><td><code>a^7 1 a^636 1 a^3421 0 a^1069 …</code></td></tr><tr><td>144,613,202</td><td><code>a^9 0 a^635 1 a^3421 0 a^1069 …</code></td></tr></tbody></table>",
+     "<p>So the block after bit j pays one copy every 2<sup>j</sup> visits. When every bit is 0 the borrow runs out to the right end (the rare events on the slow side of the tape) and the counter starts again with a new first block. When the borrow meets an empty block the list is rewritten, blocks are split and merged; that rule is not decoded yet.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Halting",
+    "heading": "Four zeros in a row",
+    "html": [
+     "<p>The machine stops only on E reading 1. Tracing back four steps (proved in Lean): E comes only from D on a 0, D next to a 1 only from C on a 0, C only from B on a 0, B only from A on a 0. So a halt needs the head in state A on <code>0 0 0 0 1</code>: four blank cells inside the written tape.</p>",
+     "<p>The counter's zeros come alone or in pairs. Two empty blocks side by side with zero bits around them give <code>a^x 0 0 0 a^y</code>, four zeros in a row with the last 0 of the block, and that is how a halt would happen.</p>",
+     "<p>Is it avoided because of the shape of the tape, or because of the numbers? When the block lengths of a real configuration are replaced by random ones (keeping the shape, even keeping every length odd as the real ones are), about 2% of the runs halt within 10<sup>7</sup>–10<sup>8</sup> steps, always by two neighbouring blocks running out together. The real lengths never do. So a proof that it never halts has to follow the arithmetic of the lengths; a closed tape language that forgets them cannot work.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +162,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A binary counter whose bits sit between blocks of 10s, each block paying one copy when its bit is cleared; a halt needs two neighbouring blocks to run out together, which depends on the block lengths themselves.",
+ "decision": "open"
 }

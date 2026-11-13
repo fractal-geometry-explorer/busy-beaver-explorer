@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows, but the question is now about one number. Read at the moments the head is at the left end, the tape holds a single number n; Lean proves that the machine halts exactly when a simple map on n, started at 1, lands on one of the thresholds 3, 12, 31, 70, 149, ... The map has been iterated 1.25 million times without that happening.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 36,587 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>halts ⇔ n = c<sub>i</sub></b><span class="small">Lean: the machine halts iff the orbit of 1 lands on a threshold.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>1.25·10<sup>6</sup> map steps</b><span class="small">No hit; n has about 833,000 bits by then.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>≈ 2<sup>−i</sup></b><span class="small">Chance of a hit at a step of level i; i grows at every few steps.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">One number, and a ruler</a><a href="#map">Triple, and subtract a power of two</a><a href="#halt">Only by landing exactly on a threshold</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,34 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>One number, and a ruler</h2>
+<p>Whenever the head is at the left end of the tape, the tape reads</p>
+<pre>S n  =  C&gt;0 (10)^n 1</pre>
+<p>a block of n pairs <code>10</code>. From blank tape the first such sample is S 1, after 4 steps. A round has two phases.</p>
+<p><b>Phase 1</b> turns the block into a run of 2n − 2 ones and then measures it: the tape becomes</p>
+<pre>V K i m  =  1^(2K) 0 A&gt;0 (10)^(2i) 111 0 (10)^m 1</pre>
+<p>and each bounce takes two ones from the left and one pair from the right block and adds two pairs to the middle: V (K+1) i (m+1) → V K (i+1) m. When the right block is used up, the middle block moves over to the right with five extra pairs: V (K+4) i 0 → V K 0 (2i+5). So the right block is a ruler of 0, 5, 15, 35, 75, ... = 5·2<sup>t</sup> − 5 pairs, doubling each time, paid for by the ones on the left.</p>
+<p>The phase ends when the ones run out. Most of the time this happens in the middle of a bounce sequence (V 0 i (m+1)); at the end of a sub-phase it can end four ways, V 2K i 0 for K = 0, 1, 2, 3, and <b>K = 2 is the halting transition</b> (state F reading 0).</p>
+<p><b>Phase 2</b> turns <code>C&gt;0 (10)^x 111 0 (10)^z 1</code> back into a sample, S (2x + z + 4).</p>
+</section>
+<section id="map">
+  <span class="eyebrow">The rule</span>
+  <h2>Triple, and subtract a power of two</h2>
+<p>With thresholds c<sub>i</sub> = 10·2<sup>i</sup> − i − 7 (−1, 3, 12, 31, 70, 149, 308, 627, ...), for c<sub>i</sub> &lt; n ≤ c<sub>i+1</sub>:</p>
+<pre>next(n) = 3n − 2c_i + i + 3     if n &lt; c_(i+1)
+          HALT                  if n = c_(i+1)</pre>
+<p>Lean defines the map one bounce at a time and proves the machine follows it; the closed form above is checked against that definition for every n below 10,000. The orbit of 1, which matches the machine's samples exactly:</p>
+<table><tr><th>k</th><th>n</th><th>level i</th></tr><tr><td>0</td><td>1</td><td>−1</td></tr><tr><td>1</td><td>7</td><td>0</td></tr><tr><td>2</td><td>18</td><td>1</td></tr><tr><td>3</td><td>34</td><td>2</td></tr><tr><td>4</td><td>45</td><td>2</td></tr><tr><td>5</td><td>78</td><td>3</td></tr><tr><td>6</td><td>100</td><td>3</td></tr><tr><td>7</td><td>166</td><td>4</td></tr><tr><td>8</td><td>207</td><td>4</td></tr><tr><td>9</td><td>330</td><td>5</td></tr><tr><td>10</td><td>382</td><td>5</td></tr><tr><td>11</td><td>538</td><td>5</td></tr><tr><td>12</td><td>1006</td><td>6</td></tr><tr><td>13</td><td>1773</td><td>7</td></tr></table>
+<p>The left end of the tape moves once per round while n roughly triples, so the left side grows like the logarithm of time; the head sweeps the whole block, so the right side grows like its square root.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>Only by landing exactly on a threshold</h2>
+<p>Write n = c<sub>i</sub> + d. The offset d, somewhere between 0 and 10·2<sup>i</sup>, becomes 3d + i + 3: it triples and wraps into the next level or the one after. The machine halts only if the offset lands <em>exactly</em> on the end of a level. In 1,250,000 steps of the map that never happened; n has 833,000 bits by then.</p>
+<p>If the offset behaves like a random number, the chance of an exact hit at a step of level i is about 1/(10·2<sup>i</sup>), and these chances add up to almost nothing: the machine is expected to run forever. Proving it would mean controlling the digits of an orbit of a map like n → 3n − 2<sup>k</sup>, a Collatz-like problem, so this machine is a <em>cryptid</em>.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +263,24 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 36,587 cells have been visited and 18,743 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.066). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.523).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>p0</code>…<code>w2</code>, <code>lean/Rules.lean</code> (generated by <code>py/gen_rules.py</code>); <code>phase2</code>, <code>lean/Phase2.lean</code>; <code>v1</code>…<code>v_e3</code>, <code>lean/Phase1.lean</code></div></div><div><b>The rules of a round</b><p>Every rule of both phases, for all values of the counts: the sample S (n+3) becomes V (n+2) 0 0, one bounce V (K+1) i (m+1) → V K (i+1) m, the end of a sub-phase V (K+4) i 0 → V K 0 (2i+5), the five ways the first phase ends (one of them the halt), and the second phase T x z → S (2x+z+4).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>ph_spec</code>, <code>lean/Phase1.lean</code></div></div><div><b>The map</b><p>For all K, i, m: V K i m reaches the sample S n when <code>ph K i m = some n</code>, and halts when <code>ph K i m = none</code>; <code>ph</code> is a recursive function following the rules one bounce at a time.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_4</code>, <code>halts_iff_orbit</code>, <code>lean/Phase1.lean</code></div></div><div><b>Halts if and only if the orbit hits none</b><p>From blank tape the machine reaches S 1 in 4 steps; so it halts if and only if the orbit of 1 under <code>next n = ph (n−1) 0 0</code> reaches <code>none</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/orbit.py cmp 10000</code></div></div><div><b>The closed form of the map</b><p>next(n) = 3n − 2c<sub>i</sub> + i + 3 for c<sub>i</sub> &lt; n &lt; c<sub>i+1</sub> and a halt for n = c<sub>i+1</sub>, with c<sub>i</sub> = 10·2<sup>i</sup> − i − 7. Derived by adding up the sub-phases (the right block runs through 5·2<sup>t</sup> − 5 pairs) and checked against Lean's definition for all n &lt; 10,000; not proved in Lean.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/samples.c</code> | <code>py/orbit.py check</code></div></div><div><b>The map matches the machine</b><p>The 19 samples S n of the first 10<sup>9</sup> machine steps are exactly the first 19 points of the orbit of 1: 1, 7, 18, 34, 45, 78, 100, 166, ...</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/orbit.py</code></div></div><div><b>No halt in 1,250,000 map steps</b><p>Iterating the closed form with Python big integers, the orbit of 1 never lands on a threshold in 1,250,000 steps; n then has about 833,000 bits, so the machine has run far more than 2<sup>800000</sup> steps.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/orbit.py</code></div></div><div><b>Why a halt looks unlikely</b><p>Write n = c<sub>i</sub> + d; the offset d, between 0 and 10·2<sup>i</sup>, becomes 3d + i + 3, wrapping into the next level or the one after. A halt needs the offset to land exactly on the end of its level; treating d as random the chance is about 1/(10·2<sup>i</sup>) per step, and i grows by about 0.67 per step, so the expected number of future hits is far below 2<sup>-100000</sup>. A halt at the next step needs 3n = 4c<sub>i</sub> + 3, possible only for i ≡ 0, 1 (mod 6); the closest approach seen was |3n − 4c<sub>i</sub> − 3|/c<sub>i</sub> ≈ 5.9·10<sup>-6</sup>.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It is equivalent (in Lean) to whether the orbit of 1 under the map ever lands exactly on a threshold c<sub>i</sub>; that is a Collatz-like question with no known method of attack.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE 1000000000</code></pre>
+PYTHONPATH=tools/py python3 holdouts/1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE/py/gen_rules.py | diff - holdouts/1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE/lean/Rules.lean
+python3 holdouts/1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE/py/orbit.py cmp 10000
+python3 holdouts/1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE/py/orbit.py 1250000 250000
+gcc -O2 -o samples holdouts/1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE/c/samples.c &amp;&amp; ./samples 1000000000 &gt; s.txt &amp;&amp; python3 holdouts/1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE/py/orbit.py check s.txt</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G13",
  "title": "What is known about 1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE.",
@@ -8,11 +8,14 @@
  "home": "../index.html",
  "source": "holdouts/1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is always an alternating block <code>(10)^x</code> next to a solid block <code>1^y</code>, and the machine moves cells between them by doubling, like its near-twin <code>1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE</code>. This page lists what has been established about it, sorted by what each result rests on."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; an exact macro simulator finds no halt in the first 10<sup>15</sup> steps. Lean proves both phase rules (below) for all sizes.",
+  "<b>What Lean proves.</b> The whole phase map, every case for all sizes (E(x, z) = <code>E&gt;0 (10)^x 1^z</code>, A(x, y) = <code>(10)^x 1^y A&gt;0</code> and the bounce frame Q(m, j, t) = <code>(10)^m 1 D&gt;0 0 (1010)^j 1^t</code>), and <code>halts_iff</code>: the machine halts from blank tape if and only if the map, iterated from A(0, 0) (the blank tape), reaches E(x, 0) or E(x, 1). By <code>native_decide</code> the first 10<sup>8</sup> phases (about 4.1&middot;10<sup>21</sup> machine steps) do not. Lean also proves that the <em>even</em> phases lead only to even phases or to an all-ones tape, and checks, for every all-ones tape of length n &lt; 10<sup>5</sup>, that its run halts before the next even phase or all-ones tape exactly when n is 3 or 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 (15, 41, 95, 205, &hellip;). What is not proved: that this list holds for every n, and that the run never lands on it.",
+  "<b>Where a halt would come from.</b> F0 halts, and F is entered only from E0: the machine halts only when E stands at the left end with at most one 1 after the alternating block. Probing every two-block tape with x, y &lt; 150, a parity rule keeps that from happening except right after the tape has become all ones; from <code>1^n A&gt;0</code> it halts exactly for n = 3, 15, 29, 41, 95, 205 (n &le; 400), the list n = 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 plus 3 and 29.",
+  "<b>Why it has not halted.</b> All-ones moments are rare: in the first 10<sup>9</sup> steps the tape was <code>1^n A&gt;0</code> at n = 4, 10, 58, 81, 278 and 634, and between 10<sup>9</sup> and 10<sup>15</sup> steps only at n = 5881, 9702, 12113, 28074, 29561 and 405562. None is in the list. The machine very probably never halts, but nothing here proves it."
  ],
  "claims": [
   {
@@ -46,34 +49,127 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>15</sup> steps",
+   "text": "The exact macro simulator <code>c/mrun.c</code> (blocks of 2 cells, run-length coded, a run crossed at once when the head leaves it on the far side in the state it entered with) runs 10<sup>15</sup> steps without a halt.",
+   "where": "<code>holdouts/1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE/c/mrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The two phase rules, along the run",
+   "text": "Write <code>E(x,z)</code> for <code>E&gt;0 (10)^x 1^z</code> and <code>A(x,y)</code> for <code>(10)^x 1^y A&gt;0</code> (blank around). In the first 10<sup>9</sup> steps every left phase with z &ge; 2x+8 went E(x,z) &rarr; E(2x+4, z&minus;2x&minus;6) (469 times) and every right phase with y even and 2x &ge; y+8 went A(x,y) &rarr; A(x&minus;y/2&minus;2, 2y+6) (495 times).",
+   "where": "<code>py/phases.py check</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The two phase rules, for all sizes",
+   "text": "Lean proves, with <code>rfl</code> steps, the crossing lemmas and induction on the number of bounces, that E(x,z) reaches E(2x+4, z&minus;2x&minus;6) whenever x &ge; 1 and z &ge; 2x + 7 (<code>ephase</code>), and A(x,y) reaches A(x&minus;y/2&minus;2, 2y+6) whenever y &ge; 4 is even and 2x &ge; y + 4 (<code>aphase</code>). Each phase is a start piece, one bounce <code>(10)^(m+1) 1 D&gt;0 0 (1010)^j 1^(r+3)</code> to <code>(10)^m 1 D&gt;0 0 (1010)^(j+1) 1^(r+1)</code> per copy of <code>10</code>, and an end piece, generated by <code>py/gen_rules.py</code>; the proof is the one of <code>1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE</code>, with a different start piece for the A phase. The parity analysis that uses these rules is not proved.",
+   "where": "<code>lean/Rules.lean</code>, <code>lean/EPhase.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Step counts of the phases",
+   "text": "From probes: the left phase takes 4x&sup2;+24x+30 steps (the same as in its twin, whose states D, E, F, B it shares) and the right phase y&sup2;+6y+12. Doubling costs the square of the block, so the width grows like t<sup>1/3</sup>.",
+   "where": "<code>py/phases.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Halting needs an all-ones tape from a sparse list",
+   "text": "From every two-block tape with x, y, z &lt; 150 the next one was computed. E(x,z) with z even &ge; 2 and A(x,y) with x &ge; 1, y even lead only to tapes of the same kind or to an all-ones tape <code>1^n A&gt;0</code>, never to a halt; the machine halts only from E(x,0) and E(x,1). From <code>1^n A&gt;0</code> the next tape is E(3, n&minus;2), the alternating block then goes 3, 10, 24, 52, &hellip; (x &#8614; 2x+4), and the run halts exactly when the ones run out leaving one: n = 15, 41, 95, 205, &hellip; = 28&middot;2<sup>k</sup> &minus; 2k &minus; 13, plus 3 and 29 (all n &le; 400 checked directly). Not proved for all sizes.",
+   "where": "<code>py/phases.py probe</code>, <code>py/phases.py ones</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "All-ones moments so far",
+   "text": "In the first 10<sup>9</sup> steps the tape is <code>1^n A&gt;0</code> at n = 4, 10, 58, 81, 278, 634 (the last at step 3,956,315). Between 10<sup>9</sup> and 10<sup>15</sup> steps, from the exact macro simulation (which sees the moment <code>1^(n+1) &lt;C</code> two steps later): n = 5881, 9702, 12113, 28074, 29561, 405562, at steps about 2.93&middot;10<sup>9</sup>, 1.28&middot;10<sup>10</sup>, 2.48&middot;10<sup>10</sup>, 3.10&middot;10<sup>11</sup>, 3.62&middot;10<sup>11</sup> and 9.26&middot;10<sup>14</sup>. None is in the list (its members near them: 7139, 14305, 28639, 229337, 458711).",
+   "where": "<code>c/mrun.c</code>, <code>py/phases.py check</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The whole phase map",
+   "text": "Write E(x, z) = <code>E&gt;0 (10)^x 1^z</code>, A(x, y) = <code>(10)^x 1^y A&gt;0</code> and the bounce frame Q(m, j, t) = <code>(10)^m 1 D&gt;0 0 (1010)^j 1^t</code>. <code>next</code> sends each of them to the next one the machine reaches (bounces taken all at once), with 25 cases; <code>next_sound</code> proves every case for all parameters (one symbolic run of <code>lean/Pieces.lean</code> each, generated by <code>py/pieces.py</code>, and induction for the bounces). <code>next</code> fails only at E(x, 0) and E(x, 1), which halt (<code>e_halts</code>).",
+   "where": "<code>lean/Phases.lean</code>, <code>lean/Pieces.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Halts if and only if the map reaches E(x, 0) or E(x, 1)",
+   "text": "<code>halts_iff</code>: the machine halts from blank tape if and only if some iterate of <code>next</code> from A(0, 0) (the blank tape) is E(x, z) with z &le; 1.",
+   "where": "<code>lean/Phases.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>8</sup> phases",
+   "text": "<code>no_halt_phases</code>, by <code>native_decide</code>: the first 10<sup>8</sup> iterates are defined and none is E(x, 0) or E(x, 1). By the step counts of the pieces (<code>py/phasemap.py run</code>) that is about 4.1&middot;10<sup>21</sup> machine steps.",
+   "where": "<code>lean/Phases.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The parity classes",
+   "text": "<code>even_next</code>: the even phases (E(x, z) with z even and z &ge; 2, A(x, y) with x &ge; 1 and y even, Q(m, j, t) with t even) lead only to even phases or to an all-ones tape. So from an even phase the machine cannot halt before the tape is next all ones (<code>even_safe</code>).",
+   "where": "<code>lean/Phases.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "The fatal all-ones lengths below 10<sup>5</sup>",
+   "text": "<code>fatal_list</code>, by <code>native_decide</code>: for every n &lt; 10<sup>5</sup>, the run from the all-ones tape A(0, n) reaches a halting phase before an even phase or another all-ones tape exactly when n is 3 or 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 (15, 41, 95, 205, &hellip;) (<code>ones_fatal</code>, <code>ones_safe</code>). That the list goes on this way for every n is not proved.",
+   "where": "<code>lean/Phases.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "All-ones moments in the first 10<sup>8</sup> phases",
+   "text": "Iterating the map with the pieces' step counts (<code>py/phasemap.py run 100000000</code>): after n = 405562 (step 9.26&middot;10<sup>14</sup>) the tape is all ones at n = 2163590, 2453178, 10123514, 11319782 and 23880729 (the last near step 1.89&middot;10<sup>20</sup>). None is fatal.",
+   "where": "<code>py/phasemap.py</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. It would need an all-ones tape whose length is in a sparse list; nothing rules that out.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE 1000000000",
+  "gcc -O2 -o mrun holdouts/1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE/c/mrun.c && ./mrun 1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE 2 1000000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows, but the mechanism is clear. The tape is an alternating block next to a solid block; the machine doubles one at the other's expense, back and forth. It can halt only right after the tape becomes all ones, and only if the number of ones is in a sparse list (15, 41, 95, 205, &hellip;).",
   "facts": [
+   {
+    "level": "native",
+    "value": "10<sup>8</sup> phases",
+    "text": "No halt in the first 10<sup>8</sup> phases of the phase map proved in Lean (about 4.1&middot;10<sup>21</sup> machine steps)."
+   },
+   {
+    "level": "kernel",
+    "value": "<code>halts_iff</code>",
+    "text": "It halts if and only if the phase map, iterated from the start, reaches E(x, 0) or E(x, 1)."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>15</sup> steps",
+    "text": "No halt in an exact macro simulation (blocks of 2 cells, runs crossed at once)."
+   },
+   {
+    "level": "heuristic",
+    "value": "<code>(10)^x 1^y</code>",
+    "text": "The tape is an alternating block and a solid block; each phase doubles one of them."
+   },
+   {
+    "level": "heuristic",
+    "value": "Halts only after <code>1^n</code>",
+    "text": "From an all-ones tape it halts exactly for n = 3, 15, 29, 41, 95, 205 (checked to n = 400)."
+   },
+   {
+    "level": "kernel",
+    "value": "both phase rules",
+    "text": "E(x,z) &rarr; E(2x+4, z&minus;2x&minus;6) and A(x,y) &rarr; A(x&minus;y/2&minus;2, 2y+6), proved in Lean for all sizes."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
     "text": "No halt in the C simulator; 4,094 cells visited."
-   },
-   {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "power/power",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +181,38 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "blocks",
+    "eyebrow": "Macro structure",
+    "heading": "Two blocks, doubling",
+    "html": [
+     "<p>Stop the machine whenever its head first reaches a new cell and the tape is always an <em>alternating</em> block <code>10 10 10 &hellip;</code> followed by a <em>solid</em> block of 1s. With <code>a</code> for <code>10</code>, around step 4.8&middot;10<sup>7</sup>:</p>",
+     "<ul><li>step 48,123,183: <code>a^637 1^226 A&gt;0</code></li><li>step 48,175,627: <code>a^522 1^458 A&gt;0</code></li><li>step 48,388,151: <code>a^291 1^922 A&gt;0</code></li><li>step 48,729,549: <code>E&gt;0 a^582 1^339 1110</code></li></ul>",
+     "<p>At the right end the solid block doubles (226, 458, 922), eating the alternating block; when that no longer fits the head goes to the left end and the alternating block doubles instead (291 to 582), eating the solid one. Writing <code>E(x,z)</code> for <code>E&gt;0 (10)^x 1^z</code> and <code>A(x,y)</code> for <code>(10)^x 1^y A&gt;0</code>:</p>",
+     "<ul><li><b>left phase</b>: E(x,z) &rarr; E(2x+4, z&minus;2x&minus;6) while z &ge; 2x+8, in 4x&sup2;+24x+30 steps: the head bounces between the blocks, each bounce moving one <code>10</code> across and turning two 1s into another <code>10</code>;</li><li><b>right phase</b>: A(x,y) &rarr; A(x&minus;y/2&minus;2, 2y+6) for even y while it fits, in y&sup2;+6y+12 steps.</li></ul>",
+     "<p>Each doubling of a block of size x costs about x&sup2; steps, and the tape grows by a few cells per phase change, so a tape of width w takes about w&sup3; steps: the width grows like the cube root of time. The split between the blocks moves like the doubling map x &#8614; 2x on a circle, a textbook chaotic map.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "The one way to halt",
+    "heading": "Halting needs an exact landing",
+    "html": [
+     "<p>F reading 0 halts, and F is entered only from E reading 0; E and F together walk right over <code>0101&hellip;</code>. So the run halts only from <code>E&gt;0 (10)^x</code> or <code>E&gt;0 (10)^x 1</code>: a left phase that uses up the solid block leaving exactly one 1.</p>",
+     "<p>Parity prevents that in the normal course of things: probing all two-block tapes with sizes below 150, if z is even in the left phase and y is even in the right phase, the next two-block tape is again of that kind or the tape becomes all ones. From <code>1^n A&gt;0</code> the left phase restarts at E(3, n&minus;2); the alternating block goes 3, 10, 24, 52, &hellip;, using 12, 26, 54, &hellip; ones, and the run halts if exactly one is left: n = 15, 41, 95, 205, 423, &hellip; (n = 28&middot;2<sup>k</sup> &minus; 2k &minus; 13), and also n = 3 and 29 (checked for every n &le; 400).</p>",
+     "<p>All-ones moments are rare: n = 4, 10, 58, 81, 278, 634 in the first 10<sup>9</sup> steps, and only 5881, 9702, 12113, 28074, 29561 and 405562 between 10<sup>9</sup> and 10<sup>15</sup>. None was in the list. A crude model (a phase change hits an exact value with chance about 1/width) makes such moments rarer and rarer, and each must also land on a list whose members double: the machine very probably never halts. A proof would have to control the exact remainders of a doubling map.</p>",
+     "<p>Its near-twins <code>1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE</code> and <code>1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE</code> share states B, D, E, F and the left phase, and behave the same way with their own fatal lists.</p>"
+    ]
+   },
+   {
+    "id": "lean-map",
+    "eyebrow": "Proof",
+    "heading": "The phase map in Lean",
+    "html": [
+     "<p>Every configuration the run passes through at a phase boundary is one of three shapes: E(x, z) = <code>E&gt;0 (10)^x 1^z</code>, A(x, y) = <code>(10)^x 1^y A&gt;0</code> and the bounce frame Q(m, j, t) = <code>(10)^m 1 D&gt;0 0 (1010)^j 1^t</code>. The function <code>next</code> in <code>lean/Phases.lean</code> sends each one to the next shape the machine reaches, and <code>next_sound</code> proves each of its 25 cases for all parameters, from symbolic runs generated by <code>py/pieces.py</code>. Nothing is left out: <code>next</code> is undefined only at E(x, 0) and E(x, 1), and those halt.</p>",
+     "<p>So the question is exactly whether the orbit of A(0, 0) (the blank tape) under <code>next</code> reaches E(x, 0) or E(x, 1) (<code>halts_iff</code>). The first 10<sup>8</sup> iterates do not (<code>native_decide</code>); by the step counts that is about 4.1&middot;10<sup>21</sup> machine steps. The even phases cannot reach a halt without an all-ones tape in between, and for all-ones tapes shorter than 10<sup>5</sup> cells Lean checks which ones lead to a halt first: n = 3 or 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 (15, 41, 95, 205, &hellip;). The last open step is to prove that list for every n and to show that the run never hits it.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +226,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "doubling between an alternating and a solid block",
+ "summary": "Two blocks, (10)^x and 1^y, take turns doubling at each other's expense; it halts only if an all-ones tape 1^n ever has n = 28·2^k − 2k − 13 (or 3, 29), and that has not happened."
 }

@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G01",
  "title": "What is known about 1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The tape is a list of blocks <code>(010)^n</code> separated by short walls <code>(10)^s</code> (s = 4, 5, 6 or 8) and, near the right end, by single 1s. Each time the head comes back to the left end in state C, the first block has lost 4 copies and the <i>i</i>-th block 3&middot;4<sup><i>i</i>&minus;1</sup> copies: a counter in base 4 whose digits are whole blocks. When the first block is down to 5 copies, a wall phase of <i>s</i>&minus;1 visits eats 3 copies per visit from the second block, which then becomes the new first block (seen: 48 &rarr; 17; predicted next: 792 &rarr; 773). The tail at the right end runs a cycle of four visits that adds one block of 4<sup>k</sup>-sized length. Shift rules are proved in Lean; the list rule is checked against the run. The halting condition at the level of the list is not identified yet."
  ],
  "claims": [
   {
@@ -46,34 +46,59 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules over the (010) background",
+   "text": "Eight shift rules for every length n, among them the wall <code>1011</code> crossing <code>(010)^2n</code> to the right in 28n steps, the turn at the right end (38n+20 steps), and the left-going crossings of <code>(010)</code>, <code>(001)</code>, <code>(100)</code> in 5n steps.",
+   "where": "<code>c_right</code>, <code>c_bounce</code>, <code>e_left</code> &hellip;, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "A plain C simulator (<code>longrun.c</code>, on <code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps from blank tape without a halt; at the end the head has visited cells -122 to 896,652 and 298,934 cells hold a 1.",
+   "where": "<code>holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/c/longrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The list at the left-end visits",
+   "text": "All 51 visits of the head to the left end in state C up to 1.54&middot;10<sup>10</sup> steps were read off the direct run. Between consecutive visits of the main phase the first block loses 4 copies and block <i>i</i> loses 3&middot;4<sup><i>i</i>&minus;1</sup> (every comparison agrees); a wall phase (96, 93, 90) reloads the first block with 89, which runs 89, 85, &hellip;, 5; a second wall phase (36, 33, &hellip;, 18) reloads it with 17, which runs 17, 13, 9, 5.",
+   "where": "README.md, the map"
+  },
+  {
+   "level": "heuristic",
+   "title": "A deterministic counter, no sign of a halt",
+   "text": "The run is a nested counter whose digits are block lengths of the form 3&middot;4<sup>k</sup>m (plus 1 at the tail); nothing random is involved, so the probviously argument does not apply. Halting needs F to read 1; hand-made tapes with other walls in front of the second block (s = 6 instead of 4 or 8) also ran 1.5&middot;10<sup>10</sup> steps without a halt.",
+   "where": "README.md"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "text": "Not known. The list rule is deterministic but has more cases than are written down here (a second form with (001)^n blocks, the walls of 5 and 6 near the tail); the halting condition at the level of the list is not identified.",
+   "where": "README.md, Further work"
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA--- 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA--- 1000000000",
+  "python3 holdouts/1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA---/py/gen_rules.py      # rewrites lean/Rules.lean"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine is a counter in base 4 whose digits are whole blocks of the tape: each time the head comes back to the left end, the first block loses 4 copies, the second 12, the third 48, and so on; when the first block runs out, the second one takes its place.",
   "facts": [
    {
+    "level": "kernel",
+    "value": "8 rules",
+    "text": "How the head crosses the (010) background, proved for every length."
+   },
+   {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 67,112 cells visited."
+    "value": "4, 12, 48, &hellip;",
+    "text": "Copies lost per visit by the first, second, third block."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator."
    }
   ],
   "presets": [
@@ -85,6 +110,20 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "counter",
+    "eyebrow": "Emergent behaviour",
+    "heading": "A counter whose digits are blocks",
+    "html": [
+     "<figure style=\"margin:1em 0\"><img src=\"defects.png\" alt=\"defect picture of 1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA---\" style=\"width:100%;max-width:900px;image-rendering:pixelated;border:1px solid var(--line);background:#fff\"/><figcaption style=\"font-size:0.9em;color:var(--muted)\">Defect picture of the first 3&middot;10<sup>7</sup> steps (time runs down, rows at equal step spacing); white where the tape repeats with period 3, dark at the walls. New walls are born at the right end and drift left ever more slowly; when two meet, the block between them is gone and they merge.</figcaption></figure>",
+     "<p>Look at the tape each time the head is back at the left end in state C. It reads <code>(010)^a1 (10)^s1 (010)^a2 (10)^s2 &hellip;</code>: blocks of <code>010</code> separated by short walls. One visit to the next:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>block</th><th>copies lost per visit</th></tr></thead><tbody><tr><td>first</td><td>4</td></tr><tr><td>second</td><td>12</td></tr><tr><td>third</td><td>48</td></tr><tr><td><i>i</i>-th</td><td>3&middot;4<sup><i>i</i>&minus;1</sup></td></tr></tbody></table></div>",
+     "<p>So the wall in front of block <i>i</i> drifts four times slower than the one before it, which is what the picture shows. A block that reaches zero disappears and its two walls merge (<code>(10)^4</code> and <code>(10)^4</code> give <code>(10)^8</code>).</p>",
+     "<p>When the first block is down to 5, a <b>wall phase</b> starts: for <i>s</i>&minus;1 visits the second block loses 3 copies per visit while the wall in front of it wears down, and then that block (less one copy) becomes the new first block. In the run this happened with 48 &rarr; 17 (new first block = old second &minus; 3s &minus; 7), and the same rule predicts 792 &rarr; 773 next; both are 1 more than a multiple of 4, which the main phase needs to land on 5 again.</p>",
+     "<p>At the right end the last block, separated by single 1s, goes through a cycle of four visits that ends with a new block 32 times the rate of the old last one, so the list keeps growing.</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>visit</th><th>the run, 6.0&middot;10<sup>9</sup> to 1.5&middot;10<sup>10</sup> steps (first blocks and tail)</th></tr></thead><tbody><tr><td>6,024,967,865</td><td>13 | 816 | 2496 | 22272 | 19968 &middot; 12289 &middot; 12288</td></tr><tr><td>7,513,595,257</td><td>9 | 804 | 2448 | 22080 | 19200 &middot; 9217 &middot; 24577</td></tr><tr><td>15,391,174,905</td><td>5 | 792 | 2400 | 21888 | 18432 &middot; 6145 &middot; 12289 &middot; 49152</td></tr></tbody></table></div>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +137,8 @@
     ]
    }
   ]
- }
+ },
+ "family": "Base-4 drifting counter: blocks of (010)^n eaten at rates 4, 12, 48, 192, ... with a wall phase that reloads the first block",
+ "summary": "A nested counter on blocks of (010)^n: at every visit of the head to the left end the first block loses 4 copies and the i-th loses 3*4^(i-1); when the first runs out, a wall phase turns the second block into the new first one, and a period-4 cycle at the right end keeps adding blocks.",
+ "decision": "open"
 }

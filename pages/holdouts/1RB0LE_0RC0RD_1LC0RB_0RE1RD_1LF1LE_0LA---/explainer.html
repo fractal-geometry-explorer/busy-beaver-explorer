@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Started on a blank tape this machine keeps a short list of numbers on its tape and halves them in cascades, like the carries of a binary counter; it halts only if one carry is ever exactly a power of 2. This page runs the real machine in your browser and explains the cascade.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 5,349 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>halting ⇔ map</b><span class="small">Proved in Lean: the run is the orbit of a map on lists of numbers; it halts iff a carry past the end is a power of 2.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#list">A list of numbers</a><a href="#cascade">Halve, and carry while even</a><a href="#halt">The only way to halt</a><a href="#proof">How the reduction is proved</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,35 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="list">
+  <span class="eyebrow">Macro structure</span>
+  <h2>A list of numbers</h2>
+<p>Stop the simulator whenever the head, in state A, steps onto a new cell at the left end. The tape then always reads</p>
+<p><code>A&gt; 0 0 1^n1 0 0 1^n2 0 0 ... 0 0 1^nk</code></p>
+<p>blocks of 1s separated by two 0s, and the list (n1, n2, ..., nk) is all that matters. The first time is step 13 with (1, 1); then (4, 1), (2, 1, 4, 1), (1, 1, 2, 6, 1), ... At step 10<sup>9</sup> it is a list of 5 blocks with the largest 2,063 long.</p>
+</section>
+<section id="cascade">
+  <span class="eyebrow">The rule</span>
+  <h2>Halve, and carry while even</h2>
+<p>Between two such moments the head <em>halves</em> the first block: a gap of three 0s moves into the block, and each round sends one 1 to the left and one to the right (proved in Lean for every block length):</p>
+<p><code>0 1^k 0 0 0 1^(m+2) D&gt; 0 0 1^n</code> &rarr; <code>0 1^(k+1) 0 0 0 1^m D&gt; 0 0 1^(n+1)</code></p>
+<p>When the block is used up, half of it (rounded down) stays where it was and the other half has been added to the next block. If the value halved was <b>odd</b> the head turns back (the next block gets 2 more, the one after it 1 more). If it was <b>even</b> the head goes on and halves the next block, carried half included, and so on: a cascade, like the carry of a binary counter. For example</p>
+<p>(4, 56, 1877, 6) &rarr; (2, 29, 953, 479, 482, 1): 4 is even, so 56 + 2 = 58 is halved; 58 is even, so 1877 + 29 = 1906 is halved; 1906 is even, so 6 + 953 = 959 is halved; 959 is odd, so it stops, adding 480 + 2 to a new block and 1 to the one after.</p>
+<p>A first block 1 merges into the next: (1, x, y, ...) &rarr; (x + 3, y + 1, ...). This rule predicts every one of the 1,779 lists of the first 10<sup>9</sup> steps, and it is now a Lean theorem for every list (next section).</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Open question</span>
+  <h2>The only way to halt</h2>
+<p>Inside the list every halved value is at least 2, so no block can vanish. Past the end of the list it can: a cascade that is still going when it passes the last block keeps halving its carry c into new blocks c/2, c/4, ... until it meets an odd number. If c is a power of 2 it runs down to 1, the next block would be empty, and the machine halts. So the machine halts exactly when, some day, a cascade runs past the end with a carry that is a power of 2.</p> <p>This is proved in Lean, for every list: <code>halts_iff</code> says the machine halts from blank tape exactly when the orbit of (1, 1) under the map reaches such a cascade.</p>
+<p>Each step of the map adds exactly 3 to the sum of the blocks (the sum is 3t + 2 after t steps), the list stays short, and about one step in 65 runs past the end with a large carry. A power of 2 is rare among large numbers, but not impossibly rare: if the carries were random, the expected number of halting chances would grow like the logarithm of the time. In 6&middot;10<sup>10</sup> steps of the map, far beyond anything a direct simulation can reach, no carry past the end was a power of 2. Whether one ever is, is a Collatz-like question.</p>
+</section>
+<section id="proof">
+  <span class="eyebrow">Lean</span>
+  <h2>How the reduction is proved</h2>
+<p>The proof follows one round of the machine piece by piece; every piece is a theorem for all values of its counts and every tape around it, generated by <code>bbtools.symtm</code>:</p>
+<ol><li><b>Start</b> (<code>wall_start</code>): <code>A&gt; 0 0 1 1 R</code> becomes <code>1 0 0 0 D&gt; R</code>: the gap <code>000</code> is cut into the first block.</li><li><b>Rounds</b> (<code>halve</code>): <code>0 1^k 0 0 0 1^(m+2) D&gt; 0 0 1^n</code> → <code>0 1^(k+1) 0 0 0 1^m D&gt; 0 0 1^(n+1)</code>; by induction, r rounds move r ones each way (<code>rounds</code>).</li><li><b>Even end</b> (<code>even_end</code>): <code>0 0 0 D&gt; 0 0 1</code> → <code>0 0 1 0 0 0 D&gt;</code>: the gap walks into the next block, whose halving starts.</li><li><b>Odd end</b> (<code>odd_run</code>, <code>dgap</code>): the next block grows by 4, the one after by 1, and E turns back.</li><li><b>Sweep back</b> (<code>atom</code>, <code>atom1</code>, <code>wall_end</code>): each gap moves one cell left, which leaves every block as long as it was; at the wall the head turns in A.</li><li><b>Merge</b> (<code>merge_run</code>) for a first block 1, and <b>the halt</b> (<code>past_end</code>): halving 2 past the end of the list runs into F reading 1.</li></ol>
+<p>The induction over the list (<code>casc_correct</code>, and <code>tail_correct</code> past its end) chains these pieces, and <code>halts_iff</code> turns “every round ends at the wall again, or halts” into “halts iff the orbit reaches <code>none</code>”. What remains open is purely about the map.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +265,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 5,349 cells have been visited and 5,338 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.354). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.288).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halve</code>, <code>d_run</code>, <code>e_run</code>, <code>lean/Rules.lean</code></div></div><div><b>The halving round</b><p><code>L 0 1^k 0 0 0 1^(m+2) D&gt; 0 0 1^n R</code> becomes <code>L 0 1^(k+1) 0 0 0 1^m D&gt; 0 0 1^(n+1) R</code> in 2m+11 steps, for all k, m, n and any tapes L, R: two 1s leave the block being halved, one to each neighbour. Also the runs of D (right) and E (left) over 1s. Generated by <code>py/rules.py</code>.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>F_correct</code>, <code>casc_correct</code>, <code>tail_correct</code>, <code>blank_to_wall</code>, <code>lean/Cascade.lean</code>; rules in <code>lean/Rules.lean</code></div></div><div><b>The run is the orbit of the cascade map (Lean theorem)</b><p>Write <code>Wall(ns)</code> for <code>0^inf A&gt; 0 0 1^n1 0 0 1^n2 … 0 0 1^nk 0^inf</code>. For every list ns of blocks ≥ 1, if the cascade map F sends ns to ns′ the machine goes from <code>Wall(ns)</code> to <code>Wall(ns′)</code> (and ns′ has blocks ≥ 1), and if F ns = none the machine halts from <code>Wall(ns)</code>. The blank tape is at <code>Wall([1, 1])</code> after 13 steps. So <b>the machine halts from blank tape iff the orbit of [1, 1] under F reaches none</b>. The map in Lean is written the way the machine computes it (<code>cascM</code>, <code>tailM</code>, <code>F</code>); <code>#eval</code> of its orbit agrees with <code>py/cascade.py</code>. Proof: 13 rules generated by <code>symtm</code> (the halving round, the start at the wall, the even and odd ends, the gap move, the sweep back, the merge, the halt past the end), and a hand-written induction over the list.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/cascade.py</code></div></div><div><b>The cascade map, checked against the run (before the proof)</b><p>At each moment the head, in A, extends the tape to the left, the tape is <code>0^inf A&gt; 0 0 1^n1 0 0 1^n2 ... 0 0 1^nk 0^inf</code>. The map of <code>py/cascade.py</code> predicts the next list exactly for all 1,779 such moments in the first 10<sup>9</sup> steps (from (1, 1) at step 13), and the machine's next list agrees with it for 1,500 random lists of 1 to 6 blocks (small and large values), halts included.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>tailM</code>, <code>even_halt</code>, <code>past_end</code>, <code>lean/Cascade.lean</code></div></div><div><b>When the machine halts</b><p>In the Lean map, F ns = none exactly when an even halving runs past the end of the list with the value 2 (the next block would be 0): a block can become 0 only past the end of the list, where the carry c is halved again and again (new blocks c/2, c/4, ...) until it is odd; if c is a power of 2 it runs down to a block 0, which is a halt (<code>past_end</code>: the machine then reaches F reading 1 within 62 steps, for every tape to the left). Examples: [2], [2, 1], [4, 2], [6, 1] halt.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/cascade.c</code></div></div><div><b>No halt in 6·10<sup>10</sup> rounds</b><p>Iterating the map from (1, 1) for 6&middot;10<sup>10</sup> steps (<code>c/cascade.c</code>, about 13 minutes) never makes a block 0; 778,155,275 cascades ran past the end of the list, and the smallest odd part of a carry there is 3. By the theorem above this is a run of the machine of that many wall visits without a halt (trusting the C program's arithmetic).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">this page</div></div><div><b>The sum grows by 3 per step; halting is a question of chance</b><p>A cascade keeps the sum of the blocks except for the final +2 and +1, so after t steps of the map the sum is 3t + 2, while the number of blocks stays small (5 to 9). About 1.5% of steps run past the end, with a carry of the order of the blocks; such a carry is a power of 2 with probability of order 1/carry. Summed over the future this expected number of halts grows only like the logarithm of the number of steps, so if the carries behave like random numbers the machine would halt eventually, but nothing here predicts when, and nothing rules out a hidden reason that keeps the carries away from powers of 2.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known, and now exactly a question about the map: does the orbit of [1, 1] under F ever run past the end of the list with a carry that is a power of 2? That reduction is a Lean theorem (<code>halts_iff</code>); the question about the map is open (Collatz-like).</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA--- 1000000000</code></pre>
+gcc -O2 -o cascade holdouts/1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA---/c/cascade.c &amp;&amp; ./cascade 20000000000 1000000000
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA--- 1000000000
+python3 holdouts/1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA---/py/rules.py &gt; holdouts/1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA---/lean/Rules.lean   # regenerate the rules</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

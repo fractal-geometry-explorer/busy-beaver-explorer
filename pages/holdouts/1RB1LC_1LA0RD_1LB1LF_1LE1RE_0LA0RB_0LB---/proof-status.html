@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The left side is two big blocks of ones (at 10<sup>9</sup> steps <code>B&gt;0 1^37710 0 1^7702 0 1^138</code>); every cycle moves 18 cells out of one and 24 into the other, so the regimes grow by 4/3. Lean proves the 40 cycle rules used on the run to 10<sup>15</sup> steps; the accelerated run reaches 10<sup>40</sup> steps without a halt. Its regime lengths follow the same pattern as those of <code>1RB1LB_0RC0LD_1LD1RE_1RC0LA_1RD1RF_0RD---</code>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The cycle rules</h3>
+        <p>40 one-cycle rules, each for all values of its variables, e.g. <code>(111)^n2</code> +8 and <code>(111)^n4</code> −6 per cycle: the rules the cycle accelerator applied on the run to 10<sup>15</sup> steps.</p>
+        <p class="where"><code>lean/Cycles.lean</code> (from <code>py/cycles_rules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +124,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 45,954 cells have been visited and 45,454 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt up to 10<sup>40</sup> steps</h3>
+        <p><code>bbtools.cycles</code> with blocks of 3 cells: 146 jumps, 78 proved rules, no halt by 10<sup>40</sup> steps.</p>
+        <p class="where"><code>python3 -m bbtools.cycles M 3 1e40</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +137,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.508). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.072).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>The 4/3 map</h3>
+        <p>Cycles per regime: 3, 7, 10, 14, 18, 23, …, 75496, 100978, 134640, 179519, 239361, 319153, 425537, 567383, 756508, 1008656, 1344830, 1793083, 2390779, 3187809, 4250412, 5667216: each about 4/3 of the last. The small blocks that come and go at the end of the tape (<code>111^13</code>, <code>111^24</code>, <code>111^45</code>, <code>111^192</code>, <code>111^459</code>, <code>111^597</code>, …) are the same numbers as in the run of <code>1RB1LB_0RC0LD_1LD1RE_1RC0LA_1RD1RF_0RD---</code>, which suggests the two machines simulate the same map.</p>
+        <p class="where"><code>py/cycles_rules.py</code> (the jumps)</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Open: the end-of-regime rule is not extracted, so the halting transition (F reading 1) is not reduced to a condition on the map.</p>
       </div>
     </div>
   </section>

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Read in blocks of 6 cells, the tape is a periodic word with a few phase defects; the head moves them, and the largest block grows by a factor near 4/3 per phase, which suggests a Collatz-like map on the block lengths. The 50 sweep rules used in the first 10<sup>9</sup> steps are proved in Lean; the accelerated run reaches 9&middot;10<sup>11</sup> steps without a halt. The large-scale map has not been found.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>50 cycle rules</h3>
+        <p>The linear cycles (sweeps over blocks of 6-cell words) that <code>bbtools.cycles</code> uses in the first 10<sup>9</sup> steps, each proved for all values of its counts with an exact step count.</p>
+        <p class="where"><code>lean/Cycles.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +124,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 50,991 cells have been visited and 29,836 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in 9&middot;10<sup>11</sup> steps</h3>
+        <p><code>bbtools.cycles</code> on 6-cell blocks, every jump k applications of a proved cycle rule, reaches 906,804,978,838 steps from blank tape without a halt.</p>
+        <p class="where"><code>py/cycles_run.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +137,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.024). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.455).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Growth by about 4/3 per phase</h3>
+        <p>The largest block runs 13491, 18582, 24715, 32860, 43683, 58247, 77410, 101379, 134093, 175559, 230878 at the ends of successive phases: a factor between 1.31 and 1.38, with the step count growing by about its square.</p>
+        <p class="where"><code>py/cycles_run.py</code> output</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The map from one phase to the next (the block lengths between the defects) has not been written down; if it is Collatz-like, as the growth factor near 4/3 suggests, halting would depend on residues of an exponentially growing orbit.</p>
       </div>
     </div>
   </section>
@@ -140,6 +155,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE/lean/check.sh
+python3 holdouts/1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE/py/cycles_run.py 1e10
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE 1000000000</code></pre>
   </section>
   <footer>

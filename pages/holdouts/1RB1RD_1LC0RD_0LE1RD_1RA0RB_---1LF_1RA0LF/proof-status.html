@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Most of the tape is the 11-cell word <code>00000101000</code> repeated; the head adds 7 words every 80 visits of the left end, where the tape repeats exactly with that period. The rest of the cells (3 per period) go to a list of counters <code>(101)<sup>k</sup></code> at the right end, separated by short words, which change slowly from sweep to sweep. A halt needs B on a 0 with <code>0 0</code> to its left, which the bulk offers everywhere, so the question is how the head meets it.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,9 +119,23 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 70,713 cells have been visited and 51,893 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Period 80 at the left edge</h3>
+        <p>At visits of the left end 80 apart (e.g. steps 94,467,133 and 95,160,717) the tape near the left end is identical and the bulk has grown by 7 words. Near step 3.2&middot;10<sup>8</sup> the left end alternates between two forms 80 visits apart, so the exact period there is 160 visits (40 cells and 7 bulk words per 160 visits).</p>
+        <p class="where">direct run</p>
+      </div>
+      <div class="card">
+        <h3>Counter samples to 4&middot;10<sup>9</sup> steps</h3>
+        <p>Every 160 visits of the left end the counters (run lengths of (101)<sup>c</sup> right of the bulk) were read off a direct run: e.g. (123, 134, 113, 88, 5, 2) &rarr; (120, 135, 116, 88, 5, 2) &rarr; (117, 138, 117, 88, 5, 2) near step 3.8&middot;10<sup>8</sup>; (291, 78, 805, 2) at 2.04&middot;10<sup>9</sup>; (52, 2, 2, 52, 1553, 2) at 3.96&middot;10<sup>9</sup>. No halt.</p>
+        <p class="where">README, <code>tools/c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>A counter list at the right</h3>
+        <p>The (101)-counters change by small amounts between periods (21, 11, ..., 12 to 18, 14, ..., 13); their rule is not yet known.</p>
+      </div>
       <div class="card">
         <h3>Growth shape: fixed/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.505). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
@@ -132,7 +146,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The rules below are read off the run, not proved, and they describe a counter system whose long-run behaviour is not understood.</p>
       </div>
     </div>
   </section>

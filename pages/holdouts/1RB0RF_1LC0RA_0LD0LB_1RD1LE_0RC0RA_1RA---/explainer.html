@@ -132,6 +132,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 143,859 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>bouncer over a 10 background with a defect gas</b><span class="small">The behaviour family (see below).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#structure">What the machine does: bouncer over a 10 background with a defect gas</a><a href="#halting">What a halt would require</a><a href="#proved">What is proved, and what is not</a><a href="#later">What would move it forward</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,29 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="structure">
+  <span class="eyebrow">Macro structure</span>
+  <h2>What the machine does: bouncer over a 10 background with a defect gas</h2>
+<p>The tape is nearly all <code>10</code>. Every pass shifts the background by one cell (six proved shift rules in both phases). The right end grows like t<sup>0.6</sup> (88,047 cells after 10<sup>9</sup> steps), faster than a plain √t bouncer: most passes do not reach the left end at all.</p>
+<p>The left end is reached rarely and moves only 153 cells in 10<sup>9</sup> steps; at those visits the left edge reads <code>: 1 : 1 . 1 . 1 …</code> or <code>. 1 . 1 …</code> (a double gap or none), and isolated defects (<code>00</code>, <code>11</code>, <code>000</code>) sit in the background, e.g. <code>… 1 0^2 1 0 1 0^2 1 0 1 … 1 0^3 1 0^2 1 0 1 …</code> near the right end at step 9,264.</p>
+<p>So the head turns somewhere inside the tape most of the time; the turning points are set by the defects. We have not found the rule that decides where a pass turns.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Halting</span>
+  <h2>What a halt would require</h2>
+<p>F reading 1 halts; in the 5-cell closed language with <code>0101x</code>/<code>01001</code> on the left and <code>10…</code> on the right.</p>
+</section>
+<section id="proved">
+  <span class="eyebrow">Lean</span>
+  <h2>What is proved, and what is not</h2>
+<ul><li><b>Sweeps</b> (<code>lean/Sweeps.lean</code>, kernel): A, B and F shift <code>10</code>↔<code>01</code> rightward; B and C cross leftward unchanged; for every number of copies and every tape around.</li><li><b>Bounded run</b> (<code>lean/Blank.lean</code>): no halt in 10<sup>7</sup> steps (native), 10,000 (kernel); the halting transition is the only way to stop.</li></ul>
+<p>Everything else on this page is observation of the simulated run (heuristic). Nothing here decides halting.</p>
+</section>
+<section id="later">
+  <span class="eyebrow">Next</span>
+  <h2>What would move it forward</h2>
+<p>Record the turning points of the passes and the defect positions; the t<sup>0.6</sup> growth suggests passes of geometrically distributed length.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,7 +259,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 143,859 cells have been visited and 71,897 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.254). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.607).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Sweeps.lean</code> (<code>sweep_rA_10</code>, <code>sweep_rB_10</code>, <code>sweep_lC_10_1</code>, <code>sweep_rA_01</code>, …)</div></div><div><b>12 shift rules of the sweeps</b><p>For every n and every tape around: A, B and F shift <code>10</code>↔<code>01</code> rightward; B and C cross leftward unchanged. Each is a theorem <code>steps (s·n) … = some …</code> found and proved by <code>tools/py/bbtools/symtm.py</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 -m bbtools.ctl 1RB0RF_1LC0RA_0LD0LB_1RD1LE_0RC0RA_1RA--- 5</code></div></div><div><b>Where a halt can happen (closed tape language, 5-cell windows)</b><p>The closure search of <code>bbtools.ctl</code> with windows of 5 cells is closed but allows halts; the halting abstract configurations constrain the neighbourhood of a halt: a halt (F reading 1) needs <code>01001</code>, <code>0101x</code> or <code>01010</code> to the left and a right side starting <code>10</code>. A Python check, not a Lean certificate (the Lean library only has the right-edge and no-halt corollaries, which do not apply).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README; <code>tmrun</code>, <code>tokrun</code> runs</div></div><div><b>Macro structure: bouncer over a 10 background with a defect gas</b><p>The tape is nearly all <code>10</code>. Every pass shifts the background by one cell (six proved shift rules in both phases). The right end grows like t<sup>0.6</sup> (88,047 cells after 10<sup>9</sup> steps), faster than a plain √t bouncer: most passes do not reach the left end at all.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Sweeps.lean</code> (<code>sweep_rA_10</code>, <code>sweep_rB_10</code>, <code>sweep_lC_10_1</code>, <code>sweep_rA_01</code>, …)</div></div><div><b>12 shift rules of the sweeps</b><p>For every n and every tape around: A, B and F shift <code>10</code>↔<code>01</code> rightward; B and C cross leftward unchanged. Each is a theorem <code>steps (s·n) … = some …</code> found and proved by <code>tools/py/bbtools/symtm.py</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 -m bbtools.ctl 1RB0RF_1LC0RA_0LD0LB_1RD1LE_0RC0RA_1RA--- 5</code></div></div><div><b>Where a halt can happen (closed tape language, 5-cell windows)</b><p>The closure search of <code>bbtools.ctl</code> with windows of 5 cells is closed but allows halts; the halting abstract configurations constrain the neighbourhood of a halt: a halt (F reading 1) needs <code>01001</code>, <code>0101x</code> or <code>01010</code> to the left and a right side starting <code>10</code>. A Python check, not a Lean certificate (the Lean library only has the right-edge and no-halt corollaries, which do not apply).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README; <code>tmrun</code>, <code>tokrun</code> runs</div></div><div><b>Macro structure: bouncer over a 10 background with a defect gas</b><p>The tape is nearly all <code>10</code>. Every pass shifts the background by one cell (six proved shift rules in both phases). The right end grows like t<sup>0.6</sup> (88,047 cells after 10<sup>9</sup> steps), faster than a plain √t bouncer: most passes do not reach the left end at all.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. F reading 1 halts; in the 5-cell closed language with <code>0101x</code>/<code>01001</code> on the left and <code>10…</code> on the right.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows, but the question is now about numbers. Started on a blank tape, this machine runs in rounds; each round reads a number N off the tape and writes a bigger one, and Lean proves that the machine halts exactly when one round finds a remainder of 0. This page shows how a round works, the map it computes, and why a halt looks hopeless.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 39,905 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>halts &hArr; m = 0</b><span class="small">The machine halts iff the orbit of 22 under the round map ever has remainder 0 (Lean, kernel).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>6</sup> rounds</b><span class="small">The map iterated a million rounds from 22 without a halt.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>&lt; 10<sup>&minus;200000</sup></b><span class="small">Rough chance of a halt in all later rounds.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Pairs and ones</a><a href="#map">The round map</a><a href="#halt">A halt needs a remainder of exactly zero</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,26 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>Pairs and ones</h2>
+<p>Write <code>a</code> for the pair <code>10</code>. At the start of every round the whole tape is <code>a 1^N</code> (one pair, then N ones, blank on both sides) and the head is in state D on the left end. The first round starts at N = 22, after 208 steps.</p>
+<p>A round has two parts. First come <b>doublings</b>: the machine zigzags between the pairs on the left and the ones on the right, moving one pair at a time across and turning two 1s into a new pair each time; one doubling turns <code>a^K 1^m</code> into <code>a^(2K+4) 1^(m-2K-6)</code>. So the block of pairs grows 1, 6, 16, 36, 76, &hellip; = 5&middot;2<sup>j</sup> &minus; 4 while the ones are eaten. Then, when fewer than 2K+6 ones are left, the <b>remainder</b> m is folded back: every pair turns back into ones, and the next round starts at N' = 2K + 3m + 2.</p>
+<p>The left side of the tape barely moves (that is the slow, logarithmic side); the ones grow by a factor between 1 and 2 per round, and each round costs about N<sup>2</sup> steps, so the tape grows like the square root of the time.</p>
+</section>
+<section id="map">
+  <span class="eyebrow">The rule</span>
+  <h2>The round map</h2>
+<p>After j doublings the pairs number K = 5&middot;2<sup>j</sup> &minus; 4 and the ones m<sub>j</sub> = N + 10 &minus; 10&middot;2<sup>j</sup> + 2j. The doublings stop at the first j with m<sub>j</sub> &lt; 10&middot;2<sup>j</sup> &minus; 2. Then</p><p style="text-align:center"><b>N' = 3N + 24 + 6j &minus; 20&middot;2<sup>j</sup></b> &nbsp; (if m<sub>j</sub> &gt; 0), &nbsp; <b>halt</b> &nbsp; (if m<sub>j</sub> = 0).</p><p>N stays even, so m does too. Since 20&middot;2<sup>j</sup> lies between N and 2N, N' lies between N and 2N.</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>round</th><th>N</th><th>doublings j</th><th>pairs K</th><th>remainder m</th><th>step reached</th></tr></thead><tbody><tr><td>1</td><td>22</td><td>1</td><td>6</td><td>14</td><td>208</td></tr><tr><td>2</td><td>56</td><td>2</td><td>16</td><td>30</td><td>1,311</td></tr><tr><td>3</td><td>124</td><td>3</td><td>36</td><td>60</td><td>6,556</td></tr><tr><td>4</td><td>254</td><td>4</td><td>76</td><td>112</td><td>28,293</td></tr><tr><td>5</td><td>490</td><td>5</td><td>156</td><td>190</td><td>108,740</td></tr><tr><td>6</td><td>884</td><td>6</td><td>316</td><td>266</td><td>369,871</td></tr><tr><td>7</td><td>1,432</td><td>7</td><td>636</td><td>176</td><td>1,054,120</td></tr><tr><td>8</td><td>1,802</td><td>7</td><td>636</td><td>546</td><td>2,136,141</td></tr><tr><td>9</td><td>2,912</td><td>8</td><td>1,276</td><td>378</td><td>4,964,192</td></tr><tr><td>10</td><td>3,688</td><td>8</td><td>1,276</td><td>1,154</td><td>9,497,325</td></tr><tr><td>11</td><td>6,016</td><td>9</td><td>2,556</td><td>924</td><td>21,564,642</td></tr></tbody></table></div>
+<p>The column "step reached" is the step at which the machine is in state D at the left end of <code>a 1^N</code>, read off a direct simulation; the other columns are the map.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Why it is open</span>
+  <h2>A halt needs a remainder of exactly zero</h2>
+<p>If a doubling phase ever starts with no 1s at all (m = 0), the head runs off the right end of <code>a^K</code> in state F onto a blank cell, and F0 is the halting transition. That happens exactly when N = 10&middot;2<sup>j</sup> &minus; 2j &minus; 10: N = 8, 26, 64, 142, 300, &hellip; Started there, the machine does halt (checked for N up to 3000). Lean proves the whole equivalence: <code>halts_iff</code> says the machine halts from blank tape if and only if the orbit of 22 reaches such a value.</p>
+<p>The orbit of 22 misses them for at least a million rounds. Along the orbit the remainder m looks like a random even number below 10&middot;2<sup>j</sup>, with no bias in any residue class we tried, so each round has a chance of roughly 1/(5&middot;2<sup>j</sup>) to halt, and j grows by about two thirds per round. That is the shape of a <i>cryptid</i>: the machine almost certainly never halts, but proving it would mean controlling a Collatz-like orbit, which nobody knows how to do.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +255,24 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 39,905 cells have been visited and 24,859 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.538). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.084).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code>, generated by <code>py/gen_rules.py</code> with <code>bbtools.symtm</code></div></div><div><b>One-pass rules</b><p>Nine rules, each for all values of its counts: the first pass and the zigzag of a doubling, its last pass, the three ways a doubling phase can run out of 1s, the transfer of two 1s into a pair <code>10</code>, the end of a round and the halting case.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>double</code>, <code>lean/Orbit.lean</code></div></div><div><b>A doubling, for every size</b><p>From state D at the left end of <code>(10)^(K+1) 1^(c+2K+8)</code> the machine reaches state D at the left end of <code>(10)^(2K+6) 1^c</code> (the zigzag chained by induction).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>finish</code>, <code>halt_zero</code>, <code>phase_spec</code>, <code>lean/Orbit.lean</code></div></div><div><b>The end of a round</b><p>From <code>(10)^K 1^m</code> with m even and 2 &le; m &lt; 2K+6 the machine reaches <code>10 1^(2K+3m+2)</code>; from <code>(10)^K</code> with no 1s (K &ge; 1) it halts.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>lean/Orbit.lean</code> (axioms: propext, Classical.choice, Quot.sound)</div></div><div><b>Halts if and only if the orbit of 22 hits a halt</b><p>From blank tape the machine reaches <code>D&gt; 10 1^22</code> after 208 steps, and it halts from blank tape if and only if some <code>orbit i = none</code>, where <code>orbit</code> iterates <code>next N = phase 1 N</code> from 22.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/check_map.c</code>, <code>py/orbit.py</code></div></div><div><b>The closed form of the map, checked against the machine</b><p>With j the number of doublings (the least j &ge; 1 with 20&middot;2<sup>j</sup> &gt; N + 12 + 2j), the remainder is m = N + 10 &minus; 10&middot;2<sup>j</sup> + 2j and N' = 3N + 24 + 6j &minus; 20&middot;2<sup>j</sup>. The C program runs the machine from every even N from 8 to 3000 and agrees with this formula every time, including the halts at N = 8, 26, 64, 142, 300, 618, 1256, 2534 (the values N = 10&middot;2<sup>j</sup> &minus; 2j &minus; 10).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/orbit.py 1000000</code></div></div><div><b>10<sup>6</sup> rounds without a halt</b><p>Iterating the map from 22 with exact integers: no halt in the first 10<sup>6</sup> rounds; N then has 666,845 bits. The closest approach of m to 0, relative to its range 10&middot;2<sup>j</sup>, is 3.8&middot;10<sup>&minus;6</sup> (round 736,098), about what uniform sampling predicts for a million rounds.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Probviously nonhalting</b><p>m is spread over a range of about 10&middot;2<sup>j</sup> values (even ones only), and its residues mod small numbers look uniform along the orbit, so round i halts with chance about 1/(5&middot;2<sup>j</sup>); j grows by about 0.67 per round. After the rounds already checked (j is then about 667,000), the total chance of a halt is below 10<sup>&minus;200000</sup>.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does the orbit of 22 ever reach m = 0?</b><p>Not known: a Collatz-like question about the map above (a cryptid in the bbchallenge sense).</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE 1000000000
+PYTHONPATH=tools/py python3 holdouts/1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE/py/gen_rules.py   # rewrites lean/Rules.lean
+python3 holdouts/1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE/py/orbit.py 1000000
+gcc -O2 -o check_map holdouts/1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE/c/check_map.c &amp;&amp; ./check_map 8 3000 2</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LD_1LC0RD_0LA0RB_0LE1LF_1RF0LC_0RB---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>11</sup> steps without stopping. Its tape is a long word of three tokens that grows at the left end three cells at a time, at irregular moments; no rule behind it has been found. This page runs the real machine in your browser and lists what is known.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 236 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/fixed</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>11</sup> steps</b><span class="small">No halt in the C simulator; 262 cells visited.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>+3 cells</b><span class="small">The left end grows three cells at a time, 61 times so far.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>&times;1.2&ndash;2.8</b><span class="small">Irregular ratios between the times of successive extensions.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#family">A word with no visible rule</a><a href="#future">What is missing</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,16 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="family">
+  <span class="eyebrow">Macro structure</span>
+  <h2>A word with no visible rule</h2>
+<p>Stop the simulator whenever the head reaches a new cell at the left end of the tape. It is then always in state C, and the tape reads <code>C&gt;0 0^2 1 0 (1^2 0)^m V</code>: a run of m blocks <code>1^2 0</code>, and then a long word V built from the three tokens <code>1 0</code>, <code>1^2 0</code> and <code>0^3 1</code>. Within twelve steps the head moves out two more cells and goes back right; three cells are added each time.</p><p>Unlike the counters of its neighbours in this group, the prefix does not simply grow: m went up and down 14 times in the first 10<sup>11</sup> steps, and V changes along its whole length between extensions. The moments of the last seven extensions are 1.5, 3.2, 8.1, 23, 36, 43 and 65 billion steps. Their ratios range from 1.2 to 2.8, so this is not a binary counter.</p>
+</section>
+<section id="future">
+  <span class="eyebrow">Why it is open</span>
+  <h2>What is missing</h2>
+<p>No macro rule is known. A closed tape language from windows of up to 6 cells (and of 8 cells read from the other side) does not close, so not even the place of a possible halt (state F reading a 1) is pinned down. The next step is to find out what V encodes, for example by testing whether the tokens are digits in some base and the extensions are carries.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,16 +243,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
-    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 236 cells have been visited and 103 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/fixed</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.053). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in the first 10<sup>11</sup> steps</b><p>The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps without a halt; 262 cells visited (203 left of the start, 59 right), 115 ones at the end.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tmrun ... records</code></div></div><div><b>The left end grows three cells at a time</b><p>All 61 moments in the first 10<sup>11</sup> steps when the head, in state C, reaches a new cell at the left end have the shape <code>C&gt;0 0^2 1 0 (1^2 0)^m V</code>, with V made of <code>1 0</code>, <code>1^2 0</code> and <code>0^3 1</code>; each is followed within 12 steps by two more new cells. m is not monotone: it fell 14 times, the last time at step 35,830,421,385 (from 18 to 16).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">the records of the 10<sup>11</sup>-step run</div></div><div><b>Irregular, roughly geometric growth</b><p>The left end moved at steps 1.5&middot;10<sup>9</sup>, 3.2&middot;10<sup>9</sup>, 8.1&middot;10<sup>9</sup>, 2.3&middot;10<sup>10</sup>, 3.6&middot;10<sup>10</sup>, 4.3&middot;10<sup>10</sup> and 6.5&middot;10<sup>10</sup>; the ratios range from 1.2 to 2.8. The width grows like the logarithm of the step count (236 cells at 10<sup>9</sup> steps, 262 at 10<sup>11</sup>).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>The structure, and the question itself</b><p>Not known: what the word V encodes, what decides when the left end moves, and whether the machine halts (it halts only in state F reading a 1).</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1LC0RD_0LA0RB_0LE1LF_1RF0LC_0RB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1LC0RD_0LA0RB_0LE1LF_1RF0LC_0RB--- 1000000000</code></pre>
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1LD_1LC0RD_0LA0RB_0LE1LF_1RF0LC_0RB--- 100000000000 records 100000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LD_1LC0RD_0LA0RB_0LE1LF_1RF0LC_0RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

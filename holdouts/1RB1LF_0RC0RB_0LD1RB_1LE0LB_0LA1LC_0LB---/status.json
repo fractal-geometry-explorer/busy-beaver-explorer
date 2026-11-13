@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G12",
  "title": "What is known about 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---.",
@@ -8,11 +8,12 @@
  "home": "../index.html",
  "source": "holdouts/1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state machine halts from blank tape. This page records what is established about it, sorted by what each result rests on. Only a first analysis has been done: the macro rules are not yet known.",
+  "The tape is short words: at the left end a stretch <code>(1 0)^n</code> followed by words <code>1 1 0</code>, <code>1 1 0 0</code>, <code>1 0</code>; on the right single 1s separated by one, two or three 0s. Both ends grow like the logarithm of the step count."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> No halt in the first 10<sup>10</sup> steps (C simulator); the macro configuration and its rules are not yet known."
  ],
  "claims": [
   {
@@ -35,9 +36,21 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 10<sup>10</sup> steps",
+   "text": "The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>10</sup> steps from blank tape without a halt; at the end the tape holds 255 ones.",
+   "where": "<code>tmrun 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 10000000000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 394 cells have been visited and 225 of them hold a 1.",
    "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt can be",
+   "text": "A closed tape language of windows of 5 cells (<code>tools/py/bbtools/ctl.py</code>, closure checked by the script, not by Lean) contains every configuration reachable from blank tape, and its only halting configurations have F reading a 1 with <code>F&gt;1 1 1 0 1 0</code>.",
+   "where": "<code>python3 -m bbtools.ctl 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 5</code>"
   },
   {
    "level": "heuristic",
@@ -46,24 +59,38 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "The stretch at the left",
+   "text": "At the left records between 8&middot;10<sup>7</sup> and 1.9&middot;10<sup>8</sup> steps the left end reads <code>F&gt;0 (1 0)^n 1^2 0^2 1^2 0 ...</code> with n going 34, 35, ..., 39, then back to 34 and up again: the stretch grows one word per record and is periodically consumed.",
+   "where": "<code>tmrun 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 1000000000 records 100000</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A doubling map at the left end",
+   "text": "Read the tape right of the head at the left-end visits in state F as words a = <code>1100</code>, b = <code>110</code>, c = <code>10</code>: it has the form <code>c^s MID b^m c c 0 b^j</code>. Between consecutive visits with the same middle word MID, s grows by 2 and (m, j) becomes (m - j - k, 2j + k) for a constant k of the phase: the total m + j is conserved while j roughly doubles, e.g. (33, 1) &rarr; (29, 5) &rarr; (21, 13) &rarr; (5, 29) with k = 3 between 5.4&middot;10<sup>7</sup> and 7.2&middot;10<sup>7</sup> steps. A phase ends when m is too small for the next step; then MID changes (like a counter digit) and a new phase starts with small j. Checked on all 39 such transitions from step 1,158 to 5&middot;10<sup>9</sup> (24 phases, k from 1 to 23), no exception; only the very first transition (step 636) differs.",
+   "where": "<code>tmrun 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 5000000000 at F L 5000 | python3 py/phase_check.py</code>, output in <code>py/phase_check_5e9.txt</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The macro configuration family has not been found.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 1000000000",
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 10000000000",
+  "cd tools/py && python3 -m bbtools.ctl 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 5"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "This machine writes short words of 1s and 0s, and both ends of its tape grow like the logarithm of the step count, the mark of a counter. Its macro rules have not been worked out yet. It has run 10<sup>10</sup> steps without halting.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 394 cells visited."
+    "value": "10<sup>10</sup> steps",
+    "text": "No halt in the C simulator."
    },
    {
     "level": "native",
@@ -86,6 +113,40 @@
   },
   "sections": [
    {
+    "id": "tape",
+    "eyebrow": "The tape",
+    "heading": "Short words",
+    "html": [
+     "<p>At the left end the tape reads <code>F&gt;0 1 0 1 0 ... 1 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1 0 1 0 ...</code>: a stretch <code>(1 0)^n</code> followed by the words <code>1 1 0</code>, <code>1 1 0 0</code> and <code>1 0</code>. On the right the tape is single 1s separated by one, two or three 0s.</p>",
+     "<p>The head reaches new cells on the left in groups of four (states F, B, E, A). Between 8&middot;10<sup>7</sup> and 1.9&middot;10<sup>8</sup> steps the stretch <code>(1 0)^n</code> goes from 34 words to 39 and then falls back to 34: something at its right end consumes it, like a carry.</p>"
+    ]
+   },
+   {
+    "id": "doubling",
+    "eyebrow": "Structure",
+    "heading": "A run that doubles",
+    "html": [
+     "<p>Read the tape just right of the head, each time the head is at the left end in state F, as the words a = <code>1100</code>, b = <code>110</code> and c = <code>10</code>. It always looks like <code>c^s MID b^m c c 0 b^j</code>: a stretch of c's, a middle part MID, a run of m b's, and after <code>c c 0</code> a second run of j b's.</p>",
+     "<p>From one such visit to the next, as long as MID stays the same, the stretch grows by two words and the two runs trade: (m, j) becomes (m - j - k, 2j + k) with a constant k for the phase. The total m + j stays the same while j more than doubles, so a phase lasts only a few visits; for example (33, 1), (29, 5), (21, 13), (5, 29) with k = 3. When m is too small to go on, MID changes, like the next digit of a counter, and a new phase starts with a small j. This held for all 39 transitions seen in 5&middot;10<sup>9</sup> steps (k between 1 and 23). How MID and k change from phase to phase, and so whether a phase can ever end in the halting pattern, is not known.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Halting",
+    "heading": "Where a halt could happen",
+    "html": [
+     "<p>The machine stops when F reads a 1. A closed tape language with windows of 5 cells, which contains every configuration reachable from blank tape, adds that the five cells right of the head must read <code>1 1 0 1 0</code>: <code>F&gt;1 1 1 0 1 0</code>.</p>"
+    ]
+   },
+   {
+    "id": "later",
+    "eyebrow": "Open",
+    "heading": "What is not known",
+    "html": [
+     "<p>Not known: the counter's digits and carry rule, and whether <code>F&gt;1 1 1 0 1 0</code> can arise.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +159,8 @@
     ]
    }
   ]
- }
+ },
+ "family": "Counter with a doubling map at the left end (exp/exp; macro rules not yet proved)",
+ "summary": "A stretch (1 0)^n at the left end that grows and is eaten again, followed by words 1^2 0, 1^2 0^2, 1 0 changing like a counter; words 1 0, 1 0^2, 1 0^3 on the right; no halt in 10^10 steps; at the left end a run of 110 words feeds a second run that doubles, (m, j) -> (m - j - k, 2j + k), phase by phase; macro rules not proved.",
+ "decision": "open"
 }

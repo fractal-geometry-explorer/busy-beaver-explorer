@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Like its twin 1RB0LA_0RC---…, this machine keeps a nearly solid block of 1s with one or two holes, and each round moves a hole: the first block becomes <code>0 1</code> pairs, and every two pairs come back as a glider that knocks the hole 3 cells left. Rounds cost about the square of the width and add a few cells, so the width grows like the cube root of the time.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 3,867 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>power/power</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>even rounds</b><span class="small">A round from a first block of length 4k+4 or 4k+6 is proved for all k and all second blocks.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>329 / 329</b><span class="small">Even rounds in the first 10<sup>9</sup> steps that follow the proved formula.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>t<sup>1/3</sup></b><span class="small">Width after t steps: a round costs about w<sup>2</sup> steps and adds 3 to 28 ones.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#twin">Same rounds as its twin</a><a href="#odd">Odd blocks, and a halt on a block of one</a><a href="#growth">Why the width grows like t&lt;sup&gt;1/3&lt;/sup&gt;</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,24 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="twin">
+  <span class="eyebrow">What it does</span>
+  <h2>Same rounds as its twin</h2>
+<p>Stop the machine whenever the head is at the left end in state E. The tape is then a few blocks of 1s separated by single 0s: at step 997,741,851 it is <code>E&gt;0 1^3127 0 1^726</code>, blocks [3127, 726].</p>
+<p>A round does what it does in <a href="../1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA/explainer.html">1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA</a>. The sweep turns the first block's pairs <code>1 1</code> into <code>0 1</code> (here with states B, C, A instead of B, C, F, A). A first block of even length ends the sweep with a <em>glider</em>, two 0s that move right through the next block at one cell per 5 steps. Each glider reaches the next hole, fills it, and leaves a hole 3 cells further left; E walks back, two more pairs make the next glider, and so on. The round from [16, 20] is identical, step for step, in both machines and ends at [24, 15] after 715 steps.</p>
+<p>Lean proves the whole round for every even first block: [4K, a, b, …] becomes [a+K, 3K+3+b, …] and [4K+2, a, b, …] becomes [a+K, 3K+6+b, …]. All 329 even rounds of the first 10<sup>9</sup> steps match.</p>
+</section>
+<section id="odd">
+  <span class="eyebrow">The hard case</span>
+  <h2>Odd blocks, and a halt on a block of one</h2>
+<p>When the first block is odd, the sweep runs through the hole into the next block (<code>C&gt;1 0 1 1</code> becomes <code>0 1 0 C&gt;1</code>), leaving a mark behind. Here the two machines differ: in this one, if the stretch after the hole is a single 1 (<code>C&gt;1 0 1 0</code>), the next steps put F on a 0, which is the halting transition. So the machine halts if a sweep coming out of an odd block ever meets a block of length 1.</p>
+<p>Blocks at round starts are long: after step 2,136, none is shorter than 12 cells in 10<sup>9</sup> steps. Whether short blocks can appear in the middle of a round, where the gliders rework the tape, is part of the open question.</p>
+</section>
+<section id="growth">
+  <span class="eyebrow">Growth law</span>
+  <h2>Why the width grows like t<sup>1/3</sup></h2>
+<p>Each glider crosses the second block and E walks back over it, so a round from blocks [x, a] costs about 1.5·x·a steps, of the order of the width squared, and adds only a few ones (3 to 28). A constant gain per w<sup>2</sup> steps gives w<sup>3</sup> ~ t. After 10<sup>9</sup> steps the tape is 3,867 cells wide.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -232,17 +250,25 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   </div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</div></div><div><b>The pieces of a round</b><p>The same statements as for 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA, proved for this machine: the sweep <code>0 C&gt; (11)^n</code> → <code>(01)^n 0 C&gt;</code> (here by B, C and A), the glider <code>0 0 D&gt; 1^n</code> → <code>1^n 0 0 D&gt;</code>, the glider cycle and the first and last pieces of a round.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>round_mod4</code>, <code>round_mod2</code>, <code>lean/Round.lean</code></div></div><div><b>Rounds from an even first block</b><p><code>E&gt; 0 1^(4k+4) 0 1^(a+3) 0 1 R</code> reaches <code>E&gt; 0 1^(a+k+4) 0 1^(3k+7) R</code> and <code>E&gt; 0 1^(4k+6) 0 1^(a+4) 0 1 R</code> reaches <code>E&gt; 0 1^(a+k+5) 0 1^(3k+10) R</code>, for all k, a, R: [4K, a, b, …] → [a+K, 3K+3+b, …] and [4K+2, a, b, …] → [a+K, 3K+6+b, …].</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w">checked with <code>bbtools.symtm</code> (single steps)</div></div><div><b>Where the two machines part</b><p>The sweep crossing a hole after an odd stretch, <code>C&gt;1 0 1 1</code> → <code>0 1 0 C&gt;1</code>, is the same in both machines; on <code>C&gt;1 0 1 0</code> (a block of one 1 after the hole) this machine reaches F on a 0 and halts, where the twin carries on.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 3,867 cells have been visited and 3,172 of them hold a 1.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code> (<code>at E L</code>), <code>py/rounds.py</code></div></div><div><b>Every round starts on single holes</b><p>At the 660 times up to step 10<sup>9</sup> that the head is at the left end in state E on a 0, the tape is blocks of 1s separated by single 0s (except at steps 7 and 204): 2 blocks 593 times, 3 blocks 53, 4 blocks 10, 5 blocks 2. The shortest block at a round start is 3 (step 1,605); after step 2,136 it is never below 12.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/rounds.py</code></div></div><div><b>The even rounds follow the formula</b><p>All 329 rounds from an even first block in the first 10<sup>9</sup> steps follow [a+K, 3K+3+b, …] (x = 4K) or [a+K, 3K+6+b, …] (x = 4K+2).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/power</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.331). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.332).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/rounds.py</code></div></div><div><b>Why the width grows like t<sup>1/3</sup></b><p>As in the twin: about x/4 gliders each cross the second block and come back, so a round costs about 1.5·x·a ~ w<sup>2</sup> steps, and it adds 3 ones (x = 4K), 4 (x = 4K+2) or 4 to 28 (odd x). So w<sup>3</sup> ~ t.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The even rounds are proved; odd first blocks make the sweep pass through holes, and the machine would halt if such a sweep met a block of a single 1. A proof needs the odd rounds as rules and an invariant that keeps blocks long.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 1000000000
+python3 holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/py/rules.py | diff - holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/lean/Rules.lean
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB 1000000000 at E L 100000 &gt; el.txt &amp;&amp; python3 holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/py/rounds.py el.txt</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

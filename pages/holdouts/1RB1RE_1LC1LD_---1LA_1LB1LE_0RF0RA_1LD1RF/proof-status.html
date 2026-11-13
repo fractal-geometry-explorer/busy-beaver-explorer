@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and probably cannot be settled by computation.</b> Lean proves that the machine halts from blank tape exactly when an explicit arithmetic iteration reaches its halting case (<code>halts_iff</code>). The kernel evaluates its first epochs: they do not halt, and epoch 3 provably ends in a new epoch 4. Epoch 4 starts with a run of about 10<sup>2&middot;10<sup>13</sup></sup> ones; whether it halts at its end depends on parities of numbers with more than 10<sup>13</sup> digits. Heuristically it halts there with probability 3/4, and eventually with probability 1.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>One phase</h3>
+        <p>Write <code>P c u x</code> for the tape <code>0^inf 1^c (01)^u 0 0 (10)^x F&gt; 0^inf</code>. For u = 2 or 3 and x &ge; 1, <code>P (c+4) u x</code> reaches <code>P c u' x'</code> with X = x+u+4, u' = 2 + X mod 2, x' = 3&lfloor;X/2&rfloor; &minus; 1: four ones are eaten on the left, the block on the right grows by half. Built from the bounce rule <code>L (01)^(x+2) 0 0 (10)^(y+1) F&gt;</code> &rarr; <code>L (01)^x 0 0 (10)^(y+4) F&gt;</code> (4y+18 steps) applied k times.</p>
+        <p class="where"><code>phase</code>, <code>bounce_iter</code>, <code>lean/Phase.lean</code>; <code>bounce</code>, <code>glue2</code>, <code>glue3</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The eight epoch ends</h3>
+        <p>When fewer than 4 ones are left (r = c mod 4) and x &ge; 16: r = 3 gives the new epoch <code>P (2x+4+2u) 3 5</code>; r = 0 with u = 3, or r = 1 with u = 2, gives <code>P (2x+5) 3 5</code>; the four other cases (r = 0, u = 2; r = 1, u = 3; r = 2) halt.</p>
+        <p class="where"><code>end_some</code>, <code>end_none</code>, <code>lean/Phase.lean</code>; <code>end03</code> &hellip; <code>end23</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting is the iteration reaching none</h3>
+        <p>With <code>epochs 0 = some 3</code> and <code>epochs (k+1) = (epochs k).bind ends</code>, where <code>ends c</code> applies c/4 phases to (u, x) = (3, 5) and then the epoch-end table: the machine halts from blank tape if and only if <code>epochs k = none</code> for some k.</p>
+        <p class="where"><code>halts_iff</code>, <code>lean/Phase.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The first epochs</h3>
+        <p><code>epochs 1 = some 20</code>, <code>epochs 2 = some 297</code>, <code>epochs 3 = some 459271258863231</code> (evaluated by the kernel), and <code>epochs 4</code> is defined because 459271258863231 mod 4 = 3. So the machine does not halt before the end of epoch 4.</p>
+        <p class="where"><code>epochs_first</code>, <code>epochs_4</code>, <code>lean/Phase.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +139,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 60,017 cells have been visited and 41,859 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The model agrees with simulation</h3>
+        <p>An exact accelerated simulator (run-length tape, symbolic shift rules) matches the phase and epoch-end rules on the first 400 configurations of the form P, through epoch 3 (to about 10<sup>114</sup> steps), and on all eight epoch-end cases at x = 1000, 1001, 1002.</p>
+        <p class="where"><code>py/epochs.py check 400</code>, <code>py/epochs.py ends</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +152,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.496).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>It probably halts, unimaginably late</h3>
+        <p>Epoch 3 makes 114,817,814,715,807 phases, so c<sub>4</sub> = 2x+4+2u has about 2&middot;10<sup>13</sup> digits and c<sub>4</sub> mod 4 = 2(x+u) mod 4. If x+u is odd, epoch 4 ends with r = 2: a halt. If it is even, epoch 4 halts unless its own last u is 3. With the parities behaving like coin flips, the halt comes at the end of epoch 4 with probability 3/4, and eventually with probability 1 (r = 3 is always followed by r = 0 or 2, and r = 2 always halts). Computing the parity needs about 10<sup>27</sup> bit operations at the very least.</p>
+        <p class="where"><code>README.md</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known: equivalent (in Lean) to whether the epoch iteration ever reaches its halting case. The first undecided epoch end needs the parity of x+u after 1.1&middot;10<sup>14</sup> steps of X &rarr; &lfloor;3X/2&rfloor;+5, numbers of up to 10<sup>13</sup> digits; heuristically it halts there with probability 3/4.</p>
       </div>
     </div>
   </section>
@@ -140,7 +170,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF 1000000000
+python3 holdouts/1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF/py/epochs.py
+python3 holdouts/1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF/py/epochs.py check 400
+python3 holdouts/1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF/py/epochs.py ends</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

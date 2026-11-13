@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine is a counter that grows by a factor 3/2 per epoch (two moves proved in Lean), whose parities drive a growing stack of slower counters. Lean also proves that a halt can only happen past the right end of the tape, which would need the whole stack to be used up; through 83 epochs (10<sup>30</sup> steps) the stack only grows and its bottom has frozen.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweep</h3>
+        <p>Read as runs of 1s separated by single 0s, with u a run of length 1: [X, 4, u<sup>n+2</sup>, R] becomes [X+6, 4, u<sup>n</sup>, R] in 2X+32 steps, for every X = 2x+2, every n and every tape R.</p>
+        <p class="where"><code>sweep</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The conversion</h3>
+        <p>[2x+8, u<sup>k+2</sup>, R] becomes [6, 4, u<sup>x</sup>, 4, u<sup>k</sup>, R] in 4x+74 steps: the long run is turned into half as many units.</p>
+        <p class="where"><code>convert</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A halt can only happen past the right end</h3>
+        <p>A closed tape language from windows of 4 cells covers the run from blank tape; in it the halting transition F0 can only fire with blank tape from the head on, so the machine halts iff F steps onto the blank region right of the tape. The right end of the tape has not moved since step 1.8&middot;10<sup>5</sup>.</p>
+        <p class="where"><code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +134,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 60,039 cells have been visited and 56,234 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>83 epochs, 7&middot;10<sup>29</sup> steps, no halt</h3>
+        <p>The macro simulator with proved cycle jumps (<code>tools/py/bbtools/cycles.py</code>, exact step counts) runs to 10<sup>30</sup> steps. The unit count m of epoch 83 is 780,830,244,113,908; m' = 3m/2 + d with d in {&minus;2, +1, +4} (m even) or {&minus;1/2, +5/2} (m odd), and an epoch takes 1.500&middot;m<sup>2</sup> steps.</p>
+        <p class="where"><code>py/epochs.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +147,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.493). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>A stack of slower counters</h3>
+        <p>The list right of the unit block behaves like nested copies of the top level: its first run grows by 6 and loses a unit at each odd epoch, and is converted into units when they run out; deeper items change exponentially more rarely, and the bottom of the list has been frozen for most of the run. The list grows by about one item per three epochs (29 tokens at epoch 83).</p>
+        <p class="where">README, <code>py/epochs.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. A halt needs the stack to be emptied; the parities of m that drive it look random. The epoch-end cases (parity of m and the first items of the list) are read off the run, not proved.</p>
       </div>
     </div>
   </section>
@@ -140,7 +165,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 1000000000
+cd holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA &amp;&amp; python3 py/rules.py | diff - lean/Rules.lean
+python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/epochs.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 2 1e30 E L &quot;pre:2 4 1^&quot;</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

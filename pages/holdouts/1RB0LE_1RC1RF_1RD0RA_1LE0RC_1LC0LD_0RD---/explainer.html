@@ -131,7 +131,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 62,662 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>n+1, k&minus;1</b><span class="small">Each sweep moves one cell pair from the right end into the left pile.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A pile, a list of numbers, a fuse</a><a href="#sweep">Burning the fuse</a><a href="#halt">A 0 1 1 that never comes</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,24 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>A pile, a list of numbers, a fuse</h2>
+<p>Write a for the 7-cell word <code>1101010</code> and b for <code>10</code>. Whenever the head is in state C at the left end, the tape has the form</p>
+<pre class="config">a^n  b^2 a b^10 (a b^2 a b^10)^m  a b^2 a b^34 a b^16 a b^32 a b^109 a b^320 a b^160 ... a b^538 a b^914 ... a b^k</pre>
+<p>(this one at step 997,019,852, with n = 3291). On the left a pile of n blocks a; in the middle a list of numbers, each written as a run of b's between single a's, with a few pairs repeated many times (2 and 10, 16 and 32, 160 and 320, 538 and 914); at the right end a long run b<sup>k</sup>, the <em>fuse</em>.</p>
+</section>
+<section id="sweep">
+  <span class="eyebrow">One sample to the next</span>
+  <h2>Burning the fuse</h2>
+<p>Between two samples the head sweeps to the right end and back. On the way it shifts every <code>10</code> by one cell and rewrites the blocks a through three phases (rules proved in Lean); the net effect is one more block on the pile and one <code>10</code> less in the fuse: n &rarr; n+1, k &rarr; k&minus;1, and the tape grows by 5 cells. Each sweep costs time proportional to the width, which is why the tape grows like the square root of the time.</p>
+<p>When the fuse is used up, the head stops coming back to the left end. It works on the right part like an expanding bouncer and rebuilds the list of numbers with a new, much longer fuse. In the run so far this happened between steps 75,408 and 8,170,570, and between 19,673,806 and 648,237,047; each reorganization takes far longer than the counting before it, the signature of a nested counter.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Could it stop?</span>
+  <h2>A 0 1 1 that never comes</h2>
+<p>The halting transition is F reading a 1. Following the table backwards, the only way there is C reading <code>1 0 1 1</code>: C turns its 1 into a 0, A then reads a 0 and B and F read the two 1s. Lean checks that <code>C&gt; 1 0 1 1</code> halts four steps later. In the first 10<sup>9</sup> steps A read a 0 almost six million times, always followed by <code>1 0</code> (the b-runs keep ones single), never by <code>1 1</code>. A halt would need a reorganization to leave two ones side by side where A arrives, and no rule for the reorganizations is known yet.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +253,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 62,662 cells have been visited and 30,808 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.04). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.553).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>c_run</code>, <code>d_run</code>, <code>d_back</code>, <code>e_back</code>, <code>d_blocks</code>, <code>d_blocks_back</code>, <code>f_blocks</code>, <code>lean/Rules.lean</code></div></div><div><b>The sweeps' shift rules</b><p>Over the (10)<sup>n</sup> part C and D shift the words by one cell (<code>01</code> &harr; <code>10</code>) going right and D, E run over them going left; over the counter blocks a = <code>1101010</code> the head rewrites each block through the phases <code>0011001</code>, <code>0101101</code>, <code>0010011</code> as it crosses them.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code></div></div><div><b>The shape of a halt</b><p>From <code>C&gt; 1 0 1 1</code> the machine reaches F on a 1 in 3 steps and halts on the next. By reading the table (not formalized): F is entered only from B on a 1, B with a 1 ahead only from A on a 0, and A only from C on a 1, so every halt comes this way.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/nbhd.c</code> (<code>./nbhd M 1000000000 A 0</code>)</div></div><div><b>Near misses</b><p>In 10<sup>9</sup> steps A reads a 0 5,815,845 times: 5,815,812 times followed by <code>1 0 1</code>, 16 times by <code>1 0 0</code>, 17 times at the blank end; never followed by <code>1 1</code> (which would halt).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/samples.c</code>, head-position traces</div></div><div><b>The counter and its reorganizations</b><p>At the samples (C at the left end) the tape reads <code>a^n b^2 a b^10 (a b^2 a b^10)^m ... a b^x a b^y ... a b^k</code>: a pile of n blocks a = 1101010, then a list of numbers written as runs of 10 separated by single a's (pairs like 2, 10 / 16, 32 / 160, 320 / 538, 914 repeat many times), ending with a run b<sup>k</sup>. Every sweep moves one <code>10</code> from the end into a new block a: n+1, k&minus;1, width +5. When k is used up the head stops visiting the left end, works on the right part as an expanding bouncer and rebuilds it with larger numbers; plain counting resumed at steps 8.2&middot;10<sup>6</sup> (width 5,254) and 6.48&middot;10<sup>8</sup> (width 49,385).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Halting needs A to read a 0 followed by <code>1 1</code>, which needs a <code>0 1 1</code> where the sweeps keep <code>0 1 0</code>. Whether some reorganization ever produces it depends on the exact nested numbers, for which no closed rule has been found.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD--- 1000000000
+gcc -O2 -o nbhd holdouts/1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD---/c/nbhd.c &amp;&amp; ./nbhd 1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD--- 1000000000 A 0</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -129,9 +129,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <p class="machine-id">1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD</p>
   <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 35,203 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>halts &hArr; map</b><span class="small">Lean: halting from blank tape is exactly the counter map reaching Z(a,2).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>2,000 rounds</b><span class="small">Of the map without halting, about 10<sup>1511</sup> steps.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>~1/N</b><span class="small">Chance of the halting coincidence per Y run outside the doubling stage.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Three counters on one tape</a><a href="#rules">The counter map</a><a href="#rounds">A doubling stage and an endgame</a><a href="#halting">One coincidence, never met</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,35 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What it does</span>
+  <h2>Three counters on one tape</h2>
+<p>Every time the head turns left into state D, the tape is one of</p><pre>X(a,b,c) = 0^&infin; 1^a 0  (10)^b 1 D&gt; 0 1^c 0^&infin;
+Y(a,b,c) = 0^&infin; 1^a 00 (10)^b 1 D&gt; 0 1^c 0^&infin;
+Z(a,c)   = 0^&infin; 1^a 0 D&gt; 0 1^c 0^&infin;</pre><p>a block of ones on the left, a block of <code>10</code>s in the middle and a block of ones on the right, with the head between the last two. Between two such moments the head makes one trip over the middle block.</p>
+<p>In X, each trip takes 3 ones from the left block, adds 2 <code>10</code>s to the middle block and uses one cell of the right block. In Y it is the other way round: the left block gains 3 and the middle block loses one <code>10</code>. When a block runs out, a boundary rule switches between the shapes.</p>
+</section>
+<section id="rules">
+  <span class="eyebrow">The rule</span>
+  <h2>The counter map</h2>
+<pre>X(a+4,b,c+2) &rarr; X(a+1,b+2,c+1)    X(3,b,c+2) &rarr; X(1,b+1,c+1)    X(2,b,c+2) &rarr; X(2,b+2,c+1)
+X(1,b,c+2)   &rarr; Y(3,b,c+1)        X(0,0,c+2) &rarr; Z(3,c+1)
+X(a+5,b,1)   &rarr; X(a,0,2b+9)       X(4,b,1) &rarr; X(4,0,2b+7)       X(3,b,1) &rarr; X(4,0,2b+5)
+X(2,b,1)     &rarr; X(0,0,2b+9)       X(1,b,1) &rarr; X(1,0,2b+5)
+Y(a,b+1,c+2) &rarr; Y(a+3,b,c+1)      Y(a,0,c+2) &rarr; Z(a+3,c+1)      Y(a,b,1) &rarr; X(a,1,2b+3)
+Z(a,c+6)     &rarr; X(a+4,0,c+1)      Z(a,1) &rarr; X(a,1,1)            Z(a,3) &rarr; X(a,0,5)
+Z(a,4)       &rarr; X(a+2,0,3)        Z(a,5) &rarr; X(a+2,0,5)          Z(a,2): halts</pre><p>Lean proves every rule for all values (<code>lean/Rules.lean</code>), that the run from blank tape is at X(2,0,3) after 29 steps, and that the machine halts exactly when the orbit reaches some Z(a,2) (<code>halts_iff</code>). The direct run agrees with the map, step counts included, for the first 1.1&middot;10<sup>10</sup> steps.</p>
+</section>
+<section id="rounds">
+  <span class="eyebrow">Rounds</span>
+  <h2>A doubling stage and an endgame</h2>
+<p>A round starts at <code>X(0,0,N)</code>: the whole tape is N ones. It opens with a doubling stage, five rules per lap:</p><pre>X(A,0,C) &rarr; X(1,&hellip;) &rarr; Y(3,&hellip;) &rarr; Y(&hellip;,0,&hellip;) &rarr; Z(&hellip;) &rarr; X(2A+8, 0, C&minus;A&minus;6)</pre><p>from A = 7 and C = N &minus; 6, so A + 8 = 15&middot;2<sup>i</sup>, until the right block is too short for another lap. A short endgame follows (sometimes with a second doubling stage) and ends at <code>X(2,b,1) &rarr; X(0,0,2b+9)</code>, the next round.</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>round</th><th>ends at step</th><th>N</th></tr></thead><tbody><tr><td>1</td><td>168</td><td>17</td></tr><tr><td>2</td><td>1,920</td><td>57</td></tr><tr><td>3</td><td>12,928</td><td>185</td></tr><tr><td>4</td><td>157,670</td><td>601</td></tr><tr><td>5</td><td>1,628,900</td><td>2,265</td></tr><tr><td>6</td><td>12,560,150</td><td>5,913</td></tr><tr><td>7</td><td>109,874,665</td><td>16,121</td></tr><tr><td>8</td><td>667,147,215</td><td>35,177</td></tr><tr><td>9</td><td>2,457,152,121</td><td>71,833</td></tr><tr><td>10</td><td>11,528,833,117</td><td>166,841</td></tr></tbody></table></div><p>N grows about 2.4 times a round and a round costs about N<sup>2</sup> steps, the triage shape.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>One coincidence, never met</h2>
+<p>The only way to halt is a Y run that starts with c &minus; b = 3: its middle block empties when the right block has 3 ones, the next rule gives Z(a,2), and the machine reaches F reading 0. In the doubling stage b and c are both even, so this cannot happen there. In the endgame nothing rules it out, but c &minus; b is a number of the size of N, so the chance is about 1/N.</p><p>Iterating the map for 2,000 rounds (N about 10<sup>756</sup>, about 10<sup>1511</sup> steps) shows no halt; the closest approach after round 3 was |c&minus;b&minus;3| &asymp; 10<sup>&minus;5.5</sup> N. A proof would need a closed form of the endgame, which is not known.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +264,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 35,203 cells have been visited and 28,636 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.467). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.091).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (generated by <code>py/gen_rules.py</code>); in the shape of the map: <code>r_*</code>, <code>rule_some</code>, <code>rule_none</code> in <code>lean/Model.lean</code></div></div><div><b>The 20 counter rules, for all values</b><p>From each shape the machine reaches the next shape (or, from Z(a,2), the halting transition F0): for example <code>X(a+4,b,c+2) &rarr; X(a+1,b+2,c+1)</code> in 4b+13 steps and <code>Y(a,b+1,c+2) &rarr; Y(a+3,b,c+1)</code> in 4b+13 steps. Symbolic runs with the crossing lemmas.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_to_X</code>, <code>lean/Model.lean</code></div></div><div><b>From blank tape to X(2,0,3)</b><p>After 29 steps from blank tape the tape is <code>1 1 0 1 D&gt; 0 1 1 1</code> = X(2,0,3).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>lean/Model.lean</code></div></div><div><b>Halting is the map reaching Z(a,2)</b><p>The machine halts from blank tape if and only if the orbit of X(2,0,3) under <code>nxt</code> reaches a state where <code>nxt</code> is undefined, which is exactly Z(a,2).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/canon.c</code> piped into <code>py/orbit.py validate</code></div></div><div><b>The map is the direct run up to 1.1&middot;10<sup>10</sup> steps</b><p>A C simulation reads the tape at every left turn into D; every one of the 224,522 transitions up to 1.1&middot;10<sup>10</sup> steps is the map's, with the map's step count.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/orbit.py run 2000</code></div></div><div><b>2,000 rounds of the map</b><p>Iterating the map with whole bulk runs at once (Python big integers): no halt in 2,000 rounds, about 10<sup>1511</sup> machine steps; N (the length of the all-ones tape at a round start) is about 10<sup>756</sup>.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>Almost surely nonhalting</b><p>Halting needs c &minus; b = 3 exactly at the start of a Y run. In the doubling stage b and c are both even, so it cannot happen there; in the rest of a round, if c &minus; b behaves like a random number of size N, the chance is about 1/N per run, and the sum over all later rounds is negligible. The closest approach after round 3 was |c&minus;b&minus;3| &asymp; 10<sup>&minus;5.5</sup> N, over 2.5 million Y runs.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does the orbit ever reach Z(a,2)?</b><p>The endgame of a round (after the doubling stage) has no closed form yet; without one there is no handle on the coincidence.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD 1000000000
+PYTHONPATH=tools/py python3 holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/py/gen_rules.py     # regenerates lean/Rules.lean
+gcc -O2 -o /tmp/canon holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/c/canon.c &amp;&amp; /tmp/canon 11000000000 | python3 holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/py/orbit.py validate
+python3 holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/py/orbit.py run 2000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

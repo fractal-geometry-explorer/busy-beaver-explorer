@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G10",
  "title": "What is known about 1RB0LF_1RC0RB_0RD0RA_1RE0LD_1LF---_1LA1LF",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LF_1RC0RB_0RD0RA_1RE0LD_1LF---_1LA1LF.",
@@ -12,7 +12,8 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> A bouncer over a 1010… background (fast left side) with a slowly growing right end where defects (00, 11, longer gaps) accumulate; chaotic, open. Close relative of 1RB0LF_1RC0RB_0RD0RA_1RE1LE_1RF---_1LA1LF (part03).",
+  "Lean proves no halt in the first 10<sup>7</sup> steps (the first 10,000 by the kernel alone), 8 shift rules of the sweeps; the rest of the description below is observation of the run, marked as such."
  ],
  "claims": [
   {
@@ -46,9 +47,45 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "8 shift rules of the sweeps",
+   "text": "For every n and every tape around: B, C and A shift <code>1010</code>↔<code>0101</code> rightward, A and F cross <code>10</code>/<code>01</code> leftward unchanged. Each is a theorem <code>steps (s·n) … = some …</code> found and proved by <code>tools/py/bbtools/symtm.py</code>.",
+   "where": "<code>lean/Sweeps.lean</code> (<code>sweep_lA_10_1</code>, <code>sweep_lF_01_0</code>, <code>sweep_lA_1010_1</code>, <code>sweep_rB_1010</code>, …)"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt can happen (closed tape language, 5-cell windows)",
+   "text": "The closure search of <code>bbtools.ctl</code> with windows of 5 cells is closed but allows halts; the halting abstract configurations constrain the neighbourhood of a halt: a halt (E reading 1) needs <code>10100</code>, <code>10101</code> or <code>10110</code> to the left (nearest first); any right side starting with 1. A Python check, not a Lean certificate (the Lean library only has the right-edge and no-halt corollaries, which do not apply).",
+   "where": "<code>python3 -m bbtools.ctl 1RB0LF_1RC0RB_0RD0RA_1RE0LD_1LF---_1LA1LF 5</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Macro structure: bouncer over a 10 background with a defect gas",
+   "text": "The left side is the plain <code>10</code> background of a bouncer: rightward passes in A/B/C shift every copy of <code>1010</code> to <code>0101</code> or back (proved shift rules), leftward passes in A/F leave it as it is. The left end grows like the square root of the step count.",
+   "where": "README; <code>tmrun</code>, <code>tokrun</code> runs"
+  },
+  {
+   "level": "kernel",
+   "title": "8 shift rules of the sweeps",
+   "text": "For every n and every tape around: B, C and A shift <code>1010</code>↔<code>0101</code> rightward, A and F cross <code>10</code>/<code>01</code> leftward unchanged. Each is a theorem <code>steps (s·n) … = some …</code> found and proved by <code>tools/py/bbtools/symtm.py</code>.",
+   "where": "<code>lean/Sweeps.lean</code> (<code>sweep_lA_10_1</code>, <code>sweep_lF_01_0</code>, <code>sweep_lA_1010_1</code>, <code>sweep_rB_1010</code>, …)"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt can happen (closed tape language, 5-cell windows)",
+   "text": "The closure search of <code>bbtools.ctl</code> with windows of 5 cells is closed but allows halts; the halting abstract configurations constrain the neighbourhood of a halt: a halt (E reading 1) needs <code>10100</code>, <code>10101</code> or <code>10110</code> to the left (nearest first); any right side starting with 1. A Python check, not a Lean certificate (the Lean library only has the right-edge and no-halt corollaries, which do not apply).",
+   "where": "<code>python3 -m bbtools.ctl 1RB0LF_1RC0RB_0RD0RA_1RE0LD_1LF---_1LA1LF 5</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Macro structure: bouncer over a 10 background with a defect gas",
+   "text": "The left side is the plain <code>10</code> background of a bouncer: rightward passes in A/B/C shift every copy of <code>1010</code> to <code>0101</code> or back (proved shift rules), leftward passes in A/F leave it as it is. The left end grows like the square root of the step count.",
+   "where": "README; <code>tmrun</code>, <code>tokrun</code> runs"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. E reading 1 halts. In the 5-cell closed language this needs <code>1010x</code> on the left and a 1 under the head; every right window starting with 1 is allowed, so the language does not locate the halt.",
    "where": ""
   }
  ],
@@ -74,6 +111,11 @@
     "level": "heuristic",
     "value": "power/sqrt",
     "text": "The growth shape of the two sides of the tape (see below)."
+   },
+   {
+    "level": "heuristic",
+    "value": "bouncer over a 10 background with a defect gas",
+    "text": "The behaviour family (see below)."
    }
   ],
   "presets": [
@@ -85,6 +127,40 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "structure",
+    "eyebrow": "Macro structure",
+    "heading": "What the machine does: bouncer over a 10 background with a defect gas",
+    "html": [
+     "<p>The left side is the plain <code>10</code> background of a bouncer: rightward passes in A/B/C shift every copy of <code>1010</code> to <code>0101</code> or back (proved shift rules), leftward passes in A/F leave it as it is. The left end grows like the square root of the step count.</p>",
+     "<p>The right end (slow side, exponent about 0.23) is where the action is: near it the background carries defects. Written as runs of 1s (numbers) and gaps (<code>.</code> one 0, <code>:</code> two 0s, <code>_k</code> k 0s), the last 40 runs at step 982,617,644 are <code>2 . 1 . 1 . 1 : 1 . 1 . 1 . 1 _4 1 . 1 . 1 … 1 _6 1 . 1 .</code>. Defects appear at the right wall, travel and merge; their pattern has no visible period.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Halting",
+    "heading": "What a halt would require",
+    "html": [
+     "<p>E reading 1 halts. In the 5-cell closed language this needs <code>1010x</code> on the left and a 1 under the head; every right window starting with 1 is allowed, so the language does not locate the halt.</p>"
+    ]
+   },
+   {
+    "id": "proved",
+    "eyebrow": "Lean",
+    "heading": "What is proved, and what is not",
+    "html": [
+     "<ul><li><b>Sweeps</b> (<code>lean/Sweeps.lean</code>, kernel): B, C and A shift <code>1010</code>↔<code>0101</code> rightward, A and F cross <code>10</code>/<code>01</code> leftward unchanged; for every number of copies and every tape around.</li><li><b>Bounded run</b> (<code>lean/Blank.lean</code>): no halt in 10<sup>7</sup> steps (native), 10,000 (kernel); the halting transition is the only way to stop.</li></ul>",
+     "<p>Everything else on this page is observation of the simulated run (heuristic). Nothing here decides halting.</p>"
+    ]
+   },
+   {
+    "id": "later",
+    "eyebrow": "Next",
+    "heading": "What would move it forward",
+    "html": [
+     "<p>Compare with the part03 twin (one transition differs): if their right-end defect sequences coincide, the defect mechanism is in the shared states.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +174,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A bouncer over a 1010… background (fast left side) with a slowly growing right end where defects (00, 11, longer gaps) accumulate; chaotic, open. Close relative of 1RB0LF_1RC0RB_0RD0RA_1RE1LE_1RF---_1LA1LF (part03).",
+ "family": "bouncer over a 10 background with a defect gas",
+ "decision": "open"
 }

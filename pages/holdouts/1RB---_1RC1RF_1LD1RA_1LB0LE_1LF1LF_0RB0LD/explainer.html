@@ -127,11 +127,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. The machine counts in base 4 with digits written as defects in a periodic background, and the empty stretches between digits run out at exactly the rate that makes digits collide.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>base-4 counter</b><span class="small">its rounds proved in Lean for all block lengths.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>94,716 / 94,852</b><span class="small">rounds in 10<sup>10</sup> steps predicted exactly by the counter rule; the rest are overflows and collisions.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>3.16&middot;10<sup>15</sup> steps</b><span class="small">no halt (macro simulator, exact).</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 75,414 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +142,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counter">A counter written in defects</a><a href="#collisions">Blocks that run out on time</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +211,20 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="counter">
+  <span class="eyebrow">Macro structure</span>
+  <h2>A counter written in defects</h2>
+<p>Write down the gaps between consecutive 1s on the tape. Almost all of them are 2: the background is <code>001001001&hellip;</code>. The exceptions are short <em>defects</em> of four kinds, q = (1,0), r = (4), s = (1,1) and p = (3), and the tape ends with a gap of 1 (END). Each time the head, in state D, is back at the left end, the tape is</p>
+<p style="text-align:center"><code>2^n0 d1 2^n1 d2 &hellip; dk 2^nk END</code></p>
+<p>and one round adds 1 to a <b>base-4 counter</b> whose digits are the defects, least significant first: q &rarr; r &rarr; s &rarr; p &rarr; q, with a carry on s &rarr; p. The head walks right only as far as the carry goes and comes back. The first block grows by one period every round, and each time a digit goes q &rarr; r the block after it loses one period.</p>
+<p>When every digit is s, the carry runs to the end of the tape, comes back, and a new digit appears at the <em>left</em> end: the counter gains a digit at the bottom, and every old digit now turns over four times more slowly.</p>
+</section>
+<section id="collisions">
+  <span class="eyebrow">Why it is hard</span>
+  <h2>Blocks that run out on time</h2>
+<p>With K digits an overflow comes every 4<sup>K</sup> rounds. Right after one, the block behind the new digit is about 4<sup>K</sup> periods long, and it loses one period every four rounds, that is about 4<sup>K</sup> per cycle: it runs out just about when the next overflow comes. So blocks do reach zero, two digits touch, and the pair cycles as one compound defect until the two merge into one digit (pairs seen: rr &rarr; sr &rarr; ps &rarr; qs &rarr; pt &rarr; qt &rarr; p, and rq &rarr; sq &rarr; pr &rarr; qr &rarr; (6) &rarr; (1,3), which turns the carry back like the end of the tape).</p>
+<p>Whether this goes on forever depends on the exact lengths. A tape of the very same shape, 2<sup>4</sup> r 2<sup>2</sup> END, halts after 234,048 steps (proved in Lean), when its digits drift into the end of the tape and destroy it. From blank tape the blocks have so far always been long enough; after 10<sup>10</sup> steps the counter has 8 digits.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +251,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 75,414 cells have been visited and 25,257 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.547). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>round_q</code> &hellip; <code>overflow</code>, <code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</div></div><div><b>The counter's rounds</b><p>Seven rounds from the head in state D at the left end to the next such moment, for all block lengths: the first digit going q&rarr;r (its block loses a period), r&rarr;s, p&rarr;q; a carry into the second digit (q, r or p); and the overflow of a one-digit counter into END, which creates a new first digit.</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>ex_halts</code>, <code>lean/Example.lean</code></div></div><div><b>A tape of the same shape halts</b><p>From the tape 2<sup>4</sup> r 2<sup>2</sup> END (head in state D at the left end) the machine halts after 234,048 steps. The shape alone does not keep it running.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/counter.py 1e10</code></div></div><div><b>The counter rule matches the run</b><p>Of the 94,852 rounds in the first 10<sup>10</sup> steps the base-4 counter rule predicts 94,716 exactly and none wrongly; the other 136 are 31 overflows, 100 collisions of digits and 5 rounds of the first 120 steps. At most 8 digits.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep_right</code>, <code>sweep_left_D</code>, <code>sweep_left_E</code>, <code>sweep_left_F</code>, <code>lean/Rules.lean</code></div></div><div><b>The four sweeps</b><p>The pass to the right (state B) turns a block of the background into 1s; the pass back writes the background again in one of three phases, by its state: D writes 010, E writes 001, F writes 100. For all block lengths. The state of the pass back is how a carry (or its absence) travels to the left.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/far.py 3.2e15</code> (8 minutes)</div></div><div><b>No halt in the first 3.16&middot;10<sup>15</sup> steps</b><p>The macro simulator of the shared tools (blocks of 3 cells, whole runs of the background crossed at once; exact, tested cell for cell against the plain simulator) runs 3,162,277,665,785,965 steps (665,350,460 macro steps) without a halt.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/counter.py</code>, <code>py/far.py</code></div></div><div><b>What an overflow does to the blocks</b><p>Between two overflows with the same digits and no collision, the block before END loses 1 period and the j-th block from the right loses 4<sup>j</sup> (1, 4, 16, 64, 256 at the overflows of steps 1.6&middot;10<sup>7</sup> to 4.4&middot;10<sup>7</sup>). The block before END went 8, 7, &hellip;, 1 and END then absorbed the last digit over six overflows (clusters 1,1,1 &rarr; 3,1 &rarr; 1,0,1 &rarr; 3 &rarr; 1,0 &rarr; 2 &rarr; 1), during which no new digit is made and the first block keeps growing; the next block before END went 42, 41, &hellip;, 29 by 10<sup>10</sup> steps and is at 9 after 3.16&middot;10<sup>15</sup>.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. No halt in 3.16&middot;10<sup>15</sup> steps. Missing: the rules of every collision (the compound defects seen so far form a small set) and of END absorbing a digit, as local rules of the two passes, and an invariant on the block lengths that keeps the digits from wrecking END; the blocks are spent at a critical rate, so the invariant has to be exact. The next absorption of a digit by END (the block before it is at 9 and loses 1 per overflow) is due around 10<sup>16</sup>&ndash;10<sup>17</sup> steps, within reach of <code>py/far.py</code> in a few hours.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD 1000000000</code></pre>
+python3 holdouts/1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD/py/rules.py   # re-proves the rounds (symtm)
+python3 holdouts/1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD/py/counter.py 1e10   # the counter rule against the C simulator</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Blocks of 7-cell words and long runs of 1s</a><a href="#phases">Draining one register into another</a><a href="#halt">Only on 0 B&gt; 0</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape looks like</span>
+  <h2>Blocks of 7-cell words and long runs of 1s</h2>
+<p>Write <code>w</code> for the seven cells <code>1111110</code> and <code>x</code> for <code>111110</code>. At step 2,001,556 the tape (1,843 cells) is</p><pre>[A1] 1 0 0 w x w^103 0 0 1^424 w^2 x^105 0 0 1^2 w x^2 0 0 1^10</pre><p>The head is at the left end. The tape is a few <em>registers</em>: blocks <code>w<sup>a</sup></code> and runs <code>1<sup>b</sup></code> separated by <code>0 0</code>. The left part grows (like a square root of time); the far right end hardly moves.</p>
+</section>
+<section id="phases">
+  <span class="eyebrow">The rule</span>
+  <h2>Draining one register into another</h2>
+<p>Every three visits to the left end, one <code>w</code> leaves the block and the run of 1s gains 15: <code>w<sup>103</sup> 0 0 1<sup>424</sup></code> at step 2,001,556, <code>w<sup>102</sup> 0 0 1<sup>439</sup></code> at 2,016,698, <code>w<sup>101</sup> 0 0 1<sup>454</sup></code> at 2,031,696. When the block is empty a different phase starts: one block grows by 2 and another shrinks by 3 per round, while a run of 1s grows by 15. The head crosses the words with the shift rules proved in Lean (A and E going right, B, C, D, E going left).</p>
+<p>This is the behavior of a small register machine: linear phases, each one emptying a register, and a change of phase whose outcome depends on the values left over. Later the tape holds more registers, e.g. at step 1,366,620,342: <code>... w<sup>2279</sup> 0 0 1<sup>11707</sup> w x w<sup>2311</sup> 0 0 1<sup>11514</sup> ...</code>.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Can it stop?</span>
+  <h2>Only on 0 B> 0</h2>
+<p>The machine stops only when C reads a 0, and C is reached only from B reading 0 and stepping left. So it stops exactly when B reads a 0 next to another 0. Inside the phases the head never does that; the question is what happens at the changes of phase, where the leftover register values decide the next phase. That map was not derived, so the question is open.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,15 +249,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (C0); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>e_w</code>, <code>a_w</code>, <code>e_x</code>, <code>a_x</code>, <code>b_l</code>, <code>c_l</code>, <code>d_l</code>, <code>e_l</code>, <code>lean/Rules.lean</code></div></div><div><b>Shift rules across the words</b><p>E and A run right across blocks of <code>w = 1111110</code> and <code>x = 111110</code> (rewriting their rotations), and B, C, D, E run left across rotations of w.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>Where it can halt</b><p>Only C reading 0 halts; C is entered only from B reading 0 (1LC), so the machine halts exactly when B reads a 0 that has a 0 on its left (<code>0 B&gt; 0</code>). Read off the table.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>Linear phases</b><p>Sampled with the head in A at the left end: in a <em>drain</em> phase <code>w x w<sup>a</sup> 0 0 1<sup>b</sup> R</code> becomes <code>w x w<sup>a−1</sup> 0 0 1<sup>b+15</sup> R</code> every 3 visits (the tape grows by 8 cells); in a <em>build</em> phase <code>w x w<sup>a</sup> 1111 0 w<sup>c</sup> 0 0 1<sup>b</sup> R</code> becomes <code>w x w<sup>a+2</sup> 1111 0 w<sup>c−3</sup> 0 0 1<sup>b+15</sup> R</code>. E.g. w<sup>103</sup> 0 0 1<sup>424</sup> at step 2,001,556, w<sup>102</sup> 0 0 1<sup>439</sup> at 2,016,698, w<sup>101</sup> 0 0 1<sup>454</sup> at 2,031,696. Observed in the run, not proved.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">a word-view run of the tape (the <code>tokrun</code> view of <code>tools/c</code>)</div></div><div><b>No halt to 3·10<sup>9</sup> steps; the registers</b><p>At step 1,366,620,342 the tape (55,573 cells) reads <code>1 0<sup>4</sup> x<sup>2</sup> w<sup>19</sup> 1<sup>4</sup> 0 1<sup>4</sup> 0 w<sup>2279</sup> 0<sup>2</sup> 1<sup>11707</sup> w x w<sup>2311</sup> 0<sup>2</sup> 1<sup>11514</sup> w<sup>2</sup> 1<sup>9</sup> w<sup>2</sup> 0<sup>2</sup> 1<sup>5</sup></code>: three blocks of w and two runs of 1s.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/ctl.py</code>, <code>invariants.py</code></div></div><div><b>No closed tape language with small windows</b><p><code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS widths 3 to 7 fails; no invariant a·ones + b·pos + W mod 2..12.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 41,072 cells have been visited and 36,943 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.535). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.051).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The phases are linear and the halting pattern <code>0 B&gt; 0</code> could only come at a change of phase; the map from one phase's end to the next phase's start (a Collatz-like map on the register values, presumably) was not derived.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA/lean/check.sh
+python3 holdouts/1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA/py/rules.py &gt; holdouts/1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA/lean/Rules.lean
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA 1000000000</code></pre>
 </section>
 <footer class="foot">

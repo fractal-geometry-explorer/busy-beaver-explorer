@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---</p>
     <h1>What is known about 1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---</h1>
     <p class="machine">1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. It keeps a list of counters on its tape and runs a binary odometer over them, rebuilding the list whenever the carry runs off it. Lean proves the ordinary visits for every list, and an exact accelerated run reaches 10<sup>1757</sup> visits without a halt; a halt needs one particular coincidence, a counter of exactly 1 next to an emptied counter.</p>
+    <p class="asof">Status as of 9 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The visit-to-visit rule of the counter list is known in every case met by the run (ordinary carries and four kinds of rebuild) and checked against the machine; Lean now proves every ordinary visit for every list. An exact accelerated run that computes the binary odometer in closed form reaches 10<sup>1757</sup> visits without a halt. A halt needs a rebuild that finds a counter equal to 1 next to an emptied counter, and even then happens only sometimes; the counters met there are in the thousands or much larger, so a halt looks very unlikely, but nothing rules the coincidence out.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>One visit of the last two counters, every case</h3>
+        <p>For separator 0 or 1 and each parity of the last two counters c and k (and of the counter z left of c where the carry passes c), the run from <code>L 0 (10)<sup>c</sup> s (10)<sup>k</sup> A&gt; 0<sup>&infin;</sup></code> to the next such visit, for all values and every tape L: e.g. <code>(10)<sup>2a+2</sup> 0 (10)<sup>2b</sup></code> becomes <code>(10)<sup>2a+1</sup> 0 (10)<sup>2b+3</sup></code> in 12b + 18 steps. Eight theorems, proved from symbolic traces (shift rules, <code>rfl</code>, <code>omega</code>).</p>
+        <p class="where"><code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Every ordinary visit, for every counter list</h3>
+        <p>Theorem <code>ordinary_visit</code>: for every list of counters and separators on which the rule <code>ordinary</code> is defined (the carry stops before the front counter and does not target an emptied counter: every visit but the rebuilds), the machine goes from the tape of the list to the tape of the result. The rule: the carry starts at the last counter k, passes every odd counter with a separator 0 on its left, and at the first counter v that is even or has a separator 1 on its left takes one from v's left neighbour (v odd with separator 1, or v even with separator 0) or from v itself (v even, separator 1); that separator becomes 0 and k gains 3. The proof composes 24 generated pieces (the leftward pass turns each crossed counter into a block of 1s, the way back rebuilds them) by induction over the list. Its Python mirror agrees with the machine on 14,249 random lists and with <code>counters.py</code> at all 19,972 ordinary visits among the first 20,000.</p>
+        <p class="where"><code>lean/Macro.lean</code>, <code>lean/MacroRules.lean</code> (from <code>py/macro.py</code>); <code>python3 py/macro.py check 20000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +129,56 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 81,699 cells have been visited and 42,530 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The complete rule, with step counts</h3>
+        <p><code>py/counters.py</code>: the carry (ordinary visits: one counter loses 1, the last gains 3) and the four rebuilds (the carry passes the front; it reaches an emptied counter with a counter x ≥ 1 on its left; it reaches two emptied counters, which merge their neighbours; it reaches the prefix), each with the exact number of steps (6S + 6n + 12 for the commonest visit, S the sum of the counters the head crosses). It agrees with the machine on 6,000 random lists of every kind and at each of the first 37,148 visits from blank tape (3·10<sup>9</sup> steps), counters and step counts.</p>
+        <p class="where"><code>python3 py/counters.py random 6000</code>, <code>visits</code> with <code>c/tokvisits.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 2.4·10<sup>16</sup> steps</h3>
+        <p><code>py/longrun.py</code> applies the rule from the first visit: 10<sup>8</sup> visits, 24,493,542,227,095,740 steps, 31 rebuilds at the front and 40 at emptied counters, without leaving the shapes the rule covers. At visit 446,127 it agrees with the earlier exact simulator (5.4·10<sup>11</sup> steps).</p>
+        <p class="where"><code>python3 py/longrun.py 1e8</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>1757</sup> visits</h3>
+        <p>Between rebuilds the order of the visits depends only on parities and separators: once its separator is 0, the counter k places from the end is examined by the carry every 2<sup>k</sup> visits, alternately stopping it and passing it on. <code>py/accel.py</code> computes these schedules in closed form, jumps to the next event (the carry passing the front, a counter reaching 0, an emptied counter targeted), does that visit with <code>counters.step</code>, and repeats. It agrees with <code>counters.step</code> run visit by visit at 31 sample visits up to 10<sup>6</sup>. It runs 10<sup>1757</sup> visits (5,837 counters, 15,505 slot and merge rebuilds) without leaving the rule's shapes; each visit is at least one step.</p>
+        <p class="where"><code>python3 py/accel.py check 1e6</code>, <code>python3 py/accel.py far 1757 2700</code></p>
+      </div>
+      <div class="card">
+        <h3>An exact accelerated simulator</h3>
+        <p><code>py/blocksim.py</code> keeps the tape as runs of <code>10</code> and crosses each run with a shift rule; at every visit of the right end up to 2·10<sup>7</sup> steps its tape equals the C simulator's (<code>py/bscheck.py</code>).</p>
+        <p class="where"><code>py/blocksim.py</code>, <code>py/bscheck.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The carry rule</h3>
+        <p>At each visit the last counter gains 3 and a carry starts at it: over a separator 0 it stops at an even counter and takes 1 from its left neighbour, and passes an odd one; at a separator 1 it stops, clears the separator and takes 1 from the counter (even) or its left neighbour (odd). Checked at 186,651 consecutive ordinary visits, no failure; the 1,423 visits with a zero counter, a merge or a rebuild are the rare events.</p>
+        <p class="where"><code>py/carry.py</code></p>
+      </div>
+      <div class="card">
+        <h3>What a halt needs</h3>
+        <p>On random lists of every shape the rule covers, the machine never halts within the visit. The rule leaves those shapes only when a rebuild at an emptied counter finds the counter x on its left equal to 1 (x becomes 0, followed by a separator 1, the tape pattern 01 or 11). Even that is not fatal: of 400 random lists with such an event the machine halted within 300 visits in only 8; the others returned to the rule's shapes. In the run to 10<sup>1757</sup> visits the smallest such x (other than the first counter, where x = 1 only creates the prefix) is the early 6, at about visit 2<sup>10</sup>.</p>
+        <p class="where"><code>py/counters.py</code> (<code>Unknown</code>), <code>py/longrun.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Where a halt can come from</h3>
+        <p>A closed tape language from windows of 6 cells covers the run and allows the halting transition F1 only with blank (or a single 1 and blank) to the left of the head and 1111 to the right: at the left end of the tape.</p>
+        <p class="where"><code>python3 -m bbtools.ctl 1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD--- 6</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.478).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A halt looks very unlikely</h3>
+        <p>The small counters next to an emptied counter come from the front of the list, which drains ever more slowly: only a carry that runs through the whole list reaches it, about once in 2<sup>m&minus;1</sup> visits with m counters. Their sizes stay in the thousands (x = 2,984 near visit 2<sup>577</sup>, 1,186 near 2<sup>1158</sup>). Over all slot rebuilds the sum of 1/x is 0.227, but only 0.0013 after visit 2<sup>30</sup> and 2&middot;10<sup>&minus;5</sup> after 2<sup>2000</sup>; treating x as random, the chance of a future x = 1 is below 10<sup>&minus;3</sup>, and an x = 1 halts the machine only sometimes.</p>
+        <p class="where"><code>py/accel.py far</code>, README</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. Missing: the rebuilds in Lean (they are not local on the tape: the head may scan on to the front and come back in a second phase that sets every separator to 1), which would reduce the machine to its counter list as for 1RB1RA_0LC1RF_0LD1LD_1LE1LC_0RB0RA_---1RE, and an invariant showing that a counter left of an emptied counter is never 1 when the carry arrives; since x is set by the exact values the counters had at the last rebuilds, such an invariant looks as hard as a Collatz-type question.</p>
+        <p class="where">README, next steps</p>
       </div>
     </div>
   </section>
@@ -140,7 +186,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD--- 1000000000</code></pre>
+cd holdouts/1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---/py
+python3 counters.py random 6000
+gcc -O2 -o tokvisits ../c/tokvisits.c &amp;&amp; ./tokvisits 3000000000 &gt; visits.txt &amp;&amp; python3 counters.py visits visits.txt
+python3 longrun.py 1e8
+python3 accel.py check 1e6 &amp;&amp; python3 accel.py far 1757 2700
+python3 macro.py check 20000 &amp;&amp; python3 macro.py &gt; ../lean/MacroRules.lean
+python3 rules.py &gt; ../lean/Rules.lean
+cd ../../../tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD--- 6</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

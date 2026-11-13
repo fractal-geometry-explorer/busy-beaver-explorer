@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G10",
  "title": "What is known about 1RB0RE_0RC1RE_1RD1LE_0LE---_1RA1LF_1RF0LC",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RE_0RC1RE_1RD1LE_0LE---_1RA1LF_1RF0LC.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The tape is the alternating pattern <code>0101...</code> broken by a few domain walls (two equal neighbours, <code>00</code> or <code>11</code>). E and A flip whole domains as they cross them (proved in Lean). In samples to 3&middot;10<sup>8</sup> steps the number of walls stays between 12 and 14 while the tape grows to 48,000 cells. How walls move, appear and annihilate is not worked out, so halting (D reading a 1) is not ruled out."
  ],
  "claims": [
   {
@@ -46,9 +46,21 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Crossing domains",
+   "text": "<code>E&gt; (01)^n &rarr; (10)^n E&gt;</code> and <code>A&gt; (10)^n &rarr; (01)^n A&gt;</code>, for every n.",
+   "where": "<code>e_cross</code>, <code>a_cross</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A dozen walls",
+   "text": "At every 300th visit of F to the left end, from step 2.45&middot;10<sup>8</sup> to 3&middot;10<sup>8</sup>, the tape (41,000 to 48,000 cells) has 12 to 14 places where two neighbouring cells are equal.",
+   "where": "<code>tmrun M 300000000 at F L</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The machine halts only when D reads a 1. D is entered from C on a 0 (writing 1, moving right), next to a wall. A halt needs a wall shape or a pair of walls closer than any seen. The walls' dynamics is not known. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.",
    "where": ""
   }
  ],
@@ -60,6 +72,16 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "2 rules",
+    "text": "E and A crossing domains, flipping their phase."
+   },
+   {
+    "level": "heuristic",
+    "value": "12-14 walls",
+    "text": "in every 300th sample to 3&middot;10<sup>8</sup> steps."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -86,6 +108,23 @@
   },
   "sections": [
    {
+    "id": "walls",
+    "eyebrow": "Structure",
+    "heading": "Domains and walls",
+    "html": [
+     "<p>At F's visits to the left end the tape reads (step 83,090,812):</p><pre>F&gt;0 11 (01)^2426 (10)^1439 (01)^206 00 (10)^1894 (01)^50 00 (10)^1330 (01)^266 (10)^543 (01)^474 (10)^606 11 (01)^308 000</pre>",
+     "<p>Every domain is the period-2 pattern. Where <code>(01)</code> meets <code>(10)</code> there are two equal cells, a wall. A sweep to the right flips each domain it crosses, <code>01 &harr; 10</code>, in one go (proved in Lean for E and A). The walls are where the head turns, and each sweep shifts some walls by a cell or two.</p>"
+    ]
+   },
+   {
+    "id": "dyn",
+    "eyebrow": "Dynamics",
+    "heading": "Walls that move",
+    "html": [
+     "<p>The tape grows (sqrt-like on the left, a smaller power on the right), but the number of walls does not: 12 to 14 in the samples between 2.45&middot;10<sup>8</sup> and 3&middot;10<sup>8</sup> steps. So the domains keep getting longer. Their lengths (2,426, 1,439, 206, 1,894, 50, ...) look irregular, like a small system of particles moving at different speeds that is fed new particles at the ends.</p><p><b>What halting would need.</b> D reading a 1, which would take an unusual wall or two walls very close together. Proving non-halting would mean classifying the walls and their collisions. A CTL over the alphabet {01, 10, wall types} could be a way in.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +137,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Domains of the pairs 01 and 10 separated by about a dozen domain walls (00 or 11); sweeps flip the phase of every domain and move the walls, so the domains grow while the number of walls stays near 13; the domain lengths look irregular.",
+ "family": "domain walls in a period-2 background",
+ "decision": "open"
 }

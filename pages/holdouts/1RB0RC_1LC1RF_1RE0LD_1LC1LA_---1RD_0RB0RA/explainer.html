@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">One big block and a small tail</a><a href="#cycle">Double, then take two thirds</a><a href="#halting">Only E on a 0</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,25 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape looks like</span>
+  <h2>One big block and a small tail</h2>
+<p>With the head in A at the left end, and words <code>a = 10</code>, <code>b = 110</code>, <code>d = 010</code>, the tape at step 2,831,052,048 is</p>
+<div class="config">A&gt;a b d a^34948 0 d^23 a d^10 a^26 d^8 a^8 d^8 a^8 d^4 a^2 1</div>
+<p>and at step 2,851,126,369</p>
+<div class="config">A&gt;a b d^23325 a d^2 a^32 d^16 a^26 d^4 b d^7 a^8 d^4 a^8 1</div>
+<p>Almost all of the tape is one big block, written either with <code>a</code> or with <code>d</code>; the short tail on the right is a small counter.</p>
+</section>
+<section id="cycle">
+  <span class="eyebrow">The rule from one cycle to the next</span>
+  <h2>Double, then take two thirds</h2>
+<p>Sweep by sweep, the machine rewrites the big block from one word into the other. A block <code>d^Y</code> (three cells per unit) becomes <code>a^(2Y+2)</code> (two cells per unit): Y = 17,473 gave X = 34,948. A block <code>a^X</code> becomes a <code>d</code>-block of about 2X/3 units, the leftover (X mod 3) and a little from the tail being settled in the tail: X = 34,948 gave Y = 23,325. So Y grows by about 4/3 per cycle: 61, 83, 137, 195, 261, 357, 481, 667, 887, 1239, 1675, 2247, 3009, 4025, 5375, 7171, 9565, 12953, 17473, 23325. Each cycle sweeps a tape about 4/3 longer about 4/3 more often, which is why the left side looks like a bouncer while the tail, changed only once per cycle, grows like a logarithm.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Can it halt?</span>
+  <h2>Only E on a 0</h2>
+<p>The only halt is E reading a 0, right after C has read a 0 and moved right. In 10<sup>9</sup> steps this setup happened almost six million times and the second cell was always a 1. The places where something irregular happens are the conversions of the big block, where the remainder mod 3 is handed to the tail; whether a tail state can ever put two 0s in front of C is the open question.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,9 +252,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (E0); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>right_B_a</code>, <code>right_F_d</code>, <code>right_A_011</code>, <code>right_B_110</code>, <code>lean/Rules.lean</code></div></div><div><b>Shift rules, for every length</b><p>Going right: B crosses <code>(10)^n</code> unchanged, F crosses <code>(01)^n</code> unchanged, A turns each <code>011</code> into <code>110</code>, B turns each <code>110</code> into <code>101</code>; each for every n and every tape around.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 43,966 cells have been visited and 17,659 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.499). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.087).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in 10<sup>10</sup> steps</b><p><code>tools/c/tmrun.c</code>: 10<sup>10</sup> steps from blank tape without a halt (57,846 ones).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/ctl.py</code></div></div><div><b>No closed tape language from windows up to 7</b><p><code>bbtools.ctl</code> with K = 2 to 7 closes but allows a halt (7 to 579 abstract halting configurations); n-gram CPS (widths 3 to 7, -H, -U) fails.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tokrun.c</code></div></div><div><b>The 4/3 cycle</b><p>With the head in A at the left end the tape is <code>a b</code> (a = 10, b = 110), then one big block, then a short tail. The big block alternates between <code>d^Y</code> (d = 010) and <code>a^X</code>: from <code>d^Y</code> the sweeps usually build <code>a^(2Y+2)</code> (for example Y = 17,473 gives X = 34,948), and from <code>a^X</code> they build <code>d</code>-blocks of about 2X/3 plus what the tail contributes. The successive Y: 61, 83, 137, 195, 261, 357, 481, 667, 887, 1239, 1675, 2247, 3009, 4025, 5375, 7171, 9565, 12953, 17473, 23325 (to 2.9&middot;10<sup>9</sup> steps), ratios about 4/3. The tail at the right end (runs such as <code>d^24 a^14 d^8 a^8 d^8 a^8 d^4 a^2</code>) changes only at the conversions: it holds the remainders.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tm.h</code> (transition counts and windows)</div></div><div><b>Where a halt would come from</b><p>The halt is E reading a 0. E is entered only from C reading a 0 (going right); in 10<sup>9</sup> steps E was entered 5,798,513 times and always read a 1. A halt needs C, moving right, to meet two 0s in a row.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt?</b><p>Not known. The exact cycle map (how the remainder mod 3 of X and the tail combine) is not written down yet; with it the question should become a Collatz-like question about that map.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

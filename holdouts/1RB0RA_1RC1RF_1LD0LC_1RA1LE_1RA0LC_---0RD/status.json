@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G10",
  "title": "What is known about 1RB0RA_1RC1RF_1LD0LC_1RA1LE_1RA0LC_---0RD",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RA_1RC1RF_1LD0LC_1RA1LE_1RA0LC_---0RD.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The tape has three parts. On the left is a short control word, 50 to 115 cells long in the first 5&middot;10<sup>8</sup> steps. Next comes a block of about 150 copies of <code>1101</code> that has not changed since early in the run. On the right, copies of <code>1101</code> are added at a steady rate of one per sweep. The crossings of the right part are proved in Lean. The control word changes irregularly at each turn, and its dynamics are not understood, so the halting transition (F reading a 0) is not ruled out."
  ],
  "claims": [
   {
@@ -46,9 +46,39 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Crossing the right part",
+   "text": "<code>A&gt; (0111)^n &rarr; (1110)^n A&gt;</code>, <code>F&gt; (1101)^n &rarr; (1011)^n F&gt;</code>, <code>B&gt; (1110)^n &rarr; (1101)^n B&gt;</code>, for every n.",
+   "where": "<code>a_cross</code>, <code>f_cross</code>, <code>b_cross</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Three parts",
+   "text": "In every 300th sample of D at the right end, from step 7.6&middot;10<sup>6</sup> to 5.5&middot;10<sup>8</sup>, the tape is a control word of 47 to 115 cells, then <code>(1101)^150</code> (149 or 150, in some phase), then a run of the same word whose length grows by exactly 300 copies from one printed sample to the next.",
+   "where": "<code>tmrun M 3000000000 at D R</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Crossing the right part",
+   "text": "<code>A&gt; (0111)^n &rarr; (1110)^n A&gt;</code>, <code>F&gt; (1101)^n &rarr; (1011)^n F&gt;</code>, <code>B&gt; (1110)^n &rarr; (1101)^n B&gt;</code>, for every n.",
+   "where": "<code>a_cross</code>, <code>f_cross</code>, <code>b_cross</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Three parts",
+   "text": "In every 300th sample of D at the right end, from step 7.6&middot;10<sup>6</sup> to 5.5&middot;10<sup>8</sup>, the tape is a control word of 47 to 115 cells, then <code>(1101)^150</code> (149 or 150, in some phase), then a run of the same word whose length grows by exactly 300 copies from one printed sample to the next.",
+   "where": "<code>tmrun M 3000000000 at D R</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The control word never repeats",
+   "text": "At the 19,908 visits of D to the right end in the first 2&middot;10<sup>9</sup> steps, the control word (the tape left of the first run of at least 100 copies of the four-cell word) takes 19,905 different values, none longer than 111 cells. So the left end is not a cycler. It looks like a slowly growing counter-like or chaotic word.",
+   "where": "<code>tmrun M 2000000000 at D R</code>, counted in Python"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The machine halts only when F reads a 0. F is entered from B on a 1, which happens at the turns on the control word. The control word evolves irregularly and has no known invariant. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.",
    "where": ""
   }
  ],
@@ -60,6 +90,16 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "3 rules",
+    "text": "A, F and B crossing runs of the word <code>1101</code>."
+   },
+   {
+    "level": "heuristic",
+    "value": "+1 copy",
+    "text": "per sweep on the right (300 copies per 300 samples)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -86,6 +126,24 @@
   },
   "sections": [
    {
+    "id": "parts",
+    "eyebrow": "Structure",
+    "heading": "Control word, frozen block, growing wall",
+    "html": [
+     "<p>When D stands at the right end, the tape is (cut where the right part starts):</p><pre>step  95,631,033   [70 cells] (1101)^150 (1011)^5 (0111)^1640 0 D&gt;0\nstep 115,164,045   [89 cells] (1101)^150 (1011)^5 (0111)^1940 0 D&gt;0\nstep 153,514,749   [84 cells] (1101)^150 00 (1110)^3 (1101)^2541 11 0 D&gt;0\nstep 165,052,737   [95 cells] (1101)^150 00 (1110)^3 (1101)^2841 11 0 D&gt;0</pre>",
+     "<p>Each sweep the head crosses the right part (A, F and B cross whole runs of the word, proved in Lean), adds one copy at the right end, and runs back to the left. Since a sweep costs time proportional to the tape, the right part grows like the square root of the step count.</p>"
+    ]
+   },
+   {
+    "id": "control",
+    "eyebrow": "Dynamics",
+    "heading": "An irregular control word",
+    "html": [
+     "<p>At the left end the head turns on a word made of blocks <code>110</code>, <code>100110</code>, <code>1 00</code> and <code>101</code>:</p><pre>step  62,840,907   (110)^4 (100110)^2 (110)^4 (100110)^2 (110)^4 (100110)^2 (110)^2 (1110)^3 (110)^2\nstep  83,009,019   (101)^4 (001101)^2 (101)^2 00 (110)^9 1 00 (110)^3 1 00 (110)^3 (1110)^3 1 00\nstep 103,357,845   (100110)^2 (110)^4 (100110)^3 (110)^2 (100110)^3 (110)^2 1 00 (110)^3 (1110)^3 1 00</pre>",
+     "<p>It is rewritten at every turn and its length wanders between about 50 and 115 cells, growing very slowly. This is the side that grows like a power of the step count other than 1/2. The block of 150 copies of <code>1101</code> between the two parts was laid down early and has not changed since.</p><p><b>What halting would need.</b> F reading a 0. F is entered from B reading a 1, which happens only at the control word. Deciding the machine means understanding the control word: as a counter, a finite system, or something chaotic.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +156,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A bouncer whose right part is the word 1101 repeated, one more copy every sweep; it turns around at the left end on a short control word of blocks 110 and 100110 that keeps changing irregularly and grows very slowly; a block of 150 copies of 1101 stays frozen in between.",
+ "family": "bouncer with a chaotic control word",
+ "decision": "open"
 }

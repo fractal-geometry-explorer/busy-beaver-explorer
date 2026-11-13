@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G05",
  "title": "What is known about 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD.",
@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The tape is a row of digits (runs of <code>1 0^5</code>) separated by two kinds of separators; Lean proves (kernel) one phase of the run, the bounce <code>C (n+1) m &rarr; C n (m+2)</code> for all n and m, and that blank tape enters it. The C simulator finds no halt in the first 10<sup>10</sup> steps. The full digit rule, needed for a reduction like the other machines of this group, is not yet written down."
  ],
  "claims": [
   {
@@ -34,46 +34,58 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "The bounce",
+   "text": "In <code>C n m = 0^&infin; 1000 (100)^(n+1) 1000 100 100 E&gt;0 0 (100)^m 1 0^&infin;</code> one excursion of the head (10m + 53 steps) moves the marker <code>1000</code> one unit left and adds two units at the right end, for every n and m: <code>C (n+1) m &rarr; C n (m+2)</code>. So <code>C n m</code> reaches <code>C 0 (m+2n)</code> in n(10m + 53) + 10n(n &minus; 1) steps.",
+   "where": "<code>bounce</code> (<code>lean/Rules.lean</code>), <code>bounceC</code>, <code>bounces</code>, <code>bcost_closed</code>, <code>lean/Bounce.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Blank tape enters the bounce",
+   "text": "Blank tape reaches <code>C 17 4</code> after 5467 steps and <code>C 0 38</code>, where the two markers meet, after 9768.",
+   "where": "<code>init_C</code>, <code>init_meet</code>, <code>lean/Bounce.lean</code>"
+  },
+  {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 39,197 cells have been visited and 13,061 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 10<sup>10</sup> steps",
+   "text": "The C simulator <code>tmrun</code> runs 10<sup>10</sup> steps without a halt; C visits the left end of the tape 139 times, and each time the tape reads as runs of <code>1 0^5</code> separated by T or S (at step 7,055,416,224: 20 runs, the longest 5436).",
+   "where": "<code>py/digits.py</code>"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.455).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Digits",
+   "text": "Nearly every run of <code>1 0^5</code> has a length divisible by 3; runs of <code>1 0^2</code> are turned two for one into runs of <code>1 0^5</code> (same length) and runs of <code>1 0^5</code> are fed back as three units: a counter whose digits and carries are not yet described exactly.",
+   "where": "<code>README.md</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Open. It halts exactly when A reads a 1 with a 0 on its left (<code>0 A&gt;1</code>, then F reads 0); whether the digit dynamics ever produce that is not known.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 1000000000"
+  "/home/user/w/tmrun 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 10000000000 at C L 1000000 | python3 holdouts/1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD/py/digits.py"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet. This machine writes a row of <em>digits</em> &mdash; runs of the word <code>1 0 0 0 0 0</code> &mdash; separated by two kinds of markers, and rewrites them with sweeps that bounce between a marker and the end of the tape. One of its phases is proved in Lean for every size; the full rule for the digits, the key to deciding it, is still to be found. It has run 10<sup>10</sup> steps without stopping.",
   "facts": [
    {
+    "level": "kernel",
+    "value": "C(n+1,m) &rarr; C(n,m+2)",
+    "text": "The bounce phase, for every n and m (Lean, kernel)."
+   },
+   {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 39,197 cells visited."
+    "value": "10<sup>10</sup> steps",
+    "text": "No halt in the C simulator."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "open",
+    "value": "0 A&gt;1",
+    "text": "The only way to halt: A reads a 1 with a 0 on its left."
    }
   ],
   "presets": [
@@ -96,7 +108,55 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,975,974</td><td><code>0^5 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^3 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^3 1 0^2 1 0^2 1 0^3 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2</code></td></tr><tr><td>right</td><td>970,654,881</td><td><code>0^5 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^3 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^3 1 0^2 1 0^2 1 0^3 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2</code></td></tr><tr><td>right</td><td>986,329,071</td><td><code>0^5 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^3 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^3 1 0^2 1 0^2 1 0^3 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "tape",
+    "eyebrow": "Structure",
+    "heading": "What the tape is made of",
+    "html": [
+     "<p>The tape is written in a few words: the <em>unit</em> <code>1 0 0</code>, the long word <code>1 0 0 0 0 0</code> (call it b), a marker <code>1 0 0 0</code>, and two separators, T = <code>1 0 0 1 1 1 1 1 0 0 (1 0 0)^3</code> and S = <code>1 0 0 1 1 0 0 0 0 0</code>. Each time the head comes back to the left end, the tape reads as a list of runs of b with a separator between each two. After about 7&middot;10<sup>9</sup> steps:</p>",
+     "<p style=\"text-align:center\"><code>2 T 3 T 15 S 42 S 9 S 15 S 18 T 30 S 339 T 243 T 339 T 912 S 348 T 798 T 5436 T 873 S 1452 T 2688 T 2861</code></p>",
+     "<p>Almost every run is a multiple of 3 long, and the runs get longer further right. These are the <em>digits</em> of the machine's counter.</p>"
+    ]
+   },
+   {
+    "id": "bounce",
+    "eyebrow": "The basic move",
+    "heading": "The bounce",
+    "html": [
+     "<p>Some phases are simple zigzags. With a marker <code>1 0 0 0</code> that has n + 1 units on its left and m units after it, the head runs right to the end of the tape and back to the marker. Each trip moves the marker one unit left and adds two units at the right end:</p>",
+     "<svg viewBox=\"0 0 420 100\" role=\"img\" aria-label=\"one bounce: the marker moves one unit left, the right end gains two units\" style=\"width:100%;max-width:420px;height:auto;font:11px var(--mono);\"><rect x=\"10\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"19\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"28\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"37\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"46\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"55\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"64\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"73\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"82\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"91\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"100\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"109\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"118\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"127\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"136\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"145\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"154\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"163\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"172\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"181\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"190\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"199\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"208\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"217\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><polygon points=\"217,17 225,17 221,23\" fill=\"var(--head)\"/><text x=\"221\" y=\"14\" text-anchor=\"middle\" fill=\"var(--head)\">E</text><rect x=\"226\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"235\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"244\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"253\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"262\" y=\"25\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><text x=\"277\" y=\"36\" fill=\"var(--fg2)\">C 2 1</text><text x=\"10\" y=\"60\" fill=\"var(--muted)\">&darr; one bounce, 10m + 53 = 63 steps</text><rect x=\"10\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"19\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"28\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"37\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"46\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"55\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"64\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"73\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"82\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"91\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"100\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"109\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"118\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"127\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"136\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"145\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"154\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"163\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"172\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"181\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"190\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><polygon points=\"190,70 198,70 194,76\" fill=\"var(--head)\"/><text x=\"194\" y=\"67\" text-anchor=\"middle\" fill=\"var(--head)\">E</text><rect x=\"199\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"208\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"217\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"226\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"235\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"244\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"253\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"262\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"271\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"280\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"289\" y=\"78\" width=\"8\" height=\"14\" rx=\"2\" fill=\"var(--accent)\"/><text x=\"304\" y=\"89\" fill=\"var(--fg2)\">C 1 3</text></svg>",
+     "<p style=\"text-align:center\"><code>C(n+1, m) &rarr; C(n, m+2)</code> &nbsp; in 10m + 53 steps</p>",
+     "<p>Lean proves this for every n and m, and that blank tape enters it: <code>C(17, 4)</code> at step 5467, and the markers meet at <code>C(0, 38)</code> at step 9768.</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "The emergent behaviour",
+    "heading": "A counter with unknown carries",
+    "html": [
+     "<p>Other phases turn runs of units into runs of b two for one (two units and one b have the same length, six cells) and feed runs of b back to the left three units at a time; which separator is written records how a phase ended. Together they update the digits one at a time, like carries in a counter. The exact rule is not yet written down, so the machine cannot yet be reduced to a simpler question the way its group-mates have been.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The danger",
+    "heading": "Where it could halt",
+    "html": [
+     "<p>The halting transition is F reading 0, and F is entered only when A reads a 1 and steps left. So the machine stops exactly when A meets a 1 with a 0 on its left. In 10<sup>10</sup> steps that never happened.</p>"
+    ]
+   },
+   {
+    "id": "proved",
+    "eyebrow": "Status",
+    "heading": "What is proved",
+    "html": [
+     "<p><b>Kernel:</b> the bounce rule for all n and m (<code>bounceC</code>, <code>bounces</code>), its cost, and that blank tape reaches it (<code>init_C</code>, <code>init_meet</code>); no halt in 10,000 steps. <b>native_decide:</b> no halt in 10<sup>7</sup> steps. <b>Computed:</b> no halt in 10<sup>10</sup> steps. <b>Open:</b> the digit rule and the decision.</p>"
+    ]
    }
   ]
- }
+ },
+ "family": "counter with digit runs of 1 0^5 and two separators (rule not yet found)",
+ "summary": "The tape is a row of digits, runs of the word 1 0<sup>5</sup> (mostly multiples of 3 long) split by two kinds of separators, rewritten by bouncing sweeps; one bounce phase is proved in Lean, the full digit rule is not yet known, and there is no halt in 10<sup>10</sup> steps.",
+ "decision": "open"
 }

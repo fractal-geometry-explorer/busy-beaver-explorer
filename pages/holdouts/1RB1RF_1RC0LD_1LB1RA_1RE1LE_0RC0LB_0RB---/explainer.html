@@ -127,11 +127,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine keeps a run of 1s with a few 0s in it. One 0, the marker, creeps to the right end of the tape while the head bounces between it and the end; each time it arrives the tape is about a third wider, and a few cells at the left end decide where the next marker starts. That is a Collatz-like map, and whether it ever leads to the one halting pattern is open.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 48,668 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>2&middot;10<sup>10</sup> steps</b><span class="small">No halt in a direct run (<code>c/passes.c</code>).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>&times;4/3</b><span class="small">The width grows by about a third per pass of the marker.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +142,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#encoding">A run of 1s, written two ways</a><a href="#marker">The marker zig-zag</a><a href="#growth">Each pass makes the tape a third wider</a><a href="#halting">The prefix and the residues</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +211,41 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="encoding">
+  <span class="eyebrow">The tape</span>
+  <h2>A run of 1s, written two ways</h2>
+<p>Almost every cell of the tape is a 1. The head writes them in two encodings: a sweep to the right turns each triple <code>100</code> into <code>111</code>, and a sweep to the left turns <code>111</code> back into <code>001</code> (or <code>100</code>, <code>010</code>, depending on where in a triple it starts). Both sweeps are proved shift rules (<code>lean/Rules.lean</code>). So the same tape looks like this at the two ends of the run:</p>
+<pre>step 1,220,475  (right end)   1 0 1^1694 B&gt;1 1
+step 1,222,171  (left end)    1 1 C&gt;(010)^565 1</pre>
+<p>In what follows the tape is always read at the right end, in the all-1s encoding: then it is a few blocks of 1s separated by single 0s.</p>
+</section>
+<section id="marker">
+  <span class="eyebrow">The rule</span>
+  <h2>The marker zig-zag</h2>
+<p>Most of the time the head does not cross the whole tape. It bounces between the right end and one 0, the <em>marker</em>, and each bounce moves the marker 4 cells to the right while the end moves 1. Four consecutive right-end turns of the real run:</p>
+<pre>step 1,220,413   1 0 1^1678 0 1^9 B&gt;1 1
+step 1,220,437   1 0 1^1682 0 1^5 D&gt;1 0
+step 1,220,455   1 0 1^1686 0 1^3 B&gt;1 1
+step 1,220,467   1 0 1^1690 D&gt;0 0     (the marker has reached the end)</pre>
+<p>As a rule on the gap g between the marker and the head:</p>
+<pre>X 0 1^g B&gt;1 1   &rarr;   X 1^4 0 1^(g-4) D&gt;1 0
+X 0 1^g D&gt;1 0   &rarr;   X 1^4 0 1^(g-2) B&gt;1 1</pre>
+<p>The second line is a Lean theorem for every g &equiv; 2 (mod 3) and every tape X (<code>zig_d</code>); the two lines together, as one double bounce, are <code>z_two</code>, and <code>z_pass</code> runs the whole zig-zag by induction on the gap (<code>lean/Pass.lean</code>). Each bounce costs about 2g steps, so the zig-zag of a marker that starts g cells from the end takes about g&sup2;/3 steps.</p>
+</section>
+<section id="growth">
+  <span class="eyebrow">The emergent behaviour</span>
+  <h2>Each pass makes the tape a third wider</h2>
+<p>The marker gains 3 cells on the end per bounce, so a marker launched g cells from the end needs about g/3 bounces, and meanwhile the end moves g/3 cells. New markers are launched close to the left end, so g is nearly the whole width W, and the pass ends with the width close to 4W/3. The widths at the ends of the passes of the run:</p>
+<pre>706  945  1266  1694  2258  2993  3971  5301  7069  9410  12506  16503
+21553  28137  36714  47058  60838  81101  108115  144158  192218</pre>
+<p>The run to 1.6&middot;10<sup>10</sup> steps has 21 passes after the first few hundred steps; the number of steps grows like the square of the width (about 0.42&middot;W&sup2;), so the right end of the tape grows like the square root of the step count, and the number of passes only like its logarithm.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">What halting would need</span>
+  <h2>The prefix and the residues</h2>
+<p>When a marker reaches the end, the head sweeps back over the whole tape to the left end, changes a few cells there and launches the next marker. The cells left of the new marker form a short prefix, and the run keeps only a handful of shapes for it, for example <code>1 0</code>, <code>1 0 1^39 0</code>, <code>1^73 0</code>, or two old markers left behind, <code>1^73 0 1^2355 0</code>. Which shape comes next depends on the width modulo 3, because the leftward sweep converts the tape in triples counted from the right end, and its last, incomplete triple is what the head meets at the left end.</p>
+<p>The only halting transition is F1: A reads a 1 and F reads the next cell, also a 1 (<code>A&gt;1 1</code>). In a correct sweep A always meets a 0 there; the pattern needs a rightward sweep to meet triples in a phase it does not expect. So the machine is a Collatz-like map, width &times;4/3 with a residue-dependent correction and a finite-state prefix, and halting is the question whether its residues ever produce that mismatch. That is open (a heuristic statement of the structure, not a proof of either answer).</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +272,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 48,668 cells have been visited and 34,210 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.151). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.516).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</div></div><div><b>Shift rules of the sweeps</b><p>The two sweeps are shift rules: to the right the head turns each triple <code>100</code>, <code>001</code> or <code>010</code> (by its phase) into <code>111</code>, to the left it turns <code>111</code> back into <code>001</code>, <code>100</code> or <code>010</code>; and one bounce of the marker zig-zag, <code>L 0 1 1 (111)^(m+1) D&gt;1 0^&infin;</code> &rarr; <code>L 1111 0 11 (111)^m 1 B&gt;1 1 0^&infin;</code> (the marker 4 cells to the right, the gap to the end 2 shorter), for every m and every tape L.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/passes.c</code></div></div><div><b>No halt in the first 2&middot;10<sup>10</sup> steps</b><p><code>c/passes.c</code> (the plain simulator of <code>tools/c/tm.h</code>, printing the passes of the marker) runs 2&middot;10<sup>10</sup> steps without a halt; the last pass that ends in that range ends at step 15,689,894,237 with the tape 192,218 cells wide.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>z_pass</code>, <code>pass_c</code>, <code>pass_l0</code>, <code>pass_l2</code>, <code>lean/Pass.lean</code> (pieces from <code>py/pass.py</code>); <code>zig_d</code>, <code>lean/Rules.lean</code></div></div><div><b>The marker zig-zag</b><p>Between passes the head bounces between the marker (a single 0 in a run of 1s) and the right end. Two bounces take <code>L 0 (111)^(m+2) B&gt;1 0^&infin;</code> to <code>L 1^8 0 (111)^m B&gt;1 0^&infin;</code>; by induction <code>2j</code> bounces take gap <code>3(m+2j)</code> to <code>3m</code>, leaving <code>1^(8j)</code> behind the marker, for every m, j and every tape L. With the first bounce after a launch at gap &equiv; 1 (mod 3), and the launches from the left end with no marker (width &equiv; 0 or 2), a pass from gap <code>3(e+2j+1)+1</code> reaches gap <code>3e</code> with the tape <code>2j</code> cells wider.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/passes.c</code></div></div><div><b>Growth by 4/3 per pass</b><p>A pass whose marker starts g cells from the right end ends with the tape g/3 cells wider, up to a few cells (checked on every pass with a single marker to 1.6&middot;10<sup>10</sup> steps). The widths at the ends of passes run 706, 945, 1266, 1694, 2258, 2993, 3971, 5301, 7069, 9410, 12506, 16503, 21553, 28137, 36714, 47058, 60838, 81101, 108115, 144158, 192218: ratios between 1.28 and 1.34. The zig-zag part of this is proved (see above); the end of a pass, the left-end turn with a prefix and the launches with a marker at gap &equiv; 0 or 2 (mod 3) are not, so the exact pass map is not yet written.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The run is a Collatz-like process: each pass multiplies the width by about 4/3, and the prefix at the left end, which decides where the next marker starts, changes with the width mod 3 (the leftward sweep converts the tape in triples counted from the right end). The halting transition F1 needs A to read 1 followed by another 1, which happens only if a rightward sweep meets triples that are not in the phase it expects; nobody has shown that the residues never produce that.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB--- 1000000000
+python3 holdouts/1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB---/py/rules.py | diff - holdouts/1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB---/lean/Rules.lean   # the rules file is current
+gcc -O2 -o passes holdouts/1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB---/c/passes.c &amp;&amp; ./passes 20000000000
+(cd holdouts/1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB--- &amp;&amp; python3 py/pass.py)   # the pieces of lean/Pass.lean</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean now proves whole rounds, not just sweeps: from a round start <code>A&gt; (10)^4 110 (10)^N 10010 T</code>, for every N in a residue class mod 4 and the short or long tail T, the machine reaches the next round start, with an exact step count (four branches: N &rarr; (3N+5)/2, 9N/4 + 24, 11N/4 + 47/2 (with the tail's length), (3N+10)/2). Chaining them from blank tape, Lean's kernel proves that the machine reaches the round with N = 19,199 at exactly step 1,842,640,229 without halting. The tail keeps changing shape (a new one appears at N = 19,199), so the rounds do not yet close into a single map whose orbit decides the question.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,31 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The counting sweep</h3>
+        <p>For all a, b, c and any tape R further right: <code>A&gt; (10)^(a+1) 110 (10)^(b+2) 10010 (110)^(c+1) R</code> (A at the left end of the tape) reaches <code>A&gt; (10)^(a+4) 110 (10)^b 10010 (110)^(c+2) R</code> in 14a + 8b + 83 steps: one sweep moves the counter (a, b, c) to (a+3, b&minus;2, c+1). Also the shift rules the sweep is made of.</p>
+        <p class="where"><code>sweep</code>, <code>b_run</code>, <code>f_run</code>, <code>a_run</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Four branches of the round map, for all N</h3>
+        <p>With RS(N, T) the round start <code>A&gt; (10)^4 110 (10)^N 10010 T</code> (A on the leftmost cell, blank tape left), the short tail Ts = <code>(10)^11 1</code>, the long tail Tl(m) = <code>(10)^m 1 (10)^11 0101</code> and TD(p) = <code>1 (10)^p 1 (10)^9 0101101</code>: for all j and m, RS(4j+5, Ts) &rarr; RS(6j+10, Tl(3j+6)); RS(4j+2, Tl(m)) &rarr; RS(9j+m+27, Ts); RS(4j+4, Ts) &rarr; RS(9j+33, Ts); RS(4j+4, Tl(m)) &rarr; RS(6j+11, TD(3j+m+5)), each in an exact number of steps. A round is the first sweep (<code>sweep0</code>), the counting sweeps chained by induction (<code>sweeps</code>: k sweeps in k(14a+8x+83) + 29k(k&minus;1) steps) and a conversion found and proved as one symbolic run by <code>bbtools.symtm</code>.</p>
+        <p class="where"><code>round_A</code> &hellip; <code>round_D</code>, <code>sweeps</code>, <code>lean/Round.lean</code>; conversions in <code>lean/Conv.lean</code> (from <code>py/round.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Eight conversions</h3>
+        <p>The conversion at the end of the counting phase is proved, as a single symbolic run, for every residue of N mod 4 and both the short and the long tail (families A&ndash;H); four of them end at a proper round start and are chained above, the other four (N &equiv; 3, or N &equiv; 1 with the long tail, &hellip;) end at a left-end configuration of a different shape.</p>
+        <p class="where"><code>convA</code> &hellip; <code>convH</code>, <code>lean/Conv.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 1,842,640,229 steps</h3>
+        <p>From blank tape the machine reaches RS(13, Ts) in 1817 steps and then, by the proved branches A B C A B A B C A D, the round starts N = 22, 84, 213, 322, 909, 1366, 3780, 8529, 12796 and 19199, the last one at exactly step 1,842,640,229: no halt before (the kernel, no <code>native_decide</code>).</p>
+        <p class="where"><code>reach_19199</code>, <code>no_halt_1842640229</code>, <code>lean/Round.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The shape of a halt</h3>
+        <p>F on a 1 halts, and F is entered only from A on a 1 (writing 0, moving left), so the machine halts exactly when A reads a 1 with a 1 to its left: <code>1 A&gt; 1</code> reaches F on a 1 in one step (the converse direction by reading the table, not formalized).</p>
+        <p class="where"><code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +144,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 51,188 cells have been visited and 26,870 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Near misses</h3>
+        <p>In 10<sup>9</sup> steps A reads a 1 92,274,763 times, every time with a 0 to its left.</p>
+        <p class="where"><code>c/nbhd.c</code> (<code>./nbhd M 1000000000 A 1</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Rounds and the map on N</h3>
+        <p>The rounds seen in the run from blank tape, all now covered by the proved branches up to N = 19199 (step 1,842,640,229): N = 7 (tail <code>1 1 0 1</code>), 13, 22, 84, 213, 322, 909, 1366, 3780, 8529, 12796, 19199. In the old notation <code>(10)^4 110 (10)^N 100 T</code>: (N, short) with N &equiv; 0 (mod 4) &rarr; 9N/4 + 24; N &equiv; 1 &rarr; (3N+5)/2 with a long tail; (N, long) with N &equiv; 2 &rarr; 11N/4 + 47/2 back to the short tail; (N, long) with N &equiv; 0 &rarr; (3N+10)/2 with the new tail TD.</p>
+        <p class="where"><code>c/tok.c</code>, <code>py/orbit.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -132,7 +167,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The proved branches carry the run to N = 19199, but the round from there (N &equiv; 3 with the tail TD) ends in a left-end configuration of a new shape, and new tail shapes keep appearing, so the rounds are not yet a closed map. The halting configuration <code>1 A&gt; 1</code> never occurs in the proved rounds (they are exact runs), so a halt, if any, would come later. A macro simulation (words 10, 110, 10010) finds the next left-end start at step 4,516,954,072: <code>A&gt; (10)^4 110 (10)^28802 1 110 (10)^30401 110 (10)^5 10010 (110)^2 1</code>, where the run is followed by <code>1 110</code> instead of <code>10010</code>.</p>
       </div>
     </div>
   </section>
@@ -140,7 +175,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA--- 1000000000
+gcc -O2 -o tok holdouts/1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA---/c/tok.c &amp;&amp; ./tok 1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA--- 2000000000 A 1 L 0 100000 1</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

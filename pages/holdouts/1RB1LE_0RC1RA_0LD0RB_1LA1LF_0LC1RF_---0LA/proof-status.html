@@ -74,12 +74,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1LE_0RC1RA_0LD0RB_1LA1LF_0LC1RF_---0LA</h1>
     <p class="machine">1RB1LE_0RC1RA_0LD0RB_1LA1LF_0LC1RF_---0LA</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Unlike the rest of its group it grows mostly to the right. Its tape is a word of the tokens <code>1^5 0</code>, <code>1^6 0^2</code>, <code>1^7 0</code> and a few others, ending in a block <code>1^(2j+1)</code>. j grows by one per overflow, at gaps that double, so some binary counter is hidden in the word; from time to time a restructure rewrites the word and j starts again.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in the first 10<sup>11</sup> steps.</p>
+      <p><b>What it does.</b> Each time the head reaches a new cell at the right end, in state C, the tape ends in <code>1^7 0 1^7 0 1^(2j+1) 0 C&gt;0</code> for most of an epoch. j grows by one each time and the gap doubles exactly. The last four restructures began at steps 2,963,507, 220,322,024, 466,316,545 and 4,568,654,941; in the current epoch the end block has reached <code>1^61</code> (step 66,520,947,462), longer than in any earlier epoch.</p>
+      <p><b>Why it is hard.</b> Where the counter is, and the restructure rule, are not known, and a closed tape language from short windows does not confine the halt (state F reading a 0).</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -115,24 +118,34 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 459 cells have been visited and 343 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps without a halt; 534 cells visited (58 left of the start, 476 right), 382 ones at the end.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The right end in the current epoch</h3>
+        <p>From step 4,568,656,718 to 66,520,947,462 the head reached a new cell at the right end in state C 28 times, two cells each time. The tape then ended in <code>1^7 0 1^7 0 1^k 0 C&gt;0</code> with k = 7, 9, &hellip;, 61, one step of 2 each time. The gap between successive times doubled exactly at the last 11 of them (ratio 2.0000 to four digits).</p>
+        <p class="where"><code>tmrun ... records</code></p>
+      </div>
+      <div class="card">
+        <h3>Restructures</h3>
+        <p>The end block falls back to a few cells many times in the first 10<sup>11</sup> steps, often in bursts of two or three falls within a few thousand steps. The last four bursts began at steps 2,963,507, 220,322,024, 466,316,545 and 4,568,654,941, after end blocks of 27, 43, 35 and 53 cells; the left end of the tape moved shortly before the last three.</p>
+        <p class="where"><code>tmrun ... records</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: exp/fixed</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.073).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A hidden binary counter</h3>
+        <p>A unary block that grows by one unit while the time doubles means that the run counts in binary somewhere else on the tape, presumably in the word on the left, and lengthens the end block at each overflow.</p>
+        <p class="where">the records of the 10<sup>11</sup>-step run</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>The restructures, and the question itself</h3>
+        <p>Not known: where the counter is, what triggers a restructure, the rule that rebuilds the word, and whether the machine halts.</p>
       </div>
     </div>
   </section>
@@ -140,7 +153,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LE_0RC1RA_0LD0RB_1LA1LF_0LC1RF_---0LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LE_0RC1RA_0LD0RB_1LA1LF_0LC1RF_---0LA 1000000000</code></pre>
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1LE_0RC1RA_0LD0RB_1LA1LF_0LC1RF_---0LA 100000000000 records 100000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LE_0RC1RA_0LD0RB_1LA1LF_0LC1RF_---0LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

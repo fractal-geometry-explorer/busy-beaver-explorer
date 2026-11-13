@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G03",
+ "generated": false,
+ "group": "two periodic regions converting into each other",
  "title": "What is known about 1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA.",
  "machine": "1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The tape consists of two periodic regions with a few dozen defects; the head converts one region into the other a word at a time (proved in Lean), and the sizes of the regions go up and down as the tape grows. The machine can only stop when the head in state D reads two 1s, which the sweeps never do. The C simulator runs 10<sup>11</sup> steps without a halt; the dynamics of the defects has not been worked out."
  ],
  "claims": [
   {
@@ -46,34 +46,59 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "The sweeps",
+   "text": "In state E moving right, <code>(00100101)<sup>n</sup></code> becomes <code>(10101111)<sup>n</sup></code>; in state D, <code>(10100100)<sup>n</sup></code> becomes <code>(11110101)<sup>n</sup></code>; 8n steps each, for every n and any tape around.",
+   "where": "<code>sweepE</code>, <code>sweepD</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "When it halts",
+   "text": "The machine stops exactly when the head in state D reads a 1 followed by a 1 (D1 = 1RE, then E1 is undefined).",
+   "where": "<code>halt11</code>, <code>halt11_stop</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 10<sup>11</sup> steps",
+   "text": "The C simulator <code>tools/c/tmrun.c</code> runs 100,000,000,000 steps from blank tape without a halt.",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Two regions and a few defects",
+   "text": "Tapes sampled up to 1.6&middot;10<sup>9</sup> steps consist of the two periodic regions (4,483 to 14,968 single 1s, 3,727 to 5,309 blocks of five) and only 21 to 48 defect blocks.",
+   "where": "<code>py/regions.py</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. Whether the motion of the defects is regular (a counter) or chaotic, and whether it can ever put <code>1 1</code> under the head in state D, has not been worked out.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA/lean/check.sh",
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA 100000000000",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The tape of this machine is two repeating patterns side by side, with a few dozen irregular spots; the head keeps turning one pattern into the other. It has run 10<sup>11</sup> steps without stopping.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 47,247 cells visited."
+    "level": "kernel",
+    "value": "D reads 1 1",
+    "text": "The only way it can stop, proved in Lean."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator."
    },
    {
     "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "21&ndash;48 defects",
+    "text": "Irregular blocks in a tape of tens of thousands of cells."
    }
   ],
   "presets": [
@@ -96,7 +121,25 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>875,073,355</td><td><code>A&gt;0 0^3 1 0 1 0 1 0^2 1 0^2 1 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0 1 0 1 0^2 1 0^2 1 0 1 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0 1 0 1 0 1 0^2 1 0^2 1 0 1 0^2 1 0^2 1 0 1 0 1 0^2 1 0^2 1 0 1 0 1 0 1 0 1 0^2 1 0^2 1 0 1 0 1 0^2 1 0^2 1 0 1 0^2 1 0^2 1 0 1 0^2 1 0^2 1 0 1 0 1 0 1 0 1 0^2 1 0^2 1 0 1 0^2 1 0^2 1 0 1 0^2 1 0^2 1 0 1 0 1 0^2 1 0^2 1 0 1 0^2 1 0^2 1 0 1 0^2 1 0^2 1 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0 1 0^2 1</code></td></tr><tr><td>right</td><td>830,073,988</td><td><code>1^9 0 1 0 1^11 0 1 0 1^7 0 1 0 1 0 1^11 0 1 0 1 0 1^7 0 1 0 1^5 0 1 0 1^7 0 1 0 1 0 1 0 1^7 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^11 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^</code></td></tr><tr><td>right</td><td>845,699,198</td><td><code>1^9 0 1 0 1^11 0 1 0 1^7 0 1 0 1 0 1^11 0 1 0 1 0 1^7 0 1 0 1^5 0 1 0 1^7 0 1 0 1 0 1 0 1^7 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^11 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1^9 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1</code></td></tr><tr><td>right</td><td>861,487,860</td><td><code>1^9 0 1 0 1^11 0 1 0 1^7 0 1 0 1 0 1^11 0 1 0 1 0 1^7 0 1 0 1^5 0 1 0 1^7 0 1 0 1 0 1 0 1^7 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^11 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "regions",
+    "eyebrow": "The structure",
+    "heading": "Two patterns and a few defects",
+    "html": [
+     "<p>Almost all of the tape is one of two periodic words: <code>00100101</code> (single 1s) and <code>11111010</code> (blocks of five 1s). At 1.6&middot;10<sup>9</sup> steps the tape is 62,321 cells long and holds 14,968 single 1s, 4,141 blocks of five and only 48 other blocks (of 3 to 13 ones).</p>",
+     "<p>Sweeping right in state E or D, the head turns <code>00100101</code> into a rotation of <code>11111010</code>, one word every 8 steps; Lean proves this for any number of words. The two regions grow and shrink in turn while the whole tape grows like the square root of the step count.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Does it halt?",
+    "heading": "Open",
+    "html": [
+     "<p>The machine stops only when the head, in state D, reads two 1s in a row. The sweeps never do; a halt would have to come from one of the defects or from a turn at an end of the tape. The plain C simulator runs 10<sup>11</sup> steps without a halt. How the defects move has not been worked out.</p>"
+    ]
    }
   ]
- }
+ },
+ "summary": "The tape is two periodic regions (00100101 and 11111010) with a few dozen defects; rightward sweeps convert one into the other a word at a time (proved in Lean), the region sizes oscillate, the tape grows like sqrt(steps). Halts only if D reads 1 1. No halt in 10^11 steps."
 }

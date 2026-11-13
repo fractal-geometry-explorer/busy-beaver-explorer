@@ -125,13 +125,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC / explained</p>
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
-  <h1>Does this machine ever halt?</h1>
+  <h1>An odometer that might stop on one exact number</h1>
   <p class="machine-id">1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows whether it halts. The tape is an odometer with three wheels: a fast one that doubles, a middle one that ticks down, and a slow one that resets. The machine can only halt at a reset, and only if the fast wheel is on one exact value at that moment. In 38 resets that has never happened, and the target keeps getting smaller.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 4,166 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>3 wheels</b><span class="small">The macro rule, checked against simulation.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>38 resets</b><span class="small">No halt in 10<sup>8</sup> macro steps.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>≈ 10<sup>−7</sup></b><span class="small">Chance of any future halt.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#odometer">Three wheels</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -193,7 +193,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
       <label class="small" for="stMode">Rows</label>
       <select id="stMode"><option value="rec" selected>at each new cell</option><option value="time">evenly in time</option></select>
       <label class="small" for="stSteps">up to step</label>
-      <select id="stSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="20000" selected>20,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <select id="stSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="5000" selected>5,000</option><option value="10000">10,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
       <button id="stGo" class="primary" type="button">Draw</button>
     </div>
     <div class="stwrap"><canvas id="st" aria-label="Space-time diagram"></canvas></div>
@@ -202,21 +202,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="panel">
     <div class="controls">
       <label class="small" for="recSteps">Records up to step</label>
-      <select id="recSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="20000" selected>20,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <select id="recSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000" selected>10,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
       <button id="recGo" class="primary" type="button">List</button>
     </div>
     <div class="cap" id="recCap"></div>
     <div class="log" id="recs"></div>
   </div>
 </section>
-<section id="shape">
-  <span class="eyebrow">First look</span>
-  <h2>The shape of the run</h2>
-<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.358).</p>
-<svg viewBox="0 0 560 240" role="img" aria-label="cells visited on each side against steps, log scales" style="width:100%;max-width:560px;height:auto;font:11px var(--mono);"><line x1="40.0" x2="40.0" y1="20.0" y2="200" stroke="var(--line)"/><text x="40.0" y="216" text-anchor="middle" fill="var(--muted)">2^4</text><line x1="116.8" x2="116.8" y1="20.0" y2="200" stroke="var(--line)"/><text x="116.8" y="216" text-anchor="middle" fill="var(--muted)">2^8</text><line x1="193.6" x2="193.6" y1="20.0" y2="200" stroke="var(--line)"/><text x="193.6" y="216" text-anchor="middle" fill="var(--muted)">2^12</text><line x1="270.4" x2="270.4" y1="20.0" y2="200" stroke="var(--line)"/><text x="270.4" y="216" text-anchor="middle" fill="var(--muted)">2^16</text><line x1="347.2" x2="347.2" y1="20.0" y2="200" stroke="var(--line)"/><text x="347.2" y="216" text-anchor="middle" fill="var(--muted)">2^20</text><line x1="424.0" x2="424.0" y1="20.0" y2="200" stroke="var(--line)"/><text x="424.0" y="216" text-anchor="middle" fill="var(--muted)">2^24</text><line x1="500.8" x2="500.8" y1="20.0" y2="200" stroke="var(--line)"/><text x="500.8" y="216" text-anchor="middle" fill="var(--muted)">2^28</text><line x1="40" x2="520" y1="200.0" y2="200.0" stroke="var(--line)"/><text x="34" y="204.0" text-anchor="end" fill="var(--muted)">2^0</text><line x1="40" x2="520" y1="150.0" y2="150.0" stroke="var(--line)"/><text x="34" y="154.0" text-anchor="end" fill="var(--muted)">2^4</text><line x1="40" x2="520" y1="100.1" y2="100.1" stroke="var(--line)"/><text x="34" y="104.1" text-anchor="end" fill="var(--muted)">2^8</text><line x1="40" x2="520" y1="50.1" y2="50.1" stroke="var(--line)"/><text x="34" y="54.1" text-anchor="end" fill="var(--muted)">2^12</text><path d="M40.0,180.2 L59.2,167.7 L78.4,167.7 L97.6,162.5 L116.8,162.5 L136.0,162.5 L155.2,158.5 L174.4,158.5 L193.6,158.5 L212.8,155.2 L232.0,152.4 L251.2,152.4 L270.4,150.0 L289.6,150.0 L308.8,147.9 L328.0,147.9 L347.2,146.0 L366.4,146.0 L385.6,144.3 L404.8,142.7 L424.0,141.3 L443.2,141.3 L462.4,140.0 L481.6,140.0 L500.8,140.0 L520.0,138.7" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M40.0,180.2 L59.2,180.2 L78.4,171.0 L97.6,164.9 L116.8,156.8 L136.0,146.9 L155.2,139.3 L174.4,134.0 L193.6,128.5 L212.8,124.8 L232.0,118.7 L251.2,115.1 L270.4,108.7 L289.6,104.8 L308.8,102.1 L328.0,97.8 L347.2,91.7 L366.4,87.8 L385.6,84.5 L404.8,80.9 L424.0,75.2 L443.2,71.8 L462.4,64.0 L481.6,61.2 L500.8,58.5 L520.0,52.5" fill="none" stroke="var(--head)" stroke-width="2"/><text x="520" y="24.0" text-anchor="end" fill="var(--fg2)"><tspan fill="var(--accent)">&#9632; left of start</tspan>  <tspan fill="var(--head)">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>
-<p>After 10<sup>9</sup> steps the tape spans 4,166 cells (29 left of the start, 3,590 right), with a density of 1s of 0.894.</p>
-<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>951,282,993</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>967,067,687</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>983,718,635</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>
-<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
+<section id="odometer">
+  <span class="eyebrow">What the machine does</span>
+  <h2>Three wheels</h2>
+<div class="col"><p>Each time the head pushes the tape one cell further right in state B, the tape reads <code>(10)^c 1^a 0 (10)^b 1</code>: a left block of <i>c</i> pairs, a pool of <i>a</i> ones, and a right block of <i>b</i> pairs.</p>
+<ul><li><b>Fast wheel.</b> If the pool is big enough (2b &lt; a), one sweep doubles the right block, b ↦ 2b + 1, paying 2b ones from the pool.</li>
+<li><b>Middle wheel.</b> If the pool is too small and c ≥ 1, one 10 of the left block is turned into ones: the pool becomes 2a + 4 and b drops by a/2 + 1; then the fast wheel tries again.</li>
+<li><b>Slow wheel.</b> If the pool is too small and the left block is empty, the whole pool becomes the new left block (c = a), a new pool of 4 starts, and b drops by a/2 + 1 — unless b is exactly a/2, and then the machine <b>halts</b>.</li></ul>
+<p>So the run is a sequence of resets, each one creating a left block as long as the pool was. From blank tape the first left blocks are 2, 8, 4, 24, 52, 44, 120, …; after 10<sup>8</sup> steps of the odometer there have been 38 resets and the latest left block is 44,140,926 pairs long.</p>
+<p>At a reset the fast wheel can be on any of roughly a/3 positions, and only one halts. The chances shrink as the blocks grow, so the total chance that the machine ever halts is tiny (around one in ten million) — but nobody can rule it out.</p></div>
 </section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
@@ -234,15 +235,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 4,166 cells have been visited and 3,725 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.358).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/model.py check</code></div></div><div><b>The odometer rule</b><p>For S(c, a, b) = 0^∞ (10)^c 1^a 0 (10)^b 1 B&gt;0 0^∞ with a even and a ≥ 2, the next right-end visit in state B is: if 2b &lt; a, S(c, a − 2b, 2b + 1) (the right block doubles, eating 1s); if 2b ≥ a and c ≥ 1, apply the rule to (c − 1, 2a + 4, max(b − a/2 − 1, 0)) (a carry: one 10 of the left block becomes 1s); if 2b ≥ a and c = 0, halt when b = a/2 and otherwise apply the rule to (a, 4, b − a/2 − 1) (a reset: the 1s become the new left block). Checked against direct simulation for all c &lt; 6, even 2 ≤ a &lt; 30, b &lt; 34 (2,856 configurations), and on every such visit in the first 3·10<sup>6</sup> steps of the run, which first reaches S(0, 4, 1) at step 43.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/model.py resets 1e8</code></div></div><div><b>38 resets, no halt</b><p>The rule iterated 10<sup>8</sup> times from S(0, 4, 1): 38 resets, at none of which b = a/2; the left blocks they create grow from 2, 8, 4, 24, 52, … to 44,140,926 at the 38th.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>A halt has probability about 10<sup>−7</sup></b><p>A reset follows a doubling step from (a′, b′) with 2b′ &lt; a′ ≤ 6b′ + 2, so b′ takes about a′/3 values and exactly one gives b = a/2. With resets at pool sizes in the tens of millions and growing, the sum of the remaining chances is of the order of 10<sup>−7</sup>.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does a reset ever land on b = a/2?</b><p>Open: nothing known controls the position of the fast wheel at the resets.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC 1000000000
+python3 holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/py/model.py check &amp;&amp; python3 holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/py/model.py resets 1e8</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

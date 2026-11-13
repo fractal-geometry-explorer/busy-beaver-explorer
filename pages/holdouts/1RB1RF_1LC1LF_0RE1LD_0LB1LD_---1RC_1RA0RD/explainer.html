@@ -127,11 +127,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this machine runs a Collatz-like map on two counters, and it would halt only if one pass of that map ended exactly at zero. This page runs the real machine in your browser, explains the map, and lists what is known.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 2,938 cells visited.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>halts &hArr; map hits c &le; 1</b><span class="small">The whole phase map, rebounds included, proved for all parameters.</span></div>
+    <div class="fact"><span class="ev n">native_decide</span><b>2&middot;10<sup>7</sup> passes</b><span class="small">The first 10<sup>8</sup> phases of the proved map: no halt.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>10</sup> steps</b><span class="small">No halt in the C simulator; 3,095 passes, all as the pass map says.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/power</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b><code>0 0 (10)^a 1^b 10</code></b><span class="small">The tape at every pass start: two counters.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>10<sup>8</sup> passes</b><span class="small">The map, iterated: no pass ends with b = 0, the one way to halt.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +143,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counters">Two counters on one tape</a><a href="#pass">One pass: doubling, folded</a><a href="#halt">Halting needs b = 0</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +212,28 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="counters">
+  <span class="eyebrow">What it does</span>
+  <h2>Two counters on one tape</h2>
+<p>Run the simulator for a while and stop when the head is at the left end in state B. The tape always has the same simple form: two blank cells, then <code>a</code> copies of <code>10</code>, then a solid block of <code>b</code> ones, then (usually) one more <code>10</code>:</p>
+<p><code>B&gt;0 0 (10)^a 1^b 1 0</code></p>
+<p>So the machine is a device with two counters. A few of the pass starts from the first 4,000 steps, as (a, b): (2, 35), (6, 29), (14, 15), (12, 21), (2, 43), (6, 37), (14, 23). The total width 2a + b grows by 2 with each pass, so the tape grows only as fast as the number of passes, and each pass takes time proportional to about the square of the width: after 10<sup>9</sup> steps the tape is about 2,900 cells wide.</p>
+</section>
+<section id="pass">
+  <span class="eyebrow">Macro structure</span>
+  <h2>One pass: doubling, folded</h2>
+<p>In a pass, state A walks back and forth eating the 10s on the left one at a time. Each eaten <code>10</code> costs two 1s from the right block and adds four 1s to a block that grows in the middle. When the 10s are used up, the middle block becomes the new run of 10s. If b is large enough this is simply</p>
+<p><code>(a, b) &rarr; (2a + 2, b &minus; 2a &minus; 2)</code>,</p>
+<p>as in (2, 35) &rarr; (6, 29) &rarr; (14, 15). When the right block runs out first, the head <em>rebounds</em> off the right end: the middle block becomes the new right block (about twice as long as the old one) and eating continues. So a pass is a little Euclid-like loop, and (14, 15) goes to (12, 21): seven 10s eaten, a rebound, then the last six. With a few more rules for the rare even cases this <code>pass_map</code> (in <code>py/passmap.py</code>) predicts every one of the 3,095 passes in the first 10<sup>10</sup> steps exactly. Every case, rebounds included, is proved in Lean for all parameters (<code>next_sound</code> in <code>lean/Phases.lean</code>).</p>
+<p>Measured against the width, a is being doubled and folded back, like the tent map x &rarr; 2x on a strip. That is why the tape contents look irregular: the sequence of a's is as erratic as the binary digits of a number.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">The halting question</span>
+  <h2>Halting needs b = 0</h2>
+<p>The only halting transition is E reading a 0. E is entered only from C reading a 0, and C and E together zip rightwards over <code>0 1 0 1 &hellip;</code>, C on the 0s and E on the 1s. That zipper starts only at a pass start, on the two blank cells, and it runs over all the 10s. If a solid block follows, C reads a 1 and turns back. If the 10s are followed by blank tape, E reads a blank and the machine halts: from <code>B&gt;0 0 (10)^n</code> it stops after 2n + 5 steps (proved in Lean for every n, <code>zip_halts</code>).</p>
+<p>So the machine halts exactly when a pass ends with b = 0 and the closing <code>10</code> present. The width 2a + b + 2 has the parity of b, and the map changes that parity only at rare special passes; for long stretches b is odd and can never reach 0. In the short stretches where b is even, a goes through a chain of plain doublings and the next value of b is 0 only if 2a + 2 equals b exactly, a coincidence of probability about 1/width.</p>
+<p>Iterating the map (much faster than the machine) for 10<sup>8</sup> passes, out to a tape 2&middot;10<sup>8</sup> cells wide: only 166 passes end with an even b, the smallest b was 2, and no pass ends at 0. The expected number of future hits, summing 1/width over the even passes, is tiny and shrinking, so the machine very probably never halts; but proving it means controlling where the doubling map lands, a Collatz-type question. Lean proves that this is exactly the question: the machine halts if and only if the map reaches a pass start with at most one 1 in the right block (<code>halts_iff</code>).</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -234,15 +259,24 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 2,938 cells have been visited and 1,548 of them hold a 1.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>next</code>, <code>next_sound</code>, <code>q_rounds</code>, <code>lean/Phases.lean</code>; the runs in <code>lean/Pieces.lean</code> (generated by <code>lean/pieces.py</code>); tape normalisation <code>tape_eq</code>, <code>lean/Norm.lean</code></div></div><div><b>The phase map, all cases</b><p>Write <code>PS a c</code> for <code>0^inf B&gt;0 0 (10)^a 1^c 0^inf</code> (a pass start) and <code>Q R m c</code> for <code>0^inf (10)^R (11)^m A&gt; 1^c 0^inf</code> (inside a pass). For all parameters the machine goes: <code>PS (a+1) (c+2)</code> &rarr; <code>Q a 2 (c+2)</code>; <code>PS 0 2</code> &rarr; <code>PS 0 5</code>; <code>PS 0 (c+3)</code> &rarr; <code>PS 2 (c+1)</code>; j rounds <code>Q (R+j) (m+2) (c+2j+1)</code> &rarr; <code>Q R (m+2+2j) (c+1)</code>; end <code>Q 0 (m+2) (c+5)</code> &rarr; <code>PS (m+4) (c+1)</code>; the special ends <code>Q 0 (m+2) c</code> for c = 1, 2, 3, 4 &rarr; <code>PS 0 (2m+8)</code>, <code>PS 0 (2m+6)</code>, <code>PS 0 (2m+11)</code>, <code>PS 0 (2m+9)</code>; the rebounds <code>Q 1 (m+2) c</code> &rarr; <code>PS 2 (2m+6)</code>, <code>PS 2 (2m+4)</code> and <code>Q (R+2) (m+2) c</code> &rarr; <code>Q R 2 (2m+8)</code>, <code>Q R 2 (2m+6)</code> for c = 1, 2. Each case is one symbolic run (or an induction over rounds); <code>next</code> is this map.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>init_ps</code>, <code>ps_halts</code>, <code>next_none</code>, <code>lean/Phases.lean</code></div></div><div><b>Halting is equivalent to the map reaching c &le; 1</b><p>The run from blank tape reaches <code>PS 0 2</code> after 4 steps; <code>PS a 0</code> and <code>PS a 1</code> halt; on every configuration the map reaches, <code>next</code> is defined except there. Hence the machine halts from blank tape if and only if some iterate of <code>next</code> from <code>PS 0 2</code> is <code>PS a c</code> with c &le; 1.</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>no_halt_phases</code>, <code>okFor_sound</code>, <code>lean/Phases.lean</code></div></div><div><b>No halt in the first 10<sup>8</sup> phases</b><p>Iterating <code>next</code> from <code>PS 0 2</code>, the first 10<sup>8</sup> phases (20,000,581 pass starts) contain no <code>PS a c</code> with c &le; 1, by compiled evaluation. So a halt, if any, comes after more than 2&middot;10<sup>7</sup> passes, far beyond the 3,100 passes direct simulation reaches in 10<sup>10</sup> steps.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>pass_plain</code>, <code>rounds</code>, <code>lean/Pass.lean</code>; <code>cycle</code>, <code>pass_start</code>, <code>pass_end</code>, <code>lean/Rules.lean</code></div></div><div><b>The plain pass</b><p>For all a, s and every tape R after the block of 1s: from <code>B&gt;0 0 (10)^(a+2) 1^(s+2a+7) R</code>, blank to the left, the machine reaches <code>B&gt;0 0 (10)^(2a+6) 1^(s+1) R</code>. In pass-map terms (a, b) &rarr; (2a + 2, b &minus; 2a &minus; 2) whenever a &ge; 2 and b &ge; 2a + 3. (The first version of the proof; the phase map above contains it.)</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/passmap.py check</code>, <code>py/passmap.py lean</code></div></div><div><b>The pass map agrees with the runs and with Lean's map</b><p><code>pass_map</code> (written in terms of (a, b, t), b + t being the c of <code>PS a c</code>) reproduces every one of the 3,095 passes in the first 10<sup>10</sup> steps of the C simulator, and <code>lean_next</code>, a case-by-case copy of Lean's <code>next</code>, agrees with it at every one of 10<sup>8</sup> pass starts.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/passmap.py iterate</code>, <code>py/passmap.py lean</code></div></div><div><b>10<sup>8</sup> passes of the map, no halt</b><p>Iterated from the first pass start, the map runs 10<sup>8</sup> passes (tape width 2&middot;10<sup>8</sup>) without reaching c &le; 1. Only 166 passes end with b even; b &le; 5 happened 35 times, b = 2 once. With <code>halts_iff</code> this is a statement about the machine, resting on the Python code (exact integer arithmetic) instead of Lean.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/power</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.348). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Halting is equivalent (proved in Lean) to the phase map reaching a pass start with c &le; 1, an arithmetic coincidence that the map avoids for 10<sup>8</sup> passes and that gets rarer as the tape grows, but nothing rules it out.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD 1000000000
+python3 holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/py/passmap.py check 10000000000
+python3 holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/py/passmap.py lean 100000000
+python3 holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/py/passmap.py iterate 100000000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

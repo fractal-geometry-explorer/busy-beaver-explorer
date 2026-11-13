@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G01",
  "title": "What is known about 1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD",
  "description": "Proof status of the six-state BB(6) holdout 1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Between visits of the head the tape is a word over the two letters <code>1</code> and <code>10</code> (no two 0s side by side). Each sweep acts on it like one generation of a cellular automaton whose patterns look random. The run proceeds in waves: a chaotic region spreads from the left end across the whole tape and freezes behind a slower front; each wave starts with three quick bursts of growth at the left end. Successive waves take about 3.06 times longer. The bbchallenge wiki lists it as \"chaotic 1dCA in bell\"; the same table started in states C, D, E, F is four other holdouts."
  ],
  "claims": [
   {
@@ -40,6 +40,36 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "kernel",
+   "title": "The sweeps cross blocks of ones",
+   "text": "C crosses <code>1^n</code> to the right in 3n steps (carrying the 0 behind it), E crosses it to the left in n steps: only the isolated 0s take work.",
+   "where": "<code>c_sweep</code>, <code>e_sweep</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No 00 inside the tape",
+   "text": "At all 25,729 visits of the head to the right end in state B up to 3&middot;10<sup>8</sup> steps, the tape has no two adjacent 0s outside its last three cells: it is a word over <code>1</code> and <code>10</code>.",
+   "where": "snapshots, <code>py/sweeps.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Waves about 3.06 times longer each",
+   "text": "The left end grows in triples of bursts that start at steps 643294, 2108809, 6495092, 20126119, 60650898, 187352297, 570905460, 1767969175: ratios 3.28, 3.08, 3.10, 3.01, 3.09, 3.05, 3.10. The tape width at those moments grows by about 1.75 = &radic;3.06 each time.",
+   "where": "<code>py/analyse.py records</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Same table, other start states",
+   "text": "Started in C, D, E or F (and renamed to normal form) this table is the holdout 1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD, 1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA, 1RB1RA_1RC0RF_1RD0RD_1LE---_0LC1LF_1RA0LE or 1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF; the wiki notes that they all behave alike.",
+   "where": "relabelling check; wiki.bbchallenge.org"
+  },
+  {
+   "level": "heuristic",
+   "title": "Halting looks like a matter of chance",
+   "text": "Each wave ends with the chaotic content reaching the left end, where a halt (A reading 1) could happen. If the content arriving there were random with a fixed small chance p per wave of being a halting one, the machine would halt after about 1/p waves, i.e. after roughly 3.06<sup>1/p</sup> steps: a halt would be likely eventually but unobservably late. Whether any reachable left-end content halts is not known.",
+   "where": "reasoning from the wave structure"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.07). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.503).",
@@ -48,18 +78,32 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "text": "Not known. Next step: Extract the cellular automaton (the map from the word over {1, 10} before a sweep to the word after), then study the left-end boundary rule: which contents can make A read 1 there.",
+   "where": "README.md, Further work"
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD 1000000000",
+  "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/rules.py      # rewrites lean/Rules.lean",
+  "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/analyse.py image   # the defect picture",
+  "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/rules.py      # rewrites lean/Rules.lean",
+  "python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/analyse.py image   # the defect picture"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine runs a chaotic cellular automaton on its own tape: each sweep of the head is one generation. Chaos spreads over the tape in waves, each about three times longer than the last.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "&times;3.06",
+    "text": "Each wave lasts about 3.06 times as long as the previous one."
+   },
+   {
+    "level": "trusted",
+    "value": "1 and 10",
+    "text": "The tape is a word over these two letters, no 00 inside."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -69,11 +113,6 @@
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +124,17 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "ca",
+    "eyebrow": "Emergent behaviour",
+    "heading": "A cellular automaton in waves",
+    "html": [
+     "<figure style=\"margin:1em 0\"><img src=\"defects.png\" alt=\"defect picture of 1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD\" style=\"width:100%;max-width:900px;image-rendering:pixelated;border:1px solid var(--line);background:#fff\"/><figcaption style=\"font-size:0.9em;color:var(--muted)\">One row every 6 visits of the head to the right end, in state B (time runs down), 3.8&middot;10<sup>7</sup> steps; dark where the tape differs from itself 4 cells further. Speckled triangles are the chaotic waves, vertical lines the frozen pattern they leave.</figcaption></figure>",
+     "<p>Whenever the head reaches the right end, the tape contains no <code>00</code> (except next to the head): it is a sequence of the letters <code>1</code> and <code>10</code>. The head crosses runs of 1s quickly and does real work only at the 0s, so a sweep acts like one generation of a cellular automaton on this sequence, and the patterns it makes look random.</p><p>The run goes in waves. A chaotic region (the speckled triangles) starts at the left end and spreads right to the growing end of the tape; behind it a front moves right and leaves a frozen pattern (vertical lines). Each wave begins when the left end grows in three quick bursts; the next wave starts before the front of the previous one has reached the right end. Each wave lasts about 3.06 times as long as the previous one:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>wave starts at step</th><th>ratio</th></tr></thead><tbody><tr><td>643294</td><td>&ndash;</td></tr><tr><td>2108809</td><td>3.28</td></tr><tr><td>6495092</td><td>3.08</td></tr><tr><td>20126119</td><td>3.10</td></tr><tr><td>60650898</td><td>3.01</td></tr><tr><td>187352297</td><td>3.09</td></tr><tr><td>570905460</td><td>3.05</td></tr><tr><td>1767969175</td><td>3.10</td></tr></tbody></table></div>",
+     "<p>A halt needs A to read a 1, which in practice means the right content arriving at the left end. With chaotic content, a halt would be a matter of chance per wave; since waves grow geometrically, even a likely halt could come impossibly late.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +148,8 @@
     ]
    }
   ]
- }
+ },
+ "family": "Chaotic one-dimensional cellular automaton in growing bursts (\"chaotic 1dCA in bell\")",
+ "summary": "Emulates a chaotic one-dimensional cellular automaton on words of 1 and 10: chaos spreads over the tape in waves, each about 3.06 times longer than the last; a halt (A reading 1) needs the right pattern at the slow left end.",
+ "decision": "open"
 }

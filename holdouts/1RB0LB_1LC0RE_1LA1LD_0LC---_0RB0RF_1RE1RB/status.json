@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G01",
  "title": "What is known about 1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>Open, and probably never halting.</b> The run from blank tape is, provably, the orbit of a Collatz-like map E(a, m) &rarr; E(a', m') with m' &asymp; 4m/3 and a counter a that changes by +6, &minus;1 or +4 according to m mod 3 (Lean, kernel-checked for all a &ge; 1 and m &ge; 2). The machine can only halt if the counter runs out; Lean checks that it does not in the first 20,000 map steps (more than 10<sup>5000</sup> machine steps). The counter drifts up by 3 per step, so the chance that it ever comes back down to 0 is about 10<sup>&minus;28,000</sup>: the same kind of question as Antihydra."
  ],
  "claims": [
   {
@@ -34,46 +34,71 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "The E-step map, for every counter and gap",
+   "text": "With E(a, m) = <code>1 0 0 (10)^a 0^m E&gt; 1</code> on blank tape: for a &ge; 1 and m &ge; 2 the machine goes to E(a+6, 4k+4) if m = 3k, to E(a&minus;1, 4k+7) if m = 3k+1, and to E(a+4, 4k+4) if m = 3k+2, in exactly 4k&sup2;+23k+16a+94, 4k&sup2;+23k+28 and 4k&sup2;+23k+8a+56 steps. Proved from symbolic rules (a loop that turns three 0s of the gap into two <code>10</code>, iterated by induction, and the three ends) for all values.",
+   "where": "<code>emap_sound</code>, <code>lean/Map.lean</code>; rules in <code>lean/Rules.lean</code> (from <code>py/rules.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The run from blank tape follows the map",
+   "text": "The machine reaches E(4, 124) at step 9,008, and from there the run is the orbit of (4, 124) under the map for as long as the counter stays positive. Hence: if the counter never runs out, the machine never halts.",
+   "where": "<code>blank_reaches_E</code>, <code>orbit_sound</code>, <code>not_halts_of_good</code>, <code>lean/Orbit.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 1,000 map steps (more than 10<sup>250</sup> machine steps)",
+   "text": "The counter stays positive for the first 1,000 E-steps, evaluated by the kernel; the step count reached has more than 250 digits.",
+   "where": "<code>orbit_kernel</code>, <code>no_halt_kernel</code>, <code>kernel_bound</code>, <code>lean/Orbit.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 20,000 map steps (more than 10<sup>5000</sup> machine steps)",
+   "text": "The same check for 20,000 E-steps with <code>native_decide</code>; the counter is then 60,462.",
+   "where": "<code>orbit_native</code>, <code>no_halt_native</code>, <code>native_bound</code>, <code>lean/Orbit.lean</code>"
+  },
+  {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 42,637 cells have been visited and 19,809 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "10<sup>6</sup> map steps without the counter running out",
+   "text": "Python iterates the map (exact big integers) 10<sup>6</sup> steps past the E-event at step 1.08&middot;10<sup>10</sup>; the counter never goes below 58. The map was also checked against direct simulation: 25 consecutive E-events of the run from blank tape (up to 1.1&middot;10<sup>10</sup> steps, step counts exact) and 546 starts E(a, m) with 1 &le; a &le; 7, 2 &le; m &le; 79.",
+   "where": "<code>py/emap.py far</code>, <code>py/emap.py blank</code>, <code>py/emap.py grid</code>"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: exp/sqrt",
-   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.087). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.505).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Probviously non-halting: a random walk drifting away from 0",
+   "text": "If m mod 3 behaves like a fair three-sided die, the counter is a random walk with steps +6, &minus;1, +4 (drift +3). The chance of ever coming down by d is about &lambda;<sup>d</sup> with &lambda; = 0.33489 the root in (0,1) of &lambda;<sup>7</sup>+&lambda;<sup>5</sup>+1 = 3&lambda;: about 10<sup>&minus;27.6</sup> from a = 58 at 1.08&middot;10<sup>10</sup> steps and about 10<sup>&minus;28,700</sup> from a = 60,462 where Lean leaves it. bbchallenge lists the machine as an Antihydra-like cryptid (Racheline, November 2024).",
+   "where": "README, <code>holdouts/known.json</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known: it halts only if the counter of a Collatz-like orbit runs out (and then only in some cases: at a = 0 with m = 1 mod 3 some gaps halt, others turn into a translated cycler or restart the counter). Deciding this is a problem of the Antihydra kind.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB 1000000000"
+  "python3 holdouts/1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB/py/emap.py blank 1.1e10",
+  "python3 holdouts/1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB/py/emap.py far 1000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Probably never, but nobody can prove it. The machine keeps a number m (a gap of zeros) that grows by a factor 4/3 at each round, and a small counter that goes up or down depending on m mod 3. It can only stop if the counter runs out, and the counter is drifting upwards: a question of the same kind as the famous Antihydra.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 42,637 cells visited."
+    "level": "kernel",
+    "value": "map proved",
+    "text": "Every round E(a, m) &rarr; E(a', m') is proved in Lean for all a &ge; 1, m &ge; 2, with exact step counts."
    },
    {
     "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "value": "10<sup>5000</sup> steps",
+    "text": "No halt: the counter stays positive for 20,000 rounds (Lean, native_decide)."
    },
    {
     "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "10<sup>&minus;28,700</sup>",
+    "text": "Chance that the counter ever runs out, if m mod 3 is like a fair die."
    }
   ],
   "presets": [
@@ -85,6 +110,36 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "what",
+    "eyebrow": "What it does",
+    "heading": "A gap that grows by 4/3 and a counter",
+    "html": [
+     "<p>Every so often the head stands in state E on the last 1 of the tape, and the tape is then just three pieces: <code>100</code>, a counter of <i>a</i> copies of <code>10</code>, and a gap of <i>m</i> zeros. Call this E(<i>a</i>, <i>m</i>).</p>",
+     "<svg viewBox=\"0 0 560 120\" role=\"img\" aria-label=\"the tape at an E-event\" style=\"width:100%;max-width:560px;height:auto;font:12px var(--mono);\">\n<rect x=\"10\" y=\"40\" width=\"40\" height=\"30\" fill=\"none\" stroke=\"var(--line)\"/><text x=\"30\" y=\"60\" text-anchor=\"middle\" fill=\"var(--fg2)\">100</text>\n<rect x=\"50\" y=\"40\" width=\"150\" height=\"30\" fill=\"var(--accent)\" fill-opacity=\".18\" stroke=\"var(--accent)\"/><text x=\"125\" y=\"60\" text-anchor=\"middle\" fill=\"var(--fg2)\">(10)^a</text>\n<rect x=\"200\" y=\"40\" width=\"300\" height=\"30\" fill=\"none\" stroke=\"var(--line)\" stroke-dasharray=\"4 3\"/><text x=\"350\" y=\"60\" text-anchor=\"middle\" fill=\"var(--fg2)\">0^m</text>\n<rect x=\"500\" y=\"40\" width=\"30\" height=\"30\" fill=\"var(--head)\" fill-opacity=\".25\" stroke=\"var(--head)\"/><text x=\"515\" y=\"60\" text-anchor=\"middle\" fill=\"var(--fg2)\">1</text>\n<text x=\"515\" y=\"30\" text-anchor=\"middle\" fill=\"var(--head)\">E</text>\n<text x=\"125\" y=\"95\" text-anchor=\"middle\" fill=\"var(--muted)\">counter a</text><text x=\"350\" y=\"95\" text-anchor=\"middle\" fill=\"var(--muted)\">gap m (grows by 4/3)</text>\n</svg>",
+     "<p>Between two such moments the head runs a loop at the right end: each round eats three 0s of the gap and writes two more <code>10</code> to the right of it. When fewer than three 0s are left, what is left over (<i>m</i> mod 3) decides what happens to the counter, and a final sweep turns the new <code>10</code>s back into a longer gap. The result:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>gap m</th><th>next counter</th><th>next gap</th><th>steps</th></tr></thead><tbody><tr><td>3k</td><td>a + 6</td><td>4k + 4</td><td>4k&sup2; + 23k + 16a + 94</td></tr><tr><td>3k + 1</td><td>a &minus; 1</td><td>4k + 7</td><td>4k&sup2; + 23k + 28</td></tr><tr><td>3k + 2</td><td>a + 4</td><td>4k + 4</td><td>4k&sup2; + 23k + 8a + 56</td></tr></tbody></table></div>",
+     "<p>From blank tape the first such moment is E(4, 124) at step 9,008; then E(3, 171), E(9, 232), E(8, 315), &hellip;, E(58, 137,643) at step 10.8 billion. The gap grows like (4/3)<sup>n</sup> and the steps per round like the square of the gap, so the visited tape grows like the square root of the step count, and the counter, written in the cells at the far end, only very slowly.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Can it stop?",
+    "heading": "Only if the counter runs out",
+    "html": [
+     "<p>The map works as stated whenever the counter is at least 1. So the machine can only halt if, at some round with <i>m</i> = 1 mod 3, the counter is already 0. (What happens then depends on <i>m</i>: some gaps halt the machine a few thousand steps later, others turn into a pattern that repeats forever while moving right, others restart a counter.)</p>",
+     "<p>The counter goes up by 6 or by 4 two times out of three and down by 1 one time out of three, if the remainders of the gap behave like a fair die, which is what they look like. A walk that drifts up by 3 per round almost never comes back: the chance of ever coming down by <i>d</i> is about 0.335<sup><i>d</i></sup>. From 58 that is 10<sup>&minus;27.6</sup>, and after the 20,000 rounds that Lean checks the counter is 60,462.</p>",
+     "<p>This is the situation of <a href=\"https://wiki.bbchallenge.org/wiki/Antihydra\">Antihydra</a> (a 6-state machine computing n &rarr; 3n/2 with a counter that goes +2 or &minus;1 with the parity): proving that the counter never runs out would mean proving something about the long-run behaviour of n mod 3 under multiplication by 4/3, which is beyond current mathematics.</p>"
+    ]
+   },
+   {
+    "id": "proof",
+    "eyebrow": "What is proved",
+    "heading": "Proved in Lean: the map, and 10<sup>5000</sup> steps",
+    "html": [
+     "<ul><li><code>lean/Rules.lean</code> (generated by <code>py/rules.py</code> with the repository's symbolic simulator): the start of a round, one turn of the loop, and the three ends, each for all values of its variables.</li><li><code>lean/Map.lean</code>: the loop iterated <i>k</i> times by induction and <code>emap_sound</code>, the map with its exact step counts for every a &ge; 1 and m &ge; 2.</li><li><code>lean/Orbit.lean</code>: blank tape reaches E(4, 124) at step 9,008 (kernel); the run is then the orbit of the map (<code>orbit_sound</code>); it stays away from the boundary for 1,000 rounds (kernel, more than 10<sup>250</sup> steps) and 20,000 rounds (<code>native_decide</code>, more than 10<sup>5000</sup> steps); and <code>not_halts_of_good</code>: a counter that never runs out means no halt.</li></ul>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +153,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Antihydra-like: a gap m grows by 4/3 per step while a counter a moves by +6, -1 or +4 with m mod 3; it can only halt if the counter, now drifting up by 3 per step, ever runs out.",
+ "family": "Antihydra-like m -> 4m/3 with a +6/-1/+4 counter"
 }

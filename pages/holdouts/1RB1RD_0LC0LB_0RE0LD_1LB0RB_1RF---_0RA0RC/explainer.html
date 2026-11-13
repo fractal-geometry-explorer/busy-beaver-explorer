@@ -124,14 +124,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RD_0LC0LB_0RE0LD_1LB0RB_1RF---_0RA0RC / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 9 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RD_0LC0LB_0RE0LD_1LB0RB_1RF---_0RA0RC</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows yet. The machine runs a base-7 odometer: markers between blocks of 010 are its digits, each cycling through seven shapes, and every change of shape is paid for by the block after it. A halt needs a block to run out at the wrong moment.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 108,456 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>2·10<sup>10</sup></b><span class="small">Steps simulated from blank tape without a halt.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>base 7</b><span class="small">The odometer step and carry, proved in Lean for all block lengths.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>F on 1 0 1</b><span class="small">What a halt needs, two steps before (Lean).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>2% of perturbed runs halt</b><span class="small">Even keeping lengths mod 7: the numbers matter.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">An odometer in base 7</a><a href="#halt">A carry sweep out of step</a><a href="#rule">When a block runs out</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,32 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">The tape</span>
+  <h2>An odometer in base 7</h2>
+<p>Write <code>[k]</code> for <code>k</code> copies of <code>010</code>. At each visit of the left end the tape is blocks with short markers between them, and each marker is one of seven words, a digit:</p>
+<table class="tbl"><thead><tr><th>digit</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr></thead><tbody><tr><td>marker</td><td><code>0</code></td><td><code>001</code></td><td><code>00110</code></td><td><code>0010001</code></td><td><code>0[2]10</code></td><td><code>00101</code></td><td><code>0011</code></td></tr><tr><td>next block, d→d+1</td><td>−1</td><td>−1</td><td>−1</td><td>−1</td><td>+1</td><td>0</td><td>+1, carry</td></tr></tbody></table>
+<p>Each visit adds one to the odometer: the first marker moves to its next shape, the block after it changes as in the table and the first block grows by one. A 6 goes back to 0 and carries into the next marker. Lean proves these steps for every block length. Over a full turn of a digit its block loses 2.</p>
+<pre>[8]0[21]  →  [9]001[20]  →  [10]00110[19]  →  [11]0010001[18]
+          →  [12]0[2]10[17]  →  [13]00101[18]  →  [14]0011[18]  →  [15]0[19]</pre>
+<p>When every digit is 6 the carry runs to the right end, all markers become 0 and a new lowest digit is put in front; that is the slow, logarithmic side of the tape. When a block gets too small to pay, it merges with its marker into longer words and a partial reset merges blocks; that rule is not decoded yet.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Halting</span>
+  <h2>A carry sweep out of step</h2>
+<p>The machine stops only on E reading 1. E is entered only from C on a 0 moving right; C from B (which has just written the 0 E will read) or from F on a 1. So two steps before a halt the head is in F on <code>1 0 1</code> (proved in Lean). The chain C0 E0 F1 C0 E0 F1 … is the sweep that carries the odometer rightwards over <code>001 001 …</code>; it halts only if it meets <code>0 1</code> where a well-formed marker gives <code>0 0</code>.</p>
+<p>Does the shape of the tape alone rule that out? No: when the block lengths of a real configuration are replaced by random ones, about one run in five halts, and still one in fifty when every length keeps its residue mod 7. In those runs a block runs out at the wrong moment (for instance while the next digit is 6) and leaves a malformed marker. The real run never does, so a proof has to follow the actual lengths.</p>
+</section>
+<section id="rule">
+  <span class="eyebrow">The carries</span>
+  <h2>When a block runs out</h2>
+<p>When the second block is used up, the first block resets and the cost moves a level to the right. Some of the reset moments:</p>
+<pre>step 11,481         0100 [51] 0 [9] 0
+step 467,047        0100 [51] 0 [51] 0 [452]
+step 29,696,813     0100 [2403] 0 [338] 0 [1079] 0 [608] 0 [428]
+step 2,226,410,775  0100 [16809] 0 [2228] 0 [17233] 0 [16715] 0 [440] 0 [392]</pre>
+<p><code>2403 = 7⁴ + 2</code> and <code>16809 = 7⁵ + 2</code>. At the far right the last block drops by 3 at each rare visit of the right end (380 at step 1.5·10<sup>10</sup>). The exact carry rule has not been written down.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -221,7 +248,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 9 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -235,14 +262,20 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 108,456 cells have been visited and 36,152 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.446). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.095).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/sim.c</code></div></div><div><b>No halt in 2·10<sup>10</sup> steps</b><p>Direct simulation (<code>c/sim.c</code>) from blank tape; at step 14,815,726,146 the right end of the tape reads <code>[16808] 1 [3866] 1 [75891] 1 [16323] 1 [384] 1 [380]</code>, with <code>[k] = (010)^k</code>.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>digit_0</code> .. <code>digit_5</code>, <code>lean/Rules.lean</code></div></div><div><b>The odometer step</b><p>At the left end the tape is <code>B&gt; [x] M_d [y] …</code> ([k] = (010)<sup>k</sup>) with markers M0..M6 = <code>0</code>, <code>001</code>, <code>00110</code>, <code>0010001</code>, <code>0[2]10</code>, <code>00101</code>, <code>0011</code>. One visit moves the first marker from M_d to M_(d+1), adds a copy to [x] and changes the next block by −1, −1, −1, −1, +1, 0 (d = 0..5), for every x, y and any tape beyond.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>carry_0</code> .. <code>carry_5</code>, <code>lean/Rules.lean</code></div></div><div><b>The carry</b><p>From M6 the first marker returns to M0 with its block +1 and the next marker moves from M_e to M_(e+1) with its block changed as in the step (e = 0..5), for all lengths.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_needs</code>, <code>lean/Halting.lean</code></div></div><div><b>A halt needs F on 1 0 1</b><p>Two steps before any halt the head is in state F on <code>1 0 1</code>, three steps before in E on <code>0 1 0 1</code>: the sweep C0 E0 F1 … that carries the odometer meets <code>0 1</code> where a well-formed marker gives <code>0 0</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/events.c</code>, <code>README.md</code></div></div><div><b>Overflow and run-out events</b><p>When all digits are 6 the carry reaches the right end, all markers become 0 and a new lowest digit is put in front. When a block gets below about 4 it merges with its marker into longer words and a partial reset puts a new digit in front and merges blocks (examples in the README).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/pert.c</code>, <code>README.md</code></div></div><div><b>Non-halting depends on the block lengths</b><p>Replacing the block lengths (those ≥ 5) of the real configuration at step 299,991,864 by random lengths in [5, 300] makes the machine halt in 19 of 100 trials within 2·10<sup>7</sup> steps, and in 6 of 300 when every length keeps its residue mod 7. No closed tape language that forgets the lengths (window CTL, or mod-7 run tokens) can prove non-halting.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The rule when a block runs out is not decoded, so halting is not yet a question about a map; it would need a block to run out in a wrong phase (for instance while the next digit is 6).</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_0LC0LB_0RE0LD_1LB0RB_1RF---_0RA0RC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_0LC0LB_0RE0LD_1LB0RB_1RF---_0RA0RC 1000000000</code></pre>
+gcc -O2 -o sim holdouts/1RB1RD_0LC0LB_0RE0LD_1LB0RB_1RF---_0RA0RC/c/sim.c &amp;&amp; ./sim 1RB1RD_0LC0LB_0RE0LD_1LB0RB_1RF---_0RA0RC 3000000000 1</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RD_0LC0LB_0RE0LD_1LB0RB_1RF---_0RA0RC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

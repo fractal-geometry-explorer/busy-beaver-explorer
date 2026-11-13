@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB</p>
     <h1>What is known about 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB</h1>
     <p class="machine">1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Near the right end of the tape it runs a simple countdown that turns one block into another; each time the countdown ends, a long sweep sets up a new one about three times as long.</p>
+    <p class="asof">Status as of 12 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The visit-to-visit rule at the right end is proved in Lean for all counts (two theorems), and the epochs it builds are seen in an exact accelerated simulation, but what a long sweep at the end of an epoch does to the left part of the tape is not decoded, and the closed tape language of windows of 6 still allows 970 halting configurations, so the halt is not confined.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The countdown at the right end</h3>
+        <p>For all counts a, b, j and every tape L, from <code>L 0 1<sup>2j</sup> 0 0 1 1 0 (10)<sup>a+1</sup> 0 0 (10)<sup>b</sup> 1 E&gt;</code> the machine next reaches the right end at <code>L 0 1<sup>2j</sup> 0 0 1 1 0 (10)<sup>a+1</sup> 1 1 0 (10)<sup>b+1</sup> 1 E&gt;</code>, and from there <code>L 0 1<sup>2j+2</sup> 0 0 1 1 0 (10)<sup>a</sup> 0 0 (10)<sup>b+3</sup> 1 E&gt;</code>. So every two visits: j + 1, a − 1, b + 3, and the head never goes left of the 1<sup>2j</sup> run.</p>
+        <p class="where"><code>visit_p</code>, <code>visit_q</code>, <code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The end of a countdown and the erase sweep</h3>
+        <p><code>exit1</code>, <code>exit2</code>, <code>exit3</code>: the three visits after a reaches 0. <code>erase</code>: from <code>L 0 0 1<sup>2J</sup> 0 0 1 1 (10)<sup>B</sup> 1 E&gt;</code> the head turns the (10) run into a solid run of 1s and the run of 1s into 0s and stands in A to the left, 2J + 2B + 15 steps. <code>outer_step</code>: with a countdown one level up to the left, that one loses a copy and the head enters the gap in D. For all counts and every tape L.</p>
+        <p class="where"><code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +129,39 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 75,124 cells have been visited and 59,751 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
-    </div>
-    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
-    <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.484).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>The right wall</h3>
+        <p>In the first 3·10<sup>8</sup> steps the head extends the tape to the right 40,740 times: 13,577 times each in C (after <code>0 1</code>), D (after <code>1 0</code>) and E (after <code>0 1</code>), the wall cycle that writes <code>0 1</code> per round; and 9 times by a walk B, C, D, E over three fresh cells. The halting transition F0 needs D to meet a 1 (D1 = 0RF) and F to meet a 0.</p>
+        <p class="where"><code>c/rec.c</code> of 1RB1LF_1RC1RF</p>
+      </div>
+      <div class="card">
+        <h3>A closed tape language does not confine it</h3>
+        <p>Windows of 6 cells give a closed language (16,379 abstract configurations) in which F0 can fire in 970 abstract configurations, 20 of them at the right edge; windows of 8 do not close within the search limit.</p>
+        <p class="where"><code>python3 -m bbtools.ctl 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 6   # from tools/py</code></p>
+      </div>
+      <div class="card">
+        <h3>An exact accelerated simulator</h3>
+        <p><code>py/blocksim.py</code> keeps the tape as runs of <code>10</code> and crosses each run with a shift rule; at every visit of the right end up to 3·10<sup>7</sup> steps its tape equals the C simulator's (<code>py/bscheck.py</code>).</p>
+        <p class="where"><code>py/blocksim.py</code>, <code>py/bscheck.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Epochs about three times longer each</h3>
+        <p>An epoch is a run of the countdown from a = a<sub>0</sub> to 0 (about 2a<sub>0</sub> visits). Epochs start at visits 10, 44, 107, 260, 713, 2070 with a<sub>0</sub> = 3, 30, 75, 225, 677, 1783; the long sweeps at the epoch ends take up to 2.6·10<sup>6</sup> steps. After visit 5639 (5.7·10<sup>7</sup> steps) the end of the tape holds several such counters at once (e.g. <code>(10)<sup>43</sup> 0 0 (10)<sup>1135</sup> 0 1 (10)<sup>5351</sup></code>), so the epochs nest.</p>
+        <p class="where"><code>py/blocksim.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The halting pattern</h3>
+        <p>F0 is reached only through D1 and C0: the machine halts exactly when C reads a 0 and the two cells to its right are 1 0 (read off the table).</p>
+        <p class="where">README</p>
       </div>
     </div>
+    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
+    <p class="empty">Nothing yet.</p>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The countdown is exact; what the sweep at the end of an epoch does to the left part, and so the epoch-to-epoch map, is not yet written down.</p>
       </div>
     </div>
   </section>
@@ -140,7 +169,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 1000000000</code></pre>
+cd holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/py &amp;&amp; python3 rules.py &gt; ../lean/Rules.lean
+gcc -O2 -o tmrun ../../../tools/c/tmrun.c &amp;&amp; TMRUN=./tmrun python3 bscheck.py 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 10 E R 30000000
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 1000000000
+cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 6</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

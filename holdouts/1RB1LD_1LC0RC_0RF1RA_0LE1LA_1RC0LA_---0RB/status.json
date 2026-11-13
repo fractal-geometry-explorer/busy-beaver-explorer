@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G10",
  "title": "What is known about 1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB.",
@@ -10,9 +10,10 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> A few huge blocks of 1s; an odd block is split by a bouncer that moves 4 ones per round, 1 to the left neighbour and 3 to the right, and an even block at the left end is folded into its neighbour 2 for 3 (both proved in Lean for every size); a Collatz-like map with factors 1/4, 3/4 and 3/2; open.",
+  "Lean proves no halt in the first 10<sup>7</sup> steps (the first 10,000 by the kernel alone), the quarter split, the fold for every size and the first steps of the split endings; the rest of the description below is observation of the run, marked as such."
  ],
  "claims": [
   {
@@ -46,16 +47,59 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "One round of the quarter split",
+   "text": "For every odd M ≥ 11, every b and every tape around: <code>1 E&gt; 0 0 1^M 0 0 1^b 0</code> becomes <code>1 1 E&gt; 0 0 1^(M−4) 0 0 1^(b+3) 0</code> (three theorems for M mod 6 = 5, 1, 3).",
+   "where": "<code>quarter1</code>, <code>quarter3</code>, <code>quarter5</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The quarter round for odd M from 5; the small and even cases",
+   "text": "Checked by simulation for odd M = 5…59 and several neighbours; for M = 0, 2, 4 the same start halts (E meets three 0s: E0 → C0 → F0).",
+   "where": "<code>py/split.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The fold, for every size",
+   "text": "For every n, every M ≥ 1 and every tape R to the right: <code>0^inf A&gt; 0 1^(2n) 0 0 1^M R</code> reaches <code>0^inf A&gt; 0 0 0 1^(M+3n) R</code>, and then <code>0^inf A&gt; 0 1 1 0 1^(M+3n) R</code>: a left-end block of 2n ones is merged into its neighbour as 3n. Three symbolic rules (<code>fold_step</code>, 12n + 23 steps per zig-zag; <code>fold_last</code>; <code>fold_open</code>) and an induction over n.",
+   "where": "<code>fold</code>, <code>fold_full</code>, <code>lean/Fold.lean</code>; rules in <code>lean/FoldRules.lean</code> (<code>py/fold_rules.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The first steps of a split ending",
+   "text": "For every tape around: <code>1 E&gt; 0 0 1 0 0 1 1</code> → <code>1 1 0 0 0 0 0 1 A&gt;</code> (M = 1, 11 steps, <code>end1</code>); <code>1 E&gt; 0 0 1 1 1 0 0</code> → <code>1 1 0 1 0 0 0 1 A&gt;</code> (M = 3, 17 steps, <code>end3</code>); the carrier <code>0 1 A&gt;</code> crosses a block of m ones in 5m steps (<code>carry</code>); A runs left over 1s (<code>lsweep</code>).",
+   "where": "<code>lean/FoldRules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where a halt can happen (closed tape language, 5-cell windows)",
+   "text": "The closure search of <code>bbtools.ctl</code> with windows of 5 cells is closed but allows halts; the halting abstract configurations constrain the neighbourhood of a halt: a halt (F reading 0) needs <code>00000</code> or <code>00110</code> to the left and <code>01001</code>, <code>0111x</code>, <code>01110</code> or <code>01111</code> on the right (8 abstract configurations). A Python check, not a Lean certificate (the Lean library only has the right-edge and no-halt corollaries, which do not apply).",
+   "where": "<code>python3 -m bbtools.ctl 1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB 5</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Macro structure: Collatz-like: blocks split 1:3 by quarters",
+   "text": "After the start the tape is always a handful of long blocks of 1s, separated by gaps of one, two or four 0s, e.g. <code>1^1840 0 1^1387 0 1^1041 0^2 1^780 0^4 1^2338 0 1</code> at step 298,989,466. Everything the machine does is arithmetic on these block lengths.",
+   "where": "README; <code>tmrun</code>, <code>tokrun</code> runs"
+  },
+  {
+   "level": "heuristic",
+   "title": "Parity pattern in the run",
+   "text": "In the first 3·10<sup>8</sup> steps every block that a split starts on is odd (23,443 split rounds start, 14,388 with M ≡ 3 and 9,055 with M ≡ 1 mod 4), every block folded at the left end is even (7,115 zig-zags), and every round that starts at the left end with <code>A&gt;1^K</code> has K odd. A split on an even block is what halts (it ends at M = 0, 2 or 4 and E meets three 0s), so a proof that this parity pattern is preserved by the split endings would prove the machine never halts. The endings depend on the neighbouring blocks (the carrier <code>0 1</code> runs right to the next gap, then a left sweep, then a new split or fold), and that case analysis is not written down yet.",
+   "where": "<code>ev3</code> event log (scratch), README"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. F reading 0 halts. On small examples the split halts when it ends with M = 0, 2 or 4 in the shape above (the head meets three 0s in state E: E0 → C0 → F0), so halting is a question about remainders mod 4 of the blocks met by the splits: open, Collatz-like.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB 1000000000",
+  "python3 holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB/py/split.py"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
@@ -74,6 +118,11 @@
     "level": "heuristic",
     "value": "power/sqrt",
     "text": "The growth shape of the two sides of the tape (see below)."
+   },
+   {
+    "level": "heuristic",
+    "value": "Collatz-like: blocks split 1:3 by quarters",
+    "text": "The behaviour family (see below)."
    }
   ],
   "presets": [
@@ -85,6 +134,42 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "structure",
+    "eyebrow": "Macro structure",
+    "heading": "What the machine does: Collatz-like: blocks split 1:3 by quarters",
+    "html": [
+     "<p>After the start the tape is always a handful of long blocks of 1s, separated by gaps of one, two or four 0s, e.g. <code>1^1840 0 1^1387 0 1^1041 0^2 1^780 0^4 1^2338 0 1</code> at step 298,989,466. Everything the machine does is arithmetic on these block lengths.</p>",
+     "<p><b>Splitting by quarters.</b> In state E, at a gap of two 0s before a block of M ones: <code>1^a E&gt; 0 0 1^M 0 0 1^b</code>. If M is odd, a bouncer runs through the block and back and the tape becomes <code>1^(a+1) E&gt; 0 0 1^(M−4) 0 0 1^(b+3)</code>: four ones leave the block, one goes left and three go right. Lean proves this round for every odd M ≥ 11 and every tape around (<code>quarter1</code>, <code>quarter3</code>, <code>quarter5</code> in <code>lean/Rules.lean</code>, 12n + 25 steps for M = 6n + 11 …); <code>py/split.py</code> checks it for odd M from 5. Repeated, it turns M = 4q + r into q ones added on the left and 3q on the right. In the run: 7359 = 4·1839 + 3 becomes <code>1^1840 … 1^5544</code> (1840 = 1 + 1839, 5544 = 27 + 3·1839), then 5544 → 1387 + 4158, 4158 → 1041 + 3118, …</p>",
+     "<p><b>Folding.</b> An even block cannot be split this way; instead the head zig-zags between it and its left neighbour, moving two ones out of the neighbour and three into the block each time: <code>A&gt;0 1^90 0^2 1^7227</code> → <code>A&gt;0 1^88 0^2 1^7230</code> → … → <code>0^2 1^7362</code>. So a neighbour of 2n ones is merged as 3n. Lean proves this for every n and every tape to the right (<code>fold</code> in <code>lean/Fold.lean</code>): <code>A&gt; 0 1^(2n) 0 0 1^M</code> reaches <code>A&gt; 0 0 0 1^(M+3n)</code>, then <code>A&gt; 0 1 1 0 1^(M+3n)</code>.</p>",
+     "<p>These two moves (×1/4 and ×3/4 for odd blocks, ×3/2 for the fold) and the small cases at the end of a split (remainders 0–3, gaps of four 0s) make a Collatz-like map on the list of block lengths. The largest block grows like the square root of the step count (22,527 at step 1.87·10<sup>9</sup>).</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Halting",
+    "heading": "What a halt would require",
+    "html": [
+     "<p>F reading 0 halts. On small examples the split halts when it ends with M = 0, 2 or 4 in the shape above (the head meets three 0s in state E: E0 → C0 → F0), that is, when a split starts on an even block. In the first 3·10<sup>8</sup> steps that never happens: all 23,443 split rounds start on odd blocks, all folds are of even blocks. The split ends with M = 1 or 3 and hands over to the next block through a carrier <code>0 1</code> that runs right (<code>end1</code>, <code>end3</code>, <code>carry</code>, proved); what follows depends on the neighbouring blocks. If that parity pattern could be shown to be preserved, the machine would never halt; it is not known.</p>"
+    ]
+   },
+   {
+    "id": "proved",
+    "eyebrow": "Lean",
+    "heading": "What is proved, and what is not",
+    "html": [
+     "<ul><li><b>Rules</b> (<code>lean/Rules.lean</code>, kernel): <code>quarter1</code>, <code>quarter3</code>, <code>quarter5</code>, described above.</li><li><b>Fold</b> (<code>lean/Fold.lean</code>, kernel): <code>fold</code> and <code>fold_full</code>, for every n and M, from the rules <code>fold_step</code>, <code>fold_last</code>, <code>fold_open</code> in <code>lean/FoldRules.lean</code>.</li><li><b>Split endings, first steps</b> (<code>lean/FoldRules.lean</code>, kernel): <code>end1</code>, <code>end3</code>, <code>carry</code>, <code>lsweep</code>.</li><li><b>Bounded run</b> (<code>lean/Blank.lean</code>): no halt in 10<sup>7</sup> steps (native), 10,000 (kernel); the halting transition is the only way to stop.</li></ul>",
+     "<p>Everything else on this page is observation of the simulated run (heuristic). Nothing here decides halting.</p>"
+    ]
+   },
+   {
+    "id": "later",
+    "eyebrow": "Next",
+    "heading": "What would move it forward",
+    "html": [
+     "<p>Write the rest of the split endings: after <code>end1</code> / <code>end3</code> the carrier crosses the next block, and then, depending on whether that block is followed by the right end of the tape or a gap of one or two 0s, a left sweep starts a new split or a fold. With those cases as symbolic rules, check whether \"every split starts on an odd block\" is preserved; if it is, that is a nonhalting proof.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +183,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A few huge blocks of 1s; an odd block is split by a bouncer that moves 4 ones per round, 1 to the left neighbour and 3 to the right, and an even block at the left end is folded into its neighbour 2 for 3 (both proved in Lean for every size); a Collatz-like map with factors 1/4, 3/4 and 3/2; open.",
+ "family": "Collatz-like: blocks split 1:3 by quarters",
+ "decision": "open"
 }

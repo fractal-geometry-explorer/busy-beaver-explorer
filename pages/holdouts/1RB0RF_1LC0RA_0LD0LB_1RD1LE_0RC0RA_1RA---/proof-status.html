@@ -79,7 +79,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> A long bouncer over a 1010… background growing to the right (fastest of the batch), with a nearly frozen left end that is reached rarely and grows by single cells; defects (00, 11) sit in the background; open.</p>
+      <p>Lean proves no halt in the first 10<sup>7</sup> steps (the first 10,000 by the kernel alone), 12 shift rules of the sweeps; the rest of the description below is observation of the run, marked as such.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +104,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>12 shift rules of the sweeps</h3>
+        <p>For every n and every tape around: A, B and F shift <code>10</code>↔<code>01</code> rightward; B and C cross leftward unchanged. Each is a theorem <code>steps (s·n) … = some …</code> found and proved by <code>tools/py/bbtools/symtm.py</code>.</p>
+        <p class="where"><code>lean/Sweeps.lean</code> (<code>sweep_rA_10</code>, <code>sweep_rB_10</code>, <code>sweep_lC_10_1</code>, <code>sweep_rA_01</code>, …)</p>
+      </div>
+      <div class="card">
+        <h3>12 shift rules of the sweeps</h3>
+        <p>For every n and every tape around: A, B and F shift <code>10</code>↔<code>01</code> rightward; B and C cross leftward unchanged. Each is a theorem <code>steps (s·n) … = some …</code> found and proved by <code>tools/py/bbtools/symtm.py</code>.</p>
+        <p class="where"><code>lean/Sweeps.lean</code> (<code>sweep_rA_10</code>, <code>sweep_rB_10</code>, <code>sweep_lC_10_1</code>, <code>sweep_rA_01</code>, …)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +130,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 143,859 cells have been visited and 71,897 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Where a halt can happen (closed tape language, 5-cell windows)</h3>
+        <p>The closure search of <code>bbtools.ctl</code> with windows of 5 cells is closed but allows halts; the halting abstract configurations constrain the neighbourhood of a halt: a halt (F reading 1) needs <code>01001</code>, <code>0101x</code> or <code>01010</code> to the left and a right side starting <code>10</code>. A Python check, not a Lean certificate (the Lean library only has the right-edge and no-halt corollaries, which do not apply).</p>
+        <p class="where"><code>python3 -m bbtools.ctl 1RB0RF_1LC0RA_0LD0LB_1RD1LE_0RC0RA_1RA--- 5</code></p>
+      </div>
+      <div class="card">
+        <h3>Where a halt can happen (closed tape language, 5-cell windows)</h3>
+        <p>The closure search of <code>bbtools.ctl</code> with windows of 5 cells is closed but allows halts; the halting abstract configurations constrain the neighbourhood of a halt: a halt (F reading 1) needs <code>01001</code>, <code>0101x</code> or <code>01010</code> to the left and a right side starting <code>10</code>. A Python check, not a Lean certificate (the Lean library only has the right-edge and no-halt corollaries, which do not apply).</p>
+        <p class="where"><code>python3 -m bbtools.ctl 1RB0RF_1LC0RA_0LD0LB_1RD1LE_0RC0RA_1RA--- 5</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +148,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.254). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.607).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Macro structure: bouncer over a 10 background with a defect gas</h3>
+        <p>The tape is nearly all <code>10</code>. Every pass shifts the background by one cell (six proved shift rules in both phases). The right end grows like t<sup>0.6</sup> (88,047 cells after 10<sup>9</sup> steps), faster than a plain √t bouncer: most passes do not reach the left end at all.</p>
+        <p class="where">README; <code>tmrun</code>, <code>tokrun</code> runs</p>
+      </div>
+      <div class="card">
+        <h3>Macro structure: bouncer over a 10 background with a defect gas</h3>
+        <p>The tape is nearly all <code>10</code>. Every pass shifts the background by one cell (six proved shift rules in both phases). The right end grows like t<sup>0.6</sup> (88,047 cells after 10<sup>9</sup> steps), faster than a plain √t bouncer: most passes do not reach the left end at all.</p>
+        <p class="where">README; <code>tmrun</code>, <code>tokrun</code> runs</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. F reading 1 halts; in the 5-cell closed language with <code>0101x</code>/<code>01001</code> on the left and <code>10…</code> on the right.</p>
       </div>
     </div>
   </section>

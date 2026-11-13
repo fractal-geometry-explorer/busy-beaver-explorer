@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD</p>
     <h1>What is known about 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD</h1>
     <p class="machine">1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its tape is an irregular word followed by a run of ones that counts the head's visits to the right end; it can only halt if the word eats the whole run.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves that a halt needs E at the right edge, and that each trip over the run of ones adds one to it; only A crosses the run to the right, so a halt needs the word W on its left to eat the whole run. In 2·10<sup>10</sup> steps the run has grown to 137,905 cells while W eats about one cell per fifteen visits; W's own dynamics are not decoded.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Halts only at the right edge</h3>
+        <p>A closed tape language from windows of 3 cells (338 abstract configurations, found by <code>bbtools.ctl</code>, checked by <code>decide</code> in the kernel) covers every configuration of the run from blank tape; in all of them where E0 can fire, the tape after the head is blank. So every halt happens in state E with blank tape from the head on, and the machine halts iff that ever happens.</p>
+        <p class="where"><code>reach_inv</code>, <code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The run of ones counts the visits</h3>
+        <p><code>descend</code>: from <code>L 0 1<sup>2n+2</sup> B&gt; 0<sup>&infin;</sup></code> the head walks down the run in C to the 0 below it (2n + 3 steps); <code>climb</code>: from <code>L A&gt; 1<sup>2n</sup> 0<sup>&infin;</sup></code> it climbs the run and adds a 1, arriving at the next visit (2n + 1 steps); with odd-length versions; for every n and every tape L.</p>
+        <p class="where"><code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +129,31 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 32,607 cells have been visited and 31,695 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 2·10<sup>10</sup> steps</h3>
+        <p>144,695 extensions of the tape at the right end, all in B; the run of ones reaches 137,905 cells; the left end extends only 344 times (B 12, C 166, D 166), all early.</p>
+        <p class="where"><code>c/wallstat.c</code></p>
+      </div>
+      <div class="card">
+        <h3>An exact accelerated simulator</h3>
+        <p><code>py/blocksim.py</code> crosses the run at once; at every visit to 3·10<sup>6</sup> steps its tape equals the C simulator's (<code>py/bscheck.py</code>). Over the first 31,803 visits (9.7·10<sup>8</sup> steps) the run got shorter, by 1 to 6 cells, at 2,634 visits, and W grew to about 2,000 cells.</p>
+        <p class="where"><code>py/blocksim.py</code>, <code>py/runwatch.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.512).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Only A crosses the run</h3>
+        <p>A is the only state that moves right over a 1 and stays the same (B and F erase the 1 they step on and D turns back), so E can reach the right edge only once W has eaten the whole run. The run grows by one per visit and W eats about one cell in fifteen: the run outgrows W, as long as W's appetite stays bounded.</p>
+        <p class="where">README</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known: it halts iff W ever eats the whole run, and W's dynamics (a sequence of local rewrites at the foot of the run) are not yet decoded.</p>
+        <p class="where">README, next steps</p>
       </div>
     </div>
   </section>
@@ -140,7 +161,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD 1000000000</code></pre>
+cd holdouts/1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD/py &amp;&amp; python3 rules.py &gt; ../lean/Rules.lean &amp;&amp; python3 runwatch.py 60 5000
+gcc -O2 -o wallstat holdouts/1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD/c/wallstat.c &amp;&amp; ./wallstat 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD 20000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

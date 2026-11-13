@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G08",
  "title": "What is known about 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head sweeps over the whole tape; on both sides it leaves sequences of a few kinds of unit, in an order with no visible period. This page lists what has been established, sorted by what each result rests on."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves the halting configurations and no halt in the first 10<sup>7</sup> steps. The unit structure below is observed in simulations, not proved. No halt in the first 10<sup>9</sup> steps."
  ],
  "claims": [
   {
@@ -46,34 +46,48 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "A never reads 1 with a 1 to its left (so far)",
+   "text": "The only halting entry is E reading a 1, and E is entered only from <code>A&gt;1</code> (write 0, move left): the machine halts exactly when <code>1 A&gt;1</code> occurs. In the first 10<sup>8</sup> steps E is entered 12,501,222 times, always onto a 0.",
+   "where": "<code>c/haltwatch.c</code>, first 10<sup>8</sup> steps"
+  },
+  {
+   "level": "heuristic",
+   "title": "Two sequences of units",
+   "text": "Right of the start the tape is a sequence of runs <code>(01)^k 0</code> with k = 12 most of the time, 3 or 21 now and then, and 9, 15 or 18 in the youngest part near the right end, which is a long run <code>(01)^126 (10)^16 1</code> at step 2&middot;10<sup>7</sup>. Left of the start it is a sequence of units <code>000 (110100)^k 110 (010011)^j 01</code> with k = 3 or 6 and j = 4 or 7. The settled lengths differ by multiples of 3, and no period is visible in the order of the units.",
+   "where": "<code>py/snapshots.py</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The unit sequences look like the fixed point of a substitution, generated one unit per sweep near each end; a proof would need that substitution (how the run at the right end is cut into units, and what decides between 3, 12 and 21), and then a check that the head's passes over the units never produce <code>1 A&gt;1</code>.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/lean/check.sh",
+  "python3 holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/py/snapshots.py 2e7 R 100",
+  "gcc -O2 -o haltwatch holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/c/haltwatch.c && ./haltwatch 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF 100000000",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Started on a blank tape, this machine sweeps back and forth and leaves behind, on each side, a long sequence built from a few kinds of block, in an order that never settles into a repeat. Working out the rule behind that order is the open part.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "10<sup>4</sup> steps",
+    "text": "No halt, checked by Lean's kernel (10<sup>7</sup> by compiled code)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 58,887 cells visited."
-   },
-   {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "text": "No halt in the C simulator."
    },
    {
     "level": "heuristic",
-    "value": "sqrt/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "3, 12, 21",
+    "text": "The usual lengths of the runs of 01 on the right side."
    }
   ],
   "presets": [
@@ -85,6 +99,35 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "The one way to halt",
+    "html": [
+     "<p>The only halting entry is E reading a 1. E is entered only from A reading a 1 (A writes 0 and moves left), so the machine halts exactly when <code>1 A&gt;1</code> occurs. In the first 10<sup>8</sup> steps that moment comes 12.5 million times, and the cell to the left has always been a 0; the window around the head as E is entered is most often <code>101[0]001</code> or <code>100[0]010</code>.</p>"
+    ]
+   },
+   {
+    "id": "right",
+    "eyebrow": "Macro structure",
+    "heading": "The right side: runs of 01",
+    "html": [
+     "<p>When the head reaches a new cell at the right end the tape right of the start reads, at step 4,995,420,</p>",
+     "<p><code>(10)^5 (01)^21 0 (01)^12 0 (01)^12 0 (01)^12 0 (01)^12 0 (01)^12 0 (01)^12 0 (01)^3 0 (01)^12 0 (01)^12 0 (01)^12 0 (01)^12 0 (01)^21 0 &hellip;</code></p>",
+     "<p>a sequence of runs <code>(01)^k</code> each followed by one 0, with k = 12 most of the time and 3 or 21 now and then. Near the right end, in the part written most recently, other lengths occur (9, 15, 18, 5, 6, 8), and the end itself is one long run that grows: <code>&hellip; (01)^3 0 (01)^5 0 (01)^3 0 (01)^126 (10)^16 1 D&gt;0</code> at step 2&middot;10<sup>7</sup>. So the run at the end is cut into pieces over time and the pieces settle into lengths 3, 12, 21.</p>"
+    ]
+   },
+   {
+    "id": "left",
+    "eyebrow": "Macro structure",
+    "heading": "The left side: units of 110100 and 010011",
+    "html": [
+     "<p>Left of the start the tape reads, at step 44,527,536,</p>",
+     "<p><code>A&gt;0 0110011010011 000 1101 000 (110100)^3 110 (010011)^4 01 000 (110100)^6 110 (010011)^4 01 000 (110100)^3 110 (010011)^4 01 &hellip;</code></p>",
+     "<p>a sequence of units <code>000 (110100)^k 110 (010011)^j 01</code> with k = 3 or 6 and j = 4 or 7 (and a few shorter units such as <code>000 110 (010011)^4 01</code>). As on the right, the lengths differ by multiples of 3 and no period is visible in their order.</p>",
+     "<p>Nothing here is proved. A natural next step is to cut the run into round trips and find the rule by which the end run is split, which would give a substitution generating both sequences.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +141,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Bouncer whose two sides are sequences of units: on the right, runs (01)^k separated by single 0s with k almost always 3, 12 or 21 (k = 9, 18 near the end), on the left, units 000 (110100)^k 110 (010011)^j 01 with k, j in {3, 6} and {4, 7}; the sequences show no period and look like the output of a substitution. No regime proved yet.",
+ "family": "bouncer writing irregular sequences of units",
+ "decision": "open"
 }

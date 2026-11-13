@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is a list of levels, each a run of ones <code>1<sup>X</sup></code> followed by <code>1111110 00</code> and a run of words <code>(1111110)<sup>Y</sup></code>. On the active level each cycle removes one word and adds 15 ones; when the words run out the head rebuilds the ones into a new run of words, about one per 7 ones. Lean proves that the machine can only halt at the right end of the tape, where the active level works.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>A halt can only happen past the right end</h3>
+        <p>A closed tape language from windows of 4 cells covers the run from blank tape; in it the halting transition E0 can only fire with blank tape from the head on: the machine halts iff E steps onto the blank region right of the tape (after D0 &rarr; 1RE on the last cell's neighbour).</p>
+        <p class="where"><code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,13 +120,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 42,858 cells have been visited and 40,419 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in 1.2&middot;10<sup>10</sup> steps</h3>
+        <p>Direct C run; at step 7,293,164,582 the tape (133,715 cells) reads 11111 000 a 1111 a 00 1<sup>39759</sup> a 00 a<sup>7934</sup> 1111 a 00 1<sup>34254</sup> a 00 a<sup>584</sup> 11111 0 11111 0000 10 (a = 1111110).</p>
+        <p class="where"><code>tools/c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>The cycle of the active level</h3>
+        <p>Every 8 visits of the right end, X + 15 and Y &minus; 1 on the last level, until Y = 0; read off direct runs to 1.2&middot;10<sup>10</sup> steps.</p>
+      </div>
+      <div class="card">
+        <h3>Rebuilds at about 7 ones per word</h3>
+        <p>When a level is used up the ones are rebuilt into words; sizes grow by about 15/7 per round.</p>
+      </div>
       <div class="card">
         <h3>Growth shape: fixed/sqrt</h3>
         <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).</p>
@@ -132,7 +145,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The level cycle and the rebuild rule are read off the run, not proved; a halt needs D at the right end, which depends on the remainders of the rebuilds.</p>
       </div>
     </div>
   </section>
@@ -140,7 +153,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 1000000000
+(cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 4 lean H92170 Blank) | diff - holdouts/1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC/lean/EdgeCert.lean</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

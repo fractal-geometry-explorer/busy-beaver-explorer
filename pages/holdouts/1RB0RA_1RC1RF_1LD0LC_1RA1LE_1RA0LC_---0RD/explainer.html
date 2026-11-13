@@ -129,6 +129,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <p class="machine-id">1RB0RA_1RC1RF_1LD0LC_1RA1LE_1RA0LC_---0RD</p>
   <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>3 rules</b><span class="small">A, F and B crossing runs of the word <code>1101</code>.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>+1 copy</b><span class="small">per sweep on the right (300 copies per 300 samples).</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 53,279 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>exp/linear</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
@@ -140,7 +142,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#parts">Control word, frozen block, growing wall</a><a href="#control">An irregular control word</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +211,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="parts">
+  <span class="eyebrow">Structure</span>
+  <h2>Control word, frozen block, growing wall</h2>
+<p>When D stands at the right end, the tape is (cut where the right part starts):</p><pre>step  95,631,033   [70 cells] (1101)^150 (1011)^5 (0111)^1640 0 D&gt;0
+step 115,164,045   [89 cells] (1101)^150 (1011)^5 (0111)^1940 0 D&gt;0
+step 153,514,749   [84 cells] (1101)^150 00 (1110)^3 (1101)^2541 11 0 D&gt;0
+step 165,052,737   [95 cells] (1101)^150 00 (1110)^3 (1101)^2841 11 0 D&gt;0</pre>
+<p>Each sweep the head crosses the right part (A, F and B cross whole runs of the word, proved in Lean), adds one copy at the right end, and runs back to the left. Since a sweep costs time proportional to the tape, the right part grows like the square root of the step count.</p>
+</section>
+<section id="control">
+  <span class="eyebrow">Dynamics</span>
+  <h2>An irregular control word</h2>
+<p>At the left end the head turns on a word made of blocks <code>110</code>, <code>100110</code>, <code>1 00</code> and <code>101</code>:</p><pre>step  62,840,907   (110)^4 (100110)^2 (110)^4 (100110)^2 (110)^4 (100110)^2 (110)^2 (1110)^3 (110)^2
+step  83,009,019   (101)^4 (001101)^2 (101)^2 00 (110)^9 1 00 (110)^3 1 00 (110)^3 (1110)^3 1 00
+step 103,357,845   (100110)^2 (110)^4 (100110)^3 (110)^2 (100110)^3 (110)^2 1 00 (110)^3 (1110)^3 1 00</pre>
+<p>It is rewritten at every turn and its length wanders between about 50 and 115 cells, growing very slowly. This is the side that grows like a power of the step count other than 1/2. The block of 150 copies of <code>1101</code> between the two parts was laid down early and has not changed since.</p><p><b>What halting would need.</b> F reading a 0. F is entered from B reading a 1, which happens only at the control word. Deciding the machine means understanding the control word: as a counter, a finite system, or something chaotic.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,7 +254,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 53,279 cells have been visited and 32,920 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/linear</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.073). Right of the start it grows in proportion to the step count (the head drifts steadily that way) (fitted exponent 0.863).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>a_cross</code>, <code>f_cross</code>, <code>b_cross</code>, <code>lean/Rules.lean</code></div></div><div><b>Crossing the right part</b><p><code>A&gt; (0111)^n &rarr; (1110)^n A&gt;</code>, <code>F&gt; (1101)^n &rarr; (1011)^n F&gt;</code>, <code>B&gt; (1110)^n &rarr; (1101)^n B&gt;</code>, for every n.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tmrun M 3000000000 at D R</code></div></div><div><b>Three parts</b><p>In every 300th sample of D at the right end, from step 7.6&middot;10<sup>6</sup> to 5.5&middot;10<sup>8</sup>, the tape is a control word of 47 to 115 cells, then <code>(1101)^150</code> (149 or 150, in some phase), then a run of the same word whose length grows by exactly 300 copies from one printed sample to the next.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>a_cross</code>, <code>f_cross</code>, <code>b_cross</code>, <code>lean/Rules.lean</code></div></div><div><b>Crossing the right part</b><p><code>A&gt; (0111)^n &rarr; (1110)^n A&gt;</code>, <code>F&gt; (1101)^n &rarr; (1011)^n F&gt;</code>, <code>B&gt; (1110)^n &rarr; (1101)^n B&gt;</code>, for every n.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tmrun M 3000000000 at D R</code></div></div><div><b>Three parts</b><p>In every 300th sample of D at the right end, from step 7.6&middot;10<sup>6</sup> to 5.5&middot;10<sup>8</sup>, the tape is a control word of 47 to 115 cells, then <code>(1101)^150</code> (149 or 150, in some phase), then a run of the same word whose length grows by exactly 300 copies from one printed sample to the next.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tmrun M 2000000000 at D R</code>, counted in Python</div></div><div><b>The control word never repeats</b><p>At the 19,908 visits of D to the right end in the first 2&middot;10<sup>9</sup> steps, the control word (the tape left of the first run of at least 100 copies of the four-cell word) takes 19,905 different values, none longer than 111 cells. So the left end is not a cycler. It looks like a slowly growing counter-like or chaotic word.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts only when F reads a 0. F is entered from B on a 1, which happens at the turns on the control word. The control word evolves irregularly and has no known invariant. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

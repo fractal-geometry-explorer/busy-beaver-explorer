@@ -131,7 +131,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 60,889 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>X &minus;2, Y +3</b><span class="small">Per sweep during a round; rounds about 2.2 times longer each.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A (10) sea with markers</a><a href="#rounds">A marker walking left</a><a href="#halt">No 1 1 behind E</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>A (10) sea with markers</h2>
+<p>Almost all of the tape is <code>10</code> repeated. A few markers interrupt it: <code>100</code> or <code>1000</code>. Written as runs (<code>1x56</code> = 56 copies of <code>10</code>, <code>1/2</code> = <code>100</code>, <code>1/3</code> = <code>1000</code>), the tape at step 974,444,280 (C on a 1 at the right end) is</p>
+<pre class="config">1 1/2x2 1x56 1/3 1x4 1/2 1x277 1/2 1x512 1/2 1x2 1/2 1x2877 1/3 1x26463 2/E</pre>
+</section>
+<section id="rounds">
+  <span class="eyebrow">One sweep to the next</span>
+  <h2>A marker walking left</h2>
+<p>The head bounces across the whole tape (the shift rules over the <code>10</code> sea are proved in Lean). Each sweep moves the last <code>1000</code> marker two pairs to the left, and the run behind it gains three pairs: between steps 7.25&middot;10<sup>8</sup> and 9.74&middot;10<sup>8</sup> the last two runs went from 8477, 18063 to 2877, 26463. When the run in front of the marker is used up, the small runs on the left are rewritten and a new, longer round starts; rounds so far began near steps 4.6&middot;10<sup>7</sup>, 1.0&middot;10<sup>8</sup>, 2.3&middot;10<sup>8</sup>, 5.1&middot;10<sup>8</sup>.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Could it stop?</span>
+  <h2>No 1 1 behind E</h2>
+<p>F reading a 1 halts. Working backwards through the table, the only way there is E reading a 0 with <code>1 1</code> just to its left (Lean: <code>halt_shape</code>). In the sea of <code>10</code> two adjacent 1s never occur, and in 10<sup>9</sup> steps E read a 0 30,301 times without them. A halt would need the end-of-round reshuffle to produce <code>11</code>, which has not been seen.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +251,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 60,889 cells have been visited and 30,439 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.027). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.477).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>a_run</code>, <code>b_run</code>, <code>a_run4</code>, <code>c_run</code>, <code>d_run</code>, <code>lean/Rules.lean</code></div></div><div><b>The sweeps' shift rules</b><p>Rightward, A turns <code>(01)^n</code> into <code>(10)^n</code>, 2 steps a pair, and A or B with a 0 behind them cross the <code>0001</code>/<code>1000</code> markers; leftward, C crosses <code>(01)^n</code> and D crosses <code>(10)^n</code> unchanged, 2 steps a pair.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code></div></div><div><b>The shape of a halt</b><p>F on a 1 halts; F is entered only from A on a 1 (0LF), and A comes from B on a 1 (moving right, which leaves a 0 where F lands) or from E on a 0 (moving left). So it halts iff E reads a 0 with <code>1 1</code> to its left: <code>1 1 E&gt; 0</code> reaches F on a 1 in 2 steps (the converse by reading the table, not formalized).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/nbhd.c</code> (<code>./nbhd M 1000000000 E 0</code>)</div></div><div><b>Near misses</b><p>In 10<sup>9</sup> steps E reads a 0 30,301 times; the three cells to its left (nearest first) are <code>101</code> 30,093 times, <code>010</code> 92, <code>100</code> 50, <code>000</code> 48, <code>001</code> 18, never starting <code>11</code>.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/tok.c</code></div></div><div><b>Rounds</b><p>Sampled with C on a 1 at the right end (once a sweep), the tape is <code>1 100 100 (10)^x0 1000 (10)^x1 100 (10)^x2 100 ... (10)^X 1000 (10)^Y</code> plus a short end. During a round X drops by 2 and Y grows by 3 each sweep (from step 7.25&middot;10<sup>8</sup> to 9.74&middot;10<sup>8</sup>: X 8477 &rarr; 2877, Y 18063 &rarr; 26463). When X runs out the small runs on the left change (e.g. 52,4,293,497,17 &rarr; 40,16,290,500,15 &rarr; 56,4,277,512,2) and a new round starts with a larger X: rounds began near steps 4.59&middot;10<sup>7</sup>, 1.01&middot;10<sup>8</sup>, 2.28&middot;10<sup>8</sup>, 5.11&middot;10<sup>8</sup> with X = 5546, 8649, 12310, 18877.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Halting needs <code>1 1 E&gt; 0</code>, which the sweeps never produce; it would have to come from the reshuffle at the end of a round, whose rule (how the small runs change) has not been found.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1RC0RA_1LD0RB_0LE0LC_0LA0LC_0LB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1RC0RA_1LD0RB_0LE0LC_0LA0LC_0LB--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1RC0RA_1LD0RB_0LE0LC_0LA0LC_0LB--- 1000000000
+gcc -O2 -o tok holdouts/1RB0LF_1RC0RA_1LD0RB_0LE0LC_0LA0LC_0LB---/c/tok.c &amp;&amp; ./tok 1RB0LF_1RC0RA_1LD0RB_0LE0LC_0LA0LC_0LB--- 1000000000 C 1 R 0 1000000 0 | awk &#x27;NR%400==1&#x27;</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LF_1RC0RA_1LD0RB_0LE0LC_0LA0LC_0LB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

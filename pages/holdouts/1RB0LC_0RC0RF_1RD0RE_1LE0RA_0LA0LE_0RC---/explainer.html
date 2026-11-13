@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. The machine counts in base 5 with markers that drift along the tape and now and then collide; a collision has never halted it, and it could only halt if two collisions came close together.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>sweeps</b><span class="small">proved in Lean for all block lengths.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>16</sup> steps</b><span class="small">without a halt (exact fast simulator).</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 85,286 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#markers">A base-5 counter of markers</a><a href="#merges">Where it could halt</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,83 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="markers">
+  <span class="eyebrow">Macro structure</span>
+  <h2>A base-5 counter of markers</h2>
+<p>Stop the machine each time the head steps onto a new cell at the growing end. The tape is then always</p>
+<p style="text-align:center"><code>1 (0010)<sup>b0</sup> m1 (0010)<sup>b1</sup> &hellip; mk (0010)<sup>bk</sup> 000</code></p>
+<p>(mirrored in this machine: it grows to the left) long blocks of the word <code>0010</code> separated by <b>markers</b>, each in one of six phases: <code>1</code> (0), <code>0</code> (0&prime;), <code>0011</code> (1), <code>011</code> (2), <code>11</code> (3), <code>00111</code> (4).</p>
+<p>Between two such moments the head makes one sweep: a wave runs from the end toward the start, passing every marker in phase 4, and turns at the first marker that is not; that marker goes up one phase, and on the way back the phase-4 markers are reset to phase 0. The phases are the digits of a counter in base 5 that counts the sweeps. When every marker is in phase 4 the wave runs to the start of the tape and the counter gains a digit (a new marker at the end).</p>
+<p>The blocks around a marker change with its phase (phase 0 takes two words from the block before it, phases 0&prime; and 3 one), so the markers drift toward the start, the last one fastest. When a marker has used up the block before it, it <b>merges</b> with the marker there: a few special sweeps, after which the counter goes on. Lean proves the regular sweeps for all block lengths.</p>
+<div class="card" style="padding:12px">
+<p><b>Run the counter.</b> The tape between two sweeps, written as its first block <code>b0</code> and the markers
+with the block after each. Each step is one sweep of the machine by the two regular rules; the run stops at a
+<b>merge</b>, where a marker has used up the block before it and the machine does something special.</p>
+<p><label>b0 <input id="g04b0" value="5" size="4"></label>
+<label>markers (phase:block, …) <input id="g04ms" value="1:3, 4:2" size="22"></label>
+<button id="g04one">1 sweep</button> <button id="g04many">25 sweeps</button></p>
+<pre id="g04out" style="max-height:320px;overflow:auto;font-size:12px;white-space:pre-wrap"></pre></div>
+<script>
+(function(){
+  var WORD={"0":"1","0'":"0","1":"0011","2":"011","3":"11","4":"00111"};
+  var NEXT={"0":"1","0'":"1","1":"2","2":"3","3":"4"};
+  var D={"0":[-2,2],"0'":[-1,1],"1":[0,1],"2":[0,1],"3":[-1,1]};
+  var NEED={"0":2,"0'":1,"1":0,"2":0,"3":1};
+  function read(){
+    var b0=parseInt(document.getElementById("g04b0").value,10)||0, ms=[];
+    document.getElementById("g04ms").value.split(",").forEach(function(t){
+      t=t.trim(); if(!t) return; var p=t.split(":"); var ph=p[0].trim(); if(!(ph in WORD)) return;
+      ms.push([ph, parseInt(p[1],10)||0]); });
+    return [b0,ms];
+  }
+  function write(b0,ms){
+    document.getElementById("g04b0").value=b0;
+    document.getElementById("g04ms").value=ms.map(function(m){return m[0]+":"+m[1];}).join(", ");
+  }
+  function show(b0,ms){
+    var s="1 (0010)^"+b0;
+    ms.forEach(function(m){ s+=" "+WORD[m[0]]+" (0010)^"+m[1]; });
+    var n=1+4*b0; ms.forEach(function(m){n+=WORD[m[0]].length+4*m[1];});
+    if(n<=90){ var c="1"+"0010".repeat(b0); ms.forEach(function(m){c+=WORD[m[0]]+"0010".repeat(m[1]);}); s+="\n      cells: "+c+"000"; }
+    return s+" 000";
+  }
+  function sweep(b0,ms){
+    var ph=ms.map(function(m){return m[0];}), bl=[b0].concat(ms.map(function(m){return m[1];}));
+    var j=ph.length-1; while(j>=0 && ph[j]=="4") j--;
+    if(j<0){
+      if(!ph.length) return null;
+      var nb=[bl[0]+2]; for(var i=1;i<bl.length-1;i++) nb.push(bl[i]+1); nb.push(bl[bl.length-1]);
+      var out=ph.map(function(_,i){return ["0'",nb[i+1]];}); out.push(["1",0]);
+      return [nb[0],out,"overflow: every marker was in phase 4; a new marker appears at the end"];
+    }
+    var p=ph[j];
+    if(bl[j]<NEED[p]) return [b0,ms,"MERGE: marker "+(j+1)+" (phase "+p+") has used up the block before it"];
+    for(var i=j+1;i<ph.length;i++){ ph[i]="0"; bl[i+1]+=1; }
+    bl[j]+=D[p][0]; bl[j+1]+=D[p][1]; ph[j]=NEXT[p];
+    var note = j<ph.length-1 ? "carry through "+(ph.length-1-j)+" marker(s); marker "+(j+1)+" up one phase" : "last marker up one phase";
+    return [bl[0], ph.map(function(x,i){return [x,bl[i+1]];}), note];
+  }
+  function go(k){
+    var st=read(), b0=st[0], ms=st[1], lines=[show(b0,ms)];
+    for(var i=0;i<k;i++){
+      var r=sweep(b0,ms); if(!r){lines.push("no marker left");break;}
+      if(r[2].indexOf("MERGE")==0){ lines.push(r[2]); break; }
+      b0=r[0]; ms=r[1]; lines.push(r[2]+"\n  "+show(b0,ms));
+    }
+    write(b0,ms); document.getElementById("g04out").textContent=lines.join("\n");
+  }
+  document.getElementById("g04one").onclick=function(){go(1);};
+  document.getElementById("g04many").onclick=function(){go(25);};
+})();
+</script>
+
+</section>
+<section id="merges">
+  <span class="eyebrow">Open question</span>
+  <h2>Where it could halt</h2>
+<p>The only halting transition is F1, and F is entered only at some merges (and, in two of the sixteen machines, on a detour that does what the others do in one step). Every entry into F so far has read a 0. Every merge of two markers with long blocks around them runs, symbolically and for all block lengths, without halting. But short tapes of the same shape, where two short blocks meet, often halt.</p><p>So the machine halts only if two merges ever happen close together on the tape. The counter is deterministic, and the block lengths it makes look very regular (many are close to multiples of powers of 5), but nothing here decides whether such a coincidence ever comes.</p>
+<p>Sixteen holdouts run this counter, in five distinct runs; this machine is in class III. The family is described in full on the page of <a href="../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---/explainer.html"><code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---</code></a>.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +313,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 85,286 cells have been visited and 26,501 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.59). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</div></div><div><b>The sweeps, for all block lengths</b><p>Nine whole sweeps (one per phase of the last marker, with one and two carries, overflows with one and two markers) and four pieces, in the mirrored orientation of this machine.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/check.py</code> (<code>check_rl.py</code>)</div></div><div><b>An exact fast simulator</b><p>The run-length simulator <code>c/rl.c</code> of the family lead (shift rules found and applied automatically, like <code>symtm</code> on concrete numbers) gives the same tape at every sweep end of the first 10<sup>8</sup> steps as the run without shift rules.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>model.py</code></div></div><div><b>The counter rules</b><p>To 10<sup>11</sup> steps, 305,481 of the 305,533 sweeps are regular turns and 18 are overflows, each exactly as the two rules say; the other 34 are merges.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>far.py</code> of the family lead</div></div><div><b>No halt in 10<sup>16</sup> steps</b><p>The fast simulator runs 10,000,000,050,806,234 steps without a halt; F is entered 11 times and reads a 0 every time.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>merges.py</code></div></div><div><b>Merges of separated markers never halt</b><p>All 48 merges of two markers with at least 12 words of block on either side (each failing turn, each phase of the marker before it, with and without a carried marker after it) run symbolically, for all block lengths, for 12 sweeps or until the carry leaves them: none halts.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>compare.py</code></div></div><div><b>The same run as <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---</code>, <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LA---</code>, <code>1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0LA---</code></b><p>Class III of the five runs of the family. The direct members have the same tape at every sweep end to 10<sup>11</sup> steps. The mirrored members have the same markers at every sweep end from sweep 109,645 on.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>clusters.py</code></div></div><div><b>Halting needs two merges close together</b><p>37 of 2,000 random short tapes of the same shape halt within 20,000 steps, while separated merges never halt. Whether the drifting counter ever brings two merges together is a question about its arithmetic that nothing here settles.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Only if two merges ever meet; a question about the long-run arithmetic of the counter.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC--- 1000000000</code></pre>
+python3 holdouts/1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC---/py/check.py
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---/py/far.py 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC--- 1e16</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

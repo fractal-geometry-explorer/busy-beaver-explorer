@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine is a macro machine on lists of numbers: the tape at the left end is <code>A&gt;1 (10)^N sep (10)^w1 sep &hellip; (10)^wk sep W</code>, and one sweep takes the fuel N to N&minus;2 and rewrites the start of W by one of a dozen local rules. Lean (kernel) proves such a sweep, with the done blocks w1&hellip;wk arbitrary (any number, any values &ge; 2), for the window rules that carry the run; the machine has no halting move inside them. The full list of rules (<code>py/mac14.py</code>) is checked against the machine for 2&middot;10<sup>7</sup> steps sweep by sweep and at all 33 refills up to 10<sup>10</sup> steps, and runs 187,450 sweeps without meeting a case it does not cover. Not proved: the rare fuel-1 sweep and windows with small values, and above all that the run never leaves the rules.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -97,6 +97,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The halting configurations</h3>
         <p>The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.</p>
         <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The cell pieces of a sweep</h3>
+        <p>Leaving the left end (<code>start_s</code>, <code>start_z</code>), crossing a done block going right (<code>rb</code>) and coming back (<code>lbA</code>, <code>lbD</code> for values &ge; 4, <code>lb3A</code> &hellip; <code>lb2D</code> for 3 and 2), the end at the left (<code>endA_s</code> &hellip; <code>endD_0</code>), 14 window rules and the pair rule on the fuel block, each for every value of its counts and every tape around it. Written by <code>bbtools.symtm.prove</code>.</p>
+        <p class="where"><code>lean/Rules.lean</code>, <code>py/gen_rules.py</code></p>
+      </div>
+      <div class="card">
+        <h3>One sweep over any list of done blocks</h3>
+        <p><code>sweep_gen</code>: for fuel n+3, any list of done blocks of values &ge; 2 and any window rule that turns back in state A, the machine goes from <code>cfg (n+3) ds W</code> to <code>cfg (n+1) ds W'</code>. <code>sweep_gen2</code> (fuel 2 &rarr; 0) and <code>sweep_gen0</code> (fuel 0: refilled to 2) likewise. Proved by induction over the list (<code>rpass</code>, <code>lpass</code>).</p>
+        <p class="where"><code>sweep_gen</code>, <code>rpass</code>, <code>lpass</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The window rules</h3>
+        <p>With fuel &ge; 3 and any done blocks: the pair rule <code>x s y &rarr; x+4 s&#773; y&minus;1</code> (<code>pair_dot</code>, <code>pair_bang</code>), <code>append</code>, <code>p1_bd</code>, <code>p1_bb</code>, <code>p1_db</code>, <code>p1_dd</code> (two blocks merge), <code>merge</code>, <code>end_db</code>, <code>next</code>, <code>end_b</code>, <code>restart2</code>; and the pair rule on the fuel block itself (<code>own_dot</code>, <code>own_bang</code>, with step counts).</p>
+        <p class="where"><code>lean/Macro.lean</code></p>
       </div>
       <div class="card">
         <h3>No halt in the first 10,000 steps</h3>
@@ -119,6 +134,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 80,103 cells have been visited and 39,938 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The macro machine agrees with the machine</h3>
+        <p><code>py/check.py 2e7</code> checks every one of the sweeps of the first 2&middot;10<sup>7</sup> steps against the macro rules. <code>py/r14.c</code> prints the tape at every refill (fuel 0) up to 10<sup>10</sup> steps; <code>py/cmp.py</code> finds the macro machine equal to it at all 33 of them (74,633 sweeps).</p>
+        <p class="where"><code>py/check.py</code>, <code>py/r14.c</code>, <code>py/cmp.py</code></p>
+      </div>
+      <div class="card">
+        <h3>187,450 sweeps inside the rules</h3>
+        <p><code>py/far.py</code> runs the macro machine 187,450 sweeps (far past 10<sup>10</sup> machine steps) and never meets a window or fuel case that its rules do not cover.</p>
+        <p class="where"><code>py/far.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -132,7 +157,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. A proof would need an invariant on the lists that the macro rules preserve (so that no window ever falls outside them), plus Lean proofs of the remaining cases: the sweep with fuel 1 (two rules in one visit), the windows with small values, and the rules on the fuel block other than the pair rule.</p>
       </div>
     </div>
   </section>
@@ -140,7 +165,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA--- 1000000000</code></pre>
+python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/gen_rules.py      # rewrites lean/Rules.lean
+python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/check.py 2e7
+gcc -O2 -o r14 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/r14.c &amp;&amp; ./r14 1e10 100000 &gt; r14.txt &amp;&amp; python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/cmp.py r14.txt
+python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/far.py 1e12 300 600</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

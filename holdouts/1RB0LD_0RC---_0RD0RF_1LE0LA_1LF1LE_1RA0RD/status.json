@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G05",
  "title": "What is known about 1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD.",
@@ -12,7 +12,9 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps and proves the shift rules of the bouncer part (the sweeps and the turn at the right end) for every length. The run, followed exactly by a segment simulator with cycle jumps, has not halted in 2.5&middot;10<sup>72</sup> steps.",
+  "<b>What it does.</b> The head bounces between a <em>wall</em> near the left and the right end of the tape, adding two cells at the right end per round trip. Between them lies a long run of one 8-cell word. Behind the wall the tape is a long run of an 18-cell word. In phase A the wall slowly eats the 18-cell run and the 8-cell run grows; in phase B the wall marches right, turning the 8-cell run back into 18-cell words. Each such epoch multiplies the lengths by about 9/4.",
+  "<b>Why it is hard.</b> At every turn from phase A to B the wall works on the debris left of it: counters made of a 36-cell word, which lose 0, 1 or 2 copies per epoch in an irregular pattern. Now and then (at about 1.7&middot;10<sup>14</sup>, 5&middot;10<sup>21</sup> and 2.6&middot;10<sup>72</sup> steps) the whole 18-cell run is turned into a new counter of 36-cell words (345,724 copies, then 1,710,343,625, then about 3.9&middot;10<sup>34</sup>) and the bouncer starts again from small sizes. Whether the machine halts depends on how these nested counters run out, which follows the residues of numbers that grow by 9/4 per epoch."
  ],
  "claims": [
   {
@@ -34,46 +36,76 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "The sweeps and the turn at the right end",
+   "text": "With <code>P = 10011010</code> and <code>Q = 11110001</code>: a leftward sweep turns <code>P^n 1 0 E&gt;0</code> into <code>1 0 E&gt;0 Q^n</code> in 36n steps; a rightward sweep turns <code>0 D&gt; Q^n</code> into <code>P^n 0 D&gt;</code> in 32n steps; at the right end <code>0 D&gt;1</code> then blank becomes <code>1 0 E&gt;0 1</code> in 5 steps. Together: from <code>0 D&gt; Q^n 1</code> the head comes back to the wall as <code>1 0 E&gt;0 Q^n 1</code>, two cells wider, in 68n + 5 steps, for every n. The leftward sweep carries a word on both sides of the head, so the file proves <code>cross_l2</code>, a two-sided form of the library's shift rule.",
+   "where": "<code>sweep_left</code>, <code>sweep_right</code>, <code>turn_right</code>, <code>round_right</code>, <code>cross_l2</code>, <code>lean/Sweep.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The sweeps and the turn at the right end",
+   "text": "With <code>P = 10011010</code> and <code>Q = 11110001</code>: a leftward sweep turns <code>P^n 1 0 E&gt;0</code> into <code>1 0 E&gt;0 Q^n</code> in 36n steps; a rightward sweep turns <code>0 D&gt; Q^n</code> into <code>P^n 0 D&gt;</code> in 32n steps; at the right end <code>0 D&gt;1</code> then blank becomes <code>1 0 E&gt;0 1</code> in 5 steps. Together: from <code>0 D&gt; Q^n 1</code> the head comes back to the wall as <code>1 0 E&gt;0 Q^n 1</code>, two cells wider, in 68n + 5 steps, for every n. The leftward sweep carries a word on both sides of the head, so the file proves <code>cross_l2</code>, a two-sided form of the library's shift rule.",
+   "where": "<code>sweep_left</code>, <code>sweep_right</code>, <code>turn_right</code>, <code>round_right</code>, <code>cross_l2</code>, <code>lean/Sweep.lean</code>"
+  },
+  {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 30,464 cells have been visited and 16,609 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 2.5&middot;10<sup>72</sup> steps",
+   "text": "<code>py/segsim.py</code> keeps the tape as cells and repeats of words and crosses long repeats with shift rules it finds and checks on one copy; <code>py/accel.py</code> jumps many periods of a regime whose counts change by constant amounts (checked over three periods, step counts summed exactly). The tape agrees cell for cell with the plain C simulator after 10<sup>9</sup> and 10<sup>10</sup> steps (<code>py/run.py check</code>). Run for 30 minutes, it reaches 2.5&middot;10<sup>72</sup> steps without a halt.",
+   "where": "<code>py/run.py</code>, <code>py/segsim.py</code>, <code>py/accel.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 4&middot;10<sup>9</sup> steps (plain simulator)",
+   "text": "The C simulator, with every long excursion of the head logged (<code>c/sweeps.c</code>), shows the bouncer: in phase A the left turning point drifts left by 72 cells per 36 round trips, in phase B it moves right by exactly 18 cells per round trip. Phase B lasted 86, 203, 463, 1,051 and 2,359 round trips in the epochs ending near 3.8&middot;10<sup>6</sup>, 1.9&middot;10<sup>7</sup>, 9.3&middot;10<sup>7</sup>, 4.7&middot;10<sup>8</sup> and 2.4&middot;10<sup>9</sup> steps (ratios 2.36, 2.28, 2.27, 2.24).",
+   "where": "<code>c/sweeps.c</code>, <code>c/dump.c</code>"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.512).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Epochs grow by about 9/4",
+   "text": "Phase A: per round trip the 18-cell run loses 2 cells and the 8-cell run gains 4 (2 from the wall, 2 from the right end), so x copies of the 18-cell word last 9x round trips and leave about 4.5x copies of the 8-cell word. Phase B: per round trip one 18-cell word is made from two 8-cell words, so y copies give about y/2 new 18-cell words. One epoch maps x to about 9x/4. Read off the simulator, not proved.",
+   "where": "<code>py/run.py epochs</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Nested counters, used up irregularly",
+   "text": "Left of the 18-cell run the tape holds runs of the 36-cell word <code>101001100110010011101001101010100110</code> (10 copies at first). When phase A ends the wall works on the nearest such run and removes 0, 1 or 2 copies, in no visible pattern. Three times so far the whole 18-cell run was turned into such a counter and the bouncer restarted from small sizes: at 1.7&middot;10<sup>14</sup> steps (345,724 copies, plus a new small counter of 5) and at 4.96&middot;10<sup>21</sup> steps (1,710,343,625 copies, plus 38) and at 2.57&middot;10<sup>72</sup> steps (38,924,542,121,409,275,697,275,846,796,041,586 copies, followed by one of 732,592,001,087,343,578). Between restarts the epochs replay the same sizes.",
+   "where": "<code>py/run.py epochs</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The bouncer part is proved; the wall's work at the end of each phase A (on the counters and the debris between them) is the open part. It changes the counters by amounts that depend on residues of the epoch sizes, which is the kind of question (like the Collatz-type BB(6) cryptids) that has no known method.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD 1000000000"
+  "python3 holdouts/1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD/py/run.py check 1e10     # the fast simulator against the plain one",
+  "python3 holdouts/1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD/py/run.py epochs 600     # one line per epoch, for ten minutes"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine bounces between a wall and the right end of its tape, converting the tape between two periodic patterns, in epochs that grow by about 9/4 each. At the end of each epoch the wall nibbles at counters it left behind earlier; now and then it builds a much larger one and starts over. The bouncing is proved in Lean; the nibbling is where the open question lies.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 30,464 cells visited."
+    "value": "2.5·10<sup>72</sup> steps",
+    "text": "No halt, on an exact accelerated simulator checked against the plain one."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "68n + 5",
+    "text": "Steps of the proved right half of a round trip over n words."
    },
    {
     "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "&times; 9/4",
+    "text": "Growth of the bouncer's sizes per epoch."
+   },
+   {
+    "level": "heuristic",
+    "value": "3 restarts",
+    "text": "Counters of 345,724, 1,710,343,625 and 3.9&middot;10<sup>34</sup> copies built so far."
    }
   ],
   "presets": [
@@ -96,7 +128,67 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>955,256,922</td><td><code>1 0^2 1^2 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1^2 0 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1 0^2 1^3 0 1 0^2 1^2 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1 0^2 1^3 0 1 0^2 1^2 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1 0^2 1^3 0 1 0^2 1^2 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1 0^2 1^3 0 1 0</code></td></tr><tr><td>right</td><td>970,978,954</td><td><code>1 0^2 1^2 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1^2 0 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1 0^2 1^3 0 1 0^2 1^2 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1 0^2 1^3 0 1 0^2 1^2 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1 0^2 1^3 0 1 0^2 1^2 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1 0^2 1^3 0 1 0</code></td></tr><tr><td>right</td><td>986,765,430</td><td><code>1 0^2 1^2 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1^2 0 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1 0^2 1^3 0 1 0^2 1^2 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1 0^2 1^3 0 1 0^2 1^2 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1 0^2 1^3 0 1 0^2 1^2 0 1 0 1 0 1 0^2 1^2 0 1 0 1 0^2 1^2 0^2 1^2 0^2 1 0^2 1^3 0 1 0</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "words",
+    "eyebrow": "What the tape is made of",
+    "heading": "A wall, two patterns and some counters",
+    "html": [
+     "<p>Write <code>a = 10</code> and <code>b = 0110</code>. Almost all of the tape is made of these two pieces. Right of a wandering <em>wall</em> the tape is a run of one 8-cell word, <code>P = a b a = 10011010</code> after the head has swept right, or <code>Q = 11110001</code> after it has swept left. Left of the wall lies a run of an 18-cell word (<code>a a a b a a b</code>, in another phase while it is being built), and further left runs of a 36-cell word that act as counters, and some debris.</p>",
+     "<svg viewBox=\"0 0 640 150\" role=\"img\" aria-label=\"layout of the tape\" style=\"width:100%;max-width:640px;height:auto;font:11px var(--mono);\">\n<rect x=\"10\" y=\"40\" width=\"60\" height=\"30\" fill=\"var(--line)\"/><text x=\"40\" y=\"30\" text-anchor=\"middle\" fill=\"var(--muted)\">debris</text>\n<rect x=\"70\" y=\"40\" width=\"110\" height=\"30\" fill=\"var(--accent)\" opacity=\"0.55\"/><text x=\"125\" y=\"30\" text-anchor=\"middle\" fill=\"var(--fg2)\">counters (36-cell word)</text>\n<rect x=\"180\" y=\"40\" width=\"150\" height=\"30\" fill=\"var(--fg2)\" opacity=\"0.35\"/><text x=\"255\" y=\"30\" text-anchor=\"middle\" fill=\"var(--fg2)\">18-cell word &#215; x</text>\n<rect x=\"330\" y=\"36\" width=\"10\" height=\"38\" fill=\"var(--head)\"/><text x=\"335\" y=\"92\" text-anchor=\"middle\" fill=\"var(--head)\">wall</text>\n<rect x=\"340\" y=\"40\" width=\"260\" height=\"30\" fill=\"none\" stroke=\"var(--fg2)\"/>\n<g stroke=\"var(--fg2)\" opacity=\"0.5\"><line x1=\"353\" y1=\"40\" x2=\"353\" y2=\"70\"/><line x1=\"366\" y1=\"40\" x2=\"366\" y2=\"70\"/><line x1=\"379\" y1=\"40\" x2=\"379\" y2=\"70\"/><line x1=\"392\" y1=\"40\" x2=\"392\" y2=\"70\"/><line x1=\"405\" y1=\"40\" x2=\"405\" y2=\"70\"/><line x1=\"418\" y1=\"40\" x2=\"418\" y2=\"70\"/><line x1=\"431\" y1=\"40\" x2=\"431\" y2=\"70\"/><line x1=\"444\" y1=\"40\" x2=\"444\" y2=\"70\"/><line x1=\"457\" y1=\"40\" x2=\"457\" y2=\"70\"/><line x1=\"470\" y1=\"40\" x2=\"470\" y2=\"70\"/><line x1=\"483\" y1=\"40\" x2=\"483\" y2=\"70\"/><line x1=\"496\" y1=\"40\" x2=\"496\" y2=\"70\"/><line x1=\"509\" y1=\"40\" x2=\"509\" y2=\"70\"/><line x1=\"522\" y1=\"40\" x2=\"522\" y2=\"70\"/><line x1=\"535\" y1=\"40\" x2=\"535\" y2=\"70\"/><line x1=\"548\" y1=\"40\" x2=\"548\" y2=\"70\"/><line x1=\"561\" y1=\"40\" x2=\"561\" y2=\"70\"/><line x1=\"574\" y1=\"40\" x2=\"574\" y2=\"70\"/><line x1=\"587\" y1=\"40\" x2=\"587\" y2=\"70\"/></g>\n<text x=\"470\" y=\"30\" text-anchor=\"middle\" fill=\"var(--fg2)\">8-cell word &#215; y (P or Q)</text>\n<text x=\"612\" y=\"60\" fill=\"var(--muted)\">end</text>\n<path d=\"M345 110 L595 110\" stroke=\"var(--head)\" stroke-width=\"1.5\" marker-end=\"url(#ar)\"/><path d=\"M595 125 L345 125\" stroke=\"var(--head)\" stroke-width=\"1.5\" marker-end=\"url(#ar)\"/>\n<defs><marker id=\"ar\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"4\" orient=\"auto\"><path d=\"M0,0 L8,4 L0,8 z\" fill=\"var(--head)\"/></marker></defs>\n<text x=\"470\" y=\"145\" text-anchor=\"middle\" fill=\"var(--muted)\">one round trip: 68y + O(1) steps, the tape 2 cells wider</text>\n</svg>",
+     "<p>The head goes back and forth between the wall and the right end of the tape. Each round trip makes the tape two cells wider, which is why the right side grows like the square root of the step count.</p>"
+    ]
+   },
+   {
+    "id": "sweep",
+    "eyebrow": "One round trip",
+    "heading": "The bouncer part is exact",
+    "html": [
+     "<p>Going left the head turns every <code>P</code> into <code>Q</code>, zig-zagging 36 steps per word; going right it turns every <code>Q</code> back into <code>P</code>, 32 steps per word. At the right end <code>0 D&gt;1</code> becomes <code>1 0 E&gt;0 1</code> in 5 steps: two new cells. Lean proves all three for every number of words, and their composition: <code>0 D&gt; Q^n 1</code> comes back as <code>1 0 E&gt;0 Q^n 1</code> in exactly 68n + 5 steps (<code>round_right</code>).</p>",
+     "<p>Everything interesting happens at the wall, where the head turns back to the right.</p>"
+    ]
+   },
+   {
+    "id": "epochs",
+    "eyebrow": "The wall",
+    "heading": "Two phases, epochs growing by 9/4",
+    "html": [
+     "<p><b>Phase A.</b> The wall slowly eats the 18-cell run: per round trip 2 cells of it become 2 cells of the 8-cell run, in a pattern that repeats every 36 round trips (the wall moves 72 cells left, the 18-cell run loses 4 words, the 8-cell run gains 18). With x words of 18 cells this takes about 9x round trips and leaves about 4.5x words of 8 cells.</p>",
+     "<p><b>Phase B.</b> When the 18-cell run is used up the wall turns around: every round trip it moves exactly 18 cells to the right, building one 18-cell word out of two 8-cell words. With y words this takes about y/2 round trips and leaves about y/2 words of 18 cells. Then phase A starts again.</p>",
+     "<p>So one epoch takes x to about (9/2)(1/2)x = 9x/4. The number of round trips in phase B, measured with the plain simulator:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>epoch ends near step</th><th>round trips in phase B</th><th>ratio</th></tr></thead><tbody><tr><td>3.8&middot;10<sup>6</sup></td><td>86</td><td></td></tr><tr><td>1.9&middot;10<sup>7</sup></td><td>203</td><td>2.36</td></tr><tr><td>9.3&middot;10<sup>7</sup></td><td>463</td><td>2.28</td></tr><tr><td>4.7&middot;10<sup>8</sup></td><td>1,051</td><td>2.27</td></tr><tr><td>2.4&middot;10<sup>9</sup></td><td>2,359</td><td>2.24</td></tr></tbody></table></div>"
+    ]
+   },
+   {
+    "id": "counters",
+    "eyebrow": "The hard part",
+    "heading": "Counters used up irregularly, and restarts",
+    "html": [
+     "<p>When phase A ends, before phase B can start, the head runs further left and works on whatever lies there. At the start this is a counter: 10 copies of the 36-cell word <code>101001100110010011101001101010100110</code>. Epoch by epoch it loses 0, 1 or 2 copies with no visible rule (6, 4, 4, 4, 3, gone, at the ends of the first epochs).</p>",
+     "<p>At about 1.7&middot;10<sup>14</sup> steps something new happened: the whole 18-cell run (691,448 words) became a counter of 345,724 copies of the 36-cell word, a fresh small counter of 5 copies appeared next to it, and the bouncer started over from small sizes, replaying exactly the epoch sizes it had after the first restart. After the small counter was used up the wall nibbled at the big one (345,724 &rarr; 345,722 &rarr; 345,721 &rarr; 345,720 &rarr; 345,718 &rarr; 345,717 over about 25 epochs). At about 4.96&middot;10<sup>21</sup> steps it restarted again, building a counter of 1,710,343,625 copies and a small one of 38. At about 2.57&middot;10<sup>72</sup> steps it restarted a third time, with a counter of 38,924,542,121,409,275,697,275,846,796,041,586 copies, and a fourth counter of 732,592,001,087,343,578 copies came soon after. The counters now read [345,717; 1,710,343,616; 3.9&middot;10<sup>34</sup>; 7.3&middot;10<sup>17</sup>].</p>",
+     "<p>This looks like a recursion: each level's counter is as large as the bouncer was when it was built, and lower levels use it up a little at a time. How much is removed at each epoch depends on the exact sizes, which grow by 9/4: residues of such numbers are what Collatz-like problems are made of. A proof either way would need the exact rule for the wall's work at the end of phase A, as a function of the sizes and of the debris.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could halt",
+    "heading": "Only at the wall",
+    "html": [
+     "<p>The machine halts when state B reads a 1. The proved sweeps and the turn at the right end never do that, so a halt can only come from the wall, during the transitions between phases or while it works on the counters and debris. Closed tape languages with windows of 2 to 6 cells do not exist for this machine (they were tried before), which fits the picture of counters that must be read exactly.</p>"
+    ]
+   },
+   {
+    "id": "proved",
+    "eyebrow": "What is proved",
+    "heading": "Proved, computed, observed",
+    "html": [
+     "<p><b>Lean, kernel:</b> the halting configurations; no halt in 10,000 steps; the sweeps, the turn at the right end and the 68n + 5 round trip for every n (<code>lean/Sweep.lean</code>). <b>Lean, native_decide:</b> no halt in 10<sup>7</sup> steps.</p>",
+     "<p><b>Computed (trusted):</b> no halt in 2.5&middot;10<sup>72</sup> steps on the segment simulator with cycle jumps, which agrees cell for cell with the plain simulator where both can run. <b>Observed:</b> the 9/4 epochs, the counters and the restarts.</p>"
+    ]
    }
   ]
- }
+ },
+ "family": "bouncer with a moving wall, nested counters",
+ "summary": "A bouncer between a wandering wall and the right end: the region behind the wall alternates between 8-cell and 18-cell words, each epoch is about 9/4 times longer than the last, and the wall leaves behind nested counters of 36-cell words that are used up irregularly.",
+ "decision": "open"
 }

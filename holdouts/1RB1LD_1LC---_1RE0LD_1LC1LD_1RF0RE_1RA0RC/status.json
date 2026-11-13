@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G10",
  "title": "What is known about 1RB1LD_1LC---_1RE0LD_1LC1LD_1RF0RE_1RA0RC",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LD_1LC---_1RE0LD_1LC1LD_1RF0RE_1RA0RC.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>Open.</b> The same kind of structure as 1RB0RA_1LC0RC_1LF0RD_1RA1LE_0LC---_1LD0LA: long blocks of a repeated word separated by digit-like separators that change near the left end every sweep and carry to the right."
  ],
  "claims": [
   {
@@ -46,9 +46,16 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "The structure of the run",
+   "text": "Bouncer growing to the left: blocks of the word 10 separated by short separators (110, 0, 11 110, ...) that act as counter digits; the first block grows steadily, block lengths fall off to the right.",
+   "where": "README; <code>tools/c/tokrun.c</code>-style samples",
+   "hand": true
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. No closed rule set has been found; see the README for what a proof would need.",
    "where": ""
   }
  ],
@@ -58,7 +65,7 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LD_1LC---_1RE0LD_1LC1LD_1RF0RE_1RA0RC 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This page runs the machine in your browser and describes the structure seen in its run.",
   "facts": [
    {
     "level": "trusted",
@@ -72,8 +79,8 @@
    },
    {
     "level": "heuristic",
-    "value": "power/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "chaotic",
+    "text": "bouncer with a multi-digit counter of 10 blocks (chaotic)"
    }
   ],
   "presets": [
@@ -85,6 +92,23 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "structure",
+    "eyebrow": "Structure",
+    "heading": "What the tape looks like",
+    "html": [
+     "<p>Read from the left end, the tape is blocks of <code>a = 10</code> separated by separators such as <code>b = 110</code>, <code>0</code>, <code>1 1 b</code>. The separators near the left end change at each sweep and carry to the right like counter digits; the first block grows by about one a per sweep. The left end grows 2 cells per sweep; the right end moves out only 579 times in 10<sup>9</sup> steps.</p>",
+     "<pre>the tape at the left end every 6·10^7 steps (a = 10, b = 110):\nstep 660,503,926  C b^2 a^4 0 a^6668 0 a^4 0 a^2 0 a^1681 b a^5 b a^12 b a^9 b a^3161 ...\nstep 720,557,246  C b^2 a^3 b a^6964 1^2 b a^2 1^2 b a 0 a^1755 b a^5 b a^12 b a^10 0 a^3197 ...\nstep 780,753,976  C b^2 a^3 b a^7249 b a^3 b^2 a^1828 0 a^4 0 a^14 0 a^9 b a^3233 ...</pre>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Halting",
+    "heading": "Where it could halt",
+    "html": [
+     "<p>The only halting transition is B reading 1. A closed tape language with windows of 6 cells (<code>bbtools.ctl</code>) covers the run but still allows halts, with only a local constraint near the head: the cells left of the head read (outward) 111000, 111001, 111010 or 111101. Nothing confines a halt to an edge.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +122,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Bouncer growing to the left: blocks of the word 10 separated by short separators (110, 0, 11 110, ...) that act as counter digits; the first block grows steadily, block lengths fall off to the right.",
+ "family": "bouncer with a multi-digit counter of 10 blocks (chaotic)",
+ "decision": "open"
 }

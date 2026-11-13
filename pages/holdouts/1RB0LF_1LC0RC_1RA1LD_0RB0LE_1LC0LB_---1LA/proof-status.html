@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine is a base-4 counter of walls in a sea of <code>110</code>, incremented from the right end. Lean proves one sweep for every carry chain (any length), the two kinds of merger, the walk of T after an overflow and steps of the top's cycle; an exact digit simulator, checked against the direct run to 2&middot;10<sup>9</sup> steps, ran to 8.6&middot;10<sup>15</sup> steps without a halt or an unknown event. A closed set of digit configurations is not yet assembled.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweeps' shift rules</h3>
+        <p>Rightward, A (with <code>01</code> behind it) crosses <code>(110110)^n</code> unchanged, 16 steps per 6 cells; leftward, D, C and E cross the 110 sea in its three phases (<code>110</code>, <code>101</code>, <code>011</code>), 3 steps a triple.</p>
+        <p class="where"><code>a_right</code>, <code>d_left</code>, <code>c_left</code>, <code>e_left</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The shape of a halt</h3>
+        <p>F on a 0 halts; F is entered only from A on a 1 (writing 0, moving left), and A finds a 0 on its left only when it came from F on a 1. So it halts iff F reads a 1 with <code>1 0</code> to its left: <code>0 1 F&gt; 1</code> reaches F on a 0 in 2 steps (the converse by reading the table, not formalized).</p>
+        <p class="where"><code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>One sweep adds one, for a carry chain of any length</h3>
+        <p>At the sample point (A on the last 1 at the right end) the tape is a list of digits <code>(110)^r W</code>. With the first non-W3 digit (the <em>stop</em>) in shape W0, W1 or W2 and any list <code>ts</code> of W3 digits after it (the carry chain, any length, any runs), one sweep turns the stop into the next shape (W0&rarr;W1 with its run 2a+1&rarr;2a, W1&rarr;W2 with 2a+2&rarr;2a, W2&rarr;W3) and every W3 of the chain into W0. Proved by induction on the list (<code>seqtm</code>).</p>
+        <p class="where"><code>sweep_w0</code>, <code>sweep_w1</code>, <code>sweep_w2</code>, <code>lean/Sweeps.lean</code>, <code>lean/Seq.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Mergers, the walk of T and the top</h3>
+        <p>A W1 with left run 0 that receives a carry fuses with the W0 before it (one digit fewer, <code>merge_w0_w1</code>) or turns a W2 before it into W1 and itself into W0 (<code>merge_w2_w1</code>); after an overflow a T walks left through the U's (<code>sweep_u_t</code>); two steps of the top's cycle (<code>prefix_w1</code>, <code>prefix_10_w0</code>). Each for any carry chain.</p>
+        <p class="where"><code>lean/Sweeps.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +139,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 42,541 cells have been visited and 28,357 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Near misses</h3>
+        <p>In 10<sup>9</sup> steps F reads a 1 90,935,082 times; the two cells to its left (nearest first) are never <code>1 0</code>. A reads a 1 about 9.1&middot;10<sup>7</sup> times, always with a 1 to its left.</p>
+        <p class="where"><code>c/nbhd.c</code> (<code>./nbhd M 1000000000 F 1</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The digit model is exact</h3>
+        <p><code>py/digits.py</code> maps one sample to the next by running the machine symbolically (<code>symtm</code>) on a window: the carry chain, the stop and as many digits before it as the run touches, the rest of the tape an unknown context, long runs as variables. Compared with the direct run at every sample point: the same tapes and the same step counts at all 30,218 sample points up to 2&middot;10<sup>9</sup> steps.</p>
+        <p class="where"><code>py/digits.py check</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 8.6&middot;10<sup>15</sup> steps</h3>
+        <p>From the sample at 2&middot;10<sup>9</sup> steps the digit model ran 6.8&middot;10<sup>7</sup> sweeps more, to 8.6&middot;10<sup>15</sup> steps: no halt and no window it could not read back as digits; 22 overflows; 303 window rules in all (72 up to the length of the carry chain). The first run behind the top was used up near 6&middot;10<sup>9</sup> steps and the run behind it took its place.</p>
+        <p class="where"><code>py/digits.py far</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +162,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.075). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.506).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Why it probably never halts</h3>
+        <p>Every event seen (sweeps, mergers, overflows, the T walk, the top's cycle, the first run being used up) is one of a small catalogue of local rewrites of digits, none of which passes the halting shape <code>0 1 F&gt; 1</code>; the catalogue stopped growing except for longer carry chains. A proof needs that catalogue closed under the rules.</p>
+        <p class="where">README, Notes for later</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It would halt only through <code>0 1 F&gt; 1</code>, which no rule found produces. What is missing is a set of digit configurations (a bigram language over walls and short runs) shown closed under one sweep, the overflow rule for chains of any length, and the assembly in Lean.</p>
       </div>
     </div>
   </section>
@@ -140,7 +180,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA 1000000000</code></pre>
+python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/digits.py check 3e6
+python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/digits.py far 1e6 300000 50000
+python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/sweeps.py &gt; lean/Sweeps.lean</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

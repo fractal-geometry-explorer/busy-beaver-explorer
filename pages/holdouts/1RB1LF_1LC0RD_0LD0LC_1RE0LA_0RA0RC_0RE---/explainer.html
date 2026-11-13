@@ -124,14 +124,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE--- / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 9 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine is a counter in base 5: gadgets between blocks of 1000s are its digits, the head's passes are what it counts, and every tick is paid for by moving a 1000 from one block to the next. Lean proves the passes; what happens when a block runs out is the open part.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 86,722 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>9 counter rules</b><span class="small">Passes and carries of the base-5 counter, for all block lengths.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>2.4&middot;10<sup>14</sup> steps</b><span class="small">No halt in an exact accelerated simulation.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>18&middot;5<sup>j&minus;1</sup></b><span class="small">What block j pays per round, seen at 31 round ends.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A counter in base 5</a><a href="#round">Radix-5 payments</a><a href="#halt">Where a halt could come from</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What it does</span>
+  <h2>A counter in base 5</h2>
+<p>Write b for <code>1000</code>. During a round the tape is <code>b<sup>n</sup> G1 b<sup>m1</sup> G2 b<sup>m2</sup> &hellip;</code>: blocks of b's with a <em>gadget</em> between neighbours. A gadget is a digit in base 5, one of five short words:</p><table class="tbl"><thead><tr><th>digit</th><th>word</th><th>a tick from this digit</th></tr></thead><tbody><tr><td>0</td><td><code>10010</code></td><td>moves one b from the block after the gadget to the block before it</td></tr><tr><td>1</td><td><code>1001</code></td><td>the same</td></tr><tr><td>2</td><td><code>1001100</code></td><td>nothing moves</td></tr><tr><td>3</td><td><code>100110</code></td><td>nothing moves</td></tr><tr><td>4</td><td><code>10011</code></td><td>back to 0, and carry: the next gadget ticks</td></tr></tbody></table><p>The head bounces between the left end and the first gadget; each pass ticks it once and adds a b to the left block. So the gadgets count the passes in base 5, and block j pays two b's per cycle of gadget j while receiving two per cycle of gadget j+1. Lean proves the four passes and the carries (<code>lean/Counter.lean</code>).</p>
+</section>
+<section id="round">
+  <span class="eyebrow">Round ends</span>
+  <h2>Radix-5 payments</h2>
+<p>When every gadget carries, the head runs to the right end of the tape and the list is written with a = <code>10</code>: <code>a<sup>x1</sup> 1 a<sup>x2</sup> 1 &hellip; a<sup>L</sup></code>. From one round end to the next the block j places left of the last block pays 18&middot;5<sup>j&minus;1</sup> a's:</p><table class="tbl"><thead><tr><th>step</th><th>blocks, left to right</th></tr></thead><tbody><tr><td>4,630,936,542,285</td><td>983516, 915380, 559088, 22762, 14928, 6748, 18314, 311</td></tr><tr><td>5,953,766,898,087</td><td>937496, 702266, 859130, 547838, 20512, 14478, 6658, 18296, 311</td></tr><tr><td>19,165,583,940,505</td><td>3437476, 421018, 802880, 536588, 18262, 14028, 6568, 18278, 311</td></tr><tr><td>47,572,742,616,643</td><td>4687496, 2031226, 139768, 746630, 525338, 16012, 13578, 6478, 18260, 311</td></tr></tbody></table><p>Read from the right: 18314, 18296, 18278, 18260 (&minus;18); 6748, 6658, 6568, 6478 (&minus;90); 14928, 14478, 14028, 13578 (&minus;450). A block that cannot pay is rebuilt, and new blocks on the left have length 12&middot;5<sup>m</sup>&minus;4 (937,496, 4,687,496).</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Halting</span>
+  <h2>Where a halt could come from</h2>
+<p>The machine stops only on F reading 1, which needs <code>1 A&gt; 1</code>. The counter's passes never do that, for any block lengths. A halt would have to come from a block running out, or from the re-encoding between b's and a's at a round end; neither step has been derived yet, so the question is open. An exact accelerated simulator ran 2.4&middot;10<sup>14</sup> steps without a halt.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -221,7 +236,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 9 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -235,14 +250,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 86,722 cells have been visited and 22,504 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.525). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.057).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code></div></div><div><b>The sweeps</b><p>Sixteen shift rules over <code>(10)^n</code>, <code>(01)^n</code>, <code>(1000)^n</code> and the rotations of these words, for all n and any tapes around (one copy by <code>rfl</code>, all copies by <code>TM.cross_r</code> / <code>TM.cross_l</code>).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>README.md</code></div></div><div><b>Right-end events to 2.9·10<sup>10</sup> steps</b><p>A C run to 2.9·10<sup>10</sup> steps, sampled each time the tape grows on the right (24 times): the tape is a list of blocks <code>a^x</code> (a = 10) separated by <code>1^2 0</code>. In the last samples block j from the right loses 18·5<sup>j−1</sup> copies of a between events.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>pass_0</code> &hellip; <code>pass_3</code>, <code>carry_0</code> &hellip; <code>carry_3</code>, <code>carry_fresh</code>, <code>lean/Counter.lean</code> (generated by <code>py/counter.py</code>)</div></div><div><b>The counter passes</b><p>With b = <code>1000</code> and the gadgets G0 = <code>10010</code>, G1 = <code>1001</code>, G2 = <code>1001100</code>, G3 = <code>100110</code>, G4 = <code>10011</code>: one pass of the head from the left end ticks the first gadget, G0&rarr;G1 and G1&rarr;G2 moving one b from the block after it to the block before it, G2&rarr;G3, G3&rarr;G4 moving nothing, and the left block gains a b; G4&rarr;G0 carries into the next gadget, which ticks the same way (or, if it is a fresh 0, becomes G1). Nine theorems, for all block lengths &ge; 3.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/rounds.py</code></div></div><div><b>Round ends to 4.8&middot;10<sup>13</sup> steps</b><p>At each round end (the head at the right end of the tape) the tape is a<sup>x1</sup> 1 a<sup>x2</sup> 1 &hellip; a<sup>xk</sup> 1 a<sup>L</sup> with a = <code>10</code>; L is 311 since step 4.2&middot;10<sup>9</sup>. From one round end to the next the block j places left of L loses 18&middot;5<sup>j&minus;1</sup> a's while it can pay; blocks that cannot pay are rebuilt or merged, and new leftmost blocks have length 12&middot;5<sup>m</sup>&minus;4 (37,496, 187,496, 937,496, 4,687,496). 31 round ends found.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/accel.py</code>, <code>c/tapehash.c</code></div></div><div><b>No halt in 2.4&middot;10<sup>14</sup> steps</b><p>An exact accelerated simulator (the macro machine of <code>bbtools.macro</code> with 4-cell blocks, plus jumps over repeated periods of passes) runs 2.4&middot;10<sup>14</sup> steps in 15 minutes without a halt. It agrees with the plain C simulator on the whole tape (a hash) at 10<sup>7</sup>, 10<sup>9</sup>, 5&middot;10<sup>9</sup> and 10<sup>10</sup> steps; the jumps themselves are not proved.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. A halt needs <code>1 A&gt; 1</code>; the counter passes never produce it, so it would have to come from a block running out or from the re-encoding at a round end, which are not derived yet.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE--- 1000000000</code></pre>
+python3 holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---/py/accel.py 1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE--- 4 A 1.1e10 --hash 1e7 1e9 1e10
+gcc -O2 -I tools/c -o tapehash holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---/c/tapehash.c &amp;&amp; ./tapehash 1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE--- 10000636 1000004885 10000047652
+python3 holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---/py/rounds.py 1e12 300</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

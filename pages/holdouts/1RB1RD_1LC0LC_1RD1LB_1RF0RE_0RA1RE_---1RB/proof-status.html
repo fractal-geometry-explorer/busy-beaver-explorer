@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> A block of <code>110111</code> words grows at the left end; behind it a region of fixed length (16,724 cells since the event at sweep 8,347, step about 1.2&middot;10<sup>8</sup>) is transformed by a fixed map, checked against direct simulation over 9,000 sweeps. The region holds a reservoir of 2,758 words that a chaotic counter eats from the left. A shortened copy runs 4&middot;10<sup>6</sup> more sweeps (about 3&middot;10<sup>13</sup> steps) without a halt.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 58,204 cells have been visited and 41,692 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The sweep map ignores the block</h3>
+        <p>At each visit of the left end in state B the tape is <code>B&gt;0 111 (011111)^n R</code> (read rightwards); with n cut to 10 at every visit, R agrees with the true run at all of the first 9,000 visits except the event at visit 8,347.</p>
+        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code>, <code>PREFIX=111</code>, <code>check</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 4&middot;10<sup>6</sup> more sweeps</h3>
+        <p>From visit 8,400 the shortened run makes 4&middot;10<sup>6</sup> sweeps (about 3&middot;10<sup>13</sup> steps of the true run) without a halt; no event changes R's length beyond the two-cell wobble of the block's phase.</p>
+        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -132,7 +142,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The run is a fixed map applied to a region of fixed length, interrupted by rare events whose spacing grows exponentially; whether some event halts is not known.</p>
       </div>
     </div>
   </section>
@@ -140,6 +150,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_1LC0LC_1RD1LB_1RF0RE_0RA1RE_---1RB/lean/check.sh
+gcc -O2 -o resetsim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c -I tools/c
+PREFIX=111 ./resetsim 1RB1RD_1LC0LC_1RD1LB_1RF0RE_0RA1RE_---1RB L B 011111 10 1 9000 check
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC0LC_1RD1LB_1RF0RE_0RA1RE_---1RB 1000000000</code></pre>
   </section>
   <footer>

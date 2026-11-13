@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G08",
  "title": "What is known about 1RB0LE_1LC1RD_1LA0RB_1RC1RB_1LF0LC_---0RC",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LE_1LC1RD_1LA0RB_1RC1RB_1LF0LC_---0RC.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0LE_1LC1RD_1LA0RB_1RC1RB_1LF0LC_---0RC/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head sweeps across the whole tape. Most of the tape is one ten-cell word repeated, and the rest, at the right end, is an irregular zone that keeps a roughly constant size of a few hundred cells. This page lists what has been established about it, sorted by what each result rests on."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves the exact way a halt would happen (A reading 1 with two 0s on its left) and how the head crosses the repeated word; the C simulator finds no halt in the first 10<sup>11</sup> steps. The whole question is about the irregular zone, which does not repeat."
  ],
  "claims": [
   {
@@ -20,6 +20,18 @@
    "title": "The halting configurations",
    "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
    "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "How a halt comes about",
+   "text": "F reading 0 is the only halt. F is entered only from E reading 0, E only from A reading 1, and A only from C reading 0, all moving left (<code>enter_F</code>, <code>enter_E</code>, <code>enter_A</code>). So a halt is exactly <code>0 E&gt;0</code>, that is <code>0 0 A&gt;1</code>, that is <code>0 0 1 C&gt;0</code>.",
+   "where": "<code>halt_F</code>, <code>halt_E</code>, <code>halt_A</code>, <code>halt_C</code>, <code>enter_F</code>, <code>enter_E</code>, <code>enter_A</code>, <code>lean/Halt.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Crossing the repeated word",
+   "text": "For every n and every surrounding tape, B moving right rewrites <code>(1101101101)^n</code> as <code>(1011110110)^n</code> in 12n steps, and C moving left (in front of <code>0 0</code>) rewrites <code>(0101111011)^n</code>, a rotation of that, as <code>(0110110111)^n</code>, a rotation of the original word, in 58n steps. So both directions of a sweep cross the run in the same way whatever its length. Other shift rules: B crosses <code>(1 1)^n</code>, D turns <code>(1 0)^n</code> into <code>(0 1)^n</code>, and moving left C turns <code>(0 1 1)^n</code> into <code>(0 0 1)^n</code> and A turns <code>(1 0 1)^n</code> into <code>(1 0 0)^n</code>.",
+   "where": "<code>bword</code>, <code>cback</code>, <code>bright</code>, <code>dright</code>, <code>cleft</code>, <code>aleft</code>, <code>lean/Rules.lean</code>"
   },
   {
    "level": "kernel",
@@ -35,20 +47,38 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 20,564 cells have been visited and 14,332 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "The C simulator (<code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps from blank tape without a halt; the visited tape then spans 202,291 cells, 141,549 of them 1.",
+   "where": "<code>c/longrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A never reads 1 next to 0 0",
+   "text": "In the first 2&middot;10<sup>9</sup> steps A reads 1 about 229 million times; the two cells on its left are <code>1 1</code>, <code>1 0</code> or <code>0 1</code>, never <code>0 0</code>.",
+   "where": "<code>c/ctx.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Z does not repeat for a very long time",
+   "text": "Because the sweeps cross the run of words in the same way whatever its length, Z can be followed with most copies of the word deleted. This reduced simulation agrees with the full one at all 77,275 visits checked (same K and same length of Z). Run for 7.7&middot;10<sup>8</sup> visits to the left end (about 10<sup>12</sup> steps of the reduced machine, 1.1&middot;10<sup>8</sup> copies of the word), with Brent's cycle check on Z: no repeat, so Z has no cycle of period up to 2&middot;10<sup>8</sup> visits starting in the first 5&middot;10<sup>8</sup>. Z stayed under 500 cells at every sampled visit. That the reduction is exact for all time is not proved: the crossing rules are, the joins at the two ends of the run are not.",
+   "where": "<code>c/m7z.c</code>"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: sqrt/sqrt",
+   "title": "A long word run and a bounded irregular zone",
+   "text": "Each time the head reaches a fresh cell at the left end the tape is <code>A&gt;0 (1101101101)^K Z</code>. In the first 3&middot;10<sup>10</sup> steps (77,275 such moments) K grew from 0 to 11,055, almost always by exactly one every seven visits (11,002 of 11,056 increases); the first 50 or so cells of Z repeat with the same period of seven visits, feeding the run. The rest of Z is irregular: Z stayed between 269 and 557 cells long and never repeated.",
+   "where": "<code>c/zrec.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.521). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.388).",
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The word run is crossed in the same way every sweep, so the question is about the zone Z: whether its evolution (a few hundred cells, irregular, never repeating so far) ever produces <code>0 0 A&gt;1</code>. If Z were shown to stay bounded and its evolution did not depend on K, Z would eventually repeat, which would prove the machine runs forever; neither is known. Window CTL up to 7 cells and n-gram CPS (widths up to 9, see the README for the larger runs) fail.",
    "where": ""
   }
  ],
@@ -58,22 +88,27 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_1LC1RD_1LA0RB_1RC1RB_1LF0LC_---0RC 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Started on a blank tape, this machine has run 10<sup>11</sup> steps without stopping. Most of its tape is a ten-cell word repeated over and over; at the right end sits an irregular zone of a few hundred cells that keeps changing and has never repeated. This page runs the real machine in your browser and shows the one pattern that would make it stop.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 20,564 cells visited."
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "Halts only at <code>0 0 A&gt;1</code>",
+    "text": "A reading 1 with two 0s on its left."
+   },
+   {
+    "level": "kernel",
+    "value": "12 steps a word",
+    "text": "B crosses the word run, for any length."
    },
    {
     "level": "heuristic",
-    "value": "sqrt/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "270 to 560 cells",
+    "text": "The irregular zone has stayed about this size."
    }
   ],
   "presets": [
@@ -85,6 +120,36 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "word",
+    "eyebrow": "The shape of the tape",
+    "heading": "A word run and an irregular zone",
+    "html": [
+     "<p>Stop the simulator each time the head reaches a fresh cell at the left end. The tape is</p>",
+     "<pre>A&gt;0  1101101101 1101101101 ... 1101101101   Z</pre>",
+     "<p>with K copies of the word and an irregular zone Z on the right. K grows by one copy almost exactly every seven visits to the left end, so the run fills most of the tape (11,055 copies after 3&middot;10<sup>10</sup> steps). The first 50 or so cells of Z repeat with the same seven-visit period: that part feeds the run, one word at a time. The rest of Z keeps a size between about 270 and 560 cells, and in 77,275 visits it never came back to an earlier value.</p>"
+    ]
+   },
+   {
+    "id": "moves",
+    "eyebrow": "How it moves",
+    "heading": "Crossing the word run",
+    "html": [
+     "<p>Moving right, B rewrites every copy of the word in twelve steps, for any number of copies (<code>bword</code> in <code>lean/Rules.lean</code>):</p>",
+     "<pre>B&gt; 1101101101 1101101101   →   1011110110 1011110110 B&gt;   (24 steps)</pre>",
+     "<p>On the way back C turns them into a rotated form of the original word, 58 steps a copy (<code>cback</code>):</p><pre>0101111011 0101111011 C&gt;0 0   →   C&gt;0 0 0110110111 0110110111   (116 steps)</pre><p>So every sweep crosses the run the same way, whatever its length, and all the irregular behaviour happens in Z.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "The one way to halt",
+    "html": [
+     "<p>The only missing transition is F reading 0. F is entered only from E reading 0, E only from A reading 1, and A only from C reading 0, each step moving left. So the machine stops exactly when</p>",
+     "<pre>0 0 1 C&gt;0   →   0 0 A&gt;1 1   →   0 E&gt;0 0 1   →   F&gt;0 1 0 1   halt</pre>",
+     "<p>This is proved in Lean (<code>lean/Halt.lean</code>). In 229 million visits the two cells left of A were never both 0.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +163,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Bouncer whose tape is a long run of the word 1101101101, growing by one copy every seven sweeps, followed by an irregular zone of 270 to 560 cells that has not repeated; it halts only if A reads 1 with 0 0 on its left.",
+ "family": "bouncer with a word run and a bounded chaotic zone, word 1101101101"
 }

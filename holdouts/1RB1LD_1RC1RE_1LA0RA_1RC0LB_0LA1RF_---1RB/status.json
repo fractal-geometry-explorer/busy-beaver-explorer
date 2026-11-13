@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G03",
+ "generated": false,
+ "group": "Register cascade (runs of 011101)",
  "title": "What is known about 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB.",
  "machine": "1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>Open.</b> The tape is a list of registers, runs of the word <code>011101</code> with short separators. The first register grows while the second shrinks, about four units for one, and when the second runs low the list shifts by one. The transfer and shift rules have not been extracted. Direct simulation: no halt in 10<sup>11</sup> steps."
  ],
  "claims": [
   {
@@ -46,34 +46,36 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in 10<sup>11</sup> steps",
+   "text": "Direct simulation from blank tape.",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "title": "The register rules",
+   "text": "The transfer between the first two registers and the shift; see the README's For later.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB 1000000000",
+  "gcc -O2 -o /tmp/tmrun tools/c/tmrun.c && /tmp/tmrun 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB 100000000000"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 59,855 cells visited."
+    "value": "10<sup>11</sup>",
+    "text": "Steps simulated without halting."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "open",
+    "value": "~4 : 1",
+    "text": "Units gained by the first register per unit lost by the second (observed)."
    }
   ],
   "presets": [
@@ -85,6 +87,22 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "tape",
+    "eyebrow": "What it does",
+    "heading": "Registers of 011101",
+    "html": [
+     "<p>Read left to right, the tape is a list of registers: runs of the word <code>011101</code> separated by short separators. Their lengths at the left end at a few moments (separators left out):</p><pre>step 12,547,595:   670   87  144   21\nstep 14,175,202:   136  652   75  140   21\nstep 53,840,380:    11 1019  509  430   19  127   17\nstep 99,822,398:  1370  680  425  409   12  124   15</pre><p>The first register grows while the second shrinks, about four units for one; when the second runs low the list shifts (the old first register becomes the second, a new first register starts small). The width grows like the square root of the step count. The units are crossed by shift rules (A moving right turns <code>011101</code> into <code>111110</code>, D moving left turns it into <code>111011</code>).</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Does it halt?",
+    "heading": "Not known",
+    "html": [
+     "<p>The machine halts only in F reading 0 (E reads a 1 and moves right onto a 0). The registers look like a cascade of counters, but the transfer and shift rules have not been extracted, so there is no map to iterate. Direct simulation: no halt in 10<sup>11</sup> steps.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +116,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A cascade of registers made of the word 011101: the first grows about four units for each unit the second loses, then the list shifts; no halt in 10^11 steps; the rules are not decoded.",
+ "decision": "open"
 }

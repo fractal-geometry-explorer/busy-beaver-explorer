@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Probably not, but nobody can prove it: between rare resets this machine is a plain bouncer, and Lean now proves that it halts exactly when one explicit Collatz-like orbit hits a sparse set of numbers.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 37,702 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>halts &hArr; orbit hits H</b><span class="small">Proved in Lean: halting from blank tape is exactly the orbit question for the map F, H = {2<sup>j+1</sup>&minus;2j&minus;7}.</span></div>
+    <div class="fact"><span class="ev n">native_decide</span><b>10,000 resets</b><span class="small">No halting value among the first 10,000 resets of the orbit (the first 300 by the kernel).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#sweeps">A bouncer trading 01s for 1s</a><a href="#reset">The reset: an explicit map, proved</a><a href="#halting">What halting would require</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,27 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="sweeps">
+  <span class="eyebrow">Structure</span>
+  <h2>A bouncer trading 01s for 1s</h2>
+<p>At the moments the head, in state A, stands on the blank cell just right of the tape, the tape is always of the form <code>(10)<sup>x</sup> 1<sup>y</sup></code>: a block of 10 pairs on the left and a solid block of 1s on the right (y odd). One sweep (the head runs left to the pairs, turns, and comes back) removes two pairs and adds six 1s:</p>
+<pre>(10)^(x+2) 1^(2y+1) A>   --8y+18 steps-->   (10)^x 1^(2y+7) A></pre>
+<p>This is a theorem in Lean for all x and y (<code>w_sweep</code>). The pairs are a fuel tank: after x/2 sweeps the tape is a solid block <code>1<sup>t</sup> A&gt;</code> (call it Z(t)); with x even t = y + 3x, with x odd t = y + 3x + 2 (<code>w_to_z</code>).</p>
+</section>
+<section id="reset">
+  <span class="eyebrow">The rule</span>
+  <h2>The reset: an explicit map, proved</h2>
+<p>What happens to a solid block Z(t) depends on t:</p><ul><li><b>t even</b>: one pass turns the 1s back into pairs, <code>1<sup>2k+6</sup> &rarr; (10)<sup>k+1</sup> 1<sup>7</sup></code>, and the sweeps run again.</li><li><b>t odd</b>: the head turns the block into <code>C&gt; 0 1<sup>t+7</sup></code> at the left end and runs <em>doubling rounds</em>: a block of 01 pairs at the left end eats 1s and doubles each round, <code>(01)<sup>2</sup>, (01)<sup>6</sup>, (01)<sup>14</sup>, (01)<sup>30</sup>, &hellip;</code> (2<sup>r+1</sup> &minus; 2 pairs after r rounds). Inside a round, pairs move one at a time from the old block to the new one, and each move costs two 1s.</li></ul>
+<p>The last round runs out of 1s, and how many it has left decides everything: if exactly one 1 is left at the start of a round the head reads blank tape in state D and <b>the machine halts</b>; with a few more it leaves a smaller bouncer <code>(10)<sup>x</sup> 1<sup>y</sup></code>, or a block Z(4i+4), or (one value per band) the rounds start over once from a block of 01s. Following the counts gives the exact halting values t = 2<sup>j+1</sup> &minus; 2j &minus; 7 = 3, 17, 47, 109, 235, 489, &hellip;</p>
+<pre>Z(16): no halt          Z(17): halts after 453 steps
+blank -> Z(19) -> Z(44) -> Z(67) -> Z(99) -> Z(115) -> Z(190) -> Z(288) -> ... -> Z(3236)</pre>
+<p>All of this is a Lean theorem now: thirteen leaf rules found and proved by the symbolic simulator (<code>lean/Leaves.lean</code>), and hand-written inductions over the sweeps, the steps of a round and the rounds that assemble them into the map F (<code>lean/Reset.lean</code>, <code>F_sem</code>).</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Halting</span>
+  <h2>What halting would require</h2>
+<p>Proved in Lean (<code>halts_iff_H</code>): <b>the machine halts from blank tape if and only if the orbit of 44 under F reaches a halting value</b> t = 2<sup>j+1</sup> &minus; 2j &minus; 7 (or a restart state of the same form). The orbit misses them for 10,000 resets (t up to about 2<sup>3900</sup>). Only one odd value in each doubling band halts and the orbit grows by about 1.3&times; per reset, so a hit is very unlikely, but proving that it never happens means controlling one explicit orbit of a Collatz-like map, which nobody knows how to do: the machine stays <em>open, Collatz-like</em>.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +257,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 37,702 cells have been visited and 19,263 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.146). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.509).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>rule0</code>, <code>rule1</code>, <code>lean/Rules.lean</code></div></div><div><b>The sweep rule</b><p>From (01)<sup>n+3</sup> (11)<sup>m+1</sup> with the head in B at the right end, the machine reaches (01)<sup>n+1</sup> 1<sup>2m+8</sup> in 8m + 18 steps, for all n, m (and a second form of the same sweep in state A). Found and proved by <code>bbtools.cycles</code>.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Leaves.lean</code> (generated by <code>py/gen_reset.py</code>), restated in <code>lean/Reset.lean</code></div></div><div><b>The leaf rules of the reset</b><p>Thirteen rules for all parameter values, found and proved by <code>bbtools.symtm.prove</code>: the sweep (10)<sup>x+2</sup>1<sup>2y+1</sup> A&gt; &rarr; (10)<sup>x</sup>1<sup>2y+7</sup> A&gt;, the even reset 1<sup>2k+6</sup> A&gt; &rarr; (10)<sup>k+1</sup>1<sup>7</sup> A&gt;, the start of the odd reset 1<sup>2k+7</sup> A&gt; &rarr; C&gt; 0 1<sup>2k+14</sup>, the start, one step and the four possible ends of a doubling round, the restart, and the halting configuration.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>F</code>, <code>F_sem</code>, <code>chain_sem</code>, <code>lean/Reset.lean</code></div></div><div><b>The reset map</b><p>An explicit computable map F on states z t (the block 1<sup>t</sup> with A after it) and rs d (the rounds of the odd reset starting over): F s = some s' means the machine goes from s to s' in at least one step, F s = none means it halts from s. The inductions over the sweeps, over the steps of a round and over the rounds are proved by hand; the six blocks t &le; 5 by evaluation.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>halts_iff_44</code>, <code>F_none_iff</code>, <code>halts_iff_H</code>, <code>lean/Reset.lean</code></div></div><div><b>Halts iff the orbit of 44 hits H</b><p>The machine halts from blank tape iff the orbit of z 44 under F reaches a state in H, where H is z t with t + 2s + 11 = 2<sup>s+3</sup> for some s (t = 2<sup>j+1</sup> &minus; 2j &minus; 7) and rs d with d + s + 4 = 2<sup>s+2</sup>. Blank tape is z 0, and F takes it to z 19 and then z 44.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>orbit_300</code>, <code>lean/Orbit.lean</code></div></div><div><b>No halt in the first 300 resets</b><p>The orbit of z 44 has no halting state among its first 300 resets, evaluated by the kernel.</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>orbit_10000</code>, <code>lean/Orbit.lean</code></div></div><div><b>No halt in the first 10,000 resets</b><p>The same for 10,000 resets (t then has about 3,900 bits), by compiled evaluation.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/lean_map.py</code></div></div><div><b>The orbit probably never hits H</b><p>In each doubling band (H<sub>j-1</sub>, H<sub>j</sub>] only one odd value halts, the bands double in width and t grows by a factor of about 1.3 per reset, so the expected number of future hits is far below 1.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known: whether the orbit of 44 under F ever hits H, a Collatz-like question about one explicit orbit.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA 1000000000
+cd holdouts/1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA/py &amp;&amp; python3 lean_map.py 100000 300 &amp;&amp; python3 check_map.py 400</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

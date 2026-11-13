@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA</p>
     <h1>What is known about 1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA</h1>
     <p class="machine">1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head sweeps over the whole tape, which is made of runs of <code>01</code>; a big repeated block at the left end grows and shrinks again and again. This page lists what has been established, sorted by what each result rests on.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves the halting configurations and no halt in the first 10<sup>7</sup> steps. The structure below is observed in simulations, not proved. No halt in the first 10<sup>9</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 55,261 cells have been visited and 33,117 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>B never reads 1 with a 1 to its right (so far)</h3>
+        <p>The only halting entry is D reading a 1, and D is entered only from <code>B&gt;1</code> (write 1, move right): the machine halts exactly when <code>B&gt;1 1</code> occurs. In the first 10<sup>8</sup> steps D is entered 10,419,815 times, always onto a 0.</p>
+        <p class="where"><code>c/haltwatch.c</code>, first 10<sup>8</sup> steps</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +132,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.502). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.515).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Runs of 01 and a breathing end block</h3>
+        <p>The tape is runs <code>(01)^k</code> separated by single 0s, with k mostly 2, 3, 5, 8 or 11. At the left end a block <code>(01010010101)^m</code> (runs of 2 and 3 alternating) appears again and again: m grows (to 85 at step 1,448,288, to 339 at step 38,516,556) and is then eaten back down to 0, about nine words every sixty left-end visits (m = 78, 69, 61, 53, 44, 36, 27, 18, 9 at sixty-visit intervals from step 1,705,608), seen as rotations of the same word.</p>
+        <p class="where"><code>py/snapshots.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The end block's growth and decay look regular, but between two such cycles the tape is rewritten irregularly, and the run lengths that come out of each cycle have not been predicted. A proof would need either a rule for the whole cycle in terms of the run lengths or an invariant language for runs of 01 (which window-CTL with K &le; 7 did not find).</p>
       </div>
     </div>
   </section>
@@ -140,6 +150,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA/lean/check.sh
+python3 holdouts/1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA/py/snapshots.py 3e7 L 60
+gcc -O2 -o haltwatch holdouts/1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA/c/haltwatch.c &amp;&amp; ./haltwatch 1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA 100000000
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA 1000000000</code></pre>
   </section>
   <footer>

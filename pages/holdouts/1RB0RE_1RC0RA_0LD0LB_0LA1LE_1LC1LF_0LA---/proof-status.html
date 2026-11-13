@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA---</h1>
     <p class="machine">1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 9 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The run is an exact <em>pass map</em>: sampled at the left end, the tape is a counter and a list of blocks <code>(10)^m</code>, and each pass changes it only at the counter and at one frontier, by about a dozen rules with exact step counts. The map is checked pass by pass to 1.1&middot;10<sup>9</sup> steps, and an accelerated simulator built on it goes to 7.9&middot;10<sup>10</sup> steps. Lean proves the main rule (a block grows by 4 while the next one shrinks) for every list of blocks. The other rules are not yet proved, and the long-term behaviour of the list is not known.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules of a pass</h3>
+        <p><code>left_end</code>, <code>left_block</code>, <code>right_end</code> and the six rules <code>pass_start</code>, <code>pass_right</code>, <code>pass_front</code>, <code>pass_sep</code>, <code>pass_left</code>, <code>pass_end</code>: the pieces of one pass from the left end to the frontier and back, each for every block length and every surrounding tape.</p>
+        <p class="where"><code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The block-growing pass, for every list</h3>
+        <p>With <code>S = 1 1 1 0 1</code>, <code>blk n = (10)^(n+3) S</code> and <code>front p q = (10)^(p+3) 1 (10)^(q+3) 1 1 1 0</code>: for every c, p, q, every list of blocks m1..mk and every tape R, <code>0^inf A&gt; 1 0 0 blk(c+1) blk(m1)...blk(mk) front(p, q+1) R</code> reaches <code>0^inf A&gt; 1 0 0 blk(c) blk(m1)...blk(mk) front(p+4, q) R</code>. This is rule c of the pass map. The proof is by induction over the list.</p>
+        <p class="where"><code>pass</code>, <code>lean/Pass.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +129,34 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 63,402 cells have been visited and 33,328 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The pass map</h3>
+        <p>Sampled at each arrival at the left end in state A, the tape is <code>a 0 a^c</code> and a list of pairs <code>1^k a^n</code> (a = 10). One pass changes only the counter c and the first place where the list stops alternating separators (2,1) and blocks (1,m). The rules (counter phase, block grows, next block, carry, timer, rebuild, and a few rare ones) come with step formulas such as 6c+20F+6M+6p+56. Replaying every one of the 16,064 passes from step 440 to step 1,099,824,330 gives the plain machine's tape and step count exactly. The rare rules h, i and f2 are checked on the tape only.</p>
+        <p class="where"><code>py/passes.py check</code>, samples from <code>c/leftend.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 7.9&middot;10<sup>10</sup> steps</h3>
+        <p>The accelerated simulator <code>py/accsim.py</code> applies runs of identical passes at once, with exact step counts. It agrees with the plain machine (state and step) at all 72 batch ends up to step 2,782,338,426 and in windows of plain simulation at steps 4.89&middot;10<sup>10</sup> and 5.29&middot;10<sup>10</sup>. It runs to step 79,277,382,450 (164,003 passes, 13 rebuilds) without a halt, and stops there at a case its rules do not cover.</p>
+        <p class="where"><code>py/accsim.py run</code></p>
+      </div>
+      <div class="card">
+        <h3>Rebuilds</h3>
+        <p>When the counter runs out, the first block becomes the next counter. The counter blocks of the 13 rebuilds are 6, 10, 18, 66, 130, 258, 1026, 4098, 16386, 258, 3078, 3364 and 16590. A block grows by 4 per pass while the frontier eats its neighbour, so sizes 4<sup>k</sup>+2 appear. A frontier that is still open at a rebuild stays in the list as a bare block or a frozen carry.</p>
+        <p class="where"><code>py/accsim.py</code>, README</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.455). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Why it is hard</h3>
+        <p>Each rule is local and simple, but the counter at each round is set by the first block, and the frontier freezes wherever the counter runs out. That leaves new kinds of items in the list (a bare block, a frozen carry). A proof needs a finite set of item kinds that the map preserves, and the run keeps finding new combinations (the latest at step 79,277,382,450).</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known.</p>
       </div>
     </div>
   </section>
@@ -140,7 +164,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA--- 1000000000</code></pre>
+cd holdouts/1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA--- &amp;&amp; gcc -O2 -o /tmp/leftend c/leftend.c
+/tmp/leftend 1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA--- 1100000000 &gt; /tmp/m1.txt &amp;&amp; python3 py/passes.py check /tmp/m1.txt
+python3 py/accsim.py run 1e12 600</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

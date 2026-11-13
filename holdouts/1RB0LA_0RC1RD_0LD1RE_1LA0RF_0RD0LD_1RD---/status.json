@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G01",
  "title": "What is known about 1RB0LA_0RC1RD_0LD1RE_1LA0RF_0RD0LD_1RD---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LA_0RC1RD_0LD1RE_1LA0RF_0RD0LD_1RD---.",
@@ -10,9 +10,10 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 12 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>Open; analysis only begun.</b> Sampled when the head is in A at the left end, the tape is a list of blocks such as X(n) = <code>A&gt; 00 (10)^n 01</code> and Y(a, b) = <code>A&gt; 00 1010 (010)^a (10)^b 01</code>. Two rules are clear: X(n) with n even goes to Y(n/2&minus;1, 3n/2), and Y(a, b) with a odd goes to X(b+(3a+11)/2). Together they take X(n) with n = 0 mod 4 to X((9n+16)/4). The other cases build longer lists of blocks, which so far have always collapsed back to X or Y. The full map and the halting condition are further work.",
+  "<b>Third pass.</b> No halt in 10<sup>18</sup> steps (macro simulation). The tape never has two adjacent 1s at an event, and in terms of the gaps between 1s every event is a short list of runs of gaps 1 and 2 separated by single 3s."
  ],
  "claims": [
   {
@@ -35,45 +36,63 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 49,389 cells have been visited and 25,848 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "Two rules of the map, against the run from blank tape",
+   "text": "X(n), n even &rarr; Y(n/2&minus;1, 3n/2) and Y(a, b), a odd &rarr; X(b+(3a+11)/2) (with Y(0, b) = X(b+2)). Every A-event of the blank run up to 1.4&middot;10<sup>10</sup> steps that is X or Y with these residues is followed by the predicted event (7 cases, e.g. X(400) &rarr; Y(199, 600) &rarr; X(904) &rarr; Y(451, 1356) &rarr; X(2038)). The other cases are lists of up to five blocks, e.g. <code>A&gt; 00 (10)^863 (010)^19422 00 (10)^58264 (01)^2 00 1</code> at step 1.36&middot;10<sup>10</sup>.",
+   "where": "<code>py/events.py blank 1.4e10</code>"
   },
   {
-   "level": "heuristic",
-   "title": "Growth shape: exp/sqrt",
-   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.063). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.509).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "level": "trusted",
+   "title": "Six rules of the block list",
+   "text": "With X(n) = <code>A&gt; 00 (10)^n 01</code>, Y(a,b) = <code>A&gt; 00 1010 (010)^a (10)^b 01</code>, Z(a,b) = <code>A&gt; 00 1010 (010)^a 00 (10)^b (01)^2 00 1</code>: X(2k) &rarr; Y(k&minus;1, 3k); Y(2i+1, b) &rarr; X(b+3i+7); X(2k+1) &rarr; Z(k, 3k&minus;2); Z(2i+1, b) &rarr; <code>00 (10)^(3i+5) 00 (10)^(b&minus;1) (01)^5 00 1</code>; Z(2i, 2j) &rarr; <code>00 (10)^(3i+4) (010)^j 00 (10)^(3j+1) (01)^2 00 1</code>; Z(2i, 2j+1) &rarr; <code>00 (10)^(3i+4) (010)^j (10)^(3j+6) 01</code>. Each checked by direct simulation for all parameters below 40 (3,060 cases).",
+   "where": "<code>py/listrules.py 40</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A relabelled mirror image among the holdouts",
+   "text": "Mirroring left and right and renaming the states A&rarr;B, B&rarr;C, C&rarr;D, D&rarr;A turns this table into the one of 1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA--- (group G02); only the start state differs, so these rules hold there in mirror image.",
+   "where": "the two tables, state by state"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>18</sup> steps",
+   "text": "A macro simulator (blocks of 6 cells, whole runs of equal blocks crossed at once, exact step counts) runs 10<sup>18</sup> steps from blank tape without a halt.",
+   "where": "<code>holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LA_0RC1RD_0LD1RE_1LA0RF_0RD0LD_1RD--- 1e18</code> (macro simulator <code>c/msim.c</code> there, checked against the direct simulator at 10<sup>9</sup> steps by <code>check_msim.py check</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No pushdown certificate with a DFA of at most 6 states",
+   "text": "The pushdown reduction of <code>bb6-1RB0LF_1RC0LB/c/pds.c</code> (one side of the tape kept exactly, the other abstracted by a DFA, reachability by post* saturation) reaches a halt for every DFA with at most 6 states, on either side: <code>TM=1RB0LA_0RC1RD_0LD1RE_1LA0RF_0RD0LD_1RD--- ./pds 6 L</code> and <code>R</code>.",
+   "where": "<code>bb6-1RB0LF_1RC0LB/c/pds.c</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The leftmost segment of the list is processed by a 3/2-type rule whose parity decides whether the next segment is merged or a new segment is pushed; the rules for a general leftmost segment <code>(10)^x (010)^y</code> with x &ne; 2 are still to be written down.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LA_0RC1RD_0LD1RE_1LA0RF_0RD0LD_1RD---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LA_0RC1RD_0LD1RE_1LA0RF_0RD0LD_1RD--- 1000000000"
+  "python3 holdouts/1RB0LA_0RC1RD_0LD1RE_1LA0RF_0RD0LD_1RD---/py/events.py blank 1.4e10"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Not known yet. The machine keeps a list of blocks of repeated words. In the simplest case a single block of n copies of 10 is turned into one of about 9n/4 copies, two passes later. Other remainders of n build longer lists, which later collapse again. How it could halt is still to be found.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 49,389 cells visited."
+    "value": "10<sup>18</sup> steps",
+    "text": "No halt in the macro simulator (checked against the direct one at 10<sup>9</sup>)."
+   },
+   {
+    "level": "trusted",
+    "value": "(9n+16)/4",
+    "text": "X(n) &rarr; X((9n+16)/4) when n = 0 mod 4, through Y(n/2&minus;1, 3n/2)."
    },
    {
     "level": "native",
     "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "text": "No halt, proved in Lean (first 10,000 by the kernel)."
    }
   ],
   "presets": [
@@ -85,6 +104,26 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "what",
+    "eyebrow": "What it does",
+    "heading": "A Collatz-like map on a list of blocks",
+    "html": [
+     "<p>When the head is in state A at the left end, on <code>00 1</code>, the tape is a list of blocks. The simplest are X(<i>n</i>) = <code>00 (10)^n 01</code> and Y(<i>a</i>, <i>b</i>) = <code>00 1010 (010)^a (10)^b 01</code>.</p>",
+     "<p>Two rules are clear: X(<i>n</i>) with <i>n</i> even becomes Y(<i>n</i>/2&minus;1, 3<i>n</i>/2), and Y(<i>a</i>, <i>b</i>) with <i>a</i> odd becomes X(<i>b</i> + (3<i>a</i>+11)/2). So X(<i>n</i>) with <i>n</i> divisible by 4 becomes X((9<i>n</i>+16)/4): a Collatz-like step. From blank tape: X(400) at step 227,603, Y(199, 600), X(904), Y(451, 1356), X(2038), Y(1018, 3057).</p>",
+     "<p>The other cases build longer lists. For example, step 1.36&middot;10<sup>10</sup> has <code>00 (10)^863 (010)^19422 00 (10)^58264 (01)^2 00 1</code>. So far these have always come back to an X or Y form.</p>"
+    ]
+   },
+   {
+    "id": "rules",
+    "eyebrow": "New rules",
+    "heading": "Six exact rules",
+    "html": [
+     "<p>Sample the run when the head is at the left end in state A and the tape starts <code>001</code>. With X(n) = <code>00 (10)^n 01</code>, Y(a,b) = <code>00 1010 (010)^a (10)^b 01</code> and Z(a,b) = <code>00 1010 (010)^a 00 (10)^b (01)^2 00 1</code>, the next sample is:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>from</th><th>to</th></tr></thead><tbody><tr><td>X(2k)</td><td>Y(k&minus;1, 3k)</td></tr><tr><td>Y(2i+1, b)</td><td>X(b+3i+7)</td></tr><tr><td>X(2k+1)</td><td>Z(k, 3k&minus;2)</td></tr><tr><td>Z(2i+1, b)</td><td><code>00 (10)^(3i+5) 00 (10)^(b&minus;1) (01)^5 00 1</code></td></tr><tr><td>Z(2i, 2j)</td><td><code>00 (10)^(3i+4) (010)^j 00 (10)^(3j+1) (01)^2 00 1</code></td></tr><tr><td>Z(2i, 2j+1)</td><td><code>00 (10)^(3i+4) (010)^j (10)^(3j+6) 01</code></td></tr></tbody></table></div>",
+     "<p>Each rule multiplies a number by about 3/2 and its parity decides what comes next: an even count is converted in place, an odd one leaves a separator <code>00</code> and the list gets longer. Every rule was checked by direct simulation for all parameters below 40.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +137,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A list of (10)/(010) segments, the leftmost rewritten by 3/2-type rules whose parity decides whether the list grows; six exact rules are known (checked for all parameters below 40). Open.",
+ "family": "Collatz-like map on a list of blocks (X(n) -> X((9n+16)/4) for n = 0 mod 4)"
 }

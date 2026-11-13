@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G05",
  "title": "What is known about 1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The machine is a macro machine on lists of numbers: the tape at the left end is <code>A&gt;1 (10)^N sep (10)^w1 sep &hellip; (10)^wk sep W</code>, and one sweep takes the fuel N to N&minus;2 and rewrites the start of W by one of a dozen local rules. Lean (kernel) proves such a sweep, with the done blocks w1&hellip;wk arbitrary (any number, any values &ge; 2), for the window rules that carry the run; the machine has no halting move inside them. The full list of rules (<code>py/mac14.py</code>) is checked against the machine for 2&middot;10<sup>7</sup> steps sweep by sweep and at all 33 refills up to 10<sup>10</sup> steps, and runs 187,450 sweeps without meeting a case it does not cover. Not proved: the rare fuel-1 sweep and windows with small values, and above all that the run never leaves the rules."
  ],
  "claims": [
   {
@@ -20,6 +20,24 @@
    "title": "The halting configurations",
    "text": "The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.",
    "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The cell pieces of a sweep",
+   "text": "Leaving the left end (<code>start_s</code>, <code>start_z</code>), crossing a done block going right (<code>rb</code>) and coming back (<code>lbA</code>, <code>lbD</code> for values &ge; 4, <code>lb3A</code> &hellip; <code>lb2D</code> for 3 and 2), the end at the left (<code>endA_s</code> &hellip; <code>endD_0</code>), 14 window rules and the pair rule on the fuel block, each for every value of its counts and every tape around it. Written by <code>bbtools.symtm.prove</code>.",
+   "where": "<code>lean/Rules.lean</code>, <code>py/gen_rules.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "One sweep over any list of done blocks",
+   "text": "<code>sweep_gen</code>: for fuel n+3, any list of done blocks of values &ge; 2 and any window rule that turns back in state A, the machine goes from <code>cfg (n+3) ds W</code> to <code>cfg (n+1) ds W'</code>. <code>sweep_gen2</code> (fuel 2 &rarr; 0) and <code>sweep_gen0</code> (fuel 0: refilled to 2) likewise. Proved by induction over the list (<code>rpass</code>, <code>lpass</code>).",
+   "where": "<code>sweep_gen</code>, <code>rpass</code>, <code>lpass</code>, <code>lean/Macro.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The window rules",
+   "text": "With fuel &ge; 3 and any done blocks: the pair rule <code>x s y &rarr; x+4 s&#773; y&minus;1</code> (<code>pair_dot</code>, <code>pair_bang</code>), <code>append</code>, <code>p1_bd</code>, <code>p1_bb</code>, <code>p1_db</code>, <code>p1_dd</code> (two blocks merge), <code>merge</code>, <code>end_db</code>, <code>next</code>, <code>end_b</code>, <code>restart2</code>; and the pair rule on the fuel block itself (<code>own_dot</code>, <code>own_bang</code>, with step counts).",
+   "where": "<code>lean/Macro.lean</code>"
   },
   {
    "level": "kernel",
@@ -40,6 +58,18 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "The macro machine agrees with the machine",
+   "text": "<code>py/check.py 2e7</code> checks every one of the sweeps of the first 2&middot;10<sup>7</sup> steps against the macro rules. <code>py/r14.c</code> prints the tape at every refill (fuel 0) up to 10<sup>10</sup> steps; <code>py/cmp.py</code> finds the macro machine equal to it at all 33 of them (74,633 sweeps).",
+   "where": "<code>py/check.py</code>, <code>py/r14.c</code>, <code>py/cmp.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "187,450 sweeps inside the rules",
+   "text": "<code>py/far.py</code> runs the macro machine 187,450 sweeps (far past 10<sup>10</sup> machine steps) and never meets a window or fuel case that its rules do not cover.",
+   "where": "<code>py/far.py</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.498). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
@@ -48,32 +78,35 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. A proof would need an invariant on the lists that the macro rules preserve (so that no window ever falls outside them), plus Lean proofs of the remaining cases: the sweep with fuel 1 (two rules in one visit), the windows with small values, and the rules on the fuel block other than the pair rule.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA--- 1000000000"
+  "python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/gen_rules.py      # rewrites lean/Rules.lean",
+  "python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/check.py 2e7",
+  "gcc -O2 -o r14 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/r14.c && ./r14 1e10 100000 > r14.txt && python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/cmp.py r14.txt",
+  "python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/far.py 1e12 300 600"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The tape turns out to be a list of numbers, written as blocks of 10s, with a fuel counter at the left end. Each sweep of the head spends 2 units of fuel and does one small piece of arithmetic at the first unfinished block; when the fuel runs out, a finished block becomes the new fuel. Lean proves the sweep exactly; the rules have run 187,450 sweeps without a gap.",
   "facts": [
    {
+    "level": "kernel",
+    "value": "one sweep",
+    "text": "Exact, for any list of done blocks and 12 window rules (Lean)."
+   },
+   {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 80,103 cells visited."
+    "value": "10<sup>10</sup> steps",
+    "text": "The macro machine equals the real run at all 33 refills."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "187,450 sweeps",
+    "text": "The macro rules never meet a case they do not cover."
    }
   ],
   "presets": [
@@ -96,7 +129,60 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>953,734,072</td><td><code>E&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>969,370,312</td><td><code>E&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>985,042,278</td><td><code>E&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "tape",
+    "eyebrow": "Structure",
+    "heading": "The tape is a list of numbers",
+    "html": [
+     "<p>Watch the tape whenever the head, in state A, stands on the leftmost visited cell, on a 1. Read from there, the tape is blocks of <code>10</code> separated by single cells: a list <code>v0 s1 v1 s2 v2 &hellip;</code> of numbers (how many 10s) and separators (<code>.</code> for 0, <code>!</code> for 1). The first number is a <b>fuel</b> counter N. Then come <b>done blocks</b>, each followed by the 5-cell separator <code>0 1 1 0 0</code> (<code>. 0 ! 1 .</code> in the list), and then the <b>window</b>, the first block that is not done:</p>",
+     "<svg viewBox=\"0 0 468 66\" role=\"img\" aria-label=\"the tape A>1 (10)^3 sep (10)^2 sep (10)^2 . (10)^3\" style=\"width:100%;max-width:468px;height:auto;font:11px var(--mono);\"><rect x=\"10\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"8.5\" y=\"16.5\" width=\"15\" height=\"19\" rx=\"3\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"16.0\" y=\"13\" text-anchor=\"middle\" fill=\"var(--head)\">A</text><rect x=\"24\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"38\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"52\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"66\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"80\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"94\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"108\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"122\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"136\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"150\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"164\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"178\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"192\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"206\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"220\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"234\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"248\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"262\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"276\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"290\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"304\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"318\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"332\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"346\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"360\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"374\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"388\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"402\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"416\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"430\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"444\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><path d=\"M24 40 v4 H106 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"65.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">N = 3</text><path d=\"M108 40 v4 H176 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"142.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">sep</text><path d=\"M178 40 v4 H232 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"205.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">w = 2</text><path d=\"M234 40 v4 H302 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"268.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">sep</text><path d=\"M304 40 v4 H358 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"331.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">x = 2</text><path d=\"M360 40 v4 H372 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"366.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">.</text><path d=\"M374 40 v4 H456 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"415.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">y = 3</text></svg>",
+     "<p>Here N = 3, one done block of 2, and the window <code>2 . 3</code>.</p>"
+    ]
+   },
+   {
+    "id": "sweep",
+    "eyebrow": "The basic move",
+    "heading": "One sweep: fuel &minus;2, one rule at the window",
+    "html": [
+     "<p>From the left end the head runs right in state B. It crosses each done block, leaving it in a temporary form (<code>(10)^w sep</code> becomes <code>(01)^(w&minus;1) 1010101</code>), does a few dozen steps of work at the window, and turns back in state A. On the way back it puts every block back, two cells further left, and at the left end the fuel has dropped by 2. The commonest rule is the <b>pair rule</b>: <code>x s y &rarr; x+4 s&#773; y&minus;1</code> (the separator flips):</p>",
+     "<svg viewBox=\"0 0 542 122\" role=\"img\" aria-label=\"one sweep: pair rule\" style=\"width:100%;max-width:542px;height:auto;font:11px var(--mono);\"><text x=\"4\" y=\"30\" fill=\"var(--fg2)\">before</text><rect x=\"56\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"54.5\" y=\"16.5\" width=\"15\" height=\"19\" rx=\"3\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"62.0\" y=\"13\" text-anchor=\"middle\" fill=\"var(--head)\">A</text><rect x=\"70\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"84\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"98\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"112\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"126\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"140\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"154\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"168\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"182\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"196\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"210\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"224\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"238\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"252\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"266\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"280\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"294\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"308\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"322\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"336\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"350\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"364\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"378\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"392\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"406\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"420\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"434\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"448\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"462\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"476\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"490\" y=\"18\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><path d=\"M70 40 v4 H152 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"111.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">N = 3</text><path d=\"M154 40 v4 H222 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"188.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">sep</text><path d=\"M224 40 v4 H278 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"251.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">w = 2</text><path d=\"M280 40 v4 H348 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"314.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">sep</text><path d=\"M350 40 v4 H404 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"377.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">x = 2</text><path d=\"M406 40 v4 H418 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"412.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">.</text><path d=\"M420 40 v4 H502 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"461.0\" y=\"56\" text-anchor=\"middle\" fill=\"var(--fg2)\">y = 3</text><text x=\"4\" y=\"86\" fill=\"var(--fg2)\">after</text><rect x=\"56\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"54.5\" y=\"72.5\" width=\"15\" height=\"19\" rx=\"3\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"62.0\" y=\"69\" text-anchor=\"middle\" fill=\"var(--head)\">A</text><rect x=\"70\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"84\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"98\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"112\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"126\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"140\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"154\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"168\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"182\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"196\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"210\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"224\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"238\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"252\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"266\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"280\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"294\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"308\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"322\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"336\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"350\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"364\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"378\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"392\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"406\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"420\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"434\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"448\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"462\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"476\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"490\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><rect x=\"504\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"var(--accent)\"/><rect x=\"518\" y=\"74\" width=\"12\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\"/><path d=\"M70 96 v4 H96 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"83.0\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">N = 1</text><path d=\"M98 96 v4 H166 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"132.0\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">sep</text><path d=\"M168 96 v4 H222 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"195.0\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">w = 2</text><path d=\"M224 96 v4 H292 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"258.0\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">sep</text><path d=\"M294 96 v4 H460 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"377.0\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">x = 6</text><path d=\"M462 96 v4 H474 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"468.0\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">!</text><path d=\"M476 96 v4 H530 v-4\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"503.0\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">y = 2</text></svg>",
+     "<p>The sweep costs about 2 steps per cell of the done blocks plus 4 per 10 of the window. Lean proves it for every list of done blocks, by induction over the list (<code>rpass</code>, <code>lpass</code>, <code>sweep_gen</code>).</p>"
+    ]
+   },
+   {
+    "id": "rules",
+    "eyebrow": "The macro machine",
+    "heading": "A dozen local rules",
+    "html": [
+     "<p>What happens at the window depends only on its first few entries (x is the value there):</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>window</th><th>becomes</th><th>Lean</th></tr></thead><tbody><tr><td><code>x s y</code>, y &ge; 2</td><td><code>x+4 s&#773; y&minus;1</code></td><td><code>pair_dot</code>, <code>pair_bang</code></td></tr><tr><td><code>x ! 1 .</code> / <code>x ! 1 !</code></td><td><code>x+4 . 0 .</code> / <code>x+4 . 0 !</code></td><td><code>p1_bd</code>, <code>p1_bb</code></td></tr><tr><td><code>x . 1 !</code></td><td><code>x+4 ! 0 !</code></td><td><code>p1_db</code></td></tr><tr><td><code>x . 1 . z</code></td><td><code>x+5+z</code></td><td><code>p1_dd</code></td></tr><tr><td><code>x ! 0 ! z .</code></td><td><code>x+4+z .</code></td><td><code>merge</code></td></tr><tr><td><code>x . 0 . z</code></td><td><code>x</code> done, window <code>1 ! z</code></td><td><code>next</code></td></tr><tr><td><code>x . 0 . 0 . 0 ! 1 .</code></td><td><code>x</code> done, window <code>2 ! 1 .</code></td><td><code>restart2</code></td></tr><tr><td><code>x sep 1 ! 0</code> at the end</td><td><code>x sep 2 sep 1 ! 0</code></td><td><code>append</code></td></tr><tr><td><code>x ! 0</code> / <code>x . 0 ! 0</code> at the end</td><td><code>x+1</code> done, <code>1 ! 0</code> / <code>x+4 ! 0</code></td><td><code>end_b</code>, <code>end_db</code></td></tr></tbody></table></div>",
+     "<p>When the window is the fuel block itself, its own pair rule runs (<code>own_dot</code>, <code>own_bang</code>). When the fuel is 0, the sweep refills it: the list <code>0 sep v1 &hellip;</code> becomes <code>2 . v1 &hellip;</code>, so the first done block joins the fuel (<code>sweep_gen0</code>). Fuel 1 is a special case where one visit applies two rules; that case is not yet proved in Lean.</p>"
+    ]
+   },
+   {
+    "id": "carry",
+    "eyebrow": "The emergent behaviour",
+    "heading": "Carries and powers of four",
+    "html": [
+     "<p>Each refill turns the leftmost done block into fuel, and the fuel pays for pair rules that multiply the window by about 4 while counting its neighbour down. Many of the done blocks that result have the form 4<sup>k</sup>&minus;2 (2, 14, 62, 254, 1022, 4094, 16382, &hellip;), and long runs of 2-blocks pile up at the right end. The list at the refills (computed by the macro machine; the step numbers are from the C run):</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>sweep</th><th>list at the refill (<code>w|</code> = done block w, <code>w&times;k|</code> = k of them)</th></tr></thead><tbody><tr><td>35</td><td>6</td><td><code>0 | 10 ! 0 ! 0</code></td></tr><tr><td>317</td><td>36</td><td><code>0 | 2&times;14 | 1 ! 0</code></td></tr><tr><td>6,965</td><td>72</td><td><code>0 | 6 | 14&times;3 | 1 ! 2&times;10 | 1 ! 0</code></td></tr><tr><td>12,949</td><td>148</td><td><code>0 | 38 | 62 | 17 ! 10 | 5 . 1 | 2&times;9 | 1 ! 0</code></td></tr><tr><td>762,675</td><td>1,627</td><td><code>0 | 118 | 14&times;102 | 5 . 1 | 2 | 1 ! 0</code></td></tr><tr><td>4,579,889</td><td>2,501</td><td><code>0 | 6 | 254&times;3 | 241 ! 2 | 62 | 30 . 8 | 14&times;94 | 10 ! 1 . 2 | 1 ! 0</code></td></tr><tr><td>9,427,609</td><td>5,494</td><td><code>0 | 6 | 1022&times;2 | 526 | 62&times;23 | 33 ! 6 | 14&times;72 | 10 | 2&times;130 | 1 ! 0</code></td></tr><tr><td>144,331,243</td><td>22,819</td><td><code>0 | 6 | 4094&times;3 | 4081 ! 2 | 1022 | 766 | 70 | 254 | 181 . 17 | 62&times;52 | 21 . 9 | 14&times;33 | 10 | 2&times;130 | 1 !</code></td></tr><tr><td>843,450,029</td><td>66,132</td><td><code>0 | 6 | 16382&times;2 | 12286 | 1150 | 4094 | 533 | 611 | 62&times;86 | 46 | 14&times;130 | 10 | 2&times;2448 | 1 ! 0</code></td></tr><tr><td>5,252,993,379</td><td>74,633</td><td><code>0 | 16382 | 12286 | 1150 | 4094 | 533 | 611 | 62&times;86 | 46 | 14&times;130 | 10 | 2&times;10748 | 1 ! 0</code></td></tr></tbody></table></div>",
+     "<p>The run is like an odometer with irregular digits: the big blocks on the left grow by factors of 4, the short blocks on the right accumulate, and carries ripple through the middle. Every refill so far has been followed by enough work to reach the next refill; nobody has a proof that this always happens.</p>"
+    ]
+   },
+   {
+    "id": "proved",
+    "eyebrow": "Status",
+    "heading": "What is proved and what is missing",
+    "html": [
+     "<p><b>Lean, kernel</b>: the cell pieces of a sweep (<code>lean/Rules.lean</code>, written by <code>bbtools.symtm</code>), one whole sweep for any done blocks and the window rules above (<code>lean/Macro.lean</code>).</p>",
+     "<p><b>Computed</b>: the full macro machine (<code>py/mac14.py</code>) checked against the machine sweep by sweep for 2&middot;10<sup>7</sup> steps and at every refill up to 10<sup>10</sup>; 187,450 sweeps without leaving its rules.</p>",
+     "<p><b>Missing</b>: the fuel-1 sweep, small-value windows and the other fuel-block rules in Lean; a statement that puts all rules together as one map on lists; and an invariant showing the lists always stay inside the rules. Halting would need a window outside every rule; inside the rules proved in Lean the machine never reaches the halting move F1.</p>"
+    ]
    }
   ]
- }
+ },
+ "family": "Counter with fuel (sweeps over a list of blocks; carries like base-4 arithmetic)",
+ "summary": "The tape is a list of blocks of 10s; each sweep spends 2 units of a fuel counter on the left and applies one local rule at the first unfinished block. Lean proves one sweep exactly for any list of finished blocks and 12 window rules; the macro machine matches the real run to 10<sup>10</sup> steps and runs 187,450 sweeps without leaving its rules.",
+ "decision": "open"
 }

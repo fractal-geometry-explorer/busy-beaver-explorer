@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G03",
+ "generated": false,
+ "group": "base-4 counter with timers",
  "title": "What is known about 1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---.",
  "machine": "1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---",
@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The machine is a base-4 counter whose digits carry timers. Lean proves the sweep rule (one increment, any number of carries) for all values, and also that tapes of the same counter shape with short timers halt: so nonhalting cannot follow from the shape of the tape alone, it depends on the timer values the run from blank tape produces. An accelerated simulation that applies the rule in closed form and simulates every irregular sweep exactly reaches 10<sup>2000</sup> steps without a halt, never with more than one irregular pattern inside the counter at a time."
  ],
  "claims": [
   {
@@ -46,34 +46,79 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "The sweep rule, any number of carries",
+   "text": "At the left end in state C the tape is <code>a^n0 s(d1) a^n1 ... s(dk) a^nk</code> with <code>a = 001</code> and separators <code>s(0)=0, s(1)=011, s(2)=00, s(3)=0101</code>. One sweep adds one to the base-4 number d1 d2 ...: for every n0 &ge; 2, every block &ge; 1 and every list of carried digits 3 (a list of any length), the carried digits become 0 and their blocks gain one <code>a</code>, and the first digit below 3 goes up by one (its block loses one <code>a</code> on 0&rarr;1 and 2&rarr;3).",
+   "where": "<code>sweep0</code>, <code>sweep1</code>, <code>sweep2</code>, <code>lean/Rules.lean</code> (lists by induction, <code>lean/Seq.lean</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "Exact step count without carry",
+   "text": "A sweep without carry takes 8&middot;n0 + 6 steps (with carries, 8(n0+...+nj) + 10j + 6, checked by simulation).",
+   "where": "<code>step0</code>, <code>step1</code>, <code>step2</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 10<sup>2000</sup> steps",
+   "text": "<code>py/accel.py</code> applies t sweeps at once between irregular events (the counter plus t, each timer N_i = n_i + c(d_i) minus the wraps of its digit, the step count summed in closed form) and simulates every irregular sweep (overflow, fused digits) with an exact run-length simulator. From blank tape it reaches 10<sup>2000</sup> steps without a halt. It agrees with the plain simulator at every sweep start (checked up to 3&middot;10<sup>6</sup> steps in Python and 3&middot;10<sup>8</sup> with <code>tools/c/tmrun.c</code>), and the run-length simulator agrees with the plain one on random tapes.",
+   "where": "<code>py/accel.py</code>, <code>py/rlsim.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Only a small set of irregular patterns",
+   "text": "Up to 10<sup>300</sup> steps only about twenty different irregular separator patterns appear after the simulated sweeps (two separators touching when a timer has run out, and the end <code>01</code> during overflow), each recurring many times, and there is never more than one irregular pattern inside the counter at a time (3,008 simulated sweeps with one, 2,405 with none).",
+   "where": "<code>python3 py/accel.py run 1e300</code>"
+  },
+  {
+   "level": "native",
+   "title": "The same tape shape halts with short timers",
+   "text": "<code>C&gt; a^2 0 a^4 01</code> (one digit, block 4) halts at step 309,457 and <code>C&gt; a^43 0101 a^4 0101 a^4 01</code> (digits 3, 3, blocks 4, 4) at step 4,905,443. Both are sweep starts of exactly the counter form; the step counts agree with the accelerated simulator and a plain C simulator. A nonhalting proof must therefore use the timer values of the actual run.",
+   "where": "<code>counter_2_0_halts</code>, <code>counter_43_33_halts</code>, <code>lean/Perturbed.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Many counter tapes with other timers halt",
+   "text": "All tapes with one or two digits, blocks 1..4 and n0 = 2..12: 136 halt within 10<sup>7</sup> steps. 300 random tapes with 2..7 digits and the block after digit i up to 4<sup>i+2</sup>: 22 halt within 10<sup>150</sup> steps, 20 of them at steps of 6 to 25 digits, one near 10<sup>52</sup> and one near 10<sup>89</sup>.",
+   "where": "<code>py/perturb.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A cryptid-like tail",
+   "text": "In the random runs the rate of halting falls off as the timers grow (a fusion of two digits is dangerous only when other timers run out in the same short window). The run from blank tape is far past the stage where most random runs halt; that it keeps surviving is likely, but nothing known forces it.",
+   "where": "<code>py/perturb.py</code>, README"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The only halting transition is F1; normal sweeps never reach it (proved). A halt needs several timers to run out close together, as in the short-timer tapes above; whether the run from blank tape ever produces such a coincidence is an open arithmetic question about its timers.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA--- 1000000000"
+  "python3 holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/py/accel.py check 3e6",
+  "python3 holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/py/accel.py run 1e300",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA--- 1000000000",
+  "python3 holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/py/perturb.py random 7 300 150"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet. Started on a blank tape, this machine counts in base 4: every sweep of its head adds one to a number written as separators between blocks of <code>001</code>, and every digit carries a countdown timer. Lean proves the counting rule, and also that the same kind of tape halts when its timers are short; an accelerated simulation has followed the real run for 10<sup>2000</sup> steps without a halt.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 68,700 cells visited."
+    "level": "kernel",
+    "value": "+1 per sweep",
+    "text": "The sweep rule, for every value and any number of carries, proved in Lean."
    },
    {
     "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "value": "short timers halt",
+    "text": "Two tapes of the same counter shape with short timers halt (Lean)."
    },
    {
-    "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "10<sup>2000</sup> steps",
+    "text": "No halt in the accelerated simulation (exact between and at irregular events)."
    }
   ],
   "presets": [
@@ -96,7 +141,52 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>954,063,725</td><td><code>C&gt;0 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0</code></td></tr><tr><td>left</td><td>969,712,073</td><td><code>C&gt;0 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0</code></td></tr><tr><td>left</td><td>985,386,675</td><td><code>C&gt;0 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0</code></td></tr><tr><td>right</td><td>512,787,513</td><td><code>1 0 1^2 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "tape",
+    "eyebrow": "Macro structure",
+    "heading": "The tape is a base-4 number",
+    "html": [
+     "<p>Look at the tape each time the head is back at the left end in state C. It is made of blocks of the word <code>a = 001</code> separated by one of four short words, and each separator is a base-4 digit:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>separator</th><th><code>0</code></th><th><code>011</code></th><th><code>00</code></th><th><code>0101</code></th></tr></thead><tbody><tr><td>digit</td><td>0</td><td>1</td><td>2</td><td>3</td></tr></tbody></table></div>",
+     "<p>So the tape reads <code>C&gt; a^n0 s(d1) a^n1 s(d2) a^n2 ... s(dk) a^nk 01</code>, lowest digit first. From blank tape:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>tape at the left end</th><th>digits</th></tr></thead><tbody><tr><td>447</td><td><code>a5 0 a3 011 a3 01</code></td><td>0 1</td></tr><tr><td>493</td><td><code>a6 011 a2 011 a3 01</code></td><td>1 1</td></tr><tr><td>547</td><td><code>a7 00 a2 011 a3 01</code></td><td>2 1</td></tr><tr><td>609</td><td><code>a8 0101 a1 011 a3 01</code></td><td>3 1</td></tr><tr><td>697</td><td><code>a9 0 a2 00 a3 01</code></td><td>0 2 (a carry)</td></tr><tr><td>775</td><td><code>a10 011 a1 00 a3 01</code></td><td>1 2</td></tr></tbody></table></div>"
+    ]
+   },
+   {
+    "id": "rule",
+    "eyebrow": "The rule",
+    "heading": "One sweep adds one",
+    "html": [
+     "<p>The head runs right over <code>a^n0</code> (each <code>001</code> becomes <code>110</code> in state F), over every digit 3 and the block after it, turns at the first digit below 3 and runs back, restoring the <code>a</code>s. The digits 3 become 0, the digit where it turned goes up by one. Each block left of that digit gains one <code>a</code>; the block right of it loses one when the digit goes 0&rarr;1 or 2&rarr;3. The sweep takes 8(n0 + ... + nj) + 10j + 6 steps for j carries.</p>",
+     "<p>Lean proves this for every value and any number of carries (<code>sweep0..2</code> in <code>lean/Rules.lean</code>; the carried digits are a list of any length, crossed by induction).</p>",
+     "<p>So n0 grows by one a sweep, and for every other digit the number N = n + c(d), with c = 0, 1, 1, 2 for d = 0, 1, 2, 3, is constant except that it drops by one each time the digit wraps from 3 to 0, once every 4<sup>i</sup> sweeps for digit i. <b>Every digit carries a timer.</b></p>"
+    ]
+   },
+   {
+    "id": "events",
+    "eyebrow": "Beyond the rule",
+    "heading": "Overflows and fused digits",
+    "html": [
+     "<p><b>Overflow.</b> When every digit is 3 the carry runs into the end <code>01</code>: the head crosses the whole tape and back, every digit becomes 0 and a new lowest digit appears whose block is the old <code>a^n0</code>; so its timer starts at n0 = 4<sup>k</sup>, with k the number of digits.</p>",
+     "<p><b>A timer runs out.</b> When a block reaches 0 the separators on its two sides touch, and within a few cycles of the lower digit the two digits fuse into one:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>tape at the left end</th></tr></thead><tbody><tr><td>5,622,078</td><td><code>a112 0101 a999 0101 a123 00 a1 011 a50 0 a3 01</code></td></tr><tr><td>5,631,976</td><td><code>a113 0 a1000 0 a124 0101011 a50 0 a3 01</code> (the block <code>a1</code> is gone)</td></tr><tr><td>5,680,420</td><td><code>a129 0 a996 0 a123 0 a1 00 a50 0 a3 01</code></td></tr><tr><td>5,730,766</td><td><code>a145 0 a992 0 a122 01100 a50 0 a3 01</code></td></tr><tr><td>5,783,024</td><td><code>a161 0 a988 0 a121 0000 a50 0 a3 01</code></td></tr><tr><td>5,837,194</td><td><code>a177 0 a984 0 a120 010 a50 0 a3 01</code></td></tr><tr><td>5,890,707</td><td><code>1010 a192 0 a980 0 a119 011 a49 0 a3 01</code> (two digits have become one)</td></tr></tbody></table></div>",
+     "<p>A new digit gets the timer 4<sup>k</sup> but wraps 4<sup>k</sup> times in the next cycle alone, so most new digits soon fuse with a neighbour. The number of digits still grows, about 0.83 per factor 10 of the step count (248 digits at 10<sup>300</sup> steps). The tape grows at the left end by three cells a sweep, which is the square-root side; the highest digits and the end sit right of the start and change only every 4<sup>k</sup> sweeps, the logarithmic side.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Halting",
+    "heading": "Why it is open",
+    "html": [
+     "<p>The only halting transition is F1, entered from B1. In a normal sweep F only reads the 0s of <code>001</code>, so a halt could only come from an irregular sweep. The accelerated simulator applies the counter rule in closed form between irregular events and simulates each irregular sweep exactly; it reaches 10<sup>2000</sup> steps without a halt, and in that time only about twenty different irregular patterns occur, never more than one inside the counter at a time.</p>",
+     "<p><b>But the shape of the tape does not protect it.</b> Tapes of exactly the counter form, with short timers, halt. Lean checks two by evaluation:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>tape</th><th>digits</th><th>halts at step</th></tr></thead><tbody><tr><td><code>C&gt; a^2 0 a^4 01</code></td><td>0</td><td>309,457</td></tr><tr><td><code>C&gt; a^43 0101 a^4 0101 a^4 01</code></td><td>3 3</td><td>4,905,443</td></tr></tbody></table></div>",
+     "<p>There several timers run out close together: two digits fuse while the blocks below them are short too, the fused patterns run into each other, and the counter collapses until the end <code>01</code> is eaten and B reads a 1 with another 1 after it. Of 300 random tapes with timers in the range the real run uses, 22 halt within 10<sup>150</sup> steps, most of them early (steps of 6 to 25 digits), one near 10<sup>52</sup> and one near 10<sup>89</sup>.</p>",
+     "<p>So a proof of nonhalting would need an arithmetic fact about the timers along the run from blank tape: that two of them never run out in the same dangerous window. Nobody has one. The behaviour is that of a cryptid: deterministic, with no visible reason to halt and no proof that it cannot.</p>"
+    ]
    }
   ]
- }
+ },
+ "summary": "A base-4 counter (one digit per separator) whose digits carry countdown timers; timers that run out fuse digits. Sweep rule proved in Lean; the same tape shape halts with short timers (Lean); no halt in 10^2000 steps (accelerated simulation)."
 }

@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G08",
  "title": "What is known about 1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC",
  "description": "Proof status of the six-state BB(6) holdout 1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head sweeps across the whole tape and back, and each sweep rewrites the tape cell by cell, so the tape grows by a few cells at each end per sweep (square-root growth on both sides). What the sweeps do to the lengths of the blocks looks irregular. This page lists what has been established, sorted by what each result rests on."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves where and how a halt would have to happen (an isolated 0 in front of B, or two 0s in front of E) and the sweep rules for any length; the C simulator finds no halt in the first 10<sup>11</sup> steps, and at every sweep end so far every block of 1s has odd length and every 0 is isolated. No invariant that rules the halt out is known."
  ],
  "claims": [
   {
@@ -20,6 +20,18 @@
    "title": "The halting configurations",
    "text": "The machine stops exactly when it reads the symbol of a halting transition (A1); the generated statement covers every configuration.",
    "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "How a halt comes about",
+   "text": "A is entered only from F reading 0, so the machine halts exactly when F reads a 0 with a 1 on its left (<code>1 F&gt;0</code>). F is entered only from C reading 1 and E reading 0, and the two short ways in are <code>1 B&gt;0 1</code> (B meets an isolated 0; halt 4 steps later) and <code>E&gt;0 0</code> (E meets two 0s; halt 3 steps later).",
+   "where": "<code>enter_A</code>, <code>enter_F</code>, <code>halt_F</code>, <code>halt_B</code>, <code>halt_E</code>, <code>lean/Halt.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The sweep rules",
+   "text": "For every n and every surrounding tape: moving right, B turns <code>(1 1)^n</code> into <code>(1 0)^n</code> in 2n steps; moving left, F does the same to a solid block; D and E, moving left, fill an alternating stretch <code>(0 1)^n</code> or <code>(1 0)^n</code> back into solid 1s.",
+   "where": "<code>bsweep</code>, <code>fsweep</code>, <code>dfill</code>, <code>efill</code>, <code>lean/Rules.lean</code>"
   },
   {
    "level": "kernel",
@@ -35,20 +47,32 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 45,553 cells have been visited and 31,919 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "The C simulator (<code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps without a halt; the tape then spans 454,373 cells.",
+   "where": "<code>c/longrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Odd blocks and isolated 0s at every sweep end",
+   "text": "At every moment in the first 10<sup>9</sup> steps at which the head reaches a new cell on either side, every run of 1s on the tape (except the outermost ones and the runs at and next to the head) has odd length, and every run of 0s has length 1.",
+   "where": "<code>c/runhist.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "F never reads an isolated 0",
+   "text": "F reads a 0 about 4.8 million times in the first 10<sup>8</sup> steps and every time the cell to its left is also 0, so A reads 0 and the run goes on. A halt is exactly the first time this fails.",
+   "where": "<code>c/trfreq.c</code>"
   },
   {
    "level": "heuristic",
    "title": "Growth shape: sqrt/sqrt",
-   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.501). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.499).",
+   "text": "Both ends of the visited tape grow like the square root of the step count (fitted exponents 0.501 and 0.499): the head crosses the whole tape every sweep and adds a few cells at each end.",
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The odd-block shape is the natural candidate for an invariant, but it is not closed under single steps as it stands: the leftward fill carries a pair of 0s along behind the head, so a proof needs a finer language (window CTL up to 7 cells and n-gram CPS (widths up to 9, see the README for the larger runs) fail).",
    "where": ""
   }
  ],
@@ -58,22 +82,27 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Started on a blank tape, this machine has run 10<sup>11</sup> steps without stopping. Its head sweeps the whole tape back and forth, and each sweep rewrites solid blocks of 1s as alternating 1 0 1 0 and back again. This page runs the real machine in your browser, explains the sweeps, and shows the one kind of tape that would make it stop.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 45,553 cells visited."
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "Halts only at <code>1 F&gt;0</code>",
+    "text": "F must read a 0 with a 1 on its left; reached from <code>1 B&gt;0 1</code> or <code>E&gt;0 0</code>."
    },
    {
-    "level": "heuristic",
-    "value": "sqrt/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "kernel",
+    "value": "4 sweep rules",
+    "text": "Proved for blocks of any length."
+   },
+   {
+    "level": "trusted",
+    "value": "Odd blocks",
+    "text": "At every sweep end so far, every block of 1s is odd and every 0 is alone."
    }
   ],
   "presets": [
@@ -85,6 +114,38 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "sweeps",
+    "eyebrow": "How it moves",
+    "heading": "Sweeps that re-encode the tape",
+    "html": [
+     "<p>Watch the simulator for a while: the head runs from one end of the tape to the other and back, over and over, and the tape grows by a cell or a few at each end per trip. The tape is made of <b>blocks of 1s separated by single 0s</b>, and each sweep rewrites the blocks it crosses in one of two ways.</p>",
+     "<p><b>Moving right</b>, states B and D take the 1s two at a time and turn every pair <code>1 1</code> into <code>1 0</code>: a solid block becomes an alternating stretch.</p>",
+     "<pre>B&gt; 1 1 1 1 1 1      →      1 0 1 0 1 0 B&gt;      (6 steps)</pre>",
+     "<p><b>Moving left</b>, F and C do the same to the solid blocks they meet, while D and E do the opposite to alternating stretches and fill them back into solid 1s:</p>",
+     "<pre>1 1 1 1 F&gt;1          →      F&gt;1 1 0 1 0         (4 steps)\n0 1 0 1 D&gt;0          →      D&gt;0 1 1 1 1         (4 steps)</pre>",
+     "<p>Lean proves these four rules for blocks of every length and any tape around them (<code>bsweep</code>, <code>fsweep</code>, <code>dfill</code>, <code>efill</code> in <code>lean/Rules.lean</code>). Where a solid block meets an alternating stretch the head zig-zags for a few cells, and that is where the lengths of the blocks change. Read as a list of block lengths, the tape after a sweep is a fixed but complicated function of the tape before it; no pattern in that function has been found, and the lengths look random (blocks of 1, 3, 7, 9, 13, ... up to a few hundred).</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "The one way to halt",
+    "html": [
+     "<p>The only missing transition is A reading 1. A is entered only from F reading 0 (F writes a 1 and steps left), so the machine halts exactly when <b>F reads a 0 that has a 1 on its left</b>: <code>1 F&gt;0</code>. F is entered from C reading 1 and from E reading 0, which gives the two short ways in:</p>",
+     "<ul><li><code>1 B&gt;0 1</code>: B, moving right, meets a 0 that has 1s on both sides. B steps over it into C, C sees the 1 and turns back as F onto the 0, F writes 1 and steps left onto a 1 in state A: halt, 4 steps later.</li><li><code>E&gt;0 0</code>: E meets two 0s in a row; halt 3 steps later.</li></ul>",
+     "<p>All of this is proved in Lean by the kernel (<code>lean/Halt.lean</code>). In the run, F reads a 0 millions of times, but always with another 0 on its left: so far the head only ever brings F to a <em>pair</em> of 0s, never to an isolated one. So the question is whether the sweeps ever leave a single 0 in B's path or two 0s in E's.</p>"
+    ]
+   },
+   {
+    "id": "invariant",
+    "eyebrow": "What keeps it going",
+    "heading": "Odd blocks, single 0s",
+    "html": [
+     "<p>At every moment the head reaches a new cell, the tape so far has had only <b>odd</b> blocks of 1s and <b>single</b> 0s between them (the C program <code>c/runhist.c</code> checks every such moment). This is consistent with both encodings: an alternating stretch is a row of blocks of length 1. A tape of that shape cannot show B an isolated 0 between two solid blocks in the middle of a pass, which is why the halting pattern never comes up.</p>",
+     "<p>Turning this into a proof means finding a set of tapes, described by finite automata, that contains the run and is closed under every step. The obvious one (odd blocks, single 0s) is not closed on its own: during the leftward fill the head carries a pair of 0s along behind it for many cells, and the language has to describe what lies between that pair and the head. Small automata found automatically (windows of up to 7 cells, n-gram sets of up to 9) all fail, so the right language, if there is one, is larger.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +159,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Chaotic two-sided bouncer: every sweep re-encodes the tape between solid blocks of 1s and alternating 1 0 1 0 stretches; all blocks stay odd and every 0 stays isolated, and a halt needs B or E to meet the wrong kind of 0.",
+ "family": "chaotic bouncer, odd blocks of 1s separated by single 0s"
 }

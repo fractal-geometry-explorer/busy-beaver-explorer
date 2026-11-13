@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LE_0RC1RA_1RD0RF_0LE1LD_1RA1LC_---0RE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. The left half of the tape is a plain repetition of 100. The right half is a row of blocks of 1s whose lengths 7, 13, 19, 25, ... climb in steps of 6, with fewer blocks the longer they are, like the digits of a counter. How a block moves up a level has not been worked out.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 29,856 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>8 levels</b><span class="small">Blocks of 7, 13, ..., 49 ones at step 3.7&middot;10<sup>8</sup>.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#left">A left part of 100s</a><a href="#levels">Blocks of 6k+1 ones, level by level</a><a href="#halting">One pattern</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,26 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="left">
+  <span class="eyebrow">The tape</span>
+  <h2>A left part of 100s</h2>
+<p>The left part of the tape is the period-3 word <code>100</code>, written <code>011</code> or <code>101</code> by the leftward sweeps. Both sweep directions cross it by proved shift rules (<code>lean/Rules.lean</code>). Two consecutive end turns, with the long runs written as powers:</p>
+<pre>step 370,152,911  left end, state C    0 (101)^1522 (011010101)^503 (01)^3 (10)^7 1 (10)^7 1 ...
+step 372,052,921  right end, state B   (100)^1560 (111001111)^503 1^7 00 1^13 00 1^13 00 ... 1^13 00 1^7 00100 1^17 00 1^19 00 ...</pre>
+</section>
+<section id="levels">
+  <span class="eyebrow">What is seen</span>
+  <h2>Blocks of 6k+1 ones, level by level</h2>
+<p>Right of the <code>100</code> part the tape is blocks <code>1^(6k+1)</code> separated by <code>00</code>. They come sorted: first all blocks of 7, then all of 13, then 19, and so on, each level separated from the next by one block of another length. At step 370,082,314:</p>
+<pre>level   7   13   19   25   31   37   43   49
+blocks 502  306   97   59   19   11    4    2</pre>
+<p>The counts fall roughly geometrically, as the digits of a counter in which a block of one level is turned into a block of the next. Which sweep does that, and what it costs, has not been found.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">What halting would need</span>
+  <h2>One pattern</h2>
+<p>F0 is the only halting transition; it is reached as <code>C&gt;1 0</code>. In the left part the sweeps never meet it, so a halt would have to come from the blocks of the right part. That question is open.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +256,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 29,856 cells have been visited and 23,139 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.514). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.142).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</div></div><div><b>Shift rules of the sweeps</b><p>The sweeps over the left part: leftward <code>L (100)^n E&gt;1 R</code> (each <code>100</code> becomes <code>011</code>) and <code>L (001)^n D&gt;0 R</code> (<code>001</code> becomes <code>110</code>), rightward <code>L A&gt; (011)^n R</code> (<code>011</code> becomes <code>001</code>) and <code>L 1 B&gt; (110)^n R</code> (<code>110</code> becomes <code>001</code>), for every n and all tapes L, R.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tokrun.c</code></div></div><div><b>Levels of blocks 1^(6k+1)</b><p>At step 370,082,314 (width 18,974) the tape is <code>(100)^1520</code> followed by blocks <code>1^(6k+1) 00</code>: 502 blocks of 7, 306 of 13, 97 of 19, 59 of 25, 19 of 31, 11 of 37, 4 of 43, 2 of 49, in this order, the levels separated by single blocks of other lengths (11, 17, 23, ...). Seen at the right-end turns of the run; not proved.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts on F0, reached as <code>C&gt;1 0</code> (C reads 1, moves right onto a 0). The sweeps over the left part never produce it; the blocks of the right part change level as the run goes on, and no rule for these changes is known, so neither halting nor nonhalting is in reach.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_0RC1RA_1RD0RF_0LE1LD_1RA1LC_---0RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC1RA_1RD0RF_0LE1LD_1RA1LC_---0RE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC1RA_1RD0RF_0LE1LD_1RA1LC_---0RE 1000000000
+python3 holdouts/1RB0LE_0RC1RA_1RD0RF_0LE1LD_1RA1LC_---0RE/py/rules.py | diff - holdouts/1RB0LE_0RC1RA_1RD0RF_0LE1LD_1RA1LC_---0RE/lean/Rules.lean   # the rules file is current</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LE_0RC1RA_1RD0RF_0LE1LD_1RA1LC_---0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

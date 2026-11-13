@@ -79,7 +79,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves two crossings of the sweeps and the situations that lead to a halt (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
+      <p><b>What it does.</b> The mirror image of a known family: at the <em>right</em> end the tape is dense, blocks of 1s of length 4j+3 separated by single 0s; at the <em>left</em> end it is sparse, the words <code>01</code>, <code>0001</code> and <code>00</code>. The sweeps translate between the two forms; going left, E with a 0 ahead turns each <code>11</code> into <code>10</code>. The list of block lengths is scrambled on every trip.</p>
+      <p><b>Where a halt would come from.</b> Only F reading a 1 halts; <code>E&gt;1 1</code>, <code>1 F&gt;0</code>, <code>B&gt;1 1 1</code> and <code>D&gt;0 1 1</code> lead there. In 2&middot;10<sup>8</sup> steps F always reads a 0.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +105,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules</h3>
+        <p>Going left, E with a 0 ahead turns each <code>11</code> into <code>10</code> (four steps a pair); going right, A turns each <code>0101</code> into <code>1110</code> (six steps a copy).</p>
+        <p class="where"><code>left_E</code>, <code>right_A</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The halting situations</h3>
+        <p><code>E&gt;1 1</code> halts after one step; <code>1 F&gt;0</code>, <code>B&gt;1 1 1</code> and <code>D&gt;0 1 1</code> after two.</p>
+        <p class="where"><code>halt_E</code>, <code>halt_F</code>, <code>halt_B</code>, <code>halt_D</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +131,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 35,871 cells have been visited and 23,301 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>F never reads a 1 in 2&middot;10<sup>8</sup> steps</h3>
+        <p>In the first 2&middot;10<sup>8</sup> steps the machine is in state F 22,449,902 times, every time on a 0: the halting transition F1 is never close to firing in a way the run shows.</p>
+        <p class="where"><code>c/visits.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +144,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.496). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.504).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Dense and sparse forms</h3>
+        <p>At the 1,804 right-end visits of the first 5&middot;10<sup>6</sup> steps, 273,318 of the 275,315 blocks of 1s strictly inside the tape have length 4j+3; at the 655 left-end visits every 1 stands alone (the sparse words), with 29 exceptions.</p>
+        <p class="where"><code>py/turns.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The list of block lengths behaves like the content of a cellular automaton; no invariant excluding the halting situations is known.</p>
       </div>
     </div>
   </section>

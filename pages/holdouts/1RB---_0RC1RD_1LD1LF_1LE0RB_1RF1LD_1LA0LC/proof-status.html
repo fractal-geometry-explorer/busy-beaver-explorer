@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC</p>
     <h1>What is known about 1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC</h1>
     <p class="machine">1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head sweeps across the whole tape and back, and each sweep rewrites the tape cell by cell, so the tape grows by a few cells at each end per sweep (square-root growth on both sides). What the sweeps do to the lengths of the blocks looks irregular. This page lists what has been established, sorted by what each result rests on.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves where and how a halt would have to happen (an isolated 0 in front of B, or two 0s in front of E) and the sweep rules for any length; the C simulator finds no halt in the first 10<sup>11</sup> steps, and at every sweep end so far every block of 1s has odd length and every 0 is isolated. No invariant that rules the halt out is known.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -99,6 +99,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
+        <h3>How a halt comes about</h3>
+        <p>A is entered only from F reading 0, so the machine halts exactly when F reads a 0 with a 1 on its left (<code>1 F&gt;0</code>). F is entered only from C reading 1 and E reading 0, and the two short ways in are <code>1 B&gt;0 1</code> (B meets an isolated 0; halt 4 steps later) and <code>E&gt;0 0</code> (E meets two 0s; halt 3 steps later).</p>
+        <p class="where"><code>enter_A</code>, <code>enter_F</code>, <code>halt_F</code>, <code>halt_B</code>, <code>halt_E</code>, <code>lean/Halt.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The sweep rules</h3>
+        <p>For every n and every surrounding tape: moving right, B turns <code>(1 1)^n</code> into <code>(1 0)^n</code> in 2n steps; moving left, F does the same to a solid block; D and E, moving left, fill an alternating stretch <code>(0 1)^n</code> or <code>(1 0)^n</code> back into solid 1s.</p>
+        <p class="where"><code>bsweep</code>, <code>fsweep</code>, <code>dfill</code>, <code>efill</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
@@ -115,16 +125,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 45,553 cells have been visited and 31,919 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>The C simulator (<code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps without a halt; the tape then spans 454,373 cells.</p>
+        <p class="where"><code>c/longrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Odd blocks and isolated 0s at every sweep end</h3>
+        <p>At every moment in the first 10<sup>9</sup> steps at which the head reaches a new cell on either side, every run of 1s on the tape (except the outermost ones and the runs at and next to the head) has odd length, and every run of 0s has length 1.</p>
+        <p class="where"><code>c/runhist.c</code></p>
+      </div>
+      <div class="card">
+        <h3>F never reads an isolated 0</h3>
+        <p>F reads a 0 about 4.8 million times in the first 10<sup>8</sup> steps and every time the cell to its left is also 0, so A reads 0 and the run goes on. A halt is exactly the first time this fails.</p>
+        <p class="where"><code>c/trfreq.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
         <h3>Growth shape: sqrt/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.501). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.499).</p>
+        <p>Both ends of the visited tape grow like the square root of the step count (fitted exponents 0.501 and 0.499): the head crosses the whole tape every sweep and adds a few cells at each end.</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
     </div>
@@ -132,7 +152,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The odd-block shape is the natural candidate for an invariant, but it is not closed under single steps as it stands: the leftward fill carries a pair of 0s along behind the head, so a proof needs a finer language (window CTL up to 7 cells and n-gram CPS (widths up to 9, see the README for the larger runs) fail).</p>
       </div>
     </div>
   </section>

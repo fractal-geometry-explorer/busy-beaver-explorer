@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G08",
  "title": "What is known about 1RB0LA_0RC1LF_0RD0LA_1LD0LE_1RB1LF_---1LA",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LA_0RC1LF_0RD0LA_1LD0LE_1RB1LF_---1LA.",
@@ -12,7 +12,9 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves two of the shift rules the run uses and the situations that lead to a halt (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.",
+  "<b>What it does.</b> The tape is a list of short blocks of 1s (lengths 2 to 7) separated by single 0s, with a few runs of the words <code>0111</code> and <code>1110</code>. The head does not sweep the whole tape in one go: it travels in zig-zags, for example leftwards 8 cells every 44 steps, rewriting the blocks it passes, and the right end advances 8 cells at a time. The list of block lengths has no visible order.",
+  "<b>Where a halt would come from.</b> Only F reading a 0 halts. F is entered from B or E reading a 1, so <code>0 B&gt;1</code> and <code>0 E&gt;1</code> halt at once. In 2&middot;10<sup>8</sup> steps F always reads a 1."
  ],
  "claims": [
   {
@@ -46,10 +48,28 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules",
+   "text": "C with a 0 behind it walks right through any block of 1s, three steps a cell, carrying the 0 along; C turns each <code>0111</code> into <code>1110</code>, ten steps a copy.",
+   "where": "<code>walk_ones</code>, <code>shift_0111</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The halting situations",
+   "text": "<code>0 B&gt;1</code> and <code>0 E&gt;1</code> halt after one step, <code>0 1 1 D&gt;0</code> after three.",
+   "where": "<code>halt_B</code>, <code>halt_E</code>, <code>halt_D</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "F never reads a 0 in 2&middot;10<sup>8</sup> steps",
+   "text": "In the first 2&middot;10<sup>8</sup> steps the machine is in state F 9,297,309 times, every time on a 1: the halting transition F0 is never close to firing in a way the run shows.",
+   "where": "<code>c/visits.c</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "where": "",
+   "text": "Not known. No macro structure is known: the tape content looks random and the decider pipeline (including NGramCPS with n &le; 10 here) leaves it open."
   }
  ],
  "check": [
@@ -58,7 +78,7 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LA_0RC1LF_0RD0LA_1LD0LE_1RB1LF_---1LA 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine works its way back and forth over a tape of short blocks of 1s, and the blocks look random. This page runs it in your browser and shows the two moves it uses most.",
   "facts": [
    {
     "level": "trusted",
@@ -86,6 +106,27 @@
   },
   "sections": [
    {
+    "id": "moves",
+    "eyebrow": "Local structure",
+    "heading": "Moves over blocks of 1s",
+    "html": [
+     "<p>The tape is mostly short blocks of 1s, 2 to 7 long, each followed by a single 0. State C, with a 0 just behind it, walks right through a block and carries the 0 along, three steps a cell:</p>",
+     "<pre>0 C&gt; 1 1 1 0      \n1 1 1 0 C&gt; 0      (9 steps later)</pre>",
+     "<p>(Lean: <code>walk_ones</code>, for blocks of any length.) In runs of the word <code>0111</code>, C turns each copy into <code>1110</code>, ten steps a copy (<code>shift_0111</code>).</p>",
+     "<p>These moves keep the blocks, but the head does not just sweep: it zig-zags locally, and the list of block lengths changes in a way nobody has described.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The halting condition",
+    "heading": "F must read a 0",
+    "html": [
+     "<p>Only F reading a 0 halts. F is entered by B or E reading a 1 and moving left, so the machine halts as soon as B or E reads a 1 with a 0 to its left:</p>",
+     "<pre>0 B&gt; 1      \nF&gt; 0 1      (F on the 0: halt)</pre>",
+     "<p>In the run F is entered 9.3 million times in the first 2&middot;10<sup>8</sup> steps, always on a 1.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +139,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Two-sided bouncer over short blocks of 1s (lengths 2 to 7) separated by single 0s, with runs of 0111/1110; the head works in local zig-zags and the content looks random. Open.",
+ "family": "chaotic two-sided bouncer, short runs",
+ "decision": "open"
 }

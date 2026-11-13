@@ -73,13 +73,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC</p>
     <h1>What is known about 1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC</h1>
     <p class="machine">1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project. It does not halt from blank tape: Lean proves it, with a symbolic checker that the kernel proves sound, the round trips evaluated by the kernel and the long runs by compiled code (<code>native_decide</code>). This page lists what has been established about it, sorted by what each result rests on.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>It never halts.</b> Lean proves <code>nonhalting</code>: from blank tape the machine reaches one of 62 tape templates and moves from template to template forever. The 62 round trips are checked by the kernel; the start and the 62 ends of an epoch (2.5 million symbolic moves) by <code>native_decide</code>.</p>
+      <p><b>What it does.</b> Each time B reaches the left end the tape reads <code>B&gt; 00 (01)<sup>a</sup> 000 (01)<sup>b</sup> 000 &hellip;</code>, a list of counts separated by short words. The rightward sweep turns <code>010101</code> into <code>011001</code> and the leftward sweep turns it back. Each round trip takes 3 from a, while the end of the list runs through one of four periodic patterns (periods 15, 22, 16 and 9 round trips) and b gains 99, 141, 99 or 57 per period. When a is used up, b takes its place and a new, longer epoch begins: the first counts of successive epochs are 4, 12, 20, 38, 68, 122, 240, 484, 1002, 2104, 4375, &hellip;.</p>
+      <p><b>Why it cannot halt.</b> Only D reading a 0 halts, after <code>C&gt;1 0</code>. Every round trip of every pattern and every way an epoch can end has been checked as a symbolic run with the counts as variables, and each lands on a template again; a potential on the counts shows that an epoch always ends with the second count large enough for those runs.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +105,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules</h3>
+        <p>B with a 1 behind it turns each <code>010101</code> into <code>011001</code> going right (14 steps a copy); C with <code>110</code> ahead turns each <code>011001</code> back into <code>010101</code> going left (22 steps a copy).</p>
+        <p class="where"><code>sweep_right</code>, <code>sweep_left</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The halting situations</h3>
+        <p><code>C&gt;1 0</code> halts after one step, <code>E&gt;1 1 0</code> and <code>F&gt;1 1 0</code> after two, <code>D&gt;1 1 1 0</code> after three.</p>
+        <p class="where"><code>halt_C</code>, <code>halt_E</code>, <code>halt_F</code>, <code>halt_D</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A verified symbolic checker</h3>
+        <p><code>lean/SymCheck.lean</code>: configurations whose tape is a list of cells and runs <code>w<sup>n</sup></code> with n linear in some variables; <code>auto</code> finds the moves itself (a run crossed by a shift rule found on the spot, else one step) and compares normal forms at the left end. <code>auto_reach</code> proves that a successful check means the machine makes that run, for every value of the variables.</p>
+        <p class="where"><code>auto_reach</code>, <code>lean/SymCheck.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The 62 round trips</h3>
+        <p>Each phase template <code>B&gt; 00 (01)<sup>3k+4</sup> 000 (01)<sup>3j+&beta;</sup> rest</code> at [k+1, j] reaches the next phase at [k, j + dj] (200 to 2,500 symbolic moves each), evaluated by the kernel. The tables also show that j + 2k + pot never decreases in a round and is at least 215 after an epoch.</p>
+        <p class="where"><code>round_0</code> &hellip; <code>round_61</code>, <code>tables_ok</code>, <code>lean/Cert.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -110,6 +132,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The 62 ends of an epoch</h3>
+        <p>Each template at [0, j+200] reaches a template again, with the old second count as the new first (4,200 to 127,000 symbolic moves each, 2.5 million in all), evaluated by compiled code; the kernel runs out of memory on runs this long.</p>
+        <p class="where"><code>ends_ok</code>, <code>lean/Cert.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The start</h3>
+        <p>From blank tape the machine reaches template 31 (pattern R1, phase 16) with first count 118 and second 496, at step 1,277,431 (147,895 symbolic moves).</p>
+        <p class="where"><code>start_ok</code>, <code>lean/Cert.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>It does not halt from blank tape</h3>
+        <p>The invariant &ldquo;at a template with j + 2k + pot &ge; 215&rdquo; holds at the start and is restored after a round or an end, each taking at least one step, so the run is defined for every length. <code>#print axioms</code> lists <code>propext</code>, <code>Quot.sound</code> and the two <code>native_decide</code> axioms.</p>
+        <p class="where"><code>nonhalting</code>, <code>lean/Cert.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -119,6 +156,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 39,660 cells have been visited and 19,822 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>D never reads a 0 in 2&middot;10<sup>8</sup> steps</h3>
+        <p>In the first 2&middot;10<sup>8</sup> steps the machine is in state D 22,202,037 times, every time on a 1: the halting transition D0 is never close to firing in a way the run shows.</p>
+        <p class="where"><code>c/visits.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,19 +169,20 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.497). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.507).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
-    </div>
-    <h3><span class="tag t-open">open</span> Open</h3>
-    <div class="cards">
-      <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+      <div class="card">
+        <h3>Four regimes, growing epochs</h3>
+        <p>How the templates were found: along the run, the list at the left end settles each epoch into one of four periodic patterns of period 15, 22, 16 or 9 round trips, in which the first count drops by 3 per trip and the second grows by 99, 141, 99 or 57 per period. Concrete simulations from every phase and residue return to a pattern.</p>
+        <p class="where"><code>py/regimes.py</code>, <code>py/endcases.py</code></p>
       </div>
     </div>
+    <h3><span class="tag t-open">open</span> Open</h3>
+    <p class="empty">Nothing yet.</p>
   </section>
   <section aria-labelledby="h-check">
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC/lean/check.sh
+python3 holdouts/1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC/py/cert.py   # rewrites lean/Tables.lean
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC 1000000000</code></pre>
   </section>
   <footer>

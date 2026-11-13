@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G01",
  "title": "What is known about 1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA.",
@@ -10,9 +10,10 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 12 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open; the structure is partly known.</b> At the moments when the head is in state C at the right end on a 0, the tape is X(a, b) = <code>(10)^a 1^b C&gt; 0</code> or Y(a, b) = <code>(10)^a 1^b 0 C&gt; 0</code>. For a large enough, X(a, b) goes to X or Y (by the parity of b) with b&prime; = f(b) about 3.5b and a&prime; = a &minus; d(b), with f and d irregular but independent of a (checked for b &lt; 70); the run uses this until a cannot pay, and then the large b is turned back into a (for example X(127, 424) &rarr; X(318, 369)). The functions f, d and the turnover are not yet worked out.",
+  "<b>Third pass.</b> No halt in 10<sup>18</sup> steps (macro simulation). Two inner loops of a round are identified; no pushdown certificate with a DFA of at most 6 states exists on either side."
  ],
  "claims": [
   {
@@ -46,9 +47,45 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "The b-map",
+   "text": "For a large enough: X(a, b) &rarr; X(a&minus;d, f(b)) for even b and Y(a&minus;d, f(b)) for odd b, with (f, d) = (10, 4), (8, 3), (22, 8), (32, 13), (16, 4), (44, 17), (46, 18), &hellip; for b = 0, 1, 2, 3, 4, 5, 6, &hellip; and step counts linear in a; Y behaves the same with f larger by 2 to 4. Checked for b &lt; 70.",
+   "where": "<code>py/explore.py 400 70</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The run from blank tape",
+   "text": "C-events include Y(84, 7) &rarr; X(71, 40) &rarr; X(33, 124) and later Y(322, 7) &rarr; X(309, 40) &rarr; X(271, 124) &rarr; X(127, 424) &rarr; X(318, 369) (step 1,168,114); at step 1.5&middot;10<sup>8</sup> the tape is (10)<sup>784</sup> 1<sup>8773</sup>.",
+   "where": "C simulator"
+  },
+  {
+   "level": "trusted",
+   "title": "The b-map, to b &lt; 400, and the X/Y relation",
+   "text": "For X(a, b) = <code>(10)^a 1^b C&gt; 0</code> with a large, the next event is X(a&minus;d(b), f(b)) for even b and Y(a&minus;d(b), f(b)) for odd b, the same for two values of a; from Y(a, b) = <code>(10)^a 1^b 0 C&gt; 0</code> it is exactly Y(a&minus;d(b)&minus;2, f(b)+4) for even b and X(a&minus;d(b), f(b)+2) for odd b. So one function pair (f, d) describes both kinds. Checked for every b &lt; 400.",
+   "where": "<code>py/bmap.py 400</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "f is digit-driven in base 3",
+   "text": "For even b, f(b) changes by +12, &minus;6 as the last ternary digit of b/2 goes 0&rarr;1&rarr;2, with carries contributing amounts that depend on the higher digits: f looks like a 3-regular sequence (computed by a finite automaton reading the ternary digits), which would give it a closed form.",
+   "where": "<code>py/bmap.py</code> table"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>18</sup> steps",
+   "text": "A macro simulator (blocks of 6 cells, whole runs of equal blocks crossed at once, exact step counts) runs 10<sup>18</sup> steps from blank tape without a halt. At the end the tape is (10)<sup>212,071,119</sup> 101 (011)<sup>71,857,433</sup> 1<sup>30,536,790</sup> &hellip;",
+   "where": "<code>holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA 1e18</code> (macro simulator <code>c/msim.c</code> there, checked against the direct simulator at 10<sup>9</sup> steps by <code>check_msim.py check</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No pushdown certificate with a DFA of at most 6 states",
+   "text": "The pushdown reduction of <code>bb6-1RB0LF_1RC0LB/c/pds.c</code> (one side of the tape kept exactly, the other abstracted by a DFA, reachability by post* saturation) reaches a halt for every DFA with at most 6 states, on either side: <code>TM=1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA ./pds 6 L</code> and <code>R</code>.",
+   "where": "<code>bb6-1RB0LF_1RC0LB/c/pds.c</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known: f has no closed form yet, and the turnover when a cannot pay is not mapped.",
    "where": ""
   }
  ],
@@ -58,8 +95,13 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine keeps two counters at the right end, a block of <code>10</code>s and a block of 1s; the 1s are pushed through an irregular growth map while the <code>10</code>s pay for it, and then the roles swap. It has run 10<sup>9</sup> steps without stopping.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>18</sup> steps",
+    "text": "No halt in the macro simulator (checked against the direct one at 10<sup>9</sup>)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -69,11 +111,6 @@
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +122,32 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "what",
+    "eyebrow": "What it does",
+    "heading": "Two counters, one paying for the other",
+    "html": [
+     "<p>When the head is in state C at the right end, the tape is a copies of <code>10</code> followed by b ones (and sometimes one more 0). As long as a is large, one round sends b to a new value about 3.5 times bigger, by an irregular rule that depends only on b, and lowers a by about a third of the new b.</p>",
+     "<p>In the run, b goes 7 &rarr; 40 &rarr; 124 &rarr; 424 twice, each time until a cannot pay any more; then the ones are converted back into <code>10</code>s and the game restarts with larger numbers.</p>"
+    ]
+   },
+   {
+    "id": "bmap",
+    "eyebrow": "New",
+    "heading": "One map for both kinds of event",
+    "html": [
+     "<p>Write X(a, b) for <code>(10)^a 1^b C&gt; 0</code> and Y(a, b) for the same with an extra 0 before the head. While a is large, b alone decides what happens: X(a, b) goes to X or Y (by the parity of b) with b&prime; = f(b) and a&prime; = a &minus; d(b). Y events need no table of their own: from Y(a, b) the result is the X result with 4 more ones and 2 fewer <code>10</code>s (even b), or with 2 more ones and the kind swapped (odd b). Checked for every b &lt; 400.</p>",
+     "<p>f(b) is about 3.4b but irregular; for even b it moves by +12 and &minus;6 as the last base-3 digit of b/2 steps 0, 1, 2, which points to a rule read off the ternary digits of b.</p>"
+    ]
+   },
+   {
+    "id": "next",
+    "eyebrow": "Further work",
+    "heading": "What is left",
+    "html": [
+     "<p>Find the rule for f(b) (it looks like a digit-by-digit process with period 3 in b/2) and for the turnover, then the halting condition.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +161,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "two counters (10)<sup>a</sup> 1<sup>b</sup>: b follows an irregular map while a pays (not yet mapped)",
+ "summary": "Two counters (10)^a 1^b: b follows a fixed irregular map f (about 3.4b, digit-driven in base 3) while a pays; X and Y events share one table (b < 400). Open."
 }

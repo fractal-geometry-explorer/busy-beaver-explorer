@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G13",
  "title": "What is known about 1RB0RB_0LC0RA_1LE1LD_0LE---_1LF0LC_1RA1LB",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RB_0LC0RA_1LE1LD_0LE---_1LF0LC_1RA1LB.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0RB_0LC0RA_1LE1LD_0LE---_1LF0LC_1RA1LB/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is a counter at the left end followed by a long alternating stretch <code>(10)^n</code> holding a single marker 0. This page lists what has been established about it, sorted by what each result rests on."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 2 cells) finds no halt in the first 10<sup>15</sup> steps."
  ],
  "claims": [
   {
@@ -46,24 +46,48 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>15</sup> steps",
+   "text": "An exact macro simulator (blocks of 2 cells) runs 10<sup>15</sup> steps without a halt. The macro simulator cuts the tape into blocks of K cells, run-length codes them, and crosses a whole run at once when the head leaves it on the far side in the state it entered with; it agrees with the plain simulator <code>tools/c/tmrun</code> cell for cell.",
+   "where": "<code>holdouts/1RB0RB_0LC0RA_1LE1LD_0LE---_1LF0LC_1RA1LB/c/mrun.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A marker counted in base 3",
+   "text": "At the moments the head first reaches a new cell on the left, the tape ends in <code>(10)^x 0 (10)^y</code>; between consecutive such moments x fell by 243 (79 times), 81 (70), 27 (34), 9 (8), 729 (6) and a handful of other amounts in the first 10<sup>8</sup> steps, and rose 143 times (resets).",
+   "where": "<code>tools/c/tmrun.c</code> records"
+  },
+  {
+   "level": "trusted",
+   "title": "The halting state, seen from the run",
+   "text": "In the first 10<sup>8</sup> steps state D was entered 74,578 times, always reading a 0 (D1 halts).",
+   "where": "<code>c/sstat.c</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RB_0LC0RA_1LE1LD_0LE---_1LF0LC_1RA1LB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RB_0LC0RA_1LE1LD_0LE---_1LF0LC_1RA1LB 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RB_0LC0RA_1LE1LD_0LE---_1LF0LC_1RA1LB 1000000000",
+  "gcc -O2 -o mrun holdouts/1RB0RB_0LC0RA_1LE1LD_0LE---_1LF0LC_1RA1LB/c/mrun.c && ./mrun 1RB0RB_0LC0RA_1LE1LD_0LE---_1LF0LC_1RA1LB 2 1000000000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. A marker 0 drifts left through a long alternating sea while a counter at the left end, written in pieces <code>1110</code>, counts the sweeps; when the marker reaches the far end the sea is reset, a little longer.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 4,657 cells visited."
+    "value": "10<sup>15</sup> steps",
+    "text": "No halt in an exact macro simulator (blocks of 2 cells)."
+   },
+   {
+    "level": "heuristic",
+    "value": "base 3",
+    "text": "The marker moves 27, 81, 243, 729 cells between left growths: a sweep counter."
    },
    {
     "level": "native",
@@ -71,9 +95,9 @@
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
    },
    {
-    "level": "heuristic",
-    "value": "power/power",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator; 4,657 cells visited."
    }
   ],
   "presets": [
@@ -85,6 +109,26 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "structure",
+    "eyebrow": "Macro structure",
+    "heading": "What the machine does",
+    "html": [
+     "<p>Stop the machine whenever its head first reaches a new cell. With <code>a</code> for <code>10</code>, around step 9.5&middot;10<sup>7</sup>:</p>",
+     "<ul><li>step 94,109,254: <code>B&gt;0 1^2 a 1^2 a 1^2 a 1^2 a^2 1^2 a^24 1^2 a^643 0 a^362</code></li><li>step 94,966,670: <code>B&gt;0 1^2 a 1^2 a 1^2 a 1^2 a 1 a^1034</code></li><li>step 94,968,812: <code>a 0 a^2 0^2 a 0^2 a 0^2 a 0^2 a 0^2 a^1033 1 B&gt;0</code> (right end)</li><li>step 95,857,069: <code>B&gt;0 1^2 a^2 1^2 a 1^2 a 1^2 a 1^2 a 1^2 a^791 0 a^243</code></li><li>step 97,110,957: <code>B&gt;0 1^2 a 1^2 a^2 1^2 a 1^2 a 1^2 a 1^2 a 1^2 a^62 0 a^972</code></li></ul>",
+     "<p>The right part is an alternating sea <code>a^x 0 a^y</code> with one extra 0, the <em>marker</em>, and x + y fixed within a round (791 + 243 and 62 + 972 in the round that starts at step 94,966,670). The marker moves left. The left part is made of pieces <code>1^2 a^k</code> with small k and changes like a counter: the tape grows on the left only when the counter gains a piece, and between left growths the marker moved by powers of 3. In the first 10<sup>8</sup> steps the decrements of x between left growths were 243 (79 times), 81 (70), 27 (34), 9 (8), 729 (6) and a handful of others, and x was reset upward 143 times.</p>",
+     "<p>This is the sweep counter of <code>1RB0RE_1LC1RD_1LD0LD_0RE0LC_1RA1RF_0RA---</code> and <code>1RB1RF_1RC0RA_1LD1RE_1LE0LE_0RA0LD_0RB---</code>, mirrored: here the counter sits at the left end and the marker moves left. A round of a sea of width w is about w sweeps of about w steps, so the width grows like the cube root of the step count.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "The halting transition",
+    "heading": "Where a halt would have to come from",
+    "html": [
+     "<p>The halting transition is D reading a 1. D is entered only from C reading a 1 (<code>1LD</code>), so a halt needs <code>1 C&gt;1</code>. In the first 10<sup>8</sup> steps D was entered 74,578 times, every time on a 0, and 74,124 of those times at least 7 cells from the right end.</p>",
+     "<p>Whether the counter's carries or the resets can ever put C on a 1 with a 1 to its left is open.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +142,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "sweep counter: a marker in an alternating sea, counted in base 3",
+ "summary": "A marker 0 drifts left through a long alternating sea while a counter at the left end, written in pieces <code>1110</code>, counts the sweeps; when the marker reaches the far end the sea is reset, a little longer."
 }

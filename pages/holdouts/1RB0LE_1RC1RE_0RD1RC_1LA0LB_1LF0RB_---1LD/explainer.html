@@ -131,7 +131,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 37,504 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>N &rarr; &asymp;4N/3</b><span class="small">The run is a Collatz-like map on all-ones tapes.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#map">An all-ones tape, again and again</a><a href="#phase">Regrouping in threes</a><a href="#halt">No phase has ever halted</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,27 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="map">
+  <span class="eyebrow">The sample point</span>
+  <h2>An all-ones tape, again and again</h2>
+<p>Every now and then the whole tape is a single run of ones with the head in state F on the leftmost one. This happens with 8 ones (at step 43), then 22, 42, 58, 90, 148, 218, 298, 410, ..., 37,610 and 50,154 ones (at step 1,796,208,166). Whatever happens between two such moments depends only on the number N of ones, so the machine is the iteration of a map N &rarr; f(N). The values grow by a factor of about 4/3 each time, which is why the tape grows only logarithmically on one side... and the head's sweeps over the whole tape give the square-root growth on the other.</p>
+</section>
+<section id="phase">
+  <span class="eyebrow">One sample to the next</span>
+  <h2>Regrouping in threes</h2>
+<p>Take N = 90. The first sweep turns 1<sup>90</sup> into 23 blocks <code>1110</code> (92 cells). Merging sweeps then group three blocks into one, giving <code>1</code><sup>11</sup><code>0</code> blocks (11 = 3&middot;3+2), and would go on to 1<sup>35</sup>0, 1<sup>107</sup>0, ... while the count of blocks divides by 3; what does not divide piles up on the left. Here, after 8,047 steps, the tape is all ones again, with 148 of them:</p>
+<pre class="config">step    0   F&gt; 1^90
+step  186   1 (1110)^22 1110          (blocks of 3 ones)
+step  502   10 ones, then (1^11 0)^7    (blocks of 11 ones)
+step 8047   F&gt; 1^148</pre>
+<p>So f(N) depends on how N/4 divides by 3, by 9, by 27...: for most N, 3&middot;f(N) &minus; 4N is a small number (22, 34, 38, 48, 60, ...), so f(N) &asymp; 4N/3, but N divisible by a high power of 3 make bigger jumps (f(16) = 90, f(35) = 240). It is a Collatz-like map whose branches are the base-3 digits.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Could it stop?</span>
+  <h2>No phase has ever halted</h2>
+<p>The halting transition is F reading a 0, and the table allows only one way there: D reads a 0 with <code>1 0 0</code> on its left (Lean: <code>halt_shape</code>). We ran a single phase from every all-ones tape with N = 1, 2, ..., 6,000 ones: every one of them returns to an all-ones tape without halting. So unlike most Collatz-like machines the danger is not a rare residue that the orbit must avoid: no residue is known to be dangerous at all.</p>
+<p>That suggests the machine never halts, and a proof is in reach in principle: describe a phase for every N (a recursion over the base-3 regrouping) and show that none halts. That description is not written yet.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +256,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 37,504 cells have been visited and 37,450 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.066). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.499).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>orbit_8</code>, <code>orbit_90</code>, <code>orbit_148</code>, <code>lean/Orbit.lean</code></div></div><div><b>The first samples</b><p>From blank tape the machine reaches F on the leftmost cell of 1<sup>8</sup> (43 steps), 1<sup>90</sup> (5,156 steps) and 1<sup>148</sup> (13,203 steps), with nothing else on the tape.</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>orbit_4992</code>, <code>orbit_8906</code>, <code>lean/Orbit.lean</code></div></div><div><b>Later samples</b><p>1<sup>4992</sup> after 17,659,931 steps and 1<sup>8906</sup> after 56,708,301 steps.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>e_halve</code>, <code>e_triple</code>, <code>d_triple</code>, <code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code></div></div><div><b>Sweep rules and the shape of a halt</b><p>Rightward, E turns each pair <code>11</code> into <code>01</code> (the first sweep of a phase), and E or D turn every three blocks <code>1110</code> into one 12-cell word (the merging sweeps). The only way to a halt: D on a 0 with <code>1 0 0</code> to its left reaches F on a 0 in 3 steps (F on a 0 is the halting transition). By reading the table (not formalized), F on a 0 needs E on a 0 entered from A on a 1, and A comes only from D on a 0.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/phasemap.c</code></div></div><div><b>The map f on all-ones tapes</b><p>For every N from 1 to 6,000, the machine started in F on the leftmost cell of 1<sup>N</sup> returns to an all-ones tape 1<sup>f(N)</sup> with F on its leftmost cell, without halting. The orbit from 8 is 8, 22, 42, 58, 90, 148, 218, 298, 410, 554, 746, 1002, 1344, 1558, 2090, 2794, 3738, 4992, 6674, 8906, 11882, 15850, 21146, 28202, 37610, 50154 (to step 1.8&middot;10<sup>9</sup>) , then 89188, 132216, 146976, 348442 (3.5&middot;10<sup>11</sup> steps in all, by the same program).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/phasemap.c</code>, traces of single phases</div></div><div><b>What a phase does</b><p>From 1<sup>N</sup> a first sweep writes (1110)<sup>k</sup>; then merging sweeps group the blocks three at a time into 1<sup>11</sup>0, 1<sup>35</sup>0, ... (lengths 3&middot;a+2), the leftovers of each division by 3 making a growing left part. When the regrouping stops, the tape is filled with ones again. So f depends on the base-3 digits of N: 3f(N) &minus; 4N takes the value 22 when N &equiv; 2 or 14 (mod 36) and other small values for most N, but large values for N divisible by high powers of 3 (for example f(16) = 90, f(35) = 240).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/nbhd.c</code></div></div><div><b>Near misses</b><p>In 10<sup>9</sup> steps D reads a 0 about 62,600 times; the left neighbours are never <code>1 0 0</code> (the closest: <code>1 0 1</code>, 32,865 times).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts iff some phase of the orbit 8, 22, 42, ... halts. Since no phase from any N &le; 6,000 halts, the most likely answer is that no phase ever halts, which would prove that the machine runs forever; a proof needs the exact description of a phase for every N (a recursion on the base-3 digits).</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD 1000000000
+gcc -O2 -o phasemap holdouts/1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD/c/phasemap.c &amp;&amp; ./phasemap 600 200000000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

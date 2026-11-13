@@ -73,13 +73,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA</p>
     <h1>What is known about 1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA</h1>
     <p class="machine">1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. It is the machine the bbchallenge community calls <b>Antihydra</b>, a cryptid: a machine whose halting is equivalent to an open Collatz-like problem.</p>
+    <p>Lean proves the equivalence here, for every step of the run: the machine halts from blank tape exactly when a simple arithmetic walk on two numbers reaches its halting case.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and is now a question about numbers.</b> Lean proves (<code>halts_iff</code>, kernel) that the machine halts from blank tape if and only if the orbit of (2, 7) under the map <i>(p, a) ↦ (p + 2, 3k + 4)</i> for <i>a = 2k + 1</i>, <i>(p − 1, 3k + 2)</i> for <i>a = 2k</i> ever meets an even <i>a</i> with <i>p = 0</i>.</p>
+      <p><b>Why nobody expects a halt.</b> The parity of <i>a</i> behaves like a fair coin, so <i>p</i> is a random walk with steps +2 and −1 and an upward drift of ½ per step. After 10<sup>6</sup> steps of the walk (a computation, not a proof) <i>p</i> is 498,505; a walk of that kind started at height <i>p</i> ever reaches −1 with probability about 0.618<sup><i>p</i>+1</sup>. Deciding it would need control of the parity sequence of <i>⌊3x/2⌋</i> iterates, a famously hard problem (Mahler's 3/2 problem is of this kind).</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -97,6 +99,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The halting configurations</h3>
         <p>The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.</p>
         <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The sweep and its two endings</h3>
+        <p>For every p, a, b, with <code>Q p a b = 0^∞ 1^p 0 1^a 0 1^b B&gt; 0^∞</code>: <code>Q p (a+3) (b+1)</code> reaches <code>Q p (a+1) (b+4)</code> in 2b + 13 steps (one sweep: the middle block loses 2, the right block gains 3), and by induction k sweeps at once; a middle block of 1 gives <code>Q (p+2) (c+4) 2</code> from <code>Q p 1 (c+2)</code>, a middle block of 2 gives <code>Q p (c+5) 2</code> from <code>Q (p+1) 2 (c+2)</code>, and <code>Q 0 2 (c+2)</code> halts after c + 8 steps. The shift rules are generated from the table by <code>bbtools.symtm</code> and proved by <code>rfl</code> and the crossing lemmas.</p>
+        <p class="where"><code>inner</code>, <code>odd_a</code>, <code>odd_b</code>, <code>odd0</code>, <code>even</code>, <code>halt0</code> in <code>lean/Rules.lean</code>; <code>sweep'</code>, <code>odd_end</code>, <code>even_end</code>, <code>halt_end</code> in <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting is equivalent to the Antihydra walk</h3>
+        <p>After 62 steps from blank tape the run is at <code>Q 2 7 2</code>. With <code>nxt (p, a)</code> = (p + 2, 3k + 4) for a = 2k + 1, (p − 1, 3k + 2) for a = 2k and p ≥ 1, and no successor for a even and p = 0: the machine halts from blank tape if and only if the orbit of (2, 7) under <code>nxt</code> stops. Both directions: a stop gives a halting run; an orbit that never stops gives runs of every length.</p>
+        <p class="where"><code>blank_to_Q</code>, <code>nxt_sound</code>, <code>nxt_halt</code>, <code>orbit_reached</code>, <code>halts_iff</code>, <code>lean/Macro.lean</code></p>
       </div>
       <div class="card">
         <h3>No halt in the first 10,000 steps</h3>
@@ -119,20 +131,25 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 44,299 cells have been visited and 44,296 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The walk does not stop in its first 10<sup>6</sup> steps</h3>
+        <p>Python big integers iterate <code>nxt</code> from (2, 7) a million times: p never falls below 2 and ends at 498,505 (a then has 584,967 bits). The first 12 points agree with a direct simulation of the machine, cell for cell, at the step counts the Lean rules give (step 62, 173, 423, …, 1,405,109).</p>
+        <p class="where"><code>py/walk.py run 1000000</code>, <code>py/walk.py check 3e6</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.513).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Why a halt is not expected</h3>
+        <p>With x = a + 5 the map is x ↦ ⌊3x/2⌋, and p goes up 2 when x is even and down 1 when x is odd. If the parities are independent fair coins (they look so: no bias is known), p is a random walk with drift +½ per step; from height p it ever reaches −1 with probability φ<sup>−(p+1)</sup>, φ = (1+√5)/2, and p is already about 500,000. This is the bbchallenge community's reading too (Antihydra is listed as a cryptid, probviously non-halting).</p>
+        <p class="where"><code>holdouts/known.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>Does the walk ever stop?</h3>
+        <p>Open. Proving it never stops would need to show that the parities of the iterates of ⌊3x/2⌋ from x = 12 are not too often odd, an unsolved problem of the same kind as Mahler's 3/2 problem.</p>
       </div>
     </div>
   </section>
@@ -140,7 +157,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA 1000000000</code></pre>
+python3 holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/py/gen_rules.py | diff - holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/lean/Rules.lean
+python3 holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/py/walk.py check 3e6 &amp;&amp; python3 holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/py/walk.py run 1000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

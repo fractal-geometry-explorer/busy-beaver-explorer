@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> After step 43,506 the left end of the tape never moves again. The tape is an irregular region of ones-runs separated by single 0s, then a tail <code>(10)^n</code>. Each tick the head zigzags left across the tail and runs back, adding a cell. The two sweeps are proved in Lean. Unlike a counter, the irregular region grows in proportion to the number of ticks, and a tick can rewrite it at any depth. No structure that would decide halting has been found.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweeps across the tail</h3>
+        <p>Going left, the head zigzags across <code>(10)^n</code> in states C and A, two cells every four steps (<code>zig</code>). Going right in state B, it runs across in one step a cell, rewriting each 10 as 01 (<code>run_right</code>). Both hold for every n and every tape around.</p>
+        <p class="where"><code>zig</code>, <code>run_right</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +124,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 35,289 cells have been visited and 25,910 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Both parts grow linearly in the ticks</h3>
+        <p>In the first 10<sup>9</sup> steps the left end is last extended at step 43,506. At steps 2.8&middot;10<sup>6</sup>, 2.5&middot;10<sup>7</sup> and 10<sup>8</sup>, the irregular region has 1,528, 4,060 and 7,904 cells and the tail has 374, 1,006 and 1,931 copies of 10. The tape grows by one cell per tick, so both parts grow like the square root of the time.</p>
+        <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c</code></p>
+      </div>
+      <div class="card">
+        <h3>What the irregular region is made of</h3>
+        <p>At step 10<sup>8</sup> the region is a sequence of ones-runs separated by single 0s. Of its 1,191 runs, 679 have length 6, 246 length 2, 193 length 10, and the rest are rare defects (lengths 0, 3, 4, 5, 7, 8, 14).</p>
+        <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Rewrites at every depth</h3>
+        <p>Over the 11,392 ticks in the first 10<sup>8</sup> steps, about half change only the last 20 cells of the region. The rest reach back with a slowly decaying, heavy-tailed distribution: 563 reach 20&ndash;39 cells, 109 reach 80&ndash;99, and still 30 reach 720&ndash;739. This is not the geometric fall-off of a counter.</p>
+        <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +147,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.474).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Why it is hard</h3>
+        <p>The machine halts only when D reads 0 with a 0 to its right (E reading 0 is its only undefined transition). The irregular region looks like the output of a process with long-range signals rather than a counter, and no rule for it has been found. It might hide a simpler structure at a larger scale.</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The open part is the dynamics of the irregular region.</p>
       </div>
     </div>
   </section>
@@ -140,7 +164,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_0LC0RA_1RA1LC_1RE0LC_---1RF_0RD0RB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_0LC0RA_1RA1LC_1RE0LC_---1RF_0RD0RB 1000000000</code></pre>
+gcc -O2 -o turns holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c &amp;&amp; ./turns 1RB1LD_0LC0RA_1RA1LC_1RE0LC_---1RF_0RD0RB 1000000000 100000 0</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LD_0LC0RA_1RA1LC_1RE0LC_---1RF_0RD0RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -129,9 +129,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <p class="machine-id">1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB</p>
   <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 59,855 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>11</sup></b><span class="small">Steps simulated without halting.</span></div>
+    <div class="fact"><span class="ev o">Open</span><b>~4 : 1</b><span class="small">Units gained by the first register per unit lost by the second (observed).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +139,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Registers of 011101</a><a href="#halting">Not known</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +208,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What it does</span>
+  <h2>Registers of 011101</h2>
+<p>Read left to right, the tape is a list of registers: runs of the word <code>011101</code> separated by short separators. Their lengths at the left end at a few moments (separators left out):</p><pre>step 12,547,595:   670   87  144   21
+step 14,175,202:   136  652   75  140   21
+step 53,840,380:    11 1019  509  430   19  127   17
+step 99,822,398:  1370  680  425  409   12  124   15</pre><p>The first register grows while the second shrinks, about four units for one; when the second runs low the list shifts (the old first register becomes the second, a new first register starts small). The width grows like the square root of the step count. The units are crossed by shift rules (A moving right turns <code>011101</code> into <code>111110</code>, D moving left turns it into <code>111011</code>).</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>Not known</h2>
+<p>The machine halts only in F reading 0 (E reads a 1 and moves right onto a 0). The registers look like a cascade of counters, but the transfer and shift rules have not been extracted, so there is no map to iterate. Direct simulation: no halt in 10<sup>11</sup> steps.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +247,16 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 59,855 cells have been visited and 47,179 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.494). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.075).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in 10<sup>11</sup> steps</b><p>Direct simulation from blank tape.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>The register rules</b><p>The transfer between the first two registers and the shift; see the README's For later.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB 1000000000
+gcc -O2 -o /tmp/tmrun tools/c/tmrun.c &amp;&amp; /tmp/tmrun 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB 100000000000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

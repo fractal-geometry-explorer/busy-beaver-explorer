@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G01",
  "title": "What is known about 1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD.",
@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open, and halting looks very unlikely.</b> The tape is a list of blocks <code>(1101)^n</code> separated by single 0s. At each <i>rest</i> (head at the left end in state B) the tape is <code>B&gt;1 P (1101)^A 0 (1101)^b1 0 &hellip;</code> with <code>P</code> = <code>0</code> or <code>000</code>, and the list enters only through <i>g</i> = 6 + <i>b</i><sub>1</sub>/2 + <i>b</i><sub>2</sub>/4 + &hellip;. The next rest is <i>A</i> &rarr; (3<i>A</i>+<i>g</i>)/2 (with &minus;3 or &minus;6 for type 0), or, when the parity is wrong, a <b>push</b>: <i>A</i>+1 joins the list and <i>A</i> restarts at about (<i>A</i>+<i>g</i>)/4. This map reproduces all 36 rests of the direct run up to 10<sup>10</sup> steps and 350 rests started from random configurations; it is built from sweep rules proved in Lean, but the map itself is not proved. Iterated 2&middot;10<sup>5</sup> times from blank tape, <i>A</i> never comes near the tiny values from which the machine halts."
  ],
  "claims": [
   {
@@ -46,34 +46,80 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Sweep rules of the transfer and counting phases",
+   "text": "Four rules from one moment the head is at the left end in state B reading 1 to the next, for every value of the counts: the transfer phase (two copies of <code>1101</code> leave the block left of the marker <code>00</code>, three arrive right of it) and the counting phase with the marker next to the counter (the counter gains one while six copies cross the marker; at depth k it is 6&middot;2<sup>k</sup>; depths 1, 2 and 3 are in <code>lean/Deep.lean</code>, below).",
+   "where": "<code>t_one</code>, <code>t_two</code>, <code>u0_one</code>, <code>u0_two</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Counting rules at depth 1, 2 and 3",
+   "text": "With one, two or three blocks between the counter and the block holding the marker, one unit of the counter costs 12, 24 or 48 copies of <code>1101</code> crossing the marker (8 + 4, 16 + 8, 32 + 16 in the two halves), for every value of the counts and any tape to the right. The mechanism: the block boundaries act as a binary counter, so the head makes 2<sup>k</sup> trips to the marker per unit at depth k. The rest map itself is still not proved.",
+   "where": "<code>u1_one</code> &hellip; <code>u3_two</code>, <code>lean/Deep/*.lean</code> (from <code>py/gen_deep.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "A plain C simulator (<code>longrun.c</code>, on <code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps from blank tape without a halt; at the end the head has visited cells -370,533 to 111 and 250,472 cells hold a 1.",
+   "where": "<code>holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/c/longrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The rest map, checked against the machine",
+   "text": "With <i>g</i> = 6 + <i>b</i><sub>1</sub>/2 + <i>b</i><sub>2</sub>/4 + &hellip; (always an integer on the orbit, and A+g always a multiple of 3): type 000 goes to (3A+g)/2 when A+g is even, otherwise pushes A+1 and goes to type 000 with (A+g&minus;5)/4 (A+g = 1 mod 4) or type 0 with (A+g+1)/4; type 0 goes to type 0 with (3A+g&minus;3)/2 (A+g odd) or type 000 with (3A+g&minus;6)/2. From type 0, A = 3, empty list (62 steps) it reproduces all 36 rests of the direct run up to 10<sup>10</sup> steps, and the machine run from 350 random rests (A up to 600, lists of up to four blocks) reaches the predicted next rest every time.",
+   "where": "<code>py/map.py events 1e10</code>, <code>py/map.py random</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where it halts",
+   "text": "Run from every rest with A &lt; 40 and a list of at most two short blocks, the machine halts only from A = 0 with an empty list (type 0 or 000), after 91 steps, by the whole tape collapsing; the other small cases that leave the map involve blocks of length 1, which the orbit never creates once A &gt; 1.",
+   "where": "README.md"
+  },
+  {
+   "level": "heuristic",
+   "title": "The map iterated far, and the odds of a halt",
+   "text": "Iterated 2&middot;10<sup>5</sup> times from blank tape, A stays at 64 or more from the 10th rest on and has 50,000 bits at the end (66,996 pushes). The size A+g is multiplied by 3/2 at every non-push rest and by about 3/4 at a push (a third of the rests): a random walk in log size with strong upward drift. Reaching size ~10 again from the 2&middot;10<sup>4</sup> of the rest at 9.8&middot;10<sup>9</sup> steps has probability of order 10<sup>&minus;10</sup>; probviously non-halting.",
+   "where": "<code>py/map.py iterate 2e5</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "text": "Not known. A proof would need the rest map for all values in Lean: the counting rule at every depth (an induction over the binary counter on the block boundaries), the marker crossing block boundaries mid-cycle, and the start and end phases. It would also need an argument that A+g never falls back to the handful of tiny configurations that halt, which is a Collatz-type question.",
+   "where": "README.md, Further work"
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD 1000000000"
+  "python3 holdouts/1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD/py/gen_deep.py      # rewrites lean/Deep/*.lean",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD 1000000000",
+  "python3 holdouts/1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD/py/gen_rules.py      # rewrites lean/Rules.lean",
+  "python3 holdouts/1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD/py/map.py events 1e10   # the map against every rest of the direct run",
+  "python3 holdouts/1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD/py/map.py random 200 11  # ... and against runs from random rests",
+  "python3 holdouts/1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD/py/map.py iterate 2e5   # the map from blank tape"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows, but it almost certainly never stops. This machine runs a Collatz-like rule: a number A on the tape is multiplied by 3/2 and topped up by a constant g that encodes a list of older numbers, and when the parity is wrong, A is filed away onto the list and a new, smaller A starts.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 37,407 cells visited."
-   },
-   {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "value": "A &rarr; (3A+g)/2",
+    "text": "The rest map, matching every rest of the run to 10<sup>10</sup> steps."
    },
    {
     "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "2&middot;10<sup>5</sup> rests",
+    "text": "The map iterated from blank tape; A never small again."
+   },
+   {
+    "level": "kernel",
+    "value": "10 rules",
+    "text": "The sweeps the map is built from (counting at depths 0 to 3, and transfer), proved for every count."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator."
    }
   ],
   "presets": [
@@ -85,6 +131,38 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "list",
+    "eyebrow": "Emergent behaviour",
+    "heading": "A list of blocks and a marker",
+    "html": [
+     "<figure style=\"margin:1em 0\"><img src=\"defects.png\" alt=\"defect picture of 1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD\" style=\"width:100%;max-width:900px;image-rendering:pixelated;border:1px solid var(--line);background:#fff\"/><figcaption style=\"font-size:0.9em;color:var(--muted)\">Defect picture of the first 3&middot;10<sup>7</sup> steps (time runs down, rows at equal step spacing, the tape grows to the left); white where the tape repeats with period 4 (the blocks of <code>1101</code>), dark at block boundaries. Vertical lines are boundaries between frozen blocks; the curves are the marker and the counter moving through.</figcaption></figure>",
+     "<p>Between two rests the tape reads <code>B&gt;1 (1101)^c 0 (1101)^a 0 &hellip; (1101)^z 0 0 (1101)^y 0 &hellip;</code>: a <b>counter</b> block <i>c</i> at the left, the list of blocks, and a <b>marker</b> <code>00</code> inside the list. Each round trip of the head moves copies of <code>1101</code> across the marker:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>phase</th><th>what one round trip does</th><th>proved</th></tr></thead><tbody><tr><td>counting, depth <i>k</i></td><td>the marker starts in the last block and moves left; 6&middot;2<sup>k</sup> copies cross it per unit added to the counter (<i>k</i> = blocks between counter and marker)</td><td><code>u0_*</code> (depth 0)</td></tr><tr><td>transfer</td><td>the counter, now a block of about 4c, loses 2 copies per half trip while the block right of the marker gains 3</td><td><code>t_one</code>, <code>t_two</code></td></tr></tbody></table></div>",
+     "<p>A block <i>b</i> at depth <i>k</i> adds about <i>b</i>/(6&middot;2<sup>k</sup>) to the counter, and the transfer phase pays out 3/2 for each copy; together this is the map below, with the whole list summed up in one number <i>g</i> = 6 + <i>b</i><sub>1</sub>/2 + <i>b</i><sub>2</sub>/4 + &hellip;.</p>"
+    ]
+   },
+   {
+    "id": "map",
+    "eyebrow": "The map",
+    "heading": "Multiply by 3/2, or file it away",
+    "html": [
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>rest</th><th>condition</th><th>next rest</th></tr></thead><tbody><tr><td>type 000, A</td><td>A+g even</td><td>type 000, (3A+g)/2</td></tr><tr><td>type 000, A</td><td>A+g = 1 mod 4</td><td>push A+1; type 000, (A+g&minus;5)/4</td></tr><tr><td>type 000, A</td><td>A+g = 3 mod 4</td><td>push A+1; type 0, (A+g+1)/4</td></tr><tr><td>type 0, A</td><td>A+g odd</td><td>type 0, (3A+g&minus;3)/2</td></tr><tr><td>type 0, A</td><td>A+g even</td><td>type 000, (3A+g&minus;6)/2</td></tr></tbody></table></div>",
+     "<p>A push puts the block A+1 at the front of the list, so g becomes (A+g+7)/2. From blank tape the first rest is type 0 with A = 3 and an empty list (g = 6):</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>rest</th><th>type</th><th>A</th><th>g</th><th></th></tr></thead><tbody><tr><td>1&ndash;8</td><td>0, 0, 000, 0, 0, 0, 000, 000</td><td>3, 6, 9, 4, 10, 19, 31, 52</td><td>6 &rarr; 11</td><td>push at 4</td></tr><tr><td>9&ndash;15</td><td>0 &hellip; 000</td><td>16, 40, 76, 130, 211, 331, 514</td><td>35</td><td>push at 9</td></tr><tr><td>33&ndash;36</td><td>0, 0, 0, 000</td><td>3220, 8050, 15295, 26161</td><td>6443</td><td>rest 35 at 9.79&middot;10<sup>9</sup> steps</td></tr></tbody></table></div>",
+     "<p>Without a push the size A+g grows by half; a push (a third of the rests) shrinks it to about three quarters. The machine halts only from A = 0 with an empty list, so it would need this random-looking walk to come all the way back down; with the strong upward drift that has odds of order 10<sup>&minus;10</sup>.</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "Inside a sweep",
+    "heading": "A binary counter hidden in the gaps",
+    "html": [
+     "<p>While the marker <code>00</code> works its way through the list, the single 0s between the blocks quietly become the bits of a binary counter. Each time the head comes back from the marker it looks at the gaps, deepest first. A gap showing 0 is set to 1 and the head turns back to the marker. A gap showing 1 is reset to 0 and the head keeps going: that is the carry. Only when the carry runs off the end does the counter at the left end go up by one.</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>blocks between counter and marker</th><th>0</th><th>1</th><th>2</th><th>k</th></tr></thead><tbody><tr><td>trips to the marker per unit</td><td>1</td><td>2</td><td>4</td><td>2<sup>k</sup></td></tr><tr><td>copies of 1101 moved per unit</td><td>6</td><td>12</td><td>24</td><td>6&middot;2<sup>k</sup></td></tr></tbody></table></div>",
+     "<p>This is why block number k enters the map only through b<sub>k</sub>/2<sup>k</sup>. The rules for 0 to 3 blocks are proved in Lean. A proof for every k would go by induction over this counter, and it is the first missing piece of a proof of the whole map.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +176,8 @@
     ]
    }
   ]
- }
+ },
+ "family": "Antihydra-like: A &rarr; (3A+g)/2 or a push A &rarr; (A+g)/4 on a growing list of (1101)^n blocks, g = 6 + sum b_k/2^k",
+ "summary": "An exact Collatz-like map on rests (A, g): A becomes (3A+g)/2, or the block is pushed onto a list (g := (A+g+7)/2) and A restarts near (A+g)/4; it matches every rest of the run to 1e10 steps, and halting needs A+g to fall back to single digits.",
+ "decision": "open"
 }

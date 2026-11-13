@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. The machine is a counter: at every return to the left end the tape begins <code>(110)^p</code>, with p one more than last time. A round costs about 10·p² steps, so after t steps p is about (0.3·t)<sup>1/3</sup>, and the width (about 6 cells more per round) follows the same law. The right end is a short disordered stretch the machine never halts in, so far.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 3,948 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>power/power</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>670 / 670</b><span class="small">Returns to the left end, up to 10<sup>9</sup> steps, at which p went up by exactly 1.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>≈ 10.1·p²</b><span class="small">Steps from one return to the next (10.06 to 10.1 over the last five).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>t<sup>1/3</sup></b><span class="small">Growth of p and of the width: p = 672, width 3,943 at step 997,776,132.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counter">A counter made of 110s</a><a href="#growth">Why the width grows like t&lt;sup&gt;1/3&lt;/sup&gt;</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="counter">
+  <span class="eyebrow">What it does</span>
+  <h2>A counter made of 110s</h2>
+<p>Stop the machine whenever it is at the left end of the tape in state A, reading <code>A&gt;0 0</code>. Written with c = <code>110</code>, the tapes at the last four such times are:</p>
+<pre>step 984,209,020   0^2 c^669 0^3 c^629 0^5 c 0^5 c 0^2 10 0 10 0 11
+step 988,723,786   0^2 c^670 0 11 c^629 0^6 10 c 0^10 10 c 0 11
+step 993,245,530   0^2 c^671 0^3 c^629 0^4 c^2 0^12 c 0 c 0^2 1
+step 997,776,132   0^2 c^672 0^3 c^629 0^4 c^3 0^8 c 0^2 10 0 c 0^2 1</pre>
+<p>The first run of <code>110</code>s is the counter p. It goes up by exactly one per round, 670 times in a row from p = 2 at step 52. Between returns the head walks the whole tape, and inside the run it moves by a back-and-forth (states B and C) that converts one <code>110</code> per 5 steps; a round costs about 10·p² steps.</p>
+<p>After the counter come <code>0 0 0</code>, or <code>0 1 1</code> when p ≡ 1 mod 3,, a second run <code>(110)^q</code> that grows only now and then (q = 629 for the last returns), and a short disordered stretch at the right end.</p>
+</section>
+<section id="growth">
+  <span class="eyebrow">Growth law</span>
+  <h2>Why the width grows like t<sup>1/3</sup></h2>
+<p>Round p costs about 10·p² steps and adds one to p, so after p rounds about 10·p³/3 steps have passed: p ≈ (0.3·t)<sup>1/3</sup>, which is 670 at 10<sup>9</sup> steps (672 seen). The width grows by about 6 cells a round (6 in 556 of 670 rounds), so it grows the same way: 3,943 cells at step 997,776,132.</p>
+<p>The machine halts only if E reads a 1 with a 0 to its right, which would have to happen in the disordered stretch.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -232,17 +249,30 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   </div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (C0); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep</code>, <code>carry</code> in <code>lean/Rules.lean</code>, generated by <code>py/rules.py</code></div></div><div><b>Two shift rules</b><p>The rightward sweep <code>E&gt; (110)^n</code> becomes <code>(011)^n E&gt;</code> in 3n steps, and the leftward zigzag <code>(011)^n A&gt; 0 0</code> becomes <code>A&gt; 0 0 (011)^n</code> in 5n steps (the run of words moves 3 cells right past the gap).</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 3,948 cells have been visited and 2,621 of them hold a 1.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/counter.py</code> on a <code>tmrun … at A L</code> log</div></div><div><b>The counter</b><p>Every time up to 10<sup>9</sup> steps that the head is at the left end in A on <code>A&gt;0 0</code>, the tape is <code>0 0 (110)^p</code> followed by the rest. There are 671 such times; p is 2 at step 52 and 672 at step 997,776,132, and it goes up by exactly 1 each time.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/counter.py</code></div></div><div><b>Cost of a round</b><p>The number of steps between returns, divided by p², is 10.06–10.1 for the last five rounds. Summing 10·p² over rounds gives t ≈ 3.4·p³, i.e. p ≈ 670 at 10<sup>9</sup> steps, as seen.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/counter.py</code> and the same log</div></div><div><b>What follows the counter</b><p>Right after <code>(110)^p</code> comes <code>0 0 0</code> when p ≡ 0 or 2 (mod 3) and <code>0 1 1</code> when p ≡ 1 (mod 3), at all 601 returns after step 10<sup>6</sup>. Then comes a second run <code>(110)^q</code> (q = 629 for the last returns, about 0.9·p), then 20–30 disordered cells, e.g. <code>0^4 (110)^3 0^8 110 0^2 10 0 110 0^2 1</code> at step 997,776,132.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">same log</div></div><div><b>Width</b><p>From one return to the next the width grows by 6 cells in 556 of 670 rounds (other values 2, 3, 4, 7, 8, 10, 14); it is 3,943 at step 997,776,132.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">plain simulation</div></div><div><b>Not every run of 1s is even</b><p>Odd runs of 1s (lengths 1, 3, 5) occur far from the head, in every state and on both sides (a scan of every 13th step up to step 400,000), and the disordered end at the 667 returns to the left end takes 658 different shapes of 3 to 50 cells. So the even-run property holds only for the runs E reaches; an invariant has to say where the odd runs can be.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/ecensus.c</code></div></div><div><b>How near it comes to halting</b><p>In the first 10<sup>9</sup> steps E reads a 1 123,762,963 times with exactly two 1s from the head (<code>E&gt;1 1 0</code>) and 429,985 times with four (<code>E&gt;1 1 1 1 0</code>); never with one, which is what a halt needs. So the disordered right end never puts E on a lone 1 either: E's runs of 1s are always of even length.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/power</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.325). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.333).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">scratch scripts of worker wC</div></div><div><b>No closed tape language found</b><p>Closed-language searches all fail: windows of up to 8 cells grown as needed (also with flags for run parity, odd runs seen, position mod 3) leave thousands of halting abstract configurations (9,071 at 8 cells with run parity). The shortest abstract path to a halt (45 steps, 8 cells) goes wrong when the tape first outgrows the window: from <code>C&gt;1 1 1 1 0 0 1 1</code>, 9 cells, the window forgets where blank tape starts. DFAs learned from the run (k-tails with folding) with the least NFA on the other side fail too.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>far.c</code>, <code>bbtools.invariants</code></div></div><div><b>No small automaton proof</b><p>A finite-automata-reduction search (DFA on one side, least NFA on the other; <code>far.c</code> in 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA) finds no certificate with up to 7 DFA states on the left or 8 on the right, and there is no conserved quantity a·ones + b·position + W[state] modulo 2 to 12.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">the transition table</div></div><div><b>How it could halt</b><p>The halting transition is C reading 0. C is entered only from B reading 0 (which writes 1 and moves left), and B is entered from A on 0 (which leaves a 1 to B's left) or from E on 1 (which leaves a 0). So a halt is exactly <code>E&gt;1 0</code>: E on a 1 with a 0 to its right. It has not happened in 10<sup>9</sup> steps.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The counter steps by 1 at every one of the 670 rounds seen, and E never meets a lone 1 in 10<sup>9</sup> steps (its runs of 1s are always even); why, and why the disordered right end keeps it so, are open.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF 1000000000
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF 1000000000 at A L 100000 &gt; al.txt &amp;&amp; python3 holdouts/1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF/py/counter.py al.txt
+python3 holdouts/1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF/py/rules.py | diff - holdouts/1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF/lean/Rules.lean
+gcc -O2 -o ecensus holdouts/1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF/py/ecensus.c &amp;&amp; ./ecensus 1000000000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

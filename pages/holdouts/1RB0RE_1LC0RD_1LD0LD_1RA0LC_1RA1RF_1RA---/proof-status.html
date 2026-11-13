@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine is a binary counter whose digits are pairs of blocks of <code>10</code>s. One sweep adds one to it, with an exact rule and an exact step count. That rule is checked against the machine on 24,787 sweeps, and its first two cases are proved in Lean for every size. Rare merge and end events change the list of digits, and they are only partly described.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules of the sweep</h3>
+        <p>For every n and any tape around: states A and E cross blocks of <code>10</code>/<code>01</code> to the right, shifting them by one cell, and C and D cross them to the left unchanged.</p>
+        <p class="where"><code>a_right</code>, <code>a_right1</code>, <code>d_left</code>, <code>c_left</code>, <code>e_right</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The first two cases of the tick</h3>
+        <p>The whole sweep when the first digit is 0 (<code>tick_stop</code>, 4a + 10 steps) and when the carry passes one digit (<code>tick_pass1</code>, 4a + 8b + 4c + 34 steps). Both hold for every block length and any tape to the right.</p>
+        <p class="where"><code>tick_stop</code>, <code>tick_pass1</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +129,25 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 87,460 cells have been visited and 43,726 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>One sweep is a binary increment</h3>
+        <p>At each left turn the tape is <code>0^inf D&gt; 0 (10)^a</code> followed by digits <code>s (10)^b 1 (10)^c</code>, where the separator s is <code>0</code> for a 1 and <code>0 0 0</code> for a 0. A sweep turns the leading 1s into 0s (each loses one <code>10</code> from c), turns the first 0 into a 1 (it gains one <code>10</code> in b), and adds one to a. It takes exactly 6 + 4a + 8&Sigma;b + 4&Sigma;c + 8n steps over the n digits passed. This holds for 24,787 of the 25,117 sweeps in the first 3&middot;10<sup>8</sup> steps. The rest are the merge and end events.</p>
+        <p class="where"><code>c/blocks.c</code>, <code>py/ticks.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.564). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A list of blocks with carries</h3>
+        <p>The events: when the carry passes a digit whose c is 1 and the next digit is 0, the two digits merge into one digit 0, <code>(10)^(b+b'+2) 1 (10)^c'</code> (22 of 25 cases). When the carry passes every digit, the first block is cut off and becomes a new digit. Read off the simulation; the remaining cases are not yet described.</p>
+        <p class="where"><code>README.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The block dynamics has not been reduced to a rule.</p>
       </div>
     </div>
   </section>
@@ -140,7 +155,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA--- 1000000000
+gcc -O2 -o blocks holdouts/1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---/c/blocks.c &amp;&amp; ./blocks 300000000 0 &gt; blocks.txt
+python3 holdouts/1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---/py/ticks.py blocks.txt</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

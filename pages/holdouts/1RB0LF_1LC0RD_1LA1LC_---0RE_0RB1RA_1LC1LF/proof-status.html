@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF</p>
     <h1>What is known about 1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF</h1>
     <p class="machine">1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this six-state machine halts from blank tape. Seen from the left end, its tape is mostly two long runs of the word <code>110 / 1110</code> with a marker between them; seen from the right end, it is one long run of <code>1100</code> with about as many words, after a short disordered stretch. Its near-twin <code>1RB0LD_0RC---_0LD0RF_1LE1LD_0LA0RD_0RB1RA</code> does the same.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps; the C simulator shows none in 10<sup>9</sup>. How the disordered stretch evolves is not yet understood.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 2,924 cells have been visited and 2,057 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Tape shape</h3>
+        <p>At the last side switches before 10<sup>9</sup> steps the tape is, at the left end, <code>0 0 (110)^6 1110 (110)^4 (1110)^398 1 (1110)^319 110 (1110)^2 0 1110</code> (step 996,763,950); at the right end, <code>… (1100)^717 1110 0000 (1100)^2 110</code> after a disordered stretch of 37 cells (step 998,058,647). The two runs at the left (409 + 308, then 398 + 319) add up to the one run at the right (716, then 717), to within one word.</p>
+        <p class="where"><code>py/shape.py</code>, <code>py/switches.py</code> on a <code>tmrun … records</code> log</p>
+      </div>
+      <div class="card">
+        <h3>A twin</h3>
+        <p><code>1RB0LD_0RC---_0LD0RF_1LE1LD_0LA0RD_0RB1RA</code> and <code>1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF</code> behave alike: all 1,423 side switches in the first 10<sup>9</sup> steps fall on the same sides in both, the widths at the n-th switch differ by at most 1, and the run lengths printed agree (409 and 308, 398 and 319, 716, 717).</p>
+        <p class="where"><code>py/switches.py</code> on both machines' logs</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +137,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.324). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.329).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Growth like t<sup>1/3</sup></h3>
+        <p>After step 5·10<sup>8</sup>: 298 side switches, 1,674,671 steps apart on average (≈ 0.196·w<sup>2</sup>, w = 2923), about 2.0 cells of width per switch; fitted width exponent 0.326 after step 10<sup>7</sup>.</p>
+        <p class="where"><code>py/switches.py</code>, <code>py/shape.py</code></p>
+      </div>
+      <div class="card">
+        <h3>How it could halt</h3>
+        <p>The halting transition is D reading 0. D is entered only from B reading 1, which writes 0 and moves right. So a halt is exactly <code>B&gt;1 0</code>: B on a 1 with a 0 to its right.</p>
+        <p class="where">the transition table</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The run structure holds at the switches printed; what the disordered stretch does, and whether it can produce the halting pattern, are open.</p>
       </div>
     </div>
   </section>
@@ -140,7 +160,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF 1000000000
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF 1000000000 records 100000 &gt; rec.txt &amp;&amp; python3 holdouts/1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF/py/shape.py rec.txt g=1110,h=110,c=1100,b=100,e=1000,a=10 &amp;&amp; python3 holdouts/1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF/py/switches.py rec.txt g=1110,h=110,c=1100,b=100,e=1000,a=10</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

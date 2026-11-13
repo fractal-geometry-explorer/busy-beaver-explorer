@@ -131,7 +131,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 36,990 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>n &rarr; n/2</b><span class="small">Each round, every run of equal blocks halves and moves up a level.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Runs of equal blocks</a><a href="#round">Every run halves</a><a href="#halt">One cell short, twenty thousand times</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,27 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>Runs of equal blocks</h2>
+<p>Watch the run only at the moments the head stands in state A at the left end of the tape. At every such moment the tape is a list of <em>blocks</em> 1<sup>k</sup>&nbsp;00 (k ones, then two zeros), and almost every k has the form 6j+1: 1, 7, 13, 19, 25, ... Call j the block's <em>level</em>. Equal blocks come in long runs. Here is the tape at step 1,032,953,757, each block written as its k, <code>x</code> meaning repetition (so <code>7x570</code> is 570 copies of 1<sup>7</sup>00):</p>
+<pre class="config">8 1/1 25 7 1 7 57 55x2 53 1 7 49 47 1 43x16 39 37x5 35 1 19 31x82 29 11 1 25x33 23 19x415 17 1 7 13x176 11 1 7x2065 5 1x890 1</pre>
+<p>The highest levels are on the left, the lowest on the right; the whole tape is 37,755 cells wide. The left part grows only like the logarithm of the time (a new level now and then), the right part like its square root.</p>
+</section>
+<section id="round">
+  <span class="eyebrow">One sample to the next</span>
+  <h2>Every run halves</h2>
+<p>The next sample, at step 1,315,786,580, reads:</p>
+<pre class="config">6 29 7 63 59 1 7 53 1 7 49x7 47 1x2 41 43 41 1 7 37x41 33 1 7 31x16 29 25x207 23 13 19x87 17 1 7 13x1032 11 7x445 3 1x5171 1</pre>
+<p>Compare: the 890 blocks of level 0 became 445 blocks of level 1, the 2065 of level 1 became 1032 of level 2, 176 &rarr; 87, 415 &rarr; 207, 33 &rarr; 16, 82 &rarr; 41, 16 &rarr; 7. Every run halved and went up a level, and a fresh run of 5171 level-0 blocks appeared on the right. That is the law at every round we checked: n blocks of level j become between &lfloor;n/2&rfloor;&minus;1 and &lceil;n/2&rceil;+1 blocks of level j+1. So a run born with n blocks survives about log<sub>2</sub> n rounds, which is why the number of levels, and the left part of the tape, grows only logarithmically.</p>
+<p>How the halving is done: a round is an <em>expanding bouncer</em>. The head runs right into the tape and then zig-zags in a window that widens on both sides a few cells per trip. Going right, it rewrites pairs of ones <code>11</code> as <code>01</code>; going left it rewrites <code>01</code> back as <code>11</code> (these shift rules are proved in Lean). Doing so it eats one block of a pair and grows the other by six ones.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Could it stop?</span>
+  <h2>One cell short, twenty thousand times</h2>
+<p>The machine has one halting transition (F reading a 1), and following the table backwards there is only one way into it: D reads a 0 while the three cells to its left are 1. Lean checks that <code>1 1 1 D&gt; 0</code> halts four steps later. In the first 10<sup>9</sup> steps D read a 0 about 21,000 times, and every single time the cells to its left were <code>1 1 0</code>: the block to its left had exactly two ones. So whether the machine halts is whether some round ever brings D to a 0 next to a longer run of ones, for instance through one of the odd blocks (5, 11, 17, ...) left over when a run has an odd count.</p>
+<p>Nothing like a proof is known. The run looks like a binary counter on the lengths of the runs, with the odd leftovers as carries; such systems are usually safe only for a reason that is hard to state, which is why short-window invariants (CTL up to 6 cells, n-gram CPS up to width 7) do not decide it.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +256,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 36,990 cells have been visited and 22,051 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.113). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.519).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>b_run</code>, <code>e_halve</code>, <code>c_halve</code>, <code>c_double</code>, <code>d_double</code>, <code>lean/Rules.lean</code></div></div><div><b>The sweeps' shift rules</b><p>Moving right, E (with <code>1 0</code> behind it) and C (with <code>1</code> behind it) turn each pair <code>11</code> into <code>01</code>, 6 steps a pair: a run of 2n ones becomes (01)<sup>n</sup>. Moving left, C (facing a 0) and D (facing a 1) turn each <code>01</code> back into <code>11</code>, 2 steps a pair. B runs over 1s. Each holds for every n and every surrounding tape.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code></div></div><div><b>The shape of a halt</b><p>From <code>1 1 1 D&gt; 0</code> the machine reaches F on a 1 in 3 steps and halts on the next. Conversely (by reading the table, not formalized) F is entered only from E on a 1, E with F to follow on a 1 only from A on a 1 (E entered from C on a 1 has a 0 to its left), and A has a 1 to its left only when it came from D on a 0, so every halt comes this way.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/halt_nbhd.c</code> (<code>./halt_nbhd M 1000000000 D 0</code>)</div></div><div><b>Near misses: D reads a 0 next to exactly two 1s</b><p>In the first 10<sup>9</sup> steps D reads a 0 21,121 times with <code>1 1 0</code> to its left (one 1 short of a halt) and 181 times at the blank left end; never with three 1s.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/samples.c</code>, <code>py/rounds.py</code></div></div><div><b>Rounds and the halving law</b><p>Sample the run when the head is in A at the left end of the tape (rounds; consecutive samples about 1.25 times further apart). At every sample the tape is a list of blocks 1<sup>k</sup> 00, almost all with k = 6j+1 and grouped in long runs of equal blocks, lowest level at the right. Between consecutive rounds a run of n blocks of level j becomes a run of &lfloor;n/2&rfloor;&minus;1 to &lceil;n/2&rceil;+1 blocks of level j+1 (checked for every run of at least 10 blocks after the first 1.2&middot;10<sup>7</sup> steps, to 1.6&middot;10<sup>9</sup>), and a new run of level-0 blocks <code>100</code> appears, alternately large and small (the large ones growing by about 1.25 each time: 1590, 2086, 2664, 3330, 4130, 5171). A few odd blocks (k = 5, 11, 17, ...) sit between the runs.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/samples.c</code></div></div><div><b>Same tapes as its twin</b><p>At all 190 left-end samples in the first 2&middot;10<sup>9</sup> steps the tape is exactly that of <code>1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC1LF_0RA---</code> (the step counts differ slightly, by 0.005 %); the two tables do the same thing with different states on the short path through A or E. The sibling <code>1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB---</code> has the same blocks and the same rules but different counts.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">as for the sibling <code>1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB---</code>, same rules</div></div><div><b>Within a round: an expanding bouncer</b><p>After the left-end sample the head runs right to a point well inside the tape and then zig-zags in a window whose left edge creeps left and right edge creeps right (by a few cells per bounce, using the halving and doubling rules above), until the window reaches the left end: the next sample. This is where the square-root growth on the right comes from.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/ctl.py</code>; <code>tools/c/ngramcps.c</code> (run for the G02 group, not stored here)</div></div><div><b>No closed tape language from short windows</b><p><code>bbtools.ctl</code> with windows of K = 3 and 6 cells finds a closed set, but every one allows a halt (24 to 480 halting abstract configurations); n-gram CPS (widths 3 to 7, with history and LRU) also fails.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts exactly if D ever reads a 0 with three 1s on its left. That needs one of the odd blocks or a run boundary to line up badly during a round; the halving law looks like a binary counter on the run lengths with carries (the odd blocks), and nothing in the run so far approaches it. A proof would need the exact round map, including what happens to odd counts and to the junk between runs.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_1RC1RB_1LD0RE_1LA1LC_1RB0LF_0LC---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC1RB_1LD0RE_1LA1LC_1RB0LF_0LC--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC1RB_1LD0RE_1LA1LC_1RB0LF_0LC--- 1000000000
+gcc -O2 -o samples holdouts/1RB0LE_1RC1RB_1LD0RE_1LA1LC_1RB0LF_0LC---/c/samples.c &amp;&amp; ./samples 1RB0LE_1RC1RB_1LD0RE_1LA1LC_1RB0LF_0LC--- 2000000000 A L 0 100000 &gt; left.txt &amp;&amp; python3 holdouts/1RB0LE_1RC1RB_1LD0RE_1LA1LC_1RB0LF_0LC---/py/rounds.py left.txt</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LE_1RC1RB_1LD0RE_1LA1LC_1RB0LF_0LC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

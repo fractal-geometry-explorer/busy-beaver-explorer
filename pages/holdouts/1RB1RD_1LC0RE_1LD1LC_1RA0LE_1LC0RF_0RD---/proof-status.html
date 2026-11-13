@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The right side is a sorted list of runs of 1s of lengths 13 + 6i, separated by <code>00</code>, with fewer runs of each larger length: a counter in some mixed base, measured, not proved. The machine runs step for step like 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD--- (another batch) on the tape. Halting needs F on a 1, entered only from E on a 1; never one step away in the first 3·10<sup>6</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -102,6 +102,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Shift rules of the sweeps</h3>
+        <p>Lean proves, for every count and every tape around, the shift rules: D crosses <code>(01)^n</code> rightward turning it into <code>(11)^n</code> (2 steps per copy), and C crosses a run of 1s leftward (1 step per cell).</p>
+        <p class="where"><code>shift_r_D_01</code>, <code>shift_l_C_1</code>, <code>lean/Rules.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -127,12 +132,27 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.503). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.162).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>A sorted list of runs 1^(13+6i)</h3>
+        <p>At the last right extension before 10<sup>9</sup> steps (step 948,962,681) the right part of the tape is 1,008 runs of 1s separated by <code>00</code>: 616 runs 1^13, then 188 of 1^19, 121 of 1^25, 37 of 1^31, 22 of 1^37, 7 of 1^43, 4 of 1^49, and single runs 1^53, 1^59, 1^63, with a few short runs (7, 13, 17, 21, 27, 35, 40, 47) in between, which are the places being worked on. Left of it: <code>(100)^3061 1^5 (001111111)^932 1100</code>, the bouncer's region.</p>
+        <p class="where"><code>py/observe.py</code>, <code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Same tape as a machine in another batch</h3>
+        <p>1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD--- has the same triage numbers; sampled every 99,991 steps to 2·10<sup>6</sup>, and at 2·10<sup>8</sup>, the two machines have the same tape and number of 1s except at moments when the head is in the part where their tables differ (D1, E0).</p>
+        <p class="where"><code>tools/c/tmrun.c</code>, both machines</p>
+      </div>
+      <div class="card">
+        <h3>Never one step from a halt</h3>
+        <p>The machine halts when F reads a 1, and F is entered only from E reading a 1 (E1 → 0RF). In the first 3·10<sup>6</sup> steps E reads a 1 374,145 times, always with a 0 to its right.</p>
+        <p class="where">direct simulation</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The list of runs behaves like a counter (each length 13 + 6i a digit, its multiplicity the digit's value, carries making longer runs), but the carry rule is not written down, let alone proved.</p>
       </div>
     </div>
   </section>
@@ -140,7 +160,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LE_1LC0RF_0RD---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC0RE_1LD1LC_1RA0LE_1LC0RF_0RD--- 1000000000</code></pre>
+python3 holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LE_1LC0RF_0RD---/py/rules.py &amp;&amp; holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LE_1LC0RF_0RD---/lean/check.sh      # regenerate and check the rules
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC0RE_1LD1LC_1RA0LE_1LC0RF_0RD--- 1000000000
+python3 holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LE_1LC0RF_0RD---/py/observe.py 1e7 B 6      # the tape at the last moments each end grew</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LE_1LC0RF_0RD---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

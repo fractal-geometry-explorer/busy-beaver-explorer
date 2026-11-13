@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G03",
+ "generated": false,
+ "group": "Collatz-like (x6, x4/3) + frozen stack",
  "title": "What is known about 1RB1LF_1RC1LD_1LB1LE_1LE0LD_0LA0RE_1RD---",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LF_1RC1LD_1LB1LE_1LE0LD_0LA0RE_1RD---.",
  "machine": "1RB1LF_1RC1LD_1LB1LE_1LE0LD_0LA0RE_1RD---",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The macro words and the stack structure are identified from simulation, and Lean proves the sweeps over the words; the exact rule for a round is not known yet."
  ],
  "claims": [
   {
@@ -46,9 +46,21 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "The sweeps",
+   "text": "Twenty-three shift rules over <code>(10010)^n</code>, <code>(1000)^n</code>, their rotations and three-cell words, for all n and any tapes around (one copy by <code>rfl</code>, all copies by <code>TM.cross_r</code> / <code>TM.cross_l</code>).",
+   "where": "<code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Right-end events to 2.5·10<sup>9</sup> steps",
+   "text": "A C run to 5·10<sup>9</sup> steps, sampled each time the tape grows on the right (17 times): a stack of runs of d = 10010 separated by c = 1000 and a short tail; each round pushes a new top about 6 or 4/3 times the old one, the old top gains one d, and the runs below never change.",
+   "where": "<code>README.md</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known; the exact rule for the new top is not known, so the question is not reduced to a map.",
    "where": ""
   }
  ],
@@ -58,7 +70,7 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LF_1RC1LD_1LB1LE_1LE0LD_0LA0RE_1RD--- 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Each round this machine pushes a new, much larger block onto a stack whose lower blocks never change again, like a Collatz-like map writing down its orbit. Its exact round rule has not been found yet.",
   "facts": [
    {
     "level": "trusted",
@@ -86,6 +98,17 @@
   },
   "sections": [
    {
+    "id": "tape",
+    "eyebrow": "What it does",
+    "heading": "A stack that gains one block per round",
+    "html": [
+     "<p>Write d for <code>10010</code> and c for <code>1000</code>. Each time the tape grows on the right (rarely: 17 times in 2.5·10<sup>9</sup> steps) it is a stack of runs of d separated by single c, followed by a short tail. Between these events the head sweeps over the whole tape, so the left end grows like the square root of the steps.</p>",
+     "<p>Each round pushes a new run at the left end, and the run that was on top gains one d; the runs below are never touched again. The new top is about 6 times or 4/3 times the old one, alternately, along with the parity of the tail: a Collatz-like map leaving a frozen record of its orbit on the tape.</p>",
+     "<table class=\"tbl\"><thead><tr><th>step</th><th>stack, left to right</th></tr></thead><tbody><tr><td>656,289</td><td>95, 49, 26, 12, 4</td></tr><tr><td>9,636,395</td><td>565, 96, 49, 26, 12, 4</td></tr><tr><td>38,626,019</td><td>759, 566, 96, 49, 26, 12, 4</td></tr><tr><td>613,097,321</td><td>4545, 760, 566, 96, 49, 26, 12, 4</td></tr><tr><td>2,454,976,241</td><td>6067, 4546, 760, 566, 96, 49, 26, 12, 4</td></tr></tbody></table>",
+     "<p>The machine halts only on F reading 1, which needs A on a 1 with a 1 to its left. The exact rule for the new top is not known yet, so whether that ever happens is open.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +121,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Each round pushes a new run of 10010s about 6 or 4/3 times the previous top onto a stack that is otherwise frozen; the exact map is not yet known.",
+ "decision": "open"
 }

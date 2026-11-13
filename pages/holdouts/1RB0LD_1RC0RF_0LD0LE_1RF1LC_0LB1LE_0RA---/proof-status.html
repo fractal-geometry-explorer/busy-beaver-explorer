@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is a list of blocks <code>(010)^n</code> separated by short walls <code>(10)^s</code> (s = 4, 5, 6 or 8) and, near the right end, by single 1s. Each time the head comes back to the left end in state C, the first block has lost 4 copies and the <i>i</i>-th block 3&middot;4<sup><i>i</i>&minus;1</sup> copies: a counter in base 4 whose digits are whole blocks. When the first block is down to 5 copies, a wall phase of <i>s</i>&minus;1 visits eats 3 copies per visit from the second block, which then becomes the new first block (seen: 48 &rarr; 17; predicted next: 792 &rarr; 773). The tail at the right end runs a cycle of four visits that adds one block of 4<sup>k</sup>-sized length. Shift rules are proved in Lean; the list rule is checked against the run. The halting condition at the level of the list is not identified yet.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules over the (010) background</h3>
+        <p>Eight shift rules for every length n, among them the wall <code>1011</code> crossing <code>(010)^2n</code> to the right in 28n steps, the turn at the right end (38n+20 steps), and the left-going crossings of <code>(010)</code>, <code>(001)</code>, <code>(100)</code> in 5n steps.</p>
+        <p class="where"><code>c_right</code>, <code>c_bounce</code>, <code>e_left</code> &hellip;, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +124,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 67,112 cells have been visited and 22,378 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>A plain C simulator (<code>longrun.c</code>, on <code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps from blank tape without a halt; at the end the head has visited cells -122 to 896,652 and 298,934 cells hold a 1.</p>
+        <p class="where"><code>holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/c/longrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The list at the left-end visits</h3>
+        <p>All 51 visits of the head to the left end in state C up to 1.54&middot;10<sup>10</sup> steps were read off the direct run. Between consecutive visits of the main phase the first block loses 4 copies and block <i>i</i> loses 3&middot;4<sup><i>i</i>&minus;1</sup> (every comparison agrees); a wall phase (96, 93, 90) reloads the first block with 89, which runs 89, 85, &hellip;, 5; a second wall phase (36, 33, &hellip;, 18) reloads it with 17, which runs 17, 13, 9, 5.</p>
+        <p class="where">README.md, the map</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +142,18 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.051). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.483).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>A deterministic counter, no sign of a halt</h3>
+        <p>The run is a nested counter whose digits are block lengths of the form 3&middot;4<sup>k</sup>m (plus 1 at the tail); nothing random is involved, so the probviously argument does not apply. Halting needs F to read 1; hand-made tapes with other walls in front of the second block (s = 6 instead of 4 or 8) also ran 1.5&middot;10<sup>10</sup> steps without a halt.</p>
+        <p class="where">README.md</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The list rule is deterministic but has more cases than are written down here (a second form with (001)^n blocks, the walls of 5 and 6 near the tail); the halting condition at the level of the list is not identified.</p>
+        <p class="where">README.md, Further work</p>
       </div>
     </div>
   </section>
@@ -140,7 +161,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA--- 1000000000
+python3 holdouts/1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA---/py/gen_rules.py      # rewrites lean/Rules.lean</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

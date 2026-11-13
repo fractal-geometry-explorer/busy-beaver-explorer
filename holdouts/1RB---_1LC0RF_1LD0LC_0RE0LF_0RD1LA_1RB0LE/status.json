@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G04",
+ "generated": false,
+ "group": "bouncer with a counter in a fixed wall",
  "title": "What is known about 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE",
  "description": "Proof status of the six-state BB(6) holdout 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE.",
  "machine": "1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The head bounces between a block that grows at the left end and a wall of exactly 1,573 cells at the right end that it rewrites every sweep like a counter; the counter would need something like 3<sup>48</sup> sweeps to fill the wall, and what happens then is the question."
  ],
  "claims": [
   {
@@ -46,6 +46,18 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "A wall of fixed length that counts",
+   "text": "After 2&middot;10<sup>7</sup> steps the tape at each sweep is <code>C&gt;0 (01101)^n W</code> with W exactly 1,573 cells and n growing by one per four sweeps. Consecutive walls differ from cell 44 on; the deepest change reaches cells 252, 294, 319, 344, 369 at sweeps 274, 406, 2,296, 7,335, 20,772 (by 10<sup>10</sup> steps).",
+   "where": "<code>python3 py/wall.py 2e10</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A wall of fixed length that counts",
+   "text": "After 2&middot;10<sup>7</sup> steps the tape at each sweep is <code>C&gt;0 (01101)^n W</code> with W exactly 1,573 cells and n growing by about one per sweep. Consecutive walls differ from cell 44 on; the deepest change reaches cells 252, 294, 319, 344, 369 at sweeps 274, 406, 2,296, 7,335, 20,772 (by 10<sup>10</sup> steps).",
+   "where": "<code>python3 py/wall.py 2e10</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
@@ -55,11 +67,21 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE 1000000000"
+  "python3 holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/view.py   # the views of the run quoted in the README"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The head bounces between a block that grows at the left end and a wall of exactly 1,573 cells at the right end that it rewrites every sweep like a counter; the counter would need something like 3<sup>48</sup> sweeps to fill the wall, and what happens then is the question.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1,573 cells",
+    "text": "the fixed length of the wall, rewritten like a counter every sweep."
+   },
+   {
+    "level": "trusted",
+    "value": "1,573 cells",
+    "text": "the fixed length of the wall, rewritten like a counter every sweep."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -69,11 +91,6 @@
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +102,16 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "wall",
+    "eyebrow": "Macro structure",
+    "heading": "A counter inside a fixed wall",
+    "html": [
+     "<p>The left part of the tape is the word <code>01101</code> repeated, about one more copy per sweep. The right part is a wall that has had exactly 1,573 cells since 2&middot;10<sup>7</sup> steps: the right end of the tape never moves.</p>",
+     "<p>The wall is different after every sweep, but not at random. Comparing one wall with the next, the changes always start at the same cell, 44, and usually stay within a hundred cells; only now and then do they reach further, and each new depth (25 cells further each time) is reached about three times later than the previous one. That is how the carries of a counter behave: digits about 25 cells wide, in a base near 3.</p>",
+     "<p>About 48 such digits are left before the carries reach the end of the wall, which would take something like 3<sup>48</sup> sweeps. Whether the machine then halts or makes room is the open question; decoding the digits would make it exact.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +125,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A bouncer between a growing block and a wall of exactly 1,573 cells that changes every sweep like a counter (changes start at cell 44, carries reach 25 cells further about every three times as many sweeps); what happens when the carries reach the end of the wall is unknown.",
+ "decision": "open"
 }

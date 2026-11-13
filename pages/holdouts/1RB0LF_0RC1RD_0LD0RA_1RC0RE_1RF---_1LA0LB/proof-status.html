@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves (kernel) that a halt needs the word <code>A&gt;0 1 1 1</code> (<code>halt_needs_A0111</code>), A stepping onto the front of a train, and proves the sweep that eats one word of a train (<code>sweep_train</code>, for all values of its parameters). No halt in the first 10<sup>11</sup> steps (C); in the run, A meets <code>0 1 1 0</code> thousands of times but never <code>0 1 1 1</code>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>A halt needs A>0 1 1 1</h3>
+        <p>Three steps before a halt the head is in state A on a 0 followed by 1 1 1: E (halting on a 1) is entered only from D1, D only from B1, and B from A0 or from F1 (which writes the 0 that D would read).</p>
+        <p class="where"><code>halt_needs_A0111</code>, <code>lean/Halt.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>One sweep eats one word of a train</h3>
+        <p>From <code>L 1110 (10)^(b+1) 110 110 (10)^(a+1) 11 C&gt; 0^inf</code> the machine reaches <code>L 1010 (10)^(b+1) 110 110 (10)^(a+2) 11 C&gt; 0^inf</code> in 8a+8b+76 steps, for every a, b and every tape L.</p>
+        <p class="where"><code>sweep_train</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,24 +125,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,842 cells have been visited and 29,338 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>Direct C simulation, which also records how far left the head gets in each doubling of the step count.</p>
+        <p class="where"><code>c/deepR.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Near misses</h3>
+        <p>In the first 3&middot;10<sup>8</sup> steps A reads a 0 followed by 1 1 about 8,500 times (then a 0: no halt), never followed by 1 1 1.</p>
+        <p class="where"><code>c/a011.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.514).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A counter that counts down and is reloaded</h3>
+        <p>Sampled at the right-end records, the trains sit at fixed places and the head eats the nearest one word per sweep; trips that go further turn the sea they cross into trains, and at step 2,510,806 one trip to the left end reloaded the whole tape (trains of 397, 37, 69, ... words). Read off samples, not proved.</p>
+        <p class="where"><code>py/trains.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Open: it halts iff A ever steps onto the front of a train in the wrong phase. An exact macro machine for the trains is the next step.</p>
       </div>
     </div>
   </section>
@@ -140,7 +155,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_0RC1RD_0LD0RA_1RC0RE_1RF---_1LA0LB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_0RC1RD_0LD0RA_1RC0RE_1RF---_1LA0LB 1000000000</code></pre>
+python3 holdouts/1RB0LF_0RC1RD_0LD0RA_1RC0RE_1RF---_1LA0LB/py/gen_rules.py &gt; /tmp/Rules.lean   # regenerates lean/Rules.lean
+cd holdouts/1RB0LF_0RC1RD_0LD0RA_1RC0RE_1RF---_1LA0LB &amp;&amp; gcc -O2 -o snapR c/snapR.c &amp;&amp; ./snapR 1RB0LF_0RC1RD_0LD0RA_1RC0RE_1RF---_1LA0LB 3000000 1 C &gt; s.txt &amp;&amp; python3 py/trains.py s.txt
+gcc -O2 -o deepR c/deepR.c &amp;&amp; ./deepR 1RB0LF_0RC1RD_0LD0RA_1RC0RE_1RF---_1LA0LB 1000000000
+gcc -O2 -o a011 c/a011.c &amp;&amp; ./a011 1RB0LF_0RC1RD_0LD0RA_1RC0RE_1RF---_1LA0LB 300000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LF_0RC1RD_0LD0RA_1RC0RE_1RF---_1LA0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

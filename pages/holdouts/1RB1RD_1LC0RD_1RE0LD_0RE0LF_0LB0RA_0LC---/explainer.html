@@ -124,14 +124,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC--- / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 9 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---</p>
   <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 182 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>exp/fixed</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>2&middot;10<sup>10</sup> steps</b><span class="small">No halt in direct simulation.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#family">Two machines that part at step 132</a><a href="#counter">A binary counter fed by a busy work zone</a><a href="#open">What the work zone does is unknown</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="family">
+  <span class="eyebrow">The twins</span>
+  <h2>Two machines that part at step 132</h2>
+<p>This machine and its twin, <code>1RB1RD_1LC0RD_...</code> (2a) and <code>1RB1RF_1LC0RD_...</code> (2b), differ only in what state A does when it reads a 1: 2a goes to D, 2b to F. A reads a 1 very rarely (11 times in the first 10<sup>9</sup> steps of 2a, 17 times for 2b), the first time at step 132. After that the two runs differ, but they are built the same way.</p>
+</section>
+<section id="counter">
+  <span class="eyebrow">What it does</span>
+  <h2>A binary counter fed by a busy work zone</h2>
+<p>The left end of the tape is a <b>binary counter</b>. After a short fixed prefix (<code>1010101101010110</code>) it is a row of 4-cell digits: <code>1010</code> means 1 and <code>1000</code> means 0, least significant on the right, ended by <code>11</code>. To add one, the head arrives in state C on that <code>11</code>, runs left over the trailing ones, changes the first zero into a one, and runs back in state B changing the ones it passed into zeros. Lean proves this move for any number of trailing ones; in simulation the counter goes up at almost every change (529,571 increases in 10<sup>9</sup> steps).</p>
+<p>Right of the counter is a <b>work zone</b> of a few dozen cells where the head zigzags thousands of times between two increments, and at the right end a block of <code>110</code> words that grows by one word now and then. The stretches <code>(0 1)^n</code> and <code>(0^3 1)^n</code> seen on the tape are just the counter's ones and zeros, read with a different phase.</p>
+</section>
+<section id="open">
+  <span class="eyebrow">Why it is open</span>
+  <h2>What the work zone does is unknown</h2>
+<p>The counter is understood; the work zone is not. It decides how many steps pass between increments and when the <code>110</code> block grows, and it is where F would have to read a 1 for the machine to stop. A proof either way needs the macro rule of the work zone: which configurations it returns to when it hands a carry to the counter, as a function of the counter's digits. That has not been found.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -221,7 +237,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 9 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -232,17 +248,27 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   </div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code>, <code>holdouts/1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---/py/gen_rules.py</code></div></div><div><b>Shift rules</b><p>Three shift rules for all n and any surrounding tape: E crosses <code>(110)^n</code> leaving <code>(010)^n</code>, D crosses <code>(011)^n</code> leaving <code>(001)^n</code>, and B crosses <code>(100)^n</code> leaving <code>(101)^n</code>.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>counter_increment</code>, <code>lean/Rules.lean</code> (generated by <code>holdouts/1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---/py/gen_rules.py</code>)</div></div><div><b>The increment of the left counter</b><p>For every n and any tape around it, <code>L 1000 (1010)^n C&gt;1 1 R</code> reaches <code>L 1010 1 (0001)^n 0 D&gt; R</code> in 12n+8 steps: C walks left over n one-digits <code>1010</code>, turns the zero-digit <code>1000</code> into a one, and B walks back turning each one-digit into a zero-digit. A1 is not used, so the same theorem holds for both twins.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 182 cells have been visited and 71 of them hold a 1.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tmrun 1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC--- 20000000000</code></div></div><div><b>No halt in the first 2&middot;10<sup>10</sup> steps</b><p>Direct simulation with <code>tools/c/tmrun.c</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---/c/ctx.c</code></div></div><div><b>Where the twins differ</b><p>In the first 10<sup>9</sup> steps A reads a 1 only 11 times, always with 0s on both sides; F reads only 0s, followed by a 0.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/leftsnap.c</code>, <code>py/cntchk.py</code> in holdouts/1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---</div></div><div><b>A binary counter at the left end</b><p>Whenever the head is at least 8 cells right of the counter, the tape from the left end reads <code>1010101101010110</code>, then 4-cell digits <code>1010</code> (one) and <code>1000</code> (zero), then <code>11</code>. Read as a binary number (least significant digit on the right) this counter goes up at almost every change. From step 6.3&middot;10<sup>6</sup> to 10<sup>9</sup> the decoded value changes 529,577 times; 529,571 changes are increases, 4 are overflows where the counter gains a digit (18 &rarr; 21 digits), and 2 are not classified. At 10<sup>9</sup> steps it has 20 digits.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>ngramcps MACHINE N [-H 1 | -U] -m 30000000</code></div></div><div><b>Not decided by n-gram CPS up to width 14</b><p>The n-gram Closed Position Set decider (<code>tools/c/ngramcps.c</code>) with equal widths 4, 6, 8, 10, 12 and 14, plain and with the fixed-length (1) and LRU history augmentations, either reaches a halting local configuration (UNKNOWN) or stops at 3&middot;10<sup>7</sup> local configurations: it does not prove non-halting at these settings.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/fixed</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.072).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Tape structure</b><p>Late in the run the tape is made of long stretches of <code>(0 1)^n</code>, <code>(0^3 1)^n</code> and <code>(1^2 0)^n</code>; both ends grow, the right one by single cells at irregular times (e.g. 2a: cell 175 at step 4.7&middot;10<sup>8</sup>). The stretches <code>(0 1)^n</code> and <code>(0^3 1)^n</code> are the digits 1010 and 1000 of the left binary counter read with another phase (see below).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tmrun.c</code> snapshots</div></div><div><b>A work zone between the counter and a growing (110)^n block</b><p>Right of the counter the head works in a zone of 20 to 40 cells of words <code>10</code>, <code>1000</code>, <code>110</code>, turning thousands of times between two increments of the counter; at the right end a block <code>(110)^n</code> grows by one word at each right record (for 2a, n = 12, 13, 14 at the right records at 4.7&middot;10<sup>8</sup>, 5.8&middot;10<sup>8</sup> and 9.6&middot;10<sup>8</sup> steps). What the work zone computes between two increments is not known.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. No macro description of the run is known yet.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC--- 1000000000</code></pre>
+python3 holdouts/1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---/py/gen_rules.py 1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC--- H149024 | diff - holdouts/1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---/lean/Rules.lean
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC--- 20000000000
+gcc -O2 -o leftsnap holdouts/1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---/c/leftsnap.c &amp;&amp; ./leftsnap 1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC--- 1000000000 110 &gt; ls.txt &amp;&amp; python3 holdouts/1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---/py/cntchk.py ls.txt 2a</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

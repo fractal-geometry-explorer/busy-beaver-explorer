@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G13",
  "title": "What is known about 1RB0RD_1LC1LB_---1LD_1RA0RE_1RD0LF_1LE0LD",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RD_1LC1LB_---1LD_1RA0RE_1RD0LF_1LE0LD.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0RD_1LC1LB_---1LD_1RA0RE_1RD0LF_1LE0LD/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state machine halts from blank tape. This page describes what its run looks like at the level of words and counters, what a halt would need, and what is still missing. The description comes from simulation (first look, about an hour of study); nothing beyond the bounded runs is proved."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps, the C simulator none in 10<sup>9</sup>. The macro structure described below is observed in the simulation, not proved."
  ],
  "claims": [
   {
@@ -46,20 +46,50 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "A row of pair counters",
+   "text": "At the left-end samples in state E the tape is a long run of 10 pairs, two markers 1^2 0, a second long run, and then shorter runs of pairs separated by markers 1^2 0 or 1 0^2 (observed up to 2&middot;10<sup>7</sup> steps).",
+   "where": "",
+   "hand": true
+  },
+  {
+   "level": "kernel",
+   "title": "Shift rules, for every n",
+   "text": "D crosses <code>(10)^n</code> to the right and leaves <code>(01)^n</code>; E crosses <code>(01)^n</code> and leaves <code>(10)^n</code>; A crosses <code>(10)^n</code> and leaves <code>(01)^n</code>.",
+   "where": "<code>shiftD</code>, <code>shiftE</code>, <code>shiftA</code>, <code>lean/Rules.lean</code>",
+   "hand": true,
+   "addon": true
+  },
+  {
+   "level": "trusted",
+   "title": "A six-step counter at the left end",
+   "text": "At each visit in state F to the left end, the tape reads <code>F&gt;0 0 a^n X Y W</code> (a = 10, P = 110, Q = 100), and (X, Y) runs through (P,P), (Q,P), (P,Q), (Q,Q), (P,aP), (Q,aP), with n going up by 1 at each step and by 2 at the last. In the first 10<sup>9</sup> steps 981 transitions follow the cycle (164 full cycles) and 4 do not (all at the start, n &le; 4); the last sample has n = 1151.",
+   "where": "<code>py/leftcounter.py</code>",
+   "hand": true,
+   "addon": true
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "text": "Not known. No macro rule has been proved for this machine yet; see the README's Later section for the next steps.",
+   "where": "",
+   "hand": true
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RD_1LC1LB_---1LD_1RA0RE_1RD0LF_1LE0LD/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RD_1LC1LB_---1LD_1RA0RE_1RD0LF_1LE0LD 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RD_1LC1LB_---1LD_1RA0RE_1RD0LF_1LE0LD 1000000000",
+  "python3 holdouts/1RB0RD_1LC1LB_---1LD_1RA0RE_1RD0LF_1LE0LD/py/leftcounter.py 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet. The tape is a row of counters made of 10 pairs, separated by two kinds of markers, behind a long run of pairs that keeps growing.",
   "facts": [
+   {
+    "level": "heuristic",
+    "value": "N, K",
+    "text": "two long runs of 10 pairs grow; shorter counters follow"
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -69,11 +99,6 @@
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/linear",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +110,32 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "what",
+    "eyebrow": "What it does",
+    "heading": "A row of pair counters",
+    "html": [
+     "<p>Write <code>a</code> for the pair <code>1 0</code>. Each time the head is at the left end in state E, the tape reads <code>E&gt;1 a^N 1^2 0 1^2 0 a^K 1^2 0 &hellip;</code>: a long run of N pairs, two markers, a second long run of K pairs, and then many shorter runs of pairs, each followed by a marker <code>1^2 0</code> or <code>1 0^2</code>. At step 2,157,249 N = 527 and K = 385; at step 19,526,315 N = 1,052 and K = 964.</p>",
+     "<p>So the tape looks like an array of counters, each a run of pairs, and the two kinds of markers look like a bit attached to each counter. The head sweeps the whole array; how one sweep changes the counters is not yet worked out.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The halting question",
+    "heading": "What a halt would need",
+    "html": [
+     "<p>The machine halts when it reads a 0 in state C (C0 is the halting transition). C is entered from B on a 0 (B0 = 1LC), so a halt needs <code>0 B&gt;0</code> reached moving left, which needs two adjacent 0s. Inside the word the only double 0s are in the markers <code>1 0^2</code>.</p>"
+    ]
+   },
+   {
+    "id": "phase2",
+    "eyebrow": "Phase 2",
+    "heading": "The left-end counter",
+    "html": [
+     "<p>Sampled at the left end in state F, with a = <code>10</code>, P = <code>110</code>, Q = <code>100</code>, the tape is <code>F&gt;0 0 a^n X Y W</code>, and the markers X, Y run through a cycle of six, (P,P) &rarr; (Q,P) &rarr; (P,Q) &rarr; (Q,Q) &rarr; (P,aP) &rarr; (Q,aP) &rarr; (P,P), while n goes up by 7 per cycle. In 10<sup>9</sup> steps, 981 transitions follow it and 4 at the very start do not. The rest W also changes, so this is not a full map yet.</p>"
+    ],
+    "addon": true
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +149,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "array of (10)-counters behind a growing (10) run",
+ "summary": "A long run of 10 pairs on the left grows steadily; behind it the tape is a word of 10-pair counters separated by two kinds of markers, 1^2 0 and 1 0^2, rewritten by sweeps."
 }

@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---</h1>
     <p class="machine">1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 9 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> One period of every phase the run uses is proved in Lean for all block lengths (kernel). How a phase ends depends on residues of the counts; an exact accelerated simulation, checked against direct simulation, follows the run to 1.2&middot;10<sup>300</sup> steps without a halt (trusted). Its mirror image with states A and D exchanged is <code>1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---</code>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Absorb, three visits</h3>
+        <p><code>0^∞ D&gt;0 0 0 (100)^a (010)^(b+2) 1 R</code> reaches <code>0^∞ D&gt;0 0 0 (100)^(a+4) (010)^b 1 R</code> in 18a + 66 steps, for every a, b and every tape R.</p>
+        <p class="where"><code>absorb</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Traverse, one cycle</h3>
+        <p><code>L (101)^(x+6) (110)^y 1 0 (011)^(n+1) (010011011)^(k+1) (010)^3 1 1 D&gt;0^∞</code> reaches the same with x, y+6, k+2 in 396k + 132n + 132y + 1561 steps, for every x, y, n, k and every tape L.</p>
+        <p class="where"><code>traverse</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Six phase periods</h3>
+        <p>One period of each kind of phase the run uses after step 10<sup>20</sup>: drain (final block &minus;11, a marker moves 18 words, a new block +36), cross (marker moves 6 words, final block +1), two double crossings (12 words), absorb (left block +4, neighbour &minus;2) and feed (middle block &minus;18, left block +30, final +1), each for every value of its variables.</p>
+        <p class="where"><code>drain11</code>, <code>cross6</code>, <code>cross12</code>, <code>cross12b</code>, <code>absorb2</code>, <code>feed30</code>, <code>lean/Phases.lean</code>, <code>lean/PhasesDrain.lean</code>, <code>lean/PhasesFeed.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +134,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 39,707 cells have been visited and 23,581 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Exact accelerated simulation</h3>
+        <p><code>py/accel.py</code> applies a period as many times as the blocks allow after re-running it symbolically, so its tape and step count are exactly the machine's; compared with direct C simulation after every jump up to 1.6&middot;10<sup>10</sup> steps, no mismatch.</p>
+        <p class="where"><code>py/accel.py</code>, <code>py/check_accel.py</code>, <code>c/tapeat.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 1.2&middot;10<sup>300</sup> steps</h3>
+        <p>The exact accelerated run from blank tape reaches 1.2&middot;10<sup>300</sup> steps (399 drain phases, 140 s) without a halt; the number of distinct periods it needs levels off (183 by 10<sup>21</sup>, 245 by 10<sup>251</sup>).</p>
+        <p class="where"><code>py/rounds.py</code>, <code>py/rounds_1e300.log</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +152,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.476). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Round maps</h3>
+        <p>With X the first long block and Y the final block at the start of a drain: a short round gives X' = 2X + 36Y/11, Y' = X/6 &minus; 3Y/11; a long round X' = 56X/11 + 444Y/121, Y' = 31X/132 + 17Y/242 (up to O(1)). Which one comes next depends on residues of the counts. Both keep Y/X between about 0.04 and 0.08, so every block stays long.</p>
+        <p class="where">README, from the exact run</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. A proof would need every residue case of every phase end; <code>py/closure.py</code> tries this with abstract counts but forgets the relation Y &lt; X/10 and does not close.</p>
       </div>
     </div>
   </section>
@@ -140,7 +170,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 1000000000
+. /etc/profile.d/lean.sh &amp;&amp; holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/lean/check.sh   # Rules.lean
+gcc -O2 -o ev holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/c/ev.c &amp;&amp; ./ev 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 2000000000 L D 1 100000 12 | awk &#x27;NR%300==0&#x27;
+python3 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/rounds.py 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 1e300 &gt; rounds.log
+gcc -O2 -o /tmp/tapeat holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/c/tapeat.c &amp;&amp; python3 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/check_accel.py 1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD--- 2e10 /tmp/tapeat
+. /etc/profile.d/lean.sh &amp;&amp; holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/lean/check.sh   # Phases*.lean (several minutes)</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

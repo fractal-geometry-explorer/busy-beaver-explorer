@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LE_1LC0LF_1LA1RD_1LB0RD_0LC0LA_---1RA</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this machine runs a binary counter: every overflow takes twice as long as the last. This page runs the real machine in your browser and lists what is known.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 420 cells visited.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>10</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/power</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>&times;2</b><span class="small">Each overflow at the left end comes twice as many steps after the last.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>+4 cells</b><span class="small">The block at the left end grows by four cells per overflow.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counter">A counter that doubles</a><a href="#halt">What a halt would need</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="counter">
+  <span class="eyebrow">What it does</span>
+  <h2>A counter that doubles</h2>
+<p>Each time the head reaches the left end in state E with the tape reading <code>E&gt;0 1 0 1^k 1 1 0 &hellip;</code>, the block <code>1^k</code> has grown by four cells, and the time since the last such moment has doubled (to within a few hundred steps): overflows at steps 698,523,614, 883,072,970, 1,252,171,762, 1,990,369,658, 3,466,765,146 and 6,419,556,126, with k = 83, 87, 91, 95, 99, 103. So the tape grows like the logarithm of the time.</p>
+<p>The rest of the tape is a word of blocks of 1s of odd length separated by <code>110</code> and runs of <code>10</code>; it changes by a few cells per overflow, like the higher digits of a counter. When it has been worked through the run restarts on a larger scale. That happened between steps 3.78&middot;10<sup>8</sup> and 5.14&middot;10<sup>8</sup>, the jump from 238 to 419 cells in the width.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">The halting question</span>
+  <h2>What a halt would need</h2>
+<p>The only halting transition is F reading a 0. F is entered only when B reads a 1, writes a 0 and steps left; a halt needs a 0 there. In 10<sup>8</sup> steps that move happens 11,363,688 times and always lands on a 1.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -234,8 +246,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 420 cells have been visited and 244 of them hold a 1.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code> (<code>at E L</code>)</div></div><div><b>Overflows double</b><p>At the times E is at the left end with the tape starting <code>E&gt;0 10 1^k 110</code>, k grows by 4 from one time to the next (k = 83, 87, 91, 95, 99, 103) and the gaps double, to within a few hundred steps: 184,549,356, then 369,098,792, 738,197,896, 1,476,395,488 and 2,952,790,980 steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code> (records)</div></div><div><b>An epoch change</b><p>Width: 222 cells at 10<sup>7</sup> steps, 238 at 10<sup>8</sup>, 419 at 10<sup>9</sup>, 435 at 10<sup>10</sup>. The jump comes from a restart between steps 3.78&middot;10<sup>8</sup> and 5.14&middot;10<sup>8</sup>, when the left block is rebuilt and the tape grows by about 150 cells.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">state counts</div></div><div><b>F always reads 1</b><p>F is entered only from B reading 1 (<code>0LF</code>); in the first 10<sup>8</sup> steps that happens 11,363,688 times and F reads a 1 every time.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>cases</code>, <code>lean/Cases.lean</code>; the runs in <code>lean/Pieces.lean</code>; generated by <code>py/frames.py lean</code> with <code>tools/py/bbtools/listframe.py</code>; library <code>tools/lean/TM/ListFrame.lean</code></div></div><div><b>A run-length frame map, every case proved</b><p>At every head turn write the tape as two lists of runs (blocks of equal cells), left and right of the head: a frame with list parameters. A table of 165 cases, each a pattern on the first few runs of both sides (lengths exact or at least 4, the rest of each side any list), sends each frame to the frame of the next head turn; every case is proved for all values of its parameters and all lists by one symbolic run (<code>RLCase.sound</code>), so the frame map <code>next = rlNext cases</code> is sound (<code>rlNext_sound</code>). Between two head turns this machine crosses only a few run boundaries, which is why a finite table covers a tape whose number of runs grows without bound.</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>init_f0</code>, <code>frames_100000</code>, <code>no_halt_of_total</code>, <code>lean/Frames.lean</code></div></div><div><b>The frame map from blank tape</b><p>The run from blank tape reaches the first frame (<code>init_f0</code>, kernel), and the frame map is defined for its first 100,000 frames (<code>native_decide</code>). If it is defined forever along this orbit, the machine never halts (<code>no_halt_of_total</code>).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/frames.py fit</code></div></div><div><b>The case table covers the run</b><p>Every frame at a head turn in the first 3&middot;10<sup>6</sup> steps (1,227,376 head turns) is matched by a case, and the case's next frame is the machine's (no mismatch, no unmatched frame); 161 cases at 10<sup>6</sup> steps, 165 at 3&middot;10<sup>6</sup>, so a longer run may need more.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/shapes.py</code></div></div><div><b>No finite frame map with scalar parameters</b><p>The frame-map method (stop at head turns, match the tape against finitely many templates with block-length parameters, fit affine cases) needs the tapes at head turns to fall into a bounded number of shapes. Here they do not: tokenizing the tape at every 7th head turn into maximal powers of words of length at most 4, the first 10<sup>7</sup> steps give 316,491 distinct shapes (exponents of 3 and more merged), 286,341 of them new in the last decade, and up to 52 tokens per tape; the number grows tenfold per decade of steps. For comparison the same count saturates at 32 shapes of at most 5 tokens for 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC and at 89 for 1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD, where frame maps were proved. The cause is the counter itself: its digits form an arbitrary word, and the word of higher digits on the right grows too, so a frame needs a list parameter; the run-length frames above are such frames.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/power</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.133). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The run behaves like a binary counter in epochs; the increment and the epoch change have not been described exactly.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G08",
  "title": "What is known about 1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---.",
@@ -12,7 +12,9 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves two crossings of the sweeps and the situations that lead to a halt (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.",
+  "<b>What it does.</b> The mirror image of a known family: at the <em>right</em> end the tape is dense, blocks of 1s of length 4j+3 separated by single 0s; at the <em>left</em> end it is sparse, the words <code>01</code>, <code>0001</code> and <code>00</code>. The sweeps translate between the two forms; going left, E with a 0 ahead turns each <code>11</code> into <code>10</code>. The list of block lengths is scrambled on every trip.",
+  "<b>Where a halt would come from.</b> Only F reading a 1 halts; <code>E&gt;1 1</code>, <code>1 F&gt;0</code>, <code>B&gt;1 1 1</code> and <code>D&gt;0 1 1</code> lead there. In 2&middot;10<sup>8</sup> steps F always reads a 0."
  ],
  "claims": [
   {
@@ -46,10 +48,34 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules",
+   "text": "Going left, E with a 0 ahead turns each <code>11</code> into <code>10</code> (four steps a pair); going right, A turns each <code>0101</code> into <code>1110</code> (six steps a copy).",
+   "where": "<code>left_E</code>, <code>right_A</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The halting situations",
+   "text": "<code>E&gt;1 1</code> halts after one step; <code>1 F&gt;0</code>, <code>B&gt;1 1 1</code> and <code>D&gt;0 1 1</code> after two.",
+   "where": "<code>halt_E</code>, <code>halt_F</code>, <code>halt_B</code>, <code>halt_D</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Dense and sparse forms",
+   "text": "At the 1,804 right-end visits of the first 5&middot;10<sup>6</sup> steps, 273,318 of the 275,315 blocks of 1s strictly inside the tape have length 4j+3; at the 655 left-end visits every 1 stands alone (the sparse words), with 29 exceptions.",
+   "where": "<code>py/turns.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "F never reads a 1 in 2&middot;10<sup>8</sup> steps",
+   "text": "In the first 2&middot;10<sup>8</sup> steps the machine is in state F 22,449,902 times, every time on a 0: the halting transition F1 is never close to firing in a way the run shows.",
+   "where": "<code>c/visits.c</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "where": "",
+   "text": "Not known. The list of block lengths behaves like the content of a cellular automaton; no invariant excluding the halting situations is known."
   }
  ],
  "check": [
@@ -58,7 +84,7 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE--- 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine shuttles its tape between a dense encoding at the right end and a sparse one at the left end, scrambling it a little on every trip. This page runs it in your browser.",
   "facts": [
    {
     "level": "trusted",
@@ -86,6 +112,27 @@
   },
   "sections": [
    {
+    "id": "encodings",
+    "eyebrow": "Macro structure",
+    "heading": "Two encodings of one list",
+    "html": [
+     "<p>Look at the tape each time the head turns. At the <b>right end</b> it is <em>dense</em>: blocks of 1s, almost all of length 3, 7, 11, &hellip; (4j+3), separated by single 0s. At the <b>left end</b> it is <em>sparse</em>: the words <code>01</code>, <code>0001</code> and <code>00</code>.</p>",
+     "<p>Going left, E (with a 0 ahead) halves each pair of 1s, four steps a pair:</p>",
+     "<pre>1 1 1 1 1 1 E&gt; 0      \nE&gt; 0 1 0 1 0 1 0      (12 steps later)</pre>",
+     "<p>(Lean: <code>left_E</code>.) Going right, A turns each <code>0101</code> into <code>1110</code> (<code>right_A</code>), which rebuilds the dense blocks. As in its mirror family, the list of block lengths is scrambled on each round trip.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The halting condition",
+    "heading": "F must read a 1",
+    "html": [
+     "<p>Only F reading a 1 halts. E on a 1 moves right into F, so E reading two 1s halts:</p>",
+     "<pre>E&gt; 1 1      \n0 F&gt; 1      (F on a 1: halt)</pre>",
+     "<p>F is entered 22 million times in the first 2&middot;10<sup>8</sup> steps, always on a 0.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +145,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Sweeps between a sparse form (words 01 and 0001) at the left end and a dense form (blocks 1<sup>4j+3</sup> separated by single 0s) at the right end; the list of blocks is scrambled on every round trip. Open.",
+ "family": "two-sided bouncer, dense/sparse translator with chaotic content",
+ "decision": "open"
 }

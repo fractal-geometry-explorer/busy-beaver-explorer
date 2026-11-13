@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G04",
+ "generated": false,
+ "group": "bouncer with an irregular defect region",
  "title": "What is known about 1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE",
  "description": "Proof status of the six-state BB(6) holdout 1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE.",
  "machine": "1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Each sweep of the head lengthens a block of the background 1010&hellip; at the left end by one cell; behind it, a slowly growing region of defects is rearranged a cell at a time, and nobody has found the rule it follows."
  ],
  "claims": [
   {
@@ -46,6 +46,12 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "A growing block and a slowly growing defect field",
+   "text": "At the left-end visits in state F the first block of the 1010&hellip; background grows by one per sweep; the number of defects behind it is 16 at 10<sup>5</sup> steps, 21 at 10<sup>6</sup>, 26 at 10<sup>8</sup> and 28 at 10<sup>9</sup>.",
+   "where": "<code>python3 py/view.py 1e9</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
@@ -55,11 +61,16 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE 1000000000"
+  "python3 holdouts/1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE/py/view.py   # the views of the run quoted in the README"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Each sweep of the head lengthens a block of the background 1010&hellip; at the left end by one cell; behind it, a slowly growing region of defects is rearranged a cell at a time, and nobody has found the rule it follows.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "28 defects",
+    "text": "behind the growing block after 10<sup>9</sup> steps, about logarithmic growth."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -69,11 +80,6 @@
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +91,15 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "defects",
+    "eyebrow": "Macro structure",
+    "heading": "A growing block and a field of defects",
+    "html": [
+     "<p>The tape is the pattern <code>1010&hellip;</code> almost everywhere, interrupted by short <em>defects</em> where two 0s stand together. Each time the head, in state F, is back at the left end, the first block of the pattern is one cell longer than the time before: the head runs across it and then works its way through the defects behind it, zig-zagging a few cells forward and back, moving one or two defects by a cell, before it comes back.</p>",
+     "<p>The number of defects grows only about logarithmically (16 after 10<sup>5</sup> steps, 28 after 10<sup>9</sup>). The blocks right behind the first one wobble by one cell; the later ones change in no pattern found so far. Whether the defect field can ever produce the halting pattern (state A reading a 1) is open.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +113,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A bouncer whose first block grows by one cell per sweep; behind it a region of defects in the 1010... background, moved one cell at a time by a zig-zagging head, grows about logarithmically and looks irregular.",
+ "decision": "open"
 }

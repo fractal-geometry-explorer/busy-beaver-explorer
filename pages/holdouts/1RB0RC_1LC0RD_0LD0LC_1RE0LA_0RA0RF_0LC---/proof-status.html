@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine is a base-5 counter, incremented once per sweep, whose digits drift and collide; Lean proves the counting rule for all configurations, and an exact simulator of that structure finds no halt in the first 10<sup>16</sup> steps. Halting needs a crowded collision that the run has never produced, and nothing proves it never will.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The piece rules of a visit</h3>
+        <p>Nine rules, each for all counts and all surrounding tape: the crossing of the left gap, the carry over a d, the turn at a, b, c or e, the return over a gap and over a passed d, and the growth at the left end.</p>
+        <p class="where"><code>start</code>, <code>carry</code>, <code>bounce_a</code> &hellip; <code>left_end</code>, <code>lean/Pieces.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>One visit is one base-5 increment</h3>
+        <p>From a sample configuration <code>0 0 W^g X&#8321; W^g&#8321; &hellip; X&#8342; W^g&#8342; T</code> with digits a, b, c, d, e (values 1, 2, 3, 4, 0), whenever the increment <code>bump</code> is defined (the carry stops at a digit with a nonempty gap after it), the machine reaches the sample configuration of the incremented counter in exactly 10g + 11 + <code>cost</code> steps; iterated in <code>run_sound</code>.</p>
+        <p class="where"><code>visit</code>, <code>run_sound</code>, <code>lean/Counter.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The merge of two adjacent e</h3>
+        <p>The visit that meets two e side by side, the place where the four machines of the family differ: the pair becomes a single <code>0</code> (an empty digit, a phase defect <code>00001</code>).</p>
+        <p class="where"><code>merge_ee</code>, <code>lean/Merge.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -111,28 +126,38 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>From blank tape into the counter</h3>
+        <p>After 1,001,057 steps the run is at a sample configuration made of standard digits, and the counter rule alone carries it through the next 186 visits.</p>
+        <p class="where"><code>reach</code>, <code>counted</code>, <code>lean/Reach.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
+        <h3>No halt in the first 10<sup>16</sup> steps</h3>
+        <p>The visit-level simulator <code>py/vsim.py</code> (runs each visit on a copy with long gaps cut short and puts them back; identical to the direct simulator on all sample configurations of the first 3&middot;10<sup>7</sup> steps) runs 10<sup>16</sup> steps, 103,085,042 visits, without a halt. The near miss <code>D&gt;0 1 0</code> occurs 6 times in the first 10<sup>15</sup> steps.</p>
+        <p class="where"><code>py/vsim.py</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 74,960 cells have been visited and 25,993 of them hold a 1.</p>
+        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.464). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Collisions are where it could halt</h3>
+        <p>99.992% of the visits are plain increments. The others are overflows (all digits d) and collisions of a digit with the next. Hand-made tapes with crowded collisions reach <code>D&gt;0 1 1</code> and halt; the run has met only isolated collisions so far.</p>
+        <p class="where"><code>py/census.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It would take control of the gaps at every collision of the counter, forever.</p>
       </div>
     </div>
   </section>
@@ -140,7 +165,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LC---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LC--- 1000000000</code></pre>
+cd holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LC---/py &amp;&amp; python3 vsim.py 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LC--- A 1e15 D     # about 3 minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

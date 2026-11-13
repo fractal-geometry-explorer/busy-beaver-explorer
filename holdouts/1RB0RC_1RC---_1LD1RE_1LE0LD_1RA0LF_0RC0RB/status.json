@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB0RC_1RC---_1LD1RE_1LE0LD_1RA0LF_0RC0RB",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RC_1RC---_1LD1RE_1LE0LD_1RA0LF_0RC0RB.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Sampled with the head in E at the left end, the tape is <code>1^X c 0000 (10)^s1 110 (10)^s2 110 &hellip;</code>: a number X and a stack. Two rules of the map are clean (observed without exception after the first few samples); the folding of a non-empty stack is not decoded. Shift rules are proved in Lean."
  ],
  "claims": [
   {
@@ -34,6 +34,12 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules, for every length",
+   "text": "Going right: A turns <code>110</code> into <code>011</code>, E turns <code>011</code> into <code>101</code> and <code>0001</code> into <code>1111</code>, C turns <code>1010</code> into <code>0101</code> and <code>1000</code> into <code>1111</code>; each for every n and every tape around.",
+   "where": "<code>right_A</code>, <code>right_E</code>, <code>right_C_10</code>, <code>right_C_1000</code>, <code>right_E_0001</code>, <code>lean/Rules.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 13,850 cells have been visited and 10,784 of them hold a 1.",
@@ -46,9 +52,33 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in 10<sup>10</sup> steps",
+   "text": "<code>tools/c/tmrun.c</code>: 10<sup>10</sup> steps from blank tape without a halt (29,751 ones).",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No closed tape language from windows up to 7",
+   "text": "<code>bbtools.ctl</code> with K = 2 to 7 closes but allows a halt (6 to 1,344 abstract halting configurations); n-gram CPS (widths 3 to 7, -H, -U) fails.",
+   "where": "<code>tools/py/bbtools/ctl.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The stack map",
+   "text": "At the 69 samples to 2.9&middot;10<sup>10</sup> steps (head in E on a 0 at the left end, c = 1110, a = 10, b = 110) the tape is <code>1^X c</code>, then either nothing (empty stack) or <code>0000 a^s1 b a^s2 b &hellip;</code>. Empty stack: X &equiv; 0 (mod 4) gives X' = 3X/2 + 2, empty (1424 &rarr; 2138, 4240 &rarr; 6362); X &equiv; 2 gives X' = X/2 + 3 with stack [(X&minus;2)/4] (76,954 &rarr; 38,480, [19,238]); 20 of 20 cases from X = 18 on. Non-empty stack, X &equiv; 0 (mod 4): X' = X/2, push X/4, top minus 1 (1072 [534] &rarr; 536 [268, 533] &rarr; 268 [134, 267, 533] &rarr; 134 [67, 133, 267, 533]); every case. Non-empty stack, X &equiv; 2: the stack is folded back into a larger X (for one entry, X' = X + 3s + 5: 12,118 [6,057] &rarr; 30,294), not decoded in general.",
+   "where": "<code>tools/c/tokrun.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Where a halt would come from",
+   "text": "The halt is B reading a 1. B is entered from F reading a 1 (about 125 million times in 10<sup>9</sup> steps) or from A reading a 0; in all of them B read a 0.",
+   "where": "<code>tools/c/tm.h</code> (transition counts)"
+  },
+  {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "title": "Does it halt?",
+   "text": "Not known. The fold of a non-empty stack, and which configurations of the map can put B on a 1, are open.",
    "where": ""
   }
  ],
@@ -86,6 +116,33 @@
   },
   "sections": [
    {
+    "id": "tape",
+    "eyebrow": "What the tape looks like",
+    "heading": "A number and a stack",
+    "html": [
+     "<p>Each time the head is in E on a 0 at the left end, the tape (words <code>a = 10</code>, <code>b = 110</code>, <code>c = 1110</code>) is a run of X ones and a stack:</p>",
+     "<div class=\"config\">E&gt;0 1^1072 c 0000 a^534 1 &nbsp; (step 17,557,542)<br>E&gt;0 1^536 c 0000 a^268 b a^533 1<br>E&gt;0 1^268 c 0000 a^134 b a^267 b a^533 1<br>E&gt;0 1^134 c 0000 a^67 b a^133 b a^267 b a^533 1</div>",
+     "<p>Between two samples the head sweeps across everything (the bouncer side); samples get rarer as the numbers grow (the logarithmic side).</p>"
+    ]
+   },
+   {
+    "id": "map",
+    "eyebrow": "The rule from one sample to the next",
+    "heading": "Halve and push, or fold",
+    "html": [
+     "<ul><li>X divisible by 4, stack non-empty: X is halved and X/4 is pushed; the old top loses 1 (the four lines above).</li><li>Empty stack, X &equiv; 0 (mod 4): X becomes 3X/2 + 2 (1,424 &rarr; 2,138; 4,240 &rarr; 6,362).</li><li>Empty stack, X &equiv; 2 (mod 4): X becomes X/2 + 3 and (X &minus; 2)/4 is pushed (76,954 &rarr; 38,480 with stack [19,238]).</li><li>Non-empty stack, X &equiv; 2 (mod 4): the stack is folded back into a bigger X; with one entry s, X' = X + 3s + 5 (12,118 [6,057] &rarr; 30,294). The general fold is not decoded.</li></ul>",
+     "<p>Halving while divisible by 4 and growing by 3/2 otherwise is the shape of a Collatz-like map; the stack remembers the halvings, a little like the Hydra machines.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Can it halt?",
+    "heading": "Only B on a 1",
+    "html": [
+     "<p>The only halt is B reading a 1. B comes right after F reads a 1 (or A reads a 0) and moves right, and in 10<sup>10</sup> steps B always found a 0. Which configuration of the stack map could produce a <code>11</code> under F is not known; the question is open.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +155,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A stack machine on the tape: a leading run 1^X and a stack of blocks (10)^s; while 4 divides X the machine halves X and pushes X/4, and when X is 2 mod 4 the stack is folded back into a new X about 3/2 times larger (Hydra-like); the sweeps across the tape are the bouncer.",
+ "family": "Hydra-like stack map + bouncer",
+ "decision": "open"
 }

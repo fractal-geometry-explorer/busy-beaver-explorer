@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is a list of blocks <code>(01)^n</code> separated by single 0s, with a few markers (<code>00</code>, <code>10</code>, <code>110</code>). The head sweeps over the list and the left end grows by about one block per sweep; markers travel through the list, each passage changing the lengths of the blocks it crosses by small amounts (&plusmn;1, &plusmn;2 early on, &plusmn;15, &plusmn;30, &plusmn;90 later), while the blocks at the other end freeze. It is the mirror image of <code>1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB</code> with another start state. The shift rules over the background are proved in Lean; no macro map is known yet.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules over the (01) background</h3>
+        <p>How the head crosses <code>(01)^n</code> and <code>(10)^n</code> in each direction, for every n (2n steps each).</p>
+        <p class="where"><code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +124,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 155,432 cells have been visited and 77,675 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>A plain C simulator (<code>longrun.c</code>, on <code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps from blank tape without a halt; at the end the head has visited cells -877,871 to 302 and 439,047 cells hold a 1.</p>
+        <p class="where"><code>holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/c/longrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Same rule table as 1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB</h3>
+        <p>Reflecting the tape and renaming the states turns this machine into <code>1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB</code>; this machine starts in the state that corresponds to C there. The two runs from blank tape are different orbits of the same rule table (they do not meet in the first 2&middot;10<sup>4</sup> steps), with the same kind of behaviour.</p>
+        <p class="where">README.md</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +142,18 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.512). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.11).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Frozen list, active front</h3>
+        <p>In the defect picture the walls far from the growing end stop moving while new ones are born at that end and slow down as they move inward. This is the shape of a counter-like process, with no visible drift toward a halting configuration.</p>
+        <p class="where">the picture <code>defects.png</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The marker dynamics on the list has not been reduced to a map.</p>
+        <p class="where">README.md, Further work</p>
       </div>
     </div>
   </section>
@@ -140,7 +161,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_0RC0RA_1LC1RD_0LB0LE_1LA0LF_1LE---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC0RA_1LC1RD_0LB0LE_1LA0LF_1LE--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC0RA_1LC1RD_0LB0LE_1LA0LF_1LE--- 1000000000
+python3 holdouts/1RB0LE_0RC0RA_1LC1RD_0LB0LE_1LA0LF_1LE---/py/gen_rules.py      # rewrites lean/Rules.lean</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LE_0RC0RA_1LC1RD_0LB0LE_1LA0LF_1LE---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

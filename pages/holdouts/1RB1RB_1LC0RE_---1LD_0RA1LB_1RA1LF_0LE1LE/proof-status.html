@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and is now a question about a simple map.</b> Lean proves (kernel only) that the machine halts from blank tape if and only if the orbit of (3, 1, R1) under the round map <code>next</code> reaches a pair with <i>i</i> = <i>j</i> or <i>i</i> + 1 = <i>j</i>. The map has been iterated for 10<sup>6</sup> rounds without that happening; heuristically the chance that it ever happens is negligible (a probviously non-halting cryptid).</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Every round, for all block sizes</h3>
+        <p>From R1(i, j) or R2(i, j) (two blocks of 1s of lengths 2i and 2j, then a tail 0 11 or 0 11 0 11, head at the right end in state B) the machine reaches the next round configuration given by <code>next</code>, or halts when <code>next</code> is <code>none</code> (i = j or i + 1 = j). Proved for all i, j from 26 symbolic runs and an induction on the inner passes.</p>
+        <p class="where"><code>round_ok</code>, <code>lean/Round.lean</code>; pieces in <code>lean/Pieces.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting is reduced to the orbit of a map</h3>
+        <p>The machine halts from blank tape if and only if the orbit of (3, 1, R1) under <code>next</code> reaches a halting pair.</p>
+        <p class="where"><code>halts_iff</code>, <code>lean/Round.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +129,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 32,027 cells have been visited and 32,024 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The map matches the machine</h3>
+        <p>The round starts of the real machine, read off a C run of 3&middot;10<sup>10</sup> steps (46 rounds), are exactly the orbit of the map.</p>
+        <p class="where"><code>py/orbit.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halting pair in 10<sup>6</sup> rounds</h3>
+        <p>Iterating the map with exact integers for 10<sup>6</sup> rounds never gives i = j or i + 1 = j; the numbers grow by about 0.31 bits per round. Closest approach: at round 547,658 the difference i &minus; j still has 167,823 bits, against 167,848 bits for i and j.</p>
+        <p class="where"><code>py/orbit.py iterate</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +147,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.497). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.126).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Probviously non-halting</h3>
+        <p>Along the orbit i - j looks like a random number of the size of i and j, so a round with n-bit numbers hits the two halting values with chance about 2<sup>-n</sup>; the expected number of future hits is negligible. No invariant is known that excludes them (congruences cannot: i = j is excluded only by size).</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>Does the orbit ever reach i = j or i + 1 = j?</h3>
+        <p>Not known: a Collatz-type question about a piecewise affine map mixing subtraction and multiplication by 3.</p>
       </div>
     </div>
   </section>
@@ -140,7 +164,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE 1000000000</code></pre>
+python3 holdouts/1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE/py/orbit.py check 22
+python3 holdouts/1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE/py/orbit.py iterate 100000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

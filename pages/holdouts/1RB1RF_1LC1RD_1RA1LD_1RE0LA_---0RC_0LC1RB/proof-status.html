@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape consists of two periodic regions and one to three defects; sweeping right the head turns one region into the other a word at a time (proved in Lean for every state), and the sizes of the regions swing back and forth as the tape grows. The machine can only stop when the head in state D reads two 0s; the C simulator runs 10<sup>11</sup> steps without that happening. The motion of the defects has not been worked out.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweeps</h3>
+        <p>In each state S, moving right, every copy of a rotation of <code>111010</code> becomes the matching rotation of <code>111110</code> (A: <code>111010</code> &rarr; <code>111101</code>, &hellip;), 6n steps for n words.</p>
+        <p class="where"><code>sweepA</code> &hellip; <code>sweepF</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>When it halts</h3>
+        <p>The machine stops exactly when the head in state D reads a 0 followed by a 0 (D0 = 1RE, then E0 is undefined).</p>
+        <p class="where"><code>halt00</code>, <code>halt00_stop</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +129,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 57,981 cells have been visited and 43,904 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in 10<sup>11</sup> steps</h3>
+        <p>The C simulator <code>tools/c/tmrun.c</code> runs 100,000,000,000 steps from blank tape without a halt.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +142,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.506). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.063).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Two regions, at most three defects</h3>
+        <p>Tapes sampled every 10<sup>8</sup> steps up to 4&middot;10<sup>9</sup> consist of the two periodic regions (between 260 and 14,636 words of each) and one to three defect blocks.</p>
+        <p class="where"><code>py/regions.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. Whether the swing of the two regions is regular, and whether a defect can ever put <code>0 0</code> under the head in state D, has not been worked out.</p>
       </div>
     </div>
   </section>
@@ -140,6 +160,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB/lean/check.sh
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB 100000000000
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB 1000000000</code></pre>
   </section>
   <footer>

@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G13",
  "title": "What is known about 1RB1LA_1LA1RC_1RD0RB_1LE1LD_---1LF_1RA0LF",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LA_1LA1RC_1RD0RB_1LE1LD_---1LF_1RA0LF.",
@@ -8,11 +8,14 @@
  "home": "../index.html",
  "source": "holdouts/1RB1LA_1LA1RC_1RD0RB_1LE1LD_---1LF_1RA0LF/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
+  "It is a slow counter. The tape grows only at the right end, where a solid block of 1s gains ten cells each time the run's age grows by a factor of about four; the rest of the tape, a word of <code>10</code>, <code>110</code> and short blocks of 1s, changes slowly, like the higher digits of a counter. At step 4.0&middot;10<sup>8</sup> the block was absorbed and the run restarted with a longer word: a new epoch."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps.",
+  "<b>Where a halt would come from.</b> The machine halts only in state E reading 0, and E is entered only from D reading 0 and stepping left. In the first 10<sup>8</sup> steps that happens 4,761,903 times and E always reads a 1.",
+  "<b>What a proof needs.</b> An exact description of the counter's increment and of the epoch change, showing that the cell left of a 0 that D reads is always 1."
  ],
  "claims": [
   {
@@ -40,6 +43,24 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "Growth at the right end",
+   "text": "At the times the tape grows on the right, it ends <code>b 1^k b 1 1 D&gt;0</code> (b = <code>110</code>), and k grows by 10 for every factor of about 4 in time: k = 71, 81, 91, 101, 111, 121, 131 at steps 403,611,844, 407,740,602, 424,255,680, 490,315,950, 754,557,084, 1,811,521,682 and 6,039,380,104.",
+   "where": "<code>tools/c/tmrun.c</code> (records)"
+  },
+  {
+   "level": "trusted",
+   "title": "An epoch change",
+   "text": "Before step 4.02&middot;10<sup>8</sup> the right block reached <code>1^119</code> (step 378,784,004); at step 402,235,754 the tape grows by about 100 cells within a few million steps and a new block starts from <code>1^2</code> after a longer word. Width: 153 cells at 10<sup>8</sup> steps, 292 at 10<sup>9</sup>, 312 at 10<sup>10</sup>.",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "E always reads 1",
+   "text": "E is entered only from D reading 0 (<code>1LE</code>); in the first 10<sup>8</sup> steps it is entered 4,761,903 times and reads a 1 every time.",
+   "where": "state counts"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/power",
    "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.172).",
@@ -48,7 +69,7 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The run behaves like a counter in epochs; neither the increment nor the epoch change has been described exactly.",
    "where": ""
   }
  ],
@@ -58,12 +79,12 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LA_1LA1RC_1RD0RB_1LE1LD_---1LF_1RA0LF 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Started on a blank tape, this machine runs a slow counter: the tape grows by ten cells every time the run gets four times older, with a restart on a larger scale now and then. This page runs the real machine in your browser and lists what is known.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 293 cells visited."
+    "value": "10<sup>10</sup> steps",
+    "text": "No halt in the C simulator."
    },
    {
     "level": "native",
@@ -71,9 +92,14 @@
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
    },
    {
-    "level": "heuristic",
-    "value": "fixed/power",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "+10 per &times;4",
+    "text": "The block of 1s at the right end grows by 10 cells per fourfold time."
+   },
+   {
+    "level": "trusted",
+    "value": "Epoch at 4&middot;10<sup>8</sup>",
+    "text": "The run restarted on a larger scale at step 4.02&middot;10<sup>8</sup>."
    }
   ],
   "presets": [
@@ -85,6 +111,23 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "counter",
+    "eyebrow": "What it does",
+    "heading": "A block that grows ten cells at a time",
+    "html": [
+     "<p>Look at the right end of the tape whenever it grows. It always ends with a solid block of 1s, then <code>110 1 1</code>, and the block grows by 10 cells in a burst each time the run is about four times older: <code>1^71</code> at step 403,611,844, <code>1^81</code> at 407,740,602, <code>1^91</code> at 424,255,680, <code>1^101</code> at 490,315,950, <code>1^111</code> at 754,557,084, <code>1^121</code> at 1,811,521,682, <code>1^131</code> at 6,039,380,104. Left of it is a word of <code>10</code>, <code>110</code> and short blocks of 1s, which changes by a few cells per burst, like the higher digits of a counter.</p>",
+     "<p>The first such growth series ran until about step 3.8&middot;10<sup>8</sup> (block <code>1^119</code>). Then, around step 4.02&middot;10<sup>8</sup>, the tape grew by about a hundred cells in a few million steps, and a new series began from a short block after a longer word: a new epoch. That is the jump from 153 cells at 10<sup>8</sup> steps to 292 at 10<sup>9</sup>.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The halting question",
+    "heading": "What a halt would need",
+    "html": [
+     "<p>The only halting transition is E reading a 0. E is entered only when D reads a 0 and steps left, so a halt needs D to read a 0 whose left neighbour is a 0. In 10<sup>8</sup> steps D reads a 0 4,761,903 times and the cell to its left is always a 1.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +141,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "exponential counter with epochs",
+ "summary": "A counter that grows a block of 1s at the right end by 10 cells for every fourfold increase in time; at step 4.0·10^8 it restarted on a larger scale."
 }

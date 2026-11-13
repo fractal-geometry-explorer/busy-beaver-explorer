@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LF_1RC1RB_1LD0RA_1LA0LE_0LC1LC_1LE---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. The tape is the four cells 0111 repeated, in long stretches separated by a few short defects. The head crosses the stretches by proved rules, but the defects change in a way nobody has pinned down.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 32,248 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>4&ndash;6 defects</b><span class="small">Short defects between long domains of 0111, at every sweep seen.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#background">One background, two forms</a><a href="#defects">A few defects between long domains</a><a href="#halting">One pattern at a defect</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,24 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="background">
+  <span class="eyebrow">The tape</span>
+  <h2>One background, two forms</h2>
+<p>After a sweep to the right the tape repeats <code>0111</code>; a sweep to the left turns each pair <code>01110111</code> into <code>01001111</code>, and the next rightward sweep turns it back. The four shift rules of these sweeps are proved (<code>lean/Rules.lean</code>). Two consecutive end turns:</p>
+<pre>step 394,721,780  right end  (1110)^3460 1^8 0 1^3 0 1^6 (0111)^200 1^17 (0111)^1206 110 1^3 0 1^7 0 1^3 0 1^6 (0111)^74 (1110)^3 1100
+step 394,821,133  left end   0 (01001111)^1731 1^5 0100 1^7 (01001111)^100 1^17 (01001111)^603 110100 1^8 0100 1^7 (01001111)^36 11010010100 1^5 01101</pre>
+<p>Each domain of <code>(0111)^2m</code> is a domain of <code>(01001111)^m</code> on the way back.</p>
+</section>
+<section id="defects">
+  <span class="eyebrow">What is seen</span>
+  <h2>A few defects between long domains</h2>
+<p>The domains are separated by short words such as <code>1^8 0 1^3 0 1^6</code> or <code>1^17</code>. There are only four to six of them, and the domains between them are long and uneven: 3460, 200, 1206, 74 copies at step 3.9&middot;10<sup>8</sup>; 1676, 6498, 10, 552, 1018 at step 1.5&middot;10<sup>9</sup>. At the left end a block <code>1^N</code> grows by about one cell per sweep while the domain next to it shrinks. The defects move from sweep to sweep, and their rule has not been worked out.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">What halting would need</span>
+  <h2>One pattern at a defect</h2>
+<p>F1 is the only halting transition, reached as <code>1 A&gt;1</code>. Inside a domain the sweeps never do that, so a halt would have to happen at a defect or an end. That question is open.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +254,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 32,248 cells have been visited and 21,407 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.288).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</div></div><div><b>Shift rules of the sweeps</b><p>The sweeps over the background: rightward <code>L B&gt; (01001111)^n R</code> and <code>L 1 C&gt; (10011110)^n R</code> (the left-sweep form becomes <code>(0111)^2</code> per copy), leftward <code>L (11010011)^n D&gt;1 R</code> and <code>L (10100111)^n C&gt;0 R</code> (back to the period-8 form), for every n and all tapes L, R.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tokrun.c</code></div></div><div><b>A few long domains</b><p>At step 394,721,780 (width 19,836) the tape is <code>(1110)^3460</code>, <code>(0111)^200</code>, <code>(0111)^1206</code>, <code>(0111)^74</code> and short defects such as <code>1^8 0 1^3 0 1^6</code> or <code>1^17</code>; at step 1,484,459,896 (width 39,113) the domains are 1676, 6498, 10, 552, 1018 copies long. The number of defects stays small (four to six); their motion was not reduced to a rule.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts on F1, reached as <code>1 A&gt;1</code> (A reads 1, moves left onto a 1). The sweeps over the background never produce it; a halt would have to come from a defect, and the defects have no known rule.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1RC1RB_1LD0RA_1LA0LE_0LC1LC_1LE---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1RC1RB_1LD0RA_1LA0LE_0LC1LC_1LE--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1RC1RB_1LD0RA_1LA0LE_0LC1LC_1LE--- 1000000000
+python3 holdouts/1RB0LF_1RC1RB_1LD0RA_1LA0LE_0LC1LC_1LE---/py/rules.py | diff - holdouts/1RB0LF_1RC1RB_1LD0RA_1LA0LE_0LC1LC_1LE---/lean/Rules.lean   # the rules file is current</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LF_1RC1RB_1LD0RA_1LA0LE_0LC1LC_1LE---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

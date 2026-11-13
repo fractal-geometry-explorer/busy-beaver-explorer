@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This page runs the machine in your browser and describes the structure seen in its run.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 4,620 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev n">native_decide</span><b>left end</b><span class="small">Any halt has exactly 1 1 1 1 1 then blank tape to its left (Lean).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>chaotic</b><span class="small">Blocks of 1s that merge and split; a potential Cryptid.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#structure">What the tape looks like</a><a href="#halting">Where it could halt</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -210,6 +211,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="structure">
+  <span class="eyebrow">Structure</span>
+  <h2>What the tape looks like</h2>
+<p>At every moment the visited tape is a few blocks of 1s separated by single 0s. Sweeps move material from block to block: two neighbours merge, a block splits off a doubled copy (lengths like 97, 198, 397, 795 appear, each about twice the previous plus a little), and the pattern starts over. The number of blocks stays small (3 to 9). This looks like an iterated map on a short list of numbers with doubling, the typical shape of a Cryptid-like (Collatz-like but irregular) machine.</p>
+<pre>the tape at the right end (1^k a = 1^(k+1) 0):
+step  61,625,383  F 1^102 a 1^97 a 1^198 a 1^397 a 1^795 a 1^122 a 1^9
+step 123,727,894  F 1^1014 a 1^1009 a 1^149 a 1^41 a 1^5
+step 184,076,659  F 1^433 a 1^1266 a 1^832 a 1^34
+step 245,968,753  F 1^313 a 1^308 a 1^620 a 1^653 a 1^809 a 1^125 a 1^10</pre>
+</section>
+<section id="halting">
+  <span class="eyebrow">Halting</span>
+  <h2>Where it could halt</h2>
+<p>The machine has two halting transitions, C reading 1 and E reading 0. Lean proves, from a closed tape language of windows of 6 cells (closure checked by <code>native_decide</code>), that whenever the machine halts the tape left of the head is exactly <code>1 1 1 1 1</code> and then blank: every halt happens within six cells of the left end. Whether the block dynamics can ever put the head there in C or E is the question.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -236,14 +252,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 4,620 cells have been visited and 4,612 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.301). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.357).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README; <code>tools/c/tokrun.c</code>-style samples</div></div><div><b>The structure of the run</b><p>The tape is blocks of 1s separated by single 0s, with block lengths roughly doubling from left to right (97, 198, 397, 795, ...); sweeps merge neighbouring blocks and split them again in an irregular way.</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>halt_left</code>, <code>lean/LeftEdge.lean</code></div></div><div><b>Halting only next to the left end</b><p>A closed tape language of windows of 6 cells covers the whole run from blank tape; in every abstract configuration where C1 or E0 can fire, the left side is the window 11111#, which accepts only five 1s followed by blank tape. So any halt has exactly 1 1 1 1 1 and then blank tape to the left of the head. Closure and the halting check by native_decide, the rest by the kernel.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. No closed rule set has been found; see the README for what a proof would need.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF 1000000000
+cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF 6 lean H118184 &gt; ../../holdouts/1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF/lean/EdgeCert.lean   # then add set_option maxRecDepth 100000 before the namespace</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A long striped body and a small tangle at the left</a><a href="#moves">Three ways across the body</a><a href="#epochs">Epochs, each 5/3 as long</a><a href="#halt">Only on three 1s in a row</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,28 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape looks like</span>
+  <h2>A long striped body and a small tangle at the left</h2>
+<p>Write <code>a</code> for the two cells <code>10</code> and <code>b</code> for the four cells <code>1100</code>. At step 1,001,933 the whole tape (2,000 cells) reads</p><pre>a 0 b^173 1 1 [A0] 0 a^5 0 a^2 1 a^519 1</pre><p>On the left, 173 copies of <code>1100</code>; then a short tangle where the head is; then 519 copies of <code>10</code> and a final <code>1</code>. At almost any moment the tape is like this: a few hundred irregular cells at the left end (the part that grows like a logarithm), then a body made of <code>10</code> and <code>1100</code> that is tens of thousands of cells long (the part that grows like a square root).</p>
+</section>
+<section id="moves">
+  <span class="eyebrow">How the head moves</span>
+  <h2>Three ways across the body</h2>
+<p>In state B the head runs right over <code>10 10 10 ...</code> two cells per two steps, turning each <code>10</code> into <code>01</code>: the stripes are shifted one cell. State A does the reverse over <code>01 01 ...</code>. Going left, state C carries a small defect <code>0 1</code> through <code>10 10 10 10</code> at four cells per ten steps and leaves the stripes as they were. These three facts are proved in Lean (<code>lean/Rules.lean</code>).</p>
+<p>A trace of the leftward glider (the head is in brackets): <code>1010101010101010[C0]1</code> becomes, ten steps later, <code>1010101010[C0]11010</code>: the defect has moved four cells left, nothing else changed.</p>
+</section>
+<section id="epochs">
+  <span class="eyebrow">The emergent behavior</span>
+  <h2>Epochs, each 5/3 as long</h2>
+<p>The run is a sequence of <em>epochs</em>. An epoch starts with an active zone of stripes <code>(10)<sup>n</sup></code> at the right end of the tape. The head bounces inside the zone; every bounce adds three cells at the right end and pushes the zone's left edge further left into the packed region <code>(1100)<sup>m</sup></code>. In the space-time diagram each epoch is a parabola-shaped region opening downward. When the zone reaches the tangle at the left end, the head makes a few sweeps across the whole tape, packing <code>10 10</code> into <code>1100</code> on the way right and unpacking on the way left, the tangle is rewritten, and a new epoch starts.</p>
+<p>Epochs started at steps 100,618, 213,384, 514,417, 1,329,037, 3,738,738, ... 1,259,326,927 and 6,311,514,639; the tape's right end was at 284, 556, 1,017, 1,793, 3,126, ... 61,817 and 94,515. In a regular epoch the tape grows by a factor of about 5/3 and the epoch lasts about (5/3)<sup>2</sup> times as long as the last one, which is why the right side grows like the square root of time.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Can it stop?</span>
+  <h2>Only on three 1s in a row</h2>
+<p>The machine stops only when F reads a 1. F is reached only from D reading a 1 and D only from A reading a 1, so it stops exactly when A reads the first of three consecutive 1s. The body (<code>10</code> and <code>1100</code>) never has three 1s in a row; only the tangle at the left end and the short debris around the head during packing sweeps can. Whether the tangle ever produces <code>A&gt; 1 1 1</code> is the whole question, and the tangle's rule from one epoch to the next was not found: it is rewritten only in some epochs (the left end moved at steps around 4·10<sup>6</sup>, 1.4·10<sup>9</sup> and 6·10<sup>9</sup>).</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,15 +255,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>b_right</code>, <code>a_right</code>, <code>c_glider</code>, <code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</div></div><div><b>Shift rules across the body</b><p><code>B&gt; (10)<sup>n</sup></code> becomes <code>(01)<sup>n</sup> B&gt;</code> in 2n steps, <code>A&gt; (01)<sup>n</sup></code> becomes <code>(10)<sup>n</sup> A&gt;</code> in 2n steps, and C travels left through <code>(1010)<sup>n</sup></code> carrying a <code>0 1</code> defect, leaving the body as it was, in 10n steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">read off the table (only F1 halts: <code>step_none_iff</code>, <code>lean/Blank.lean</code>)</div></div><div><b>Where it can halt</b><p>The only halting transition is F reading 1; F is entered only from D reading 1, and D only from A reading 1, so the machine halts exactly when A reads the first of three 1s in a row (<code>A&gt; 1 1 1</code>). Neither <code>(10)<sup>n</sup></code> nor <code>(1100)<sup>m</sup></code> contains <code>111</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/epochs.c</code></div></div><div><b>Epochs to 10<sup>10</sup> steps</b><p>An epoch begins with a sweep across at least 80% of the tape. Epochs begin at steps 23, 2,421, 15,052, 100,618, 213,384, 514,417, 1,329,037, 3,738,738, 19,372,038, 32,388,399, 70,752,889, 172,844,740, 454,817,413, 1,259,326,927 and 6,311,514,639, with the right end of the tape at 5, 31, 118, 284, 556, 1,017, 1,793, 3,126, 4,946, 7,969, 13,277, 22,192, 37,035, 61,817, 94,515 cells. In regular epochs the right end grows by a factor 1.67 and the time by about 2.7 (close to (5/3)<sup>2</sup>); the irregular ones (factor 5 in time) are those in which the left end moved (199 to 283, 386 to 438 cells left of the start).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>How an epoch works</b><p>Inside an epoch an active zone of (10)<sup>n</sup> is born at the right end and widens leftward into a region of (1100)<sup>m</sup>; the head bounces inside the zone (B going right shifts the body by a cell, C going left carries a <code>0 1</code> defect), each bounce adding 3 cells at the right end. When the zone reaches the left end, a few full-width sweeps pack (10)(10) into 1100 and unpack it again, the left region is rewritten, and a new zone starts. Observed in space-time diagrams and tape dumps, not proved.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/ctl.py</code>; the n-gram run of group G02 (not in the repo)</div></div><div><b>No closed tape language with small windows</b><p><code>bbtools.ctl</code> with windows K = 3, 4, 5, 6 finds no closed set that excludes halting (12, 48, 192 and 384 abstract halting configurations remain). The n-gram CPS decider (widths 3 to 7, with history and LRU augmentations) also fails.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 57,080 cells have been visited and 28,533 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.0). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.615).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Halting needs <code>A&gt; 1 1 1</code>, which can only appear in the irregular region at the left end (or in the short-lived debris that the packing sweeps leave); that region changes only once every few epochs and its rule has not been found.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RD_1RC0RA_0LA0LE_1LC1RF_1LA1LC_0RB---/lean/check.sh
+python3 holdouts/1RB0RD_1RC0RA_0LA0LE_1LC1RF_1LA1LC_0RB---/py/rules.py &gt; holdouts/1RB0RD_1RC0RA_0LA0LE_1LC1RF_1LA1LC_0RB---/lean/Rules.lean
+gcc -O2 -o epochs holdouts/1RB0RD_1RC0RA_0LA0LE_1LC1RF_1LA1LC_0RB---/c/epochs.c &amp;&amp; ./epochs 1RB0RD_1RC0RA_0LA0LE_1LC1RF_1LA1LC_0RB--- 10000000000 0.8
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RD_1RC0RA_0LA0LE_1LC1RF_1LA1LC_0RB--- 1000000000</code></pre>
 </section>
 <footer class="foot">

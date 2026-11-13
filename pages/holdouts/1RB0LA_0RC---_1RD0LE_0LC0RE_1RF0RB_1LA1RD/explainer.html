@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LA_0RC---_1RD0LE_0LC0RE_1RF0RB_1LA1RD</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this machine's right side grows like a counter in base 3/2: each new cell at the right end costs one and a half times the visits of the one before, the pattern of Collatz-like machines. It halts only if state B ever reads a 1.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 271 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/exp</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>11</sup> steps</b><span class="small">No halt in a direct run.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>&times;1.5</b><span class="small">Visits per new cell at the right end.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>Rules.lean</b><span class="small">The sweeps of the run, proved for every length.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#base32">A counter in base 3/2</a><a href="#right">A counter in base 3/2</a><a href="#left">A slower, irregular side</a><a href="#halt">The halting transition</a><a href="#open">What would settle it</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,32 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="base32">
+  <span class="eyebrow">Second look</span>
+  <h2>A counter in base 3/2</h2>
+<p>Count how often the head turns at each cell between steps 3&middot;10<sup>8</sup> and 3.1&middot;10<sup>8</sup>. The busiest cell is cell 108 with 201,806 turns. Going right three cells at a time the counts are 134,539, 89,692, 59,794, 39,862, 26,574, 17,718, &hellip;: each exactly 2/3 of the one before. That is what a counter in base 3/2 does: every digit passes 2 carries on for every 3 it receives. Far to the left the counts halve every four cells, a binary counter.</p>
+<p>Written as words <code>1&hellip;1 0</code> the digits right of the engine are 0, 1 or 2 ones long, and each visit of the head rewrites a prefix of variable length, so the digits do not sit at fixed cells. The exact increment rule is the next thing to decode.</p>
+</section>
+<section id="right">
+  <span class="eyebrow">The machine</span>
+  <h2>A counter in base 3/2</h2>
+<p>At its right-end visits the right part of the tape is a word in <code>10</code>, <code>110</code> and <code>1110</code>, with a fixed tail. Each time the head extends the tape on the right, the busiest cell has turned about 1.5 times as often as the time before: 285,018, 427,933, 641,487, 962,206, 1,443,670 between consecutive right-end extensions from step 139,644,038 on (and the same pattern again after each restart). That is the signature of a counter in base 3/2, where adding to the lowest digit carries upward with a factor 3/2: the kind of numeration behind Collatz-like machines such as Antihydra.</p>
+</section>
+<section id="left">
+  <span class="eyebrow">The left side</span>
+  <h2>A slower, irregular side</h2>
+<p>The left side grows far more slowly and irregularly (the busiest cell turns 202,215, 1,789,546, 4,800,410, 8,534,372 times between left-end extensions at steps 21,310,616, 126,868,352, 364,736,478, 899,271,976), and after each left-end visit the right side starts its pattern of factors 1.5 again. The rule linking the two is not decoded.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Where it could stop</span>
+  <h2>The halting transition</h2>
+<p>The machine halts only in state B reading a 1. B is entered from A0 (1RB) and E1 (0RB), used 9&middot;10<sup>7</sup> and 2&middot;10<sup>7</sup> times in 10<sup>9</sup> steps, and every time the next cell was a 0. There is no rare transition to watch; halting needs <code>A&gt; 0 1</code> or <code>E&gt; 1 1</code>, a pattern the run's words never produce so far.</p>
+</section>
+<section id="open">
+  <span class="eyebrow">Next</span>
+  <h2>What would settle it</h2>
+<p>Find the digit values of the words <code>10</code>, <code>110</code>, <code>1110</code> and the carry rule of the right counter, and what a left-end visit does to it. If it is a base-3/2 counter fed by the left side, the halting question is likely a Collatz-like question about the parities met by repeated multiplication by 3/2.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,9 +259,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (B1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</div></div><div><b>The sweeps of the run</b><p>The shift rules the machine uses in its run (every sweep met when the symbolic simulator runs from many configurations of the run), each for every number of copies.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 271 cells have been visited and 118 of them hold a 1.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB---_0LC0RB_1RA1LD_0RD1LE_1LF0LA_1LB0LE/c/</code><code>longrun.c</code></div></div><div><b>No halt in the first 10<sup>11</sup> steps</b><p>A direct run of 10<sup>11</sup> steps without a halt.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB---_0LC0RB_1RA1LD_0RD1LE_1LF0LA_1LB0LE/c/</code><code>ymax.c</code></div></div><div><b>Right extensions by factors of 1.5</b><p>From step 139,644,038 on, the busiest cell turns 285,018, 427,933, 641,487, 962,206, 1,443,670 times between consecutive right-end extensions (then the same again after a restart: 641,553, 962,401, 1,443,533, 2,165,391, ...).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/exp</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.051). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.062).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code></div></div><div><b>A base-3/2 counter</b><p>The factor 1.5 per new cell suggests a counter in base 3/2 on the right, the numeration of Collatz-like machines.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts only if B reads a 1 (after A0 or E1); the right side looks like a base-3/2 counter, whose rules are not decoded.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">README (turn histogram)</div></div><div><b>Exactly 2/3 as many visits every 3 cells</b><p>Between steps 3&middot;10<sup>8</sup> and 3.1&middot;10<sup>8</sup> the busiest cell is cell 108 (201,806 turns); every third cell to its right has 134,539, 89,692, 59,794, 39,862, 26,574, 17,718, 11,813, 7,876, &hellip; turns, ratios 1.4999&ndash;1.5000, the signature of a base-3/2 counter; far left the turns halve every 4 cells (binary).</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

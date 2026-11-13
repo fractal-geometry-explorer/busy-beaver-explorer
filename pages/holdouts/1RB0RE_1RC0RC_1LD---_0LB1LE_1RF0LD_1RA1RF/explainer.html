@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#twin">The same computation as another holdout</a><a href="#what">Running parity, Sierpinski triangles</a><a href="#halt">Only when B stands left of a 1</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="twin">
+  <span class="eyebrow">The main finding</span>
+  <h2>The same computation as another holdout</h2>
+<p>Run this machine and <a href="../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> side by side and look at the moments when the head starts a sweep across the whole tape. This machine gets there later (step 72,335 instead of 47,799, 1,744,002,084 instead of 1,162,585,978), but the tape is the same cell for cell, with the head on the same cell in the same state (E reading 1). That holds at 12 of the 13 epoch starts up to 1.7·10<sup>9</sup> steps.</p><p>At step 72,335 both tapes begin</p><pre>1^12 0 1^7 0 1^7 0 1^3 0 1^15 0 1^3 0 1^3 0 1^15 0 1^7 0 ...</pre>
+</section>
+<section id="what">
+  <span class="eyebrow">What it computes</span>
+  <h2>Running parity, Sierpinski triangles</h2>
+<p>The tape is a word in two 4-cell letters, <code>1110</code> and <code>1111</code> (blocks <code>1<sup>4k+3</sup>0</code>). In the twin, each leftward sweep provably replaces the word by its running XOR; here the same words are crossed with different states (D, E, F, A: eleven shift rules proved in Lean), more slowly. The space-time diagram shows the same Sierpinski triangles and the same epochs, each about 1.75 times longer than the last.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Can it stop?</span>
+  <h2>Only when B stands left of a 1</h2>
+<p>The only halting transition is C reading 1, and C is entered only from B, which always moves right. So the machine stops exactly when B stands just left of a cell holding 1. As for its twin, the question is in the rightward sweeps and the turns at the walls, which were not decoded.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,15 +248,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (C1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>d_v0</code> ... <code>e_1010</code>, <code>lean/Rules.lean</code></div></div><div><b>Shift rules over the 4-cell words</b><p>D runs left over <code>1111</code> leaving it (on a 0) or writing <code>0101</code> (on a 1); E runs left over 1111 writing 1010; E, F, A cross <code>0101</code>, <code>1010</code> going right, D and E going left.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/dump.c</code></div></div><div><b>Same epoch starts as its twin</b><p>The epoch starts (a crossing of 80% of the tape) of this machine at steps 3,350, 8,689, 19,594, 72,335, 220,328, 734,951, 2,145,468, 6,420,857, 60,731,203, 186,137,520, 574,984,133 and 1,744,002,084 have exactly the configuration (tape, head position, state) of 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF at its steps 2,284, 5,873, 13,248, 47,799, 145,962, 487,979, 1,427,948, 4,277,179, 40,483,837, 124,076,294, 383,276,545 and 1,162,585,978. (The epoch near 2·10<sup>7</sup> was sampled at different turns in the two runs.) Left end at 56, 103, 172, 374, ... 68,091 cells, as for the twin.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>What it computes</b><p>As for the twin: a binary word in letters u = 1110, v = 1111, replaced on each leftward sweep by its running XOR, giving Sierpinski triangles in space-time, in epochs growing by about 1.75. Inferred from the identical epoch starts.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>Where it can halt</b><p>Only C reading 1 halts; C is entered only from B (1RC on 0, 0RC on 1), so the machine halts exactly when B stands just left of a 1 (<code>B&gt; x 1</code>). Read off the table.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/ctl.py</code></div></div><div><b>No closed tape language with small windows</b><p><code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS 3 to 7 fails; no invariant mod 2..12.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,528 cells have been visited and 37,059 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.502). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.04).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The two twins agree at epoch starts; between them they take different routes (this one about 1.5 times slower), and each has its own halting pattern, so a proof for one would have to be redone for the other unless the agreement itself is proved.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/lean/check.sh
+gcc -O2 -o dump holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/c/dump.c &amp;&amp; ./dump 1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF 72335 &amp;&amp; ./dump 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF 47799
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF 1000000000</code></pre>
 </section>
 <footer class="foot">

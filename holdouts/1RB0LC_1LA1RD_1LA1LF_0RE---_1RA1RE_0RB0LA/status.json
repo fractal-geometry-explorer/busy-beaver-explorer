@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G08",
  "title": "What is known about 1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head sweeps over the whole tape, which is made of runs of <code>01</code>; a big repeated block at the left end grows and shrinks again and again. This page lists what has been established, sorted by what each result rests on."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves the halting configurations and no halt in the first 10<sup>7</sup> steps. The structure below is observed in simulations, not proved. No halt in the first 10<sup>9</sup> steps."
  ],
  "claims": [
   {
@@ -46,34 +46,48 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "B never reads 1 with a 1 to its right (so far)",
+   "text": "The only halting entry is D reading a 1, and D is entered only from <code>B&gt;1</code> (write 1, move right): the machine halts exactly when <code>B&gt;1 1</code> occurs. In the first 10<sup>8</sup> steps D is entered 10,419,815 times, always onto a 0.",
+   "where": "<code>c/haltwatch.c</code>, first 10<sup>8</sup> steps"
+  },
+  {
+   "level": "heuristic",
+   "title": "Runs of 01 and a breathing end block",
+   "text": "The tape is runs <code>(01)^k</code> separated by single 0s, with k mostly 2, 3, 5, 8 or 11. At the left end a block <code>(01010010101)^m</code> (runs of 2 and 3 alternating) appears again and again: m grows (to 85 at step 1,448,288, to 339 at step 38,516,556) and is then eaten back down to 0, about nine words every sixty left-end visits (m = 78, 69, 61, 53, 44, 36, 27, 18, 9 at sixty-visit intervals from step 1,705,608), seen as rotations of the same word.",
+   "where": "<code>py/snapshots.py</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The end block's growth and decay look regular, but between two such cycles the tape is rewritten irregularly, and the run lengths that come out of each cycle have not been predicted. A proof would need either a rule for the whole cycle in terms of the run lengths or an invariant language for runs of 01 (which window-CTL with K &le; 7 did not find).",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA/lean/check.sh",
+  "python3 holdouts/1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA/py/snapshots.py 3e7 L 60",
+  "gcc -O2 -o haltwatch holdouts/1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA/c/haltwatch.c && ./haltwatch 1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA 100000000",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Started on a blank tape, this machine writes 0101&hellip; in runs separated by single 0s, and sweeps back and forth over them. At the left end a long repeated word builds up and is eaten away again, over and over; the rest of the tape is rewritten with no pattern found so far.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "10<sup>4</sup> steps",
+    "text": "No halt, checked by Lean's kernel (10<sup>7</sup> by compiled code)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 55,261 cells visited."
+    "text": "No halt in the C simulator."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "sqrt/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "10,419,815",
+    "text": "Entries into the halting state D in 10<sup>8</sup> steps, all onto a 0."
    }
   ],
   "presets": [
@@ -85,6 +99,25 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "The one way to halt",
+    "html": [
+     "<p>The only halting entry is D reading a 1. D is entered only from B reading a 1 (B writes 1 and moves right), so the machine halts exactly when <code>B&gt;1 1</code> occurs. In the first 10<sup>8</sup> steps D is entered 10.4 million times, always onto a 0; the most common windows are <code>101[0]010</code>, <code>101[0]011</code>, <code>101[0]100</code>, <code>111[0]100</code> and <code>111[0]101</code>, about 2 million each.</p>"
+    ]
+   },
+   {
+    "id": "runs",
+    "eyebrow": "Macro structure",
+    "heading": "Runs of 01, and a block that breathes",
+    "html": [
+     "<p>When the head reaches a new cell at the left end the tape reads, for instance,</p>",
+     "<p><code>A&gt;0 10110110 (01010010101)^85 01010010110 (01)^5 0 (01)^8 0 (01)^8 0 (01)^5 0 (01)^8 001010 (01)^8 &hellip;</code> (step 1,448,288)</p>",
+     "<p>Nearly everything is runs of <code>01</code> with a single 0 between them, here of length 5, 8, 8, 5, 8, &hellip;; the word <code>01010010101</code> is a run of 2 followed by a run of 3. Sixty left-end visits later the block reads <code>(10101010100)^78</code> (the same word seen from another phase), then 69, 61, 53, 44, 36, 27, 18, 9, and at step 4,678,768 it is gone. Later it builds up again (116 at step 26,755,844, 339 at step 38,516,556) and is eaten again.</p>",
+     "<p>The rest of the tape is rewritten between cycles without a visible rule. Nothing here is proved.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +131,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Bouncer over runs of 01 separated by single 0s (run lengths mostly 3, 5, 8, 11); at the left end an 11-cell word 01010010101 repeats up to a few hundred times, grows, and is then eaten back, again and again, while the rest of the tape changes irregularly. No regime proved.",
+ "family": "bouncer over runs of 01 with a growing and shrinking end block",
+ "decision": "open"
 }

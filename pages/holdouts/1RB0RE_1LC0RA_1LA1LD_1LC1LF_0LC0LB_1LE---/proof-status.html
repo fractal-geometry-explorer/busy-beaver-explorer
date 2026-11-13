@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and Collatz-like.</b> The run is a sequence of phases M &rarr; 8M/3 + c (proved in Lean for the empty tail and the tail [6]); the residue M mod 3 edits a small stack of blocks, and the machine halts exactly when that stack reaches one of a few shapes with two adjacent blocks <code>0 1 1</code>. 30,000 phases from blank tape (far past 10<sup>25000</sup> steps) do not halt.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The rounds of a phase</h3>
+        <p>From PS(M, T) = <code>0^inf F&gt; 0 1^M T</code>, five ones become a wall <code>(10)^5</code>; each round trip of the head then eats three ones and adds four <code>10</code> to the wall (6k + 39 steps for a wall of k pairs); at the end, state C turns every <code>10</code> of the wall into <code>11</code>. Each for every k, m and any tape beyond.</p>
+        <p class="where"><code>start</code>, <code>round</code>, <code>gap_left</code>, <code>unwall</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Whole phases on the empty tail and the tail [6]</h3>
+        <p>For every j: PS(3j+5, []) &rarr; PS(8j+17, []), PS(3j+6, []) &rarr; PS(8j+19, []), PS(3j+7, []) &rarr; PS(8j+13, [6]), PS(3j+5, [6]) &rarr; PS(8j+23, []), PS(3j+6, [6]) &rarr; PS(8j+35, []), PS(3j+7, [6]) &rarr; PS(8j+17, [1, 1, 3]). The rounds are chained by induction.</p>
+        <p class="where"><code>rounds</code>, <code>phase_e0</code> &hellip; <code>phase_s2</code> (six cases), <code>lean/Phase.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +129,30 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 69,315 cells have been visited and 35,991 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The phase map on every tail</h3>
+        <p>For any tail, the next phase start is found by running the machine on three small M of the same residue mod 3 and extrapolating linearly (slope 8/3 and the same new tail at all three, checked each time). This agrees with the real machine on the first nine phases from blank tape (to step 1.19&middot;10<sup>9</sup>). The tail changes by simple push/pop rules, and it halts exactly on a few tails such as [2, 2] with M &equiv; 1 mod 3.</p>
+        <p class="where"><code>py/phases.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 30,000 phases</h3>
+        <p>Iterating the phase map from PS(9, []) for 30,000 phases (assuming the linear extrapolation, checked as above): no halt; the tail stays at most 26 cells and 9 blocks; M then has about 12,800 digits, so this covers far more than 10<sup>25000</sup> steps.</p>
+        <p class="where"><code>py/phases.py 30000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.51). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Halting needs a long, specific run of residues</h3>
+        <p>With the residues M mod 3 chosen freely, a halting tail can be reached from [], so nothing about the tail alone rules halting out; but it takes 108 phases of the right residues, and with residues taken as random, 3&middot;10<sup>6</sup> phases had no halt.</p>
+        <p class="where"><code>py/tails.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It halts exactly if the residues of M mod 3 along the orbit of the phase map ever build a halting tail: a Collatz-like question.</p>
       </div>
     </div>
   </section>
@@ -140,7 +160,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE--- 1000000000</code></pre>
+python3 holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/py/phases.py</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

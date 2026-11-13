@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G07",
  "title": "What is known about 1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA.",
@@ -8,11 +8,13 @@
  "home": "../index.html",
  "source": "holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. It is the machine the bbchallenge community calls <b>Antihydra</b>, a cryptid: a machine whose halting is equivalent to an open Collatz-like problem.",
+  "Lean proves the equivalence here, for every step of the run: the machine halts from blank tape exactly when a simple arithmetic walk on two numbers reaches its halting case."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open, and is now a question about numbers.</b> Lean proves (<code>halts_iff</code>, kernel) that the machine halts from blank tape if and only if the orbit of (2, 7) under the map <i>(p, a) ↦ (p + 2, 3k + 4)</i> for <i>a = 2k + 1</i>, <i>(p − 1, 3k + 2)</i> for <i>a = 2k</i> ever meets an even <i>a</i> with <i>p = 0</i>.",
+  "<b>Why nobody expects a halt.</b> The parity of <i>a</i> behaves like a fair coin, so <i>p</i> is a random walk with steps +2 and −1 and an upward drift of ½ per step. After 10<sup>6</sup> steps of the walk (a computation, not a proof) <i>p</i> is 498,505; a walk of that kind started at height <i>p</i> ever reaches −1 with probability about 0.618<sup><i>p</i>+1</sup>. Deciding it would need control of the parity sequence of <i>⌊3x/2⌋</i> iterates, a famously hard problem (Mahler's 3/2 problem is of this kind)."
  ],
  "claims": [
   {
@@ -20,6 +22,18 @@
    "title": "The halting configurations",
    "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
    "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The sweep and its two endings",
+   "text": "For every p, a, b, with <code>Q p a b = 0^∞ 1^p 0 1^a 0 1^b B&gt; 0^∞</code>: <code>Q p (a+3) (b+1)</code> reaches <code>Q p (a+1) (b+4)</code> in 2b + 13 steps (one sweep: the middle block loses 2, the right block gains 3), and by induction k sweeps at once; a middle block of 1 gives <code>Q (p+2) (c+4) 2</code> from <code>Q p 1 (c+2)</code>, a middle block of 2 gives <code>Q p (c+5) 2</code> from <code>Q (p+1) 2 (c+2)</code>, and <code>Q 0 2 (c+2)</code> halts after c + 8 steps. The shift rules are generated from the table by <code>bbtools.symtm</code> and proved by <code>rfl</code> and the crossing lemmas.",
+   "where": "<code>inner</code>, <code>odd_a</code>, <code>odd_b</code>, <code>odd0</code>, <code>even</code>, <code>halt0</code> in <code>lean/Rules.lean</code>; <code>sweep'</code>, <code>odd_end</code>, <code>even_end</code>, <code>halt_end</code> in <code>lean/Macro.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Halting is equivalent to the Antihydra walk",
+   "text": "After 62 steps from blank tape the run is at <code>Q 2 7 2</code>. With <code>nxt (p, a)</code> = (p + 2, 3k + 4) for a = 2k + 1, (p − 1, 3k + 2) for a = 2k and p ≥ 1, and no successor for a even and p = 0: the machine halts from blank tape if and only if the orbit of (2, 7) under <code>nxt</code> stops. Both directions: a stop gives a halting run; an orbit that never stops gives runs of every length.",
+   "where": "<code>blank_to_Q</code>, <code>nxt_sound</code>, <code>nxt_halt</code>, <code>orbit_reached</code>, <code>halts_iff</code>, <code>lean/Macro.lean</code>"
   },
   {
    "level": "kernel",
@@ -40,63 +54,81 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "The walk does not stop in its first 10<sup>6</sup> steps",
+   "text": "Python big integers iterate <code>nxt</code> from (2, 7) a million times: p never falls below 2 and ends at 498,505 (a then has 584,967 bits). The first 12 points agree with a direct simulation of the machine, cell for cell, at the step counts the Lean rules give (step 62, 173, 423, …, 1,405,109).",
+   "where": "<code>py/walk.py run 1000000</code>, <code>py/walk.py check 3e6</code>"
+  },
+  {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.513).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Why a halt is not expected",
+   "text": "With x = a + 5 the map is x ↦ ⌊3x/2⌋, and p goes up 2 when x is even and down 1 when x is odd. If the parities are independent fair coins (they look so: no bias is known), p is a random walk with drift +½ per step; from height p it ever reaches −1 with probability φ<sup>−(p+1)</sup>, φ = (1+√5)/2, and p is already about 500,000. This is the bbchallenge community's reading too (Antihydra is listed as a cryptid, probviously non-halting).",
+   "where": "<code>holdouts/known.json</code>"
   },
   {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "title": "Does the walk ever stop?",
+   "text": "Open. Proving it never stops would need to show that the parities of the iterates of ⌊3x/2⌋ from x = 12 are not too often odd, an unsolved problem of the same kind as Mahler's 3/2 problem.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA 1000000000"
+  "python3 holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/py/gen_rules.py | diff - holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/lean/Rules.lean",
+  "python3 holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/py/walk.py check 3e6 && python3 holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/py/walk.py run 1000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows whether it halts. Lean proves that this machine halts exactly when a simple walk on numbers does: a number is multiplied by 3/2 again and again, and a counter goes up 2 for every even result and down 1 for every odd one. The machine halts only if the counter ever drops below zero. It has climbed past 500,000 and keeps climbing, but nobody can prove it never comes back.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 44,299 cells visited."
+    "level": "kernel",
+    "value": "halts ⇔ walk stops",
+    "text": "Proved in Lean for the whole run, both directions."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "10<sup>6</sup> walk steps",
+    "text": "No stop; the counter ends near 500,000."
    },
    {
     "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "≈ 0.618<sup>500000</sup>",
+    "text": "The chance a fair ±walk like this ever comes back down."
    }
   ],
   "presets": [
    1000,
    100000,
-   1000000
+   10000000
   ],
   "spacetime": {
-   "steps": 20000
+   "steps": 3000
   },
   "sections": [
    {
-    "id": "shape",
-    "eyebrow": "First look",
-    "heading": "The shape of the run",
+    "id": "blocks",
+    "eyebrow": "What the machine does",
+    "heading": "Three blocks of ones and a sweeping head",
     "html": [
-     "<p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.513).</p>",
-     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"160.0\" y2=\"160.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"164.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"120.0\" y2=\"120.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"124.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"80.0\" y2=\"80.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"84.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,180.0 L59.2,180.0 L78.4,170.0 L97.6,170.0 L116.8,165.4 L136.0,161.9 L155.2,161.9 L174.4,161.9 L193.6,159.1 L212.8,156.8 L232.0,154.7 L251.2,154.7 L270.4,153.0 L289.6,153.0 L308.8,153.0 L328.0,151.4 L347.2,151.4 L366.4,151.4 L385.6,151.4 L404.8,150.0 L424.0,148.7 L443.2,148.7 L462.4,147.5 L481.6,147.5 L500.8,147.5 L520.0,146.4\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,180.0 L59.2,176.8 L78.4,171.9 L97.6,166.8 L116.8,160.9 L136.0,154.7 L155.2,148.3 L174.4,143.8 L193.6,137.9 L212.8,132.0 L232.0,126.4 L251.2,120.9 L270.4,115.6 L289.6,110.7 L308.8,106.5 L328.0,101.0 L347.2,95.7 L366.4,90.4 L385.6,85.1 L404.8,80.0 L424.0,75.3 L443.2,71.1 L462.4,65.8 L481.6,60.5 L500.8,55.2 L520.0,50.0\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
-     "<p>After 10<sup>9</sup> steps the tape spans 44,299 cells (40 left of the start, 32,619 right), with a density of 1s of 1.0.</p>",
-     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>953,974,852</td><td><code>1^15 0 1^32817 0 1^9608 B&gt;0</code></td></tr><tr><td>right</td><td>969,607,072</td><td><code>1^15 0 1^31357 0 1^11798 B&gt;0</code></td></tr><tr><td>right</td><td>985,258,207</td><td><code>1^15 0 1^30127 0 1^13643 B&gt;0</code></td></tr></tbody></table></div>",
-     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+     "<div class=\"col\"><p>Watch the run for a while and the tape settles into three blocks of 1s separated by single 0s, with the head bouncing at the right end. Write it as <code>1^p 0 1^a 0 1^b</code>.</p></div>",
+     "<svg viewBox=\"0 0 620 150\" role=\"img\" aria-label=\"the three blocks of the tape\" style=\"width:100%;max-width:620px;height:auto;font:12px var(--mono)\">\n<rect x=\"10\" y=\"40\" width=\"120\" height=\"34\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"70\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">1^p</text>\n<rect x=\"134\" y=\"40\" width=\"10\" height=\"34\" fill=\"var(--cell0)\" stroke=\"var(--line-strong)\"/>\n<rect x=\"148\" y=\"40\" width=\"250\" height=\"34\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"273\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">1^a  (middle block)</text>\n<rect x=\"402\" y=\"40\" width=\"10\" height=\"34\" fill=\"var(--cell0)\" stroke=\"var(--line-strong)\"/>\n<rect x=\"416\" y=\"40\" width=\"150\" height=\"34\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"491\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">1^b</text>\n<polygon points=\"572,40 584,57 572,74\" fill=\"var(--head)\"/><text x=\"590\" y=\"62\" fill=\"var(--head)\">B</text>\n<path d=\"M380 95 C 380 125, 500 125, 500 95\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"1.6\" marker-end=\"url(#ah)\"/>\n<defs><marker id=\"ah\" viewBox=\"0 0 10 10\" refX=\"8\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"var(--head)\"/></marker></defs>\n<text x=\"440\" y=\"140\" text-anchor=\"middle\" fill=\"var(--fg2)\">each sweep: 2 ones leave the middle, 3 join the right</text>\n<text x=\"70\" y=\"28\" text-anchor=\"middle\" fill=\"var(--fg2)\">the counter</text><text x=\"273\" y=\"28\" text-anchor=\"middle\" fill=\"var(--fg2)\">the number</text>\n</svg>",
+     "<div class=\"col\"><p>Each round trip of the head (a <em>sweep</em>, 2b + 13 steps) takes two 1s from the middle block and adds three to the right block. So while the middle block lasts, the right block grows by 3 for every 2 the middle loses: the middle number gets multiplied by 3/2.</p><p>When the middle block is down to one or two 1s, the head goes further left and touches the left block:</p><ul><li>if <i>a</i> was <b>odd</b> (one 1 left), the left block <b>gains 2</b>;</li><li>if <i>a</i> was <b>even</b> (two 1s left), the left block <b>loses 1</b> — and if there is no left block at all, the machine <b>halts</b>.</li></ul><p>Then the right block becomes the new middle block, and a fresh right block of two 1s starts. In numbers: <i>a = 2k + 1</i> gives <i>(p + 2, 3k + 4)</i>, and <i>a = 2k</i> gives <i>(p − 1, 3k + 2)</i>. The run from blank tape reaches <i>(p, a) = (2, 7)</i> after 62 steps, then (4, 13), (6, 22), (5, 35), (7, 55), (9, 85), …</p></div>"
+    ]
+   },
+   {
+    "id": "walk",
+    "eyebrow": "The emergent behaviour",
+    "heading": "A number times 3/2, and a counter that flips coins",
+    "html": [
+     "<div class=\"col\"><p>Set <i>x = a + 5</i>. Then each step is just <b><i>x</i> ↦ ⌊3<i>x</i>/2⌋</b>, and the counter <i>p</i> goes <b>up 2</b> when <i>x</i> is even and <b>down 1</b> when <i>x</i> is odd. The machine halts if and only if <i>p</i> would go below 0. Lean checks this equivalence for the whole infinite run (<code>halts_iff</code>).</p><p>Nobody can predict the parity of ⌊3x/2⌋ iterates: they look like fair coin flips. If they are, <i>p</i> is a random walk with drift +½ per step, and once it is high it almost surely never returns. After a million steps <i>p</i> is near 500,000, and the chance of a walk like that ever coming back to −1 is about 0.618<sup>500,000</sup>. That is why the community calls Antihydra <em>probviously</em> non-halting, and why proving it is out of reach: it is a problem of the same kind as Mahler's 3/2 problem, open since 1968.</p></div>",
+     "<div class=\"col\" style=\"margin-top:1rem\">\n<p><b>Try the walk.</b> Start from the machine's own values or your own, and step it. The machine halts exactly when this says <i>halt</i>.</p>\n<p><label>p <input id=\"ahp\" type=\"number\" value=\"2\" min=\"0\" style=\"width:6em\"></label> <label>a <input id=\"aha\" type=\"text\" value=\"7\" style=\"width:10em\"></label>\n<button type=\"button\" id=\"ah1\">1 step</button> <button type=\"button\" id=\"ah100\">100 steps</button> <button type=\"button\" id=\"ahr\">reset</button></p>\n<pre id=\"ahout\" style=\"background:var(--sunk);padding:.6em;border-radius:6px;max-height:16em;overflow:auto;font:12px var(--mono);white-space:pre-wrap\"></pre>\n</div>\n<script>\n(function(){\n var P=document.getElementById('ahp'),A=document.getElementById('aha'),O=document.getElementById('ahout'),n=0;\n function fmt(a){var s=a.toString();return s.length>40?s.slice(0,12)+'…('+s.length+' digits)…'+s.slice(-6):s;}\n function one(){var p=BigInt(P.value||0),a=BigInt(A.value||0);\n  if(a%2n==1n){var k=a/2n;p+=2n;a=3n*k+4n;O.textContent+=(++n)+': a odd  → p='+p+', a='+fmt(a)+'\\n';}\n  else if(p==0n){O.textContent+=(++n)+': a even and p = 0 → the machine halts\\n';return false;}\n  else{var k=a/2n;p-=1n;a=3n*k+2n;O.textContent+=(++n)+': a even → p='+p+', a='+fmt(a)+'\\n';}\n  P.value=p.toString();A.value=a.toString();O.scrollTop=O.scrollHeight;return true;}\n document.getElementById('ah1').onclick=function(){one();};\n document.getElementById('ah100').onclick=function(){for(var i=0;i<100&&one();i++);};\n document.getElementById('ahr').onclick=function(){P.value='2';A.value='7';O.textContent='';n=0;};\n})();\n</script>"
     ]
    }
-  ]
- }
+  ],
+  "title": "Antihydra: a Turing machine that is secretly a coin-flipping walk"
+ },
+ "family": "Collatz-like walk (Antihydra)",
+ "decision": "open",
+ "summary": "Antihydra: halts iff the walk x → ⌊3x/2⌋, with a counter +2 for even x and −1 for odd x, ever drives the counter below 0 (proved equivalent in Lean); open, and heuristically never."
 }

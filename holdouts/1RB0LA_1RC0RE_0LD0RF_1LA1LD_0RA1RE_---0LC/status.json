@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G08",
  "title": "What is known about 1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its run alternates between two regular regimes, both proved in Lean for every size, joined by transitions that are only observed. This page lists what has been established, sorted by what each result rests on."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves by the kernel the round-trip rule of the main regime and the 14-trip cycle of the second one for all sizes, and (with <code>native_decide</code> for the first 4&middot;10<sup>6</sup> steps) that the run enters both; the transitions between regimes are observed, not proved. No halt in the first 10<sup>9</sup> steps."
  ],
  "claims": [
   {
@@ -34,6 +34,18 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "The main regime, for all sizes",
+   "text": "Write <code>Q a R</code> for <code>A&gt;(01110)^a 0 1 1 1 1 (001)^a R</code> with blank tape to the left. One round trip of the head takes <code>Q (a+1) (01111 01111 R)</code> to <code>Q (a+2) (01111 R)</code> in 28a + 55 steps, whatever R is; iterated, j round trips eat j blocks of a reservoir <code>(01111)^(k+1+j)</code>.",
+   "where": "<code>trip1</code>, <code>lean/Rules.lean</code>; <code>Q_step</code>, <code>Q_iter</code>, <code>lean/Phase.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The right-end eater, for all sizes",
+   "text": "Write <code>Z a c d</code> for <code>A&gt;(01110)^a 0 1 1 1 1 (001)^c 1 1 0 0 1 0 0 1 1 1 1 (001)^d 1 1 0 0 1</code>, blank on both sides. Fourteen round trips take <code>Z (a+1) (c+1) (d+9)</code> to <code>Z (a+15) (c+1) (d+5)</code> (224a + 168c + 168d + 4068 steps): a small machine at the right end comes back to the same shape having eaten 4 blocks <code>001</code>, while the left part gains 14 blocks; iterated in <code>Z_iter</code>.",
+   "where": "<code>cycle3</code>, <code>lean/Rules.lean</code>; <code>Z_step</code>, <code>Z_iter</code>, <code>lean/Phase.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 50,756 cells have been visited and 28,037 of them hold a 1.",
@@ -46,34 +58,67 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "native",
+   "title": "The run enters both regimes",
+   "text": "After 853,764 steps from blank tape the configuration is <code>Q 5 ((01111)^287 T)</code> with T = <code>0 0 1 1 1 1 0 1 1 1 1 1 0 1 1 1</code>, so 286 round trips follow by the rule above; after 4,090,752 steps it is <code>Z 359 293 278</code>, so 68 periods of the eater follow, to <code>Z 1311 293 6</code>. The bounded runs are evaluated with <code>native_decide</code>; the rest is kernel.",
+   "where": "<code>reach_Q</code>, <code>reach_Q_end</code>, <code>reach_Z</code>, <code>reach_Z_end</code>, <code>lean/Reach.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "C never reads 1 then 0 (so far)",
+   "text": "The only halting entry is F reading a 0, and F is entered only from <code>C&gt;1</code> (write 0, move right): the machine halts exactly when C reads a 1 with a 0 to its right. In the first 10<sup>8</sup> steps F is entered 6,823,520 times, always onto a 1.",
+   "where": "a transition counter over the first 10<sup>8</sup> steps"
+  },
+  {
+   "level": "heuristic",
+   "title": "Big cycles that grow about eightfold",
+   "text": "From blank tape the regimes come in the order Q with reservoir 292, Q with 296, Z with c = 293 and d from 288 down to 2 (4,090,752 to 22,188,348 steps), a transition, then Q with 2362, Q with 2366, Z with c = 2363 (from 217,524,700 steps, still running at 3&middot;10<sup>8</sup>). Each big cycle multiplies the reservoir by about 8. The transitions (the eater meeting the end of its blocks, the reservoir running out) are not analysed.",
+   "where": "<code>py/phases.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Epochs: the tape comes back to A&gt; (01111)^n S",
+   "text": "Along the run from blank tape the left-A records of the form <code>A&gt; (01111)^n S</code> (S at most 60 cells, n &ge; 20) are n = 63, 293, 2363 and 18924, at steps 42,291, 853,349, 54,698,577 and 3,502,378,736. Write <code>E(n, S)</code> for that configuration. Started from <code>E(n, S)</code> on otherwise blank tape, the machine reaches a next epoch <code>E(n', S')</code>. Only six tails S0&ndash;S5 have turned up so far, besides a few rarer ones from S1. For S0, S2, S3, S4 and S5, both n' and S' depend only on n mod 4, and n' is affine in n on each class: from S0, n&nbsp;&equiv;&nbsp;1 gives S0 with n' = 8n + 19, and n&nbsp;&equiv;&nbsp;0, 2, 3 give S1 with n' = 8n + 23, 8n + 17 and 8n + 20. From S2, n' = 8n + 54, 52, 53, 50. From S3, S4 and S5 the slope is 9/2. These hold at n = 100&ndash;115 and n = 400&ndash;407 for every tail, and at n = 20&ndash;39 from S0. They predict the run's epochs: 293 &equiv; 1 gives E(2363, S0), and 2363 &equiv; 3 gives E(18924, S1), which the run reaches at step 3,502,378,736.",
+   "where": "<code>py/epochs.py run 6e9</code>, <code>py/epochs.py table 100</code>, <code>table 400</code>, <code>c/epochs.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The S1 epochs are irregular",
+   "text": "From <code>E(n, S1)</code> the next epoch does not follow a short residue pattern. For n = 100&ndash;179 the offset n' &minus; 8n jumps around (about 3.5n for odd n, 10n&ndash;14n for even n, never periodic). S' runs over all six tails and some new ones, e.g. <code>0011110111110011110111</code> at n = 120, 168 and 405. Inside an S1 epoch the tape carries a second long counter, a list <code>(001111)^k</code> made from the reservoir, so the epoch contains an epoch of its own. The run is in an S1 epoch from step 3.5&middot;10<sup>9</sup>, with n = 18924.",
+   "where": "<code>py/epochs.py map 00111101111001 100 180</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The epoch map <code>E(n, S) &rarr; E(n', S')</code> is affine on residue classes mod 4 for five of the six tails, so for those a certificate of finitely many symbolic templates looks within reach. The approach is the one used for 1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC: the Q and Z trips as round templates, plus the transitions and the eater's start-up as symbolic runs in n. The sixth tail, S1, is the obstacle. Its epochs contain a second counter, and their outcome shows no residue pattern, so a full proof needs the inner dynamics of S1 epochs as a map of their own. The run from blank tape is in an S1 epoch from step 3.5&middot;10<sup>9</sup>.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/lean/check.sh",
+  "python3 holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/phases.py 3e8",
+  "python3 holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/epochs.py run 6e9          # about 40 s",
+  "python3 holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/epochs.py table 400        # about 40 s",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Started on a blank tape, this machine builds its tape out of 5-cell and 3-cell blocks. In one regime each round trip of the head turns one block of a reservoir into two new blocks; in another a little machine at the right end eats blocks four at a time. Both are proved in Lean for every size; what happens in between, where each big cycle comes out about eight times bigger, is the open part.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "2 regimes",
+    "text": "Both regular regimes proved for all sizes by the kernel."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 50,756 cells visited."
+    "text": "No halt in the C simulator."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "sqrt/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "&times;8 per epoch",
+    "text": "Epochs <code>A&gt;(01111)^n S</code> at n = 293, 2363, 18924; the map n &rarr; 8n + c depends only on n mod 4 for five of six tails."
    }
   ],
   "presets": [
@@ -85,6 +130,46 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "The one way to halt",
+    "html": [
+     "<p>The only halting entry is F reading a 0. F is entered only from C reading a 1 (C writes 0 and moves right), so the machine halts exactly when <code>C&gt;1 0</code> occurs: C on a 1 with a 0 to its right. In the first 10<sup>8</sup> steps that moment comes 6.8 million times and the cell to the right has always been a 1.</p>"
+    ]
+   },
+   {
+    "id": "regime",
+    "eyebrow": "Macro structure",
+    "heading": "The main regime: a reservoir turned into growth",
+    "html": [
+     "<p>Stop the simulator whenever the head reaches a new cell at the left end in state A. For long stretches the tape then reads</p>",
+     "<p><code>A&gt;(01110)^a 0 1 1 1 1 (001)^a (01111)^b &hellip;</code></p>",
+     "<p>A round trip of the head runs right over the two repeats (E crossing the 3-cell blocks, D and A coming back), takes the first block <code>01111</code> of the reservoir and returns; the left part has gained one block <code>01110</code> and the middle one block <code>001</code>. For example a = 5, b = 287 at step 853,764 becomes a = 6, b = 286 after 167 steps. Lean proves it for every a and every tape behind the reservoir: <code>Q (a+1) (01111 01111 R)</code> becomes <code>Q (a+2) (01111 R)</code> in 28a + 55 steps (<code>Q_step</code>), and by induction j trips eat j blocks (<code>Q_iter</code>). The tape to the right of the reservoir is never looked at.</p>"
+    ]
+   },
+   {
+    "id": "eater",
+    "eyebrow": "Macro structure",
+    "heading": "The eater at the right end",
+    "html": [
+     "<p>The second regime has a little machine at the right end of the tape. The tape reads</p>",
+     "<p><code>A&gt;(01110)^a 0 1 1 1 1 (001)^c 1 1 0 0 1 0 0 1 1 1 1 (001)^d 1 1 0 0 1</code></p>",
+     "<p>and the five cells <code>1 1 0 0 1</code> at the end are the eater's resting shape. Each round trip changes its shape (it grows to a dozen cells and shrinks again); after 14 trips it is back, 4 blocks <code>001</code> further left, while the left part has grown by 14 blocks. Lean proves the 14-trip cycle for all a, c, d (<code>Z_step</code>, <code>Z_iter</code>). The block <code>(001)^c</code> in the middle is not touched; it is the reservoir of the previous main regime.</p>",
+     "<p>The eater does not start in its resting shape: when the regime begins it goes through a few hundred irregular trips first, sometimes even giving a block back, before it falls into the 14-trip cycle. That start-up is only observed.</p>"
+    ]
+   },
+   {
+    "id": "cycles",
+    "eyebrow": "The long run",
+    "heading": "Big cycles, about eight times bigger each time",
+    "html": [
+     "<p><code>py/phases.py</code> labels every sample. From blank tape:</p>",
+     "<ul><li>main regime with reservoir b = 1, 6, 7, 62, then 292 (steps 853,349 to 2,042,666) and 296;</li><li>the eater with c = 293, d = 278 down to 2 (steps 4,090,752 to 22,188,348);</li><li>a transition of about 30 million steps;</li><li>main regime with b = 2362 (steps 54,698,577 to 132,769,764) and 2366, then the eater with c = 2363, still running at 3&middot;10<sup>8</sup> steps.</li></ul>",
+     "<p>So each big cycle multiplies the reservoir by about 8 and lasts about 64 times as long. Within a cycle everything is proved; a proof that the machine never halts needs the transitions as rules for all sizes, which is the next step. Whether a transition can go wrong depends on the residues of the sizes (the eater eats 4 blocks per period, so where it stops depends on d mod 4), so the cycle map may be Collatz-like.</p>",
+     "<p>The big cycles have clean boundaries. At steps 853,349, 54,698,577 and 3,502,378,736 the tape reads <code>A&gt; (01111)^n S</code> with n = 293, 2363 and 18924: one long reservoir and a tail of 14 to 16 cells. Starting the machine on <code>A&gt; (01111)^n S</code> for many n shows that only six tails occur. For five of them the next such tape depends only on n mod 4, with n multiplied by 8 (or 9/2) plus a constant: from the tail S0 = <code>0011110111110111</code>, n &equiv; 1 mod 4 leads back to S0 with 8n + 19, which is the step from 293 to 2363. The sixth tail, S1 = <code>00111101111001</code>, reached from 2363 with n = 8&middot;2363 + 20 = 18924, behaves differently. Its cycle carries a second long counter, and where it ends shows no pattern in n. That is where the open part of this machine now sits.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +183,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Bouncer that grows left by converting a reservoir of blocks 01111 into 01110 and 001 one round trip at a time; a small machine at the right end eats the 001s 4 per 14 trips; each big cycle multiplies the reservoir by about 8 (both regimes proved in Lean for all sizes).",
+ "family": "bouncer with reservoir and right-end eater, cycles growing about 8x",
+ "decision": "open"
 }

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open.</b> Listed on the bbchallenge wiki as a potential Cryptid (chaotic). The tape is a handful of blocks of 1s separated by single 0s; the blocks merge and split, often in near-doubling chains, with no rule found. Both ends grow slowly (4,515 cells in 10<sup>9</sup> steps). Lean proves (closure by native_decide) that any halt happens within six cells of the left end.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -111,6 +111,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Halting only next to the left end</h3>
+        <p>A closed tape language of windows of 6 cells covers the whole run from blank tape; in every abstract configuration where C1 or E0 can fire, the left side is the window 11111#, which accepts only five 1s followed by blank tape. So any halt has exactly 1 1 1 1 1 and then blank tape to the left of the head. Closure and the halting check by native_decide, the rest by the kernel.</p>
+        <p class="where"><code>halt_left</code>, <code>lean/LeftEdge.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
@@ -127,12 +132,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.301). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.357).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>The structure of the run</h3>
+        <p>The tape is blocks of 1s separated by single 0s, with block lengths roughly doubling from left to right (97, 198, 397, 795, ...); sweeps merge neighbouring blocks and split them again in an irregular way.</p>
+        <p class="where">README; <code>tools/c/tokrun.c</code>-style samples</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. No closed rule set has been found; see the README for what a proof would need.</p>
       </div>
     </div>
   </section>
@@ -140,7 +150,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF 1000000000
+cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF 6 lean H118184 &gt; ../../holdouts/1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF/lean/EdgeCert.lean   # then add set_option maxRecDepth 100000 before the namespace</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine iterates a Collatz-like map: a block of m ones becomes, one phase later, a block of about 8m/3 ones, with a short prefix that acts as a second, nested counter. The cycle inside a phase is proved in Lean; the phase map is fitted case by case and agrees with direct simulation through 1.67&middot;10<sup>10</sup> steps. Iterated for 3,000 phases (about 10<sup>2557</sup> steps) it never meets a case that halts.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The cycle of a phase</h3>
+        <p>For all x, y and any tape L to the left, <code>L 1^(x+3) (01)^y 1 D&gt;0</code> reaches <code>L 1^x (01)^(y+4) 1 D&gt;0</code> in 6y + 39 steps.</p>
+        <p class="where"><code>cycle</code>, <code>lean/Cycle.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,9 +124,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 76,257 cells have been visited and 46,382 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The phase map, checked against the simulator</h3>
+        <p>From the phase start <code>Q 0 1^m (01)^5 1 D&gt;0</code> with m = 3k + r, the next phase start is <code>Q' 0 1^(8k+c) (01)^5 1 D&gt;0</code> with Q' and c fixed by (Q, r), and a step count 12k&sup2; + Bk + C. Fitted on four block sizes per case; the predicted start steps of phases 1 to 9 (3,291 ... 16,707,143,908) equal those of the direct C simulation.</p>
+        <p class="where"><code>py/phasemap.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>3,000 phases without a halting case</h3>
+        <p>The fitted map, iterated from blank tape for 3,000 phases (to about 10<sup>2557</sup> steps), meets 68 (prefix, remainder) cases, none of which halts; the 120 prefixes nearest the empty one (breadth first) have no halting case either.</p>
+        <p class="where"><code>python3 py/phasemap.py 3000</code>, <code>python3 py/phasemap.py cases 120</code></p>
+      </div>
       <div class="card">
         <h3>Growth shape: fixed/sqrt</h3>
         <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.505).</p>
@@ -132,7 +147,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The phase map is fitted, not proved, and has infinitely many cases (the prefix can grow); no case met so far halts.</p>
       </div>
     </div>
   </section>
@@ -140,6 +155,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---/lean/check.sh
+python3 holdouts/1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---/py/phasemap.py 12      # the first phases, with their exact start steps
+python3 holdouts/1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---/py/phasemap.py cases 20
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE--- 1000000000</code></pre>
   </section>
   <footer>

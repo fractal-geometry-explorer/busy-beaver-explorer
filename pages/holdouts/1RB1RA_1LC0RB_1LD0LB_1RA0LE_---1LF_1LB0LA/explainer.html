@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine runs in <em>phases</em>: in each one a block of 0s is eaten four cells per sweep while a block of 1s grows six cells per sweep, and the 1s then turn into the next, half-again-larger block of 0s. The page runs the real machine and explains the phases.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 40,047 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>900 phases</b><span class="small">No halt in about 10<sup>319</sup> steps (reduced phase simulation).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>z &rarr; ~3z/2</b><span class="small">The zero block of each phase is half again as long as the last.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>sweep rule</b><span class="small">One sweep proved in Lean for every size.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#phases">Phases: eating zeros, growing ones</a><a href="#stack">A stack that remembers the residues</a><a href="#far">Simulating 10&lt;sup&gt;319&lt;/sup&gt; steps</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -177,7 +177,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
       <input type="text" id="jumpTo" inputmode="numeric" value="1000" spellcheck="false" autocomplete="off">
       <button id="jumpGo" type="button">Go</button>
     </div>
-    <div class="controls" style="margin-top:8px"><span class="small">Jump to:</span><button type="button" data-jump="1000">1,000</button><button type="button" data-jump="100000">100,000</button><button type="button" data-jump="1000000">1,000,000</button></div>
+    <div class="controls" style="margin-top:8px"><span class="small">Jump to:</span><button type="button" data-jump="1000">1,000</button><button type="button" data-jump="50000">50,000</button><button type="button" data-jump="1000000">1,000,000</button></div>
     <div class="readout"><span>step <b id="rStep">0</b></span><span>state <span class="statechip" id="rState">A</span></span><span>cells visited <b id="rWidth">1</b></span><span>ones <b id="rOnes">0</b></span></div>
     <div class="cellwrap"><div class="cells" id="cells" aria-label="Tape cells around the head"></div></div>
     <div class="cap">Cells around the head (dark = 1, dashed = never visited).</div>
@@ -193,7 +193,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
       <label class="small" for="stMode">Rows</label>
       <select id="stMode"><option value="rec" selected>at each new cell</option><option value="time">evenly in time</option></select>
       <label class="small" for="stSteps">up to step</label>
-      <select id="stSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="20000" selected>20,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <select id="stSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="60000" selected>60,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
       <button id="stGo" class="primary" type="button">Draw</button>
     </div>
     <div class="stwrap"><canvas id="st" aria-label="Space-time diagram"></canvas></div>
@@ -202,12 +202,43 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="panel">
     <div class="controls">
       <label class="small" for="recSteps">Records up to step</label>
-      <select id="recSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="20000" selected>20,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <select id="recSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="60000" selected>60,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
       <button id="recGo" class="primary" type="button">List</button>
     </div>
     <div class="cap" id="recCap"></div>
     <div class="log" id="recs"></div>
   </div>
+</section>
+<section id="phases">
+  <span class="eyebrow">Macro structure</span>
+  <h2>Phases: eating zeros, growing ones</h2>
+<p>Look at the tape whenever the head reaches a new cell on the right. After the first few hundred steps it always has the form <code>P 0^z 1^b</code>, where P is a short, fixed-looking prefix. Each sweep the head zig-zags left through the 1s, bites four 0s off the zero block and comes back, leaving the 1s six cells longer: <code>0^z 1^b</code> becomes <code>0^(z-4) 1^(b+6)</code>. Lean proves this sweep for every size.</p>
+<svg viewBox="0 0 560 150" role="img" aria-label="a phase: the zero block shrinks by 4 and the block of ones grows by 6 each sweep" style="width:100%;max-width:560px;height:auto;font:12px var(--mono)">
+<rect x="10" y="20" width="90" height="26" fill="var(--sunk)" stroke="var(--line-strong)"/><text x="55" y="38" text-anchor="middle" fill="var(--fg2)">P</text>
+<rect x="100" y="20" width="300" height="26" fill="var(--cell0)" stroke="var(--line-strong)"/><text x="250" y="38" text-anchor="middle" fill="var(--fg2)">0^z</text>
+<text x="410" y="38" fill="var(--head)">B&gt;</text>
+<rect x="10" y="70" width="90" height="26" fill="var(--sunk)" stroke="var(--line-strong)"/><text x="55" y="88" text-anchor="middle" fill="var(--fg2)">P</text>
+<rect x="100" y="70" width="180" height="26" fill="var(--cell0)" stroke="var(--line-strong)"/><text x="190" y="88" text-anchor="middle" fill="var(--fg2)">0^(z-4j)</text>
+<rect x="280" y="70" width="190" height="26" fill="var(--ink)" stroke="var(--ink)"/><text x="375" y="88" text-anchor="middle" fill="var(--cell0)">1^(6j+...)</text>
+<text x="480" y="88" fill="var(--head)">A&gt;</text>
+<rect x="10" y="120" width="100" height="26" fill="var(--sunk)" stroke="var(--line-strong)"/><text x="60" y="138" text-anchor="middle" fill="var(--fg2)">P&#8242;</text>
+<rect x="110" y="120" width="440" height="26" fill="var(--cell0)" stroke="var(--line-strong)"/><text x="330" y="138" text-anchor="middle" fill="var(--fg2)">0^z&#8242;,  z&#8242; &#8776; 3z/2</text>
+</svg>
+<p>When fewer than four 0s are left (one or three, since z is odd), the head walks into P, changes its right end, and on the way back turns the whole block of 1s into 0s. That starts the next phase with a zero block about one and a half times as long:</p>
+<p class="config">z = 4k+1 &rarr; z' = 6k+1 &nbsp;&nbsp; z = 4k+3 &rarr; z' = 6k+7</p>
+<p>So z runs 11, 19, 31, 49, 73, 109, 163, 247, 373, 559, 841, &hellip; a Collatz-like map, z' &asymp; 3z/2, whose residue mod 4 behaves like a coin toss (466 phases with z &equiv; 1, 434 with z &equiv; 3 in the first 900). A phase takes about 9/4 times as many steps as the last; the phase starting at z begins near step 0.77&middot;z<sup>2</sup>.</p>
+</section>
+<section id="stack">
+  <span class="eyebrow">The prefix</span>
+  <h2>A stack that remembers the residues</h2>
+<p>The prefix P is a list of blocks, 1s in multiples of 6 and even runs of 0s: after phase 30 it looks like <code>1^6 0^24 1^6 0^24 1^12 0^18 1^6 0^4 1^12 0^18 1^6 0^4 1^6 0^10 1^6 0^8 1^6 0^4 1^6</code>. Each phase end rewrites only its last few blocks, depending on z mod 4: with z &equiv; 3 the last zero block shrinks by 4 and the last block of 1s grows by 8 (the same game one level down); with z &equiv; 1 a new pair <code>0^12 1^6</code> or similar is split off. When an inner zero block runs out, the head reaches one level deeper and the next zero block of the outer phase gets a small bonus c (62 five times, and 56, 98, 146, 26 and 50 once each, in the first 900 phases; 0 in all the others).</p>
+<p>P grows by about 4.5 cells per phase, 4,056 cells after 900 phases, and its first 60 cells have not changed since phase 5. The machine halts only if state C reads a 0 with <code>0 1</code> to its left; that never happens inside a sweep, so a halt would have to come from one of these phase-end walks into the stack.</p>
+</section>
+<section id="far">
+  <span class="eyebrow">Evidence</span>
+  <h2>Simulating 10<sup>319</sup> steps</h2>
+<p>Phases grow too fast for direct simulation (phase 26 is already about 10<sup>10</sup> steps). But a phase seems to depend on its zero block only through z mod 4, as long as z is larger than anything in P. So <code>py/drive.py</code> runs each phase with a small stand-in zero block of the right residue and carries the true z exactly as a big integer. The first 25 phases were also run full size and agree. In this way 900 phases ran without a halt, by then z has 160 digits and the machine has made about 10<sup>319</sup> steps.</p>
+<p>What is missing for a proof: (1) prove the phase-end walks for general z (a fixed number of shift rules per prefix shape), and (2) understand the stack well enough to show the halting pattern can never appear, which looks like a question about the coin-toss sequence z mod 4, the kind of question that is open for Collatz-like maps.</p>
 </section>
 <section id="shape">
   <span class="eyebrow">First look</span>
@@ -235,14 +266,29 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 40,047 cells have been visited and 22,701 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.489).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep</code>, <code>lean/Sweep.lean</code> (written by <code>bbtools.symtm.prove</code>)</div></div><div><b>The sweep rule</b><p>For all a, b and any tape L on the left: <code>L (00)^(a+2) (11)^(b+3) A&gt;</code> followed by blank tape reaches <code>L (00)^a 1^(2b+12) A&gt;</code> in 10b + 38 steps. This is one sweep of a phase: four 0s eaten, six 1s gained.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/check_full.py</code>, <code>c/phase.c</code></div></div><div><b>Phases match direct simulation</b><p>The phase structure (start <code>P 0^z B&gt;</code>, z' = zmap(z) + c) was checked cell for cell for the first 26 phases, with the true z, by <code>c/phase.c</code>; the phase starts are at steps 218, 546, 1220, 2618, 5394, 10908, &hellip; as in the plain simulator.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/drive.py</code></div></div><div><b>No halt in the first 742 phases (about 10<sup>264</sup> steps)</b><p>Each phase is computed with a stand-in zero block of the same residue mod 4, larger than the prefix (rechecked every 25 phases with one twice as large), while the true z is carried exactly. No phase halts; z reaches 133 digits. The stand-in rests on the observation, not a proof, that a phase depends on z only through z mod 4 once z is large.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep</code>, <code>lean/Sweep.lean</code> (written by <code>bbtools.symtm.prove</code>)</div></div><div><b>The sweep rule</b><p>For all a, b and any tape L on the left: <code>L (00)^(a+2) (11)^(b+3) A&gt;</code> followed by blank tape reaches <code>L (00)^a 1^(2b+12) A&gt;</code> in 10b + 38 steps. This is one sweep of a phase: four 0s eaten, six 1s gained.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/check_full.py</code>, <code>c/phase.c</code></div></div><div><b>Phases match direct simulation</b><p>The phase structure (start <code>P 0^z B&gt;</code>, z' = zmap(z) + c) was checked cell for cell for the first 21 phases, with the true z, by <code>c/phase.c</code>; the phase starts are at steps 218, 546, 1220, 2618, 5394, 10908, &hellip; as in the plain simulator.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/drive.py</code></div></div><div><b>No halt in the first 742 phases (about 10<sup>264</sup> steps)</b><p>Each phase is computed with a stand-in zero block of the same residue mod 4, larger than the prefix (rechecked every 25 phases with one twice as large), while the true z is carried exactly. No phase halts; z reaches 133 digits. The stand-in rests on the observation, not a proof, that a phase depends on z only through z mod 4 once z is large.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep</code>, <code>lean/Sweep.lean</code> (written by <code>bbtools.symtm.prove</code>)</div></div><div><b>The sweep rule</b><p>For all a, b and any tape L on the left: <code>L (00)^(a+2) (11)^(b+3) A&gt;</code> followed by blank tape reaches <code>L (00)^a 1^(2b+12) A&gt;</code> in 10b + 38 steps. This is one sweep of a phase: four 0s eaten, six 1s gained.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/check_full.py</code>, <code>c/phase.c</code></div></div><div><b>Phases match direct simulation</b><p>The phase structure (start <code>P 0^z B&gt;</code>, z' = zmap(z) + c) was checked cell for cell for the first 25 phases, with the true z, by <code>c/phase.c</code>; the phase starts are at steps 218, 546, 1220, 2618, 5394, 10908, &hellip; as in the plain simulator.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/drive.py</code></div></div><div><b>No halt in the first 900 phases (about 10<sup>319</sup> steps)</b><p>Each phase is computed with a stand-in zero block of the same residue mod 4, larger than the prefix (rechecked every 25 phases with one twice as large), while the true z is carried exactly. No phase halts; z reaches 160 digits. The stand-in rests on the observation, not a proof, that a phase depends on z only through z mod 4 once z is large.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Halting needs state C on a 0 with <code>0 1</code> to its left. It would have to come from a phase end that walks unusually deep into the stack; no phase end has rewritten more than the last 7 blocks (106 cells) of it, and its first 60 cells have not changed since phase 5.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA 1000000000
+gcc -O2 -o phase holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/c/phase.c &amp;&amp; python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/drive.py 200 out.txt
+python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/check_full.py out.txt 20 ./phase
+gcc -O2 -o phase holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/c/phase.c &amp;&amp; python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/drive.py 200 out.txt
+python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/check_full.py out.txt 20 ./phase
+gcc -O2 -o phase holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/c/phase.c &amp;&amp; python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/drive.py 200 out.txt
+python3 holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/py/check_full.py out.txt 20 ./phase</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

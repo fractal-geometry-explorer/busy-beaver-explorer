@@ -79,7 +79,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps; the C simulator finds none in 10<sup>11</sup>.</p>
+      <p><b>Reduced to one machine.</b> Lean proves this machine makes the same run as <code>1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF</code> until one of them halts; the C simulator shows they do not part in 10<sup>11</sup> steps. See that machine for the mechanism.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +104,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>M3 is T with its states renamed</h3>
+        <p><code>1RB1LC_1RC0LF_0LD0RC_1RA1LE_---1LA_0LC1LF</code> is <code>1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF</code> with the states renamed A→D, B→A, C→B, D→C (every transition, halts included), so its run from blank tape is the run of <code>1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF</code> started in state B on blank tape: one 1 fewer at the left than T's own run after its first step. <code>m3_iff</code>.</p>
+        <p class="where"><code>lean/Family.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>T and M1 make the same run until a 0 sits within two cells left of A reading a 1</h3>
+        <p>The two machines differ only in the 1-transitions of A, B and E, which all write 1 and move left. The seven-state machine S = <code>1RB1LE_1RC---_1RD0LF_0LA0RD_---1LG_0LD1LF_---1LD</code> is the part they share (B split into B entered from A0 and E entered from A1). Every step S makes, both make on the same tape (<code>shadow</code>); in S, B entered from A0 always reads a 0, because A is entered only by D0 = 0LA (<code>star_good</code>); so S stops only where A has read a 1 and then meets a 0 one cell (S's E0) or two cells (S's G0) further left, and there exactly one of T and M1 halts and the other goes on with B0 = 1RC (<code>deviation</code>). Hence S halts iff T or M1 halts (<code>star_halts_iff</code>), and if neither halts they make the same run step for step (<code>same_run</code>).</p>
+        <p class="where"><code>lean/Family.lean</code>, <code>lean/Link.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -110,6 +121,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>T and M1 agree for the first 10<sup>7</sup> steps</h3>
+        <p>S runs 10<sup>7</sup> steps from blank tape without stopping (and 10,000 checked by the kernel), so by <code>shadow</code> the two machines have the same tape and head at each of those steps.</p>
+        <p class="where"><code>star_runs_native</code>, <code>same_first_steps</code>, <code>1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF</code>/<code>lean/Link.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -119,20 +135,30 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 163 cells have been visited and 95 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p><code>tools/c/tmrun.c</code> runs 100,000,000,000 steps without a halt; the head reached 199 cells on the left side and 175 on the right (record positions).</p>
+        <p class="where"><code>tools/c/tmrun.c MACHINE 100000000000 records 1000000</code></p>
+      </div>
+      <div class="card">
+        <h3>T and M1 agree for the first 10<sup>11</sup> steps</h3>
+        <p>The C simulator runs S for 10<sup>11</sup> steps without a stop; with the Lean simulation theorem this means the two machines make the same run through 10<sup>11</sup> steps (which is why their record outputs were identical).</p>
+        <p class="where"><code>tmrun 1RB1LE_1RC---_1RD0LF_0LA0RD_---1LG_0LD1LF_---1LD 100000000000</code> (7.5 minutes)</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: exp/fixed</h3>
-        <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.054). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>The tape (as T's)</h3>
+        <p>Same run as T for 10<sup>11</sup> steps, so the same structure: At a typical moment the left part is a list of binary numbers written with digits 000 and 111, each section starting with a 111 and separated from the next by a single 0; the sections are incremented like the digits of one mixed-radix counter (the rightmost section, next to where the head works, changes every ~850 steps, the leftmost once per count of the epoch). To their right sit long runs of 1s separated by single 0s (e.g. 1^13, 1^18, 1^22), which change only at the stretch boundaries (1^22 became 1^16, then 1^10), and a short tail that changes once per epoch, like a third counter level. So the run is a hierarchy of counters, each level ticking when the one below overflows. The rules of the middle levels have not been found.</p>
+        <p class="where"><code>tmrun ... every</code>, snapshots</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It halts only where the shared part S stops on G0 (proved); whether T's run ever produces that pattern depends on the higher counter levels of T, whose rules are not known.</p>
       </div>
     </div>
   </section>
@@ -140,7 +166,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF 1000000000</code></pre>
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF 100000000000 records 1000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

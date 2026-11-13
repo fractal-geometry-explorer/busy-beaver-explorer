@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---</h1>
     <p class="machine">1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 9 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> This machine is the mirror image of <code>1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---</code> with states A and D exchanged, so its run is that table started in state D. One period of four of its five kinds of phase is proved in Lean for all block lengths (kernel; the fifth, drain, is kernel-checked for the twin only); an exact accelerated simulation, checked against direct simulation, follows the run to 1.06&middot;10<sup>300</sup> steps without a halt (trusted). How a phase ends depends on residues of the counts.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Traverse, one cycle</h3>
+        <p><code>0^∞ A&gt;0 1 1 (010110110)^(p+1) (110)^(q+1) (010)^(r+1) (110)^(s+1) 1 1 1 (011)^(t+6) 0 1 0^∞</code> reaches the same with p+2, s+7, t in 396p + 132q + 132r + 132s + 1363 steps (nine visits of the left end), for every p, q, r, s, t.</p>
+        <p class="where"><code>traverse</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Five phase periods</h3>
+        <p>One period of four of the five kinds of phase the run uses after step 10<sup>20</sup> (mirror images of the twin's): cross (marker moves 6 words, final block +1), two double crossings, absorb (right block +4, neighbour &minus;2), feed (middle block &minus;18, right block +30, final +1), each for every value of its variables. The drain period (final block &minus;11, marker 18 words, new block +36) is not in Lean here: its generated proof needs more than 9 GB of memory; the mirror-image period is kernel-checked for the twin.</p>
+        <p class="where"><code>cross6</code>, <code>cross12</code>, <code>absorb2</code> in <code>lean/Phases.lean</code>; <code>feed30</code>, <code>cross12b</code> in <code>lean/PhasesFeed.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +129,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 34,812 cells have been visited and 19,072 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Mirror twin</h3>
+        <p>Reflecting <code>1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---</code> (L and R swapped) and renaming A to D and D to A gives this machine's table exactly; its start state A is the twin's D. Checked by a script comparing the two tables under all relabellings (only this one matches).</p>
+        <p class="where"><code>py/mirror.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 1.06&middot;10<sup>300</sup> steps</h3>
+        <p>The twin's exact accelerated simulator (with crossings of long blocks also counted as events, <code>ACCEL_X=1</code>), compared with direct C simulation after every jump up to 1.08&middot;10<sup>10</sup> steps with no mismatch, reaches 1.06&middot;10<sup>300</sup> steps (401 drain phases) without a halt; the tape grows 1.98 to 4.01 times per drain phase (median 2.23).</p>
+        <p class="where"><code>../1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/accel.py</code>, <code>py/rounds_1e300.log</code></p>
+      </div>
+      <div class="card">
+        <h3>Drain period</h3>
+        <p>Final block &minus;11, a marker moves 18 words, a new block +36 per period: verified by the symbolic run of the accelerated simulator for all block lengths, not by Lean (memory).</p>
+        <p class="where"><code>py/phases.py</code> (RULES, <code>drain11</code>), <code>../1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/accel.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +152,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.474). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.57).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Round maps</h3>
+        <p>The same two residue-chosen round maps as the twin (see its page), mirrored.</p>
+        <p class="where">README of the twin</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The phase periods are proved; their ends, which depend on residues of the counts, are known from simulation only.</p>
       </div>
     </div>
   </section>
@@ -140,7 +170,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA--- 1000000000
+. /etc/profile.d/lean.sh &amp;&amp; holdouts/1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---/lean/check.sh   # Rules.lean
+gcc -O2 -o ev holdouts/1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---/c/ev.c &amp;&amp; ./ev 1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA--- 2000000000 L E 1 100000 12 | awk &#x27;NR%300==0&#x27;
+. /etc/profile.d/lean.sh &amp;&amp; holdouts/1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---/lean/check.sh   # Phases.lean, PhasesFeed.lean (about 90 s)
+ACCEL_X=1 python3 holdouts/1RB0RF_1RC0LD_1RD0RA_1LB1LE_0LB0RE_0RD---/py/rounds.py 1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA--- 1e300 &gt; rounds.log
+python3 holdouts/1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---/py/mirror.py</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RE_1LC0RA_1LA0LD_1LB0LF_0RB0LE_0LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

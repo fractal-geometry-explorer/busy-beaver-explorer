@@ -124,14 +124,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 12 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows whether it halts. The last block of 1s is a binary counter with 4-cell digits: the tick that lengthens it by 4 cells sends the head 2^j times into the rest of the tape, and each visit applies the same word map. That clock is proved in Lean for every size; what the word map does in the long run is the open part.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 244 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/fixed</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>2<sup>j</sup> excursions</b><span class="small">Tick j of the clock, proved for every j (given that the excursions return).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>E + 51·2<sup>j</sup> − 4</b><span class="small">Its exact step count, E the cost of the excursions.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>3·10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>B on 1^6</b><span class="small">The only place a halt can happen (closed tape language).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#events">Visits to the right end</a><a href="#clock">The clock</a><a href="#rebuilds">Rebuilds</a><a href="#sweeps">Sweeps</a><a href="#halt">Where it could halt</a><a href="#open">Next steps</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,43 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="events">
+  <span class="eyebrow">The picture</span>
+  <h2>Visits to the right end</h2>
+<p>Call it an <em>event</em> when the head arrives at the right end of the tape in state F, on blank. At events the tape is blocks of 1s split by single 0s and the last block is long; the earlier blocks have 1, 5, 9 or 13 ones. Within a phase the last block grows by 4 per event and each event takes about twice as long as the previous one (run of 3·10<sup>9</sup> steps):</p>
+<table><tr><th>step</th><th>N</th><th>steps since the previous event</th></tr><tr><td>2,736,109,350</td><td>10</td><td>56</td></tr><tr><td>2,736,109,474</td><td>14</td><td>124</td></tr><tr><td>2,736,109,734</td><td>18</td><td>260</td></tr><tr><td>2,736,110,266</td><td>22</td><td>532</td></tr><tr><td>2,736,111,342</td><td>26</td><td>1,076</td></tr><tr><td>2,736,113,506</td><td>30</td><td>2,164</td></tr><tr><td>2,736,117,846</td><td>34</td><td>4,340</td></tr><tr><td>2,736,126,538</td><td>38</td><td>8,692</td></tr></table>
+<p>Over these events the blocks on the left do not change except at the end next to N; doubling time means the last block is a binary counter that counts up to about 2<sup>N/4</sup> between events.</p>
+</section>
+<section id="clock">
+  <span class="eyebrow">Mechanism</span>
+  <h2>The clock</h2>
+<p>Mirror the machine (swap left and right), so that the growing block is at the left end. Whenever the head is at the left end the tape is <code>D&gt; 1^(5+4j) 0 W</code>: a block, a 0, and a word W. One <em>tick</em> eats four blank cells and makes the block four longer. Inside a tick:</p>
+<table><tr><th>part</th><th>what happens</th><th>steps</th></tr><tr><td>sweep</td><td><code>0^4 D&gt; 1^(5+4j) 0</code> becomes <code>0 1 1 0 0 0 (0000)^j 1 1 1 1 E&gt;</code>: the block is turned into a counter at zero</td><td>4j + 20</td></tr><tr><td>excursion</td><td><code>1 E&gt; W</code> comes back as <code>F&gt; 1 W'</code>: one application of the word map P</td><td>depends on W</td></tr><tr><td>increment</td><td><code>0000 (1000)^n 1 1 1 F&gt; 1</code> becomes <code>1000 (0000)^n 1 1 1 1 E&gt;</code>: add one, go back into the word</td><td>18n + 33</td></tr><tr><td>finish</td><td>with the counter full, <code>0 1 1 0 0 0 (1000)^j 1 1 1 F&gt; 1</code> becomes <code>D&gt; 1^(9+4j) 0</code></td><td>14j + 27</td></tr></table>
+<p>The counter has j digits, so the head makes 2<sup>j</sup> excursions before the finish: the word after the tick is P applied 2<sup>j</sup> times, and the tick takes E + 51·2<sup>j</sup> − 4 steps, E being the cost of the excursions. Lean proves this for every j by induction (the low j digits count through twice, with one increment of the digit above in between), and the same file follows the run from blank tape through four ticks (steps 9,321 to 10,317 of the mirror image), so the theorem does apply to the real run.</p>
+<p>The theorem is conditional: it assumes each excursion returns to the counter. A phase ends with an excursion that does not (the rebuilds below), and a halt, if there is one, happens inside an excursion. So everything about halting is now a question about the word map P.</p>
+</section>
+<section id="rebuilds">
+  <span class="eyebrow">Phases</span>
+  <h2>Rebuilds</h2>
+<p>A phase ends when the counter's carry reaches the blocks on the left in a certain way: the tape is rebuilt and N starts again from a few cells.</p>
+<table><tr><th>step</th><th>N before</th><th>N after</th></tr><tr><td>2,114,623</td><td>61</td><td>6</td></tr><tr><td>2,736,109,137</td><td>106</td><td>2</td></tr></table>
+<p>Before step 2,114,623 the phases were short (N reaching 5 to 57). The phase that started at step 2,736,109,137 has 67 blocks on its left, and N had reached 90 at step 2,878,809,076.</p>
+</section>
+<section id="sweeps">
+  <span class="eyebrow">Mechanism</span>
+  <h2>Sweeps</h2>
+<p>The head moves through the tape crossing repeated words in one state, rewriting each copy the same way: for example A turning <code>0 0 1</code> into <code>1 1 1</code>, or D turning <code>1 1</code> into <code>1 0</code>. These rules are proved in Lean for any number of copies: <code>a_right_001</code>, <code>b_right_001</code>, <code>c_right_100</code>, <code>d_right_11</code>, <code>d_right_100</code>, <code>f_right_11</code>, <code>f_right_001</code>.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Halting</span>
+  <h2>Where it could halt</h2>
+<p>The machine halts only when B reads a 1. A closed tape language with windows of six cells (an over-approximation of the configurations reachable from blank tape, found by <code>bbtools.ctl</code>) allows that only with six 1s on B's left, inside a long block. The same is true of the separator counters <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</code> and <code>1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA</code>, which halt only when their slow counter is all ones; whether something similar holds here is not known.</p>
+</section>
+<section id="open">
+  <span class="eyebrow">Open</span>
+  <h2>Next steps</h2>
+<p>The clock reduces the machine to its word map P (one excursion). Next: write P as arithmetic on the blocks left of the counter (lengths 1, 5, 9, 13), find what the non-returning excursions (rebuilds) do, and look for an invariant of the words closed under both that excludes B reading a 1; the outside Coq proofs of three other clock machines (busycoq PRs 48, 50, 53) show the kind of invariant that works there.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -221,7 +259,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 12 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -234,15 +272,24 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 244 cells have been visited and 122 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/fixed</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.028).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>a_right_001</code>, <code>b_right_001</code>, <code>c_right_100</code>, <code>d_right_11</code>, <code>d_right_100</code>, <code>f_right_11</code>, <code>f_right_001</code>, <code>lean/Rules.lean</code></div></div><div><b>Sweep rules</b><p>A, B, C, D and F cross runs of the words 001, 100 or 11 rightwards in one state, rewriting each copy the same way, for any number of copies and any surrounding tape.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in 3·10<sup>9</sup> steps</b><p>The C simulator runs 3·10<sup>9</sup> steps without a halt.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tmrun 1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD 3000000000 at F R</code></div></div><div><b>Events</b><p>At the visits of F to the right end on blank the tape is blocks of 1s split by single 0s, <code>1^2 0 1^x … 0 1^N F&gt;0</code>, with x in {1, 5, 9, 13} except a few blocks near the start of a phase; within a phase N grows by 4 per event and the time between events doubles. Phases end with a rebuild: at step 2,114,623 (N 61 to 6) and at step 2,736,109,137 (N 106 to 2); after the second a block of 41 stands before N.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 -m bbtools.ctl 1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD 6</code></div></div><div><b>Where it can halt</b><p>A closed tape language with windows of 6 cells (found and checked by <code>bbtools.ctl</code>, not yet in Lean) allows a halt only with B reading a 1 and six 1s on its left: inside a long block of 1s.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>tick</code>, <code>tick_left_end</code>, <code>cnt</code>, <code>lean/MirrorClock.lean</code>; <code>rule_sweep</code>, <code>rule_inc</code>, <code>rule_fin</code>, <code>lean/MirrorRules.lean</code></div></div><div><b>The clock: tick j is 2^j excursions</b><p>On the mirror image (L and R swapped), write J j W for the tape <code>1^(5+4j) 0 W</code> from the head. If W goes to W' by 2<sup>j</sup> excursions (<code>PChain</code>: each one takes <code>L 1 E&gt; W</code> to <code>L F&gt; 1 W'</code> for every L) of total cost E, then <code>0^4 D&gt; J j W</code> reaches <code>D&gt; J (j+1) W'</code> in exactly E + 51·2<sup>j</sup> − 4 steps, for every j and every tape beyond the four 0s. The block is a binary counter with digits <code>1000</code>/<code>0000</code>; the proof is an induction on j (<code>cnt</code>) over three rules proved for all sizes (sweep, increment, finish). The statement is conditional on the excursions returning.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>steps_mir</code>, <code>of_mirror</code>, <code>tick_right_end</code>, <code>tick</code>, <code>lean/MirrorBridge.lean</code></div></div><div><b>The mirror image runs like the machine</b><p>Every run of the mirror machine is, mirrored, a run of the machine (<code>of_mirror</code>, from a one-step lemma for any pair of mirrored tables), so the tick holds for the machine itself at the right end of its tape.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>at_start</code>, <code>pstep0</code> … <code>pstep14</code>, <code>tick0</code> … <code>tick3</code>, <code>run_ticks</code>, <code>lean/MirrorInstance.lean</code></div></div><div><b>The clock carries the run from blank tape</b><p>The run of the mirror image from blank tape is at <code>D&gt; J 0 W</code> at step 9,321; the 15 excursions of the next four ticks are each proved for every tape to the left, and the tick theorem (levels 0 to 3; 56, 132, 276 and 532 steps) takes the run to <code>D&gt; J 4 W'</code> at step 10,317. So the hypothesis of the tick is met by the real run: the theorem is not vacuous.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/counter.py tmcheck 1e9</code></div></div><div><b>The accelerated simulator agrees with the direct run</b><p>A simulator that does every tick whose excursions all return at once (word after 2<sup>j</sup> applications of P, the step count of the theorem) agrees with <code>tmrun</code> at all 54 visits of the end in the first 10<sup>9</sup> steps (time, block length, word).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>The word map</b><p>What one excursion does to the blocks left of the counter as arithmetic, what a rebuild (an excursion that does not return to the counter) does, and whether an excursion can reach the halting context B on 1. An invariant of the words closed under P and under the rebuilds would decide the machine.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD 1000000000
+python3 -m bbtools.ctl 1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD 6   # from tools/py
+python3 holdouts/1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD/py/counter.py tmcheck 1e9   # about 8 minutes</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

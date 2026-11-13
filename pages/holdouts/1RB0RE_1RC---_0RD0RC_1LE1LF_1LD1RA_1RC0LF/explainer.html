@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A stack of 10s and a gap of 0s</a><a href="#rule">Two 10s out, six 0s in; then the gap becomes the new stack</a><a href="#orbit">63 phases in the decoded cases</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,24 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape looks like</span>
+  <h2>A stack of 10s and a gap of 0s</h2>
+<p>At the start of a phase the tape is <code>[1] (10)<sup>x</sup> 1 1 1 0</code> with the head in state D just right of it; call it P(pre, x), pre = 1 when the leading 1 is there. The blank-tape run is at P(1, 3) after 34 steps, P(0, 9) after 139, P(1, 18) after 520, P(1, 51) after 3,606.</p><p>During a phase, at step 10<sup>8</sup> for instance: <pre>1 0 0 (10)^3408 1 1 1 0 0^2590 [D0] 1^10388</pre> a stack of 10s, a gap of 0s that grows, and (in some phases) a run of 1s further right.</p>
+</section>
+<section id="rule">
+  <span class="eyebrow">The rule</span>
+  <h2>Two 10s out, six 0s in; then the gap becomes the new stack</h2>
+<p>Each round the head goes from the right end to the top of the stack and back: two copies of <code>10</code> leave the stack and the gap grows by six 0s (proved in Lean, 4g + 26 steps). When the stack is empty, the gap of about 3x zeros is turned into a stack of about 3x/2 copies of <code>10</code>. So in the simplest case P(0, x) → P(x mod 2, 3⌊x/2⌋ + 6).</p>
+<p>With the leading 1 present and x even, the end of the phase goes through more levels: P(1, 4i+2) → P(1, 9i + 15), P(1, 8i) → P(1, 27i + 18), and x = 8i + 4 splits again by 32 (slope 243/32). The slopes are 3/2, 9/4, 27/8, ..., 243/32: each extra power of 2 dividing x adds a factor 3/2.</p>
+<p>Worked example: P(1, 18), 18 = 4·4 + 2, goes to P(1, 9·4 + 15) = P(1, 51); 51 is odd, so P(0, 3·25 + 6) = P(0, 81); 81 with pre = 0 gives P(1, 3·40 + 6) = P(1, 126). These are exactly the phase starts of the real run.</p>
+</section>
+<section id="orbit">
+  <span class="eyebrow">How far it goes</span>
+  <h2>63 phases in the decoded cases</h2>
+<p>Iterating the map from P(1, 3), the orbit stays in the decoded cases for 63 phases and reaches P(1, 2,162,240,868,156,300), which is 4 mod 8, the first case without a formula. The map was checked against the machine for every decoded case with x ≤ 120, not proved, so this is a strong prediction rather than a theorem.</p>
+<p>The machine can only stop on <code>E&gt; 1 0 1</code>. Whether it does is a question about this (3/2)<sup>k</sup> map on all levels of the binary digits of x: of the same kind as the Collatz problem.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,15 +251,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (B1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>round</code>, <code>first_round</code>, <code>c_ones</code>, <code>d_zeros</code>, ..., <code>lean/Rules.lean</code></div></div><div><b>Rounds of a phase</b><p>With the stack <code>(10)<sup>x+2</sup> 1 1 1 0</code>, a gap of 2g + 2 zeros and D at the right end, one round removes two <code>10</code>s and adds six zeros: <code>(10)<sup>x+2</sup> 1110 (00)<sup>g</sup> 00 D&gt;</code> → <code>(10)<sup>x</sup> 1110 (00)<sup>g+3</sup> 00 D&gt;</code> in 4g + 26 steps (and the first round, from no gap, in 22 steps). Plus the shift rules: C erases 1s going right, D and E fill 0s going left.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/phasemap.py</code></div></div><div><b>The phase map</b><p>P(pre, x) = <code>[1] (10)<sup>x</sup> 1110 D&gt;</code> at the right end of blank tape. Checked by direct simulation for all 225 decoded cases with x ≤ 120: P(0, x) → P(x mod 2, 3⌊x/2⌋ + 6); P(1, 2i+1) → P(0, 3i + 6); P(1, 4i+2) → P(1, 9i + 15); P(1, 8i) → P(1, 27i + 18). The slopes 3/2, 9/4, 27/8 are powers of 3/2.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/phasemap.py</code></div></div><div><b>63 phases, then the undecoded case</b><p>From blank tape the machine reaches P(1, 3) at step 34; the map then gives P(0, 9), P(1, 18), P(1, 51), P(0, 81), P(1, 126), P(1, 294), P(1, 672), P(1, 2286), P(1, 5154), P(1, 11607), P(0, 17415), ... (the first 14 agree with the run to 1.8·10<sup>9</sup> steps) and stays in the decoded cases for 63 phases, to P(1, 2,162,240,868,156,300), which is ≡ 4 (mod 8). The map itself is only checked for small x, so the long orbit is a prediction, not a proof.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/phasemap.py</code> (<code>run</code>)</div></div><div><b>The case P(1, 8i+4)</b><p>It splits further: 32i + 20 → P(0, 243i + 202) and 32i + 28 → P(0, 243i + 264) for i ≤ 3 (243 = 3<sup>5</sup>, 32 = 2<sup>5</sup>), while 4 → P(0, 193), 12 → P(1, 3771), 36 → P(1, 492), and 44, 68 take more than 10<sup>8</sup> steps. No halt in any of these runs.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>Where it can halt</b><p>Only B reading 1 halts; B is entered only from A reading 0, and A only from E reading 1, so the machine halts exactly on <code>E&gt; 1 0 1</code>. Read off the table.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/ctl.py</code></div></div><div><b>No closed tape language with small windows</b><p><code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS 3 to 7 fails; no invariant mod 2..12.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 63,228 cells have been visited and 26,115 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.051). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.496).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decoded cases multiply x by (3/2)<sup>k</sup>; which case applies depends on the low binary digits of x, and each further level of 2-adic digits brings another factor 3/2. Deciding halting means understanding this map on all of its 2-adic levels (and whether some level produces <code>E&gt; 1 0 1</code>), a Collatz-type problem.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF/lean/check.sh
+python3 holdouts/1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF/py/phasemap.py
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF 1000000000</code></pre>
 </section>
 <footer class="foot">

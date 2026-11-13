@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and the machine is not yet analysed.</b> Lean proves no halt in the first 10<sup>7</sup> steps (native_decide); the C simulator finds none in 10<sup>9</sup>. From about step 396,000 the tape has a clear structure: a fixed left end, a counter of 4-cell digits <code>0110</code> / <code>0010</code> next to it, and to the right a background of <code>0011</code> words with sparse defects (<code>0001</code>, alone or doubled) whose spacing grows along the tape. The head returns to the left end only rarely (steps 396,499; 7,742,585; 22,969,011; 86,874,709 among them). Turning this into exact rules is still to do.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -123,6 +123,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
+        <h3>The shape of the tape</h3>
+        <p><code>py/view.py</code> prints the tape each time the head, in state C, reads a 0 on the leftmost visited cell, cut into 4-cell words. After step 396,499 the cells right of the head read: a few cells, a run of <code>0110</code> and <code>0010</code> words (a counter whose pattern changes between visits), then <code>0011</code> words with isolated <code>0001</code> defects (<code>o</code>) and doubled ones (<code>oo</code>) at gaps that grow along the tape. Between such visits the head bounces between the right end, which moves right by a few cells each bounce, and turning points at the defects, which drift left. Before step 396,000 the tape is mostly 1s with scattered 0s, another regime.</p>
+        <p class="where"><code>py/view.py</code></p>
+      </div>
+      <div class="card">
         <h3>Growth shape: fixed/sqrt</h3>
         <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
@@ -132,7 +137,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The machine halts only on B reading 1, that is after A reads a 0 that has a 1 to its right (<code>A&gt;0 1</code>). The next step is to find exact rules for the head's bounce over the <code>0011</code> background and its defects, and for the counter.</p>
       </div>
     </div>
   </section>
@@ -140,7 +145,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC 1000000000
+python3 holdouts/1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC/py/view.py 1.5e8 2.3e7      # about a minute
+python3 holdouts/1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC/py/view.py 1.5e8 2.3e7      # about a minute</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

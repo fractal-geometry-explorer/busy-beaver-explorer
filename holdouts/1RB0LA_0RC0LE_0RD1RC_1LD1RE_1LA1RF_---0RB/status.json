@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G08",
  "title": "What is known about 1RB0LA_0RC0LE_0RD1RC_1LD1RE_1LA1RF_---0RB",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LA_0RC0LE_0RD1RC_1LD1RE_1LA1RF_---0RB.",
@@ -12,7 +12,9 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves both passes over the bulk of the tape (kernel) and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.",
+  "<b>What it does.</b> Seen at the right end, the tape is a list of blocks <code>(110)<sup>n</sup></code> separated by short separators (<code>10</code>, <code>1</code>, <code>0 1</code>). The leftward pass rewrites every <code>110</code> as <code>010</code> (seen from the left end the tape is blocks of <code>(100)<sup>n</sup></code>), and the rightward pass turns them back. On each round trip the last block grows by two and the first few blocks are rewritten like the low digits of a counter; now and then the change runs further right, like a carry.",
+  "<b>Where a halt would come from.</b> Only F reading a 0 halts, i.e. E standing on <code>1 0</code> (<code>halt_E</code>). In the run F always reads a 1."
  ],
  "claims": [
   {
@@ -46,19 +48,52 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Every way to a halt",
+   "text": "Two steps before any halt the machine is in <code>1 B&gt;1</code> or <code>D&gt;1 1 0</code>; no other configuration halts within three steps.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The two passes",
+   "text": "Moving right, C turns each <code>010</code> into <code>101</code>, seven steps a word: <code>1 (010)<sup>n</sup></code> becomes <code>(110)<sup>n</sup> 1</code>. Moving left, A turns each <code>011</code> back into <code>010</code>, fifteen steps a word. Both for any n.",
+   "where": "<code>pass_right</code>, <code>pass_left</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The halting situation",
+   "text": "<code>E&gt;1 0</code> halts on the next step; F is entered only from E reading a 1.",
+   "where": "<code>halt_E</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The list of blocks",
+   "text": "At the right-end turns of the first 4&middot;10<sup>4</sup> steps the tape is a list of <code>110</code>-blocks with short separators; the last block has 4, 6, 8, 10, &hellip; copies on consecutive trips (steps 561, 756, 1,089, 1,456), and only the first few blocks change on most trips.",
+   "where": "<code>py/turns.py 40000 R</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "New last blocks, and how deep a round trip reaches",
+   "text": "The last run of <code>110</code> grows by two copies a round trip until a carry reaches it. Then it is frozen and a new last run starts: at steps 1,909, 13,265, 47,957, 319,522 and 98,472,504, with frozen runs of 11, 23, 35, 133 and 3923 copies. No new run starts between 9.8&middot;10<sup>7</sup> and 3&middot;10<sup>10</sup> steps, while the last run grows past 50,000 copies. Of the 4,170 round trips in the first 10<sup>8</sup> steps, more than 90% change the list of runs at 19 or more runs from the front.",
+   "where": "<code>c/events.c 3e10</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. A proof needs the rule of one round trip on the list of runs of <code>110</code>, for lists of any length, and a list language closed under that rule that never gives <code>E&gt;1 0</code>. A round trip changes most of the list, the number of runs grows, and the carries come at very fast-growing intervals. So the template certificate used for 1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC (two linear counts, a finite table) does not fit as it is. Window-based closed tape languages (3 to 8 cells) find no closed set.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LA_0RC0LE_0RD1RC_1LD1RE_1LA1RF_---0RB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LA_0RC0LE_0RD1RC_1LD1RE_1LA1RF_---0RB 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LA_0RC0LE_0RD1RC_1LD1RE_1LA1RF_---0RB 1000000000",
+  "python3 holdouts/1RB0LA_0RC0LE_0RD1RC_1LD1RE_1LA1RF_---0RB/py/route.py   # writes lean/Route.lean",
+  "python3 holdouts/1RB0LA_0RC0LE_0RD1RC_1LD1RE_1LA1RF_---0RB/py/rules.py   # writes lean/Rules.lean",
+  "gcc -O2 -o events holdouts/1RB0LA_0RC0LE_0RD1RC_1LD1RE_1LA1RF_---0RB/c/events.c && ./events 3e10"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet. This machine keeps a list of blocks of 110 and rewrites its front like a counter on every round trip. This page runs it in your browser.",
   "facts": [
    {
     "level": "trusted",
@@ -86,6 +121,18 @@
   },
   "sections": [
    {
+    "id": "list",
+    "eyebrow": "Macro structure",
+    "heading": "A list of 110-blocks",
+    "html": [
+     "<p>Stop the simulator at each turn of the head at the right end and write <code>b</code> for <code>110</code> and <code>c</code> for <code>10</code>. The tape is a list of runs of b separated by short pieces:</p>",
+     "<pre>  561  c c 1 b<sup>2</sup> 0 1 b c b<sup>4</sup> 1 1 D&gt;0\n  756  c c 1 b 1 b<sup>2</sup> c b<sup>6</sup> 1 1 D&gt;0\n1,089  c c 1 1 b c b c c b<sup>8</sup> 1 1 D&gt;0\n1,456  c c 1 b<sup>2</sup> 0 b<sup>2</sup> 1 b<sup>10</sup> 1 1 D&gt;0</pre>",
+     "<p>The last run grows by two on every round trip; the runs in front of it are rewritten a little each time, like the low digits of a counter, and occasionally the rewriting reaches further to the right like a carry. That is why the right edge grows like the square root of the step count: one more pair of words per trip, each trip as long as the tape.</p>",
+     "<p>Both passes are slow zig-zags. Moving right, C rewrites each <code>010</code> as <code>101</code> in seven steps, so <code>1 (010)<sup>n</sup></code> becomes <code>(110)<sup>n</sup> 1</code>; moving left, A rewrites each <code>011</code> as <code>010</code> in fifteen steps. Lean proves both for every n (<code>pass_right</code>, <code>pass_left</code>).</p>",
+     "<p>The machine halts only if E stands on <code>1 0</code> (<code>halt_E</code>). Pinning down the exact effect of one round trip on the list, and showing that it never produces that situation, is the open step.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +145,8 @@
     ]
    }
   ]
- }
+ },
+ "family": "two-sided bouncer, list of 110-blocks with a counter at the left end",
+ "summary": "Round trips over a tape of 110-blocks separated by short separators; the last block grows by two per trip while the blocks near the left end change like the digits of a counter. Open.",
+ "decision": "open"
 }

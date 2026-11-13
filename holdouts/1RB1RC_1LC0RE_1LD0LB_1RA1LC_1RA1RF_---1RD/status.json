@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G07",
  "title": "What is known about 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> A block of 1s grows by two each sweep; the 2,987-cell region behind it (from sweep 1482) is transformed by a fixed map, checked against direct simulation for 6,000 sweeps. The counter inside it advances very regularly, about 28 cells per doubling of the number of sweeps; after 3&middot;10<sup>7</sup> sweeps (about 1.7&middot;10<sup>15</sup> steps) it is still 2,346 cells from the far end, where a halt (<code>B&gt;1 1 0</code>) could happen. At that speed the next event is about 2<sup>80</sup> sweeps away."
  ],
  "claims": [
   {
@@ -40,6 +40,24 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "The sweep map ignores the block",
+   "text": "At each visit of the left end in state D the tape is <code>D&gt;0 1^n R</code>; with the block cut to 40 or 41 cells at every visit, R agrees with the true run at all of the first 6,000 visits except the events at visits 97 and 1481.",
+   "where": "<code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code>, <code>check</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt and no event in 3&middot;10<sup>7</sup> sweeps",
+   "text": "From visit 1490 the shortened run makes 3&middot;10<sup>7</sup> sweeps (about 1.7&middot;10<sup>15</sup> steps of the true run) with R constant (2,987 cells) and no halt.",
+   "where": "<code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Next event about 2<sup>80</sup> sweeps away",
+   "text": "The front advances in steps of 12, 24, 36 cells per doubling (683 cells deep after 2<sup>24</sup> sweeps) with about 2,300 cells to go.",
+   "where": "FRONT=1 runs of resetsim"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.428). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
@@ -48,32 +66,39 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The run is a fixed map applied to a region of fixed length, interrupted by rare events whose spacing grows exponentially; whether some event halts is not known.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD/lean/check.sh",
+  "gcc -O2 -o resetsim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c -I tools/c",
+  "./resetsim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD L D 1 40 2 6000 check",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows, but it will not stop soon. A block of ones grows at every sweep, and behind it an odometer slowly eats a reservoir about three thousand cells long. This page runs the real machine in your browser and explains the pieces.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 39,306 cells visited."
+    "value": "2,987 cells",
+    "text": "The region after the block, from sweep 1482 on."
+   },
+   {
+    "level": "trusted",
+    "value": "~1.7&middot;10<sup>15</sup> steps",
+    "text": "3&middot;10<sup>7</sup> sweeps of the shortened machine: no halt, no event."
+   },
+   {
+    "level": "heuristic",
+    "value": "~28 cells per doubling",
+    "text": "A very regular counter front; the next event about 2<sup>80</sup> sweeps away."
    },
    {
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -87,16 +112,46 @@
   "sections": [
    {
     "id": "shape",
-    "eyebrow": "First look",
-    "heading": "The shape of the run",
+    "eyebrow": "What the tape looks like",
+    "heading": "A growing block, a busy counter, and a reservoir",
     "html": [
-     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.428). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>",
-     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"159.6\" y2=\"159.6\" stroke=\"var(--line)\"/><text x=\"34\" y=\"163.6\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"119.2\" y2=\"119.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"123.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"78.8\" y2=\"78.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"82.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,179.8 L59.2,171.7 L78.4,168.0 L97.6,163.8 L116.8,158.7 L136.0,154.3 L155.2,150.0 L174.4,143.6 L193.6,137.5 L212.8,132.2 L232.0,127.1 L251.2,121.3 L270.4,114.5 L289.6,109.5 L308.8,104.9 L328.0,100.3 L347.2,95.7 L366.4,91.0 L385.6,86.2 L404.8,77.1 L424.0,71.8 L443.2,67.5 L462.4,63.3 L481.6,59.0 L500.8,54.6 L520.0,50.1\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,176.6 L59.2,173.9 L78.4,173.9 L97.6,168.0 L116.8,166.5 L136.0,166.5 L155.2,165.1 L174.4,165.1 L193.6,161.6 L212.8,161.6 L232.0,161.6 L251.2,158.7 L270.4,158.7 L289.6,158.7 L308.8,158.7 L328.0,158.7 L347.2,158.7 L366.4,158.7 L385.6,158.7 L404.8,157.9 L424.0,157.9 L443.2,157.9 L462.4,157.9 L481.6,157.9 L500.8,157.9 L520.0,157.9\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
-     "<p>After 10<sup>9</sup> steps the tape spans 39,306 cells (29,488 left of the start, 17 right), with a density of 1s of 0.675.</p>",
-     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>954,578,647</td><td><code>C&gt;0 1^35477 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0 1^5 0 1^5 0 1^5 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1^31 0 1 0 1^3 0 1 0 1^13 0 1^5 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1^7 0 1 0 1^3 0 1 0 1 0 1^5 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>left</td><td>970,218,481</td><td><code>C&gt;0 1^35769 0 1 0 1 0 1 0 1^5 0 1^5 0 1^5 0 1^7 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0 1^5 0 1^19 0 1 0 1^3 0 1 0 1^39 0 1 0 1^3 0 1 0 1^13 0 1 0 1 0 1 0 1 0 1 0 1^27 0 1 0 1^3 0 1 0 1^13 0 1^5 0 1^7 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1^15 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>985,876,481</td><td><code>C&gt;0 1^36059 0 1^5 0 1^5 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1^5 0 1^5 0 1^17 0 1^5 0 1^17 0 1^5 0 1^7 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^13 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0 1^5 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1^17 0 1^5 0 1^7 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1 0 1^3</code></td></tr></tbody></table></div>",
-     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+     "<p>Run the simulator for a while and look at the tape each time the head reaches the left end. It always has the same four parts: a long uniform block <code>1<sup>n</sup></code> that grows by a fixed amount every sweep; next to it a short stretch that changes from sweep to sweep and looks random; then a long, regular <em>reservoir</em>; and at the far end an old region that never changes.</p>",
+     "<svg viewBox=\"0 0 580 70\" role=\"img\" aria-label=\"The tape: a growing uniform block, an active counter region, a reservoir it eats, and a frozen old region\" style=\"width:100%;max-width:620px;height:auto\"><g font-family=\"var(--body)\" font-size=\"11\" fill=\"var(--fg2)\"><text x=\"10\" y=\"14\">&larr; grows 2 cells a sweep</text><text x=\"14\" y=\"60\">growing block</text><text x=\"184\" y=\"60\">active counter</text><text x=\"274\" y=\"60\">reservoir</text><text x=\"484\" y=\"60\">frozen</text></g><rect x=\"10\" y=\"20\" width=\"170\" height=\"22\" fill=\"var(--ink)\" stroke=\"var(--line-strong)\"/><rect x=\"180\" y=\"20\" width=\"90\" height=\"22\" fill=\"var(--heur-bg)\" stroke=\"var(--line-strong)\"/><rect x=\"270\" y=\"20\" width=\"210\" height=\"22\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><rect x=\"480\" y=\"20\" width=\"90\" height=\"22\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/></svg>",
+     "<p>The head sweeps across the whole tape every time, which is why the visited part grows like the square root of the step count. Crossing the uniform block does nothing but cost time: the tape the head brings back does not depend on how long the block is. So from sweep to sweep the machine applies one fixed map to the part of the tape after the block, whose length stays exactly the same for long stretches of time.</p>",
+     "<p>It shares its first four states with 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC. The block is <code>1<sup>n</sup></code> at the left end; two events happened early, at sweeps 97 (the region becomes 217 cells) and 1481 (2,987 cells). Over 6,000 sweeps a version that cuts the block to 40 cells at every sweep sees exactly the same region as the real machine.</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "Macro structure",
+    "heading": "A counter that eats its reservoir, then refills it",
+    "html": [
+     "<p>The busy stretch behaves like an odometer with irregular digits: the cells right next to the block change at almost every sweep, cells further in change more and more rarely, and the deepest cell that has ever changed moves into the reservoir at a roughly constant number of cells per <em>doubling</em> of the number of sweeps, so crossing a reservoir takes a number of sweeps exponential in its length.</p>",
+     "<p>Here the front is remarkably regular: the deepest change is 131 cells from the block after 16 sweeps, 251 after 512, 371 after 8,192, 491 after 131,072 and 683 after 16,777,216: steps of 12, 24 and 36 cells per doubling, about 28 on average.</p>",
+     "<p>When the counter reaches the far end of the reservoir, something new happens (an <em>event</em>): the whole uniform block, by then very long, is turned into a fresh reservoir, and a new block starts growing from nothing. The next reservoir is as long as the block was, so the next event is exponentially further away than this one, and the one after that further still.</p>",
+     "<p>Events so far: sweeps 97 and 1481. The front still has about 2,300 cells to go; at 28 cells per doubling that is about 80 more doublings, some 2<sup>80</sup> &asymp; 10<sup>24</sup> sweeps, or about 10<sup>48</sup> steps.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "Halting needs the counter at the far end",
+    "html": [
+     "<p>The machine stops only in state F reading a 0, which it reaches only as <code>B&gt;1 1 0</code> (B erases a 1 moving right, E keeps one). That needs B to arrive at <code>1 1</code> followed by a 0, which only the old region at the far end offers.</p>",
+     "<p>So a halt, if it ever comes, should come at an event, when the counter reaches the old region at the far end. Between events the machine just keeps sweeping (each event is exponentially further from the last), and at each event the outcome depends on the details of the old region, which look pseudo-random. A heuristic: if each event had a fixed chance of ending in a halt, the machine would halt with probability 1, but only after a tower of exponentials of steps; equally, a structural reason could make every event safe. Nothing here decides which.</p>"
+    ]
+   },
+   {
+    "id": "evidence",
+    "eyebrow": "Evidence",
+    "heading": "What was checked, and how",
+    "html": [
+     "<ul><li>The sweep map does not depend on the block length: <code>resetsim ... check</code> agrees with the real machine at every one of 6,000 sweeps, apart from the two early events.</li><li>The shortened machine runs 3&middot;10<sup>7</sup> sweeps from sweep 1490 (about 1.7&middot;10<sup>15</sup> steps of the real machine) without a halt and without an event.</li><li>Direct C simulation: no halt in 10<sup>9</sup> steps (triage); Lean: no halt in 10<sup>7</sup>.</li></ul>"
     ]
    }
   ]
- }
+ },
+ "family": "counter eating a reservoir (bounded chaotic region, sweep map independent of the block)",
+ "summary": "Same mechanism as 1RB1RC_..._---0RC with a very regular counter (about 28 cells per doubling of sweeps); events at sweeps 97 and 1481 left a 2,987-cell region, and the next event is estimated about 2^80 sweeps away.",
+ "decision": "open"
 }

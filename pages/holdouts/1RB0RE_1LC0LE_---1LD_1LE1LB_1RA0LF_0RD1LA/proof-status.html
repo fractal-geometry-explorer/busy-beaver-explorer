@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The run is a sequence of linear phases: in each, the head bounces at the left end and moves one word w = 1111110 from a block into a run of 1s (or builds w's out of a run), at constant rates; seen to 3·10<sup>9</sup> steps. Lean proves the eight shift rules across the words. Halting needs B to read 0 with a 0 on its left; where a phase ends and the next begins is where that could happen, and the map from one phase to the next was not derived.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules across the words</h3>
+        <p>E and A run right across blocks of <code>w = 1111110</code> and <code>x = 111110</code> (rewriting their rotations), and B, C, D, E run left across rotations of w.</p>
+        <p class="where"><code>e_w</code>, <code>a_w</code>, <code>e_x</code>, <code>a_x</code>, <code>b_l</code>, <code>c_l</code>, <code>d_l</code>, <code>e_l</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,6 +120,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
+        <h3>Where it can halt</h3>
+        <p>Only C reading 0 halts; C is entered only from B reading 0 (1LC), so the machine halts exactly when B reads a 0 that has a 0 on its left (<code>0 B&gt; 0</code>). Read off the table.</p>
+        <p class="where">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt to 3·10<sup>9</sup> steps; the registers</h3>
+        <p>At step 1,366,620,342 the tape (55,573 cells) reads <code>1 0<sup>4</sup> x<sup>2</sup> w<sup>19</sup> 1<sup>4</sup> 0 1<sup>4</sup> 0 w<sup>2279</sup> 0<sup>2</sup> 1<sup>11707</sup> w x w<sup>2311</sup> 0<sup>2</sup> 1<sup>11514</sup> w<sup>2</sup> 1<sup>9</sup> w<sup>2</sup> 0<sup>2</sup> 1<sup>5</sup></code>: three blocks of w and two runs of 1s.</p>
+        <p class="where">a word-view run of the tape (the <code>tokrun</code> view of <code>tools/c</code>)</p>
+      </div>
+      <div class="card">
+        <h3>No closed tape language with small windows</h3>
+        <p><code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS widths 3 to 7 fails; no invariant a·ones + b·pos + W mod 2..12.</p>
+        <p class="where"><code>tools/py/bbtools/ctl.py</code>, <code>invariants.py</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 41,072 cells have been visited and 36,943 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
@@ -122,6 +142,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>Linear phases</h3>
+        <p>Sampled with the head in A at the left end: in a <em>drain</em> phase <code>w x w<sup>a</sup> 0 0 1<sup>b</sup> R</code> becomes <code>w x w<sup>a−1</sup> 0 0 1<sup>b+15</sup> R</code> every 3 visits (the tape grows by 8 cells); in a <em>build</em> phase <code>w x w<sup>a</sup> 1111 0 w<sup>c</sup> 0 0 1<sup>b</sup> R</code> becomes <code>w x w<sup>a+2</sup> 1111 0 w<sup>c−3</sup> 0 0 1<sup>b+15</sup> R</code>. E.g. w<sup>103</sup> 0 0 1<sup>424</sup> at step 2,001,556, w<sup>102</sup> 0 0 1<sup>439</sup> at 2,016,698, w<sup>101</sup> 0 0 1<sup>454</sup> at 2,031,696. Observed in the run, not proved.</p>
+        <p class="where">README</p>
+      </div>
       <div class="card">
         <h3>Growth shape: exp/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.535). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.051).</p>
@@ -132,7 +157,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The phases are linear and the halting pattern <code>0 B&gt; 0</code> could only come at a change of phase; the map from one phase's end to the next phase's start (a Collatz-like map on the register values, presumably) was not derived.</p>
       </div>
     </div>
   </section>
@@ -140,6 +165,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA/lean/check.sh
+python3 holdouts/1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA/py/rules.py &gt; holdouts/1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA/lean/Rules.lean
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA 1000000000</code></pre>
   </section>
   <footer>

@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G12",
  "title": "What is known about 1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF.",
@@ -8,11 +8,14 @@
  "home": "../index.html",
  "source": "holdouts/1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
+  "The left part of the tape is a binary counter, written as a composition of a number s into parts; each tick of it adds 1 to a binary number N written on the right. Every single rule of this counter is proved in Lean; an accelerated simulator built from them jumps whole rounds and reproduces the direct run exactly."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>), that a halt can only happen at the right edge of the tape, and every single rule of the counter (kernel). An accelerated simulator built from those rules reproduces all 44 overflow configurations of a direct 10<sup>11</sup>-step run exactly and then follows the run, without a halt, to about 1.8&middot;10<sup>83</sup> steps.",
+  "<b>What the machine computes.</b> The left part of the tape is a binary counter written as a composition of s into parts (gaps <code>1 1 0^(5a-2)</code>); every tick of it adds 1 to a binary number N written on the right. A full count of a level-k counter adds 2<sup>k+1</sup> to N in exactly 84&middot;2<sup>k</sup> &minus; 5 + 4(s<sub>2</sub>(N) &minus; s<sub>2</sub>(N+2<sup>k+1</sup>)) steps. When N runs out of digits on a tick of even counter value, N is replaced by 2<sup>b+2</sup>+24 and the counter loses a digit (proved in Lean); on an odd counter value the tape is rebuilt (not decoded, simulated directly).",
+  "<b>Why it is still open.</b> The rebuilds at odd counter values are the only part not reduced to arithmetic. Five have been followed (at 3.1&middot;10<sup>6</sup>, 2.3&middot;10<sup>23</sup> steps, and so on); the one at about 1.8&middot;10<sup>83</sup> steps starts a structure nested inside the tape that did not finish in 2&middot;10<sup>10</sup> direct steps."
  ],
  "claims": [
   {
@@ -23,57 +26,119 @@
   },
   {
    "level": "kernel",
+   "title": "A halt can only happen at the right edge",
+   "text": "A closed tape language from windows of three cells covers every configuration of the run from blank tape; in all of its abstract configurations where E can read a 0, the tape right of the head is blank. So the machine halts exactly when E steps onto the blank region right of everything written: D must run over a solid block of 1s to the end of the tape.",
+   "where": "<code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code>"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
-   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
+   "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Two configurations of the family, and a small restructure",
+   "text": "At step 5,452 the tape is X(6, 215, 8) and at step 9,079 it is X(6, 1091, 11), exactly as the small-restructure formula predicts (M = 87, N' = 2<sup>10</sup> + 24 + 43).",
+   "where": "<code>blank_X_5452</code>, <code>blank_X_9079</code>, <code>lean/Family.lean</code>"
+  },
+  {
    "level": "native",
-   "title": "No halt in the first 10<sup>7</sup> steps",
-   "text": "The same run, evaluated by compiled code.",
-   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+   "title": "No halt in the first 10<sup>7</sup> steps; the current epoch",
+   "text": "The bounded run of 10<sup>7</sup> steps, and the configuration at step 3,145,810: X(0, 9223585492820455065, 64), the start of the epoch the run is still in at 10<sup>11</sup> steps.",
+   "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>; <code>blank_X_epoch</code>, <code>lean/Family.lean</code>"
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 254 cells have been visited and 116 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps without a halt; 288 cells visited, 126 ones at the end.",
+   "where": "<code>tools/c/tmrun.c</code>"
   },
   {
-   "level": "heuristic",
-   "title": "Growth shape: exp/fixed",
-   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.032). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "level": "trusted",
+   "title": "The regular rule, on every small configuration",
+   "text": "From X(k, N, b) with N + 2<sup>k+1</sup> &lt; 2<sup>b</sup>, the next overflow is X(k+1, N + 2<sup>k+1</sup>, b), after 84&middot;2<sup>k</sup> &minus; 9 to 84&middot;2<sup>k</sup> + 19 steps: checked by direct simulation for all 12,336 such configurations with b &le; 11 (N &ge; 2<sup>b&minus;1</sup>).",
+   "where": "<code>py/family.py rule 11</code>, <code>c/tmfrom.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The small restructure, on every small configuration",
+   "text": "For odd N with N + 2<sup>k+1</sup> &ge; 2<sup>b</sup> and M = N + 2<sup>k+1</sup> &minus; 2<sup>b</sup>, the next overflow is X(k, 2<sup>b+2</sup> + 24 + (M&minus;1)/2, b+3): checked for all 3,057 such configurations with 3 &le; b &le; 11.",
+   "where": "<code>py/family.py small 11</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Every overflow of the run follows the rules",
+   "text": "In the first 10<sup>11</sup> steps there are 54 overflow events: 45 regular steps, 3 small restructures (steps 5,452, 46,684 and 370,564), one even-N restructure (step 2,962,002 to 3,145,810, through two transitional configurations) and the start-up. The last is X(30, N, 64) at step 90,197,458,784.",
+   "where": "<code>py/family.py events</code> on a <code>tmrun ... records</code> file"
+  },
+  {
+   "level": "trusted",
+   "title": "No small configuration of the family halts",
+   "text": "All 10,240 configurations X(k, N, b) with b &le; 10, 0 &le; k &le; b and 2<sup>b&minus;1</sup> &le; N &lt; 2<sup>b</sup>, run for 10<sup>7</sup> steps each (through their restructures): none halts.",
+   "where": "<code>py/family.py scan 10 10000000</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The counter rules",
+   "text": "Thirteen rules with symbolic lengths, each proved for every value of its variables and every tape in its contexts: the start of a round X(k, W) &rarr; Z(k+2, 0, W) in 5k+22 steps; the tick Z(s, v, N) &rarr; Z(s, v+1, N+1) for every number t of trailing parts 1 and every carry length c, in 20 + 18t + 4c steps; the end of a round in 13k+29+4c steps; and the small restructure (W full on an even tick: N becomes 2<sup>b+2</sup>+24, joined with a following word if there is one) in its three cases.",
+   "where": "<code>lean/Rules.lean</code>, generated by <code>py/rules.py</code> with <code>bbtools.symtm</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The exact length of a round",
+   "text": "Summing the tick costs, a round from X(k, N, b) without overflow takes 84&middot;2<sup>k</sup> &minus; 5 + 4(s<sub>2</sub>(N) &minus; s<sub>2</sub>(N + 2<sup>k+1</sup>)) steps (s<sub>2</sub>: binary digit sum). Checked against direct simulation on 2,070 configurations with b &le; 11: result and step count exact.",
+   "where": "<code>py/accel.py regular</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The jumps on random configurations",
+   "text": "From 3,600 random counter configurations with one to three words (including full words, so small restructures and joins), the accelerated jump agrees with a direct Python simulation in the next configuration and the step count.",
+   "where": "<code>py/accel.py rules 1 1500</code>, <code>rules 2 2000</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The accelerated run reproduces the direct run",
+   "text": "From X(6, 215, 8) at step 5,452 (kernel), the accelerated run lists exactly the 44 X configurations, with their step counts, of the direct 10<sup>11</sup>-step run (last one at step 90,197,458,784), including three small and one big restructure.",
+   "where": "<code>py/accel.py events</code> on a <code>c/tmfrom ... C L</code> listing"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt before about 1.8&middot;10<sup>83</sup> steps",
+   "text": "The accelerated run (rule jumps, plus direct C simulation of each big restructure) reaches step 182,119,650,625,878,709,221,319,201,792,865,606,639,418,572,043,303,327,520,181,863,006,769,660,686,314,911,784 (10<sup>83.26</sup>) without a halt. On the way: small restructures at 10<sup>20.59</sup>, 10<sup>21.54</sup>, 10<sup>22.45</sup>; a big one at 10<sup>23.36</sup> (counter level 73) that leaves two words of 120 and 137 bits; their join by a small restructure at 10<sup>34.17</sup>; small ones at 10<sup>79.59</sup> to 10<sup>82.36</sup>; then a big one at counter level 272. Each piece is a kernel-checked rule or a direct simulation; the glue (sums of tick costs, the composition counter) is Python, so this is a computation, not a proof.",
+   "where": "<code>py/accel.py run 1000000 2000000000</code>"
   },
   {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "title": "The big restructure, and the question",
+   "text": "What a tick on an odd counter value does to a full word is not decoded: it depends only on the counter value and not on the width (checked for s &le; 6 at three widths), and it writes words with single 0s between them and configurations with gaps of 5a+1 cells. The one at 10<sup>83.26</sup> builds a second counter inside the tape, to the right of a 0^21 gap, and was still running after 2&middot;10<sup>10</sup> direct steps. Whether the machine halts is open.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF 1000000000"
+  "gcc -O2 -o /tmp/tmfrom holdouts/1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF/c/tmfrom.c && export TMFROM=/tmp/tmfrom",
+  "cd holdouts/1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF/py && python3 accel.py regular && python3 accel.py rules 1 1500 && python3 accel.py run 1000000 2000000000",
+  "/tmp/tmfrom 1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF A>0 100000000000 C L 100000000 > cl.txt && python3 accel.py events cl.txt"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>11</sup> steps without stopping, and a simulator built from rules proved in Lean follows it, still without a halt, to about 10<sup>83</sup> steps. Underneath, a binary counter adds one to a binary number at every tick. This page runs the real machine in your browser, explains the counter, and lists what is known.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 254 cells visited."
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator; 288 cells visited."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "13 rules",
+    "text": "Every rule of the counter is proved in Lean."
    },
    {
-    "level": "heuristic",
-    "value": "exp/fixed",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "~1.8&middot;10<sup>83</sup> steps",
+    "text": "No halt in the accelerated run, up to a nested restructure nobody has decoded."
    }
   ],
   "presets": [
@@ -85,6 +150,32 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "family",
+    "eyebrow": "Macro structure",
+    "heading": "Two binary numbers",
+    "html": [
+     "<p>Run the simulator and stop it whenever the head, in state C, stands at the left end of the tape reading a 0 that is followed by <code>1 0</code>. Every such moment, after a short start-up, looks like this:</p><pre>C&gt;0 1 0 1^(5k+3) 0 W</pre><p>a block of 5k+3 ones, then a word W made of blocks of an odd number of 1s separated by single 0s. Read W in pairs of cells: every pair starts with a 1, and the second cell of the pair is a binary digit. So W writes a number N in binary, least significant digit first. Call this configuration X(k, N, b), where b is the number of digits.</p><table><tr><th>step</th><th>tape at the left end</th><th>k</th><th>N</th></tr><tr><td>14,446</td><td><code>C&gt;0 1 0 1^38 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1^2</code></td><td>7</td><td>1219</td></tr><tr><td>25,189</td><td><code>C&gt;0 1 0 1^43 0 1^5 0 1 0 1 0 1 0 1^7 0 1^2</code></td><td>8</td><td>1475</td></tr><tr><td>46,684</td><td><code>C&gt;0 1 0 1^48 0 1^5 0 1 0 1 0 1 0 1^10</code></td><td>9</td><td>1987</td></tr></table><p>From one row to the next the block grows by 5 cells (k goes up by one), N goes up by 256 = 2<sup>8</sup> and then by 512 = 2<sup>9</sup>, and the time between rows doubles (10,743 steps, then 21,495).</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "The rule",
+    "heading": "The counter: compositions that count in binary",
+    "html": "<p>Between two X moments, stop the machine each time the head, in state F, reads a 0 that has a 0 to its left. The tape is then</p><pre>1 1 0^(5a<sub>1</sub>-2)  1 1 0^(5a<sub>2</sub>-2)  ...  1 1 0^(5a<sub>m</sub>-2)  F&gt;0  W</pre><p>a row of gaps whose lengths a<sub>1</sub>, ..., a<sub>m</sub> add up to a fixed number s. Such a list is a <em>composition</em> of s, and the machine steps through all of them in the order of a binary counter: write a 1 for every cut between two parts, and the cuts form an (s&minus;1)-digit binary number v. For s = 5:</p><table><tr><th>parts</th><th>v</th><th>N</th></tr><tr><td>(5)</td><td>0000</td><td>33</td></tr><tr><td>(4, 1)</td><td>0001</td><td>34</td></tr><tr><td>(3, 2)</td><td>0010</td><td>35</td></tr><tr><td>(3, 1, 1)</td><td>0011</td><td>36</td></tr><tr><td>(2, 3)</td><td>0100</td><td>37</td></tr><tr><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td></tr><tr><td>(1, 1, 1, 1, 1)</td><td>1111</td><td>48</td></tr></table><p>One tick turns (&hellip;, a+2, 1, &hellip;, 1) with t trailing parts 1 into (&hellip;, a+1, t+1): that is v + 1, and t is the carry of that addition. At the same time the machine adds 1 to N, the number written in W. The tick takes exactly 20 + 18t + 4c steps, where c is the carry of N + 1. After (1, &hellip;, 1) the round ends: the gaps melt back into one block 1^(5k+8), and the tape is X(k+1, N+1).</p><p>Lean proves each of these moves for every a, t, c and every tape around them (<code>lean/Rules.lean</code>). Adding up the costs gives the exact length of a round from X(k, N, b): 84&middot;2<sup>k</sup> &minus; 5 + 4(s<sub>2</sub>(N) &minus; s<sub>2</sub>(N+2<sup>k+1</sup>)) steps, where s<sub>2</sub> counts binary 1s; checked against direct simulation on 2,070 configurations.</p>"
+   },
+   {
+    "id": "restructure",
+    "eyebrow": "Overflows",
+    "heading": "When N runs out of digits",
+    "html": "<p>An overflow is a tick at which N = 2<sup>b</sup> &minus; 1, all digits 1. What happens depends on whether the counter value v is even or odd.</p><ul><li><b>v even: a small restructure.</b> W becomes 2<sup>b+2</sup> + 24 (three digits longer) and the counter loses its lowest digit: v becomes v/2 + 1 on s &minus; 1 parts, after 103 + 4b + 18&middot;t steps. If another word follows W after a single 0, the two are joined into one word. Lean proves all of this (<code>small_*</code>). In the language of the X moments it is the old formula X(k, N, b) &rarr; X(k, 2<sup>b+2</sup>+24+(M&minus;1)/2, b+3).</li><li><b>v odd: a big restructure.</b> The tape is rebuilt. The result depends only on v (the number of 1s at the top of N only lengthens the new word), and it can contain several words separated by single 0s and gaps of 5a+1 cells instead of 5a&minus;2, which belong to another kind of counter. This part is not decoded; the simulator below runs it directly.</li></ul><p>A halt needs the head, in state E, to reach the blank tape at the right end (Lean proves this is the only way). Ticks and small restructures never do that: they are proved step for step. So a halt could only come out of a big restructure.</p>"
+   },
+   {
+    "id": "future",
+    "eyebrow": "Why it is open",
+    "heading": "Following the run to 10<sup>83</sup> steps",
+    "html": "<p>With the rules above, a whole round, or any number of ticks up to the next overflow, is one arithmetic jump. Starting from X(6, 215, 8) at step 5,452 (proved in Lean), the jumps reproduce every one of the 44 X moments of the direct 10<sup>11</sup>-step run, with exact step counts. Then they run on:</p><table><tr><th>step</th><th>event</th><th>words after it (bits)</th></tr><tr><td>3.1&middot;10<sup>6</sup></td><td>big restructure, s = 17</td><td>64</td></tr><tr><td>10<sup>20.59</sup>, 10<sup>21.54</sup>, 10<sup>22.45</sup></td><td>small restructures</td><td>67, 70, 73</td></tr><tr><td>10<sup>23.36</sup></td><td>big restructure, s = 73 (1.05&middot;10<sup>6</sup> direct steps)</td><td>120 and 137</td></tr><tr><td>10<sup>34.17</sup></td><td>small restructure, joining the two words</td><td>260</td></tr><tr><td>10<sup>79.59</sup> to 10<sup>82.36</sup></td><td>four small restructures</td><td>263 to 272</td></tr><tr><td>10<sup>83.26</sup></td><td>big restructure, s = 272</td><td>?</td></tr></table><p>No halt anywhere on the way. This is a computation, not a proof: the rules are proved one move at a time, but the sums that join them are Python, and the two earlier big restructures were simulated directly.</p><p>The big restructure at 10<sup>83.26</sup> is different from the earlier ones. After a million steps the tape holds a frozen copy of most of the old counter, then a gap of 21 cells, then a fresh configuration <code>C&gt;0 1 0 1^8 0 W</code> running its own counter on a word of about 270 digits, as if the gap were the end of the tape. It had not come back after 2&middot;10<sup>10</sup> steps. Settling the machine needs this nested structure decoded: when it ends, what it leaves, and whether one of them can let E reach the right edge.</p>"
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +189,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "binary accumulator fed by a counter",
+ "summary": "A binary counter of compositions adds 1 to a binary number N per tick (tick rules proved in Lean); an exact accelerated run finds no halt before about 1.8*10^83 steps, where a nested restructure begins. Open."
 }

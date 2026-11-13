@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G03",
+ "generated": false,
+ "group": "two-counter doubling map, halting on an exact remainder",
  "title": "What is known about 1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB.",
  "machine": "1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB",
@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 12 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open, and Collatz-like.</b> Each time the head turns at the left end the tape is <code>1<sup>n</sup> (01)<sup>k</sup> 111</code> (or all ones), and the next such state is given by an explicit map on (state, n, k): while n is odd the ones are doubled at the cost of (n+5)/2 pairs <code>01</code>, or the pairs are doubled when that cannot be paid; when n is even the pairs are drained into ones. The machine halts if and only if a doubling in state D leaves exactly one pair, that is the orbit reaches D(n, k) with n odd and 2k = n+7 (as far as the computed map is right: it is checked against the machine on thousands of states, not proved). From blank tape the map has been iterated through 8,598 epochs, more than 10<sup>3,100</sup> steps, without a halt."
  ],
  "claims": [
   {
@@ -46,34 +46,81 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "The drain",
+   "text": "From the left end, <code>A&gt; 0 0 1<sup>2n+4</sup> (01)<sup>k+2</sup> 111</code> becomes <code>A&gt; 0 0 1<sup>2n+12</sup> (01)<sup>k</sup> 111</code> in 12n+58 steps: each trip turns one <code>01</code> into four 1s.",
+   "where": "<code>drain</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "How a halt happens",
+   "text": "A sweep in state D over an even block of 1s that ends in <code>0 111</code> reaches B on a 1 (no transition) in 2n+3 steps, whatever lies to the right; over an odd block ending in <code>0 1111</code> it passes to the right end.",
+   "where": "<code>halt_even</code>, <code>halt_even_stop</code>, <code>pass_odd</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 10<sup>300</sup> steps",
+   "text": "<code>py/run.py</code> (exact run-length simulation, cycles extrapolated at the turns of the head, nested loops level by level) follows 414 epochs from blank tape to 10<sup>300</sup> steps without a halt. The extrapolation agrees with the plain run-length simulator at all 8,828 samples up to 3&middot;10<sup>8</sup> steps, and the epoch map agrees with <code>bbtools.machine</code> on the values tried.",
+   "where": "<code>py/run.py</code>, <code>py/turnacc.py</code>, <code>py/epoch.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The left-end map",
+   "text": "With A(n, k), D(n, k) the head in state A two cells (D: three cells) left of <code>1<sup>n</sup> (01)<sup>k</sup> 111</code> (k = 0: <code>1<sup>n</sup></code>): for n even, s(n, k) &rarr; other(n+4, k&minus;1), and other(n+7, 0) when k = 1, other(n+3, 0) when k = 0; A(n, 0) &rarr; D(1, (n+1)/2) and D(n, 0) &rarr; D(3, (n+1)/2) for n odd; for n odd and k &ge; 2: D(n, k) &rarr; D(2n+7, k&minus;(n+5)/2) and A(n, k) &rarr; A(2n+6, k&minus;(n+5)/2) when 2k &gt; n+5, all ones of length 2n+10 resp. 2n+9 when 2k = n+5, other(n&minus;2k+6, 2k) when 2k &lt; n+5; n odd and k = 1 halts. Equal to the plain machine on all 7,000 states with n &lt; 70, k &lt; 50, 300 random larger states, the first 170 left-end states from blank tape and every epoch N &le; 150; its epoch values agree with the 126 epochs of the accelerated run to 10<sup>100</sup> steps. Checked, not proved.",
+   "where": "<code>py/emap.py</code>, <code>py/leftcheck.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The halting condition",
+   "text": "By the map, the machine halts iff the orbit from D(3, 0) reaches D(n, k) with n odd and 2k = n+7: the doubling leaves one pair, D(2n+7, 1), and the machine stops within the next sweeps (the Lean lemma <code>halt_even</code> shows the kind of sweep that stops it). A doubling in A leaves n even and a failed doubling leaves k even, so there is no other way.",
+   "where": "<code>py/emap.py</code>, <code>py/leftcheck.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 8,598 epochs",
+   "text": "The map iterated from D(3, 0) for 9.1&middot;10<sup>7</sup> map steps (a run of drain steps counted once) does not halt; the last all-ones tape has a length of 10,317 bits, so the machine has made more than 10<sup>3,100</sup> steps. This rests on the computed map.",
+   "where": "<code>py/orbit.py 280</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A halt needs an exact remainder",
+   "text": "Each doubling stage in D ends with a remainder between 0 and about n/2, and a halt needs it to be exactly 1: about 2/n per stage if remainders behave like random numbers, with n growing geometrically. Past the epochs already followed the chance is around 2<sup>&minus;10,000</sup>.",
+   "where": "<code>py/orbit.py</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. It is the question whether the orbit of the left-end map ever reaches D(n, (n+7)/2) with n odd: a Collatz-like question. The map and this reduction are computed, not yet proved in Lean (the doubling stage, a nested zig-zag, is the missing part).",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/lean/check.sh",
+  "python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/run.py check 3e8",
+  "python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/run.py 1e100",
+  "python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/epoch.py scan 1 3000",
+  "python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/leftcheck.py",
+  "python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/orbit.py 60",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet, and it looks like a Collatz problem. The tape is a block of ones followed by a block of 01s, and the machine keeps trading one for the other: doubling the ones, paying in 01s, then draining the 01s back into ones. It stops only if a doubling leaves exactly one 01. In 8,598 epochs (more than 10<sup>3,100</sup> steps) that has not happened.",
   "facts": [
    {
+    "level": "kernel",
+    "value": "even block + 0111",
+    "text": "The only way it can stop, proved in Lean."
+   },
+   {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 24,444 cells visited."
+    "value": "2k = n + 7",
+    "text": "The halting condition on the left-end map (computed, checked against the machine)."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "8,598 epochs",
+    "text": "No halt along the orbit of the map: more than 10<sup>3,100</sup> steps."
    }
   ],
   "presets": [
@@ -96,7 +143,28 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>968,659,947</td><td><code>A&gt;0 0 1^22036 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>left</td><td>984,321,107</td><td><code>A&gt;0 0 1^22964 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>left</td><td>999,983,510</td><td><code>E&gt;0 1^23856 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>638,166,350</td><td><code>1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>right</td><td>687,345,352</td><td><code>1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>786,502,548</td><td><code>1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "epochs",
+    "eyebrow": "The tape",
+    "heading": "Ones, then 01s: a map on two numbers",
+    "html": [
+     "<p>Each time the head turns at the left end the tape is <code>1<sup>n</sup> (01)<sup>k</sup> 111</code>, or all ones. Write A(n, k) or D(n, k) for that tape with the head in state A or D. The next left-end state is:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>state</th><th>condition</th><th>next</th><th></th></tr></thead><tbody><tr><td>all ones, n odd</td><td></td><td>D(1, (n+1)/2) from A, D(3, (n+1)/2) from D</td><td>conversion</td></tr><tr><td>all ones, n even</td><td></td><td>other(n+3, 0)</td><td></td></tr><tr><td>n even</td><td>k &ge; 2</td><td>other(n+4, k&minus;1)</td><td>drain</td></tr><tr><td>n even</td><td>k = 1</td><td>other(n+7, 0)</td><td>all ones again</td></tr><tr><td>n odd</td><td>2k &gt; n+5</td><td>D(2n+7, k&minus;(n+5)/2) or A(2n+6, k&minus;(n+5)/2)</td><td>doubling</td></tr><tr><td>n odd</td><td>2k = n+5</td><td>all ones: D(2n+10, 0) or A(2n+9, 0)</td><td></td></tr><tr><td>n odd</td><td>2 &le; k, 2k &lt; n+5</td><td>other(n&minus;2k+6, 2k)</td><td>failed doubling</td></tr><tr><td>n odd</td><td>k = 1</td><td><b>halt</b></td><td></td></tr></tbody></table></div>",
+     "<p>(&ldquo;other&rdquo; is the other letter.) From blank tape: D(3,0) &rarr; D(3,2) &rarr; A(5,4) &rarr; D(3,8) &rarr; D(13,4) &rarr; A(11,8) &rarr; A(31,0) &rarr; D(1,16) &rarr; D(9,13) &rarr; D(25,6) &rarr; A(19,12) &rarr; A(47,0) &rarr; &hellip; The all-ones states D(N, 0) are the epochs: N = 3, 124, 583, 2143, 8167, 34679, &hellip;, growing by a factor 2.3 on average. An epoch takes about N<sup>2</sup> steps, which is why the tape grows like the square root of the step count.</p>",
+     "<p>The map was found from the run and is checked against the plain machine on more than 7,000 built tapes and on the run from blank tape; it is not yet proved in Lean (only the drain is).</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Does it halt?",
+    "heading": "Only if a doubling leaves exactly one 01",
+    "html": [
+     "<p>The only halt is state B reading 1; Lean proves the kind of sweep that does it: state D over an even block of ones that ends in <code>0 111</code>. On the map the halt comes from a state with n odd and k = 1, and it can only come from a doubling in D: D(n, k) with 2k = n+7 goes to D(2n+7, 1) and stops. (A doubling in A leaves n even; a failed doubling leaves k even.) For example the tape of 26 ones halts: D(26,0) &rarr; A(29,0) &rarr; D(1,15) &rarr; D(9,12) &rarr; D(25,5) &rarr; A(21,10) &rarr; D(7,20) &rarr; D(21,14) &rarr; D(49,1) &rarr; halt.</p>",
+     "<p>From blank tape the map has been followed through 8,598 epochs, more than 10<sup>3,100</sup> steps, and 2k = n+7 never occurred in state D. Each doubling stage leaves a remainder that looks random between 0 and n/2, so the chance of hitting exactly 1 shrinks like 2/n while n grows geometrically: the machine almost certainly never halts. Proving it would mean controlling exact remainders along an exponentially growing orbit, as for the Collatz-like cryptids.</p>"
+    ]
    }
   ]
- }
+ },
+ "summary": "At the left end the tape is 1^n (01)^k 111; the next left-end state is an explicit map on (state, n, k): doubling n at the cost of (n+5)/2 pairs, draining pairs into ones. It halts iff a doubling in state D leaves exactly one pair (2k = n+7). Map computed and checked; no halt in 8,598 epochs (> 10^3,100 steps)."
 }

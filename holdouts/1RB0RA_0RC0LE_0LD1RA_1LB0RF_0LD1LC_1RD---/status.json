@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G05",
  "title": "What is known about 1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The two basic counter increments (lowest digit 0, and lowest digits 1 then 0) are proved in Lean for all block lengths (kernel). The general increment rule matches all 2,282 clean increments of the first 3·10<sup>7</sup> steps, and the C simulator runs 2·10<sup>11</sup> steps without a halt. Carries into the higher separators, the reservoir refills and the <code>1100</code> region are not yet rules."
  ],
  "claims": [
   {
@@ -34,46 +34,59 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Increments for all block lengths",
+   "text": "From <code>L 1 0 0 (1010)^(n+2) 0 0 (1010)^(m+2) 10 C&gt; 0^∞</code> the lowest digit becomes 1, the lowest block gains four <code>10</code>s and the reservoir loses two, in 24m + 12n + 122 steps (<code>inc_d0</code>); with lowest digits 1, 0 (<code>L 1 0 0 (1010)^(a+2) 1 (1010)^(n+2) 0 0 …</code>) both digits flip and both blocks gain two <code>10</code>s, in 12a + 24m + 12n + 152 steps (<code>inc_d1</code>). <code>half_sweep</code> is the first of the two bounces.",
+   "where": "<code>half_sweep</code>, <code>inc_d0</code>, <code>inc_d1</code>, <code>lean/Rules.lean</code>"
+  },
+  {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 54,987 cells have been visited and 27,484 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 2·10<sup>11</sup> steps",
+   "text": "The C simulator <code>tmrun</code> runs 2·10<sup>11</sup> steps without a halt; the tape is then 391,889 cells wide. The shared cycle accelerator finds no cycle rules for this machine.",
+   "where": "README"
+  },
+  {
+   "level": "trusted",
+   "title": "The increment rule, checked",
+   "text": "Low 1-digits become 0, the next 0 becomes 1, its block and the lowest block gain two <code>10</code>s each, the reservoir loses two. A direct simulation of 3·10<sup>7</sup> steps finds 2,282 increments that match and none that disagree; 141 carries run into higher separators and 17 reservoir refills fall outside the rule.",
+   "where": "<code>py/check_increments.py</code>"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.507).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "A second region of <code>1100</code>s",
+   "text": "Beyond the counter the machine builds runs of <code>1100</code> at the right end (half the tape at step 2·10<sup>9</sup>) and later turns them back into reservoir <code>10</code>s. Higher separators such as <code>1101</code>, <code>0101</code>, <code>000</code> appear between long blocks.",
+   "where": "README"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. It halts exactly when C or E reads a 0 that has a 1 on its left and <code>(10)^k 1 1</code> on its right. The increments never do this; the refills, long carries and the <code>1100</code> region are not closed rules yet.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD--- 1000000000"
+  "python3 holdouts/1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---/py/gen_rules.py",
+  "python3 holdouts/1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---/py/check_increments.py 30000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet. This machine counts in binary on its tape, writing each digit as a single cell between long runs of <code>10</code>, and pays for every count with cells from a reservoir. It has run 2·10<sup>11</sup> steps without stopping.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 54,987 cells visited."
+    "value": "2·10<sup>11</sup> steps",
+    "text": "No halt in the C simulator."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "+1",
+    "text": "The basic increments, proved for all block lengths."
    },
    {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "2,282",
+    "text": "Increments checked against the rule, none off."
    }
   ],
   "presets": [
@@ -96,7 +109,55 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,190,507</td><td><code>0 1^2 0 1 0 1 0 1 0^4 1 0 1 0 1 0 1 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0^3 1 0 1 0^2 1 0 1^2 0 1 0 1^2 0 1 0 1 0 1 0^2 1 0 1^2 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1^2 0 1 0^2 1 0 1 0^2 1^2 0 1^2 0 1 0 1 0 1 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0^3 1 0 1 0 1 0 1^2 0 1 0 1^2 0 1 0^2 1 0 1 0 1 0 1^2 0 1 0^2 1</code></td></tr><tr><td>right</td><td>969,872,979</td><td><code>0 1^2 0 1 0 1 0 1 0^4 1 0 1 0 1 0 1 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0^3 1 0 1 0^2 1 0 1^2 0 1 0 1^2 0 1 0 1 0 1 0^2 1 0 1^2 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1^2 0 1 0^2 1 0 1 0^2 1^2 0 1^2 0 1 0 1 0 1 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0^3 1 0 1 0 1 0 1^2 0 1 0 1^2 0 1 0^2 1 0 1 0 1 0 1^2 0 1 0^2 1</code></td></tr><tr><td>right</td><td>985,514,051</td><td><code>0 1^2 0 1 0 1 0 1 0^4 1 0 1 0 1 0 1 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0^3 1 0 1 0^2 1 0 1^2 0 1 0 1^2 0 1 0 1 0 1 0^2 1 0 1^2 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1^2 0 1 0^2 1 0 1 0^2 1^2 0 1^2 0 1 0 1 0 1 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0^3 1 0 1 0 1 0 1^2 0 1 0 1^2 0 1 0^2 1 0 1 0 1 0 1^2 0 1 0^2 1</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "tape",
+    "eyebrow": "Structure",
+    "heading": "What the tape is made of",
+    "html": [
+     "<p>Almost the whole tape is runs of the two-cell word <code>10</code> (accent colour). Between two runs there is a single extra cell, and that cell is a <b>digit</b>: <code>…1 0 [0] 1 0…</code> is a 0 and <code>…1 0 [1] 1 0…</code> is a 1 (orange). At the right end, after the lowest digit and its run, come a <b>marker</b> <code>0 0</code> and a <b>reservoir</b> of <code>10</code>s (grey); the head is on the blank cell after it.</p>",
+     "<svg viewBox=\"0 0 455 70\" role=\"img\" aria-label=\"the low end of the counter\" style=\"width:100%;max-width:455px;height:auto;font:11px var(--mono);\"><rect x=\"10\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"23\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"36\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"49\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"62\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"75\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"92\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"109\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"122\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"135\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"148\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"165\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"182\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"195\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"208\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"221\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"234\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"247\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"264\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"277\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"294\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"307\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"320\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"333\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"346\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"359\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"372\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><path d=\"M377.5,22 l-4,-7 h8 z\" fill=\"var(--head)\"/><rect x=\"385\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"398\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"411\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"428\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><text x=\"48.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">a^3</text><text x=\"97.5\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">d=1</text><text x=\"134.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">a^2</text><text x=\"170.5\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">d=0</text><text x=\"220.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">n1=3</text><text x=\"276.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">marker</text><text x=\"358.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">reservoir m=5</text></svg>",
+     "<p>At step 29,987,318, for instance, the tape ends <code>… 0 a<sup>190</sup> 1 a<sup>34</sup> 1 a<sup>66</sup> 0 a<sup>1154</sup> 1 a<sup>788</sup> 0 0 a<sup>1603</sup></code> (with <code>a = 10</code>).</p>"
+    ]
+   },
+   {
+    "id": "increment",
+    "eyebrow": "The basic move",
+    "heading": "One increment",
+    "html": [
+     "<p>The head bounces twice between the right end and the low digits. The first bounce turns the marker <code>0 0</code> into <code>1 10 1</code>; the second turns it back and adds one to the binary number read from the digits: the lowest 1s become 0, the next 0 becomes 1. The run after the digit where the carry stopped, and the lowest run, each get two more <code>10</code>s; the reservoir gives up two.</p>",
+     "<svg viewBox=\"0 0 507 70\" role=\"img\" aria-label=\"after one increment\" style=\"width:100%;max-width:507px;height:auto;font:11px var(--mono);\"><rect x=\"10\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"23\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"36\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"49\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"62\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"75\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"92\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"109\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"122\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"135\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"148\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"165\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--head)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"182\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"195\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"208\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"221\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"234\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"247\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"260\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"273\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"286\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"299\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"312\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"325\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"338\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"351\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"368\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"381\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"398\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"411\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"424\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><path d=\"M429.5,22 l-4,-7 h8 z\" fill=\"var(--head)\"/><rect x=\"437\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"450\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"var(--fg2)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"463\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"480\" y=\"26\" width=\"11\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><text x=\"48.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">a^3</text><text x=\"97.5\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">d=1</text><text x=\"134.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">a^2</text><text x=\"170.5\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">d=1</text><text x=\"272.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">n1=7</text><text x=\"380.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">marker</text><text x=\"436.0\" y=\"58\" text-anchor=\"middle\" fill=\"var(--muted)\">m=3</text></svg>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>rule</th><th>what it does</th><th>steps</th></tr></thead><tbody><tr><td><code>inc_d0</code></td><td>lowest digit 0 → 1; lowest run +4; reservoir −2</td><td>24m + 12n + 122</td></tr><tr><td><code>inc_d1</code></td><td>lowest digits 1, 0 → 0, 1; both runs +2; reservoir −2</td><td>12a + 24m + 12n + 152</td></tr></tbody></table></div>",
+     "<p>Both are proved in Lean for every length of the runs. The general rule (any number of low 1s) is checked against the real machine for 2,282 increments.</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "The emergent behaviour",
+    "heading": "A counter that pays for itself",
+    "html": [
+     "<p>The number stored in the digits goes up by one per increment, and the runs grow with it: run <i>j</i> gains two <code>10</code>s every 2<sup><i>j</i></sup> increments, so the tape gets longer and each increment takes longer. The reservoir runs out regularly; the machine then refills it. Further right it also builds a second kind of region, made of the four-cell word <code>1100</code>: at step 2·10<sup>9</sup> about half the tape is <code>1100</code>s, and these are turned back into reservoir <code>10</code>s later. High in the counter the separators are not always single cells (<code>1101</code>, <code>0101</code>, <code>000</code> appear), a second layer of structure that the rules above do not cover.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The question",
+    "heading": "Where it could halt",
+    "html": [
+     "<p>The only halting transition is F reading 1. Tracing back through D, the machine halts exactly when C or E stands on a 0 with a 1 on its left and <code>(1 0)<sup>k</sup> 1 1</code> on its right: on this tape, inside a run of <code>10</code>s that ends in a 1-digit. If the run ends in a 0-digit instead, the machine escapes into state B. The proved increments never do this; whether a refill, a long carry or the <code>1100</code> region ever does is the open part.</p>"
+    ]
+   },
+   {
+    "id": "proved",
+    "eyebrow": "Status",
+    "heading": "What is proved",
+    "html": [
+     "<ul><li><b>Kernel</b>: the increments <code>half_sweep</code>, <code>inc_d0</code>, <code>inc_d1</code> for all run lengths (<code>lean/Rules.lean</code>); no halt in 10,000 steps.</li><li><b>native_decide</b>: no halt in 10<sup>7</sup> steps.</li><li><b>Trusted computation</b>: no halt in 2·10<sup>11</sup> steps; the increment rule matches 2,282 increments.</li><li><b>Open</b>: whether it ever halts.</li></ul>"
+    ]
    }
   ]
- }
+ },
+ "family": "binary counter with growing digit blocks and a reservoir",
+ "summary": "A binary counter written in runs of 10s with one-cell digits; each increment spends two 10s of a reservoir at the right end and lengthens the blocks next to the carry; the basic increments are proved in Lean.",
+ "decision": "open"
 }

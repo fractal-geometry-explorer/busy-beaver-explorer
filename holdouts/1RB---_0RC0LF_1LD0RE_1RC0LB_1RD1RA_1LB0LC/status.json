@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G10",
  "title": "What is known about 1RB---_0RC0LF_1LD0RE_1RC0LB_1RD1RA_1LB0LC",
  "description": "Proof status of the six-state BB(6) holdout 1RB---_0RC0LF_1LD0RE_1RC0LB_1RD1RA_1LB0LC.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The tape is a list of numbers: runs <code>(001)^(2j)</code> separated by single <code>0001</code>. The bouncer side writes the same list in the complemented words <code>110</code> / <code>1110</code>. The recoding sweeps are proved in Lean (six crossing rules). In the samples, a cycle adds 2 to every entry and pushes new small entries at the left end. How the cycle starts and ends is not proved, so halting (A reading a 1) is not ruled out."
  ],
  "claims": [
   {
@@ -46,9 +46,21 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Recoding sweeps",
+   "text": "<code>E&gt; (001)^n &rarr; (110)^n E&gt;</code>, <code>D&gt; (010)^n &rarr; (101)^n D&gt;</code>, <code>C&gt; (100)^n &rarr; (011)^n C&gt;</code>, <code>A&gt; (0001)^n &rarr; (1101)^n A&gt;</code>, <code>E&gt; (1000)^n &rarr; (1110)^n E&gt;</code> and leftward <code>(0111)^n C&gt; 0 &rarr; C&gt; 0 (0001)^n</code>, for every n.",
+   "where": "<code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Every entry +2",
+   "text": "Write the tape at B's visits to the left end as a list of the lengths of the <code>001</code> runs. Between steps 7,203,647 and 8,576,224 the list 8, 4 (7 times), 8, 6, 6, 6, 10, 8, 8, 8, 8, 6, 8, 10, 10, 8, 10, 8, 22, 12, ... becomes 4, 2, then 10, 6 (7 times), 10, 8, 8, 8, 12, 10, 10, 10, 10, 8, 10, 12, 12, 10, 12, 10, 24, 14, ...: every entry is up by exactly 2, and two new entries came in at the left.",
+   "where": "<code>tokrun M N a=001,b=0001 L</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The machine halts only when A reads a 1. A is entered from E on a 1 (writing 1, moving right), at a run boundary. The samples never show it, but the start and end of a cycle are not proved. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.",
    "where": ""
   }
  ],
@@ -60,6 +72,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "6 rules",
+    "text": "The recoding of whole runs by E, D, C, A."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -86,6 +103,24 @@
   },
   "sections": [
    {
+    "id": "list",
+    "eyebrow": "Structure",
+    "heading": "A list written in two codes",
+    "html": [
+     "<p>With <code>a = 001</code> and <code>b = 0001</code>, the tape at a visit of B to the left end reads (step 7,203,647, abridged):</p><pre>a b^2 a^8 b a^4 b a^4 b a^4 b a^4 b a^4 b a^4 b a^4 b a^8 b a^6 b a^6 b a^6 b a^10 b a^8 ...</pre>",
+     "<p>That is a list of even numbers (8, 4, 4, ..., 8, 6, 6, 6, 10, 8, ...). A sweep to the right rewrites every word as its complement (<code>001 &rarr; 110</code>, <code>0001 &rarr; 1110</code>), a whole run at once (proved in Lean), and the sweep to the left rewrites it back. The right end of the tape is the bouncer, which grows like the square root of the step count:</p><pre>1 0 (1110)^30 (110)^4 1110 (110)^2 1110 (110)^2 ... C&gt;</pre>"
+    ]
+   },
+   {
+    "id": "count",
+    "eyebrow": "Dynamics",
+    "heading": "All counters tick together",
+    "html": [
+     "<p>Comparing two samples about 1.4&middot;10<sup>6</sup> steps apart, every entry of the list has grown by exactly 2, and two new entries (4 and 2) have appeared at the left:</p><pre>7,203,647:        8  4 4 4 4 4 4 4  8  6  6  6 10  8 8 8 8  6  8 10 10  8 10  8 22 12\n8,576,224:  4  2 10  6 6 6 6 6 6 6 10  8  8  8 12 10 10 10 10  8 10 12 12 10 12 10 24 14</pre>",
+     "<p>So the left side holds a growing list of counters that all advance together. Its length grows like a power of the step count other than 1/2 (fitted 0.187). From time to time the run <code>b^k</code> at the front changes length and entries are merged at the left end. These events are where the list is reshaped.</p><p><b>What halting would need.</b> A reading a 1 at a run boundary. Proving non-halting would mean proving one full cycle as a rule on the list (all entries +2), and the left-end events as rules on the first entries.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +133,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A list of counters: the tape is runs of 001 (even lengths) separated by 0001, recoded into 110/1110 and back by every sweep; over a cycle every entry grows by 2 and new small entries are pushed at the left.",
+ "family": "list of counters, all incremented together",
+ "decision": "open"
 }

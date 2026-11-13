@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G06",
  "title": "What is known about 1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The tape is a list of nested counters (segments of ones and of <code>10</code>s). Both kinds of sweep of the last segment are proved in Lean for every size. An exact accelerated run built on them finds no halt in the first 1.4&middot;10<sup>16</sup> steps. The events between batches of sweeps, where a segment runs out and the one before it ticks, are read off the simulation."
  ],
  "claims": [
   {
@@ -40,26 +40,44 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules of the sweep",
+   "text": "The pieces of a sweep (<code>wall_right</code>, <code>ones_left</code>, <code>fill</code>) and the two whole sweeps, for every size and any tape to the left. Mode Q: <code>L 1^4 (10)^(b+2) 0 1 0 0 (10)^(c+1) A&gt;</code> to <code>L (10)^(b+4) 0 1 0 0 (10)^(c+2) A&gt;</code> in 8b + 4c + 38 steps. Mode P: <code>L 1 1 (10)^(b+1) A&gt;</code> to <code>L (10)^(b+3) A&gt;</code> in 4b + 10 steps.",
+   "where": "<code>sweep</code>, <code>sweep_p</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 1.39&middot;10<sup>16</sup> steps",
+   "text": "<code>c/accel.c</code> does every sweep that one of the two proved rules covers in batches, with the proved step counts, and simulates everything else step by step. It agrees with the plain machine at the sweep ends at steps 59,136,370, 111,168,816 and 2,401,664,914. It runs 13,977,446,236,662,410 steps without a halt, in 10 seconds, with 136,198,641 sweeps in 78 batches; the tape is then 272,397,888 cells long.",
+   "where": "<code>c/accel.c</code>"
+  },
+  {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.49).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "A hierarchy of counters",
+   "text": "The events between batches follow a cycle per segment. A segment <code>1^x (10)^9</code> ticks four times (4 ones fewer, 2 <code>10</code>s more each time) while its small companion goes through the shapes 0.4, 2.3, 2.4, 4.4, 0.6, 10.1 and 6.3. Then it freezes, and the new last segment, about three times as long, starts the same cycle. Later segments also show other companion shapes (2.5, 6.4), depending on residues. Read off the event log of the accelerated run; not proved.",
+   "where": "<code>LOG=1 c/accel.c</code>, <code>README.md</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. It halts only if the nested counters ever produce a shape that leads to E reading 1; which shapes do is not known.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC 1000000000",
+  "gcc -O2 -o accel holdouts/1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC/c/accel.c && ./accel 1e16"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The tape of this machine is a list of counters, each a block of ones followed by a block of <code>10</code>s. The head wears the last one down four ones at a time. When it is used up, the counter before it ticks once and a new, longer last counter is built, like the digits of an odometer.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.4&middot;10<sup>16</sup> steps",
+    "text": "No halt in an exact accelerated run that batches the proved sweeps."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -71,9 +89,9 @@
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
    },
    {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "kernel",
+    "value": "both sweeps",
+    "text": "One sweep of the last counter, in either of its two modes, proved in Lean for every size."
    }
   ],
   "presets": [
@@ -96,7 +114,19 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>953,953,206</td><td><code>1^386 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^5 0 1 0 1 0 1 0^2 1^467 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^7 0 1 0 1 0^2 1^1491 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^7 0 1 0 1 0^2 1^4691 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^7 0 1 0 1 0^2 1^14695 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>969,657,506</td><td><code>1^386 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^5 0 1 0 1 0 1 0^2 1^467 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^7 0 1 0 1 0^2 1^1491 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^7 0 1 0 1 0^2 1^4691 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^7 0 1 0 1 0^2 1^14695 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>985,329,846</td><td><code>1^386 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^5 0 1 0 1 0 1 0^2 1^467 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^7 0 1 0 1 0^2 1^1491 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^7 0 1 0 1 0^2 1^4691 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^7 0 1 0 1 0^2 1^14695 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "counters",
+    "eyebrow": "The structure",
+    "heading": "Counters inside counters",
+    "html": [
+     "<p>A few million steps in, the tape reads <code>1^385 (10)^15 0 1^4 (10)^4 0 1^466 (10)^17 0 &hellip; 0 1^a (10)^b 0 1 0 0 (10)^c</code>. Each sweep eats four ones of the last block of ones, adds two <code>10</code> pairs after it and one at the end. Lean proves this for every size.</p>",
+     "<p>When the last block of ones is gone, the segment before it ticks: it has four ones fewer and two <code>10</code> pairs more. The <code>10</code> blocks on the right are then rebuilt into a new block of ones, about three times longer than before. Earlier segments change more and more rarely, like the higher digits of a counter.</p>",
+     "<p>Because the sweeps are proved rules with exact step counts, a simulator can do thousands of them at once and only step through the rare events by hand. That gets the run from blank tape to 1.4&middot;10<sup>16</sup> steps in ten seconds, still without a halt. By then the tape is 272 million cells long: a row of big counters, each holding millions of ones, each with a small companion of a few cells. A counter ticks four times, its companion changing shape each time, and then it freezes while a new counter about three times longer takes over at the end. The machine can halt only during one of these events, and what decides it is the exact shapes and residues of the counters.</p>"
+    ]
    }
   ]
- }
+ },
+ "family": "nested counters",
+ "summary": "Nested counters of 1s and 10s ticked by sweeps that are proved in Lean; an exact accelerated run finds no halt in the first 1.4·10^16 steps."
 }

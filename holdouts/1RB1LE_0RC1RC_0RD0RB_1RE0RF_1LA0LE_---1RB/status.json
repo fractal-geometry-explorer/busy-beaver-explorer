@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G07",
  "title": "What is known about 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Near the right end of the tape it runs a simple countdown that turns one block into another; each time the countdown ends, a long sweep sets up a new one about three times as long."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 12 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The visit-to-visit rule at the right end is proved in Lean for all counts (two theorems), and the epochs it builds are seen in an exact accelerated simulation, but what a long sweep at the end of an epoch does to the left part of the tape is not decoded, and the closed tape language of windows of 6 still allows 970 halting configurations, so the halt is not confined."
  ],
  "claims": [
   {
@@ -40,40 +40,74 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
-   "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.484).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "level": "trusted",
+   "title": "The right wall",
+   "text": "In the first 3·10<sup>8</sup> steps the head extends the tape to the right 40,740 times: 13,577 times each in C (after <code>0 1</code>), D (after <code>1 0</code>) and E (after <code>0 1</code>), the wall cycle that writes <code>0 1</code> per round; and 9 times by a walk B, C, D, E over three fresh cells. The halting transition F0 needs D to meet a 1 (D1 = 0RF) and F to meet a 0.",
+   "where": "<code>c/rec.c</code> of 1RB1LF_1RC1RF"
+  },
+  {
+   "level": "trusted",
+   "title": "A closed tape language does not confine it",
+   "text": "Windows of 6 cells give a closed language (16,379 abstract configurations) in which F0 can fire in 970 abstract configurations, 20 of them at the right edge; windows of 8 do not close within the search limit.",
+   "where": "<code>python3 -m bbtools.ctl 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 6   # from tools/py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The countdown at the right end",
+   "text": "For all counts a, b, j and every tape L, from <code>L 0 1<sup>2j</sup> 0 0 1 1 0 (10)<sup>a+1</sup> 0 0 (10)<sup>b</sup> 1 E&gt;</code> the machine next reaches the right end at <code>L 0 1<sup>2j</sup> 0 0 1 1 0 (10)<sup>a+1</sup> 1 1 0 (10)<sup>b+1</sup> 1 E&gt;</code>, and from there <code>L 0 1<sup>2j+2</sup> 0 0 1 1 0 (10)<sup>a</sup> 0 0 (10)<sup>b+3</sup> 1 E&gt;</code>. So every two visits: j + 1, a − 1, b + 3, and the head never goes left of the 1<sup>2j</sup> run.",
+   "where": "<code>visit_p</code>, <code>visit_q</code>, <code>lean/Rules.lean</code> (from <code>py/rules.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "An exact accelerated simulator",
+   "text": "<code>py/blocksim.py</code> keeps the tape as runs of <code>10</code> and crosses each run with a shift rule; at every visit of the right end up to 3·10<sup>7</sup> steps its tape equals the C simulator's (<code>py/bscheck.py</code>).",
+   "where": "<code>py/blocksim.py</code>, <code>py/bscheck.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Epochs about three times longer each",
+   "text": "An epoch is a run of the countdown from a = a<sub>0</sub> to 0 (about 2a<sub>0</sub> visits). Epochs start at visits 10, 44, 107, 260, 713, 2070 with a<sub>0</sub> = 3, 30, 75, 225, 677, 1783; the long sweeps at the epoch ends take up to 2.6·10<sup>6</sup> steps. After visit 5639 (5.7·10<sup>7</sup> steps) the end of the tape holds several such counters at once (e.g. <code>(10)<sup>43</sup> 0 0 (10)<sup>1135</sup> 0 1 (10)<sup>5351</sup></code>), so the epochs nest.",
+   "where": "<code>py/blocksim.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The end of a countdown and the erase sweep",
+   "text": "<code>exit1</code>, <code>exit2</code>, <code>exit3</code>: the three visits after a reaches 0. <code>erase</code>: from <code>L 0 0 1<sup>2J</sup> 0 0 1 1 (10)<sup>B</sup> 1 E&gt;</code> the head turns the (10) run into a solid run of 1s and the run of 1s into 0s and stands in A to the left, 2J + 2B + 15 steps. <code>outer_step</code>: with a countdown one level up to the left, that one loses a copy and the head enters the gap in D. For all counts and every tape L.",
+   "where": "<code>lean/Rules.lean</code> (from <code>py/rules.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "The halting pattern",
+   "text": "F0 is reached only through D1 and C0: the machine halts exactly when C reads a 0 and the two cells to its right are 1 0 (read off the table).",
+   "where": "README"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The countdown is exact; what the sweep at the end of an epoch does to the left part, and so the epoch-to-epoch map, is not yet written down.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 1000000000"
+  "cd holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/py && python3 rules.py > ../lean/Rules.lean",
+  "gcc -O2 -o tmrun ../../../tools/c/tmrun.c && TMRUN=./tmrun python3 bscheck.py 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 10 E R 30000000",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 1000000000",
+  "cd tools/py && python3 -m bbtools.ctl 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 6"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows whether it halts. Near the right end of its tape it runs a countdown: every second visit one block of 1s and 0s shrinks by one copy while another grows by three. When the countdown runs out, a long sweep sets up a new one, about three times as long.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "C, D, E",
+    "text": "The wall cycle, 13,577 rounds in 3·10<sup>8</sup> steps."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
     "text": "No halt in the C simulator; 75,124 cells visited."
-   },
-   {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -96,7 +130,41 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>953,718,401</td><td><code>1^2 0^2 1^2 0^4 1 0 1^2 0^2 1^2 0^2 1^2 0^2 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0^3 1^2 0 1 0 1^3 0^2 1^2 0 1 0 1 0 1 0 1 0^2 1^8 0^2 1 0 1^4 0^2 1^2 0^4 1^2 0 1 0^2 1^2 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^2 0^2 1^2 0 1 0^2 1^2 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^8 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^4 0^2 1^2 0^4 1^2 0 1 0^2 1^2 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^2</code></td></tr><tr><td>right</td><td>969,374,225</td><td><code>1^2 0^2 1^2 0^4 1 0 1^2 0^2 1^2 0^2 1^2 0^2 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0^3 1^2 0 1 0 1^3 0^2 1^2 0 1 0 1 0 1 0 1 0^2 1^8 0^2 1 0 1^4 0^2 1^2 0^4 1^2 0 1 0^2 1^2 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^2 0^2 1^2 0 1 0^2 1^2 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^8 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^4 0^2 1^2 0^4 1^2 0 1 0^2 1^2 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^2</code></td></tr><tr><td>right</td><td>985,022,321</td><td><code>1^2 0^2 1^2 0^4 1 0 1^2 0^2 1^2 0^2 1^2 0^2 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0^3 1^2 0 1 0 1^3 0^2 1^2 0 1 0 1 0 1 0 1 0^2 1^8 0^2 1 0 1^4 0^2 1^2 0^4 1^2 0 1 0^2 1^2 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^2 0^2 1^2 0 1 0^2 1^2 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^8 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^4 0^2 1^2 0^4 1^2 0 1 0^2 1^2 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1^2</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "countdown",
+    "eyebrow": "Structure",
+    "heading": "A countdown at the right end",
+    "html": [
+     "<p>Watch the tape each time the head is at the right end in state E. The last part of the tape reads</p>",
+     "<pre>... 1<sup>2j</sup> 0 0 1 1 0 (10)<sup>a</sup> 0 0 (10)<sup>b</sup> 1  E&gt;</pre>",
+     "<p>and two visits later it reads the same with <b>j + 1</b>, <b>a − 1</b> and <b>b + 3</b>: the marker <code>0 0 1 1</code> moves two cells right into the middle run, and three copies of <code>10</code> are added at the right end. The head never needs to look further left than the run of 1s, which is why this step could be proved in Lean for every value of a, b and j at once.</p>",
+     "<svg viewBox=\"0 0 560 120\" role=\"img\" aria-label=\"two visits: the middle run shrinks by one copy and the right run grows by three\" style=\"width:100%;max-width:560px;height:auto;font:12px var(--mono);\"><rect x=\"10\" y=\"20\" width=\"60\" height=\"28\" rx=\"4\" fill=\"var(--sunk)\" stroke=\"var(--line)\"/><text x=\"40\" y=\"39\" text-anchor=\"middle\" fill=\"var(--fg)\">1^2j</text><rect x=\"80\" y=\"20\" width=\"240\" height=\"28\" rx=\"4\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"200\" y=\"39\" text-anchor=\"middle\" fill=\"var(--fg)\">(10)^a</text><rect x=\"330\" y=\"20\" width=\"120\" height=\"28\" rx=\"4\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"390\" y=\"39\" text-anchor=\"middle\" fill=\"var(--fg)\">(10)^b</text><rect x=\"10\" y=\"72\" width=\"70\" height=\"28\" rx=\"4\" fill=\"var(--sunk)\" stroke=\"var(--line)\"/><text x=\"45\" y=\"91\" text-anchor=\"middle\" fill=\"var(--fg)\">1^2j+2</text><rect x=\"90\" y=\"72\" width=\"222\" height=\"28\" rx=\"4\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"200\" y=\"91\" text-anchor=\"middle\" fill=\"var(--fg)\">(10)^(a-1)</text><rect x=\"322\" y=\"72\" width=\"150\" height=\"28\" rx=\"4\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"397\" y=\"91\" text-anchor=\"middle\" fill=\"var(--fg)\">(10)^(b+3)</text><text x=\"500\" y=\"39\" fill=\"var(--muted)\">now</text><text x=\"485\" y=\"91\" fill=\"var(--muted)\">2 visits later</text></svg>"
+    ]
+   },
+   {
+    "id": "epochs",
+    "eyebrow": "Long run",
+    "heading": "Epochs, each about three times longer",
+    "html": [
+     "<p>When the middle run is used up the countdown stops, and the head makes a long sweep through the left part of the tape, rewriting it. Then a new countdown starts with a middle run about three times as long as the last one: 3, 30, 75, 225, 677, 1783 copies, starting at visits 10, 44, 107, 260, 713 and 2070. Later several countdowns are stacked at the right end at once, so the epochs nest inside each other.</p>",
+     "<p>The machine can only stop in state F reading a 0. Unlike most of its neighbours here, no small closed tape language pins down where that could happen, so a halt could in principle come from one of the long sweeps. Working out exactly what a sweep does, and so the map from one epoch to the next, is the open part.</p>"
+    ]
+   },
+   {
+    "id": "erase",
+    "eyebrow": "How a countdown ends",
+    "heading": "The erase sweep and the gap",
+    "html": [
+     "<p>When the middle run is used up (a = 0), three more visits follow and then one long sweep to the left. It turns the right run <code>(10)<sup>B</sup></code> into a solid block of 1s and the run of 1s into 0s:</p>",
+     "<pre>L 0 0 1^(2J) 0 0 1 1 (10)^B 1 E&gt;     -&gt;     L A&gt; 0 1 0 0^(2J) 1 1 0 0 1^(2B+1)</pre>",
+     "<p>This is a Lean theorem for every J, B and every tape L (<code>erase</code>), like the three visits before it. The countdown has wiped its own counter: where the 1s stood there is a gap of 2J zeros. The head then fills the gap in many short sweeps, leaves new runs of <code>10</code> there, and turns the solid block back into a run of <code>10</code>: the next countdown, about three times longer. How the gap is filled is the open part, and the only place left where the halting pattern (C on a 0 with <code>1 0</code> to its right) could appear.</p>"
+    ]
    }
-  ]
- }
+  ],
+  "title": "A steady rhythm at the wall, a puzzle behind it"
+ },
+ "family": "nested countdowns with erase sweeps",
+ "decision": "open",
+ "summary": "A bouncer at the right end running a countdown (j+1, a-1, b+3 every two visits, in Lean); when a runs out an erase sweep (in Lean) wipes the run of 1s into a gap of 0s and the head refills the gap, starting a countdown about three times longer; the refilling is not decoded."
 }

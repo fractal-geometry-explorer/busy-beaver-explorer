@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LC_1LC0RD_1LF1LA_1LB1RE_1RB1LE_---0LE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows, and it is a Collatz-type problem. The machine runs a counter that grows by half each phase and pays two pairs of a budget per phase; when the budget runs out it either halts or refills it, depending on parities that behave like coin flips. Lean proves that this description is exact.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>halts &hArr; map halts</b><span class="small">Proved in Lean: the machine is exactly the four-counter map below.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>4 budget ends</b><span class="small">survived; the fifth budget holds a 399,947-bit number of pairs.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 25,918 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counters">Two blocks, a budget and a suffix</a><a href="#budget">A budget that runs out</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,58 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="counters">
+  <span class="eyebrow">Macro structure</span>
+  <h2>Two blocks, a budget and a suffix</h2>
+<p>Stop the machine every time the head, in state E, reads the 0 at the left end of the tape. The tape then always reads</p>
+<p style="text-align:center"><code>E&gt;0 1^a 0 1 0 1^b (0 1)^c (1 1 1 0 1)^k 1</code></p>
+<p>two blocks of 1s, of lengths a and b, then a budget of c pairs <code>0 1</code>, then a suffix of k words <code>11101</code>. In one round the head runs to the end of the second block and back: two 1s leave the first block and three join the second, (a, b) &rarr; (a &minus; 2, b + 3). When the first block is down to 1 or 0 cells the second block becomes the first, a new second block of 7 cells is started and two pairs are spent: (1, b, c) &rarr; (b, 7, c &minus; 2), (0, b, c) &rarr; (b &minus; 1, 7, c &minus; 2) (and (2, b) first becomes (0, b + 3)).</p>
+<p>So a phase takes the first block a to about 3a/2: (3a + 11)/2 for odd a and 3a/2 + 6 for even a, the map of <a href="https://wiki.bbchallenge.org/wiki/Antihydra">Antihydra</a> with other constants, and every phase costs two pairs.</p>
+<p>When only one pair is left, the pairs are <b>refilled</b> from the second block: with a = 0 to b/2 &minus; 3 or (b &minus; 1)/2 pairs, with a = 1 and b odd to (b &minus; 1)/2 pairs, and each refill adds one word <code>11101</code> to the suffix. With <b>a = 1 and b even the machine halts</b>. When no pair is left at all, the first word of the suffix serves as one more pair.</p>
+<p>Lean proves each of these rules for all values (<code>lean/Rules.lean</code>), and from them that the machine halts from blank tape <b>if and only if</b> this map, started at (15, 7, 7, 1), reaches the halting case (<code>halts_iff</code> in <code>lean/Map.lean</code>).</p>
+</section>
+<section id="budget">
+  <span class="eyebrow">Open question</span>
+  <h2>A budget that runs out</h2>
+<p>From blank tape the budget has run out four times. At phase 4 (b = 124, refilled to 59 pairs), at phase 34 (b = 2,734,834, refilled to 1,367,414 pairs), at phase 683,741 the even budget ran out completely and a pair was taken from the suffix, and at the next phase, with a = 1 and b odd (a number of 399,948 bits), it was refilled to a number of pairs with 399,947 bits. Spending that budget takes about 2<sup>399,946</sup> phases; no computer will get there.</p>
+<p>Whether the machine halts at the end of that budget depends on whether the last phase ends with a = 1 or a = 0 and on the parity of b, numbers that behave like coin flips. If they do, each budget end halts with probability about 1/4 and the machine halts with probability 1, but proving anything about those parities is the same obstacle as for Antihydra and the Collatz problem.</p>
+<div class="card" style="padding:12px">
+<p><b>Try the map.</b> Each line is one <i>phase</i>: the first block a is spent two cells at a time (three cells join the
+second block each time), then the second block becomes the first and two pairs of the budget are paid. When the
+budget is down to its last pair the parity of b decides.</p>
+<p><label>a <input id="m7a" value="15" size="8"></label> <label>b <input id="m7b" value="7" size="8"></label>
+<label>c <input id="m7c" value="7" size="8"></label> <label>k <input id="m7k" value="1" size="4"></label>
+<button id="m7go">run 40 phases</button></p>
+<pre id="m7out" style="max-height:320px;overflow:auto;font-size:12px"></pre></div>
+<script>
+(function(){
+  function land(B,c,k){ if(c>=1n) return [B,7n,c,k,""]; if(k>=1n) return [B,10n,1n,k-1n,"no pair left: one taken from the suffix"]; return null; }
+  function round(a,b,c,k){
+    if(a>=4n){var r=(a-2n)/2n; return [a-2n*r,b+3n*r,c,k,""];}
+    if(a==3n) return [1n,b+3n,c,k,""];
+    if(a==2n) return [0n,b+3n,c,k,""];
+    if(c>=2n){ if(a==1n&&b==1n) return [2n,4n,c-1n,k,""]; return a==1n? land(b,c-2n,k): land(b-1n,c-2n,k); }
+    if(a==1n){ if(b%2n==0n) return "HALT"; return [2n,1n,b/2n,k+1n,"last pair, b odd: REFILL c = (b-1)/2"]; }
+    if(b%2n==0n) return [5n,4n,b/2n-3n,k+1n,"last pair, a = 0, b even: REFILL c = b/2 - 3"];
+    return [1n,1n,b/2n,k+1n,"last pair, a = 0, b odd: REFILL c = (b-1)/2"];
+  }
+  function short(x){var s=x.toString(); return s.length>24? s.slice(0,8)+"…("+s.length+" digits)":s;}
+  document.getElementById("m7go").onclick=function(){
+    var g=function(id){return BigInt(document.getElementById(id).value);};
+    var a=g("m7a"),b=g("m7b"),c=g("m7c"),k=g("m7k"),out=[],n=0;
+    while(n<40){
+      var r=round(a,b,c,k);
+      if(r==="HALT"){out.push("last pair, a = 1, b even: HALT");break;}
+      if(r===null){out.push("outside the rules (c = 0, k = 0)");break;}
+      var wasLow=a<=1n; a=r[0];b=r[1];c=r[2];k=r[3];
+      if(wasLow){n++; out.push("("+short(a)+", "+short(b)+", "+short(c)+", "+k+")  "+r[4]);}
+    }
+    document.getElementById("m7a").value=a;document.getElementById("m7b").value=b;document.getElementById("m7c").value=c;document.getElementById("m7k").value=k;
+    document.getElementById("m7out").textContent=out.join("\n");
+  };
+})();
+</script>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,7 +288,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 25,918 cells have been visited and 25,890 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.527). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>r_big</code> &hellip; <code>e_halt0</code>, <code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</div></div><div><b>Thirty macro rules</b><p>Between two visits of the head (state E, reading 0) to the left end of the tape, the tape <code>E&gt;0 1^a 0 1 0 1^b (01)^c (11101)^k 1</code> becomes the next one of that shape, by one of 28 rules, each proved for all values of its parameters; two more rules show the halt.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>lean/Map.lean</code> (generated by <code>py/gen_map.py</code>)</div></div><div><b>Halts if and only if the map halts</b><p>Iterate <code>next</code> from (15, 7, 7, 1), reached after 1,188 steps: the machine halts from blank tape if and only if the orbit reaches <code>halt</code>, the case a = 1, c = 1, b even. An invariant shows the orbit never takes the uncovered cases.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/map.py check 4e8</code></div></div><div><b>The map agrees with the machine</b><p>At all 16,366 visits of the head to the left end in the first 4&middot;10<sup>8</sup> steps the tape has the predicted (a, b, c, k).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/map.py orbit 700000</code> (about 1 minute)</div></div><div><b>Four budget ends survived, the fifth out of reach</b><p>The orbit, computed exactly with whole stretches of rounds at once: the budget runs out at phases 4, 34, 683,741 and 683,742 and is refilled each time, to 59 pairs, 1,367,414 pairs, one pair borrowed from the suffix, and then a number of 399,947 bits. Spending that takes about 2<sup>399,946</sup> more phases.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>A coin flip per budget</b><p>When the last pair is reached the machine halts if the phase ends with a = 1 (rather than 0) and b is even. If those parities behave like fair coins each budget end halts with probability about 1/4, so the machine would halt with probability 1, but only after a time beyond any computation.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Equivalent to whether the orbit of (15, 7, 7, 1) under the map ever ends a budget on the wrong parities: a Collatz-type question like Antihydra's, out of reach of current methods.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

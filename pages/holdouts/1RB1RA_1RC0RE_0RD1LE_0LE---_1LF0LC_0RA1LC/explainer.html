@@ -129,6 +129,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <p class="machine-id">1RB1RA_1RC0RE_0RD1LE_0LE---_1LF0LC_0RA1LC</p>
   <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>5 rules</b><span class="small">A and B crossing runs of the periodic word.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>99.6%</b><span class="small">Share of interior runs with a length of the form 2<sup>k</sup> &minus; 1.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 45,385 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
@@ -140,7 +142,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#word">One word, many runs</a><a href="#carry">Runs of length 2&lt;sup&gt;k&lt;/sup&gt; &amp;minus; 1</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +211,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="word">
+  <span class="eyebrow">Structure</span>
+  <h2>One word, many runs</h2>
+<p>Read in six-cell words (<code>q = 101011</code>, <code>r = 110101</code>, <code>s = 111010</code>), the tape at a moment when F is at the left end looks like this (step 37,591,608, abridged):</p><pre>F&gt;0 q^462 1 0 s^13 1 s^126 1 s^127 1 s^127 1 s^127 1 s^127 1 s^95 1 s^17 1^3 0
+    s^6 1 s^15 1 s^15 1 s^15 1 s^5 1 s^3 1 s^3 1 s^3 1 s^3 1 s 1^3 0 1 s 1 s ... 1^3 0</pre>
+<p>A sweep to the right crosses each run in one go. A turns <code>111010</code> into <code>111101</code> and the other rotations likewise (proved in Lean for every run length). The next sweep restores them.</p>
+</section>
+<section id="carry">
+  <span class="eyebrow">Dynamics</span>
+  <h2>Runs of length 2<sup>k</sup> &minus; 1</h2>
+<p>The runs between single 1s have lengths 1, 3, 7, 15, 31, 63, 127, 255, ... in 99.6% of cases. Two runs of 2<sup>k</sup> &minus; 1 with the 1 between them make 2<sup>k+1</sup> &minus; 1, so a merge of equal runs works like a carry in binary: <code>s^127 1 s^127</code> becomes <code>s^255</code>. The groups separated by <code>1^3 0</code> look like the digits of a counter, with the far-left run (<code>q^n r^m</code>) feeding it. The left side, where the runs are swept, grows like the square root of the step count, and the right side like a smaller power (fitted exponent 0.31).</p>
+<p><b>What halting would need.</b> D reading a 1. D is reached only from C reading a 0, at a run boundary. A halt would need a boundary that the carries never seem to make. To decide it, one would prove the creation and merge of runs as rules on the run lengths, then show that the set of reachable run lists never contains the bad boundary.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,7 +250,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 45,385 cells have been visited and 30,990 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.476). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.31).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>a_cross_p</code> ... <code>b_cross</code>, <code>lean/Rules.lean</code></div></div><div><b>Crossing the periodic word</b><p>A crosses <code>(010111)^n</code>, <code>(101011)^n</code>, <code>(110101)^n</code> and <code>(111010)^n</code> to the right, leaving <code>(101111)^n</code>, <code>(110111)^n</code>, <code>(111011)^n</code> and <code>(111101)^n</code>. B crosses <code>(101110)^n</code>, leaving <code>(011111)^n</code>. All for every n.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tokrun M 2000000000 p=010111,q=101011,r=110101,s=111010 L</code></div></div><div><b>Run lengths 2<sup>k</sup> &minus; 1</b><p>In the last 200 samples before step 2&middot;10<sup>9</sup> (state F at the left end, the tape read in the words <code>s = 111010</code> etc.), 259,121 of the 260,035 runs <code>1 s^n 1</code> have n = 2<sup>k</sup> &minus; 1.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>a_cross_p</code> ... <code>b_cross</code>, <code>lean/Rules.lean</code></div></div><div><b>Crossing the periodic word</b><p>A crosses <code>(010111)^n</code>, <code>(101011)^n</code>, <code>(110101)^n</code> and <code>(111010)^n</code> to the right, leaving <code>(101111)^n</code>, <code>(110111)^n</code>, <code>(111011)^n</code> and <code>(111101)^n</code>. B crosses <code>(101110)^n</code>, leaving <code>(011111)^n</code>. All for every n.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tokrun M 2000000000 p=010111,q=101011,r=110101,s=111010 L</code></div></div><div><b>Run lengths 2<sup>k</sup> &minus; 1</b><p>In the last 200 samples before step 2&middot;10<sup>9</sup> (state F at the left end, the tape read in the words <code>s = 111010</code> etc.), 259,121 of the 260,035 runs <code>1 s^n 1</code> have n = 2<sup>k</sup> &minus; 1.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts only when D reads a 1. D is entered from C on a 0 (writing 0, moving right), at the boundary of a run. A halt would need a run boundary of an unusual shape. No invariant ruling that out has been found. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

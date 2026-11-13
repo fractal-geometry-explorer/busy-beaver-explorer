@@ -74,12 +74,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RD---</h1>
     <p class="machine">1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RD---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>It is one of five machines that share states A to E (<code>1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA?RF_F---</code>) and differ only in what E writes on a 1 and in state F. All five run the same machinery, a nested base-5 odometer built from blocks of the word <code>1000</code>; they differ only in how a rare collision is resolved, the one place where state F is used.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The run is understood as a nested odometer whose regular rounds are proved in Lean, but its irregular events (blocks running empty) are only observed, not proved to come from a closed list; nothing like a proof of non-halting is in sight.</p>
+      <p><b>Where a halt would have to come from.</b> The machine halts only in F reading a 1, and F is entered only from E reading a 1, right after D wrote a 1 on a 0: so a halt needs <code>D&gt;0 1 1</code> somewhere. In the run F is entered only 5 times in the first 2·10<sup>9</sup> steps (first at step 49,249), always when two <code>g4</code> gadgets meet across an empty block (or at a gadget made by such an event), and it always reads a 0.</p>
+      <p><b>No closed set of shapes.</b> The irregular gadgets form a closed alphabet, but the tape language they span contains halting tapes: the trap <code>101</code>, and a tape of regular gadgets with every block of length ≥ 2 that halts (both proved in Lean). So the decision has to come from relations between block lengths, which no shape-level (CTL-style) argument captures.</p>
+      <p><b>Pushed to 1.17·10<sup>17</sup> steps.</b> An accelerated simulator, validated round by round against the plain machine up to 2·10<sup>10</sup> steps, finds no halt and no trap in the first 1.17·10<sup>17</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +107,36 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Conversion sweeps</h3>
+        <p>Moving right, A, B, D, E turn the words <code>0100</code>, <code>1000</code>, <code>0001</code>, <code>0010</code> into <code>1010</code> or <code>0101</code>; moving left, C turns every two <code>10</code>s into one <code>1000</code> (shifted), and turns a separating <code>1</code> into a <code>0</code>. These are what a sweep does to a block: <code>b<sup>y</sup> ↔ a<sup>2y</sup></code> with <code>a = 10</code>, <code>b = 1000</code>.</p>
+        <p class="where"><code>a_cross</code>, <code>b_cross</code>, <code>d_cross</code>, <code>e_cross</code>, <code>c_halve</code>, <code>c_sep</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Regular odometer rounds</h3>
+        <p>With the head in D at the left end, the tape <code>b<sup>k</sup> G<sub>1</sub> b<sup>y<sub>1</sub></sup> G<sub>2</sub> …</code> (gadgets <code>g0 = 1001</code>, <code>g1 = 1001100</code>, <code>g2 = 100110</code>, <code>g3 = 10011</code>, <code>g4 = 10010</code>, <code>s = 0</code>) goes to the next such configuration by one round: <code>k</code> gains one <code>b</code> and the first gadget advances: <code>g0→g1</code> takes a <code>b</code> from the block after it, <code>g1→g2→g3</code> change nothing else, <code>g4→g0</code> moves a <code>b</code> from the block after to the block before, <code>s→g0</code> takes one from the block before, and <code>g3→g4</code> carries into the next gadget. Proved for every kind of first gadget and every kind of gadget receiving a carry, for all block lengths ≥ 3.</p>
+        <p class="where"><code>round_g0</code>, <code>round_g1</code>, <code>round_g2</code>, <code>round_g4</code>, <code>carry_g0</code> … <code>carry_s</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Resets</h3>
+        <p>When a carry runs through all gadgets (all are <code>g3</code>) to the last one, the head sweeps to the right end and back: every gadget becomes <code>s</code>, every block but the first gains one <code>b</code>, and a new level <code>b g1</code> appears at the left. Proved for one and two levels.</p>
+        <p class="where"><code>reset1</code>, <code>reset2</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The collision, where F is used</h3>
+        <p><code>b<sup>k</sup> g4 g4 b<sup>y</sup> g2 …</code> (two <code>g4</code> with an empty block between): the round enters F once, on a 0, and the pair becomes <code>s</code>, an empty block and <code>g0</code>, and the block on the left gains four <code>b</code>.</p>
+        <p class="where"><code>collide</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The trap: <code>101</code> halts</h3>
+        <p>With the head in D on <code>b<sup>k+1</sup> 1 0 1 1</code>, whatever follows, the machine halts after 4k+15 steps. The stretch <code>101 1</code> is the transient gadget <code>10</code> (left by the collision <code>g4 0 g2</code>) meeting the transient gadget <code>1</code> (left by another collision) across an empty block.</p>
+        <p class="where"><code>trap</code>, <code>lean/Rules.lean</code>; <code>trap_halts</code>, <code>lean/Escape.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Gadget shapes alone cannot prove non-halting</h3>
+        <p>From the head in D on <code>b<sup>6</sup> g4 b<sup>5</sup> g4 b<sup>2</sup> g0 b<sup>2</sup> g0</code> (b = 1000; only the regular gadgets, every block of length ≥ 2) the machine halts, after 3,268 steps. So the set of tapes "regular gadgets with any block lengths" contains halting configurations, and an invariant that closes must say something about the block lengths, not only about which gadgets occur where. Without s: the same tape. Here even <code>10 0 g0</code> is fatal: <code>g3 b<sup>a</sup> 10 g0 b<sup>z</sup> ...</code> halts when the next carry arrives.</p>
+        <p class="where"><code>witness_halts</code>, <code>lean/Escape.lean</code>; <code>py/witness_search.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +153,54 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 67,376 cells have been visited and 19,042 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The odometer explains the run</h3>
+        <p>Sampling the run each time the head is at the left end in D (1.5·10<sup>9</sup> steps): 30,727 rounds are regular odometer rounds and 48 are not; those are resets and rounds where a block has run empty (merging gadgets into short-lived ones such as <code>100</code>, <code>1</code>, <code>10</code>).</p>
+        <p class="where"><code>py/odometer.py</code>, <code>c/odo.c</code></p>
+      </div>
+      <div class="card">
+        <h3>F entered rarely, always on a 0</h3>
+        <p>F is entered 5 times in the first 2·10<sup>9</sup> steps (first at step 49,249), each time in a collision of two <code>g4</code> (or a carry into a gadget left by one), reading a 0.</p>
+        <p class="where"><code>c/fhit.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The run to 10<sup>10</sup>-10<sup>11</sup> steps</h3>
+        <p>At the full sweeps (the head at the right end in A) the tape is <code>a<sup>x<sub>1</sub></sup> 1 a<sup>x<sub>2</sub></sup> 1 …</code>; the last one before 10<sup>11</sup> steps is at step 84,044,290,553 with blocks <code>187496 81244 47542 9644 23284 15190 26 149</code>. The first blocks are the same in all five machines (the left levels regrow the same way after every reset); they differ only to the right of the first collision.</p>
+        <p class="where"><code>/tmp</code> run of <code>edges</code> (not kept)</p>
+      </div>
+      <div class="card">
+        <h3>The closed-set search over shapes</h3>
+        <p><code>py/shapes.py</code> runs every round symbolically (blocks either empty or of any length ≥ 1, split whenever the run needs it) over prefixes of up to three gadgets. The alphabet of gadgets closes: the regular ones with <code>1</code>, <code>10</code>, <code>100</code>, <code>1001101</code>, <code>10011010</code>, <code>10011011</code>, <code>100110110</code>, <code>1001101100</code>, and every irregular gadget seen in 2·10<sup>10</sup> steps of the run splits into these. But the search does not close. 288 prefixes halt, all through the trap above. 11,950 of 43,243 prefixes still need a longer prefix: carry chains through <code>g3</code>, and runs of empty blocks the head walks through.</p>
+        <p class="where"><code>py/shapes.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Irregular events in 2·10<sup>10</sup> steps</h3>
+        <p>129,057 regular rounds and 62 irregular ones. The transient gadgets <code>1</code>, <code>10</code>, <code>100</code>, … do occur, sometimes next to another gadget across an empty block (<code>g3 0 1</code>, <code>g4 0 10</code>), but never as <code>10 0 1</code>, the trap.</p>
+        <p class="where"><code>py/odometer.py</code> (20000000000 steps)</p>
+      </div>
+      <div class="card">
+        <h3>An accelerated simulator, checked round by round</h3>
+        <p><code>py/accsim.py</code> works on the list of (stretch, block length) at each return of the head to the left end. Each round is a symbolic symtm run on a prefix of the list, with the blocks symbolic. It is cached by shape and reused with exact step counts, and recomputed with exact values when a result depends on small blocks. Up to 19,999,824,447 steps it agrees with the plain machine on the tape and the step count of every one of 129,119 rounds.</p>
+        <p class="where"><code>py/accsim.py validate 20000000000</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 1.17·10<sup>17</sup> steps</h3>
+        <p>The accelerated run reaches step 116,909,558,295,867,781 (326,103,591 rounds, 40 minutes, one core) without a halt. There it has 13 gadgets and a first block of 70,480,416. On the way, 42 kinds of irregular stretch occur. Two blocks run empty side by side in 183 rounds. The atom <code>10</code> stands before an empty block in 0 rounds, so the trap <code>10 0 1</code> is never formed.</p>
+        <p class="where"><code>py/accsim.py run</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.453). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Why it is hard</h3>
+        <p>The odometer itself is regular, but the block lengths it drains come from earlier resets, and when a block runs empty the gadgets on both sides merge in ways that depend on their phases mod 5. The sequence of these events, and whether one ever produces <code>D&gt;0 1 1</code>, looks irregular; CTL with 4 to 8 states finds no closed invariant.</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. A proof of non-halting needs an invariant that relates block lengths (for example, that the gadget <code>10</code> never meets the gadget <code>1</code> across an empty block). Shapes alone do not suffice: <code>witness_halts</code> gives a tape of regular gadgets from which the machine halts.</p>
       </div>
     </div>
   </section>
@@ -140,7 +208,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RD---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RD--- 1000000000</code></pre>
+python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RD---/py/odometer.py 1500000000
+python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RD---/py/shapes.py 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RD--- 3 1,10,100,1001101,10011010,10011011,100110110,1001101100
+python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RD---/py/witness_search.py
+python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RD---/py/accsim.py validate 20000000000      # about 2 minutes
+python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RD---/py/accsim.py run 1e17 2400 log.txt       # 40 minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RD---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

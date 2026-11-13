@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G10",
  "title": "What is known about 1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The tape is a list of numbers that each sweep translates between two codes: runs <code>1^(3k+2)</code> separated by single 0s when the head is at the right end, runs <code>1^(3a+1)</code> separated by <code>0^(3b+2)</code> when it is at the left end. The numbers themselves look irregular. Measured, not proved. Halting needs F on a 0, entered only from B on a 1; F has always found a 1."
  ],
  "claims": [
   {
@@ -46,19 +46,39 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules of the sweeps",
+   "text": "Lean proves, for every count and every tape around, the shift rule of the leftward sweep: D turns a run of n 1s into n 0s as it crosses it, and so does B with two 1s travelling ahead of it, 3 steps per cell.",
+   "where": "<code>shift_l_D_1</code>, <code>shift_l_B_1</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Two codes for one list",
+   "text": "At the last right extension before 10<sup>9</sup> steps (step 911,093,030) the tape is 11,717 runs of 1s separated by single 0s, and 11,715 of the runs have length 3k+2 (up to 47 cells). At the last left extension (step 989,746,492) it is 6,128 runs of 1s, 6,115 of length 3a+1, separated by runs of 0s, 6,124 of length 3b+2, e.g. <code>B&gt;0 1^13 0^5 1^4 0^5 1^4 0^5 1^4 0^2 1^12 0^4 1^16 …</code>.",
+   "where": "<code>py/observe.py</code>, <code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Never one step from a halt",
+   "text": "The machine halts when F reads a 0, and F is entered only from B reading a 1 (B1 → 0RF). In the first 3·10<sup>6</sup> steps B reads a 1 413,979 times, always with a 1 to its right.",
+   "where": "direct simulation"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The two codes are measured; the map a sweep makes on the list of numbers is not written down, and the numbers look pseudo-random, so this may be a chaotic machine.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD 1000000000"
+  "python3 holdouts/1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD/py/rules.py && holdouts/1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD/lean/check.sh      # regenerate and check the rules",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD 1000000000",
+  "python3 holdouts/1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD/py/observe.py 1e7 B 6      # the tape at the last moments each end grew"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine treats its tape as a list of numbers and rewrites the whole list on every sweep, switching between two ways of writing numbers in runs of 1s and 0s. This page shows the two codes and what is proved.",
   "facts": [
    {
     "level": "trusted",
@@ -86,6 +106,26 @@
   },
   "sections": [
    {
+    "id": "codes",
+    "eyebrow": "Structure",
+    "heading": "One list, two codes",
+    "html": [
+     "<p>With the head at the right end, the tape is runs of 1s separated by single 0s, and nearly every run has length 2, 5, 8, 11, … (3k + 2):</p>",
+     "<pre>1^9 0 1^2 0 1^8 0 1^2 0 1^2 0 1^5 0 1^5 0 1^11 0 …</pre>",
+     "<p>With the head at the left end, it is runs of 1s of length 1, 4, 7, 10, … (3a + 1) separated by runs of 0s of length 2, 5, 8, … (3b + 2):</p>",
+     "<pre>B&gt;0 1^13 0^5 1^4 0^5 1^4 0^5 1^4 0^2 1^12 0^4 1^16 …</pre>",
+     "<p>The machine translates the list from one code to the other on every sweep. The numbers in the list show no pattern that has been found.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Halting",
+    "heading": "What a halt would need",
+    "html": [
+     "<p>The machine stops only in F reading a 0, and F is entered only from B reading a 1 (moving right). So a halt needs B on a 1 followed by a 0. In the first 3·10<sup>6</sup> steps B reads a 1 413,979 times and the next cell is always a 1. Open.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +138,8 @@
     ]
    }
   ]
- }
+ },
+ "family": "list of numbers rewritten between two run-length codes",
+ "decision": "open",
+ "summary": "Like its neighbour 1RB0RF_1LC1RD in this batch, every sweep rewrites the whole tape between two codes for a list of numbers: at the right end it is runs 1^(3k+2) separated by single 0s, at the left end runs 1^(3a+1) separated by 0^(3b+2); the numbers look irregular."
 }

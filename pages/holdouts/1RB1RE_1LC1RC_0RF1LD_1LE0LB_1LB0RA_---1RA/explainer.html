@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RE_1LC1RC_0RF1LD_1LE0LB_1LB0RA_---1RA</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This page runs the machine in your browser and describes the structure seen in its run.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 93,732 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>right edge</b><span class="small">Any halt happens with blank tape from the head on (Lean).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>chaotic</b><span class="small">Runs of 11110 with travelling defects.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#structure">What the tape looks like</a><a href="#halting">Where it could halt</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="structure">
+  <span class="eyebrow">Structure</span>
+  <h2>What the tape looks like</h2>
+<p>The tape reads as runs of the word <code>c = 11110</code> with defects <code>1 b</code> (= 1110) and <code>1 d</code> (= 1111110) between them. The defects travel with the sweeps and change; a long run c<sup>28</sup> shrinks by two words every few sweeps. The left end grows fast (bursts of 1 to 7 cells), the right end slowly.</p>
+<pre>the tape at the left end (b = 110, c = 11110, d = 111110):
+step 32,055  E 0 1 b 1 d 1 d c^4 1 b c^4 1 b c^28 1 b c^3 1^3
+step 33,737  B 0^2 b c 1 b c^2 1 b c^5 1 b c^4 1 b c^28 1 b c 1^4
+step 42,500  B 0^2 b c 1 b c^4 1 d 1 b 1 d 1 d 1 d 1 d 1 d 1 d c^4 1 b c^4 1 b c^26 1^2
+step 43,987  D 0 b^2 d c^2 1 b c^3 1 d 1 d 1 b c^2 1 b c^2 1 b c^4 1 d 1 d c^2 1 d 1 d c^24 1^4</pre>
+</section>
+<section id="halting">
+  <span class="eyebrow">Halting</span>
+  <h2>Where it could halt</h2>
+<p>The only halting transition is F reading 0. Lean proves (a closed tape language of windows of 3 cells, kernel-checked) that F can read that 0 only with blank tape from the head on: at the right edge.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +251,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 93,732 cells have been visited and 61,827 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.769). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.406).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README; <code>tools/c/tokrun.c</code>-style samples</div></div><div><b>The structure of the run</b><p>Bouncer growing mostly to the left: the tape is runs of the word 11110 with defects (1110, 1111110) that travel and multiply; one long run of 11110 shrinks by two words per few sweeps. Can halt only at the right edge (Lean).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>right_no_double_zero</code>, <code>lean/Edge.lean</code></div></div><div><b>Halting only at the right edge</b><p>A closed tape language of windows of 3 cells covers the whole run from blank tape; in it the halting transition F0 fires only with blank tape from the head onward, and past the head two 0s in a row occur only in the blank region.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. No closed rule set has been found; see the README for what a proof would need.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_1LC1RC_0RF1LD_1LE0LB_1LB0RA_---1RA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC1RC_0RF1LD_1LE0LB_1LB0RA_---1RA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC1RC_0RF1LD_1LE0LB_1LB0RA_---1RA 1000000000
+cd holdouts/1RB1RE_1LC1RC_0RF1LD_1LE0LB_1LB0RA_---1RA &amp;&amp; python3 py/gen_edge.py 1RB1RE_1LC1RC_0RF1LD_1LE0LB_1LB0RA_---1RA H8805 3 F lean   # regenerates lean/EdgeCert.lean, lean/Edge.lean</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RE_1LC1RC_0RF1LD_1LE0LB_1LB0RA_---1RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

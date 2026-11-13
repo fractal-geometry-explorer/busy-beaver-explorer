@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The head bounces between the left end, where a block grows by one 6-cell word every two sweeps, and a chaotic wall in the middle that very slowly eats an older block; the wall never repeats and its long-term behaviour is unknown.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 54,647 cells have been visited and 36,972 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>A bouncer with a slowly eating wall</h3>
+        <p>At the left-end visits in state F the first block <code>(110111)^n</code> grows by one word every two sweeps (n = 34,521 at 1.9&middot;10<sup>10</sup> steps) and the block behind the wall goes from 1,461 to 1,455 words between 7&middot;10<sup>7</sup> and 1.9&middot;10<sup>10</sup> steps; the wall takes 33,482 different forms in the 33,482 sweeps after 8&middot;10<sup>7</sup> steps up to 5&middot;10<sup>9</sup>.</p>
+        <p class="where"><code>python3 py/view.py 2e10 4000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -140,7 +145,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD 1000000000</code></pre>
+python3 holdouts/1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD/py/view.py   # the views of the run quoted in the README</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RF_1RC0RA_1LD1RE_1LE0LE_0RA0LD_0RB---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. A marker 0 drifts through a long alternating sea one cell per sweep while a base-3 counter at the right end counts the sweeps; when the marker reaches the far end a reset sweep starts the next round, one cell wider.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 4,585 cells visited.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>15</sup> steps</b><span class="small">No halt in an exact macro simulator (blocks of 2 cells).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>base 3</b><span class="small">The marker moves 27, 81, 243, 729 cells between right growths: a ternary sweep counter.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>power/power</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 4,585 cells visited.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#structure">What the machine does</a><a href="#halting">Where a halt would have to come from</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="structure">
+  <span class="eyebrow">Macro structure</span>
+  <h2>What the machine does</h2>
+<p>Stop the machine whenever its head first reaches a new cell on the right. With <code>a</code> for <code>10</code> and <code>c</code> for <code>1110</code>, the tape around step 5.7&middot;10<sup>7</sup>:</p>
+<ul><li>step 56,958,976: <code>0 a^18 0 a^810 c a^3 c a^13 c a^5 1 a 1^2 C&gt;0</code></li><li>step 57,210,619: <code>0 a^99 0 a^729 c a^3 c a^13 c a^5 c a c 1^2 C&gt;0</code></li><li>step 57,808,047: <code>0 a^342 0 a^486 c a^3 c a^13 c a^5 c a c^2 1^2 C&gt;0</code></li><li>step 58,297,046: <code>E&gt;0 a^850 0^2 a^9 0^5 &hellip;</code> (the reset sweep)</li><li>step 58,315,798: <code>0 a^6 0 a^843 c a^8 c^3 a 1^2 C&gt;0</code></li></ul>
+<p>The left part is an <em>alternating sea</em> <code>0 a^x 0 a^y</code> with x + y fixed within a round (828 here, then 849): a single extra 0, the <em>marker</em>, sits after x copies of <code>10</code>. The head shuttles between the marker and the right end; each round trip moves the marker one cell on and also updates the tail at the right end. Watching one round trip after another, the tail reads <code>0^2 a^4 0^2 a^14 0^2 a^6 0^2 a^2 0^2 a 0 1</code>, then <code>0 1 a^4 &hellip;</code>, then <code>0 a 0 a^3 &hellip;</code>, then <code>0^2 a^4 0 1 a^14 &hellip;</code>: the separators between the blocks take three forms and change like the digits of a number in base 3. The tail is a counter: the tape grows on the right only when the counter gains a digit, and between consecutive right growths the marker moves by 27, 81, 243 or 729 cells. In the first 10<sup>8</sup> steps the marker moved by 243 (79 times), 81 (67 times), 27 (31 times), 9, 729 and a few other amounts: powers of 3, so the tail counts sweeps in base 3.</p>
+<p>When the marker reaches the right end of the sea the head makes one long sweep (<code>E&gt;0 a^850 &hellip;</code>), the marker restarts near the left end and the sea is one cell longer. A round of a sea of width w is about w sweeps of w steps each, and the sea grows by one per round: the width grows like the cube root of the step count.</p>
+<p>The near-duplicate <code>1RB0RE_1LC1RD_1LD0LD_0RE0LC_1RA1RF_0RA---</code> does the same: its marker also advances by powers of 3 (81, 243, 27, &hellip;) between right growths.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">The halting transition</span>
+  <h2>Where a halt would have to come from</h2>
+<p>The halting transition is F reading a 1. F is entered only from E reading a 1 (<code>1RF</code>), so a halt needs E on a 1 with another 1 just right of it. In the first 10<sup>8</sup> steps F was entered 75,302 times, every time on a 0, and 74,846 of those times at least 7 cells from both ends of the tape: the dangerous pattern would have to appear in the middle of the tape, in the sea or the counter, during a sweep.</p>
+<p>Nothing here decides whether it can: the counter's digits at each reset depend on how many sweeps the round took, which depends on the width of the sea, so the tail's contents form a slowly varying, irregular sequence.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +251,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 4,585 cells have been visited and 2,285 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/power</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.309). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.349).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB1RF_1RC0RA_1LD1RE_1LE0LE_0RA0LD_0RB---/c/mrun.c</code></div></div><div><b>No halt in the first 10<sup>15</sup> steps</b><p>An exact macro simulator (blocks of 2 cells) runs 10<sup>15</sup> steps without a halt. The macro simulator cuts the tape into blocks of K cells, run-length codes them, and crosses a whole run at once when the head leaves it on the far side in the state it entered with; it agrees with the plain simulator <code>tools/c/tmrun</code> cell for cell.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tmrun.c</code> records</div></div><div><b>A marker counted in base 3</b><p>At the moments the head first reaches a new cell on the right, the tape is <code>0 (10)^x 0 (10)^y</code> followed by a short tail; between consecutive such moments in one round, x grew by 243 (79 times), 81 (67 times), 27 (31 times), 9 (6 times), 729 (3 times) and a few other amounts in the first 10<sup>8</sup> steps, with 215 resets. Read as: one marker step per sweep, and a base-3 counter in the tail that gains a digit at powers of 3.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/sstat.c</code></div></div><div><b>The halting state, seen from the run</b><p>In the first 10<sup>8</sup> steps state F was entered 75,302 times, always reading a 0 (F1 halts); 74,846 of those times the head was at least 7 cells from both ends of the visited tape.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RF_1RC0RA_1LD1RE_1LE0LE_0RA0LD_0RB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1RC0RA_1LD1RE_1LE0LE_0RA0LD_0RB--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1RC0RA_1LD1RE_1LE0LE_0RA0LD_0RB--- 1000000000
+gcc -O2 -o mrun holdouts/1RB1RF_1RC0RA_1LD1RE_1LE0LE_0RA0LD_0RB---/c/mrun.c &amp;&amp; ./mrun 1RB1RF_1RC0RA_1LD1RE_1LE0LE_0RA0LD_0RB--- 2 1000000000000000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RF_1RC0RA_1LD1RE_1LE0LE_0RA0LD_0RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

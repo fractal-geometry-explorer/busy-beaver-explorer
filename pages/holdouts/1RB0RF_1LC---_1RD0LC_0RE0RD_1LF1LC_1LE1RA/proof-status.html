@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The run is a Collatz-like map on a count m, sampled at K(P, m) = <code>0^∞ P (10)^m C&gt; 11111 0^∞</code>; m goes to about 3m/2 and the short left-end word P moves according to the parity of m. Lean proves the round-trip rule and the four sample-to-sample transitions for P = empty and P = 1. A halt needs P to climb a chain of 41 specific parities; the measured map runs 10,000 samples (m of 1,762 digits) without one. Heuristically it halts with probability 1, but only after an expected 10<sup>12</sup>–10<sup>13</sup> samples, far beyond any simulation.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The round trip</h3>
+        <p><code>L (10)^(m+2) C&gt; 1 (11)^(j+1) 0^∞</code> reaches <code>L (10)^m C&gt; 1 (11)^(j+4) 0^∞</code> in 4j + 20 steps, for all j, m and every tape L; by induction, n round trips eat 2n words and add 6n ones.</p>
+        <p class="where"><code>sweep</code> (<code>lean/Rules.lean</code>), <code>sweeps</code> (<code>lean/Macro.lean</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The sample map for the prefixes empty and 1</h3>
+        <p>K(∅, 2n) → K(1, 3n+4), K(∅, 2n+1) → K(∅, 3n+7), K(1, 2n) → K(∅, 3n+4), K(1, 2n+1) → K(1000, 3n+4), for every n; and blank tape reaches K(1, 1) after 30 steps.</p>
+        <p class="where"><code>K_e_even</code>, <code>K_e_odd</code>, <code>K_1_even</code>, <code>K_1_odd</code>, <code>blank_K</code>, <code>lean/Macro.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +129,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 63,224 cells have been visited and 15,738 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The sample map for the other prefixes</h3>
+        <p>For every prefix P met (173 (P, parity) pairs), simulation of three representatives shows the next prefix depends only on P and m mod 2 and the next count is 3⌊m/2⌋ + 4 + δ with δ ∈ {0, 1, 3}. Extrapolated to all m, this is an observation, not a proof.</p>
+        <p class="where"><code>py/kmap.py</code></p>
+      </div>
+      <div class="card">
+        <h3>10,000 samples without a halt</h3>
+        <p>Iterating the measured map from K(1, 1): 10,000 samples, m reaches 1,762 decimal digits (about 10<sup>3500</sup> machine steps), the prefix never longer than 7 cells. The first 24 samples (up to m = 88,201) agree with a direct C run to 9.3·10<sup>9</sup> steps; <code>bbtools.cycles</code> runs the machine to 10<sup>40</sup> steps with no halt.</p>
+        <p class="where"><code>py/kmap.py 10000</code>; <code>python3 -m bbtools.cycles M 2 1e40</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +147,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.053). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.497).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Why it should halt, eventually</h3>
+        <p>Each sample uses one parity bit of m, and the bits behave like coin flips (the map is m → (3m + c)/2). The prefix climbs one rung for the right bit and falls back otherwise; the shortest route from the empty prefix to a halt (prefix <code>111101</code>, m odd) is 42 samples long. So each visit of the empty prefix (about a third of the samples) succeeds with probability about 2<sup>−41</sup>: a halt is expected after some 10<sup>12</sup>–10<sup>13</sup> samples, i.e. around 10<sup>10<sup>12</sup></sup> steps.</p>
+        <p class="where"><code>py/kmap.py</code> (the route)</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Open. It reduces to whether the parity sequence of the Collatz-like map ever spells the 41-step climb; no proof either way.</p>
       </div>
     </div>
   </section>

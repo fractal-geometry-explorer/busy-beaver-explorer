@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A string of digits that keeps being rewritten</a><a href="#passes">Local rewritings, proved</a><a href="#halting">Only through a double 0</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape looks like</span>
+  <h2>A string of digits that keeps being rewritten</h2>
+<p>Each time the head is at the left end in state D, the tape consists of runs of 1s separated by single 0s, and the runs alternate between length 1 and a length of the form 4j + 1. Here are the first run lengths at step 28,947,103 (tape width 8,068):</p>
+<div class="config">1 1 1 5 1 5 1 9 1 5 1 1 1 1 1 5 1 9 1 9 1 5 1 1 1 9 1 5 1 5 1 5 1 5 1 1 1 1 1 5 1 9 1 5 &hellip;</div>
+<p>Read as digits j this is 0 1 1 2 1 0 0 1 2 2 1 0 2 1 1 1 1 0 0 1 2 1 &hellip;. One round trip later the string is completely different and shows no regularity.</p>
+</section>
+<section id="passes">
+  <span class="eyebrow">How a pass works</span>
+  <h2>Local rewritings, proved</h2>
+<p>The passes themselves are simple. Going left, state C turns each pair <code>11</code> into <code>01</code> (halving the ones); going right, state D turns each <code>0101</code> into <code>1110</code>, state E turns each <code>0101</code> into <code>1011</code> and crosses runs of 1 unchanged. These four rules are proved in Lean for every length. What happens where one rule hands over to another, at the boundaries between runs, is what scrambles the digits.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Can it halt?</span>
+  <h2>Only through a double 0</h2>
+<p>The only halt is B reading a 1. B always follows A, and A follows either C reading a 0 (then B reads the 0 C has just written: safe) or F reading a 0, which happens only when E reads a 0 with another 0 right after it. Inside the tape this has never happened: in 2&middot;10<sup>8</sup> steps every 0 that E read inside the tape had a 1 after it. All 44 visits of F to a 0 in 10<sup>10</sup> steps were at the blank right end. So the machine halts if and only if, at some point, a double 0 followed two cells later by a 1 appears ahead of a right-moving E inside the tape. Whether the rewriting can produce one is not known.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,9 +250,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (B1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>left_pass</code>, <code>right_D</code>, <code>right_E</code>, <code>right_ones</code>, <code>lean/Rules.lean</code></div></div><div><b>The passes, for every length</b><p>Going left, <code>(11)^n C&gt; 1</code> becomes <code>C&gt; 1 (01)^n</code> in 2n steps; going right, <code>D&gt; (0101)^n</code> becomes <code>(1110)^n D&gt;</code> and <code>E&gt; (0101)^n</code> becomes <code>(1011)^n E&gt;</code> in 4n steps, and E crosses <code>1^n</code> unchanged; each for every n and every tape around.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,743 cells have been visited and 38,002 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.507). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.072).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in 10<sup>10</sup> steps</b><p><code>tools/c/tmrun.c</code>: 10<sup>10</sup> steps from blank tape without a halt (122,739 ones).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tm.h</code> (transition counts and windows)</div></div><div><b>Where a halt would have to come from</b><p>The halt is B reading a 1. B is entered only from A, which comes either from C reading 0 (then B reads the 0 that C wrote) or from F reading 0, which needs E to read 0 with a 0 next to it. In the first 2&middot;10<sup>8</sup> steps E read a 0 about 12.5 million times; inside the tape the next cell was always 1, and the 44 times F read a 0 in 10<sup>10</sup> steps were all at the blank right end, where B then reads blank tape.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/ctl.py</code></div></div><div><b>No closed tape language from windows up to 7</b><p><code>bbtools.ctl</code> with K = 2 to 7 closes but allows a halt (12 to 1,536 abstract halting configurations); n-gram CPS (widths 3 to 7, -H, -U) fails.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tokrun.c</code></div></div><div><b>A digit string</b><p>With the head in D at the left end, the tape reads as runs of 1 separated by single 0s, alternating 1 and 4j + 1 (j = 0, 1, 2, &hellip;; seen up to j = 8): a string of digits j. The string changes completely from one round trip to the next with no visible pattern, while the tape grows by about 2 cells per round trip on the left (square root of the steps) and very slowly on the right.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt?</b><p>Not known, and not reduced to a number question: the digit string is not decoded. The halting question is whether a pair 00 can ever form inside the tape ahead of a right-moving E.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

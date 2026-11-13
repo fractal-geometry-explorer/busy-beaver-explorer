@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows, and this one has not yet been taken apart. After a messy start the tape settles into a regular texture, a background of 0011 words with sparse defects next to a counter, and the head bounces over it. Only bounded runs are proved so far.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 33,592 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>0011 &middot; 0001</b><span class="small">The background word and its defect, from step 396,000 on.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#texture">A background with defects</a><a href="#proved">What is proved and what is missing</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +218,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,680,827</td><td><code>1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^9 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^9 0 1 0 1^9 0 1 0 1^17 0 1 0 1^9 0 1 0 1^9 0 1 0 1^21 0 1 0 1^13 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^25</code></td></tr><tr><td>right</td><td>970,459,713</td><td><code>1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^9 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^9 0 1 0 1^9 0 1 0 1^17 0 1 0 1^9 0 1 0 1^9 0 1 0 1^21 0 1 0 1^13 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^25</code></td></tr><tr><td>right</td><td>986,150,197</td><td><code>1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^5 0 1 0 1 0 1 0 1^9 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^9 0 1 0 1^9 0 1 0 1^17 0 1 0 1^9 0 1 0 1^9 0 1 0 1^21 0 1 0 1^13 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^9 0 1 0 1^25</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="texture">
+  <span class="eyebrow">Structure</span>
+  <h2>A background with defects</h2>
+<p>The left end of the visited tape stops moving early; the right end keeps growing, about as the square root of the step count. From step 396,499 on, cut the tape into 4-cell words starting just right of the left end. Almost every word is <code>0011</code> (written <code>.</code> below), with a few <code>0001</code> defects (<code>o</code>), alone or in pairs, and next to the left end a run of <code>0110</code> and <code>0010</code> words that acts as a counter. Part of the tape at step 7,742,585:</p>
+<pre style="overflow-x:auto">[0110]&times;18 [0010] [0110]&times;4 [0101] ......................oo......................o........oo..........................o........................................oo..........................................o...</pre>
+<p>The spacing between defects grows along the tape, roughly linearly. The head bounces between the right end and turning points at the defects, and the defects drift left from bounce to bounce. The head comes all the way back to the left end only rarely: at steps 396,499, 396,541, 465,987, &hellip;, 7,742,585, 22,969,011, 86,874,709. The last gaps between these visits grow by a factor of about 4.</p>
+</section>
+<section id="proved">
+  <span class="eyebrow">Status</span>
+  <h2>What is proved and what is missing</h2>
+<p><b>Lean</b>: the halting configurations (kernel), no halt in the first 10,000 steps (kernel) and 10<sup>7</sup> steps (native_decide). <b>C simulator</b>: no halt in 10<sup>9</sup> steps.</p>
+<p><b>Missing</b>: everything structural. A macro machine needs exact rules for how the head crosses the <code>0011</code> background, how it turns at a defect and moves it, how the right end grows, and how the counter changes when the head reaches the left end. The machine can halt only from <code>A&gt;0 1</code>.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -234,15 +247,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 33,592 cells have been visited and 24,444 of them hold a 1.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/view.py</code></div></div><div><b>The shape of the tape</b><p><code>py/view.py</code> prints the tape each time the head, in state C, reads a 0 on the leftmost visited cell, cut into 4-cell words. After step 396,499 the cells right of the head read: a few cells, a run of <code>0110</code> and <code>0010</code> words (a counter whose pattern changes between visits), then <code>0011</code> words with isolated <code>0001</code> defects (<code>o</code>) and doubled ones (<code>oo</code>) at gaps that grow along the tape. Between such visits the head bounces between the right end, which moves right by a few cells each bounce, and turning points at the defects, which drift left. Before step 396,000 the tape is mostly 1s with scattered 0s, another regime.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts only on B reading 1, that is after A reads a 0 that has a 1 to its right (<code>A&gt;0 1</code>). The next step is to find exact rules for the head's bounce over the <code>0011</code> background and its defects, and for the counter.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC 1000000000
+python3 holdouts/1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC/py/view.py 1.5e8 2.3e7      # about a minute
+python3 holdouts/1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC/py/view.py 1.5e8 2.3e7      # about a minute</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

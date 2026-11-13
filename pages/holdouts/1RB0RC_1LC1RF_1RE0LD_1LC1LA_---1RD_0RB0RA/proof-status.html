@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The run is a Collatz-like process: a big block on the left is converted back and forth between two words, growing by a factor about 4/3 per cycle, while a small counter at the right end keeps the remainders. Shift rules are proved in Lean; the cycle map is observed, not decoded exactly, and no reduction of the halting question is given yet.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules, for every length</h3>
+        <p>Going right: B crosses <code>(10)^n</code> unchanged, F crosses <code>(01)^n</code> unchanged, A turns each <code>011</code> into <code>110</code>, B turns each <code>110</code> into <code>101</code>; each for every n and every tape around.</p>
+        <p class="where"><code>right_B_a</code>, <code>right_F_d</code>, <code>right_A_011</code>, <code>right_B_110</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +124,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 43,966 cells have been visited and 17,659 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in 10<sup>10</sup> steps</h3>
+        <p><code>tools/c/tmrun.c</code>: 10<sup>10</sup> steps from blank tape without a halt (57,846 ones).</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No closed tape language from windows up to 7</h3>
+        <p><code>bbtools.ctl</code> with K = 2 to 7 closes but allows a halt (7 to 579 abstract halting configurations); n-gram CPS (widths 3 to 7, -H, -U) fails.</p>
+        <p class="where"><code>tools/py/bbtools/ctl.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +142,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.499). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.087).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>The 4/3 cycle</h3>
+        <p>With the head in A at the left end the tape is <code>a b</code> (a = 10, b = 110), then one big block, then a short tail. The big block alternates between <code>d^Y</code> (d = 010) and <code>a^X</code>: from <code>d^Y</code> the sweeps usually build <code>a^(2Y+2)</code> (for example Y = 17,473 gives X = 34,948), and from <code>a^X</code> they build <code>d</code>-blocks of about 2X/3 plus what the tail contributes. The successive Y: 61, 83, 137, 195, 261, 357, 481, 667, 887, 1239, 1675, 2247, 3009, 4025, 5375, 7171, 9565, 12953, 17473, 23325 (to 2.9&middot;10<sup>9</sup> steps), ratios about 4/3. The tail at the right end (runs such as <code>d^24 a^14 d^8 a^8 d^8 a^8 d^4 a^2</code>) changes only at the conversions: it holds the remainders.</p>
+        <p class="where"><code>tools/c/tokrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Where a halt would come from</h3>
+        <p>The halt is E reading a 0. E is entered only from C reading a 0 (going right); in 10<sup>9</sup> steps E was entered 5,798,513 times and always read a 1. A halt needs C, moving right, to meet two 0s in a row.</p>
+        <p class="where"><code>tools/c/tm.h</code> (transition counts and windows)</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>Does it halt?</h3>
+        <p>Not known. The exact cycle map (how the remainder mod 3 of X and the tail combine) is not written down yet; with it the question should become a Collatz-like question about that map.</p>
       </div>
     </div>
   </section>

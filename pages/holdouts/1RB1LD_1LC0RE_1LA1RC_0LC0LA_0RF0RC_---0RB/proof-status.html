@@ -74,12 +74,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB</h1>
     <p class="machine">1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Its run is a counter at the left end, a run of blocks <code>1^2 0</code> that grows by one block per overflow while the gap between overflows doubles, and a word of binary digits on its right in which each overflow rewrites a short window; when the changes reach the right end the word is rebuilt and the counting goes on.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves that the machine can halt only by stepping, in state F, onto the blank region right of everything written (kernel, from a closed tape language), and that there is no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in the first 10<sup>11</sup> steps.</p>
+      <p><b>What it does.</b> At each overflow the tape reads <code>A&gt;0 1 0 (1^2 0)^m 1^4 0 W</code> (the block <code>1^4</code> is longer near restructures). m grows by one per overflow and the gap between overflows doubles (within 0.5% at 20 of the 24 overflows from step 100,161 on). Between overflows W changes only in a window that moves right through it. Restructures, where W is rebuilt, came at about 55,000 steps and between 2.5&middot;10<sup>10</sup> and 3.1&middot;10<sup>10</sup> steps.</p>
+      <p><b>Why it is hard.</b> The halt needs the head to come to the right end in state F; that would happen at a restructure, and the rule that rebuilds W has not been worked out.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -99,6 +102,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
+        <h3>A halt can only happen at the right edge</h3>
+        <p>A closed tape language from windows of 3 cells covers every configuration of the run from blank tape; in all of its abstract configurations where F can read a 0 (the only halting transition), the tape right of the head is blank. So the machine halts exactly when F steps onto the blank region right of everything written.</p>
+        <p class="where"><code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A halt can only happen at the right edge</h3>
+        <p>A closed tape language from windows of 3 cells covers every configuration of the run from blank tape; in all of its abstract configurations where F can read a 0 (the only halting transition), the tape right of the head is blank. So the machine halts exactly when F steps onto the blank region right of everything written.</p>
+        <p class="where"><code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
@@ -115,24 +128,34 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 149 cells have been visited and 67 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps without a halt; 178 cells visited (162 left of the start, 16 right), 90 ones at the end.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The overflow configurations of the run</h3>
+        <p>In the first 10<sup>11</sup> steps there are 48 moments from step 373 on where the head reaches a new cell at the left end in state A followed by <code>1 0</code>; the tape then reads <code>A&gt;0 1 0 (1^2 0)^m 1^j 0 W</code>. j = 4 at 35 of them; the others lie near the restructures (j = 10 to 12 before step 31,544, j = 1 to 6 near 55,000, and j = 16 from step 2,885,841,555 to 25,031,766,563). The last is at step 66,670,838,854 with m = 29. m rises by one from each to the next except at the restructures at about 55,000 steps and at step 31,237,358,656 (one block fewer), and at step 2,885,841,555, where it stays the same.</p>
+        <p class="where"><code>tmrun ... records</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: exp/fixed</h3>
-        <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.035). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A counter whose gaps double</h3>
+        <p>The gap between successive overflows is within 0.5% of twice the previous one at 20 of the 24 overflows from step 100,161 on: 11,811,159,969 steps before step 25,031,766,563 and 23,622,320,125 before step 66,670,838,854. The four exceptions (steps 2,885,841,555, 4,362,236,690, 31,237,358,656 and 43,048,518,729) are where the block after the prefix changes and at the restructure.</p>
+        <p class="where">the records of the 10<sup>11</sup>-step run</p>
+      </div>
+      <div class="card">
+        <h3>A moving window</h3>
+        <p>Between overflows the left part of W stays fixed and the changes stay in a window of about ten blocks, which drifts right as the epoch goes on; a restructure follows when the window meets the right end.</p>
+        <p class="where">the records of the 10<sup>11</sup>-step run</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>The restructures, and the question itself</h3>
+        <p>Not known: the rule that maps W at one overflow to W at the next, the restructure rule, and whether the machine halts.</p>
       </div>
     </div>
   </section>
@@ -140,7 +163,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB 1000000000</code></pre>
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB 100000000000 records 100000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

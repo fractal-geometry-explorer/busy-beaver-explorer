@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G03",
+ "generated": false,
+ "group": "block-list rewriting, coin-like block lengths (rule not found)",
  "title": "What is known about 1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---.",
  "machine": "1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open; the round rule is not found.</b> The machine rewrites a long list of blocks of 1s, nearly all of length <code>4k + 3</code> with <code>k</code> spread like the run lengths of fair coin flips; each round multiplies the list's length by about 1.75. Nothing beyond the generated bounded runs is proved."
  ],
  "claims": [
   {
@@ -46,34 +46,46 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "Blocks of length 4k + 3",
+   "text": "At each visit of the left end up to step 5.2·10<sup>8</sup>, every block of 1s except the first two and the last has length <code>4k + 3</code>; the counts for <code>k = 0, 1, 2, …</code> halve at each step (2,665, 1,336, 716, 315, … of 5,366 at step 522,867,988). Observed in simulation, not proved.",
+   "where": "<code>c/sim.c</code>, README"
+  },
+  {
+   "level": "heuristic",
+   "title": "Rounds grow by about 1.75",
+   "text": "Between consecutive long gaps the list, read as a word with <code>4k + 3 ↦ 1^k 0</code>, grows from 26 to 97, 351, 1,136, 3,508, 10,746 letters every second round (about 1.75 a round), and the step count by about 3.1 a round.",
+   "where": "README"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The rule of a round is the missing piece.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA--- 1000000000"
+  "gcc -O2 -o sim holdouts/1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---/c/sim.c && ./sim 1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA--- 1000000000 1"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet. The machine keeps rewriting a long list of blocks of 1s whose lengths look like the results of coin flips, and each round makes the list about 1.75 times longer. What a round does to the list has not been worked out.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 65,183 cells visited."
-   },
-   {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "value": "10<sup>9</sup>",
+    "text": "Steps simulated from blank tape without a halt."
    },
    {
     "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "4k + 3",
+    "text": "The length of nearly every block, with k spread like coin-flip runs."
+   },
+   {
+    "level": "heuristic",
+    "value": "× 1.75",
+    "text": "Growth of the list in a round."
    }
   ],
   "presets": [
@@ -85,6 +97,33 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "tape",
+    "eyebrow": "The tape",
+    "heading": "A list of blocks",
+    "html": [
+     "<p>Each time the head reaches the left end, the tape is a list of blocks of 1s separated by single 0s. Except at the two ends, every block has length <code>4k + 3</code>, and <code>k</code> behaves like the length of a run of heads in fair coin flips: half the blocks have <code>k = 0</code>, a quarter <code>k = 1</code>, and so on. At step 522,867,988 there are 5,366 blocks:</p>",
+     "<pre>k       0      1     2     3     4    5    6    7\nblocks  2,665  1,336  716  315   160  88   47   22</pre>"
+    ]
+   },
+   {
+    "id": "rule",
+    "eyebrow": "The rounds",
+    "heading": "Sweeps that rewrite the whole list",
+    "html": [
+     "<p>The head sweeps across the whole list again and again: a sweep to the right turns each block into a string of short runs, and the sweep back turns that into blocks again, changed. Between the long gaps when the head stays away from the left end, the list grows by about 1.75:</p>",
+     "<pre>step          blocks   letters\n3,664         14       26\n45,100        54       97\n584,746       183      351\n5,887,250     574      1,136\n55,865,122    1,794    3,508\n522,867,988   5,366    10,746</pre>",
+     "<p>(letters: the list read as a word, block <code>4k + 3</code> standing for <code>k</code> ones and a zero). What a round does to that word is not known.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Does it halt?",
+    "heading": "Not known",
+    "html": [
+     "<p>The machine stops only if the head in state F reads a 1; in 10<sup>9</sup> simulated steps that never happens. Without the round rule there is no honest estimate. The coin-like block lengths suggest a pseudo-random word being rewritten, as in the Collatz-like holdouts.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +137,6 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Rewrites a list of blocks of length 4k+3, k spread like coin-flip run lengths; each round multiplies the list by about 1.75; rule not found; no halt in 10<sup>9</sup> steps."
 }

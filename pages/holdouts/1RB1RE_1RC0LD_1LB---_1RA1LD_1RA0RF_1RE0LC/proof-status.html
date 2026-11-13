@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Each round trip of the head converts a block of 8-cell words at the right end (proved in Lean for every length) and rewrites the end of an irregular region to its left; both grow linearly with the trips. The rule of the rewrite, and so the halting question, is not understood.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The leftward sweep</h3>
+        <p>For every n and every tape L: L (01011111)<sup>n+3</sup> 1 1 B&gt; 0 reaches L D&gt; (11101000)<sup>n+3</sup> 1 1 0 1 in 38n+118 steps: the whole block is converted word by word.</p>
+        <p class="where"><code>sweep_left</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +124,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 41,156 cells have been visited and 25,720 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Round trips</h3>
+        <p>Over the 10,115 visits of the right end in state B in the first 10<sup>9</sup> steps, each trip changes the tape by 4 cells: (block +1 word, region &minus;4 cells), (block &minus;1, region +12) or (block unchanged, region +4). At step 9.8&middot;10<sup>8</sup>: block 2,938 words, region 17,196 cells.</p>
+        <p class="where"><code>tools/c</code> runs, README</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +137,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.534).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>A heavy-tailed rewrite</h3>
+        <p>The rewrite at the left end of the block usually touches the last 8&ndash;40 cells of the region, about 3% of the trips reach 100 cells back, 0.3% reach 1,000, the deepest 3,160: the region acts like the memory of a counter or a stack.</p>
+        <p class="where">README</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The halting transition C1 needs B reading 0 before a 1 or F reading 1 after a 1; closed tape languages from windows of 4 and 6 cells do not confine it, and the rewrite rule is not known.</p>
       </div>
     </div>
   </section>
@@ -140,7 +155,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC 1000000000
+cd holdouts/1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC &amp;&amp; python3 py/rules.py | diff - lean/Rules.lean</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

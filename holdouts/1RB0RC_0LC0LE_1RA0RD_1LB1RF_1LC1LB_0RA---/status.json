@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G13",
  "title": "What is known about 1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state machine halts from blank tape. This page describes what its run looks like at the level of words and counters, what a halt would need, and what is still missing. The description comes from simulation (first look, about an hour of study); nothing beyond the bounded runs is proved."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps, the C simulator none in 10<sup>9</sup>. The macro structure described below is observed in the simulation, not proved."
  ],
  "claims": [
   {
@@ -46,20 +46,50 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "Conversion at the right end",
+   "text": "At D-right samples a run b^p of 1^2 0^2 words is converted into 10 pairs a^q at a constant rate (p - 450, q + 1,500 per 400 samples, observed between 4.6&middot;10<sup>8</sup> and 9.4&middot;10<sup>8</sup> steps).",
+   "where": "",
+   "hand": true
+  },
+  {
+   "level": "kernel",
+   "title": "Four conversion cycles, for every length",
+   "text": "Each cycle turns nine 4-cell words into fifteen pairs, for any tape L: <code>(0011)^(n+9) 1011 (0101)^(m+1) A&gt;</code>, <code>(0110)^(n+9) 0111 0110 (1010)^(m+1) 1011 B&gt;</code>, <code>(1100)^(n+9) 1110 1001 1001 0010 (1010)^(m+1) C&gt;</code>, <code>(1001)^(n+9) 1101 (1010)^(m+1) C&gt;</code>.",
+   "where": "<code>cycA</code>&ndash;<code>cycD</code>, <code>lean/Rules.lean</code>",
+   "hand": true,
+   "addon": true
+  },
+  {
+   "level": "trusted",
+   "title": "Those cycles cover 97.17% of the run",
+   "text": "With the cycle accelerator (block size 4), 0.9717 of the first 10<sup>9</sup> steps lie inside jumps of these four shapes (806, 570, 352 and 340 cycles, in 8 jumps).",
+   "where": "<code>py/coverage.py</code>",
+   "hand": true,
+   "addon": true
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "text": "Not known. No macro rule has been proved for this machine yet; see the README's Later section for the next steps.",
+   "where": "",
+   "hand": true
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA--- 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA--- 1000000000",
+  "python3 holdouts/1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---/py/coverage.py 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet. At the right end a run of 1^2 0^2 words is turned into 10 pairs; gaps of 0s further left shrink slowly, like the higher digits of a counter.",
   "facts": [
+   {
+    "level": "heuristic",
+    "value": "t<sup>0.66</sup>",
+    "text": "the tape grows to the right about like t^0.66"
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -69,11 +99,6 @@
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/power",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +110,32 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "what",
+    "eyebrow": "What it does",
+    "heading": "Runs of two words and gaps",
+    "html": [
+     "<p>Write <code>b</code> for <code>1^2 0^2</code> and <code>a</code> for <code>1 0</code>. When the head is at the right end in state D the tape ends like <code>1 0^2 b 1^2 0^22 1^2 0 1 0^2 b^p a 1 0^2 1 0^3 1 0^2 a^2 1^2 0 a^q D&gt;0</code>. Between samples 400 apart, p falls by 450 and q rises by 1,500 (p = 7,597 and q = 3,470 at step 460,944,399; p = 1,747 and q = 22,970 at step 942,980,499).</p>",
+     "<p>Further left are gaps of 0s (<code>0^37</code>, <code>0^22</code>, ...) that shrink over longer times, so they look like higher digits. The tape grows to the right like t<sup>0.66</sup>.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The halting question",
+    "heading": "What a halt would need",
+    "html": [
+     "<p>The machine halts when it reads a 1 in state F (F1 is the halting transition). F is entered from D on a 1 (D1 = 1RF).</p>"
+    ]
+   },
+   {
+    "id": "phase2",
+    "eyebrow": "Phase 2",
+    "heading": "Nine words into fifteen pairs",
+    "html": [
+     "<p>The run converts a block of 4-cell words into pairs, nine words into fifteen pairs per cycle, in four phases that differ by the alignment of the word (<code>0011</code>, <code>0110</code>, <code>1100</code>, <code>1001</code>). All four cycles are proved for every length, and together they cover 97.17% of the first 10<sup>9</sup> steps. The pieces between phases (where the word changes alignment) are not mapped yet.</p>"
+    ],
+    "addon": true
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +149,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "counters of 1^2 0^2 words and zero gaps",
+ "summary": "The tape holds runs of the word 1^2 0^2, runs of 10 pairs and gaps of 0s; at the right end one run of 1^2 0^2 is converted into 10 pairs while gaps further left shrink slowly, like the higher digits of a counter."
 }

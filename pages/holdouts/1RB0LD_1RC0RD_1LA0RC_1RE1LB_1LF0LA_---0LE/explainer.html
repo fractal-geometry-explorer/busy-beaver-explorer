@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LD_1RC0RD_1LA0RC_1RE1LB_1LF0LA_---0LE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine zigzags: it moves a cell or two forward and one back, over and over, rewriting the words its tape is made of. Its sweeps run from the growing left end to a turning point inside the tape that wanders from sweep to sweep. Only a first look has been taken so far.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 29,507 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>2 rules</b><span class="small">Shift rules of the sweeps, proved in Lean for every length.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>2 rules</b><span class="small">Shift rules of the sweeps, proved in Lean for every length.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#words">Words and zigzag sweeps</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +219,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>957,065,260</td><td><code>B&gt;0 1 0^3 1 0^2 1 0^2 1 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0</code></td></tr><tr><td>left</td><td>972,854,861</td><td><code>B&gt;0 1 0^3 1 0^2 1 0^2 1 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0</code></td></tr><tr><td>left</td><td>988,763,938</td><td><code>B&gt;0 1 0^3 1 0^2 1 0^2 1 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1 0 1^2 0^2 1 0 1^2 0 1^2 0^2 1 0 1^2 0 1^2 0 1^2 0 1^2 0</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="words">
+  <span class="eyebrow">First look</span>
+  <h2>Words and zigzag sweeps</h2>
+<p>Cut the tape into words of the form <code>1^i 0^j</code>. Whenever the head is at the left end (state B), only four words occur: <b>a</b> = <code>1 1 0</code>, <b>b</b> = <code>1 0</code>, <b>c</b> = <code>1 0 0</code> and <b>d</b> = <code>1 1 0 0</code>. After 7,187 steps the tape reads <code>b a3 b d b a d b a d b a d b a d b a d b a12 b</code> (a3 = a a a); after 3&middot;10<sup>7</sup> steps it begins <code>b a3 b d b a d b a d b a d b a d b a d b a4 b d ...</code> and goes on for thousands of words in an irregular mix.</p>
+<p>The head never runs straight: going right, C reads <code>1 0 1</code>, writes, steps back, and comes forward again, 7 steps per word, leaving <code>1 1 0</code> behind (<code>sweep_right</code>); going left, A turns <code>1 1 0</code> into <code>1 0 0</code> (<code>sweep_left_A</code>), with other short zigzags in between. Each sweep runs from the left end to a turning point inside the tape and back, and the left end grows by about 5 cells per sweep. The turning point wanders from sweep to sweep, so the inner part of the tape behaves like a counter with an irregular carry; its exact rule has not been worked out.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">The danger</span>
+  <h2>Where it could halt</h2>
+<p>The halting transition is F reading 0. F is entered only from E reading 0, and E from D reading 0 or from F reading 1: going left, E and F alternate across <code>0 1</code> pairs (E on a 0, F on a 1). The machine halts only if that leftward zigzag meets two 0s in a row in the wrong phase.</p>
+</section>
+<section id="proved">
+  <span class="eyebrow">Status</span>
+  <h2>What is proved</h2>
+<p><b>Lean, kernel</b>: the halting configurations, no halt in 10,000 steps (<code>lean/Blank.lean</code>), and the shift rules <code>sweep_right</code> and <code>sweep_left_A</code> for every length (<code>lean/Passes.lean</code>). <b>Lean, native_decide</b>: no halt in 10<sup>7</sup> steps. <b>C</b>: no halt in 10<sup>9</sup> steps. Everything else on this page is observation.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -234,8 +251,10 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 29,507 cells have been visited and 17,521 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.499). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Passes.lean</code> (generated by <code>py/gen_rules.py</code>)</div></div><div><b>Two shift rules</b><p>Rightward, C zigzags across <code>1 0 1</code> words, rewriting each into <code>1 1 0</code> in 7 steps (<code>sweep_right</code>); leftward, A crosses <code>1 1 0</code> words, rewriting each into <code>1 0 0</code> (<code>sweep_left_A</code>); for every n and every surrounding tape. Both occur in the run (22,783 and 7,892 times with n &ge; 3 in the first 3&middot;10<sup>6</sup> steps).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Passes.lean</code> (generated by <code>py/gen_rules.py</code>)</div></div><div><b>Two shift rules</b><p>Rightward, C zigzags across <code>1 0 1</code> words, rewriting each into <code>1 1 0</code> in 7 steps (<code>sweep_right</code>); leftward, A crosses <code>1 1 0</code> words, rewriting each into <code>1 0 0</code> (<code>sweep_left_A</code>); for every n and every surrounding tape. Both occur in the run (22,783 and 7,892 times with n &ge; 3 in the first 3&middot;10<sup>6</sup> steps).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code></div></div><div><b>Words and sweeps</b><p>At the moments the head stands at the left end (state B), the tape cut into words <code>1^i 0^j</code> uses only <code>1 1 0</code>, <code>1 0</code>, <code>1 0 0</code> and <code>1 1 0 0</code> (plus a short piece at the start); near the left end the word <code>1 0 &middot; 1 1 0 &middot; 1 1 0 0</code> repeats five times. The head sweeps from the left end to a turning point inside the tape and back; the turning point moves irregularly from sweep to sweep; the right end stopped growing (228 cells right of the start after 10<sup>9</sup> steps).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. F is entered only from E reading 0 and E only from D reading 0 or F reading 1, so a halt needs the leftward E/F zigzag (which crosses <code>0 1</code> words) to meet two 0s in the wrong phase.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

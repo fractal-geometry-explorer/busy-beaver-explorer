@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G03",
+ "generated": false,
+ "group": "Collatz-like (4n/3) + counter list",
  "title": "What is known about 1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE.",
  "machine": "1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The macro words and the transfer phase are identified, and Lean proves the sweeps over <code>(10)^n</code>; the rule for a whole round is not known yet."
  ],
  "claims": [
   {
@@ -46,9 +46,21 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "The sweeps",
+   "text": "Six shift rules: B, D and E run right and A and F run left over <code>(10)^n</code> or <code>(01)^n</code>, for all n and any tapes around (one copy by <code>rfl</code>, all copies by <code>TM.cross_r</code> / <code>TM.cross_l</code>).",
+   "where": "<code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Round starts to 5·10<sup>9</sup> steps",
+   "text": "A C run to 5·10<sup>9</sup> steps, sampled at each left-end extension: the tape is a list of counters <code>a^x 1^(6k)</code> (a = 10) followed by one long block of ones that grows by about 4/3 per round (8,750, 22,510, 29,966, 39,758, 52,630, 97,478 …).",
+   "where": "<code>README.md</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known; no round rule has been found yet, so the question is not reduced to a map.",
    "where": ""
   }
  ],
@@ -58,7 +70,7 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine keeps one long block at its right end that grows about 4/3 per round, re-encoded each time, and a list of counters on the left. Its round rule has not been found yet.",
   "facts": [
    {
     "level": "trusted",
@@ -86,6 +98,17 @@
   },
   "sections": [
    {
+    "id": "tape",
+    "eyebrow": "What it does",
+    "heading": "One growing block and a list of counters",
+    "html": [
+     "<p>Write a for <code>10</code> and c for <code>100</code>. The right end of the tape holds one long block that changes its encoding from round to round: a run of ones, then copies of c, then copies of a. In the main phase the head zigzags between the right end and the front of a c-block, turning one c into two a at the right end each trip; the tape grows there by one cell per trip (the square-root side).</p>",
+     "<p>Between these phases the head works through a list of counters on the left, runs of a separated by runs of ones whose lengths are multiples of 6; only then does the tape grow on the left (the logarithmic side). The long block grows by about 4/3 per round, like the related machine 1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD, but here the counters on the left grow as well.</p>",
+     "<table class=\"tbl\"><thead><tr><th>step</th><th>counters</th><th>ones</th></tr></thead><tbody><tr><td>81,124,580</td><td><code>a 1^2 a^14 1^6 a^7 1^24 a^8 1^24 a^656</code></td><td>8,750</td></tr><tr><td>547,364,700</td><td><code>a 1^18 a^20 1^12 a^26 1^12 a^174</code></td><td>29,966</td></tr><tr><td>962,962,904</td><td><code>a 1^14 a^20 1^36 a^14 1^48 a^354</code></td><td>39,758</td></tr><tr><td>5,363,706,536</td><td><code>a 1^26 a^26 1^12 a^26 1^18 a 1^36 a</code></td><td>97,478</td></tr></tbody></table>",
+     "<p>The machine halts only on C reading 0, which needs B on a 0 with a 0 to its left. No rule for a whole round is known yet, so whether that ever happens is open.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +121,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "One long block grows about 4/3 per round while being re-encoded (ones, 100s, 10s), with a list of counters on the left; the round rule is not yet known.",
+ "decision": "open"
 }

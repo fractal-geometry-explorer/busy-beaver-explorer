@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LE_0RC0RB_1RD1RF_1LA0LE_0LD0LB_---0RD</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this machine stirs a small tape in an irregular way, growing it only a few cells at a time. This page runs the real machine in your browser and lists what is known.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 576 cells visited.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>10</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/power</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>672 cells</b><span class="small">Visited after 10<sup>10</sup> steps; about logarithmic growth.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>Chaotic</b><span class="small">No counter, cycle or macro structure found.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#look">An irregular, slowly growing tape</a><a href="#halt">What a halt would need</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="look">
+  <span class="eyebrow">What it does</span>
+  <h2>An irregular, slowly growing tape</h2>
+<p>Read the tape with <code>b = 110</code>. At step 909,086,155, when the tape grows on the right, it begins</p>
+<p><code>1 0 0 1 b 0 b 0^4 b 1 0 0 b 0^3 b 0^3 b 0 b 0 b 0^3 b 0^3 b 1 0 0 b &hellip;</code></p>
+<p>and goes on like that for 575 cells: <code>110</code>s with gaps of 0s, irregularly arranged. Width: 239 cells at 10<sup>6</sup> steps, 462 at 10<sup>8</sup>, 672 at 10<sup>10</sup>.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">The halting question</span>
+  <h2>What a halt would need</h2>
+<p>The machine halts only in state F reading 0, and F is entered only from C reading 1 and stepping right (<code>1RF</code>). In the first 10<sup>8</sup> steps that happens 5,555,291 times and F always reads a 1.</p>
+<p>For a run this irregular, the honest summary is that it behaves like a random process on a tape that grows very slowly, with one forbidden pattern that has never appeared. Whether something forbids it, or it is only unlikely, is not known.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -234,8 +248,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 576 cells have been visited and 281 of them hold a 1.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code> (records)</div></div><div><b>Slow, irregular growth</b><p>Cells visited (from the C simulator's records): 239 at 10<sup>6</sup>, 316 at 10<sup>7</sup>, 462 at 10<sup>8</sup>, 575 at 10<sup>9</sup>, 672 at 10<sup>10</sup> steps. The tape grows by a roughly constant number of cells per factor of 10 in time.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">state counts and windows, <code>tools/c/tm.h</code></div></div><div><b>The halting pattern never forms</b><p>F is entered only from C reading 1 (<code>1RF</code>). In the first 10<sup>8</sup> steps that happens 5,555,291 times and F reads a 1 every time.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/macro.py</code></div></div><div><b>No macro structure found</b><p>Macro machines with blocks of 3 and 6 cells take about one macro step per 3, respectively 6 to 7, steps over 10<sup>7</sup> steps (<code>bbtools.macro</code>), so the run has no long uniform stretches for a shift rule to cross; the accelerator <code>bbtools.cycles</code> (blocks of 4) finds no linear cycle in 10<sup>7</sup> steps.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/power</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.16).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The run looks chaotic on a slowly growing tape; no structure that would rule out the halting pattern has been found.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

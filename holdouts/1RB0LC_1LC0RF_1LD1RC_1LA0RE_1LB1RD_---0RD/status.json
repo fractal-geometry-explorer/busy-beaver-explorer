@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G08",
  "title": "What is known about 1RB0LC_1LC0RF_1LD1RC_1LA0RE_1LB1RD_---0RD",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LC_1LC0RF_1LD1RC_1LA0RE_1LB1RD_---0RD.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0LC_1LC0RF_1LD1RC_1LA0RE_1LB1RD_---0RD/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head sweeps across the whole tape; each time it reaches the left end, the tape is a row of blocks of 1s, almost all 3 more than a multiple of 4 long, separated by single 0s, with lengths that change irregularly from sweep to sweep. This page lists what has been established about it, sorted by what each result rests on."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves the exact family of tapes on which it halts (<code>A&gt;0 1 (1 0)^n 0</code>) and the main shift rules; the C simulator finds no halt in the first 10<sup>11</sup> steps, and in that time A only ever reads its 0s in front of <code>1 1 1</code> or <code>1 1 0 1 1</code>."
  ],
  "claims": [
   {
@@ -20,6 +20,24 @@
    "title": "The halting configurations",
    "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
    "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "How a halt comes about",
+   "text": "F reading 0 is the only halt. F is entered only from B reading 1 (<code>enter_F</code>); B is entered from A reading 0 and from E reading 0 (<code>enter_B</code>), and the E way is harmless because E is entered only from D reading 1 and B then reads the 0 that D wrote (<code>enter_E</code>, <code>via_E_safe</code>). So a halt needs <code>A&gt;0 1 0</code> (<code>halt_A</code>), and with <code>achain</code> the whole family <code>A&gt;0 1 (1 0)^n 0</code>.",
+   "where": "<code>halt_F</code>, <code>halt_B</code>, <code>halt_A</code>, <code>enter_F</code>, <code>enter_B</code>, <code>enter_E</code>, <code>enter_A</code>, <code>lean/Halt.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The halting family",
+   "text": "For every n and every surrounding tape, <code>A&gt;0 1 (1 0)^n 0</code> halts after 4n+3 steps: <code>A&gt;0 1 1 0</code> becomes <code>1 0 A&gt;0 1</code> in four steps, so A walks right over the pairs <code>1 0</code> until it meets the final 0.",
+   "where": "<code>achain</code>, <code>halt_chain</code>, <code>lean/Halt.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Shift rules",
+   "text": "For every n and every surrounding tape: C crosses <code>1^n</code> to the right, and moving left carries a pair of 0s across <code>1^n</code>; D turns <code>(1 1)^n</code> into <code>(0 1)^n</code> and E turns it into <code>(1 0)^n</code>, both moving right.",
+   "where": "<code>cright</code>, <code>cleft</code>, <code>dright</code>, <code>eright</code>, <code>lean/Rules.lean</code>"
   },
   {
    "level": "kernel",
@@ -35,20 +53,32 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 37,187 cells have been visited and 31,825 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "The C simulator (<code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps from blank tape without a halt; the visited tape then spans 368,942 cells, 313,500 of them 1.",
+   "where": "<code>c/longrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "What A sees when it reads 0",
+   "text": "In the first 2&middot;10<sup>9</sup> steps A reads 0 about 200,000 times, always in front of <code>1 1 1</code> (half the time) or <code>1 1 0 1 1</code> (the other half, which leads to the first case two cells further right). A halt needs <code>1 (1 0)^n 0</code> there.",
+   "where": "<code>c/evt.c</code>"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: sqrt/sqrt",
+   "title": "Blocks of 4k+3 ones",
+   "text": "Each time the head reaches the left end, the tape is <code>A&gt;0 1 1 0</code> followed by blocks <code>1^m 0</code> separated by single 0s; in the first 10<sup>8</sup> steps 99.7% of the blocks have m = 4k+3, and each larger k is about half as common as the one before (805,617 blocks with m = 3, 401,035 with 7, 201,156 with 11, 99,624 with 15, ...), as in a binary counter or a random sequence; at the right end the same tape is written with runs of 1s of length 1 mod 4 and stretches of <code>(0 1)^j</code>. No rule for how the k change from one sweep to the next is known.",
+   "where": "<code>tools/c/tmrun.c</code> records, <code>c/runhist.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Growth shape",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.533). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.494).",
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. A proof would have to describe the block lengths well enough to show that A never reads 0 in front of <code>1 (1 0)^n 0</code>; how the lengths 4k+3 evolve is not understood. Window CTL up to 7 cells and n-gram CPS (widths up to 9, see the README for the larger runs) fail.",
    "where": ""
   }
  ],
@@ -58,22 +88,27 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1LC0RF_1LD1RC_1LA0RE_1LB1RD_---0RD 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Started on a blank tape, this machine has run 10<sup>11</sup> steps without stopping. Each time its head comes back to the left end, the tape is a row of blocks of 1s whose lengths are almost all 3 more than a multiple of 4; the lengths change irregularly. This page runs the real machine in your browser and shows the one family of patterns that would make it stop.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 37,187 cells visited."
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "<code>A&gt;0 1 (1 0)^n 0</code>",
+    "text": "The only way to halt, for any n."
+   },
+   {
+    "level": "trusted",
+    "value": "Never seen",
+    "text": "A reads 0 only before 1 1 1 or 1 1 0 1 1."
    },
    {
     "level": "heuristic",
-    "value": "sqrt/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "Blocks of 4k+3",
+    "text": "At the left end of every sweep."
    }
   ],
   "presets": [
@@ -85,6 +120,35 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "blocks",
+    "eyebrow": "The shape of the tape",
+    "heading": "Blocks of 4k+3 ones",
+    "html": [
+     "<p>Stop the simulator each time the head reaches a fresh cell at the left end. The tape is then</p>",
+     "<pre>A&gt;0 1 1 0  1^(4k1+3) 0  1^(4k2+3) 0  1^(4k3+3) 0 ...</pre>",
+     "<p>for example <code>1 1 1 0 1 1 1 1 1 1 1 0 1 1 1 0</code> (k = 0, 1, 0). Almost all blocks have this form (99.7% in the first 10<sup>8</sup> steps), and each k is about half as common as k &minus; 1. The lengths are irregular and change from sweep to sweep. When the head reaches the right end, the same information is written differently: runs of 1s of length 1 mod 4 and stretches <code>0 1 0 1 ...</code>.</p>"
+    ]
+   },
+   {
+    "id": "moves",
+    "eyebrow": "How it moves",
+    "heading": "Straight stretches",
+    "html": [
+     "<p>Lean proves these for any length (<code>lean/Rules.lean</code>):</p>",
+     "<pre>1 1 1 C&gt;0 0          →   C&gt;0 0 1 1 1        (C carries two 0s left, 5 steps a cell)\nD&gt; 1 1 1 1 1 1       →   0 1 0 1 0 1 D&gt;     (D, moving right)\nE&gt; 1 1 1 1           →   1 0 1 0 E&gt;         (E, moving right)</pre>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "The one way to halt",
+    "html": [
+     "<p>The only missing transition is F reading 0, and F is entered only from B reading 1. B is entered from A reading 0 (moving right) or from E reading 0 (moving left); in the second case B lands on a 0 that D has just written, so it is safe. That leaves A reading 0, and the four steps A, B, F, D repeat as long as the tape ahead is <code>1 0</code> pairs:</p>",
+     "<pre>A&gt;0 1 1 0 1 0 0   →   1 0 A&gt;0 1 1 0 0   →   1 0 1 0 A&gt;0 1 0   →   halt</pre>",
+     "<p>So the machine halts exactly when A reads 0 in front of <code>1 (1 0)^n 0</code>, for some n (proved in <code>lean/Halt.lean</code>, <code>halt_chain</code>). In the simulation A has always met <code>1 1 1</code> or <code>1 1 0 1 1</code> there, where the walk ends in a 1 and the head turns back.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +162,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Bouncer whose tape, at the left end of each sweep, is blocks of 1s, almost all of length 3 mod 4, separated by single 0s; it halts only if A reads 0 in front of 1 (1 0)^n 0, and A always sees 1 1 1 or 1 1 0 1 1.",
+ "family": "two-sided bouncer, blocks 1^(4k+3) 0 with irregular lengths"
 }

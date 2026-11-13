@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows yet. The machine works in cycles. Each cycle fills a long gap of 0s four cells at a time, then opens a new gap about twice as long and rewrites a short prefix that holds smaller gaps. Lean proves the filling. A simulator that jumps over it ran 28 cycles, 10<sup>17</sup> steps, without a halt.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 83,723 cells visited.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>fill sweep</b><span class="small">4m + 40 steps per sweep, any number at once (Lean, kernel).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>1.06&middot;10<sup>17</sup> steps</b><span class="small">No halt in 28 cycles of the jumping simulator.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#cycle">Cycles: a prefix and a gap</a><a href="#fill">Filling the gap</a><a href="#passes">Two passes and a hierarchy of gaps</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +218,36 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,504,102</td><td><code>1^2 0^3 1^3 0^5 1^3 0 1^3 0^3 1^3 0 1^3 0 1^3 0 1^3 0^3 1^3 0^7 1^3 0^5 1^3 0^133 1^3 0^15569 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>970,204,566</td><td><code>1^2 0^3 1^3 0^5 1^3 0 1^3 0^3 1^3 0 1^3 0 1^3 0 1^3 0^3 1^3 0^7 1^3 0^5 1^3 0^133 1^3 0^15101 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>985,850,086</td><td><code>1^2 0^3 1^3 0^5 1^3 0 1^3 0^3 1^3 0 1^3 0 1^3 0 1^3 0^3 1^3 0^7 1^3 0^5 1^3 0^133 1^3 0^14641 1 0 1^3 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="cycle">
+  <span class="eyebrow">Structure</span>
+  <h2>Cycles: a prefix and a gap</h2>
+<p>Watch the tape at the moments the head is in state E on a new cell at the right end. At the start of each cycle it reads <code>P <span style="color:var(--accent)">1^3 0^K</span> 1 E&gt;0</code>: a short <b>prefix</b> P, three 1s and a <b>gap</b> of K zeros. The first gaps are 9, 15, 27, 51, 99, 197, 389 and 773: each is nearly twice the one before.</p>
+<p>Cycle 5, at step 3,194: <code>1^2 0^3 1^3 0^3 1^3 0^3 1 0 1^3 0 1^3 0 1^3 0 1^3 0^99 1 E&gt;0</code>.</p>
+</section>
+<section id="fill">
+  <span class="eyebrow">The basic move</span>
+  <h2>Filling the gap</h2>
+<p>Within a cycle the right end reads <code>0^z 1 0 1 1 1 0 (10)^m 1 E&gt;0</code>. One sweep runs left to the gap and back. It takes four 0s off the gap and adds four <code>10</code> pairs, z &rarr; z &minus; 4 and m &rarr; m + 4, in 4m + 40 steps. The prefix is not touched. Lean proves this for all z, m and every prefix (<code>fill</code>, <code>fills</code>), and checks that the run from blank tape is in this form at step 3,224.</p>
+<p>So a gap of K costs about K/4 sweeps and K<sup>2</sup>/2 steps, and each cycle takes about four times as many steps as the one before.</p>
+</section>
+<section id="passes">
+  <span class="eyebrow">The emergent behaviour</span>
+  <h2>Two passes and a hierarchy of gaps</h2>
+<p>When fewer than four 0s are left, one pass runs to the left end of the tape and one runs back. They rewrite the prefix and turn the <code>(10)^m</code> run into the next gap, K' = 2K &minus; c. The prefix also holds gaps. They grow more slowly, by about 1.36 to 1.5 per cycle, and new ones appear while old ones merge. At cycle 28 (K = 798,641,935) the prefix is 37,199 cells long and ends <code>0^313 1^3 0^711 1^3 0^36103</code>.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">The danger</span>
+  <h2>Where it could halt</h2>
+<p>The only halting transition is F reading 1, and F is entered only from B reading 1. So the machine halts exactly when B meets <code>1 1</code>. The fill sweeps never do this. It would have to happen during a pass over the prefix, whose contents keep changing in an irregular way.</p>
+</section>
+<section id="proved">
+  <span class="eyebrow">Status</span>
+  <h2>What is proved</h2>
+<p><b>Lean, kernel</b>: the fill sweep and k sweeps at once, with exact step counts, and the run from blank tape reaching them (<code>lean/Macro.lean</code>).</p>
+<p><b>Lean, native_decide</b>: no halt in the first 10<sup>7</sup> steps (<code>lean/Blank.lean</code>).</p>
+<p><b>Computed</b>: 28 cycles and 1.06&middot;10<sup>17</sup> steps without a halt (<code>c/cyc17.c</code>, which agrees with plain simulation through cycle 12).</p>
+<p><b>Open</b>: the passes over the prefix, and so the question.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -231,18 +261,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <button type="button" data-f="open" aria-pressed="false">Open</button>
   </div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Gadgets.lean</code>, <code>lean/Macro.lean</code></div></div><div><b>The fill sweep</b><p>At an E-record <code>L 0^(z+4) 1 0 1 1 1 0 (10)^m 1 E&gt;0</code> with blank tape to the right, one sweep gives <code>L 0^z 1 0 1 1 1 0 (10)^(m+4) 1 E&gt;0</code> in 4m + 40 steps, for all z, m and every tape L (<code>fill</code>, from <code>fill_raw</code> by <code>bbtools.symtm.prove</code>). k sweeps at once take <code>fcost k m</code> = k(4m + 40) + 8k(k &minus; 1) steps (<code>fills</code>).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Macro.lean</code></div></div><div><b>The run follows it</b><p>From blank tape the machine is at the fill record with z = 95, m = 2 after 3,224 steps (<code>reach3224</code>, list simulator evaluated by the kernel), and 23 sweeps and 5,152 steps later at z = 3, m = 94 (<code>reach_fill_end</code>).</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 83,723 cells have been visited and 34,684 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.508).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/cyc17.c</code></div></div><div><b>No halt in 28 cycles, 1.06&middot;10<sup>17</sup> steps</b><p><code>c/cyc17.c</code> simulates directly but rewrites the tape for all fill sweeps but the last two at once. Its cycle starts (step, K, whole prefix) agree with plain simulation through cycle 12 (25,164,855 steps). It ran to cycle 28 with no halt: 106,309,693,328,363,073 steps, K = 798,641,935, 9.99&middot;10<sup>9</sup> steps simulated directly, before it ran out of its 1.5&middot;10<sup>9</sup>-cell tape.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code></div></div><div><b>Shape of the cycles</b><p>K goes 9, 15, 27, 51, 99, 197, 389, 773, &hellip;, 798641935: K' = 2K &minus; c, where c is a few tens at first and grows with the prefix. The prefix (37,199 cells at cycle 28) alternates between two head forms. Its tail holds gaps of 0s, at cycle 28 <code>0^313 1^3 0^711 1^3 0^36103</code>; the largest grows by about 1.48 per cycle and the next ones by 1.36 to 1.5. New gaps appear and old ones merge. It halts only on <code>B&gt;1 1</code> (B1 goes to F, F1 halts), which would have to happen in one of the passes over the prefix.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The fill phase is understood and proved. The passes that rewrite the prefix are not: they act like a hierarchy of counters whose gaps grow at incommensurate rates, and no invariant is known that keeps <code>B&gt;1 1</code> away.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA--- 1000000000</code></pre>
+python3 holdouts/1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA---/py/gen_gadgets.py      # rewrites lean/Gadgets.lean
+gcc -O2 -o cyc17 holdouts/1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA---/c/cyc17.c &amp;&amp; ./cyc17 2000000 12 nojump &amp;&amp; ./cyc17 2000000 12
+./cyc17 1500000000 60      # 28 cycles, about 2 minutes, 1.5 GB</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -79,7 +79,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves two of the machine's fast moves and its halting situation (kernel) and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
+      <p><b>What it does.</b> The tape has two regular parts. On the left a 26-cell word is repeated (<code>w = 1111 000 1 000 1 000 111111 0 1 000</code>), and the number of copies grows by one every few hundred thousand steps late in the run. On the right a finer pattern of short blocks grows too. Between them is an irregular boundary region where the head does its work in zig-zags of 50 to 100 cells; it never sweeps the whole tape in one go.</p>
+      <p><b>Where a halt would come from.</b> Only F reading a 1 halts, and F is entered from E reading a 0; so <code>1 0 D&gt;1</code> halts (<code>halt_D</code>). In the first 2&middot;10<sup>6</sup> steps D reads a 1 233,188 times, never with <code>1 0</code> to its left.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -102,6 +104,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Every way to a halt</h3>
+        <p>Two steps before any halt the machine is in <code>1 0 D&gt;1</code>; no other configuration halts within three steps.</p>
+        <p class="where"><code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Two fast moves</h3>
+        <p>E moving right erases a run of 1s (<code>erase</code>); D moving left turns each <code>100</code> into <code>111</code> (<code>fill</code>), for any length.</p>
+        <p class="where"><code>erase</code>, <code>fill</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The halting situation</h3>
+        <p><code>1 0 D&gt;1</code> halts after two steps; F is entered only from E reading a 0.</p>
+        <p class="where"><code>halt_D</code>, <code>lean/Rules.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -127,12 +144,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.384). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.378).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Never close to halting</h3>
+        <p>In the first 10<sup>6</sup> steps F reads a 0 86,468 times, and in the first 2&middot;10<sup>6</sup> steps D never reads a 1 with <code>1 0</code> to its left.</p>
+        <p class="where"><code>py/near_halt.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Two periodic regions</h3>
+        <p>Late in the run (10<sup>6</sup> to 2&middot;10<sup>6</sup> steps) the left part of the tape is the 26-cell word w repeated 12 to 20 times (at the moments the head reaches a new cell on the left), then an irregular region, then a right part made of short blocks.</p>
+        <p class="where"><code>py/turns.py 2e6 L</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The next step is the rule by which the boundary region turns right-hand material into copies of w.</p>
       </div>
     </div>
   </section>
@@ -140,7 +167,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LB_1RC0LD_0LA1RD_1LC1LE_1LF0RE_1LD---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LB_1RC0LD_0LA1RD_1LC1LE_1LF0RE_1LD--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LB_1RC0LD_0LA1RD_1LC1LE_1LF0RE_1LD--- 1000000000
+python3 holdouts/1RB0LB_1RC0LD_0LA1RD_1LC1LE_1LF0RE_1LD---/py/route.py   # writes lean/Route.lean
+python3 holdouts/1RB0LB_1RC0LD_0LA1RD_1LC1LE_1LF0RE_1LD---/py/rules.py   # writes lean/Rules.lean
+python3 holdouts/1RB0LB_1RC0LD_0LA1RD_1LC1LE_1LF0RE_1LD---/py/near_halt.py 1e6</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LB_1RC0LD_0LA1RD_1LC1LE_1LF0RE_1LD---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

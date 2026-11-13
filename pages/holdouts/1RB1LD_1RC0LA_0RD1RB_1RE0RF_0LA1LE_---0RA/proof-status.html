@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open.</b> The tape is a block <code>(100)^n</code> followed by blocks of ones separated by <code>00</code>, almost all of length 6j+1 (7, 13, 19, ...) and grouped by length: a counter with one digit per length, rewritten as the head sweeps the tape. The rule of one sweep has not been extracted, so there is no map to iterate and no heuristic. Direct simulation: no halt in 10<sup>11</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 30,887 cells have been visited and 19,819 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in 10<sup>11</sup> steps</h3>
+        <p>Direct simulation from blank tape.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -131,8 +136,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>The counter's rule</h3>
+        <p>How one sweep changes the block multiplicities and the <code>(100)</code> block; see the README's For later.</p>
       </div>
     </div>
   </section>
@@ -140,7 +145,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1RC0LA_0RD1RB_1RE0RF_0LA1LE_---0RA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1RC0LA_0RD1RB_1RE0RF_0LA1LE_---0RA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1RC0LA_0RD1RB_1RE0RF_0LA1LE_---0RA 1000000000
+gcc -O2 -o /tmp/tmrun tools/c/tmrun.c &amp;&amp; /tmp/tmrun 1RB1LD_1RC0LA_0RD1RB_1RE0RF_0LA1LE_---0RA 100000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LD_1RC0LA_0RD1RB_1RE0RF_0LA1LE_---0RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

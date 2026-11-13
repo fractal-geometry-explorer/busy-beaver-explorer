@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open, reduced in Lean to a Collatz-like map, probviously non-halting.</b> The tape is always, at the end of a pass, one block of n ones. The pass sends n to f(n), where f depends on the power of two dividing n+2; the machine halts exactly when the orbit of 4 reaches an n with n+2 a power of two. All of this is proved in Lean for every n (<code>halts_iff</code>, <code>f_none_iff</code>), and the orbit of 4 avoids the halting values for 10,000 passes in Lean and 200,000 in exact arithmetic. The low bits of the orbit behave like random bits, and on that model the chance of ever halting is about 2<sup>&minus;80,000</sup>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Blank tape reaches P(4)</h3>
+        <p>After 9 steps the tape is a single block of four 1s with the head, in state B, on the blank cell to its right: P(4) = <code>0^inf 1^4 B&gt; 0^inf</code>.</p>
+        <p class="where"><code>blank_P4</code>, <code>lean/Pass.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Every pass, for every n</h3>
+        <p>Write X(a, b, c) for <code>0^inf 1^a E&gt; 0 1^b 0 1^c 0^inf</code>. P(n+1) reaches X(0, n, 2), and from X(0, b, c) the machine halts or reaches P(g(b, c)) with g(0, c) = c+2 (c even) or (3c+9)/2 (c odd), g(2i+2, c) = c+3i+5, g(1, c) = halt, g(2i+3, c) = g(i, c+i+4). So the pass from P(n) ends at P(f(n)), f(n) = g(n&minus;1, 2), or halts. Proved for all n from 17 symtm rules (an odd zigzag, an even zigzag, their ends) and inductions.</p>
+        <p class="where"><code>pass</code>, <code>xrun</code>, <code>lean/Macro.lean</code>; the rules in <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halts iff the orbit of 4 hits a halting value</h3>
+        <p>The machine halts from blank tape if and only if the orbit of 4 under f reaches <code>none</code>; and f(n) is <code>none</code> exactly when n+2 is a power of two, at least 4.</p>
+        <p class="where"><code>halts_iff</code>, <code>f_none_iff</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The odd pass in closed form</h3>
+        <p>P(2k+3) reaches P(3k+7): n &#8614; (3n+5)/2 on odd n (the first, separate proof).</p>
+        <p class="where"><code>odd_pass</code>, <code>lean/Pass.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -110,6 +130,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10,000 passes</h3>
+        <p>The orbit of 4 under the Lean function f is evaluated by compiled code for 10,000 passes and never reaches <code>none</code>.</p>
+        <p class="where"><code>orbit_10000</code>, <code>no_halt_10000</code>, <code>lean/Macro.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -119,20 +144,34 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 26,681 cells have been visited and 26,679 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Closed form, and 200,000 passes</h3>
+        <p>Writing n+2 = 2<sup>j</sup>m with m odd, f(n) = 2<sup>j</sup>m + (m+2j&minus;1)/2, except m = 1 (halt) and m = 3 with j even and &#8805; 2 (f(n) = 9&middot;2<sup>j&minus;1</sup> + 3j/2 + 3); checked against g for every n &lt; 200,000 and against direct simulation of passes for n &#8804; 3000. Iterating f from 4 for 200,000 passes (exact integers) never halts; n then has 80,223 bits.</p>
+        <p class="where"><code>holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/study.py</code>, <code>c/passmap.c</code>, <code>py/orbit.py --check</code></p>
+      </div>
+      <div class="card">
+        <h3>The low bits look random</h3>
+        <p>Over the 200,000 passes the counts of j = v<sub>2</sub>(n+2) follow the geometric law 2<sup>&minus;(j+1)</sup> (99,772 / 100,000 for j = 0, 50,060 / 50,000 for j = 1, 25,207 / 25,000 for j = 2, &hellip;; largest j = 17), and n grows by e<sup>0.2780</sup> per pass against e<sup>0.2783</sup> predicted for random low bits.</p>
+        <p class="where"><code>holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/study.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.497).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Only two kinds of pass can lead to a halt</h3>
+        <p>A short argument (not in Lean): f(n)+2 = 2<sup>k</sup> needs m(2<sup>j+1</sup>+1) + 2j + 3 = 2<sup>k+1</sup> (or the m = 3 exception, which never gives a power of two). Since 2<sup>j+1</sup> &#8801; &minus;1 modulo 2<sup>j+1</sup>+1, the powers of two are &#177;2<sup>i</sup> there, and 2j+3 is one of these only for j = 2 (9m+7 = 2<sup>k+1</sup>) and j = 3 (17m+9 = 2<sup>k+1</sup>). So halting values have about 1.3 preimage-or-self per binary length, among 2<sup>L</sup> numbers.</p>
+        <p class="where"><code>holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/study.py</code> (lists them for k &#8804; 40)</p>
+      </div>
+      <div class="card">
+        <h3>Probviously never halts</h3>
+        <p>The orbit gains about 0.40 bits per pass, so it spends about 2.5 passes per binary length, each with a chance of about 2<sup>&minus;L</sup> to land on one of those values. From 80,223 bits on, the expected number of halts left is about 2<sup>&minus;80,000</sup>. No invariant forbidding a halt is known: the residues of the orbit look equidistributed.</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Exactly when the orbit 4, 8, 13, 22, 28, &hellip; of f (defined and proved in Lean) reaches an n with n+2 a power of two. This is a Collatz-type question; a proof of non-halting would need control of the low bits of the orbit forever.</p>
       </div>
     </div>
   </section>
@@ -140,7 +179,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB 1000000000
+gcc -O2 -o passmap holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/c/passmap.c &amp;&amp; ./passmap 1 3000 | python3 holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/orbit.py --check
+python3 holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/study.py 200000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

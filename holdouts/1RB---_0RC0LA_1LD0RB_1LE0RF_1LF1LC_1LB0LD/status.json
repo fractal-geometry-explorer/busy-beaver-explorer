@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G04",
+ "generated": false,
+ "group": "bouncer with a chaotic wall",
  "title": "What is known about 1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD",
  "description": "Proof status of the six-state BB(6) holdout 1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD.",
  "machine": "1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The head bounces between the left end, where a block grows by one 6-cell word every two sweeps, and a chaotic wall in the middle that very slowly eats an older block; the wall never repeats and its long-term behaviour is unknown."
  ],
  "claims": [
   {
@@ -46,6 +46,12 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "A bouncer with a slowly eating wall",
+   "text": "At the left-end visits in state F the first block <code>(110111)^n</code> grows by one word every two sweeps (n = 34,521 at 1.9&middot;10<sup>10</sup> steps) and the block behind the wall goes from 1,461 to 1,455 words between 7&middot;10<sup>7</sup> and 1.9&middot;10<sup>10</sup> steps; the wall takes 33,482 different forms in the 33,482 sweeps after 8&middot;10<sup>7</sup> steps up to 5&middot;10<sup>9</sup>.",
+   "where": "<code>python3 py/view.py 2e10 4000</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
@@ -55,11 +61,16 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD 1000000000"
+  "python3 holdouts/1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD/py/view.py   # the views of the run quoted in the README"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The head bounces between the left end, where a block grows by one 6-cell word every two sweeps, and a chaotic wall in the middle that very slowly eats an older block; the wall never repeats and its long-term behaviour is unknown.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1461 &rarr; 1455",
+    "text": "words of the old block eaten by the wall in 2&middot;10<sup>10</sup> steps."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -69,11 +80,6 @@
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +91,15 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "wall",
+    "eyebrow": "Macro structure",
+    "heading": "A growing block and a chaotic wall",
+    "html": [
+     "<p>The tape is the 6-cell word <code>110111</code> repeated, in a few long blocks. Each sweep, the head runs from the left end across the first block into a <em>wall</em> of a few dozen irregular cells, rewrites it and comes back. Every two sweeps the first block is one word longer.</p>",
+     "<p>Behind the wall lies an older block of about 1,460 words, which used to be the growing block until the wall jumped to the front at 6.9&middot;10<sup>7</sup> steps. The wall eats it very slowly and irregularly: 1,461 words then, 1,455 after 1.9&middot;10<sup>10</sup> steps. The wall never takes the same form twice, so nothing like a finite-state argument applies; what happens when the old block is used up is unknown.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +113,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A bouncer: the block at the left end grows by one word every two sweeps, and a chaotic, never-repeating wall in the middle eats the previous block (m = 1461 down to 1455 in 2·10^10 steps).",
+ "decision": "open"
 }

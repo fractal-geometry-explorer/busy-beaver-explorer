@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and the run is now an explicit map.</b> The run is a base-3 countdown on blocks of <code>1000</code>, read from the head outwards. Separators pass borrows along like digits. The growing block at the right end becomes the new timer at each overflow, and walls of irregular separators hold borrows back. Thirteen tick, borrow and overflow rules are proved in Lean. The map reproduces every tick boundary of the first 10<sup>11</sup> steps exactly, and runs on to 1.6&middot;10<sup>18</sup> steps without a halting event.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The ticks</h3>
+        <p>From <code>L c (1000)^(x+1) 10100 E&gt; 0 (1110)^y 1^6 0^&infin;</code>, the machine reaches the same form with c replaced by 10 and y by y+4 (<code>tick_c</code>). With 10 it reaches 00, with x one smaller (<code>tick_10</code>). With 00 the timer loses one and a borrow starts (<code>tick_00</code>). This holds for every x, y and every tape L. The separators <code>10100</code> and <code>1</code> before the timer: 10100 becomes 1, and 1 becomes <code>10110</code> with the timer and the block beyond each losing one (<code>tick_d</code>, <code>tick_1</code>). The separators <code>10100</code> and <code>1</code> before the timer: 10100 becomes 1, and 1 becomes <code>10110</code> with the timer and the block beyond each losing one (<code>tick_d</code>, <code>tick_1</code>).</p>
+        <p class="where"><code>tick_c</code>, <code>tick_10</code>, <code>tick_00</code>, <code>tick_d</code>, <code>tick_1</code>, <code>tick_d</code>, <code>tick_1</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The borrow</h3>
+        <p>A borrow (the head in state B at <code>(1000)^y 101 B&gt; 110</code>) passes a separator 00 and takes one unit from the block to its left (<code>pass_00</code>). It stops at c, which becomes 10 and gives the unit back (<code>stop_c</code>), or at 10, which becomes 00 (<code>stop_10</code>). On the way back right, each <code>(1110)^y 1^6</code> becomes <code>(1000)^y c</code> (<code>sweep</code>), and at the end the head turns into the next tick (<code>arrive</code>). A borrow stops at <code>10100</code>, which becomes 1 (<code>stop_d</code>), and at <code>1</code>, which becomes <code>10110</code> and costs the block beyond one (<code>stop_1</code>). A borrow stops at <code>10100</code>, which becomes 1 (<code>stop_d</code>), and at <code>1</code>, which becomes <code>10110</code> and costs the block beyond one (<code>stop_1</code>).</p>
+        <p class="where"><code>pass_00</code>, <code>stop_c</code>, <code>stop_10</code>, <code>sweep</code>, <code>arrive</code>, <code>stop_d</code>, <code>stop_1</code>, <code>stop_d</code>, <code>stop_1</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Overflow with one block</h3>
+        <p>From <code>0^&infin; 10000 (1000)^(x+2) 10100 E&gt; 0 (1110)^(y+1) 1^6 0^&infin;</code> the machine reaches <code>0^&infin; 110101010 (1000)^(x+1) 00 (1000)^(y+3) 10100 E&gt; 0 (1110)^8 1^6 0^&infin;</code>: the borrow passes the far end and the growing block becomes the new timer. For all x and y.</p>
+        <p class="where"><code>overflow_1</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +134,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 96,734 cells have been visited and 35,775 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The countdown rule matches the run</h3>
+        <p>Write N = 3x + e for each block after the first, where x is its length and e is 2, 0 or 1 when the separator on its left is c, 10 or 00. Each tick sends a borrow into the timer. A borrow lowers N by 2 and moves on to the block on the left exactly when N mod 3 goes from 1 to 2. In the first 2&middot;10<sup>8</sup> steps, all 1,612 ticks that stay inside blocks with standard separators follow this rule exactly, and in all 541 ticks whose borrow reaches past them, the rule says it should.</p>
+        <p class="where"><code>py/check_countdown.py</code></p>
+      </div>
+      <div class="card">
+        <h3>An exact map reproduces the run</h3>
+        <p>Read the tape left of the marker 10100 from the head outwards. The run is then a map on (y, word): the ticks as rewrites of cells, and <em>events</em> (the timer or the block next to it running out, a borrow at the far end), which are computed by running the machine on a copy with every block cut to 40 copies and lifted back. Each event is computed with two cuts, which must agree. In the first 10<sup>11</sup> steps the map reproduces all 127,803 tick boundaries of the machine exactly: y, the word and the step count. 185 of these moves are events.</p>
+        <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/py/macro.py</code>, <code>py/check_macro.py</code>, <code>c/lword.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The map runs on to 1.6&middot;10<sup>18</sup> steps</h3>
+        <p>From the first tick boundary, the map runs 340,407,518 ticks to step 1,620,290,316,736,857,825 with 442 events. Both cuts agree at every event, and no cut copy halts. At the end the list (timer first) is 41,152,831, 513,803,810, 148,399,482, 164,597,001, 57,486,640, 28,532,194, 22,038,808, 1,066,527, 760,322, 342,766, 332,654, 80,670, 13,737, 4,158, 1.</p>
+        <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/py/longrun.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The overflow formulas</h3>
+        <p>Three kinds of overflow follow exact formulas at every instance the map meets. O1, the block next to the timer empties: (y; x<sub>1</sub>, x<sub>2</sub>, &hellip;) &rarr; (8; y+2, x<sub>1</sub>&minus;1, x<sub>2</sub>&minus;1, &hellip;), 15 times. O2, the timer empties: (y; 0, x<sub>1</sub>, &hellip;) &rarr; (8; y+2, x<sub>1</sub>&minus;1, &hellip;), 27 times. O3, every separator is 00 and a borrow passes the far end: every block loses one and y+2 is the new timer, 35 times. O1 and O2 leave the separators <code>10110</code> and <code>1</code> behind. These form a <em>wall</em> that passes no borrow until it wears away.</p>
+        <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/py/longrun.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +162,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.511).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>The far end cannot halt while the last block lasts</h3>
+        <p>A borrow arriving at the far end halts the machine when the far end (the left end of the tape) reads <code>111</code> or one of 23 other words of up to 7 cells. The 119 far ends seen in 10<sup>11</sup> steps are closed under borrow arrivals, and none of them halts. This assumes that a far end behaves the same behind any block of 10 or more copies.</p>
+        <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/py/farend.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Why it is hard</h3>
+        <p>Block i, counted back from the timer, loses about (2/3)&middot;3<sup>-i</sup> per tick, and walls hold borrows back, so the far end is reached exponentially rarely. Halting is only possible at an event, once the far end has changed shape.</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The open part is what the list and its walls look like once the last blocks have worn away, and whether a far end like <code>111</code> can then appear.</p>
       </div>
     </div>
   </section>
@@ -140,7 +184,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE--- 1000000000</code></pre>
+gcc -O2 -o lword holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/lword.c &amp;&amp; ./lword 1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE--- 100000000000 &gt; rows2.txt
+python3 holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/py/check_macro.py verify &lt; rows2.txt
+python3 holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/py/farend.py &lt; rows2.txt
+python3 holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/py/longrun.py 3000 verify
+gcc -O2 -o turns holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c &amp;&amp; ./turns 1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE--- 200000000 100000000 30 | python3 holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/py/check_countdown.py</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

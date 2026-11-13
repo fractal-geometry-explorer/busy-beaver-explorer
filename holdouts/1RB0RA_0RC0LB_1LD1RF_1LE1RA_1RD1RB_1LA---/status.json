@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The run is a regular round structure (the total length of the blocks doubles each round, a round takes about four times as long as the one before); one round step is proved in Lean for all counts, the rounds are observed, not proved, and nothing found so far says whether the halting transition (F reading 1) can ever fire."
  ],
  "claims": [
   {
@@ -34,6 +34,12 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "The block cycle, for all counts",
+   "text": "With the head in C at the right end of <code>b^(n+1) 1 a^(m+1) 1 c 1 a^(k+1) 0000 c</code> (a = 11010, b = 10000, c = 10), the machine turns the last b into an a and lengthens the last run of a by one in 50k + 50m + 287 steps, without reading the tape left of the block: the bouncer's elementary move.",
+   "where": "<code>sweep</code>, <code>lean/Rules.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 44,483 cells have been visited and 14,559 of them hold a 1.",
@@ -46,9 +52,33 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in 10<sup>12</sup> steps",
+   "text": "The cycle accelerator of the shared tools (<code>bbtools.cycles</code>, blocks of 5 cells; every jump applies a one-cycle rule it proved symbolically) runs the machine 10<sup>12</sup> steps (13 rounds and part of the 14th) without a halt.",
+   "where": "<code>py/rounds.py</code>, <code>tools/py/bbtools/cycles.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No closed tape language from windows up to 7",
+   "text": "<code>bbtools.ctl</code> with windows of K = 2 to 6 cells closes but allows F to read a 1 (6 to 192 abstract halting configurations); with K = 7 it finds no closed set within its round limit. The n-gram CPS decider (widths 3 to 7, with history and LRU augmentations) also fails.",
+   "where": "<code>tools/py/bbtools/ctl.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Rounds: the new block is the sum of the old ones",
+   "text": "At the start of each round the tape is a small gadget at the left end, then blocks <code>b^n1 c 00 b^n2 c 00 ... b^nk</code>. During the round the bouncer works from the right, turning each block into a's one b per pair of sweeps while a tail of a's at the right end grows by one per b; at the end of the round a pass from the left turns everything back into b's and the tail becomes a new block. So the new block is (up to a few cells) the sum of all the blocks, the total doubles: 3, 21, 61, 152, 341, 720, 1491, 3038, 6138, 12339, 24743, 49564, 99212. In some rounds (2&middot;10<sup>6</sup>, 2.6&middot;10<sup>9</sup> steps) the new block absorbs the previous largest one instead of standing next to it. Observed in the first 6.5&middot;10<sup>11</sup> steps, not proved.",
+   "where": "<code>py/rounds.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Why the left side grows like a logarithm",
+   "text": "The head reaches the far left only once per round, where the gadget (a small counter) gains about two cells; rounds take four times longer each, so the left reach grows like log<sub>4</sub> of the step count. The right side grows by 5 cells every two sweeps: a bouncer, square-root growth.",
+   "where": "<code>tools/c/tokrun.c</code>"
+  },
+  {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "title": "Does it halt?",
+   "text": "Not known. The machine halts only when F reads a 1; F is entered (from C reading a 1) about 2% of all steps and in the first 2&middot;10<sup>8</sup> steps (4,004,892 visits) it always had <code>0101</code> to its left. Whether a round can ever end in a configuration where it reads a 1 depends on the left-end gadget and on how blocks merge, which are not understood yet.",
    "where": ""
   }
  ],
@@ -86,6 +116,43 @@
   },
   "sections": [
    {
+    "id": "words",
+    "eyebrow": "What the tape is made of",
+    "heading": "Blocks of 10000 and 11010",
+    "html": [
+     "<p>Read in words of five cells, the tape is very regular. Writing <code>a = 11010</code>, <code>b = 10000</code> and <code>c = 10</code>, the tape at the start of the round at step 10,278,686,777 is</p>",
+     "<div class=\"config\">1 c 1 a 00 b 1 a 00 b^6 1 a 00 b^7 c 00 b^4 c 00 b^12 c 00 b^26 c 00 b^49 c 00 b^287 c 00 b^387 c 00 b^780 c 00 b^1554 c 00 b^9306 c 00 b^12415 1 a 00 c 00 c C&gt;</div>",
+     "<p>a short gadget at the left end, then a list of <em>blocks</em> <code>b^n</code> separated by <code>c 00</code>, and the head (in state C) at the right end. Everything the machine does is a slow transformation of this list.</p>"
+    ]
+   },
+   {
+    "id": "bouncer",
+    "eyebrow": "The elementary move",
+    "heading": "Two sweeps turn one b into an a",
+    "html": [
+     "<p>Inside a round the head bounces between the right end and the block it is working on. Each pair of sweeps turns the last <code>b</code> of that block into an <code>a</code> and adds one <code>a</code> to a tail at the right end, five cells further out. In Lean (<code>sweep</code>, all counts):</p>",
+     "<div class=\"config\">b^(n+1) 1 a^(m+1) 1 c 1 a^(k+1) 0000 c C&gt; &nbsp;&rarr;&nbsp; b^n 1 a^(m+2) 1 c 1 a^(k+2) 0000 c C&gt; &nbsp; (50k + 50m + 287 steps)</div>",
+     "<p>When a block is used up the head starts on the next one to the left, and the tail keeps growing: by the end of the round it has gained one <code>a</code> for every <code>b</code> on the tape.</p>"
+    ]
+   },
+   {
+    "id": "rounds",
+    "eyebrow": "The rule from one round to the next",
+    "heading": "Each new block is the sum of the old ones",
+    "html": [
+     "<p>When all blocks are a's, the head runs to the left end, steps the gadget there, and a pass back turns the a's into b's again; the tail becomes a new block. The new block is, up to a few cells, the total of all the blocks before it, so the total doubles every round (totals 3, 21, 61, 152, 341, 720, 1491, 3038, 6138, 12339, 24743, 49564, 99212 in the first 6.5&middot;10<sup>11</sup> steps). Since each round sweeps a tape twice as long twice as many times, it takes about four times as long as the last one.</p>",
+     "<p>A worked example: the round starting at step 2,568,368,685 has blocks 11, 4, 12, 26, 49, 287, 387, 780, 1554, 9305 (sum 12,415), and the next round starts with a new block of exactly 12,415. Now and then (the rounds at 2&middot;10<sup>6</sup> and 2.6&middot;10<sup>9</sup> steps) the new block swallows the largest old block instead, which is why 9305 is about three times 3096.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Can it halt?",
+    "heading": "Only F reading a 1 stops it",
+    "html": [
+     "<p>The only halting transition is F on a 1. F is entered after C reads a 1, about once every 50 steps, and so far always with <code>0101</code> to its left and a 0 under the head. The regular part of a round (the block cycle above) never brings F onto a 1; a halt would have to come from the irregular moments: the turn at the left end, and the merging of blocks. These are not understood yet, so the question stays open; there is no probabilistic picture either way.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +165,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A stack of blocks of b = 10000 that a bouncer turns, one cell-block per two sweeps, into a = 11010 and back; each round adds a new block as long as all the others together, so the total doubles every round.",
+ "family": "block-doubling counter + bouncer",
+ "decision": "open"
 }

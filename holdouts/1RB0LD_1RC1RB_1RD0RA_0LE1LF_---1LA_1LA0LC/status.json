@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G08",
  "title": "What is known about 1RB0LD_1RC1RB_1RD0RA_0LE1LF_---1LA_1LA0LC",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LD_1RC1RB_1RD0RA_0LE1LF_---1LA_1LA0LC.",
@@ -12,7 +12,9 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves the two sweeps over the <code>(01)</code> stretches and the situations that lead to a halt (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.",
+  "<b>What it does.</b> At the left end the tape reads <code>(01)<sup>k&#8321;</sup> 1 (01)<sup>k&#8322;</sup> 1 (01)<sup>k&#8323;</sup> &hellip;</code>, a list of numbers k, most of them odd (3 is the most common), with rare defects such as <code>10100</code>. At the right end the same list appears in the words <code>1110</code>, <code>1101</code>, <code>1011</code>, <code>0111</code>. The sweeps translate between the two forms; the numbers near the left end change irregularly from trip to trip (stretches merge and split), while the list further right is carried along almost unchanged.",
+  "<b>Where a halt would come from.</b> Only E reading a 0 halts; E is entered from D reading a 0, so <code>0 D&gt;0</code> halts. In 2&middot;10<sup>8</sup> steps E always reads a 1."
  ],
  "claims": [
   {
@@ -46,10 +48,28 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules",
+   "text": "Going right, B turns each <code>1010</code> into <code>1101</code> (four steps a copy); going left, D with a 1 ahead turns each <code>1101</code> into <code>0101</code> (six steps a copy).",
+   "where": "<code>right_B</code>, <code>left_D</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The halting situations",
+   "text": "<code>0 D&gt;0</code> halts after one step, <code>0 0 A&gt;1</code> after two, <code>0 C&gt;1 1</code> after three.",
+   "where": "<code>halt_D</code>, <code>halt_A</code>, <code>halt_C</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "E never reads a 0 in 2&middot;10<sup>8</sup> steps",
+   "text": "In the first 2&middot;10<sup>8</sup> steps the machine is in state E 17,398,306 times, every time on a 1: the halting transition E0 is never close to firing in a way the run shows.",
+   "where": "<code>c/visits.c</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "where": "",
+   "text": "Not known. The list of numbers k changes at its left end in a way nobody has described; NGramCPS with n &le; 10 leaves it open."
   }
  ],
  "check": [
@@ -58,7 +78,7 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LD_1RC1RB_1RD0RA_0LE1LF_---1LA_1LA0LC 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. At its left end this machine keeps a list of numbers, written as stretches of 0 1 0 1 between single 1s, and the numbers near the end change from trip to trip. This page runs it in your browser.",
   "facts": [
    {
     "level": "trusted",
@@ -86,6 +106,28 @@
   },
   "sections": [
    {
+    "id": "list",
+    "eyebrow": "Macro structure",
+    "heading": "A list written in stretches of 01",
+    "html": [
+     "<p>Stop the simulator when the head reaches the left end. The tape reads like <code>(01)<sup>25</sup> 1 (01)<sup>17</sup> 1 (01)<sup>35</sup> 1 (01)<sup>11</sup> 1 (01)<sup>3</sup> &hellip;</code>: a list of numbers, each stretch of <code>01</code>s closed by a single 1. Most numbers are odd, and 3 is by far the most common.</p>",
+     "<p>Going right, B rewrites each <code>1010</code> as <code>1101</code>, four steps a copy, so at the right end the list appears in the words <code>1110</code>, <code>1101</code>, <code>1011</code>, <code>0111</code>:</p>",
+     "<pre>B&gt; 1 0 1 0 1 0 1 0      \n1 1 0 1 1 1 0 1 B&gt; 0    (8 steps later)</pre>",
+     "<p>Going left, D (with a 1 ahead) turns each <code>1101</code> back into <code>0101</code>, six steps a copy (Lean: <code>right_B</code>, <code>left_D</code>).</p>",
+     "<p>The far part of the list is carried along almost unchanged, but near the left end stretches merge and split from trip to trip. That part looks random.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The halting condition",
+    "heading": "E must read a 0",
+    "html": [
+     "<p>Only E reading a 0 halts; E is entered from D reading a 0 and moving left:</p>",
+     "<pre>0 D&gt; 0      \nE&gt; 0 0      (E on a 0: halt)</pre>",
+     "<p>E is entered 17 million times in the first 2&middot;10<sup>8</sup> steps, always on a 1.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +140,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Two-sided bouncer: at the left end the tape is a list of stretches (01)<sup>k</sup>, k mostly odd, separated by single 1s; the stretches near the left end merge and split from trip to trip while the rest is carried along. Open.",
+ "family": "list of (01)-stretches separated by single 1s, two-sided bouncer",
+ "decision": "open"
 }

@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G06",
  "title": "What is known about 1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA---.",
@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The run is an exact <em>pass map</em>: sampled at the left end, the tape is a counter and a list of blocks <code>(10)^m</code>, and each pass changes it only at the counter and at one frontier, by about a dozen rules with exact step counts. The map is checked pass by pass to 1.1&middot;10<sup>9</sup> steps, and an accelerated simulator built on it goes to 7.9&middot;10<sup>10</sup> steps. Lean proves the main rule (a block grows by 4 while the next one shrinks) for every list of blocks. The other rules are not yet proved, and the long-term behaviour of the list is not known."
  ],
  "claims": [
   {
@@ -40,40 +40,72 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules of a pass",
+   "text": "<code>left_end</code>, <code>left_block</code>, <code>right_end</code> and the six rules <code>pass_start</code>, <code>pass_right</code>, <code>pass_front</code>, <code>pass_sep</code>, <code>pass_left</code>, <code>pass_end</code>: the pieces of one pass from the left end to the frontier and back, each for every block length and every surrounding tape.",
+   "where": "<code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The block-growing pass, for every list",
+   "text": "With <code>S = 1 1 1 0 1</code>, <code>blk n = (10)^(n+3) S</code> and <code>front p q = (10)^(p+3) 1 (10)^(q+3) 1 1 1 0</code>: for every c, p, q, every list of blocks m1..mk and every tape R, <code>0^inf A&gt; 1 0 0 blk(c+1) blk(m1)...blk(mk) front(p, q+1) R</code> reaches <code>0^inf A&gt; 1 0 0 blk(c) blk(m1)...blk(mk) front(p+4, q) R</code>. This is rule c of the pass map. The proof is by induction over the list.",
+   "where": "<code>pass</code>, <code>lean/Pass.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The pass map",
+   "text": "Sampled at each arrival at the left end in state A, the tape is <code>a 0 a^c</code> and a list of pairs <code>1^k a^n</code> (a = 10). One pass changes only the counter c and the first place where the list stops alternating separators (2,1) and blocks (1,m). The rules (counter phase, block grows, next block, carry, timer, rebuild, and a few rare ones) come with step formulas such as 6c+20F+6M+6p+56. Replaying every one of the 16,064 passes from step 440 to step 1,099,824,330 gives the plain machine's tape and step count exactly. The rare rules h, i and f2 are checked on the tape only.",
+   "where": "<code>py/passes.py check</code>, samples from <code>c/leftend.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 7.9&middot;10<sup>10</sup> steps",
+   "text": "The accelerated simulator <code>py/accsim.py</code> applies runs of identical passes at once, with exact step counts. It agrees with the plain machine (state and step) at all 72 batch ends up to step 2,782,338,426 and in windows of plain simulation at steps 4.89&middot;10<sup>10</sup> and 5.29&middot;10<sup>10</sup>. It runs to step 79,277,382,450 (164,003 passes, 13 rebuilds) without a halt, and stops there at a case its rules do not cover.",
+   "where": "<code>py/accsim.py run</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Rebuilds",
+   "text": "When the counter runs out, the first block becomes the next counter. The counter blocks of the 13 rebuilds are 6, 10, 18, 66, 130, 258, 1026, 4098, 16386, 258, 3078, 3364 and 16590. A block grows by 4 per pass while the frontier eats its neighbour, so sizes 4<sup>k</sup>+2 appear. A frontier that is still open at a rebuild stays in the list as a bare block or a frozen carry.",
+   "where": "<code>py/accsim.py</code>, README"
+  },
+  {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.455). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Why it is hard",
+   "text": "Each rule is local and simple, but the counter at each round is set by the first block, and the frontier freezes wherever the counter runs out. That leaves new kinds of items in the list (a bare block, a frozen carry). A proof needs a finite set of item kinds that the map preserves, and the run keeps finding new combinations (the latest at step 79,277,382,450).",
+   "where": ""
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA--- 1000000000"
+  "cd holdouts/1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA--- && gcc -O2 -o /tmp/leftend c/leftend.c",
+  "/tmp/leftend 1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA--- 1100000000 > /tmp/m1.txt && python3 py/passes.py check /tmp/m1.txt",
+  "python3 py/accsim.py run 1e12 600"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The machine sweeps over a list of blocks. Each pass changes only a counter and one place in the list, the frontier, by a small set of exact rules. When the counter runs out, the first block becomes the next counter.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 63,402 cells visited."
+    "value": "7.9&middot;10<sup>10</sup> steps",
+    "text": "No halt, by an accelerated simulator built on the exact pass map."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "every list",
+    "text": "Lean proves the main pass rule for any list of blocks."
    },
    {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "16,064 passes",
+    "text": "Each matches the plain machine exactly, to 1.1&middot;10<sup>9</sup> steps."
    }
   ],
   "presets": [
@@ -85,6 +117,26 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "words",
+    "eyebrow": "The tape",
+    "heading": "A counter, a list and a frontier",
+    "html": [
+     "<p>Look at the tape each time the head comes back to the left end in state A, and write <code>a</code> for <code>10</code>. The tape reads <code>a 0 a^c</code> followed by a list of pairs <code>1^k a^n</code>. Normally the list alternates separators <code>1 1 a</code> and blocks <code>1 a^m</code>. The first place where it does not is the <b>frontier</b>.</p>",
+     "<p>One pass, from the left end to the frontier and back, changes only the counter c and the frontier. The main rules:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>rule</th><th>before</th><th>after</th><th>steps</th></tr></thead><tbody><tr><td>counter phase</td><td>c, (1,q) first</td><td>c+3, (1,q&minus;1)</td><td>6c+36</td></tr><tr><td>block grows</td><td>(1,p)(1,q)</td><td>(1,p+4)(1,q&minus;1)</td><td>6c+20F+6M+6p+56</td></tr><tr><td>next block</td><td>(1,p)(3,1)(1,m)</td><td>(1,p)(2,1)(1,4)(1,m&minus;1)</td><td>6c+20F+6M+6p+74</td></tr><tr><td>carry</td><td>(2,q)(2,1)(1,m)</td><td>(2,1)(1,q+3)(2,m)</td><td>6c+20F+6M+8q+48</td></tr><tr><td>timer</td><td>no frontier</td><td>a block (1,1) added at the end</td><td>6c+20F+6M+44</td></tr></tbody></table></div>",
+     "<p>F and M are the number of blocks left of the frontier and the sum of their lengths, and c drops by one in every pass except in the counter phase. A block grows by 4 per pass while it eats the next one, so a block m comes out as 4m. When c runs out, a <b>rebuild</b> turns the first block into the next counter. That is why the counters jump: 66, 258, 1026, 4098, 16386, ... (4<sup>k</sup>+2).</p>"
+    ]
+   },
+   {
+    "id": "hard",
+    "eyebrow": "The open part",
+    "heading": "What is proved and what is missing",
+    "html": [
+     "<p>Every pass up to 1.1&middot;10<sup>9</sup> steps was replayed with these rules and matched the machine exactly, step count included. An accelerated simulator that applies whole runs of passes at once reaches 7.9&middot;10<sup>10</sup> steps with no halt.</p>",
+     "<p>Lean proves the <em>block grows</em> rule for every counter, every frontier and every list of blocks in between (<code>pass</code> in <code>lean/Pass.lean</code>), by induction over the list from the pieces of one pass. The other rules still need the same treatment. Beyond that, a proof of non-halting needs a description of all the lists the map can reach. When the counter runs out in the middle of the list, the frontier freezes and leaves a new kind of item behind, and the run keeps producing new combinations of these.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +150,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "An exact pass map on a counter and a list of blocks (10)^m: each pass changes only the counter and one frontier, where a block grows by 4 while it eats its neighbour; checked pass by pass to 1.1e9 steps, accelerated to 7.9e10; Lean proves the block-growing pass for every list.",
+ "family": "counter and block list with an exact pass map (frontier carries, rebuilds)"
 }

@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---</h1>
     <p class="machine">1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 9 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> This is the counter of <code>1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---</code> with its states renamed (A&rarr;B, B&rarr;C, C&rarr;D, D&rarr;E, E&rarr;A), started in a different state. Lean proves every ordinary sweep, every left-end sweep except the start of a nested run, and that the inner sweeps of a nested run follow the same digit rule; it runs 258,046 proved sweeps: <b>no halt in the first 266,357,150,814 steps</b>, where the third nested run starts. The cell simulator reaches 3&middot;10<sup>11</sup> steps, inside that nested run.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,31 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>One sweep, for every digit list</h3>
+        <p>Read a block <code>0 1^(3d+2)</code> as the digit d. From the right end the head passes every odd digit, stops at the first even digit b (with the digit a on its left) and returns: <code>a 0 (2k+1)&hellip;</code> becomes <code>(a+2) 0^(2k) 1&hellip;</code> and <code>a b (2k+1)&hellip;</code> (b = 2i+2) becomes <code>(a+1) 0^(b&minus;1) 1 0^(2k) 1&hellip;</code>, in 21 + 10b + &Sigma;(20k+16) steps, for all values and any tape left of a.</p>
+        <p class="where"><code>sweep_zero</code>, <code>sweep_even</code>, <code>cost_sum</code>, <code>lean/Sweep.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Sweeps at the left end</h3>
+        <p>A stop at the first digit grows the leftmost block <code>1^r</code> by 6 (digit 0) or 3 (digit 2i+2); a carry through all digits at <code>r = 3</code> adds two leading zeros and three cells on the left; at <code>r = 6j+9</code> the leftmost block becomes <code>1^3</code> and 2j+3 zeros. The other phase of the right end (<code>0 1^4 C&gt;0</code>) turns the last digit 1 into <code>2 0</code>.</p>
+        <p class="where"><code>raw_zero</code>, <code>raw_even</code>, <code>lean/Sweep.lean</code>; <code>carry3_sweep</code>, <code>carry9_sweep</code>, <code>phase2_sweep</code>, <code>lean/Carry.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>From blank tape to sweep 29</h3>
+        <p>After 5,512 steps (after two nested runs, checked step by step) the tape is <code>1^3</code>, the digits 0 0 1 1 1 0 2 and ten digits 1, and the right end in its other phase <code>0 1^4 C&gt;0</code>.</p>
+        <p class="where"><code>reach_D0</code>, <code>lean/Reach.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Inside a nested run: the same counter</h3>
+        <p>A carry through odd digits, the first one 1, into <code>1^(6j+6)</code> turns the block into <code>1^3</code> and 2j+1 digits 0 and turns the head back before the right end (<code>nest_sweep</code>). From there the inner sweeps change the digits by exactly the outer rule (<code>core_zero</code>, <code>core_even</code>, with any tape right of the pass), their right end alternates between two phases, and every second sweep eats one passed digit 1 (<code>inner_X_zero</code>, <code>inner_X_even</code>, <code>inner_Y_zero</code>, <code>inner_Y_even</code>).</p>
+        <p class="where"><code>lean/Inner.lean</code>, <code>lean/InnerRules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Sweeps on run-length coded digits</h3>
+        <p><code>nextR</code> does one sweep on digits coded as runs (<code>(d, c)</code>: c copies of d, from the right end), covering the same cases as <code>next</code>; whenever it answers, the machine makes that sweep in that many steps.</p>
+        <p class="where"><code>nextR_sound</code>, <code>runR_sound</code>, <code>lean/Rle.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -111,28 +136,38 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 266,357,150,814 steps</h3>
+        <p>From the proved configuration at step 5,512, 258,046 sweeps on run-length coded digits (<code>runR</code>), each covered by a proved rule: no halt in the first 266,357,150,814 steps. The next sweep is the start of the third nested run, at <code>1^12 | 1 1 5 1^9 3 1^129022 | 0 1 C&gt;0</code> (<code>run_stops</code>). (The earlier digit-list run <code>no_halt_1595848115</code> is kept.)</p>
+        <p class="where"><code>no_halt_long</code>, <code>run_stops</code>, <code>lean/RunLong.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,531 cells have been visited and 26,492 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 3&middot;10<sup>11</sup> steps</h3>
+        <p>The cell-by-cell simulator <code>c/brec.c</code> finds no halt in the first 3&middot;10<sup>11</sup> steps. That bound ends inside the third nested run (which starts at step 266,357,150,814 on a tape of about 7.7&middot;10<sup>5</sup> cells). <code>c/dsim.c</code>, which runs the proved sweep rules on run-length coded digits, reproduces the Lean run and stops at the same sweep.</p>
+        <p class="where"><code>c/brec.c</code>, <code>c/dsim.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.497).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>The rest of a nested run</h3>
+        <p>Passed digits 3, 5, &hellip; are eaten in another phase pattern; the inner counter has its own left-end events, including nested runs inside the nested run; the run ends with the right end in its other phase when the passed region is used up. Seen in simulation (on both machines), not formalized. In this run nested runs come at sweeps 5, 28 and 258,075.</p>
+        <p class="where">README, section The nested run</p>
+      </div>
+      <div class="card">
+        <h3>Where a halt would come from</h3>
+        <p>Following the table backwards, the machine halts exactly when C reads a 0 followed by <code>0 1 1</code> (a right-moving head meeting <code>0 0 1 1</code>). No proved sweep produces it; a halt would have to come from a nested run.</p>
+        <p class="where">README, section Where it could halt</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. Closing it needs the whole nested run as a theorem (shared with the other machine), so that the sweep program is total, and an argument that nested runs always end in a sweep configuration. The third nested run, about 3&middot;10<sup>11</sup> steps long, is beyond a cell-by-cell native_decide check.</p>
       </div>
     </div>
   </section>
@@ -140,7 +175,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE--- 1000000000</code></pre>
+gcc -O2 -o dsim holdouts/1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---/c/dsim.c &amp;&amp; ./dsim 3 1 0,0,1,1,1,0,2,1,1,1,1,1,1,1,1,1,1 5512 1e12
+gcc -O2 -o brec holdouts/1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---/c/brec.c &amp;&amp; ./brec 1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE--- 300000000000 50000 C</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

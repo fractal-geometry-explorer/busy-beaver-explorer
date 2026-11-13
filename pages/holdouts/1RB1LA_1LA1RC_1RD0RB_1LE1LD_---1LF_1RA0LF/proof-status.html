@@ -74,12 +74,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1LA_1LA1RC_1RD0RB_1LE1LD_---1LF_1RA0LF</h1>
     <p class="machine">1RB1LA_1LA1RC_1RD0RB_1LE1LD_---1LF_1RA0LF</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>It is a slow counter. The tape grows only at the right end, where a solid block of 1s gains ten cells each time the run's age grows by a factor of about four; the rest of the tape, a word of <code>10</code>, <code>110</code> and short blocks of 1s, changes slowly, like the higher digits of a counter. At step 4.0&middot;10<sup>8</sup> the block was absorbed and the run restarted with a longer word: a new epoch.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps.</p>
+      <p><b>Where a halt would come from.</b> The machine halts only in state E reading 0, and E is entered only from D reading 0 and stepping left. In the first 10<sup>8</sup> steps that happens 4,761,903 times and E always reads a 1.</p>
+      <p><b>What a proof needs.</b> An exact description of the counter's increment and of the epoch change, showing that the cell left of a 0 that D reads is always 1.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +122,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 293 cells have been visited and 143 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Growth at the right end</h3>
+        <p>At the times the tape grows on the right, it ends <code>b 1^k b 1 1 D&gt;0</code> (b = <code>110</code>), and k grows by 10 for every factor of about 4 in time: k = 71, 81, 91, 101, 111, 121, 131 at steps 403,611,844, 407,740,602, 424,255,680, 490,315,950, 754,557,084, 1,811,521,682 and 6,039,380,104.</p>
+        <p class="where"><code>tools/c/tmrun.c</code> (records)</p>
+      </div>
+      <div class="card">
+        <h3>An epoch change</h3>
+        <p>Before step 4.02&middot;10<sup>8</sup> the right block reached <code>1^119</code> (step 378,784,004); at step 402,235,754 the tape grows by about 100 cells within a few million steps and a new block starts from <code>1^2</code> after a longer word. Width: 153 cells at 10<sup>8</sup> steps, 292 at 10<sup>9</sup>, 312 at 10<sup>10</sup>.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>E always reads 1</h3>
+        <p>E is entered only from D reading 0 (<code>1LE</code>); in the first 10<sup>8</sup> steps it is entered 4,761,903 times and reads a 1 every time.</p>
+        <p class="where">state counts</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -132,7 +150,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The run behaves like a counter in epochs; neither the increment nor the epoch change has been described exactly.</p>
       </div>
     </div>
   </section>

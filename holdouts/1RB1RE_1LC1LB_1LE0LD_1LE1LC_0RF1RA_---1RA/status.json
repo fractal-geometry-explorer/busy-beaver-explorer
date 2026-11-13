@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G07",
  "title": "What is known about 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The machine is a counter that grows by a factor 3/2 per epoch (two moves proved in Lean), whose parities drive a growing stack of slower counters. Lean also proves that a halt can only happen past the right end of the tape, which would need the whole stack to be used up; through 83 epochs (10<sup>30</sup> steps) the stack only grows and its bottom has frozen."
  ],
  "claims": [
   {
@@ -28,6 +28,24 @@
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "The sweep",
+   "text": "Read as runs of 1s separated by single 0s, with u a run of length 1: [X, 4, u<sup>n+2</sup>, R] becomes [X+6, 4, u<sup>n</sup>, R] in 2X+32 steps, for every X = 2x+2, every n and every tape R.",
+   "where": "<code>sweep</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The conversion",
+   "text": "[2x+8, u<sup>k+2</sup>, R] becomes [6, 4, u<sup>x</sup>, 4, u<sup>k</sup>, R] in 4x+74 steps: the long run is turned into half as many units.",
+   "where": "<code>convert</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A halt can only happen past the right end",
+   "text": "A closed tape language from windows of 4 cells covers the run from blank tape; in it the halting transition F0 can only fire with blank tape from the head on, so the machine halts iff F steps onto the blank region right of the tape. The right end of the tape has not moved since step 1.8&middot;10<sup>5</sup>.",
+   "where": "<code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code>"
+  },
+  {
    "level": "native",
    "title": "No halt in the first 10<sup>7</sup> steps",
    "text": "The same run, evaluated by compiled code.",
@@ -40,40 +58,59 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "83 epochs, 7&middot;10<sup>29</sup> steps, no halt",
+   "text": "The macro simulator with proved cycle jumps (<code>tools/py/bbtools/cycles.py</code>, exact step counts) runs to 10<sup>30</sup> steps. The unit count m of epoch 83 is 780,830,244,113,908; m' = 3m/2 + d with d in {&minus;2, +1, +4} (m even) or {&minus;1/2, +5/2} (m odd), and an epoch takes 1.500&middot;m<sup>2</sup> steps.",
+   "where": "<code>py/epochs.py</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.493). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "A stack of slower counters",
+   "text": "The list right of the unit block behaves like nested copies of the top level: its first run grows by 6 and loses a unit at each odd epoch, and is converted into units when they run out; deeper items change exponentially more rarely, and the bottom of the list has been frozen for most of the run. The list grows by about one item per three epochs (29 tokens at epoch 83).",
+   "where": "README, <code>py/epochs.py</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. A halt needs the stack to be emptied; the parities of m that drive it look random. The epoch-end cases (parity of m and the first items of the list) are read off the run, not proved.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 1000000000",
+  "cd holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA && python3 py/rules.py | diff - lean/Rules.lean",
+  "python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/epochs.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 2 1e30 E L \"pre:2 4 1^\""
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine is a counter that multiplies itself by about 3/2, over and over; each time, whether the count is odd or even nudges a stack of slower counters next to it. It can only stop if that stack is ever used up. This page runs the real machine in your browser and explains the mechanism.",
   "facts": [
    {
+    "level": "kernel",
+    "value": "+6 / &minus;2",
+    "text": "One sweep: the long run grows by 6, the unit block loses 2 (proved for all sizes)."
+   },
+   {
+    "level": "kernel",
+    "value": "right edge",
+    "text": "The only place a halt can happen (proved)."
+   },
+   {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 60,039 cells visited."
+    "value": "10<sup>30</sup> steps",
+    "text": "No halt; 83 epochs, the last with 7.8&middot;10<sup>14</sup> units."
    },
    {
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +122,50 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "reading",
+    "eyebrow": "How to read the tape",
+    "heading": "Runs of ones",
+    "html": [
+     "<p>Write the tape as the lengths of its runs of 1s, which are separated by single 0s. A run of length 1 (the cells <code>10</code>) is a <em>unit</em>, written <code>u</code>. Each time the head comes back to the left end in state B the tape reads</p>",
+     "<pre>[X, 4, u<sup>n</sup>, L]     a long run X, a run of 4, n units, then a list L of short runs</pre>",
+     "<svg viewBox=\"0 0 560 78\" role=\"img\" aria-label=\"one sweep: the long run grows by 6, two units disappear\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><text x=\"120\" y=\"23\" text-anchor=\"end\" fill=\"var(--muted)\">before</text><rect x=\"126.0\" y=\"8\" width=\"141.3\" height=\"22\" rx=\"3\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><text x=\"196.7\" y=\"23\" text-anchor=\"middle\" fill=\"var(--fg)\">X</text><rect x=\"269.3\" y=\"8\" width=\"21.9\" height=\"22\" rx=\"3\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"280.3\" y=\"23\" text-anchor=\"middle\" fill=\"var(--fg)\">4</text><rect x=\"293.2\" y=\"8\" width=\"141.3\" height=\"22\" rx=\"3\" fill=\"var(--heur-bg)\" stroke=\"var(--line-strong)\"/><text x=\"363.9\" y=\"23\" text-anchor=\"middle\" fill=\"var(--fg)\">u u u u u u</text><rect x=\"436.6\" y=\"8\" width=\"117.4\" height=\"22\" rx=\"3\" fill=\"var(--native-bg)\" stroke=\"var(--line-strong)\"/><text x=\"495.3\" y=\"23\" text-anchor=\"middle\" fill=\"var(--fg)\">L</text><text x=\"120\" y=\"57\" text-anchor=\"end\" fill=\"var(--muted)\">after a sweep</text><rect x=\"126.0\" y=\"42\" width=\"189.1\" height=\"22\" rx=\"3\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><text x=\"220.6\" y=\"57\" text-anchor=\"middle\" fill=\"var(--fg)\">X + 6</text><rect x=\"317.1\" y=\"42\" width=\"21.9\" height=\"22\" rx=\"3\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"328.1\" y=\"57\" text-anchor=\"middle\" fill=\"var(--fg)\">4</text><rect x=\"341.0\" y=\"42\" width=\"93.6\" height=\"22\" rx=\"3\" fill=\"var(--heur-bg)\" stroke=\"var(--line-strong)\"/><text x=\"387.8\" y=\"57\" text-anchor=\"middle\" fill=\"var(--fg)\">u u u u</text><rect x=\"436.6\" y=\"42\" width=\"117.4\" height=\"22\" rx=\"3\" fill=\"var(--native-bg)\" stroke=\"var(--line-strong)\"/><text x=\"495.3\" y=\"57\" text-anchor=\"middle\" fill=\"var(--fg)\">L</text></svg>",
+     "<p>The head never goes far to the right: it shuttles across X and the first units only. That is why the right end of the tape has not moved since step 180,000.</p>"
+    ]
+   },
+   {
+    "id": "epochs",
+    "eyebrow": "The proved moves",
+    "heading": "Eat, grow, convert",
+    "html": [
+     "<p><b>Sweep</b> (proved in Lean for every size): <code>[X, 4, u<sup>n+2</sup>, R] &rarr; [X+6, 4, u<sup>n</sup>, R]</code>. The long run eats two units and grows by six cells.</p>",
+     "<p><b>Conversion</b> (proved too): when the units are gone, <code>[2x+8, u<sup>k+2</sup>, R] &rarr; [6, 4, u<sup>x</sup>, 4, u<sup>k</sup>, R]</code>: the long run is turned back into half as many units.</p>",
+     "<p>So an <em>epoch</em> starting with m units runs about m/2 sweeps, building a run of about 3m, which becomes about 3m/2 units: <b>m grows by a factor 3/2 per epoch</b>, exactly <code>m' = 3m/2 + d</code> with a small correction d that depends on the parity of m and on the first items of L. Each epoch takes about 1.5&middot;m<sup>2</sup> steps.</p>",
+     "<svg viewBox=\"0 0 560 200\" role=\"img\" aria-label=\"units per epoch, log scale\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"46\" x2=\"46\" y1=\"12\" y2=\"170\" stroke=\"var(--line)\"/><line x1=\"46\" x2=\"548\" y1=\"170\" y2=\"170\" stroke=\"var(--line)\"/><text x=\"42\" y=\"174.0\" text-anchor=\"end\" fill=\"var(--muted)\">10^0</text><text x=\"42\" y=\"142.2\" text-anchor=\"end\" fill=\"var(--muted)\">10^3</text><text x=\"42\" y=\"110.3\" text-anchor=\"end\" fill=\"var(--muted)\">10^6</text><text x=\"42\" y=\"78.5\" text-anchor=\"end\" fill=\"var(--muted)\">10^9</text><text x=\"42\" y=\"46.7\" text-anchor=\"end\" fill=\"var(--muted)\">10^12</text><text x=\"297.0\" y=\"194\" text-anchor=\"middle\" fill=\"var(--muted)\">epoch</text><text x=\"12\" y=\"16\" fill=\"var(--muted)\">units m</text><polyline points=\"46.0,170.0 52.1,163.6 58.2,161.0 64.4,159.4 70.5,158.2 76.6,155.8 82.7,154.2 88.9,152.1 95.0,150.2 101.1,148.4 107.2,146.5 113.3,144.7 119.5,142.8 125.6,140.9 131.7,139.0 137.8,137.2 144.0,135.3 150.1,133.4 156.2,131.6 162.3,129.7 168.4,127.8 199.0,118.5 229.7,111.0 260.3,97.9 290.9,88.6 321.5,79.3 352.1,69.9 382.7,60.6 413.3,51.2 443.9,41.9 474.5,32.6 505.1,23.2 535.8,13.9 548.0,12.0\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"1.5\"/><circle cx=\"46.0\" cy=\"170.0\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"52.1\" cy=\"163.6\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"58.2\" cy=\"161.0\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"64.4\" cy=\"159.4\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"70.5\" cy=\"158.2\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"76.6\" cy=\"155.8\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"82.7\" cy=\"154.2\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"88.9\" cy=\"152.1\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"95.0\" cy=\"150.2\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"101.1\" cy=\"148.4\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"107.2\" cy=\"146.5\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"113.3\" cy=\"144.7\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"119.5\" cy=\"142.8\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"125.6\" cy=\"140.9\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"131.7\" cy=\"139.0\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"137.8\" cy=\"137.2\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"144.0\" cy=\"135.3\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"150.1\" cy=\"133.4\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"156.2\" cy=\"131.6\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"162.3\" cy=\"129.7\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"168.4\" cy=\"127.8\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"199.0\" cy=\"118.5\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"229.7\" cy=\"111.0\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"260.3\" cy=\"97.9\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"290.9\" cy=\"88.6\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"321.5\" cy=\"79.3\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"352.1\" cy=\"69.9\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"382.7\" cy=\"60.6\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"413.3\" cy=\"51.2\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"443.9\" cy=\"41.9\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"474.5\" cy=\"32.6\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"505.1\" cy=\"23.2\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"535.8\" cy=\"13.9\" r=\"2.2\" fill=\"var(--accent)\"/><circle cx=\"548.0\" cy=\"12.0\" r=\"2.2\" fill=\"var(--accent)\"/></svg>",
+     "<p>The unit count at the start of each epoch, on a log scale: a straight line of slope log<sub>10</sub>(3/2). Epoch 83 starts at step 7.3&middot;10<sup>29</sup> with 780,830,244,113,908 units.</p>"
+    ]
+   },
+   {
+    "id": "stack",
+    "eyebrow": "The slower counters",
+    "heading": "A stack driven by parities",
+    "html": [
+     "<p>What happens between the last sweep and the conversion depends on whether m is odd or even, and it changes the first items of the list L. The first item behaves like a small copy of the whole machine: a run that grows by 6 and loses one unit at each odd epoch,</p>",
+     "<pre>18 u<sup>8</sup> &rarr; 24 u<sup>7</sup> &rarr; 30 u<sup>6</sup> &rarr; 36 u<sup>5</sup> &rarr; 42 u<sup>4</sup> &rarr; &hellip; &rarr; 9 u<sup>19</sup> &hellip;</pre>",
+     "<p>and when its units run out it is converted into units itself, taking from the item after it. Deeper items change more and more rarely. Tapes at the start of four epochs:</p>",
+     "<pre>step 1.8e5   2 4 u^370  4 u^17 4 u^3 4 1\nstep 1.1e8   2 4 u^9436 9 u^25 4 u^4 4 u^3 4 1\nstep 8.0e11  2 4 u^816400 4 u^22 4 u^15 4 u^4 4 u^3 4 1\nstep 7.3e29  2 4 u^780830244113908 9 u^3 12 4 u^14 4 u^2 4 u^2 4 u^3 4^2 u^2 15 u^5 4 u^9 4^2 u^3 4 u^17 4 u^15 4 u^4 4 u^3 4 1</pre>",
+     "<p>The right-hand part (<code>4 u^17 4 u^15 4 u^4 4 u^3 4 1</code>) is frozen: new items are pushed on the left faster than old ones are used.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Where it could stop",
+    "heading": "Only past the right end",
+    "html": [
+     "<p>The machine stops only when state F reads a 0. A <em>closed tape language</em> (a finite description of every tape the run can produce, here from windows of 4 cells, checked by Lean) shows that this can only happen when F walks off the right end of the tape. Since the head works at the left end, that needs the whole stack to be used up in one cascade.</p>",
+     "<p>Whether that ever happens depends on the sequence of parities of m, which looks random: a Collatz-like question. Nothing seen so far comes close: the stack grows by about one item every three epochs.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +179,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "All the work is at the left end: a long run grows by 6 for every 2 units it eats (proved), then is converted into half as many units (proved), so the unit count m goes to about 3m/2 per epoch; the parity of m drives a stack of slower counters to the right, and a halt (proved: only past the right end) needs that stack used up.",
+ "family": "3/2 counter feeding a stack of slower counters",
+ "decision": "open"
 }

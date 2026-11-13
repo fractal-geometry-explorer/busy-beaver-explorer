@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LE_1RC1RA_1RD0RF_1RE0RA_1LA1LD_1RA---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this machine has run 10<sup>11</sup> steps without stopping. Read at the left end, its tape is a long list of numbers, and the sweeps of its head count the first number down while the list changes at the far end, like a queue. This page runs the real machine in your browser and shows the one pattern that would make it stop.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 73,887 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>sqrt/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>11</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>Halts only at <code>A&gt;0 0 1 1</code></b><span class="small">Reached through B and C, all moving right.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>12 steps a block</b><span class="small">The sweeps cross the counters, for any length.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>A queue of counters</b><span class="small">Over 200 numbers after 5&middot;10<sup>7</sup> steps.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#queue">A list of numbers</a><a href="#moves">Crossing the counters</a><a href="#halt">The one way to halt</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,29 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="queue">
+  <span class="eyebrow">The shape of the tape</span>
+  <h2>A list of numbers</h2>
+<p>Stop the simulator each time the head reaches a fresh cell at the left end. The tape is made of 1s spaced three cells apart, in runs separated by one extra 0:</p>
+<pre>A&gt;0 1 0 0 1 0 0 ... 1 0 0 0 0 1 0 0 1 ... 0 0 0 0 1 0 0 1 ...
+      (48 ones)           (17 ones)          (53 ones) ...</pre>
+<p>Read as a list, this is 48, 17, 53, 7, 47, 15, 37, ... From one such moment to the next only the first number changes (it goes down by 2) and the far end of the list is rewritten. When the first number is used up the next one takes its place. Every so often the list is reorganised (it went from 176 numbers to 88 at about 2.5&middot;10<sup>7</sup> steps), and otherwise it grows.</p>
+</section>
+<section id="moves">
+  <span class="eyebrow">How it moves</span>
+  <h2>Crossing the counters</h2>
+<p>Moving right, each state that crosses a counter rewrites it two words at a time (<code>lean/Rules.lean</code>, any length):</p>
+<pre>A&gt; 0 0 1 0 0 1 0 0 1 0 0 1   →   1 1 0 1 1 1 1 1 0 1 1 1 A&gt;   (24 steps)
+C&gt; 1 0 0 1 0 0               →   0 1 1 1 1 1 C&gt;               (12 steps)</pre>
+<p>On the way back the blocks are turned into the spaced-out form again. Between the counters the separators <code>0 0 0 0</code> make the head turn into a different state, and that is where each counter gets changed.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Where it could stop</span>
+  <h2>The one way to halt</h2>
+<p>The only missing transition is F reading 1. F is entered only from C reading 1, C only from B reading 0, and B only from A reading 0, each step moving right. So the machine stops exactly when</p>
+<pre>A&gt;0 0 1 1   →   1 B&gt;0 1 1   →   1 1 C&gt;1 1   →   1 1 0 F&gt;1   halt</pre>
+<p>This is proved in Lean (<code>lean/Halt.lean</code>). In 226 million visits the three cells after A's 0 were never <code>0 1 1</code>.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -231,11 +255,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <button type="button" data-f="open" aria-pressed="false">Open</button>
   </div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_F</code>, <code>halt_C</code>, <code>halt_B</code>, <code>halt_A</code>, <code>enter_F</code>, <code>enter_C</code>, <code>enter_B</code>, <code>lean/Halt.lean</code></div></div><div><b>How a halt comes about</b><p>F reading 1 is the only halt. F is entered only from C reading 1, C only from B reading 0 and B only from A reading 0, all moving right (<code>enter_F</code>, <code>enter_C</code>, <code>enter_B</code>). So a halt is exactly <code>C&gt;1 1</code>, that is <code>B&gt;0 1 1</code>, that is <code>A&gt;0 0 1 1</code>.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>aword</code>, <code>fword</code>, <code>cword</code>, <code>bword</code>, <code>afill</code>, <code>bfill</code>, <code>eleft</code>, <code>aleft</code>, <code>lean/Rules.lean</code></div></div><div><b>Crossing the counters</b><p>For every n and every surrounding tape, moving right: A turns <code>(0 0 1 0 0 1)^n</code> into <code>(1 1 0 1 1 1)^n</code>, F turns it into <code>(1 1 1 1 1 0)^n</code>, C turns <code>(1 0 0 1 0 0)^n</code> into <code>(0 1 1 1 1 1)^n</code> and B into <code>(1 1 1 0 1 1)^n</code>, each in twelve steps a block. Also A fills <code>(0 1)^n</code> and B fills <code>(1 0)^n</code> moving right, and E and A cross <code>(0 1)^n</code> and <code>(1 0)^n</code> moving left.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
-    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 73,887 cells have been visited and 43,872 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: sqrt/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.517). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.5).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/longrun.c</code></div></div><div><b>No halt in the first 10<sup>11</sup> steps</b><p>The C simulator (<code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps from blank tape without a halt; the visited tape then spans 811,363 cells, 404,207 of them 1.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/ctx.c</code></div></div><div><b>What A sees when it reads 0</b><p>In the first 2&middot;10<sup>9</sup> steps A reads 0 about 226 million times; the three cells after it are <code>0 1 0</code> or <code>1 0 0</code> in 96% of cases and otherwise <code>0 0 1</code>, <code>0 0 0</code> or <code>1 0 1</code>, never the halting <code>0 1 1</code>.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/zrec.c</code>, <code>tools/c/tmrun.c</code> records</div></div><div><b>A queue of counters</b><p>Each time the head reaches a fresh cell at the left end, the tape is a list of runs of 1s spaced three cells apart (the words <code>1 0 0</code> or <code>0 0 1</code>), the runs separated by <code>0 0 0 0</code>; read as numbers, for example 48, 17, 53, 7, 47, 15, 37, ... From one sweep to the next only the first number changes (it goes down by 2) and the last five or so numbers are rewritten in no visible pattern; when the first number runs out, the next one takes its place. The list grew to over 200 numbers in the first 5&middot;10<sup>7</sup> steps, with occasional reorganisations that halve it.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.517). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.5).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. A proof would describe the queue: how a sweep pair acts on the first counter and on the end of the list, which new counters it appends, and why that never produces <code>A&gt;0 0 1 1</code>. Queue-like machines of this kind can behave like tag systems, which are hard in general. Window CTL up to 7 cells and n-gram CPS (widths up to 9, see the README for the larger runs) fail.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

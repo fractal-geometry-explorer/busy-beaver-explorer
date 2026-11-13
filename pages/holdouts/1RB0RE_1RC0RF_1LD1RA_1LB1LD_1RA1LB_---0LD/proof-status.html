@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD</h1>
     <p class="machine">1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 12 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open.</b> The run is a sequence of phases. In each, a block of ones eats a gap of X zeros in about X/4 rounds (proved in Lean for every X); at the end of the gap the head meets a short tail of blocks, rewrites its first blocks according to X mod 4, and the next phase starts with a gap of about 3X/2. The question is whether this Collatz-like interaction between the gap parity and the tail ever reaches the halting transition.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The rounds of a phase</h3>
+        <p>From <code>0^inf B&gt; 0 1 0^X T</code> with X = 4k+r+7 &#8805; 24 (a single 1 at the left end of the tape, a gap of X zeros, any tape T after it) the machine reaches <code>0^inf 1 C&gt; (11)^(3k+3) 000 1111 0^r T</code>: k+1 rounds, each growing the block of ones by six and moving the marker <code>000 1111</code> four cells into the gap.</p>
+        <p class="where"><code>phase</code> (by induction, <code>rounds</code>), <code>lean/Phase.lean</code>; the pieces <code>start</code>, <code>round</code> in <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +124,44 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,536 cells have been visited and 46,582 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>35 phases, 3.9&middot;10<sup>13</sup> steps, no halt</h3>
+        <p>The macro simulator (<code>tools/py/bbtools/macro.py</code>, blocks of 2 cells) follows the run to step 3.9&middot;10<sup>13</sup>; it passes through 35 phase starts <code>0^inf B&gt; 0 1 0^X T</code>, with gaps X = 4, 12, 24, 42, 60, 84, 120, 174, 258, 378, 564, &hellip;, 9,304,044.</p>
+        <p class="where"><code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/phases.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The gap grows by a factor 3/2 per phase</h3>
+        <p>In all 34 observed phase changes, X' = 3X/2 + d with d &#8712; {+6, &minus;6} when X &#8801; 0 (mod 4) and d &#8712; {+3, &minus;3, &minus;9} when X &#8801; 2 (mod 4); which d occurs is decided by the first blocks of the tail, which the phase end also rewrites.</p>
+        <p class="where"><code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/phases.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The phase map depends on the gap only through X mod 4</h3>
+        <p>One phase simulated cell by cell from <code>0^inf B&gt; 0 1 0^X T</code> gives the next gap X' = (3X + d)/2 and the next tail T'. For every tail met on the orbit, four gaps X in each residue class mod 4 (X between 200 and 330) give the same d and the same T'. So the run is the iteration of a map on (X mod 4, T). This is a measured table, not a proof. Started at X = 6, T = <code>1^8</code> it reproduces the 35 phases of the macro simulator exactly.</p>
+        <p class="where"><code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/c/phase.c</code>, <code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/tailmap.py orbit 40</code></p>
+      </div>
+      <div class="card">
+        <h3>2,009 phases without a halt</h3>
+        <p>Iterated with exact integers, the table map makes 9 phases simulated directly and 2,000 more by the table without a halt; the gap then has 1,179 bits and the tail 12,469 cells in 1169 blocks. X is even throughout (X mod 4 is 0 or 2, about equally often). At every one of these phases the three other residues of X mod 4 were tried as well: 0 of the 6,000 alternatives halt. Unlike its sibling 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA, no halting entry of the table has been seen at all.</p>
+        <p class="where"><code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/tailmap.py near 2000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.521). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>The tail is a slowly growing stack</h3>
+        <p>The tail T (right of the gap, about 100 cells after 35 phases) is a list of blocks <code>1^a 0^b</code>; each phase end edits its first one or two blocks and occasionally pushes a new one. It behaves like the digits of a counter driven by the parities X mod 4, much as in other Collatz-like holdouts with a growing state.</p>
+      </div>
+      <div class="card">
+        <h3>The tail is rewritten at its front by a few rules with parameters</h3>
+        <p>Most phase ends follow rules like these on the first blocks of the tail (X mod 4 = 0 or 2): <code>1^a 0^b</code> becomes <code>1^(a+12) 0^(b-6)</code> when X &#8801; 2 and <code>1^11 0^(a-3) 1^4 0^(b-4)</code> when X &#8801; 0 (a odd, a &#8805; 11); <code>1^4 0^b</code> becomes <code>1^4 0^3 1^4 0^(b-7)</code> when X &#8801; 0 and <code>1^11 0^3 1^4 0^(b-4)</code> when X &#8801; 2. With b &#8805; 8 these four rules account for 1,440 of the first 2,000 table phases, with no exception; other rules apply when the block of zeros is shorter or the tail starts differently. They were read off the orbit and are not proved; a closed set of them would turn the question into one about a stack driven by the parities of the 3/2 map.</p>
+        <p class="where"><code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/tailmap.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>The only halting transition, F on 0, can be met only during a phase end, while the head works through the tail. Whether some phase end ever reaches it depends on the joint evolution of the gap parity and the tail, which has not been decoded.</p>
       </div>
     </div>
   </section>
@@ -140,7 +169,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD 1000000000
+python3 holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/phases.py 1e12
+python3 holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/tailmap.py near 300</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows, but we know exactly what the question is. The machine spends a <em>wall</em> of 1s one cell at a time while a counter K grows by half each time; when the wall is gone it halts if K is even, and otherwise turns the whole tape into a new, vastly longer wall. Lean proves that this is all it does. The first three walls (3, 25 and 227,097 cells) end with K odd; the fourth has 39,991 digits.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 42,338 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>halts ⇔ K even</b><span class="small">Halting is proved equivalent to a parity at the end of an epoch.</span></div>
+    <div class="fact"><span class="ev n">native_decide</span><b>3 epochs</b><span class="small">Survived: walls 3, 25, 227,097; more than 10<sup>79,981</sup> steps.</span></div>
+    <div class="fact"><span class="ev o">Open</span><b>epoch 4</b><span class="small">Wall of 39,991 digits: its parity is out of reach.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#sweep">One sweep</a><a href="#counter">Phases: K grows by half, the wall shrinks by one</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +218,46 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,462,487</td><td><code>1^4 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>970,190,067</td><td><code>1^4 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>985,914,219</td><td><code>1^4 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="tape">
+  <span class="eyebrow">Structure</span>
+  <h2>What the tape is made of</h2>
+<p>Watch the tape each time the head reaches a new cell on the right: it is always made of four parts. On the left a solid <b>wall</b> of a 1s, then two 0s, then K copies of <code>1 0</code> (the <b>pairs</b>), and finally a solid <b>block</b> of an odd number of 1s, with the head (state C) on the blank cell just after it:</p>
+<p style="text-align:center"><code>0^∞ 1^a 0 0 (1 0)^K 1^(2j+1) C&gt; 0^∞</code></p>
+<svg viewBox="0 0 560 120" role="img" aria-label="the tape at a phase start" style="width:100%;max-width:560px;height:auto;font:12px var(--mono);">
+<rect x="10" y="40" width="130" height="30" fill="var(--accent)" opacity="0.85"/><text x="75" y="60" text-anchor="middle" fill="#fff">1^a  wall</text>
+<rect x="140" y="40" width="30" height="30" fill="none" stroke="var(--line)"/><text x="155" y="60" text-anchor="middle" fill="var(--fg2)">00</text>
+<rect x="170" y="40" width="200" height="30" fill="none" stroke="var(--accent)"/><text x="270" y="60" text-anchor="middle" fill="var(--fg2)">(1 0)^K  pairs</text>
+<rect x="370" y="40" width="130" height="30" fill="var(--fg2)" opacity="0.35"/><text x="435" y="60" text-anchor="middle" fill="var(--fg2)">1^(2j+1) block</text>
+<polygon points="505,30 515,30 510,40" fill="var(--head)"/><text x="510" y="24" text-anchor="middle" fill="var(--head)">C</text>
+<text x="10" y="95" fill="var(--muted)">left: never grows (except one cell per reset)</text><text x="550" y="95" text-anchor="end" fill="var(--muted)">grows →</text>
+<path d="M370,80 Q270,110 190,80" fill="none" stroke="var(--head)" stroke-width="1.5" marker-end="url(#ar8)"/>
+<defs><marker id="ar8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--head)"/></marker></defs>
+<text x="280" y="115" text-anchor="middle" fill="var(--head)">each sweep: 2 pairs → 6 ones</text></svg>
+</section>
+<section id="sweep">
+  <span class="eyebrow">Mechanism</span>
+  <h2>One sweep</h2>
+<p>From the right end the head runs left through the block (D and A alternate, temporarily turning it into <code>1 0 1 0 …</code>), eats the last two pairs, and runs back right restoring the block, now six cells longer (B and A, then E, F fill in). So one sweep turns <code>(1 0)^(k+2) 1^(2j+1)</code> into <code>(1 0)^k 1^(2j+7)</code>, in exactly 8j + 14 steps (theorem <code>inner</code>). The sweeps of one <b>phase</b> repeat until 0 or 1 pair is left; the tape grows by about one cell per sweep, which gives the square-root growth.</p>
+</section>
+<section id="counter">
+  <span class="eyebrow">The arithmetic</span>
+  <h2>Phases: K grows by half, the wall shrinks by one</h2>
+<p>When the pairs run out, the head walks into the wall and takes one 1 from it, and the block is reread as new pairs: K pairs become a block of about 3K ones, which becomes about 3K/2 new pairs. Exactly, with J = j + 3⌊K/2⌋:</p>
+<table class="tbl"><thead><tr><th>end of phase</th><th>wall a ≥ 1</th><th>wall a = 0</th></tr></thead><tbody><tr><td>K even (no pair left)</td><td>(a−1, J+1, 0)</td><td><b>halt</b> (F reads a 0)</td></tr><tr><td>K odd (one pair left)</td><td>(a−1, J+3, 1)</td><td>reset: new wall of 2J+7 ones, (2J+7, 0, 1)</td></tr></tbody></table>
+<p>So inside an epoch the pair count follows K → about 3K/2, a Collatz-like map, and j just remembers whether the last K was odd. From blank tape the first phase start is (3, 0, 1) after 18 steps. The K values go 0, 2, 4, 7 (wall gone, odd: reset), then 0, 2, 4, 7, 12, 20, 31, 48, 74, 112, …: <b>every epoch replays the same sequence from K = 0</b>, and only its length, the wall, changes.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">The question</span>
+  <h2>Where it could halt</h2>
+<p>The only halting transition is F reading a 0, and it is reached exactly when the wall is used up and the phase ends with no pair left (K even). Otherwise the head runs off the left end of the wall and the whole tape fills up with 1s: a new wall about three times as long as the last K, so the next epoch lasts exponentially longer.</p>
+<table class="tbl"><thead><tr><th>epoch</th><th>wall A</th><th>K at its end</th><th>outcome</th></tr></thead><tbody><tr><td>1</td><td>3</td><td>7</td><td>odd: reset</td></tr><tr><td>2</td><td>25</td><td>75,697</td><td>odd: reset</td></tr><tr><td>3</td><td>227,097</td><td>a 132,845-bit number</td><td>odd: reset</td></tr><tr><td>4</td><td>≈ 5.6·10<sup>39990</sup></td><td>?</td><td>?</td></tr></tbody></table>
+<p>So the machine halts iff for some epoch the A-th term of one fixed sequence is even. Computing the term with an index of 39,991 digits is hopeless (the numbers would have more digits than there are atoms), and nothing is known that predicts the parity. If parities behave like coin flips, the machine halts with probability 1, but after more than 10^(10^39989) steps. This is the same kind of open problem as the Collatz-like “cryptids” of BB(6).</p>
+</section>
+<section id="proved">
+  <span class="eyebrow">Status</span>
+  <h2>What is proved</h2>
+<p>In Lean (kernel), for all values: every piece of a phase (<code>lean/Rules.lean</code>, generated by <code>py/gen_rules.py</code>), the macro step and its halt (<code>mstep_sound</code>, <code>mstep_halt</code>), and the reduction <code>halts_iff</code>: <i>HaltsFromBlank ↔ ∃ i A, epochs i = some A ∧ (seq A).1 % 2 = 0</i>. The walls 25 and 227,097 are checked by the kernel; the parity at the end of epoch 3 by <code>native_decide</code> (<code>lean/Epoch3.lean</code>), giving <code>halts_late</code>: any halt comes at the end of epoch 4 or later.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -230,19 +270,24 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <button type="button" data-f="heuristic" aria-pressed="false">Heuristic</button>
     <button type="button" data-f="open" aria-pressed="false">Open</button>
   </div>
-    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.</p></div></div>
-    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>mstep_sound</code>, <code>mstep_halt</code>, <code>lean/Macro.lean</code>; <code>inner</code>, <code>end_even</code>, <code>end_odd</code>, <code>reset_a</code>, <code>reset_b</code>, <code>to_halt</code>, <code>lean/Rules.lean</code></div></div><div><b>The macro step</b><p>From every phase start <code>0^∞ 1^a 0 0 (10)^K 1^(2j+1) C&gt; 0^∞</code> the machine reaches the next phase start given by <code>mstep</code>, for all a, K, j, or halts exactly when a = 0 and K is even. The pieces (one sweep, the two phase ends, the reset, the halt) are runs proved for all values of the variables.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff_mstep</code>, <code>lean/Macro.lean</code></div></div><div><b>Halting reduced to the macro machine</b><p>The machine halts from blank tape iff the orbit of <code>mstep</code> from <code>(3, 0, 1)</code> (reached after 18 steps) gets stuck.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>lean/Macro.lean</code></div></div><div><b>Halting reduced to a parity question</b><p>Let <code>seq</code> be the orbit of the map g(K, j) = (j + 3⌊K/2⌋ + 1, 0) for even K and (j + 3⌊K/2⌋ + 3, 1) for odd K, from (0, 1). The walls are A₁ = 3 and A<sub>i+1</sub> = 2(j + 3⌊K/2⌋) + 7 where (K, j) = seq A<sub>i</sub>, as long as K is odd. The machine halts iff some (seq A<sub>i</sub>).K is even.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>epochs_small</code>, <code>lean/Macro.lean</code></div></div><div><b>The first two epochs</b><p>The walls of epochs 2 and 3 are 25 and 227,097 (epochs 1 and 2 end with K = 7 and K = 75,697, both odd).</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>epoch3_odd</code>, <code>halts_late</code>, <code>lean/Epoch3.lean</code></div></div><div><b>The third epoch ends odd too</b><p>(seq 227097).K, a number of 132,845 bits, is odd, so the machine survives the third epoch; if it halts, it is at the end of epoch 4 or later.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/macro.py</code></div></div><div><b>How long that is</b><p>With the exact step counts of the rules, epoch 2 ends after about 10<sup>10</sup> steps and epoch 3 after about 10<sup>79,981</sup> (<code>py/macro.py epochs</code>, 5 minutes of big-integer arithmetic); the fourth epoch has a wall of about 5.6·10<sup>39990</sup> ones, so it takes more than 10^(10^39989) steps. The macro step and its step counts agree with the direct simulator for the first 18 phases (1.8 million steps) (<code>py/macro.py check</code>).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
-    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 42,338 cells have been visited and 28,353 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.497).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Probably halts, unimaginably late</b><p>If the parity of K at the end of each epoch behaves like a fair coin, the machine halts at the end of epoch 4 with probability 1/2, of epoch 5 with probability 1/4, and so on: it halts with probability 1, but no one can compute when, nor prove it.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known: it halts iff (seq A).K is even for one of the walls A = A₄, A₅, …; A₄ has 39,991 digits, so even the next parity is out of reach of direct computation.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE 1000000000</code></pre>
+python3 holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/py/macro.py check 18     # macro step against the simulator
+python3 holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/py/macro.py epochs       # walls and step counts of the first three epochs</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

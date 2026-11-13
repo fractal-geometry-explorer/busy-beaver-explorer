@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G04",
+ "generated": false,
+ "group": "list-of-counters bouncer",
  "title": "What is known about 1RB0LB_0LC0RD_1LA1LB_0RE---_0RF1RD_1RB1RE",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LB_0LC0RD_1LA1LB_0RE---_0RF1RD_1RB1RE.",
  "machine": "1RB0LB_0LC0RD_1LA1LB_0RE---_0RF1RD_1RB1RE",
@@ -46,6 +46,12 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "Macro structure (observed)",
+   "text": "A list of counters, runs (01)^n separated by single 0s, swept end to end; only a zone near the right end changes, where neighbouring counters trade 4 or 10 per sweep in alternating directions; finished counters freeze on the left.",
+   "where": "README"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
@@ -86,6 +92,15 @@
   },
   "sections": [
    {
+    "id": "structure",
+    "eyebrow": "Macro structure (observed)",
+    "heading": "A list that changes only at one end",
+    "html": [
+     "<p>Read the tape as a list of numbers: each <code>(01)^n</code> is the number n, and single 0s separate them. The head sweeps the whole list, but only a zone near the right end ever changes. There neighbouring numbers trade a fixed amount each sweep, alternately up and down, while a marker carries 10 at a time from one number to another. When a number is used up the zone moves on, and everything behind it freezes.</p>",
+     "<p>This is read off long runs, not yet proved: the next step is to state these patterns as rules, prove them with <code>tools/py/bbtools/symtm.py</code>, and see whether the counters can ever reach the configuration that halts.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +113,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A list of counters, runs (01)^n separated by single 0s, swept end to end; only a zone near the right end changes, where neighbouring counters trade 4 or 10 per sweep in alternating directions; finished counters freeze on the left.",
+ "decision": "open"
 }

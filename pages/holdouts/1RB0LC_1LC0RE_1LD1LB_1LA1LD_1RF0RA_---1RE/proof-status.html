@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Each sweep of the head turns the period-3 background into its complement (<code>010</code> &harr; <code>101</code>, <code>100</code> &harr; <code>011</code>, <code>001</code> &harr; <code>110</code>; six shift rules proved in Lean). Read when the head is at the right end in state B, the tape is <code>(100)^x 1011 (010)^a1 11 (010)^a2 11 &hellip; (010)^n 01</code>: the last block <i>n</i> loses 2 copies per visit, the inner blocks lose 4, 4, 12, 20, &hellip; (one block stays at 100 or 120 for a long time), new blocks appear behind the front counter <i>x</i>, which often doubles or drops by 5 from one visit to the next like a binary counter. When the last block is used up, <code>120 1101</code> turns into a new last block of 119. No closed map yet.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Complementing shift rules</h3>
+        <p>C, A and D cross <code>(010)^n</code>, <code>(100)^n</code>, <code>(001)^n</code> to the left and B, E, A cross <code>(110)^n</code>, <code>(101)^n</code>, <code>(011)^n</code> to the right, 3n steps each, for every n.</p>
+        <p class="where"><code>c_left</code> &hellip; <code>a_right</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +124,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 83,871 cells have been visited and 30,719 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 3&middot;10<sup>10</sup> steps</h3>
+        <p>A plain C simulator (<code>longrun.c</code>, on <code>tools/c/tm.h</code>) runs 3&middot;10<sup>10</sup> steps from blank tape without a halt; at the end the head has visited cells -628,527 to 98 and 334,129 cells hold a 1.</p>
+        <p class="where"><code>holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/c/longrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The list at the right-end visits</h3>
+        <p>Read off the direct run to 3&middot;10<sup>7</sup> steps: the last block goes 54, 52, 50, &hellip; (minus 2 per visit); a block of 100 (later 120) sits in front of it for many visits while the blocks before it shrink by 4, 4, 12, 20; the front counter runs 245, 490, 485, 970, 965 (doubling and subtracting 5 in turn) and moves differently when a new block is born</p>
+        <p class="where">README.md</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +142,18 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.463). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.047).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Deterministic counter, no sign of a halt</h3>
+        <p>The front counter behaves much like a binary counter (double, or subtract 5) and every other count moves by fixed amounts per visit; nothing points to the halting transition (F reading 0) being reached.</p>
+        <p class="where">README.md</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The block list is understood one visit at a time; the front counter and the birth of new blocks have not been reduced to a map.</p>
+        <p class="where">README.md, Further work</p>
       </div>
     </div>
   </section>
@@ -140,7 +161,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_1LC0RE_1LD1LB_1LA1LD_1RF0RA_---1RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1LC0RE_1LD1LB_1LA1LD_1RF0RA_---1RE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1LC0RE_1LD1LB_1LA1LD_1RF0RA_---1RE 1000000000
+python3 holdouts/1RB0LC_1LC0RE_1LD1LB_1LA1LD_1RF0RA_---1RE/py/gen_rules.py      # rewrites lean/Rules.lean</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_1LC0RE_1LD1LB_1LA1LD_1RF0RA_---1RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

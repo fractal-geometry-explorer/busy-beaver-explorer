@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G11",
  "title": "What is known about 1RB0RA_0RC0LD_1LA1RF_1LE1LD_1LB1RE_---1RA",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RA_0RC0LD_1LA1RF_1LE1LD_1LB1RE_---1RA.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0RA_0RC0LD_1LA1RF_1LE1LD_1LB1RE_---1RA/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its run is a <em>nested binary counter</em>: a block of 1s at the left end grows by two cells per event, each event taking twice as long as the one before, until it outgrows the block next to it; then a <em>reset</em> rebuilds the list of blocks and the counter starts over, about twice as long. This page lists what has been established, sorted by what each result rests on."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The counter (the part of the run that takes nearly all the time) is proved in Lean for all parameter values; the resets are not. An exact accelerated simulator, checked against the direct one for the first 2·10<sup>9</sup> steps, follows the run through 9 resets, to about 10<sup>559</sup> steps, without a halt. Halting would need the head in state B on <code>0 1 0</code>, which no counter step can produce; whether a reset ever produces it is the open question."
  ],
  "claims": [
   {
@@ -40,40 +40,78 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "kernel",
+   "title": "Five basic rules",
+   "text": "With K(n, c) the tape <code>B&gt;0 1^(2n+1) 0 1^c</code> right of the head: P: <code>B&gt;0 1^(2i+5) 0 1^(c+1)</code> → <code>0 1 1 0^(2i) B&gt;0 1^3 0 1^c</code> (2i+11 steps); M1: <code>0 0 B&gt;0 1^3 0 1^(c+1)</code> → <code>B&gt;0 1^5 0 1^(c+1)</code> (18 steps); and the three pieces X0, Y, Z of the collapse of a stack of frames <code>0 1 1</code>. For all values of i, c, s and every tape around them.",
+   "where": "<code>ruleP</code>, <code>ruleM1</code>, <code>ruleX0</code>, <code>ruleY</code>, <code>ruleZ</code>, <code>lean/Base.lean</code> (written by <code>bbtools.symtm.prove</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The recursive counter step, for every k",
+   "text": "For every k ≥ 1, r ≥ 0, c ≥ k and all tapes L, R: <code>L 0 0 (0 1 1)^r B&gt;0 1^(2k+1) 0 1^c R</code> reaches <code>L B&gt;0 1^(2(r+k+1)+1) 0 1^(c+r) R</code>. With r = 0 this is the counter step M_k: <code>0 0 B&gt;0 1^(2k+1) 0 1^c</code> → <code>B&gt;0 1^(2k+3) 0 1^c</code>, two cells further left. Proved by strong induction on k: M_k is P, then M_1, …, M_(k−2), then G(1, k−1).",
+   "where": "<code>rule_G</code>, <code>rule_M</code>, <code>chain</code>, <code>lean/Recursion.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Step counts of the counter",
+   "text": "The step counts that the decomposition gives: M_k takes 3·2<sup>k+2</sup> − 6 steps (checked for k &lt; 3000 from the recursion), so a whole counter phase K(1, b) → K(b+1, b) takes 3·2<sup>b+3</sup> − 6b − 24 steps.",
+   "where": "<code>py/hybrid.py</code> (<code>TM</code>, <code>TG</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "An exact accelerated simulator",
+   "text": "<code>py/hybrid.py</code> simulates cell by cell but applies M_k and G(r, k) at once whenever their hypothesis c ≥ k holds. It prints the same 50 configurations, at the same steps, as the direct C simulator at every visit of the left end in state B in the first 2·10<sup>9</sup> steps.",
+   "where": "<code>py/hybrid.py</code>, <code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Nine resets, no halt, to about 10<sup>559</sup> steps",
+   "text": "The lists of blocks at the start of the counter phases are [4], [14,5], [35,20], [75,41,14,5], [165,110,19], [335,235,42,19], [823,428,57,5], [1651,893,243,135,35,20], [3711,2204,317,40,14,5]; the ninth phase starts after a number of steps with 560 digits. No halt on the way.",
+   "where": "<code>py/resets.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Where it can halt",
+   "text": "The only halting transition is F on 0, and F is entered only from C on 1, and C only from B on 0: the machine halts exactly when the head is in B on <code>0 1 0</code>, that is at K(0, ·), a block of a single 1. Both directions are proved in Lean by enumerating the cells the head reads: a configuration halts two steps later if and only if it is <code>B&gt; 0 1 0</code> (<code>halt_iff_2</code>), so a halting run from blank passes through it (<code>halts_blank_pred_2</code>). Every counter step reads blocks of 3 or more.",
+   "where": "<code>halt_iff_2</code>, <code>halts_blank_pred_2</code>, <code>lean/HaltPred.lean</code> (generated by <code>holdouts/1RB0LD_0RC---_1LD0RF_0LE0RA_0RA1LF_0LA1LB/py/halt_pred.py</code>); <code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
    "level": "heuristic",
-   "title": "Growth shape: exp/fixed",
-   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.031). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Why halting looks unlikely",
+   "text": "Halting can only happen inside a reset, and resets get rare very fast: the first block of the list roughly doubles at each reset (4, 14, 35, 75, 165, 335, 823, 1651, 3711), so the n-th reset comes after about 2<sup>2<sup>n</sup></sup> steps, and in the 9 resets computed the smallest block the head met was 1^3. A probabilistic model with a fixed chance per reset would still give a positive chance of halting; nothing here rules it out.",
+   "where": "<code>py/resets.py</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Open. What is missing is the reset: the map taking the list of blocks at one phase start to the next (computed exactly by the simulator, but not in closed form) and a proof that it never makes B read <code>0 1 0</code>.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RA_0RC0LD_1LA1RF_1LE1LD_1LB1RE_---1RA/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RA_0RC0LD_1LA1RF_1LE1LD_1LB1RE_---1RA 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RA_0RC0LD_1LA1RF_1LE1LD_1LB1RE_---1RA 1000000000",
+  "python3 holdouts/1RB0RA_0RC0LD_1LA1RF_1LE1LD_1LB1RE_---1RA/py/hybrid.py 2e9 > h.txt && ./tmrun 1RB0RA_0RC0LD_1LA1RF_1LE1LD_1LB1RE_---1RA 2000000000 at B L 400 | grep -v running | diff - h.txt",
+  "python3 holdouts/1RB0RA_0RC0LD_1LA1RF_1LE1LD_1LB1RE_---1RA/py/resets.py 600      # the resets, about 25 minutes"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows whether it halts. Started on a blank tape, this machine builds a <em>nested binary counter</em> out of blocks of 1s: each tick doubles the time of the last, and when the counter outgrows the block next to it the whole tape is reorganized and the counter starts again, about twice as long. We followed it exactly for about 10<sup>559</sup> steps.",
   "facts": [
    {
+    "level": "kernel",
+    "value": "every k",
+    "text": "The counter step M_k, proved in Lean for every k and every c ≥ k."
+   },
+   {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 112 cells visited."
+    "value": "10<sup>559</sup> steps",
+    "text": "No halt, in an exact accelerated simulation through 9 resets."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "exp/fixed",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "open",
+    "value": "the resets",
+    "text": "Halting needs a block of a single 1 under the head in B; only a reset could make one."
    }
   ],
   "presets": [
@@ -85,6 +123,35 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "counter",
+    "eyebrow": "The main loop",
+    "heading": "A counter hidden in a block of 1s",
+    "html": [
+     "<p>Watch the tape each time the head, in state B, sits at the left end. It always looks like <code>B&gt;0 1^(2k+1) 0 1^b 0 1^c …</code>: a block of 1s of odd length, then a <em>list</em> of blocks b, c, … The first block grows by two cells per visit, and each visit takes twice as long as the previous one. From the real run (steps from blank tape):</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>tape</th><th>steps since previous</th></tr></thead><tbody><tr><td>1,507</td><td><code>B&gt;0 1^3 0 1^14 0 1^5</code></td><td></td></tr><tr><td>1,525</td><td><code>B&gt;0 1^5 0 1^14 0 1^5</code></td><td>18</td></tr><tr><td>1,567</td><td><code>B&gt;0 1^7 0 1^14 0 1^5</code></td><td>42</td></tr><tr><td>1,657</td><td><code>B&gt;0 1^9 0 1^14 0 1^5</code></td><td>90</td></tr><tr><td>1,843</td><td><code>B&gt;0 1^11 0 1^14 0 1^5</code></td><td>186</td></tr><tr><td>…</td><td>…</td><td>…</td></tr><tr><td>394,615</td><td><code>B&gt;0 1^31 0 1^14 0 1^5</code></td><td>196,602</td></tr></tbody></table></div>",
+     "<p>The gaps are 3·2<sup>k+2</sup> − 6: 18, 42, 90, 186, … Inside one tick the machine runs a recursion. To turn <code>0 0 B&gt;0 1^(2k+1)</code> into <code>B&gt;0 1^(2k+3)</code> it first splits the block (rule P), leaving a <em>frame</em> <code>0 1 1</code> and a row of 0s behind, then performs ticks 1, 2, …, k−2 on a small block, each one eating two of the 0s, and finally collapses the frames (rules X0, Y, Z). Each split also takes one cell from the next block b, and each collapse gives it back. So a tick k needs b ≥ k, and it doubles because tick k contains ticks 1 … k−2 and, through the collapse, essentially tick k−1 again.</p>",
+     "<p>This is proved in Lean for every k: <code>rule_G</code> says that for every k ≥ 1, r ≥ 0, c ≥ k, <code>0 0 (0 1 1)^r B&gt;0 1^(2k+1) 0 1^c</code> reaches <code>B&gt;0 1^(2(r+k+1)+1) 0 1^(c+r)</code>; r = 0 is the tick.</p>"
+    ]
+   },
+   {
+    "id": "resets",
+    "eyebrow": "When the counter overflows",
+    "heading": "Resets",
+    "html": [
+     "<p>The tick k = b+1 would need b ≥ b+1: the recursion runs out of cells in the block b at its deepest point, and the machine goes on into the next blocks of the list. What comes out is a new list, after which the counter starts again at <code>B&gt;0 1^3</code>. The lists at the start of each counter phase, from the exact simulator:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>phase</th><th>list b, c, …</th><th>starts after (digits of the step count)</th></tr></thead><tbody><tr><td>1</td><td>4</td><td>27</td></tr><tr><td>2</td><td>14, 5</td><td>1,507</td></tr><tr><td>3</td><td>35, 20</td><td>2,360,755</td></tr><tr><td>4</td><td>75, 41, 14, 5</td><td>13 digits</td></tr><tr><td>5</td><td>165, 110, 19</td><td>26 digits</td></tr><tr><td>6</td><td>335, 235, 42, 19</td><td>52 digits</td></tr><tr><td>7</td><td>823, 428, 57, 5</td><td>125 digits</td></tr><tr><td>8</td><td>1651, 893, 243, 135, 35, 20</td><td>250 digits</td></tr><tr><td>9</td><td>3711, 2204, 317, 40, 14, 5</td><td>560 digits</td></tr></tbody></table></div>",
+     "<p>The phase with first block b takes about 3·2<sup>b+3</sup> steps, so the first block, which roughly doubles at each reset, makes the step counts grow like a tower: 10<sup>13</sup>, 10<sup>26</sup>, 10<sup>52</sup>, … The simulator can still follow it, because it does each tick in one move and only the resets cell by cell.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Can it stop?",
+    "heading": "What halting would take",
+    "html": [
+     "<p>The only missing transition is F reading 0. F is entered only from C reading 1, and C only from B reading 0, so the machine stops exactly when the head, in state B, reads <code>0 1 0</code>: a block of a <em>single</em> 1 (proved in Lean in both directions: <code>halt_iff_2</code>). Ticks only ever read blocks of 3 or more, so a halt can only come out of a reset. In the 9 resets followed so far it did not happen. Proving that it never happens needs the reset map in closed form, which is the open part.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +165,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "nested binary counter with resets (1RB0RA_0RC0L)",
+ "summary": "A recursive counter: B>0 1^(2k+1) 0 1^c climbs k = 1, 2, ... (each step twice as long, proved in Lean for c ≥ k) until k = c+1, then a reset rebuilds the list of blocks; halting needs B>0 1 0, not seen in 9 resets (to 10^559 steps)."
 }

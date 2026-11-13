@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The leftward half of every sweep is proved in Lean to compute a running parity over a word of 4-cell letters; the run is organised in epochs that grow the tape by a factor about 1.75 (seen to 3·10<sup>9</sup> steps). The machine halts only on <code>F&gt; 1 0 1</code>; whether the rightward half of a sweep or the turns ever produce it is not settled.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The leftward sweep is a running parity</h3>
+        <p>With the head in D (even) or C (odd) on the last cell of a 4-cell word <code>111x</code>: D on <code>u = 1110</code> leaves <code>0101</code> and goes to C; D on <code>v = 1111</code> leaves <code>1111</code> and stays D; C on <code>u</code> leaves <code>1111</code> and goes to D; C on <code>v</code> leaves <code>0101</code> and stays C. So the word written behind the head is the running XOR (from the right) of the u's, as 1111 (even) or 0101 (odd). Plus the runs <code>(1111)<sup>n</sup></code> for D, E and F.</p>
+        <p class="where"><code>d_u0</code> ... <code>c_v1</code>, <code>d_run</code>, <code>e_run</code>, <code>f_run</code>, <code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,6 +120,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
+        <h3>Where it can halt</h3>
+        <p>Only B reading 1 halts; B is entered only from A reading 0 and A only from F reading 1, so the machine halts exactly on <code>F&gt; 1 0 1</code>. Read off the table.</p>
+        <p class="where">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Epochs to 3·10<sup>9</sup> steps</h3>
+        <p>Sweeps across 80% of the tape begin epochs at steps 2,284, 5,873, 13,248, 47,799, 145,962, 487,979, 1,427,948, 4,277,179, 13,419,889, 40,483,837, 124,076,294, 383,276,545 and 1,162,585,978, with the left end at 56, 103, 172, 374, 703, 1,319, 2,265, 4,020, 7,237, 12,641, 22,085, 38,918 and 68,091 cells; the right end grows by about 10 cells per epoch (130 at the end). Ratio per epoch: about 1.75 in length, 3 in time.</p>
+        <p class="where"><code>c/epochs.c</code> (copy of the tool in the first machine of this batch)</p>
+      </div>
+      <div class="card">
+        <h3>A twin machine</h3>
+        <p>The holdout <a href="../1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/explainer.html">1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF</a> has exactly this machine's configuration (tape, head position, state) at 12 of the 13 epoch starts up to 1.7·10<sup>9</sup> steps, reaching each about 1.5 times later.</p>
+        <p class="where"><code>holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/c/dump.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No closed tape language with small windows</h3>
+        <p><code>bbtools.ctl</code> with K = 3, 4, 5, 6 leaves abstract halting configurations; the n-gram CPS decider (widths 3 to 7, with history and LRU) fails; no conserved quantity a·ones + b·pos + W[state] mod 2..12 (<code>bbtools.invariants</code>).</p>
+        <p class="where"><code>tools/py/bbtools/ctl.py</code>, <code>invariants.py</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 64,917 cells have been visited and 53,447 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
@@ -122,6 +147,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>How an epoch works</h3>
+        <p>Inside an epoch the head bounces between the left end of the tape and an inner wall that moves left; between the two the word is replaced by its running parity on every bounce, which draws Sierpinski triangles; to the right of the wall the tape is frozen. When the wall reaches the left end the head crosses the whole tape and a new epoch starts. Observed, not proved.</p>
+        <p class="where">README</p>
+      </div>
       <div class="card">
         <h3>Growth shape: exp/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.501). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.064).</p>
@@ -132,7 +162,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The rightward half of a sweep and the turns at the two walls were not decoded into word rules; halting needs <code>F&gt; 1 0 1</code>, so the question is whether the turns ever leave that pattern in front of F.</p>
       </div>
     </div>
   </section>
@@ -140,6 +170,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/check.sh
+python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/rules.py &gt; holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/Rules.lean
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF 1000000000</code></pre>
   </section>
   <footer>

@@ -1,0 +1,99 @@
+"""Generate lean/Events.lean for 1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC--- (usage: python3 py/events.py > lean/Events.lean).
+
+The counter increments, each for every size, proved by `bbtools.symtm.prove` along the symbolic trace.
+
+Event = the head in state A on cell 3 (cells counted from the start cell).  Left of the head: the left counter
+(4-cell digits 0001 = 0, 0101 = 1, lowest digit next to the head) and the fixed block 0001.  Right of the head: a
+phase cell (1: the next event increments the left counter, 0: the right one), the block 0 1010000, then the right
+counter, one cell per digit (lowest first), digits separated by 00 or by 00 followed by one or more junk units
+1010000.
+
+The siblings of the family G11-Y import RULES from here (`../../<sibling>/py/events.py`); `python3 py/events.py
+--coverage STEPS` matches every event of the first STEPS steps against the rule starts (needs `c/evdump`).
+"""
+import os
+import re
+import subprocess
+import sys
+import collections
+import tempfile
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "tools", "py"))
+from bbtools.symtm import prove, rules_file  # noqa: E402
+
+M = "1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---"
+P = "0 1 0 1 0 0 0 0"
+J = "1 0 1 0 0 0 0"
+JW = "1010000"
+E = "L 0 0 0 1 A>"
+RULES = [
+    ("left", f"L 0 0 0 1 (0101)^n 0 0 0 1 A> 1 {P} R", f"L 0 1 0 1 (0001)^n 0 0 0 1 A> 0 {P} R",
+     "Left event (phase 1): the left counter gets 1, with a carry over n ones; the phase cell becomes 0."),
+    ("right0", f"{E} 0 {P} 0 R", f"{E} 1 {P} 1 R",
+     "Right event (phase 0) on a lowest digit 0: it becomes 1; the phase cell becomes 1."),
+    ("right1", f"{E} 0 {P} 1 (001)^k 0 0 0 R", f"{E} 1 {P} 0 (000)^k 0 0 1 R",
+     "Right event on k+1 ones: carry over them (digits three cells apart) to the next digit."),
+    ("right1m", f"{E} 0 0 1 0 1 0 0 1 0 1 (001)^k 0 0 0 R", f"{E} 1 {P} 0 (000)^k 0 0 1 R",
+     "The same with the engine block marked (0101 0010, as left by a left-end visit)."),
+    ("right0m", f"{E} 0 0 1 0 1 0 0 1 0 0 R", f"{E} 1 {P} 1 R",
+     "Right event on a lowest digit 0, engine block marked."),
+    ("junk_10", f"{E} 0 {P} 1 0 0 {J} 0 R", f"{E} 1 {P} 0 0 0 {J} 1 R",
+     "A carry crosses a junk unit 1010000 unchanged (lowest digit 1, next digit 0 beyond the junk)."),
+    ("junk_110", f"{E} 0 {P} 1 0 0 {J} 1 0 0 0 R", f"{E} 1 {P} 0 0 0 {J} 0 0 0 1 R",
+     "A carry crosses a junk unit unchanged (two ones, the junk between them)."),
+    ("junk_j", f"{E} 0 {P} 1 0 0 ({JW})^j 0 R", f"{E} 1 {P} 0 0 0 ({JW})^j 1 R",
+     "A carry from the lowest digit crosses j junk units in a row (24j+36 steps)."),
+    ("junk_jk", f"{E} 0 {P} 1 0 0 ({JW})^j 1 (001)^k 0 0 0 R", f"{E} 1 {P} 0 0 0 ({JW})^j 0 (000)^k 0 0 1 R",
+     "A carry crosses j junk units after the lowest digit, then k+1 more ones (24j+8k+44 steps)."),
+]
+
+
+def theorems(m=M, rules=RULES, prefix="y_"):
+    return [prove(m, prefix + n, s, e, doc=d, rotate=True, count_first=True, max_seg=40)[0] for n, s, e, d in rules]
+
+
+def _re(toks):
+    out = []
+    for t in toks:
+        g = re.fullmatch(r"\((\w+)\)\^\w+", t)
+        out.append("(?:" + g.group(1) + ")*" if g else t)
+    return "".join(out)
+
+
+def coverage(m, pos, state, steps, rules, show=0, out=sys.stdout):
+    """Match every event (state `state` on cell `pos`) of the first `steps` steps against the starts of `rules`."""
+    pats = []
+    for r in rules:
+        toks = r[1].split()
+        i = next(j for j, t in enumerate(toks) if t.endswith(">"))
+        if toks[i] != state + ">":
+            continue
+        pats.append((r[0], re.compile(".*" + _re(toks[1:i]) + "$"), re.compile(_re(toks[i + 1:-1]))))
+    tool = os.path.join(tempfile.gettempdir(), "g11y-evdump")
+    if not os.path.exists(tool):
+        subprocess.check_call(["gcc", "-O2", "-o", tool, os.path.join(HERE, "..", "c", "evdump.c")])
+    p = subprocess.Popen([tool, m, str(pos), state, str(steps)], stdout=subprocess.PIPE, text=True)
+    cnt = collections.Counter()
+    for line in p.stdout:
+        if not line.startswith("EV"):
+            continue
+        _, c, t, tp = line.split()
+        L, R = tp.split("|")
+        R += "0" * 60
+        hit = next((n for n, lp, rp in pats if rp.match(R) and lp.match(L)), None)
+        cnt[hit] += 1
+        if hit is None and cnt[None] <= show:
+            print("unmatched", c, t, L[-50:], R[:70], file=out)
+    tot = sum(cnt.values())
+    print(f"events {tot}: " + ", ".join(f"{k} {v}" for k, v in cnt.most_common() if k) +
+          f"; not covered {cnt[None]} ({100 * cnt[None] / max(tot, 1):.3f}%)", file=out)
+    return cnt
+
+
+if __name__ == "__main__":
+    if len(sys.argv) > 2 and sys.argv[1] == "--coverage":
+        coverage(M, 3, "A", int(sys.argv[2]), RULES, show=int(sys.argv[3]) if len(sys.argv) > 3 else 0)
+    else:
+        sys.stdout.write(rules_file("Machine", "H23933", theorems(),
+                                    f"Counter increments of {M}, generated by `py/events.py`; do not edit by hand."))

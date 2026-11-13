@@ -79,7 +79,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves the rightward pass for any block (kernel), no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
+      <p><b>What it does.</b> The head sweeps the whole tape. At the left end the tape is <em>dense</em>: blocks of 1s, almost all of length 4j+3, separated by single 0s. A fast rightward pass rewrites every block <code>1<sup>4j+3</sup> 0</code> as the <em>sparse</em> word <code>(1010)<sup>j</sup> 1000</code>, the same length. A slow leftward zig-zag rebuilds dense blocks from the sparse words, but not the same ones: the list of block lengths is scrambled on every round trip, and a few cells are added at each end.</p>
+      <p><b>Where a halt would come from.</b> Only A reading a 1 halts, which happens exactly after <code>A&gt;0 1</code> or <code>1 B&gt;1</code>. Neither has occurred; the content looks random, so a proof would need an invariant of the scrambling that nobody has found.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -102,6 +104,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Every way to a halt</h3>
+        <p>Two steps before any halt the machine is in <code>A&gt;0 1</code>, <code>1 1 D&gt;1</code> or <code>1 1 F&gt;0</code>; no other configuration halts within three steps.</p>
+        <p class="where"><code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The rightward pass</h3>
+        <p>C crosses a dense block <code>1<sup>4n+3</sup> 0</code> in 8n+6 steps and leaves the sparse word <code>(1010)<sup>n</sup> 1000</code>, for every n; two 1s cost four steps.</p>
+        <p class="where"><code>pass_block</code>, <code>pass_pair</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The halting situations</h3>
+        <p><code>A&gt;0 1</code> halts after two more steps and <code>1 B&gt;1</code> after one: A writes a 1, B reads the next 1 and steps back onto a 1 in state A.</p>
+        <p class="where"><code>halt_A</code>, <code>halt_B</code>, <code>lean/Rules.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -127,12 +144,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.501). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.499).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Dense and sparse forms</h3>
+        <p>In the first 5&middot;10<sup>6</sup> steps (464 round trips), at every left turn the tape is a list of 1-blocks separated by single 0s, and of the 72,345 blocks strictly inside the list 72,012 have length 4j+3 (235 have 4j+1, 98 are even: made near the left end and carried along). At every right turn the same list appears in sparse form, block <code>1<sup>4j+3</sup>0</code> of the previous left turn showing up as <code>(0101)<sup>j</sup>0001</code>, with the same rare exceptions.</p>
+        <p class="where"><code>py/forms.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The list of blocks behaves like the state of a cellular automaton; window closed-tape languages (K&le;7) and run-length languages with lengths mod 4 both still allow a halt.</p>
       </div>
     </div>
   </section>
@@ -140,7 +162,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE 1000000000
+python3 holdouts/1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE/py/route.py   # writes lean/Route.lean
+python3 holdouts/1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE/py/rules.py   # writes lean/Rules.lean</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LE_1LC1RD_1LA0RB_1RC1RB_1LF0LC_---0RC</p>
     <h1>What is known about 1RB0LE_1LC1RD_1LA0RB_1RC1RB_1LF0LC_---0RC</h1>
     <p class="machine">1RB0LE_1LC1RD_1LA0RB_1RC1RB_1LF0LC_---0RC</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head sweeps across the whole tape. Most of the tape is one ten-cell word repeated, and the rest, at the right end, is an irregular zone that keeps a roughly constant size of a few hundred cells. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves the exact way a halt would happen (A reading 1 with two 0s on its left) and how the head crosses the repeated word; the C simulator finds no halt in the first 10<sup>11</sup> steps. The whole question is about the irregular zone, which does not repeat.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -99,6 +99,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
+        <h3>How a halt comes about</h3>
+        <p>F reading 0 is the only halt. F is entered only from E reading 0, E only from A reading 1, and A only from C reading 0, all moving left (<code>enter_F</code>, <code>enter_E</code>, <code>enter_A</code>). So a halt is exactly <code>0 E&gt;0</code>, that is <code>0 0 A&gt;1</code>, that is <code>0 0 1 C&gt;0</code>.</p>
+        <p class="where"><code>halt_F</code>, <code>halt_E</code>, <code>halt_A</code>, <code>halt_C</code>, <code>enter_F</code>, <code>enter_E</code>, <code>enter_A</code>, <code>lean/Halt.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Crossing the repeated word</h3>
+        <p>For every n and every surrounding tape, B moving right rewrites <code>(1101101101)^n</code> as <code>(1011110110)^n</code> in 12n steps, and C moving left (in front of <code>0 0</code>) rewrites <code>(0101111011)^n</code>, a rotation of that, as <code>(0110110111)^n</code>, a rotation of the original word, in 58n steps. So both directions of a sweep cross the run in the same way whatever its length. Other shift rules: B crosses <code>(1 1)^n</code>, D turns <code>(1 0)^n</code> into <code>(0 1)^n</code>, and moving left C turns <code>(0 1 1)^n</code> into <code>(0 0 1)^n</code> and A turns <code>(1 0 1)^n</code> into <code>(1 0 0)^n</code>.</p>
+        <p class="where"><code>bword</code>, <code>cback</code>, <code>bright</code>, <code>dright</code>, <code>cleft</code>, <code>aleft</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
@@ -115,15 +125,30 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 20,564 cells have been visited and 14,332 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>The C simulator (<code>tools/c/tm.h</code>) runs 10<sup>11</sup> steps from blank tape without a halt; the visited tape then spans 202,291 cells, 141,549 of them 1.</p>
+        <p class="where"><code>c/longrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>A never reads 1 next to 0 0</h3>
+        <p>In the first 2&middot;10<sup>9</sup> steps A reads 1 about 229 million times; the two cells on its left are <code>1 1</code>, <code>1 0</code> or <code>0 1</code>, never <code>0 0</code>.</p>
+        <p class="where"><code>c/ctx.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Z does not repeat for a very long time</h3>
+        <p>Because the sweeps cross the run of words in the same way whatever its length, Z can be followed with most copies of the word deleted. This reduced simulation agrees with the full one at all 77,275 visits checked (same K and same length of Z). Run for 7.7&middot;10<sup>8</sup> visits to the left end (about 10<sup>12</sup> steps of the reduced machine, 1.1&middot;10<sup>8</sup> copies of the word), with Brent's cycle check on Z: no repeat, so Z has no cycle of period up to 2&middot;10<sup>8</sup> visits starting in the first 5&middot;10<sup>8</sup>. Z stayed under 500 cells at every sampled visit. That the reduction is exact for all time is not proved: the crossing rules are, the joins at the two ends of the run are not.</p>
+        <p class="where"><code>c/m7z.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: sqrt/sqrt</h3>
+        <h3>A long word run and a bounded irregular zone</h3>
+        <p>Each time the head reaches a fresh cell at the left end the tape is <code>A&gt;0 (1101101101)^K Z</code>. In the first 3&middot;10<sup>10</sup> steps (77,275 such moments) K grew from 0 to 11,055, almost always by exactly one every seven visits (11,002 of 11,056 increases); the first 50 or so cells of Z repeat with the same period of seven visits, feeding the run. The rest of Z is irregular: Z stayed between 269 and 557 cells long and never repeated.</p>
+        <p class="where"><code>c/zrec.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Growth shape</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.521). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.388).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
@@ -132,7 +157,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The word run is crossed in the same way every sweep, so the question is about the zone Z: whether its evolution (a few hundred cells, irregular, never repeating so far) ever produces <code>0 0 A&gt;1</code>. If Z were shown to stay bounded and its evolution did not depend on K, Z would eventually repeat, which would prove the machine runs forever; neither is known. Window CTL up to 7 cells and n-gram CPS (widths up to 9, see the README for the larger runs) fail.</p>
       </div>
     </div>
   </section>

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The macro words and the stack structure are identified from simulation, and Lean proves the sweeps over the words; the exact rule for a round is not known yet.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweeps</h3>
+        <p>Twenty-three shift rules over <code>(10010)^n</code>, <code>(1000)^n</code>, their rotations and three-cell words, for all n and any tapes around (one copy by <code>rfl</code>, all copies by <code>TM.cross_r</code> / <code>TM.cross_l</code>).</p>
+        <p class="where"><code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +124,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 44,315 cells have been visited and 17,443 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Right-end events to 2.5·10<sup>9</sup> steps</h3>
+        <p>A C run to 5·10<sup>9</sup> steps, sampled each time the tape grows on the right (17 times): a stack of runs of d = 10010 separated by c = 1000 and a short tail; each round pushes a new top about 6 or 4/3 times the old one, the old top gains one d, and the runs below never change.</p>
+        <p class="where"><code>README.md</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -132,7 +142,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known; the exact rule for the new top is not known, so the question is not reduced to a map.</p>
       </div>
     </div>
   </section>

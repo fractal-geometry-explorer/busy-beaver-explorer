@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves (kernel) that a halt needs a <em>D-run</em> (<code>halt_needs_drun</code>) and proves exact cycle rules of the particle dynamics (<code>cycleP</code>, for all values of their parameters). In the run, D-runs happened only four times, all in the first 2.4&middot;10<sup>6</sup> steps and all at the wall at the right end. No halt in the first 10<sup>11</sup> steps (C); the twin 1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB runs the same tape with one extra 1 at the wall.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>A halt needs a D-run</h3>
+        <p>Two steps before a halt the head is in state D reading a 1: E (the halting state, on a 0) is entered only from D0, and D from C1 (then E reads the 1 that C wrote) or from D1.</p>
+        <p class="where"><code>halt_needs_drun</code>, <code>lean/Halt.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>One cycle with a P particle first</h3>
+        <p>From <code>0^inf F&gt; 0010010111 0 01 (0101)^(x+4) 001011 (1010)^y R</code> the machine reaches the same shape with x+3 and y+3 in 40x+330 steps, for every x, y and every tape R: the left gadget moves 8 cells left, P (<code>001011</code>) 12.</p>
+        <p class="where"><code>cycleP</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,24 +125,34 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 65,134 cells have been visited and 34,220 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>Direct C simulation (<code>c/deep.c</code>), which also records how far right the head gets in each doubling of the step count.</p>
+        <p class="where"><code>c/deep.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Only four D-runs in 10<sup>9</sup> steps, all at the wall</h3>
+        <p>At steps 130, 309, 2,306,898 and 2,380,763 D erased the wall block 1^6 at the right end; the block after it saved the machine each time.</p>
+        <p class="where"><code>c/drun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The twin runs the same tape</h3>
+        <p>1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB is this machine mirrored, with states renamed, started in state F; at all 32,539 left-end records of the first 10<sup>9</sup> steps its tape equals this one plus one 1 at the end of the wall, and its step count is 56 more (constant since step 4,194,242).</p>
+        <p class="where"><code>c/twin.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.516). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Particles and their speeds</h3>
+        <p>Sampled once per cycle of the left gadget, the junctions (00, 11) of the tape form 11 to 15 small clusters whose displacements per cycle are constants (gadget 8 cells, o 4, P 12, Q 8); the head only reaches the far particles when the near ones are used up, like a carry. Read off samples, not proved.</p>
+        <p class="where"><code>py/particles.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Open. It would need a trip of the head that reaches the wall and finds it in a shape where the D-run ends on 00. An exact macro machine for the particles is the next step.</p>
       </div>
     </div>
   </section>
@@ -140,7 +160,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF 1000000000</code></pre>
+python3 holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/py/gen_rules.py &gt; /tmp/Rules.lean   # regenerates lean/Rules.lean
+cd holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF &amp;&amp; gcc -O2 -o snap c/snap.c &amp;&amp; ./snap 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF 3000000 4 &gt; s.txt &amp;&amp; python3 py/particles.py s.txt
+gcc -O2 -o drun c/drun.c &amp;&amp; ./drun 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF 1000000000
+gcc -O2 -o twin c/twin.c &amp;&amp; ./twin 1000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

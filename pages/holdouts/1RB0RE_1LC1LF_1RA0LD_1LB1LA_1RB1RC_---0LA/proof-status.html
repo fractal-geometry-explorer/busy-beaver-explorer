@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA</h1>
     <p class="machine">1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 9 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is a list of blocks of the word <code>110</code>. Its main move is an exact transfer cycle between three neighbouring blocks: <code>(x, y, z) &rarr; (x&minus;2, y+3, z&minus;1)</code> in 28y+111 steps, checked on all 8,397 cycles in the first 10<sup>8</sup> steps. Lean proves the shift rules inside blocks. What happens when a cycle runs out, and so the map on whole lists, is not known.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules of the sweeps</h3>
+        <p><code>a_right</code>: going right, A shifts a block of n words <code>110</code> by one cell (3n+1 steps). <code>d_left</code> and <code>c_left</code>: going left, D and C cross a block written as <code>110</code> or <code>101</code> words. All three hold for every n and every surrounding tape.</p>
+        <p class="where"><code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +124,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 34,337 cells have been visited and 22,887 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Lists at the ends</h3>
+        <p>Right end, step 1,539,966,585: <code>10 (110)^1633 0 (110)^4080 0 (110)^1838 0 ... 0 (110)^3 1</code> (18 blocks, all separators 0). Left end, step 2,243,100,986: 2448, 1156, 1843, 364, 588, ... with separators 1 1 1 0 0 0 1 1 1 1 1 0 0 1 ... No halt in 3&middot;10<sup>9</sup> steps.</p>
+        <p class="where">README</p>
+      </div>
+      <div class="card">
+        <h3>The transfer cycle</h3>
+        <p>When the tape around the head reads <code>(110)^x 0 (110)^y 1 A&gt; 1 0 1 0 1 1 0 0 (110)^z 0</code>, the next turn in state A at the same place finds <code>(x, y, z)</code> changed to <code>(x&minus;2, y+3, z&minus;1)</code> after exactly 28y+111 steps. All 8,397 such cycles in the first 10<sup>8</sup> steps follow this, step count included.</p>
+        <p class="where"><code>py/transfer.py</code> on <code>hturn</code> output</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.545). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Why it is hard</h3>
+        <p>The main move is a 3-for-2 exchange between three neighbouring blocks, the arithmetic of Collatz-like machines. Each cycle is exact, but which blocks meet next depends on how earlier cycles ended, and those end rules are not known yet.</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The machine halts if F reads a 0.</p>
       </div>
     </div>
   </section>

@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE</p>
     <h1>What is known about 1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE</h1>
     <p class="machine">1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this six-state machine halts from blank tape. Its tape has just two parts: a solid block of 1s and a stretch of alternating <code>1 0 1 0 …</code>. On every trip to the left end the machine carries the solid block across the alternating stretch, so the two swap sides; on the way back their sizes change. The sizes jump around without an obvious pattern, while the total width creeps up.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps. The C simulator shows the two-part tape at every one of the 1,139 side switches after step 10<sup>4</sup>, up to 10<sup>9</sup> steps, and the block carried across intact all 569 times. How the trip back sets the new sizes is not yet known.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 3,430 cells have been visited and 2,712 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Two parts</h3>
+        <p>At each of the 1,139 moments after step 10<sup>4</sup> (up to 10<sup>9</sup>) at which the head extends the tape on the side opposite to its last extension, the tape is a solid block and an alternating stretch: at the right end <code>1^m</code> followed by <code>0 1 0 1 …</code>, at the left end <code>0 1 0 1 … 0 0 1^m</code>.</p>
+        <p class="where"><code>py/phases.py</code> on a <code>tmrun … records</code> log</p>
+      </div>
+      <div class="card">
+        <h3>The block is carried across</h3>
+        <p>In all 569 trips from the right end to the left end, the solid block arrives at the right end with exactly the length m it had at the left (e.g. m = 3,056 at steps 978,096,466 and 980,177,263), and the trip takes 2·m·r steps to within a few per cent, r the length of the alternating stretch.</p>
+        <p class="where"><code>py/phases.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +137,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.339). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.338).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Sizes after the trip back</h3>
+        <p>The block lengths at successive right-end visits look erratic: 1112, 1862, 868, 2199, 429, 2793, 1953, 773, 2351, 253, 3056, 695, 2479, 106, 3275, 1996 (the last 16 before 10<sup>9</sup> steps), with total width growing from 3,394 to 3,429 over the last eight trips.</p>
+        <p class="where"><code>py/phases.py</code></p>
+      </div>
+      <div class="card">
+        <h3>How it could halt</h3>
+        <p>The halting transition is A reading 1. A is entered only from E reading 0 (moving right), and E's right neighbour is a 1 only when E was entered from F reading 1. So a halt is exactly <code>0 F&gt;1</code>: F on a 1 with a 0 to its left.</p>
+        <p class="where">local pattern search</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The two-part shape and the carrying of the block hold in every case seen; the map from one block length to the next, and why it never produces F on a 1 next to a 0, are open.</p>
       </div>
     </div>
   </section>
@@ -140,7 +160,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE 1000000000
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE 1000000000 records 100000 &gt; rec.txt &amp;&amp; python3 holdouts/1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE/py/phases.py rec.txt</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

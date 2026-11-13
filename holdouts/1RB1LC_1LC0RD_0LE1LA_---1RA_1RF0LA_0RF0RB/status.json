@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G03",
+ "generated": false,
+ "group": "Collatz-like (3/2 and 3/4 block cascades)",
  "title": "What is known about 1RB1LC_1LC0RD_0LE1LA_---1RA_1RF0LA_0RF0RB",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LC_1LC0RD_0LE1LA_---1RA_1RF0LA_0RF0RB.",
  "machine": "1RB1LC_1LC0RD_0LE1LA_---1RA_1RF0LA_0RF0RB",
@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 12 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The machine's moves are known (the travelling hole, the sweep, the merge, the left-end transfer), and the two local patterns that lead to the halting transition are proved in Lean: the head meets a block of exactly one 1 in state A, or of exactly two 1s in state F. An exact accelerated simulator finds no such meeting in the first 10<sup>2000</sup> steps from blank tape, but slightly different tapes do halt, and no invariant that excludes a halt is known."
  ],
  "claims": [
   {
@@ -46,34 +46,79 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "The left-end transfer",
+   "text": "State C at the left end of <code>1^(2k+4) 0 0 1^b</code> reaches state C at the left end of <code>1^(2k+2) 0 0 1^(b+3)</code>: two 1s of the left block become three of the right one.",
+   "where": "<code>left</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "One sweep of a hole",
+   "text": "In <code>L 0 0 [0] 1^(2w+5) 0 0 R</code> (head in state A on the marked 0, written <code>0 0 0 1 A&gt;</code> in the file) a single 0 travels right through the middle block and back; afterwards the left side has one more 1, the middle block four fewer and the right block three more (<code>sweep</code>). When the middle block is down to three 1s the hole closes (<code>end3</code>).",
+   "where": "<code>sweep</code>, <code>end3</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The travelling hole and the ends of a sweep run",
+   "text": "<code>A&gt; 0 1 1 1</code> becomes <code>1 A&gt; 0 1 1</code> in five steps, for a block of any length (<code>walk</code>). State E at a <code>00</code> gap sends one 1 left and starts the hole (<code>e_g2</code>); at the end of an odd block the head returns to the gap as E and three 1s are added on the right (<code>g2_odd</code>). A last single 1 merges with the next block (<code>e_one</code>); a last <code>111</code> closes the left block with a single 0 and joins the next block (<code>e_three</code>).",
+   "where": "<code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The two halting patterns",
+   "text": "<code>A&gt; 0 1 0</code> (state A on a 0 followed by an isolated 1) and <code>F&gt; 1 1 0</code> (state F on a block of exactly two 1s) reach the undefined transition D0 in two steps; a round start <code>A&gt; 0 0 0 1 0 0</code> does so in 8 steps. D is entered only from B reading a 1, and B only from A0 and F1, so these are the only ways to halt.",
+   "where": "<code>halt_a</code>, <code>halt_f</code>, <code>halt_start</code>, <code>lean/Rules.lean</code>; the last sentence by inspection of the table"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>2000</sup> steps",
+   "text": "<code>py/accel.py</code> simulates on a run-length tape, crossing hole walks and runs in one move and jumping over repeated sweeps and transfers. Its round starts agree with the plain C simulator (<code>c/rounds.c</code>) at the same step counts for 6&middot;10<sup>10</sup> steps (45 round starts); with the jumps switched off it gives the same 62 round starts for 4.7&middot;10<sup>12</sup> steps; the jumps beyond that are not proved. It reaches 10<sup>2000</sup> steps in under a minute: 15,707 round starts, no halt.",
+   "where": "<code>py/accel.py</code>, <code>c/rounds.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The even-block merge and the leftward pass",
+   "text": "After crossing an even block the head returns onto a single 0, merges the block with its left neighbour (x + n &minus; 2) and, when the merged length is odd, runs to the left end turning single 0s into <code>00</code>. Read off the simulation; not yet in Lean.",
+   "where": "<code>README.md</code>, <code>py/accel.py --rec</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Nearby tapes halt",
+   "text": "Started from the round start <code>A&gt; 0 0 0 1^n 0 0 1^m</code>, the machine halts for n = 1, n = 2 and for (n, m) = (17, 5), (18, 2) among the small cases tried, so a proof of non-halting must use properties of the real run.",
+   "where": "<code>py/accel.py</code> (class <code>Sim</code> started on these tapes)"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Open. A halt needs a block of length 1 or 2 to be met with the wrong parity. New blocks at the right end start as <code>111</code> and grow by threes, so small blocks keep appearing; whether one is ever met at the wrong size is not known.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LC_1LC0RD_0LE1LA_---1RA_1RF0LA_0RF0RB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LC_1LC0RD_0LE1LA_---1RA_1RF0LA_0RF0RB 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LC_1LC0RD_0LE1LA_---1RA_1RF0LA_0RF0RB 1000000000",
+  "PYTHONPATH=tools/py python3 holdouts/1RB1LC_1LC0RD_0LE1LA_---1RA_1RF0LA_0RF0RB/py/gen_rules.py   # rewrites lean/Rules.lean",
+  "python3 holdouts/1RB1LC_1LC0RD_0LE1LA_---1RA_1RF0LA_0RF0RB/py/accel.py 1e2000 --rounds | tail -3",
+  "gcc -O2 -o rounds holdouts/1RB1LC_1LC0RD_0LE1LA_---1RA_1RF0LA_0RF0RB/c/rounds.c && ./rounds 1RB1LC_1LC0RD_0LE1LA_---1RA_1RF0LA_0RF0RB 3000000000   # compare with accel.py 3e9 --rounds"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine keeps a row of blocks of 1s and sends a single 0, a hole, travelling through them; each trip moves a few 1s between blocks. It halts only if the head meets a block of exactly one or two 1s at the wrong moment. This page shows the moves, the two halting patterns (proved in Lean) and how far the run has been followed.",
   "facts": [
    {
+    "level": "kernel",
+    "value": "11 rules",
+    "text": "The hole, the sweep, the ends of a sweep run, the left-end transfer and the halting patterns, for all block sizes."
+   },
+   {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 20,218 cells visited."
+    "value": "10<sup>2000</sup> steps",
+    "text": "No halt in the exact accelerated simulator (15,707 rounds)."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "open",
+    "value": "block of 1 or 2",
+    "text": "A halt needs the head to meet such a block with the wrong parity."
    }
   ],
   "presets": [
@@ -86,17 +131,34 @@
   },
   "sections": [
    {
-    "id": "shape",
-    "eyebrow": "First look",
-    "heading": "The shape of the run",
+    "id": "tape",
+    "eyebrow": "What the tape is made of",
+    "heading": "Blocks of 1s and a travelling hole",
     "html": [
-     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.534). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.091).</p>",
-     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"156.5\" y2=\"156.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"160.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"112.9\" y2=\"112.9\" stroke=\"var(--line)\"/><text x=\"34\" y=\"116.9\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"69.4\" y2=\"69.4\" stroke=\"var(--line)\"/><text x=\"34\" y=\"73.4\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,178.2 L59.2,178.2 L78.4,171.9 L97.6,171.9 L116.8,163.8 L136.0,161.0 L155.2,154.6 L174.4,151.5 L193.6,150.1 L212.8,144.2 L232.0,134.7 L251.2,128.5 L270.4,125.2 L289.6,116.9 L308.8,116.6 L328.0,108.8 L347.2,105.0 L366.4,97.8 L385.6,90.8 L404.8,84.0 L424.0,77.3 L443.2,75.4 L462.4,71.2 L481.6,61.4 L500.8,54.9 L520.0,50.9\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,178.2 L59.2,171.9 L78.4,171.9 L97.6,163.8 L116.8,161.0 L136.0,158.6 L155.2,156.5 L174.4,154.6 L193.6,151.5 L212.8,148.8 L232.0,145.6 L251.2,144.6 L270.4,142.1 L289.6,139.9 L308.8,138.0 L328.0,135.7 L347.2,133.8 L366.4,131.6 L385.6,130.4 L404.8,129.0 L424.0,127.1 L443.2,126.2 L462.4,124.6 L481.6,123.6 L500.8,123.1 L520.0,122.2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
-     "<p>After 10<sup>9</sup> steps the tape spans 20,218 cells (13,331 left of the start, 141 right), with a density of 1s of 1.0.</p>",
-     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>909,123,624</td><td><code>A&gt;0 1^4978 0^2 1^12741</code></td></tr><tr><td>left</td><td>924,749,982</td><td><code>A&gt;0 1^3790 0^2 1^14523</code></td></tr><tr><td>left</td><td>940,382,544</td><td><code>A&gt;0 1^1986 0^2 1^17229</code></td></tr><tr><td>right</td><td>674,147,178</td><td><code>1^3366 0^2 1^10105 0 1 A&gt;0</code></td></tr><tr><td>right</td><td>946,402,856</td><td><code>1 0 1^20208 0 1 A&gt;0</code></td></tr></tbody></table></div>",
-     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+     "<p>The tape is a row of blocks of 1s. Left of the head the blocks are separated by a single 0, right of the head by <code>00</code>. The basic move is a <b>travelling hole</b>: <code>A&gt; 0 1 1 1</code> becomes <code>1 A&gt; 0 1 1</code> in five steps, so the 0 under the head runs right to the end of its block. There three 1s are added to the front of the next block (or a new block <code>111</code> is made at the right end of the tape), and the head comes back.</p>",
+     "<ul><li><b>Sweep.</b> At a gap, <code>1^x E&gt; 00 1^y 00 R</code> with y odd becomes <code>1^(x+1) E&gt; 00 1^(y-4) 00 111 R</code>: the middle block loses four 1s, one to the left and three to the right.</li><li><b>End of a sweep run.</b> A last single 1 merges with the next block (x + 2, z + 1). A last <code>111</code> closes the left block with a single 0 and joins the next block (z + 3).</li><li><b>Even blocks.</b> After crossing an even block the head comes back onto a single 0 and merges the block with its left neighbour (x + n &minus; 2); if the result is odd the head runs on to the left end of the tape.</li><li><b>Left end.</b> <code>A&gt; 0 1^a 00 1^b</code>: the first block is emptied into the second, three 1s for two.</li></ul>",
+     "<p>The hole, the sweep, the two ends and the left-end transfer are Lean theorems for all sizes (<code>lean/Rules.lean</code>); the even-block merge is read off the simulation.</p>"
+    ]
+   },
+   {
+    "id": "rounds",
+    "eyebrow": "The emergent behaviour",
+    "heading": "Rounds, and a factor of three halves",
+    "html": [
+     "<p>A <b>round start</b> is the head on the left end of the tape facing <code>000</code> and the first block. From blank tape:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>tape after <code>A&gt; 000</code></th></tr></thead><tbody><tr><td>5,241</td><td><code>1^27 00 1^21</code></td></tr><tr><td>34,599</td><td><code>1^137 00 1^3</code></td></tr><tr><td>127,627</td><td><code>1^233 00 1^3</code></td></tr><tr><td>502,448</td><td><code>1^373 00 1^12</code></td></tr><tr><td>803,781</td><td><code>1^459 00 1^21</code></td></tr><tr><td>1,669,069</td><td><code>1^737 00 1^3</code></td></tr><tr><td>3,292,853</td><td><code>1^1121 00 1^3</code></td></tr><tr><td>7,014,825</td><td><code>1^1697 00 1^3</code></td></tr><tr><td>16,118,863</td><td><code>1^2567 00 1^3</code></td></tr><tr><td>29,552,022</td><td><code>1^2893 00 1^12</code></td></tr></tbody></table></div>",
+     "<p>In a calm stretch the first block grows by 3/2 per round (the left-end transfer); in between, the tape breaks into several blocks whose sizes depend on the block lengths mod 2 and mod 4. A round with blocks of size n takes about n&sup2; steps, which is why the left side grows like the square root of the time, and the right end moves two cells each time a hole reaches it.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Why it is not known to halt or not",
+    "heading": "Two ways to stop",
+    "html": [
+     "<p>The only missing transition is D0, and the table lets the head reach it in just two ways (both Lean theorems):</p><ul><li><code>A&gt; 0 1 0</code>: state A lands on a 0 followed by an isolated 1. Instead of starting a hole, the machine stops.</li><li><code>F&gt; 1 1 0</code>: state F, crossing a gap, finds a block of exactly two 1s.</li></ul>",
+     "<p>So a halt needs a block of length 1 or 2 to be met at the wrong moment. Small blocks do exist: every new block at the right end starts as <code>111</code> and grows by threes. Started on slightly different tapes (for example the round start <code>1^17 00 1^5</code>) the machine does halt. From blank tape an exact accelerated simulator has followed the run for 10<sup>2000</sup> steps, 15,707 rounds, without a halt, but nothing is proved about the rest.</p>"
     ]
    }
   ]
- }
+ },
+ "summary": "Blocks of 1s crossed by a travelling hole (3/2 at the left end, 1:3 split per sweep); halts iff the head meets a block of length 1 or 2 at the wrong moment; exact accelerated simulator finds no halt in 10^2000 steps."
 }

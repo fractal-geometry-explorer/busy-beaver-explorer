@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Runs of words of length 9, 15, 21, ...</a><a href="#rule">D makes words dense, C makes them sparse</a><a href="#halt">Only on A&gt; 0 1</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape looks like</span>
+  <h2>Runs of words of length 9, 15, 21, ...</h2>
+<p>At step 4&middot;10<sup>9</sup> the tape, read left to right, is a run of <code>100</code> (8,078 copies), then runs of 9-cell words (662), 15-cell words (1,624), 21-cell words (135), 27-cell words (323), 33-cell words (17), and a right part of <code>(111)<sup>m</sup> 011011(01)<sup>j</sup></code> blocks. The run of level k is made of words of length 6k + 3.</p>
+<p>Each word comes in two forms: dense, <code>100 1<sup>6k</sup></code> (nearly all 1s), and sparse, <code>011 (01)<sup>3k</sup></code> (alternating). Left of the head the words are dense, right of it sparse.</p>
+</section>
+<section id="rule">
+  <span class="eyebrow">The rule</span>
+  <h2>D makes words dense, C makes them sparse</h2>
+<p>Lean proves, for levels 1 to 3, that D going right turns each sparse word into the dense one in 6k + 5 steps per word, and (for levels 1 and 2) that C going left turns the dense word back. So the head is a bouncer that flips the form of the words as it passes. What happens where two levels meet, and how a new level is made at the right end, was not derived.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Can it stop?</span>
+  <h2>Only on A> 0 1</h2>
+<p>Only B reading 1 stops the machine, and B is reached only from A reading 0 and stepping right, so it stops exactly when A stands on <code>0 1</code>. The proved conversions never produce that inside a run; it could only happen at a boundary between levels.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,15 +249,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (B1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>d_q1..d_q3</code>, <code>c_p1</code>, <code>c_p2</code>, <code>d_c</code>, <code>d_left</code>, <code>e_right</code>, <code>lean/Rules.lean</code></div></div><div><b>Word conversions at each level</b><p>For k = 1, 2, 3: <code>D&gt; (011(01)<sup>3k</sup>)<sup>n</sup> &rarr; (100 1<sup>6k</sup>)<sup>n</sup> D&gt;</code> in (6k+5)n steps; for k = 1, 2: <code>(0 1<sup>6k+1</sup> 0)<sup>n</sup> C&gt; 1 &rarr; C&gt; 1 (011(01)<sup>3k</sup>)<sup>n</sup></code>; and the 3-cell shifts <code>D&gt; (011)<sup>n</sup> &rarr; (100)<sup>n</sup> D&gt;</code>, <code>(100)<sup>n</sup> D&gt; 1 &rarr; D&gt; 1 (110)<sup>n</sup></code>, <code>E&gt; (110)<sup>n</sup> &rarr; (001)<sup>n</sup> E&gt;</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>Where it can halt</b><p>Only B reading 1 halts; B is entered only from A reading 0 (1RB), so the machine halts exactly on <code>A&gt; 0 1</code>. Read off the table.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">a direct run (<code>c/dump.c</code>-style simulator)</div></div><div><b>The tape over time</b><p>Runs of period 3, 9, 15, 21, 27, 33 from left to right: at 2.5&middot;10<sup>8</sup> <code>(100)<sup>1347</sup> (111110011)<sup>243</sup> ... (111111111110011)<sup>398</sup> ... A&gt; ... (21-cell)<sup>38</sup></code>; at 4&middot;10<sup>9</sup> <code>(100)<sup>8078</sup> (9)<sup>662</sup> (15)<sup>1624</sup> (21)<sup>135</sup> (27)<sup>323</sup> (33)<sup>17</sup> ...</code> followed by a slowly growing right part of <code>(111)<sup>m</sup> 011011(01)<sup>j</sup></code> blocks.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>A bouncer whose zones are levels</b><p>The head sweeps the whole level structure; each pass converts the words of the level it crosses between dense and sparse form, and the boundaries between levels move, so the counts of each level rise and fall. The highest level present grows slowly (5 levels at 4&middot;10<sup>9</sup> steps). Observed only.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/ctl.py</code></div></div><div><b>No closed tape language with small windows</b><p><code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS fails; no invariant mod 2..12.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 35,340 cells have been visited and 19,249 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.504). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.11).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine stops only on <code>A&gt; 0 1</code>; inside a run of one level the proved conversions never produce it, so the question is about the boundaries between levels and the right end, where new levels form; their rules were not derived.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF/lean/check.sh
+python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF/py/rules.py &gt; holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF/lean/Rules.lean
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF 1000000000</code></pre>
 </section>
 <footer class="foot">

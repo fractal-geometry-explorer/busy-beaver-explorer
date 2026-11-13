@@ -74,12 +74,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---</h1>
     <p class="machine">1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Its run is a block <code>1^(4j+1)</code> at the left end that grows by four cells per overflow while the gap doubles, so a binary counter is at work, and a word of blocks <code>1</code>, <code>1^5</code>, <code>1^9</code> (binary-like digits) on its right. Each overflow changes the word only from some block on, and that block moves right about two blocks per overflow; when it reaches the end the word is rebuilt and the block at the left end starts again.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in the first 10<sup>11</sup> steps.</p>
+      <p><b>What it does.</b> At each overflow the tape reads <code>C&gt;0 1 0 1^(4j+1) 0 W</code>. Since the last restructure, at step 1,354,998, j has grown by one per overflow, 30 times, to <code>1^125</code> at step 73,018,175,570, and the gap between overflows has doubled (ratio 2.0000 at the last 15). W has 54 to 56 blocks, and the first block that changes from one overflow to the next has moved from block 0 to block 50.</p>
+      <p><b>Why it is hard.</b> The sweep should reach the end of W within a few more overflows (a few times 10<sup>11</sup> steps); what happens then, a restructure or possibly a halt (state F reading a 1), depends on a rule that has not been worked out.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -115,24 +118,39 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 285 cells have been visited and 151 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p>The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps without a halt; 313 cells visited (282 left of the start, 30 right), 162 ones at the end.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The overflow configurations of the run</h3>
+        <p>There are 65 moments in the first 10<sup>11</sup> steps where the head reaches a new cell at the left end with the tape reading <code>C&gt;0 1 0 1^k 0 W</code>. From step 830 on k has the form 4j+1 and rises by 4 from each to the next, except at restructures where it falls back to 5: at steps 1,525, 4,520, 166,083 and 1,354,998. The last is at step 73,018,175,570 with k = 125.</p>
+        <p class="where"><code>tmrun ... records</code></p>
+      </div>
+      <div class="card">
+        <h3>The change sweeps through W</h3>
+        <p>Comparing W at successive overflows since step 1,354,998, the first block that differs moves right, from block 0 to block 50 of the 54 to 56 blocks of W (by 0 to 6 blocks per overflow, 1.7 on average). The gap between overflows doubled exactly (ratio 2.0000 to four digits) at the last 15.</p>
+        <p class="where"><code>tmrun ... records</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: exp/fixed</h3>
-        <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.024). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A restructure is due soon</h3>
+        <p>If, as in the similar machine 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB, the epoch ends when the sweep reaches the end of W (not checked for the earlier epochs of this machine), then at its current pace that happens in two or three more overflows, near 1.5&middot;10<sup>11</sup> to 3&middot;10<sup>11</sup> steps.</p>
+        <p class="where">the records of the 10<sup>11</sup>-step run</p>
+      </div>
+      <div class="card">
+        <h3>No simple arithmetic rule</h3>
+        <p>Reading W as a binary number N, N changes by roughly 3&middot;4<sup>j&minus;1</sup> per overflow, but the rule fails when the machine is started from constructed configurations with arbitrary low digits, so the run depends on the particular words it writes.</p>
+        <p class="where">experiments with a direct simulator started from given tapes</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>The restructures, and the question itself</h3>
+        <p>Not known: the per-overflow rule for W, the restructure rule, and whether the machine halts. A closed tape language that confined the halt to the left edge looked plausible in Python but failed Lean's check, so no edge theorem is claimed.</p>
       </div>
     </div>
   </section>
@@ -140,7 +158,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB--- 1000000000</code></pre>
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB--- 100000000000 records 100000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

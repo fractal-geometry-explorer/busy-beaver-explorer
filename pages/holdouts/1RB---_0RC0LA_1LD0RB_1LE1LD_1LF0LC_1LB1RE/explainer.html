@@ -127,7 +127,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB---_0RC0LA_1LD0RB_1LE1LD_1LF0LC_1LB1RE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine shuttles its tape between two encodings, dense at the left end and sparse at the right end, and scrambles it a little on every trip. This page runs it in your browser and explains the two encodings.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 36,584 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#encodings">Two encodings of one list</a><a href="#halt">A must read a 1</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="encodings">
+  <span class="eyebrow">Macro structure</span>
+  <h2>Two encodings of one list</h2>
+<p>Run the simulator and look at the tape each time the head turns at an end. At the <b>left end</b> it is <em>dense</em>: runs of 1s separated by single 0s, nearly all of length 3, 7, 11, 15, &hellip; (4j+3). At the <b>right end</b> it is <em>sparse</em>: a string of the four-cell words <code>0101</code> and <code>0001</code>.</p>
+<p>The rightward pass is a plain translation. State C walks right and rewrites each dense block two cells at a time; the block <code>1<sup>7</sup> 0</code> (j = 1) becomes <code>1010 1000</code>:</p>
+<pre>C&gt; 1 1 1 1 1 1 1 0      
+1 0 1 0 1 0 0 0 C&gt; 0    (14 steps later)</pre>
+<p>Lean proves this for every j (<code>pass_block</code> in <code>lean/Rules.lean</code>): the number j is kept, only the encoding changes. The leftward trip is a slow zig-zag that turns the sparse words back into dense blocks, and that is where the list is scrambled.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">The halting condition</span>
+  <h2>A must read a 1</h2>
+<p>The only missing instruction is A reading a 1. Two local situations lead to it:</p>
+<pre>A&gt; 0 1      (A on a 0, a 1 to its right)
+1 B&gt; 1      (B reads the 1, writes 0, steps back onto the 1 in state A: halt)</pre>
+<p>and <code>1 B&gt;1</code>, which halts on the next step. A is entered 23 million times in the first 2&middot;10<sup>8</sup> steps, always on a 0.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,7 +252,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 36,584 cells have been visited and 30,303 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: sqrt/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.501). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.499).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>pass_block</code>, <code>pass_pair</code>, <code>pass_end</code>, <code>pass_b</code>, <code>lean/Rules.lean</code></div></div><div><b>Shift rules</b><p>C crosses a dense block <code>1<sup>4n+3</sup> 0</code> in 8n+6 steps and leaves the sparse word <code>(1010)<sup>n</sup> 1000</code>, for every n; two 1s cost four steps. Seen from B the same pass turns each <code>0111</code> into <code>0100</code>.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_A</code>, <code>halt_B</code>, <code>lean/Rules.lean</code></div></div><div><b>The halting situations</b><p><code>A&gt;0 1</code> halts after two steps and <code>1 B&gt;1</code> after one.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/turns.py</code></div></div><div><b>Dense and sparse forms</b><p>At the 1,907 left-end visits of the first 5&middot;10<sup>6</sup> steps, 303,706 of the 306,037 blocks of 1s strictly inside the tape have length 4j+3; at the 660 right-end visits every 1 stands alone (the sparse words), with 32 exceptions.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/visits.c</code></div></div><div><b>A never reads a 1 in 2&middot;10<sup>8</sup> steps</b><p>In the first 2&middot;10<sup>8</sup> steps the machine is in state A 23,410,519 times, every time on a 0: the halting transition A1 is never close to firing in a way the run shows.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The list of block lengths changes from trip to trip like the cells of a cellular automaton; no invariant that rules out <code>A&gt;0 1</code> and <code>1 B&gt;1</code> is known.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

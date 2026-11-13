@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB</h1>
     <p class="machine">1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 12 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and Collatz-like.</b> Each time the head turns at the left end the tape is <code>1<sup>n</sup> (01)<sup>k</sup> 111</code> (or all ones), and the next such state is given by an explicit map on (state, n, k): while n is odd the ones are doubled at the cost of (n+5)/2 pairs <code>01</code>, or the pairs are doubled when that cannot be paid; when n is even the pairs are drained into ones. The machine halts if and only if a doubling in state D leaves exactly one pair, that is the orbit reaches D(n, k) with n odd and 2k = n+7 (as far as the computed map is right: it is checked against the machine on thousands of states, not proved). From blank tape the map has been iterated through 8,598 epochs, more than 10<sup>3,100</sup> steps, without a halt.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The drain</h3>
+        <p>From the left end, <code>A&gt; 0 0 1<sup>2n+4</sup> (01)<sup>k+2</sup> 111</code> becomes <code>A&gt; 0 0 1<sup>2n+12</sup> (01)<sup>k</sup> 111</code> in 12n+58 steps: each trip turns one <code>01</code> into four 1s.</p>
+        <p class="where"><code>drain</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>How a halt happens</h3>
+        <p>A sweep in state D over an even block of 1s that ends in <code>0 111</code> reaches B on a 1 (no transition) in 2n+3 steps, whatever lies to the right; over an odd block ending in <code>0 1111</code> it passes to the right end.</p>
+        <p class="where"><code>halt_even</code>, <code>halt_even_stop</code>, <code>pass_odd</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +129,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 24,444 cells have been visited and 15,911 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in 10<sup>300</sup> steps</h3>
+        <p><code>py/run.py</code> (exact run-length simulation, cycles extrapolated at the turns of the head, nested loops level by level) follows 414 epochs from blank tape to 10<sup>300</sup> steps without a halt. The extrapolation agrees with the plain run-length simulator at all 8,828 samples up to 3&middot;10<sup>8</sup> steps, and the epoch map agrees with <code>bbtools.machine</code> on the values tried.</p>
+        <p class="where"><code>py/run.py</code>, <code>py/turnacc.py</code>, <code>py/epoch.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The left-end map</h3>
+        <p>With A(n, k), D(n, k) the head in state A two cells (D: three cells) left of <code>1<sup>n</sup> (01)<sup>k</sup> 111</code> (k = 0: <code>1<sup>n</sup></code>): for n even, s(n, k) &rarr; other(n+4, k&minus;1), and other(n+7, 0) when k = 1, other(n+3, 0) when k = 0; A(n, 0) &rarr; D(1, (n+1)/2) and D(n, 0) &rarr; D(3, (n+1)/2) for n odd; for n odd and k &ge; 2: D(n, k) &rarr; D(2n+7, k&minus;(n+5)/2) and A(n, k) &rarr; A(2n+6, k&minus;(n+5)/2) when 2k &gt; n+5, all ones of length 2n+10 resp. 2n+9 when 2k = n+5, other(n&minus;2k+6, 2k) when 2k &lt; n+5; n odd and k = 1 halts. Equal to the plain machine on all 7,000 states with n &lt; 70, k &lt; 50, 300 random larger states, the first 170 left-end states from blank tape and every epoch N &le; 150; its epoch values agree with the 126 epochs of the accelerated run to 10<sup>100</sup> steps. Checked, not proved.</p>
+        <p class="where"><code>py/emap.py</code>, <code>py/leftcheck.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The halting condition</h3>
+        <p>By the map, the machine halts iff the orbit from D(3, 0) reaches D(n, k) with n odd and 2k = n+7: the doubling leaves one pair, D(2n+7, 1), and the machine stops within the next sweeps (the Lean lemma <code>halt_even</code> shows the kind of sweep that stops it). A doubling in A leaves n even and a failed doubling leaves k even, so there is no other way.</p>
+        <p class="where"><code>py/emap.py</code>, <code>py/leftcheck.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 8,598 epochs</h3>
+        <p>The map iterated from D(3, 0) for 9.1&middot;10<sup>7</sup> map steps (a run of drain steps counted once) does not halt; the last all-ones tape has a length of 10,317 bits, so the machine has made more than 10<sup>3,100</sup> steps. This rests on the computed map.</p>
+        <p class="where"><code>py/orbit.py 280</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +157,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.433). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.09).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>A halt needs an exact remainder</h3>
+        <p>Each doubling stage in D ends with a remainder between 0 and about n/2, and a halt needs it to be exactly 1: about 2/n per stage if remainders behave like random numbers, with n growing geometrically. Past the epochs already followed the chance is around 2<sup>&minus;10,000</sup>.</p>
+        <p class="where"><code>py/orbit.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It is the question whether the orbit of the left-end map ever reaches D(n, (n+7)/2) with n odd: a Collatz-like question. The map and this reduction are computed, not yet proved in Lean (the doubling stage, a nested zig-zag, is the missing part).</p>
       </div>
     </div>
   </section>
@@ -140,6 +175,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/lean/check.sh
+python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/run.py check 3e8
+python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/run.py 1e100
+python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/epoch.py scan 1 3000
+python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/leftcheck.py
+python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/orbit.py 60
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB 1000000000</code></pre>
   </section>
   <footer>

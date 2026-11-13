@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The head bounces between a block that grows at the left end and a wall of exactly 1,573 cells at the right end that it rewrites every sweep like a counter; the counter would need something like 3<sup>48</sup> sweeps to fill the wall, and what happens then is the question.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 34,610 cells have been visited and 20,724 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>A wall of fixed length that counts</h3>
+        <p>After 2&middot;10<sup>7</sup> steps the tape at each sweep is <code>C&gt;0 (01101)^n W</code> with W exactly 1,573 cells and n growing by one per four sweeps. Consecutive walls differ from cell 44 on; the deepest change reaches cells 252, 294, 319, 344, 369 at sweeps 274, 406, 2,296, 7,335, 20,772 (by 10<sup>10</sup> steps).</p>
+        <p class="where"><code>python3 py/wall.py 2e10</code></p>
+      </div>
+      <div class="card">
+        <h3>A wall of fixed length that counts</h3>
+        <p>After 2&middot;10<sup>7</sup> steps the tape at each sweep is <code>C&gt;0 (01101)^n W</code> with W exactly 1,573 cells and n growing by about one per sweep. Consecutive walls differ from cell 44 on; the deepest change reaches cells 252, 294, 319, 344, 369 at sweeps 274, 406, 2,296, 7,335, 20,772 (by 10<sup>10</sup> steps).</p>
+        <p class="where"><code>python3 py/wall.py 2e10</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -140,7 +150,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE 1000000000</code></pre>
+python3 holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/view.py   # the views of the run quoted in the README</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

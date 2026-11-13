@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RE_1LC0RA_1RE1LD_0LB0LF_1RA1RA_0LD---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine is a two-level counter: a fast counter at the right end of the tape needs twice as long for each round, and each round makes one small change in a slow list of blocks on its left; rarely the slow list is rebuilt. This page runs the machine and shows the rounds.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 182 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/fixed</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>3·10<sup>10</sup> steps</b><span class="small">No halt in direct simulation.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>3 rounds</b><span class="small">Rounds of the run proved in Lean for any tape further left.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>2×</b><span class="small">Each round twice as long as the one before.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#blocks">A fast counter and a slow list</a><a href="#halt">Why it is hard to settle</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="blocks">
+  <span class="eyebrow">The picture</span>
+  <h2>A fast counter and a slow list</h2>
+<p>Look at the tape each time the head is in state A on the first blank cell right of everything written. The tape is then a word of blocks of 1s and gaps of one or two 0s (<code>(1 2 /2)^4</code> is four copies of <code>1 0 11 00</code>, <code>…</code> an unchanged stretch, <code>1^17</code> seventeen single 1s). The fast counter is the run of single 1s (<code>1 0 1 0 … 1</code>) at the right end: it grows by one 1 per round, and each round takes about twice as long as the one before (T′ = 2T + 14 and 2T − 10 alternately in the regular stretches).</p>
+<table class="tbl"><thead><tr><th>step</th><th>tape</th><th></th></tr></thead><tbody><tr><td>40,506,598</td><td><code>3 /2 (1 2 /2)^4 1 /2 1 /2 (1 2 /2)^7 1 1 1 2 /2 … 1 1 1</code></td><td>after a rebuild</td></tr><tr><td>52,537,788</td><td><code>3 /2 (1 2 /2)^4 4 /2 (2 1 /2)^5 4 /2 … 1^17</code></td><td>the walker 4 moves left</td></tr><tr><td>810,682,800</td><td><code>3 /2 1 2 /2 4 /2 (1 2 /2)^3 (2 1 /2)^5 4 /2 … 1^23</code></td><td>two pieces before the front</td></tr><tr><td>22,818,010,861</td><td><code>3 /2 (1 2 /2)^2 (2 1 /2)^4 (1 2 /2)^3 1 /2 1 /2 … 4 /2 1 4 /2 1 4 /2 …</code></td><td>after the third rebuild</td></tr></tbody></table>
+<p>Left of it the slow list is a word in a few pieces, written here with <code>/2</code> for a double 0: mostly <code>1 2 /2</code> (that is <code>1 0 11 00</code>) and <code>2 1 /2</code> (<code>11 0 1 00</code>), behind a leading <code>3 /2</code>. In each round a walker <code>4 /2</code> moves one piece to the left, turning the <code>1 2 /2</code> it passes into <code>2 1 /2</code>; when it reaches the leading 3 the list is rebuilt longer and a new walk starts.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Halting</span>
+  <h2>Why it is hard to settle</h2>
+<p>The machine can halt only on its one undefined transition. The regular rounds are proved in Lean for three instances (for every tape further left) and behave the same way in every round seen; a halt could only come from a rebuild of the slow list (seen at about 2.3·10<sup>4</sup>, 4.05·10<sup>7</sup> and 1.2·10<sup>10</sup> steps (the walker reached the front at step 6.2·10<sup>9</sup>)). Rebuilds come after exponentially many rounds, and their rule is not known for all sizes, so the run cannot be followed beyond direct simulation. Since every rebuild seen made the list longer, the machine looks like it runs forever, but that is an extrapolation.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -234,14 +246,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 182 cells have been visited and 104 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/fixed</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.097).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rounds.lean</code> (generated by <code>py/gen_rounds.py</code>)</div></div><div><b>Three rounds of the run, for any tape further left</b><p>Three consecutive rounds of the run from blank tape (between moments the head is in A on the first 0 right of everything written), each proved for every tape left of the cells it visits, with its exact step count.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code> (<code>at A R</code>)</div></div><div><b>No halt in 3·10<sup>10</sup> steps; rebuilds</b><p>Direct simulation. The fast counter is the run of single 1s (<code>1 0 1 0 … 1</code>) at the right end: it grows by one 1 per round, and each round takes about twice as long as the one before (T′ = 2T + 14 and 2T − 10 alternately in the regular stretches). The slow list was rebuilt at about 2.3·10<sup>4</sup>, 4.05·10<sup>7</sup> and 1.2·10<sup>10</sup> steps (the walker reached the front at step 6.2·10<sup>9</sup>); between rebuilds each round makes one local change in it.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code></div></div><div><b>Two-level counter</b><p>Left of it the slow list is a word in a few pieces, written here with <code>/2</code> for a double 0: mostly <code>1 2 /2</code> (that is <code>1 0 11 00</code>) and <code>2 1 /2</code> (<code>11 0 1 00</code>), behind a leading <code>3 /2</code>. In each round a walker <code>4 /2</code> moves one piece to the left, turning the <code>1 2 /2</code> it passes into <code>2 1 /2</code>; when it reaches the leading 3 the list is rebuilt longer and a new walk starts. Not shown for all sizes.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. See the heuristic claims above for what a halt would need.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1LC0RA_1RE1LD_0LB0LF_1RA1RA_0LD---/lean/check.sh
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0RE_1LC0RA_1RE1LD_0LB0LF_1RA1RA_0LD--- 30000000000 at A R 100000
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC0RA_1RE1LD_0LB0LF_1RA1RA_0LD--- 1000000000</code></pre>
 </section>
 <footer class="foot">

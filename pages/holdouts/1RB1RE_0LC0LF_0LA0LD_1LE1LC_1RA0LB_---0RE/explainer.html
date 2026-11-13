@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine works on the left end of a word made of blocks of two kinds, a = 10 and x = 1000: each trip of the head turns one x into three a. That much is proved; how the deeper blocks get rewritten is still being decoded.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 33,485 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>x → 3a</b><span class="small">The basic sweep, proved in Lean for all block lengths.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
+    <div class="fact"><span class="ev o">Open</span><b>nested map</b><span class="small">Rules of the deeper levels not yet found.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Blocks of a and x</a><a href="#halt">Open</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>Blocks of a and x</h2>
+<p>With a = <code>10</code> and x = <code>1000</code>, whenever the head is at the left end in state E the tape reads</p>
+<pre>E&gt;0 a^p 0 x^q a^r 0 x^s ... y^K a^3 0</pre>
+<p>a list of blocks and, at the right end, a counter of K copies of y = a<sup>4</sup>0 that gains one now and then (K = 46 at step 4.3·10<sup>8</sup>, 51 at 9·10<sup>8</sup>), so the right side grows like the logarithm of time.</p>
+<p>Each sweep of the head over the first two blocks turns one x into three a: (p, q) → (p + 3, q − 1). When the x's run out, the next block of a's is moved onto a stack at the left and the same sweep repeats, each one taking an a from the stack: with first blocks a^p 0 a^m 0 x^q and m ≤ q the result is (1, 3m + p + 1, q − m). For example (1, 11, 4023) → (1, 35, 4012) → (1, 107, 3977) → (1, 323, 3870) → (1, 971, 3547) → (1, 2915, 2576).</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>Open</h2>
+<p>The machine halts exactly when the head in state E reads a 1 with <code>0 1</code> to its left. The basic sweeps never do that. When m &gt; q the deeper blocks are rewritten in ways that have been seen but not yet written down as rules; those rules, iterated, would turn the question into one about a map on the block lengths, which looks Collatz-like (one regime multiplies a count by 3/2).</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +248,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 33,485 cells have been visited and 18,463 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.37). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.058).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>ra</code>, <code>ri</code>, <code>lean/Rules.lean</code> (generated by <code>py/gen_rules.py</code>)</div></div><div><b>The basic sweeps</b><p><code>0^inf E&gt; 0 a^(p+1) 0 x^(q+1)</code> → <code>0^inf E&gt; 0 a^(p+4) 0 x^q</code> in 4p + 26 steps, and against a stack of a's, <code>L a 1 E&gt; 0 a^k 0 x^(q+1)</code> → <code>L 1 E&gt; 0 a^(k+3) 0 x^q</code> in 4k + 24 steps, for all values and any tapes L, R.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/events.c</code></div></div><div><b>The next level, observed</b><p>With first blocks a^p 0 a^m 0 x^q and m ≤ q, the left end goes (p, m, q) → (1, 3m + p + 1, q − m), e.g. (1, 11, 4023) → (1, 35, 4012) → (1, 107, 3977) → ... and (714, 1491, 6138) → (1, 5188, 4647). For m &gt; q the next level of the word is rewritten and the counter y^K at the right end sometimes gains one. Seen in simulation, not proved.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>Where it would halt</b><p>The only halting transition is F reading 0; F is entered only from B reading 1, which follows E reading 1. So the machine halts exactly when the head in state E reads a 1 with <code>0 1</code> to its left (from the transition table).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The basic sweeps are proved, but the rules for the deeper levels of the word, and so a map on the block lengths, are not found yet (see "For later" in the README).</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE 1000000000</code></pre>
+PYTHONPATH=tools/py python3 holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/py/gen_rules.py | diff - holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/lean/Rules.lean
+gcc -O2 -o events holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/c/events.c &amp;&amp; ./events 1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE 1000000000 L 1 a=10 x=1000 | grep &quot;E&gt; 0 a&quot;</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

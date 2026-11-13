@@ -74,12 +74,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---</h1>
     <p class="machine">1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 12 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open; analysis only begun.</b> Sampled when the head is in E at the left end, the tape is a list of blocks of the words <code>0100</code>, <code>0010</code> and <code>0001</code>, as in <code>E&gt; (10)^2 (0100)^189 (10)^3 (0010)^633 (01)^2 (0001)^n</code> plus a short tail. All blocks but the last are frozen. The last one grows by a factor of about 1.4 per event: n = 13, 159, 363, &hellip;, 28,645, 40,230 up to step 1.9&middot;10<sup>10</sup>. From time to time a new level begins: 189 copies of <code>0100</code> froze at step 0.43&middot;10<sup>6</sup>, and 633 copies of <code>0010</code> at step 9.1&middot;10<sup>6</sup>. The exact map and the halting condition are further work.</p>
+      <p><b>Third pass.</b> No halt in 10<sup>18</sup> steps (macro simulation); the third level froze at 40,231 copies and a fourth grows. The growth factor 1.40 is 7/5 (community tracker: a recursive counter).</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -115,24 +116,28 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 35,260 cells have been visited and 15,825 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>The shape of the run from blank tape</h3>
+        <p>The E-events at the left end up to 1.93&middot;10<sup>10</sup> steps have the form described: a frozen prefix <code>(10)^2 (0100)^189 (10)^3 (0010)^633 (01)^2</code> since step 9.1&middot;10<sup>6</sup>, then <code>(0001)^n</code> with n = 13, 159, 363, 649, 1050, 1612, 2398, 3499, 5039, 7197, 10215, 14443, 20361, 28645, 40230, then a short tail (<code>0^5 1^2</code>, <code>(001)^2 1</code>, <code>0^2 1^2</code>, &hellip;). At the last event the tail is <code>0^2 (10)^2 (0010)^7 0^2 1^2</code>, which looks like the start of a new level.</p>
+        <p class="where"><code>py/events.py 2e10</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>18</sup> steps</h3>
+        <p>A macro simulator (blocks of 4 cells, whole runs of equal blocks crossed at once, exact step counts) runs 10<sup>18</sup> steps from blank tape without a halt. The block of 40,230 copies of the first analysis froze at 40,231 and a new level grows behind it.</p>
+        <p class="where"><code>holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB--- 1e18</code> (macro simulator <code>c/msim.c</code> there, checked against the direct simulator at 10<sup>9</sup> steps by <code>check_msim.py check</code>)</p>
+      </div>
+      <div class="card">
+        <h3>No pushdown certificate with a DFA of at most 6 states</h3>
+        <p>The pushdown reduction of <code>bb6-1RB0LF_1RC0LB/c/pds.c</code> (one side of the tape kept exactly, the other abstracted by a DFA, reachability by post* saturation) reaches a halt for every DFA with at most 6 states, on either side: <code>TM=1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB--- ./pds 6 L</code> and <code>R</code>.</p>
+        <p class="where"><code>bb6-1RB0LF_1RC0LB/c/pds.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
-    <div class="cards">
-      <div class="card">
-        <h3>Growth shape: exp/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.078). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.536).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
-      </div>
-    </div>
+    <p class="empty">Nothing yet.</p>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>The map and the halting condition</h3>
+        <p>The growth ratio of the last block is not constant (1.44 falling to 1.40), and the tail changes from event to event, so the event map has more structure than a single number. During a sweep 14 copies of the middle block move at a time. No halting configuration of a high-level map has been identified yet.</p>
       </div>
     </div>
   </section>
@@ -140,7 +145,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB--- 1000000000</code></pre>
+python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/py/events.py 2e10</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -1,6 +1,9 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G07",
+ "family": "exponential bouncer with an inner counter (epochs, T' = 2T + 5)",
+ "summary": "Epochs with exact doubling: the tape ends in (aaacacac)^T ... (baccaaa)^(6T+17) (a = 10, b = 100, c = 1000) and the next epoch has T' = 2T + 5 (checked for 9 epochs, 6·10^10 steps); phases 1, 2 and 5 of an epoch are proved in Lean for every count, phases 3 and 4 (an inner counter) are exact 144- and 288-visit cycles checked by symbolic computation; open.",
+ "decision": "open",
  "title": "What is known about 1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---.",
  "machine": "1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---",
@@ -10,9 +13,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open,</b> but the run is now known in detail: it goes through <em>epochs</em> whose sizes follow T' = 2T + 5 exactly, with X = 6T + 17 copies of the word <code>baccaaa</code> at each epoch start, 72T + 290 visits of the right end per epoch and (from T = 91 on) exactly 16416T² + 151769T + 288000 steps. Three of the five phases of every epoch are proved in Lean for all counts; the other two, where an inner counter runs deep inside the tape, are exact cycles of 144 and 288 visits checked by symbolic computation but not yet in Lean."
  ],
  "claims": [
   {
@@ -40,6 +43,60 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules",
+   "text": "For every length n of the run and any tape around it: <code>L (10)^n B&gt; 1 R</code> reaches <code>L B&gt; 1 (10)^n R</code>; <code>L A&gt; (01)^n R</code> reaches <code>L (01)^n A&gt; R</code>; <code>L (01)^n D&gt; 0 R</code> reaches <code>L D&gt; 0 (01)^n R</code>. These are the moves the head makes across the long uniform stretches of the tape.",
+   "where": "<code>lean/Shifts.lean</code> (written by <code>bbtools.symtm.prove</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Halting needs D on 1 1 1",
+   "text": "Read off the table: F is entered only by E reading 1 (moving right), and E only by C reading 0 (moving left, so F then reads the 0 that C wrote) or by D reading 1 (moving right). So a halt happens exactly when D reads a 1 that is followed by two more 1s. Three 1s in a row do appear next to the head (171,801,958 times in the first 10<sup>9</sup> steps), which is why simple local invariants fail.",
+   "where": "the transition table"
+  },
+  {
+   "level": "kernel",
+   "title": "First phase of an epoch, for every count",
+   "text": "With a = 10, b = 100, c = 1000 and the head in state D on the first blank cell: <code>L (baccaaa)^(n+1) ba 1 00 (aaaaca)^m aaa (caa)^(m+2) c 1 D&gt;</code> reaches <code>L (baccaaa)^n ba 1 00 (aaaaca)^(m+1) aaa (caa)^(m+3) c 1 D&gt;</code> in 74m + 167 steps, for all n, m and every tape L on the left; iterated, <code>P1 n 0</code> reaches <code>P1 0 n</code>.",
+   "where": "<code>p1_visit</code>, <code>phase1</code>, <code>lean/Phases.lean</code> (written by <code>py/phases.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "Second phase of an epoch, for every count",
+   "text": "<code>L (bac)^p 1 00 acccb (aaaaac)^(q+1) aaaa (caa)^r c 1 D&gt;</code> reaches <code>L (bac)^(p+1) 1 00 acccb (aaaaac)^q aaaa (caa)^(r+1) c 1 D&gt;</code> in 46q + 28r + 127 steps, for all p, q, r, L; iterated, <code>P2 p q r</code> reaches <code>P2 (p+q) 0 (r+q)</code>.",
+   "where": "<code>p2_visit</code>, <code>phase2</code>, <code>lean/Phases.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Phases 3 and 4 are exact cycles of 144 and 288 visits",
+   "text": "With U = (c)^7 (bac)^5 acacbacb (ac)^3 (bac)^5 aca: in phase 3, 144 visits add one U, 12 copies of <code>acacaaac</code> and 72 of <code>acaaac</code> and use up 144 of <code>aac</code>; in phase 4, 288 visits add one U, 12 <code>acaaacac</code> and 144 <code>acaaa</code> and use up 72 <code>acaaac</code>. Checked by exact symbolic simulation (bbtools.symtm with shift rules) from a tape of the run with every long count a variable and the far left an unknown context: the rule holds for every value of the counts. Not in Lean: written by symtm, the proofs would run to hundreds of megabytes.",
+   "where": "<code>py/cycles.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Last phase of an epoch, for every count",
+   "text": "<code>L (baccaaa)^k ccb (aaaac)^(j+3) aaa 1 00 aac 1 D&gt;</code> reaches <code>L (baccaaa)^(k+1) ccb (aaaac)^(j+2) aaa 1 00 aac 1 D&gt;</code> in two visits of the right end (40j + 253 steps), for all k, j, L; iterated, <code>P5 k j</code> reaches <code>P5 (k+j) 0</code>.",
+   "where": "<code>p5_cycle</code>, <code>phase5</code>, <code>lean/Phases.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "From blank tape into the first epoch",
+   "text": "After 638,914 steps from blank tape the configuration is <code>P1 59 0</code> (T = 7, X = 59); with the phase rule, the machine reaches <code>P1 0 59</code> without halting.",
+   "where": "<code>blank_to_epoch0</code>, <code>blank_to_phase1_end</code>, <code>lean/Start.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 6&middot;10<sup>10</sup> steps; nine epochs",
+   "text": "<code>c/epochs.c</code> (plain simulation, 6&middot;10<sup>10</sup> steps, no halt) finds the epoch starts at steps 638,914, 2,791,601, 11,869,478, 49,048,755, 199,088,630, 801,808,537, 3,217,627,644, 12,890,601,695 and 51,601,711,810, with T = 7, 19, 43, 91, 187, 379, 763, 1531, 3067 (T' = 2T + 5, so T = 3&middot;2<sup>k</sup> &minus; 5) and X = 6T + 17 each time. Visits of the right end per epoch: exactly 72T + 290; steps per epoch: exactly 16416T&sup2; + 151769T + 288000 for T = 91 to 1531.",
+   "where": "<code>c/epochs.c</code>, README"
+  },
+  {
+   "level": "trusted",
+   "title": "What an epoch leaves behind",
+   "text": "Each epoch freezes a block <code>(acacaaac)^(T&minus;10) (ac)^36 (bac)^(6T&minus;3) cc &hellip; U^((T&minus;43)/6) (c)^13</code> (U a fixed word of 168 cells) in front of the moving part, and adds one copy of U to the block frozen by the epoch before; read from the tapes of the nine epoch starts.",
+   "where": "README"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.499).",
@@ -47,33 +104,34 @@
   },
   {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "title": "The whole question",
+   "text": "To prove non-halting along these lines: the phase 3 and 4 cycles in Lean (with the untouched part of the tape as a context in each visit, or with a verified symbolic executor), the short transitions between the phases as symbolic runs in T, and the induction over epochs (two kinds, as T alternates between 1 and 7 modulo 9). Not done.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD--- 1000000000"
+  "python3 holdouts/1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---/py/phases.py | diff - holdouts/1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---/lean/Phases.lean",
+  "gcc -O2 -o epochs holdouts/1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---/c/epochs.c && ./epochs 60000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet, but its run is now understood in detail: it goes through epochs that double in size with exact formulas, and three of its five phases are proved for every size. The other two, where an inner counter runs, are exact repeating cycles that are not yet proved in Lean.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 97,518 cells visited."
+    "value": "6&middot;10<sup>10</sup>",
+    "text": "steps without a halt: nine epochs, every one as the formula says."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "T&prime; = 2T + 5",
+    "text": "the size of the next epoch, exactly, every time."
    },
    {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "kernel",
+    "value": "3 of 5",
+    "text": "phases of an epoch proved in Lean for every size; the other two are exact cycles."
    }
   ],
   "presets": [
@@ -82,9 +140,35 @@
    1000000
   ],
   "spacetime": {
-   "steps": 20000
+   "steps": 60000
   },
   "sections": [
+   {
+    "id": "word",
+    "eyebrow": "Macro structure",
+    "heading": "A word in three letters",
+    "html": [
+     "<div class=\"col\"><p>Read the tape in pieces <code>a = 10</code>, <code>b = 100</code>, <code>c = 1000</code>: a 1 followed by one, two or three 0s. Apart from a rare <code>11</code> next to the head, that is all the tape ever holds. The head sweeps to the right end of the tape and back again and again; every time it reaches the right end in state D, the tape has grown by 3 cells. We call these moments <em>visits</em>.</p><p>On most visits the head does not go back to the left end. It turns around at some point inside the tape, does a small local change there, and comes back. Where it turns, and what it changes, is the whole story.</p></div>"
+    ]
+   },
+   {
+    "id": "epochs",
+    "eyebrow": "Exact doubling",
+    "heading": "Epochs: the same pattern, twice as big each time",
+    "html": [
+     "<div class=\"col\"><p>Every so often the tape ends in exactly the same shape:</p><p class=\"config\">&hellip; M (aaacacac)^T aaa cacb (aacaacac)^3 aacaac (baccaaa)^X bab aaa caacaac 1 D&gt;</p><p>with <code>X = 6T + 17</code>. This is the start of an <em>epoch</em>. The run from blank tape reaches it after 638,914 steps with T = 7, and then again with T = 19, 43, 91, 187, 379, 763, 1531, 3067: each time <b>T&prime; = 2T + 5</b>, exactly. An epoch takes exactly 72T + 290 visits, and (from T = 91 on) exactly 16416T&sup2; + 151769T + 288000 steps, so each epoch is about four times longer than the one before. That is why the tape grows like the square root of the time.</p></div>",
+     "<svg viewBox=\"0 0 640 150\" role=\"img\" aria-label=\"the tape at the start of an epoch: frozen blocks on the left, the moving part on the right\" style=\"width:100%;max-width:640px;height:auto;font:12px var(--mono);\"><rect x=\"10\" y=\"40\" width=\"250\" height=\"34\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"135\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg2)\">frozen blocks of earlier epochs</text><rect x=\"260\" y=\"40\" width=\"70\" height=\"34\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><text x=\"295\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">M</text><rect x=\"330\" y=\"40\" width=\"120\" height=\"34\" fill=\"var(--kernel-bg)\" stroke=\"var(--line-strong)\"/><text x=\"390\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">(aaacacac)^T</text><rect x=\"450\" y=\"40\" width=\"150\" height=\"34\" fill=\"var(--computed-bg)\" stroke=\"var(--line-strong)\"/><text x=\"525\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">(baccaaa)^(6T+17)</text><polygon points=\"606,46 626,57 606,68\" fill=\"var(--head)\"/><text x=\"616\" y=\"92\" text-anchor=\"middle\" fill=\"var(--head)\">D</text><text x=\"135\" y=\"110\" text-anchor=\"middle\" fill=\"var(--muted)\">never changes again</text><text x=\"460\" y=\"110\" text-anchor=\"middle\" fill=\"var(--muted)\">rewritten during the epoch</text><text x=\"10\" y=\"24\" fill=\"var(--fg2)\">start of an epoch (a = 10, b = 100, c = 1000; the head has just made the tape longer)</text><text x=\"10\" y=\"138\" fill=\"var(--fg2)\">next epoch: one more frozen block, then the same picture with T replaced by 2T + 5</text></svg>",
+     "<div class=\"col\"><p>Each epoch leaves a block behind that never changes again, <code>(acacaaac)^(T&minus;10) (ac)^36 (bac)^(6T&minus;3) cc &hellip; U^((T&minus;43)/6) (c)^13</code>, where U is a fixed word of 168 cells, and it adds one copy of U to the block of the epoch before. Machines like this are called <em>exponential bouncers</em>: a regular pattern whose size doubles. Nothing in an epoch comes close to the one way the machine can halt (state D reading three 1s in a row).</p></div>"
+    ]
+   },
+   {
+    "id": "phases",
+    "eyebrow": "Inside an epoch",
+    "heading": "Five phases: three proved, two exact cycles",
+    "html": [
+     "<div class=\"col\"><ol><li><b>Phase 1 (X visits).</b> Each visit the head walks left to the block <code>(baccaaa)^X</code>, turns one copy into <code>aaaaca</code> + <code>caa</code>, and walks back. <b>Proved in Lean for every size</b> (<code>phase1</code>): from <code>&hellip; (baccaaa)^n ba 1 00 aaa (caa)^2 c 1</code> the machine reaches <code>&hellip; ba 1 00 (aaaaca)^n aaa (caa)^(n+2) c 1</code>, for every n and every tape on the left.</li><li><b>Phase 2 (about X visits).</b> Each visit turns one copy of <code>aaaaac</code> into one more <code>bac</code> on its left and one more <code>caa</code> on its right; this builds the block <code>(bac)^(6T&minus;3)</code>. <b>Proved in Lean for every size</b> (<code>phase2</code>).</li><li><b>Phases 3 and 4.</b> At the right end, <code>aac</code> is turned into <code>aaacac</code> (one copy every two visits), and then <code>aaacac</code> into <code>aaaac</code> (two copies every four visits). Meanwhile every second visit runs deep into the tape, to a region of irregular words just right of the block <code>(bac)^(6T&minus;3)</code>. That region works like a counter: how deep each of these visits goes follows a ruler-like pattern, as when a number is incremented and the carry runs further every now and then. When it is done, the old <code>(aaacacac)^T</code> has become part of the frozen block and a new <code>(aaacacac)^(2T+5)</code> stands in its place. After a start-up stretch both phases are <b>exact cycles</b>: in phase 3, every 144 visits add one copy of U and move the counts at the right end by fixed amounts; in phase 4 the same with 288 visits. A computer check (exact symbolic simulation) confirms these cycles for every value of the counts, but they are not yet proved in Lean.</li><li><b>Phase 5 (two visits per copy).</b> The block <code>(aaaac)^j</code> is turned back into <code>(baccaaa)</code>, one copy every two visits, until there are 6(2T+5) + 17 of them: the next epoch starts. <b>Proved in Lean for every size</b> (<code>phase5</code>).</li></ol><p>So what is left for a proof of non-halting: the two cycles in Lean, the short transitions between the phases, and an induction over the epochs. Each piece is a finite, mechanical check; none of it looks like an open mathematical problem.</p></div>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",

@@ -127,7 +127,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows yet. The tape is an alternating pattern full of defects, and the head shuffles them around without any order we have found. This page runs it in your browser.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 31,386 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#defects">Defects in an alternating background</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="defects">
+  <span class="eyebrow">Macro structure</span>
+  <h2>Defects in an alternating background</h2>
+<p>Stop the simulator when the head turns at the left end and write <code>x</code> for a 0. A stretch of the tape at step 2,938,258 reads</p>
+<pre>B&gt;1 x x 1 x 1 1 1 x 1 x 1 x 1 x 1 x 1 1 x 1 x 1 x 1 x 1 x 1 x 1 1 x 1 x 1 x 1 x 1 1 1 x 1 x x 1 ...</pre>
+<p>Mostly <code>1 x 1 x</code>, the alternating background, with defects: <code>1 1</code>, <code>1 1 1</code>, <code>x x</code>. Counting pairs of equal neighbours at the left-end turns, about one pair in six is <code>11</code> and one in twenty-five is <code>00</code>, from the first thousand steps up to 10<sup>7</sup> (3,077 cells, 486 and 119 pairs). The positions of the defects show no repeating word.</p>
+<p>The head moves through the background quickly: moving right, A turns <code>0101 0101</code> into <code>1101 1101</code> in sixteen steps (<code>fill_A</code>), and B does the same for <code>1010</code> (<code>fill_B</code>). At the defects it turns around, so a crossing of the tape is a long irregular zig-zag rather than a sweep.</p>
+<p>The only halt is C reading a 0, reached from <code>0 B&gt;0</code> or <code>0 F&gt;0</code> (<code>halt_B</code>, <code>halt_F</code>). In the run the cell to the left of B or F is a 1 whenever they read a 0. Without a macro description there is no invariant yet; this machine is left for later.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +244,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 31,386 cells have been visited and 24,640 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: sqrt/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.506). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.493).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)</div></div><div><b>Every way to a halt</b><p>Two steps before any halt the machine is in <code>0 0 E&gt;1</code> (so <code>0 B&gt;0</code> never happens: B is entered from A, which leaves a 1 on its left); no other configuration halts within three steps.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>fill_A</code>, <code>fill_B</code>, <code>lean/Rules.lean</code></div></div><div><b>Fast moves</b><p>Moving right, A turns each <code>0101</code> of the background into <code>1101</code> and B turns each <code>1010</code> into <code>1011</code>, eight steps a copy, for any number of copies.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_B</code>, <code>halt_F</code>, <code>lean/Rules.lean</code></div></div><div><b>The halting situations</b><p><code>0 B&gt;0</code> and <code>0 F&gt;0</code> halt after two steps; these are the only ways into C reading a 0.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/defects.py 1e7 40</code></div></div><div><b>Constant density of defects</b><p>At the left-end turns the tape has 557 cells with 81 pairs <code>11</code> and 34 pairs <code>00</code> (step 324,106), 1,765 cells with 292 and 59 (step 2,938,156), 3,077 cells with 486 and 119 (step 9,176,284).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/near_halt.py 1e6</code></div></div><div><b>Never close to halting</b><p>In the first 10<sup>6</sup> steps B reads a 0 and F reads a 0 tens of thousands of times, always with a 1 to the left.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. No macro structure has been found; the next step would be a finer description of how one zig-zag moves the defects, or a closed set of local patterns that excludes <code>0 B&gt;0</code> and <code>0 F&gt;0</code>. Later.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE 1000000000
+python3 holdouts/1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE/py/route.py   # writes lean/Route.lean
+python3 holdouts/1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE/py/rules.py   # writes lean/Rules.lean
+python3 holdouts/1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE/py/defects.py 1e7 40
+python3 holdouts/1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE/py/near_halt.py 1e6</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

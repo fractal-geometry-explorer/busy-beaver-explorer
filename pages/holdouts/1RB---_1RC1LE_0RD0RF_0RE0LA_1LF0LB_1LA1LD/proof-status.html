@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD</p>
     <h1>What is known about 1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD</h1>
     <p class="machine">1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this machine halts from blank tape, and it may be hard to ever know: its run is a Collatz-like iteration. Each time the head, in state C, stands at the right end of the tape, the tape is <code>1^4 0 (10)^x 1^m</code> with the head on a cell s; a six-case map sends (x, m, s) to the next such moment, and one case of the map is the halt. Lean proves that this map describes the machine exactly: the machine halts from blank tape if and only if the orbit of (7, 1, 0) under the map reaches the halting case. This page explains the map and why the halting question becomes a question about powers of two.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and Collatz-like.</b> The run follows a map on (x, m, s), and Lean proves it: the machine halts from blank tape if and only if the map's orbit from (7, 1, 0) reaches the halting case. That happens exactly when, during a chain of doubling steps, x lands on one particular value; iterating the map shows no such landing in the first 10,000 rounds, which is far beyond 10<sup>100</sup> machine steps, but nothing rules it out in general.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Rules B and R of the map</h3>
+        <p>For all n, x: from K(x+1, 2n, s) the machine reaches K(x, 2n+4, 1&minus;s) (rule B, 6n+12 or 6n+10 steps), and from K(0, 2n, s) it reaches K(n+3, 1, 0) for s = 0 and K(n+3, 3, 0) for s = 1 (rule R). Here K(x, m, s) is <code>1^4 0 (10)^x 1^m</code> with the head in C on s at the right end, blank beyond.</p>
+        <p class="where"><code>ruleB0</code>, <code>ruleB1</code>, <code>ruleR0</code>, <code>ruleR1</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Rules A, A' and C of the map, for all parameters</h3>
+        <p>For all parameters: rule C, K(i+n+3, 2n+1, 0) reaches K(i, 4n+9, 0) and K(i+n+3, 2n+1, 1) reaches K(i, 4n+8, 1); rule A, K(j+2, 2(j+1+k)+1, s) reaches K(2j+5, 2k+3, 1&minus;s), and K(j+2, 2j+1, 1) reaches K(2j+5, 1, 0); rule A&prime;, K(j+2, 2j+1, 0) reaches K(2j+7, 1, 0); and A for x = 1. Rules A and C share their first two parts: a start piece, then one inner cycle per <code>10</code> pair moved (chained by an induction written by hand); each ends with its own end piece. Every piece is proved by <code>bbtools.symtm</code>.</p>
+        <p class="where"><code>ruleC0</code>, <code>ruleC1</code>, <code>cycN0</code>, <code>cycN1</code>, <code>lean/CRule.lean</code>; <code>ruleA0</code>, <code>ruleA1</code>, <code>ruleA1z</code>, <code>ruleAp</code>, <code>lean/MapThm.lean</code>; pieces in <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting is equivalent to the orbit reaching H</h3>
+        <p><code>step_ok</code>: from every sample K(x, m, s) the machine reaches the sample the map gives, in at least one step, or (case H) halts. <code>start</code>: from blank tape it reaches K(7, 1, 0) after 216 steps. <code>halts_iff</code>: the machine halts from blank tape if and only if the orbit of (7, 1, 0) under the map (<code>mstep</code>, <code>orbit</code>) reaches the case H. <code>nonhalt_of_orbit</code>: if the orbit never reaches H, the machine never halts. Axioms: propext, Classical.choice, Quot.sound only.</p>
+        <p class="where"><code>halts_iff</code>, <code>nonhalt_of_orbit</code>, <code>step_ok</code>, <code>start</code>, <code>lean/MapThm.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The halting case</h3>
+        <p>From K(0, 2n+1, s), for every n, the machine runs into its halting transition (A reads a 1) after 2n+11 (s = 0) or 2n+9 (s = 1) steps.</p>
+        <p class="where"><code>toHalt0</code>, <code>halt0</code>, <code>toHalt1</code>, <code>halt1</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +139,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 23,223 cells have been visited and 20,762 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The whole map holds for the first 10<sup>10</sup> steps</h3>
+        <p>Every sample from step 216 on (the head in C at the right end) has the form K(x, m, s), except one sample inside each R step where the tape is solid, and each sample follows from the previous one by the map: <code>py/samplemap.py check</code>, using <code>tools/c/tmrun.c</code>. See the README for the counts.</p>
+        <p class="where"><code>py/samplemap.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The map agrees with the machine on all small samples</h3>
+        <p>Started from K(x, m, s) for every x &lt; 25, m &lt; 30 and every x &lt; 45, odd m &lt; 70 (both s), the machine reaches the sample the map predicts (or halts where the map says H). This found the boundary case A&prime;, which the run itself meets only once, before step 216.</p>
+        <p class="where"><code>py/samplemap.py small</code></p>
+      </div>
+      <div class="card">
+        <h3>The halting condition is a near-power-of-2 condition</h3>
+        <p>Only rule C with s = 0 can lead to the halting case: it leaves m odd, and it reaches x = 0 exactly when x = (m+5)/2. Along a chain of such C steps m runs through (m+7)2<sup>i</sup> &minus; 7, so a chain from (x, m, 0) halts exactly when x + k + 1 = (m+7)(2<sup>k+1</sup>&minus;1)/2 for some k &ge; 0 (after an R step with m = 1: x = 2<sup>k+3</sup> &minus; k &minus; 5). Elementary algebra on the map (not in Lean), checked by brute force for every x &lt; 3000 and odd m &lt; 200.</p>
+        <p class="where">README, section When it would halt</p>
+      </div>
+      <div class="card">
+        <h3>No halt of the map in 10,000 rounds</h3>
+        <p>Iterating the map from K(7, 1, 0) (the sample at step 216), with whole B phases applied at once, gives 10,000 R steps, 29,225,208 C steps and 25,330 A steps without reaching the halting case; x then has thousands of bits, so this is far beyond any number of machine steps one could simulate. Since the map is a theorem, this shows that the machine does not halt in its first 10,000 rounds (the iteration itself is a Python computation).</p>
+        <p class="where"><code>py/samplemap.py orbit 10000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +167,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.163). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.654).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Why a halt looks very unlikely</h3>
+        <p>If the remainder at the end of each doubling chain were spread evenly, a chain whose last step has h = (m+5)/2 would halt with chance about 1/h. Summed over the orbit this gives 0.3187 in all, but almost all of it in the first 20 rounds (which are checked exactly); rounds 21 to 1,000 add less than 10<sup>&minus;4</sup>, and x gains about 0.58 bits per round (583 bits at round 1,000), so the rest is negligible. The remainders look spread over all of [0, h), somewhat more often near 0 (in 1,000 rounds the 1,409 chain ends fall 192 into the lowest tenth and 88 into the highest), so nothing rules a hit out either: this is evidence, not proof.</p>
+        <p class="where"><code>py/heuristic.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. Lean reduces the question exactly to the map: the machine halts iff the orbit of (7, 1, 0) reaches H. What is missing is a proof that the orbit never meets the halting condition (x + k + 1 = (m+7)(2<sup>k+1</sup>&minus;1)/2 at the start of a doubling chain), a Collatz-type problem; heuristically a halt is very unlikely but nothing excludes it.</p>
       </div>
     </div>
   </section>
@@ -140,7 +185,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD 1000000000
+python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/samplemap.py check 10000000000
+python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/samplemap.py orbit 10000
+python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/samplemap.py small
+python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/heuristic.py 1000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

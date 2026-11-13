@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. A marker walks left across the tape one group at a time, and every group it passes reappears three times at the right end; when the marker is used up it borrows from the group before it with a <em>carry</em> that multiplies the tail by about 5/4. Rules like these, a mix of multiplications and remainders, are how Collatz-like problems look, and this one is no easier.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 45,722 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>3.2·10<sup>12</sup> steps</b><span class="small">No halt in an exact hybrid simulation.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>walker</b><span class="small">The walker sweeps are proved in Lean for all lengths.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>×3 and ×5/4</b><span class="small">The arithmetic behind the run, Collatz-like.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#walker">The walker</a><a href="#carry">The carry: q → 5q/4</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +218,43 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>735,413,949</td><td><code>1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^6 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0</code></td></tr><tr><td>right</td><td>751,078,509</td><td><code>1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^6 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0</code></td></tr><tr><td>right</td><td>766,825,836</td><td><code>1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^6 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="tape">
+  <span class="eyebrow">Structure</span>
+  <h2>What the tape is made of</h2>
+<p>Cut the tape after every 0: it is a sequence of <b>groups</b> <code>1^m 0</code>. Almost all of them are <code>1 1 0</code>; the others are <b>marked</b>, with m = 1, 3, 4, 6 or 7. The tape starts with the marked group <code>1 0</code>, which never changes, and ends with <code>1 1</code> and the head (state C) on the blank cell after it. Write it as items (x, m): x plain groups followed by a marked group 1^m 0, then the tail, q plain groups and <code>1 1</code>.</p>
+<svg viewBox="0 0 580 130" role="img" aria-label="the walker moves left; every group it passes becomes three groups at the right end" style="width:100%;max-width:580px;height:auto;font:12px var(--mono);">
+<defs><marker id="ar10" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--head)"/></marker></defs>
+<rect x="10" y="40" width="40" height="26" fill="none" stroke="var(--line)"/><text x="30" y="58" text-anchor="middle" fill="var(--fg2)">1 0</text>
+<rect x="54" y="40" width="130" height="26" fill="var(--accent)" opacity="0.4"/><text x="119" y="58" text-anchor="middle" fill="var(--fg2)">(110)^x items</text>
+<rect x="188" y="40" width="140" height="26" fill="var(--accent)" opacity="0.7"/><text x="258" y="58" text-anchor="middle" fill="#fff">(110)^x 1^m 0</text>
+<rect x="332" y="40" width="16" height="26" fill="var(--head)"/><text x="340" y="34" text-anchor="middle" fill="var(--head)">walker</text>
+<rect x="352" y="40" width="190" height="26" fill="var(--fg2)" opacity="0.3"/><text x="447" y="58" text-anchor="middle" fill="var(--fg2)">tail (110)^q</text>
+<polygon points="548,30 558,30 553,40" fill="var(--head)"/><text x="553" y="24" text-anchor="middle" fill="var(--head)">C</text>
+<path d="M330,86 L200,86" stroke="var(--head)" stroke-width="1.5" marker-end="url(#ar10)"/><text x="265" y="104" text-anchor="middle" fill="var(--head)">one group left per 2 sweeps</text>
+<path d="M360,86 L540,86" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#ar10)"/><text x="450" y="104" text-anchor="middle" fill="var(--accent)">tail +3 groups</text></svg>
+</section>
+<section id="walker">
+  <span class="eyebrow">Mechanism</span>
+  <h2>The walker</h2>
+<p>Each sweep runs left from the right end to the last marked group and back. If it has m ≥ 4 ones, it loses three and the tail gains two groups; if m = 3, the mark moves one group to the left (m becomes 6) and the tail gains one group; so every two sweeps the walker moves one group left and the tail gains three groups: <b>each group the walker crosses becomes three at the end</b>. When the walker reaches the marked group before it, it merges into it (m + 4) and goes on. Every one of these sweeps takes 10q + 23 steps (Lean: <code>walk_down</code>, <code>walk_left</code>, <code>walk_merge</code>).</p>
+</section>
+<section id="carry">
+  <span class="eyebrow">The arithmetic</span>
+  <h2>The carry: q → 5q/4</h2>
+<p>When the last marked group is <code>1 0</code> (m = 1), the sweep becomes a <b>carry</b>: with q = 4k + r tail groups, it takes k + 1 groups from the item before and leaves a tail of <b>5k</b> groups (r = 0, 1) or <b>5k + 3</b> (r = 2, 3), with a new walker mark of 6 or 3 ones; when r is odd the tail becomes a new marked item. If the item before has fewer than k + 1 groups, the carry reaches further left and rearranges several items (a <em>deep</em> carry, simulated cell by cell).</p>
+<table class="tbl"><thead><tr><th>q mod 4</th><th>new tail</th><th>new mark</th><th>steps</th></tr></thead><tbody><tr><td>0</td><td>5k</td><td>6</td><td>50k² + 88k + 28</td></tr><tr><td>1</td><td>5k, then pushed as an item</td><td>6</td><td>50k² + 88k + 35</td></tr><tr><td>2</td><td>5k + 3</td><td>3</td><td>50k² + 138k + 82</td></tr><tr><td>3</td><td>5k + 3, then pushed</td><td>3</td><td>50k² + 138k + 89</td></tr></tbody></table>
+<p>So the run alternates multiplication by 3 (the walker) and by about 5/4 (the carry), with the branch chosen by remainders mod 4 and by whether the item before can pay: a Collatz-like system.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">The question</span>
+  <h2>Where it could halt</h2>
+<p>The halting transition is F reading 0. The walker sweeps and shallow carries never reach it (they are exact rules that end in a new sweep). Halting configurations do exist among the deep carries: for example items (0,1) (3,3) (1,1) with a tail of 10 groups halt during the carry. So the question is whether the orbit of this Collatz-like map ever produces such a deep carry; nothing known decides that.</p>
+</section>
+<section id="proved">
+  <span class="eyebrow">Status</span>
+  <h2>What is proved</h2>
+<p>In Lean (kernel): the four walker sweeps for every tail length (<code>lean/Rules.lean</code>). The carry formulas and the hybrid simulator are trusted computations, checked against direct simulation.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -230,19 +267,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <button type="button" data-f="heuristic" aria-pressed="false">Heuristic</button>
     <button type="button" data-f="open" aria-pressed="false">Open</button>
   </div>
-    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.</p></div></div>
-    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (generated by <code>py/gen_rules.py</code>)</div></div><div><b>The walker, for all lengths</b><p>A marked group loses three 1s and the tail gains two groups (<code>walk_down</code>); the walker steps one group left and the tail gains one (<code>walk_left</code>); it merges into the marked group before it (<code>walk_merge</code>); a tail ending in <code>1^6</code> becomes a marked item (<code>push</code>). Each for every tail length and every tape further left, in 10q + 23 steps (13 for <code>push</code>).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/walker.c</code>, <code>py/walker.py check</code></div></div><div><b>The shallow carry</b><p>When the last marked group is <code>1 0</code> (m = 1) and the tail has q = 4k + r groups, and the item has at least k + 1 groups: the item gives up k + 1 groups and is marked 6 (r &lt; 2) or 3 (r ≥ 2); the tail becomes 5k groups (r &lt; 2) or 5k + 3 (r ≥ 2), ending in 1^6 when r is odd; the sweep takes 50k² + 88k + 28 steps (r &lt; 2) or 50k² + 138k + 82 (r ≥ 2), plus 7 when r is odd. Checked against cell-by-cell sweeps on 1,111 random carries (with 1,023 random walker sweeps and 488 pushes).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/walker.c</code>, <code>py/walker.py check</code></div></div><div><b>The hybrid simulator is exact</b><p>Walker phases are applied at once (x steps left: 2x sweeps, tail +3x, 20qx + 30x(x−1) + 56x steps), shallow carries in closed form, everything else cell by cell. Without phase jumps it reproduces every sweep start of the first 3·10<sup>7</sup> steps of the direct run (the Python model in <code>py/walker.py</code> does the same for 10<sup>7</sup> steps); with them it reaches the same configurations at the same steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/walker.c</code></div></div><div><b>No halt in 3.2·10<sup>12</sup> steps</b><p>The hybrid simulator ran 3.2·10<sup>12</sup> steps without a halt.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library runs 10,000 steps from blank tape without a halt.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
-    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 45,722 cells have been visited and 30,487 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.593).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Collatz-like</b><p>The tail length is multiplied by about 5/4 at each carry and by about 3 at each walker pass; which branch a carry takes depends on q mod 4 and on how much the item before can give. Halting configurations exist among the deep carries (for example the items (0,1) (3,3) (1,1) with a tail of 10 groups halt after 1,164 steps; <code>py/walker.py check</code> runs it), so whether the run ever reaches one is a question about this map.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA 1000000000</code></pre>
+python3 holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/py/walker.py check
+gcc -O2 -o walker holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/c/walker.c &amp;&amp; ./walker 1e12 1</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

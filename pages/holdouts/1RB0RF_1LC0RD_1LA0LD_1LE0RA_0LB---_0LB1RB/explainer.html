@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RF_1LC0RD_1LA0LD_1LE0RA_0LB---_0LB1RB</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine sweeps back and forth over a growing pile of segments made of one 8-cell word, while a small counter ticks at the right end. The sweeps are understood; what the separators between the segments do is not, yet.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 33,783 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>3 rules</b><span class="small">The shift rules of a sweep, proved for every length.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>112 segments</b><span class="small">Segments of the word 10111110 at 2.3·10<sup>9</sup> steps.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">A pile of segments of one word</a><a href="#sweep">Rewrite going right, rewrite back going left</a><a href="#halt">Not yet reduced</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +218,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>955,280,518</td><td><code>C&gt;0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1</code></td></tr><tr><td>left</td><td>970,973,332</td><td><code>C&gt;0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1</code></td></tr><tr><td>left</td><td>986,610,930</td><td><code>C&gt;0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1</code></td></tr><tr><td>right</td><td>781,250,078</td><td><code>1 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1^2 0^2 1</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape looks like</span>
+  <h2>A pile of segments of one word</h2>
+<p>Almost all of the tape is left of the start, and it is made of the word x = <code>10111110</code>. At step 2,266,312,097, read from the far left, it is <code>1^2 0 1^3 0 x 1^13 0 x^218 1^5 0 x^206 (10)^2 x^205 (10)^2 x^209 …</code>: 112 segments x<sup>k</sup> whose lengths fall from about 218 at the left to 1 near the start, separated by short markers, mostly <code>1010</code> or <code>(10)^4</code>. The few cells right of the start form a separate, slowly growing structure (35 cells after 7.8·10<sup>8</sup> steps).</p>
+</section>
+<section id="sweep">
+  <span class="eyebrow">One sweep</span>
+  <h2>Rewrite going right, rewrite back going left</h2>
+<p>The head runs right over the pile in state F turning every x into y = <code>10011001</code> (26 steps a word), then left in state B turning every y back into x (20 steps a word). At the far left the configuration <code>A&gt;0 1 x^k</code> becomes <code>A&gt;0 1 x^(k+1)</code> one sweep later: the leading segment gains one word per sweep. These shift rules are proved in Lean for every length.</p>
+<p>What is not decoded is what happens at the separators: the markers change from sweep to sweep (a <code>(10)^4</code> becomes <code>1 0 1^9 0</code>, then <code>1 0 1^13 0</code>, …), which looks like digits being carried across the pile, and the far-left segment is cut off when it reaches about 218 words.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>Not yet reduced</h2>
+<p>The only halting transition is E reading 1. A small closed language (windows of 3–5 cells) still allows it, and the macro rule of the separators is not known, so the halting question has not been turned into a statement about a map. This machine is left with notes for later.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -235,7 +251,10 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 33,783 cells have been visited and 18,178 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.482). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.0).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</div></div><div><b>The shift rules of a sweep</b><p>Going right, F turns each word x = 10111110 into y = 10011001 (26 steps a word, <code>right_pass</code>); going left, B turns them back (20 steps a word, <code>left_pass</code>); at the left end A starts the next pass over the leading segment (<code>left_end</code>). For every n and every tape around.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>/home/user/w/bin/ev M 3e9 '*' L x=10111110</code></div></div><div><b>The pile of segments</b><p>At step 2,266,312,097 the left side is 112 segments x<sup>k</sup> with lengths falling from 218 to 1 towards the start, separated mostly by <code>1010</code> or <code>(10)^4</code> and by a few longer markers (<code>1 0 1^9 0</code>, <code>1 0 1^13 0</code>). Each sweep adds one x to the leading segment (about 148,000 steps a sweep at that width); when it reaches about 218 a new segment starts.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>python3 -m bbtools.ctl M K</code></div></div><div><b>No small closed tape language</b><p><code>bbtools.ctl</code> with windows K = 3, 4, 5 leaves a halt (E reading 1) reachable in the abstraction.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Open: the rule that moves the separators and the right-end counter are not decoded, so the question is not yet reduced to a map.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

@@ -73,13 +73,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE</p>
     <h1>What is known about 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE</h1>
     <p class="machine">1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its right end is a doubling bouncer: a block of <code>10</code> pairs doubles at every sweep, paid for from a pool of 1s, and the tape is rewritten each time the pool runs out.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> At every right-end visit in state B the tape is <code>[1^2 0 (10)^c] 1^a 0 (10)^b B&gt;0</code>. While a ≥ 2b + 3 the next visit is (a − 2b − 2, 2b + 2); otherwise the pool overflows and the tape is rewritten. Of all such configurations only the ones without the bracket and with a = 1 halt.</p>
+      <p><b>Why it has not halted.</b> The doubling step keeps the parity of a, and a is even most of the time: in the first 10<sup>9</sup> steps there are 1,453 such visits and only 48 have a odd, in 7 short odd phases (pools 5, 61, 165, 165, 989, 1,853, 189 at their start). An odd phase that starts at (A, 0) halts only if A − 1 is one of the sparse values 2<sup>k+2</sup> − 2k − 4, so the danger shrinks as the tape grows; a halt is possible but not expected.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,20 +120,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 2,930 cells have been visited and 1,686 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The doubling step and where it can halt</h3>
+        <p>For T = 0^∞ [1^2 0 (10)^c] 1^a 0 (10)^b B&gt;0 0^∞ (the bracket present or not): if a ≥ 2b + 3, the next right-end visit in state B is the same with (a − 2b − 2, 2b + 2). Among all these configurations (bracket absent or c ∈ {0, 1, 2, 5, 9}, 1 ≤ a &lt; 40, b &lt; 20) exactly those without bracket and with a = 1 halt. Checked against direct simulation, and on every doubling step of the first 3·10<sup>6</sup> steps of the run.</p>
+        <p class="where"><code>py/model.py check</code></p>
+      </div>
+      <div class="card">
+        <h3>Odd pools are rare</h3>
+        <p>In the first 10<sup>9</sup> steps the run makes 1,453 right-end visits of this form; a is odd at 48 of them, in 7 phases starting with a = 5, 61, 165, 165, 989, 1,853, 189 (at steps 28, 10,527, 212,888, 432,061, 43,052,524, 260,493,638, 262,189,033); a is never 1.</p>
+        <p class="where"><code>c</code> record runs, see README</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.351).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A halt needs an exact hit</h3>
+        <p>Doubling from (A, 0) gives a = A − (2<sup>k+2</sup> − 2k − 4) after k steps, so an odd phase of this kind halts only if A is 3, 9, 23, 53, 115, 241, 495, 1005, …, about log<sub>2</sub> A values out of A. Odd phases are rare and their pools grow with the tape, so the chance that some future phase hits shrinks; nothing rules it out.</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>The overflow rule</h3>
+        <p>The exceptional steps (a &lt; 2b + 3) are not yet written as a formula; a complete macro machine would turn the parity bookkeeping into a proof strategy or find the halt.</p>
       </div>
     </div>
   </section>
@@ -140,7 +150,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE 1000000000
+python3 holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE/py/model.py check</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

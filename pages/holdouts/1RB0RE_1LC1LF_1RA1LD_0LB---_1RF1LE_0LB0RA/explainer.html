@@ -127,7 +127,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RE_1LC1LF_1RA1LD_0LB---_1RF1LE_0LB0RA</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. The tape is a row of blocks, and the machine walks back and forth moving units from each block to the next. Seen from the left end, the blocks shrink by 1, 4, 16, 64, ... words: the row works like the digits of a base-4 counter.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 65,085 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#words">Blocks of 110</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="words">
+  <span class="eyebrow">The tape</span>
+  <h2>Blocks of 110</h2>
+<p>When the head is at the left end, the tape is <code>10 (110)^x0 1010 (110)^x1 1010 ... (110)^xr 10 11</code>. On the way right, the blocks are rewritten as words <code>100</code>; on the way left, they are turned back (<code>sweep_right</code> and <code>sweep_left</code> in Lean). At a boundary between two blocks the head zigzags. Each zigzag takes a little from the block on the left and adds one word to the block on the right.</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>step</th><th>x0, x1, ...</th></tr></thead><tbody><tr><td>1,369,502,933</td><td>117, 336, 50, 715, 5582, 17411</td></tr><tr><td>1,488,296,050</td><td>116, 332, 34, 651, 5326, 18435</td></tr><tr><td>1,657,141,917</td><td>115, 328, 18, 587, 5070, 17411, 4095</td></tr><tr><td>2,625,151,334</td><td>114, 324, 2, 523, 4814, 16386, 16387</td></tr></tbody></table></div>
+<p>From one row to the next, the blocks lose 1, 4, 16, 64, 256 and about 1024 words. This is a base-4 counter written in block lengths. The third block will soon run out (2 left), and what happens then, a refill whose size depends on the rest of the list, is the part not yet understood.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -234,8 +241,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 65,085 cells have been visited and 31,349 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.47).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)</div></div><div><b>Shift rules of a sweep</b><p><code>sweep_left</code>: going left, B turns n words <code>100</code> into <code>110</code> in 3n steps. <code>sweep_right</code>: going right, A and E turn n+1 words <code>110</code> back into <code>100</code> in 7n+9 steps. Both hold for every n and every surrounding tape.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">README</div></div><div><b>Lists at the left end</b><p>At the left end the tape reads <code>10 (110)^x0 1010 (110)^x1 1010 ... (110)^xr 10 11</code>. The lists are [11,3], [9,19], [8,15,15], [7,10,67], [6,6,51,63], [5,2,34,259], [3,19,199,143,191], ... and, at steps 1,369,502,933 and 1,488,296,050, [117,336,50,715,5582,17411] and [116,332,34,651,5326,18435]: differences &minus;1, &minus;4, &minus;16, &minus;64, &minus;256, +1024.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">README, second round</div></div><div><b>The exact law between refills</b><p>Write the lists at visits to the left end with positions i = 0, 1, 2, ... Of the 13 pairs of consecutive visits up to step 1.86&middot;10<sup>10</sup> whose lists parse as plain block lists, 10 follow one of two exact rules. In the first (5 pairs), block i loses exactly 4<sup>i</sup> words, and a new last block of 4<sup>r</sup>&minus;1 words appears (15, 63, 1023, 4095, 16383). In the second (5 pairs), at the next visit that block has become 4<sup>r+1</sup>+3 (16387, 65539), and its left neighbour has lost 4<sup>r&minus;1</sup>+1 instead of 4<sup>r&minus;1</sup>. Example: [112,315,480,4642,15698,13634,8963,16383] at step 4,589,471,184 becomes [111,311,464,4578,15442,12610,4866,65539] at step 18,558,703,739.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>A base-4 counter</b><p>Between two visits to the left end, block i loses about 4<sup>i</sup> words. A block that runs low is refilled, and new blocks appear at the right with lengths like 4095 = 4<sup>6</sup>&minus;1 and 16387 = 4<sup>7</sup>+3. So the blocks behave like the digits of a base-4 counter that is counting down. The irregular part is what a refill does, since the refill amounts depend on the other blocks.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts if D reads a 1.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

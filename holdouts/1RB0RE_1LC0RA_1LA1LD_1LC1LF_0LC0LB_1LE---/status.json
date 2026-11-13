@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G06",
  "title": "What is known about 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open, and Collatz-like.</b> The run is a sequence of phases M &rarr; 8M/3 + c (proved in Lean for the empty tail and the tail [6]); the residue M mod 3 edits a small stack of blocks, and the machine halts exactly when that stack reaches one of a few shapes with two adjacent blocks <code>0 1 1</code>. 30,000 phases from blank tape (far past 10<sup>25000</sup> steps) do not halt."
  ],
  "claims": [
   {
@@ -40,40 +40,64 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "kernel",
+   "title": "The rounds of a phase",
+   "text": "From PS(M, T) = <code>0^inf F&gt; 0 1^M T</code>, five ones become a wall <code>(10)^5</code>; each round trip of the head then eats three ones and adds four <code>10</code> to the wall (6k + 39 steps for a wall of k pairs); at the end, state C turns every <code>10</code> of the wall into <code>11</code>. Each for every k, m and any tape beyond.",
+   "where": "<code>start</code>, <code>round</code>, <code>gap_left</code>, <code>unwall</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Whole phases on the empty tail and the tail [6]",
+   "text": "For every j: PS(3j+5, []) &rarr; PS(8j+17, []), PS(3j+6, []) &rarr; PS(8j+19, []), PS(3j+7, []) &rarr; PS(8j+13, [6]), PS(3j+5, [6]) &rarr; PS(8j+23, []), PS(3j+6, [6]) &rarr; PS(8j+35, []), PS(3j+7, [6]) &rarr; PS(8j+17, [1, 1, 3]). The rounds are chained by induction.",
+   "where": "<code>rounds</code>, <code>phase_e0</code> &hellip; <code>phase_s2</code> (six cases), <code>lean/Phase.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The phase map on every tail",
+   "text": "For any tail, the next phase start is found by running the machine on three small M of the same residue mod 3 and extrapolating linearly (slope 8/3 and the same new tail at all three, checked each time). This agrees with the real machine on the first nine phases from blank tape (to step 1.19&middot;10<sup>9</sup>). The tail changes by simple push/pop rules, and it halts exactly on a few tails such as [2, 2] with M &equiv; 1 mod 3.",
+   "where": "<code>py/phases.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 30,000 phases",
+   "text": "Iterating the phase map from PS(9, []) for 30,000 phases (assuming the linear extrapolation, checked as above): no halt; the tail stays at most 26 cells and 9 blocks; M then has about 12,800 digits, so this covers far more than 10<sup>25000</sup> steps.",
+   "where": "<code>py/phases.py 30000</code>"
+  },
+  {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.51). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Halting needs a long, specific run of residues",
+   "text": "With the residues M mod 3 chosen freely, a halting tail can be reached from [], so nothing about the tail alone rules halting out; but it takes 108 phases of the right residues, and with residues taken as random, 3&middot;10<sup>6</sup> phases had no halt.",
+   "where": "<code>py/tails.py</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. It halts exactly if the residues of M mod 3 along the orbit of the phase map ever build a halting tail: a Collatz-like question.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE--- 1000000000"
+  "python3 holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/py/phases.py"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows, and the question is a cousin of the Collatz problem. Each phase, the machine turns a block of M ones into a wall and back into about 8M/3 ones. What M is mod 3 decides what happens to a short stack of blocks at the right end of the tape, and the machine stops only if that stack ever takes one rare shape.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 69,315 cells visited."
+    "level": "kernel",
+    "value": "M &rarr; 8M/3",
+    "text": "Each phase multiplies the block of ones by about 8/3; proved in Lean for every M on the two commonest tails, in all six cases."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "30,000 phases",
+    "text": "No halt from blank tape, far past 10<sup>25000</sup> steps."
    },
    {
     "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "108 phases",
+    "text": "The shortest run of chosen residues that builds a halting stack."
    }
   ],
   "presets": [
@@ -96,7 +120,36 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>956,337,912</td><td><code>D&gt;0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>971,986,632</td><td><code>D&gt;0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>987,788,952</td><td><code>D&gt;0 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "phase",
+    "eyebrow": "The engine",
+    "heading": "A phase: ones to wall and back",
+    "html": [
+     "<p>A phase starts with the head in state F just left of a block of M ones, <code>0^inf F&gt; 0 1^M T</code>, where T is the tail. Five ones become a wall <code>(10)^5</code>. Then, every round trip of the head across the wall eats three more ones at the wall's right end and adds four <code>10</code> pairs at its left end, so the tape keeps growing to the left. When fewer than three ones are left, the head meets the tail, changes it, and runs left turning each <code>10</code> into <code>11</code>. The wall had about 4M/3 pairs, so the next block has about 8M/3 ones.</p>",
+     "<table class=\"tbl\"><tr><th>M mod 3</th><th>tail []</th><th>tail [6]</th></tr><tr><td>2</td><td>(8M + 11)/3, tail []</td><td>(8M + 29)/3, tail []</td></tr><tr><td>0</td><td>(8M + 9)/3, tail []</td><td>(8M + 57)/3, tail []</td></tr><tr><td>1</td><td>(8M &minus; 17)/3, tail [6]</td><td>(8M &minus; 5)/3, tail [1, 1, 3]</td></tr></table>",
+     "<p>All six cases are proved in Lean for every M. A phase costs about 4M<sup>2</sup>/3 steps, which is why the left side grows like a square root.</p>"
+    ]
+   },
+   {
+    "id": "stack",
+    "eyebrow": "The memory",
+    "heading": "The stack beside the block",
+    "html": [
+     "<p>The tail is a list of blocks <code>0 1^t</code>, written [t<sub>1</sub>, t<sub>2</sub>, &hellip;]. Which residue M has decides what the end of the phase does to it. With M &equiv; 2 the first block is popped. With M &equiv; 1 the first long block is counted down by three and two 1-blocks are pushed in front ([6] &rarr; [1, 1, 3]), and a tail of L ones turns into one block [2L + 6]. With M &equiv; 0 the tail is mostly cleared.</p>",
+     "<p>The machine halts in only a few of these cases, all with two adjacent blocks of two ones: [2, 2] with M &equiv; 1, [2, 2, 2] with M &equiv; 0 or 1, [5, 2, 2] with M &equiv; 0, and a few more. Building such a stack needs a long run of residues in a specific order. If the residues are chosen freely, 108 phases are enough. Along the real orbit they never lined up in 30,000 phases.</p>"
+    ]
+   },
+   {
+    "id": "question",
+    "eyebrow": "What is left",
+    "heading": "A Collatz-like question",
+    "html": [
+     "<p>Halting is now a question about the numbers M<sub>0</sub> = 9, M<sub>1</sub> = 27, M<sub>2</sub> = 75, &hellip; and their residues mod 3. Each M is about 8/3 of the last, plus a constant that depends on the stack. Questions like this are believed to be out of reach of current methods. If the residues behave like coin flips, halting is very unlikely in any time we could simulate.</p>"
+    ]
    }
   ]
- }
+ },
+ "family": "Collatz-like map with a stack",
+ "summary": "A block of M ones is turned into a wall and back each phase, M -> about 8M/3; the residue M mod 3 pushes, pops and edits a small stack of blocks beside it, and the machine halts only if that stack ever holds two adjacent blocks of two ones in the right residue."
 }

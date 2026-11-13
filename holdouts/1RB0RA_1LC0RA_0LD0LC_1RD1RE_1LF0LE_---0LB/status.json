@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G05",
  "title": "What is known about 1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open, and it is the same question as for <a href=\"../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html\">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a>.</b> Mirrored and with its states renamed this machine is that one, started in that machine's state F; after its first step it runs that machine from a tape with one extra 1, and in the first 10<sup>9</sup> steps the two tapes stay equal except for that 1 at the end of the wall (C). Lean proves (kernel) that a halt needs an E-run (<code>halt_needs_erun</code>), the mirror of the other machine's D-run."
  ],
  "claims": [
   {
@@ -34,46 +34,52 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "A halt needs an E-run",
+   "text": "Two steps before a halt the head is in state E reading a 1: F (halting on a 0) is entered only from E0, and E from D1 (then F reads the 1 that D wrote) or from E1.",
+   "where": "<code>halt_needs_erun</code>, <code>lean/Halt.lean</code>"
+  },
+  {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 65,135 cells have been visited and 34,221 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "The same run as 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF",
+   "text": "Mirror this machine and rename A..F to F, A, B, C, D, E: the table is the other machine's, started in its state F, whose first step writes a 1 and enters its state A. Run from that tape side by side with the other machine from blank tape, at all 32,539 left-end records of the first 10<sup>9</sup> steps the tapes agree except for one extra 1 at the end of the far wall, and the step counts differ by 56 (57 with the first step), constant since step 4,194,242.",
+   "where": "<code>c/twin.c</code>"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.516).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "The analysis",
+   "text": "Everything in the analysis of <a href=\"../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html\">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a> applies in the mirror: a sea of 1010 with particles pushed by a 2-bit gadget like a counter with carries; the machines could only differ on a trip that reaches the wall.",
+   "where": "<code>holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/README.md</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Open, as for the other machine.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB 1000000000"
+  "gcc -O2 -o twin holdouts/1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB/c/twin.c && ./twin 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet, but it is not a new question: this machine is <a href=\"../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html\">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a> seen in a mirror and started one step later, and it runs the same tape with one extra 1 at the far end. Lean proves it can only halt during an <em>E-run</em>, which so far has only happened at the far wall.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "halt &rArr; E-run",
+    "text": "A halt needs E erasing 1s (Lean, kernel)."
+   },
+   {
+    "level": "trusted",
+    "value": "twin",
+    "text": "Same tape as the other machine plus one 1, for 10<sup>9</sup> steps."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 65,135 cells visited."
-   },
-   {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "text": "No halt in the C simulator."
    }
   ],
   "presets": [
@@ -96,7 +102,20 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>957,714,707</td><td><code>1^7 0 1^2 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1 0^3 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>973,442,783</td><td><code>1^7 0 1^2 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1 0^3 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>right</td><td>989,347,259</td><td><code>1^7 0 1^2 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1^3 0 1 0^3 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "twin",
+    "eyebrow": "Structure",
+    "heading": "The same machine as another holdout",
+    "html": [
+     "<p>Write the table, swap L and R, and rename the states A, B, C, D, E, F to F, A, B, C, D, E. The result is exactly the table of <a href=\"../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html\">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a>. The only difference is where it starts: this machine starts in what is there state F. Its first step writes a 1 and moves into state A of the other machine, so from then on it is the other machine started on a tape with one extra 1.</p>",
+     "<p>The extra 1 drifts to the far wall of 1s and stays there. Running both side by side for 10<sup>9</sup> steps, the tapes are equal except for that one 1 at every moment the head makes a new record, and this machine is always 57 steps behind (56 since step 4,194,242, plus its first step). The two runs could only part ways on one of the rare trips of the head that reach the wall.</p>",
+     "<p>So the story of this machine, the sea of <code>1010</code>, the particles, the little counter at one end and the carries, is told on the page of <a href=\"../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html\">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a>. Lean proves here the mirror of its halting condition: two steps before a halt, E must be erasing a 1 (<code>halt_needs_erun</code>).</p>"
+    ]
    }
   ]
- }
+ },
+ "family": "particles in a 1010 sea, counter-like (fixed/sqrt); twin of 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF",
+ "summary": "The mirror image of 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF, started one step later: its run is that machine's run with one extra 1 at the far wall; a halt needs an E-run, which has only happened at the wall.",
+ "decision": "open"
 }

@@ -129,9 +129,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <p class="machine-id">1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA</p>
   <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 30,881 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>every phase</b><span class="small">Growth and stall phases proved in Lean for every length.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>&times;3/2</b><span class="small">Tape length per round (growth then stall), 32 phases simulated.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>1.5&middot;10<sup>10</sup></b><span class="small">Steps simulated directly, no halt (6&middot;10<sup>15</sup> accelerated).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A tape of 110s, a front, and a zone</a><a href="#rule">Two sweeps, proved for every length</a><a href="#rounds">Phase starts and the zone</a><a href="#halting">Only the zone could stop it</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,30 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What it does</span>
+  <h2>A tape of 110s, a front, and a zone</h2>
+<p>Almost all of the tape is the word <code>110</code> repeated. The head works as a <em>bouncer</em>: a <em>front</em> starts at the right end and moves left; on every sweep the head runs from the front to the right end and back. Going right it walks in a zigzag (states A, B, C, E, F, 13 steps per 3 cells), going left it runs fast (A, D, F turn <code>111</code> into <code>101</code>). At the front it eats the last <code>110</code> units of the untouched block and leaves ones behind.</p>
+<p>There are two kinds of phase, and the run alternates them strictly:</p><ul><li><b>growth</b>: two sweeps eat four units (12 cells) and leave 18 ones; each sweep adds 3 cells at the right end;</li><li><b>stall</b>: two sweeps eat four units and leave 12 ones; the right end does not move.</li></ul>
+<p>When the front reaches the left end it runs into the <em>zone</em>: a few dozen cells holding phase defects (walls such as <code>1110</code>, runs of ones). The head rewrites the zone, a pass turns the ones back into <code>110</code> units, and the next phase starts from the right end. A growth phase turns a tape of k units into about 1.5k units; the stall phase keeps the length. So a round multiplies the length by about 3/2 and costs a number of steps proportional to the square of the length: the right side grows like the square root of the step count, and the zone, which moves left by one or two cells per round, like its logarithm.</p>
+</section>
+<section id="rule">
+  <span class="eyebrow">The rules</span>
+  <h2>Two sweeps, proved for every length</h2>
+<p>Written with <code>L</code> the zone (any tape), the rules proved in Lean are</p><pre>growth:  L (110)^(n+4) (111)^j 11 001 A&gt; 0^&infin;   &rarr;  L (110)^n (111)^(j+6) 11 001 A&gt; 0^&infin;    (32j+186 steps)
+stall:   L (110)^(n+4) (111)^j 11 0111 D&gt; 0^&infin;  &rarr;  L (110)^n (111)^(j+4) 11 0111 D&gt; 0^&infin;   (32j+124 steps)</pre>
+<p>and by induction on the sweeps, <code>growth_phase</code> and <code>stall_phase</code>: any number of units is eaten without a halt. In the growth phase the count of ones after the front goes 2, 20, 38, &hellip; (18 per two sweeps); in the stall phase 14, 26, 38, &hellip; (12 per two sweeps).</p>
+</section>
+<section id="rounds">
+  <span class="eyebrow">The run</span>
+  <h2>Phase starts and the zone</h2>
+<p>Phase starts in the direct simulation (step, tape length in cells, phase, the first 45 cells of the tape). The zone is what differs from <code>110</code> repeated near the left end; it is rewritten at every phase end.</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>step</th><th>length</th><th>phase</th><th>left end of the tape</th></tr></thead><tbody><tr><td>75,447</td><td>253</td><td>growth</td><td><code>111011011011011011101101101101101101101101101</code></td></tr><tr><td>112,949</td><td>372</td><td>stall</td><td><code>111011011011011011011101101101101101101101101</code></td></tr><tr><td>167,851</td><td>374</td><td>growth</td><td><code>111011101101101101101101101111101110110110110</code></td></tr><tr><td>247,021</td><td>546</td><td>stall</td><td><code>111011101101101101101101101111111101101101101</code></td></tr><tr><td>375,087</td><td>547</td><td>growth</td><td><code>111011011101101101101101101101101101101101101</code></td></tr><tr><td>567,133</td><td>817</td><td>stall</td><td><code>111011101111111101110110110110110110110110110</code></td></tr><tr><td>250,692,673</td><td>13,728</td><td>growth</td><td><code>111011011011011011011011011011011011011011011</code></td></tr><tr><td>376,269,603</td><td>20,592</td><td>stall</td><td><code>111111111011101101101101101101101101101101101</code></td></tr><tr><td>564,446,333</td><td>20,593</td><td>growth</td><td><code>111011011011111111011101101101101101101101101</code></td></tr><tr><td>846,711,323</td><td>30,881</td><td>stall</td><td><code>111011011011111111111011011011011011011011011</code></td></tr><tr><td>1,270,484,507</td><td>30,883</td><td>growth</td><td><code>111111111111011101101101101101101101101101101</code></td></tr><tr><td>1,905,897,149</td><td>46,319</td><td>stall</td><td><code>111111111111111011011011011011011011011011011</code></td></tr><tr><td>2,858,838,687</td><td>46,321</td><td>growth</td><td><code>111111111111111011101101101101101101101101101</code></td></tr><tr><td>4,288,250,935</td><td>69,474</td><td>stall</td><td><code>111011011011011011011101101101101101101101101</code></td></tr><tr><td>6,432,103,179</td><td>69,476</td><td>growth</td><td><code>111011101101101101101101110110110110110110110</code></td></tr><tr><td>9,647,881,459</td><td>104,203</td><td>stall</td><td><code>111011011101101101101101101110110110110110110</code></td></tr></tbody></table></div>
+</section>
+<section id="halting">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>Only the zone could stop it</h2>
+<p>The machine stops only in state E reading a 1, that is when the right-moving zigzag, coming out of C on a 1, finds a second 1 right after it. In the 3-periodic body the cell after is always the 0 of a <code>110</code>, which is what the proved phase rules say. So a halt can only come from the zone. The zone changes in a way that depends on how the front arrives, which depends on the residue of the tape length: the same zone word has been seen to lead to different successors (for instance <code>1110 (110)^5 1110</code> at lengths 371 and 69,473). This is the shape of a Collatz-like problem, but its rule has not been extracted, so the question is open and no heuristic estimate is given yet.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +259,20 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 30,881 cells have been visited and 21,505 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.048). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.47).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>growth_two_sweeps</code>, <code>lean/Rules.lean</code> (generated by <code>py/gen_rules.py</code>); <code>growth_step</code>, <code>lean/Phase.lean</code></div></div><div><b>Two sweeps of the growth phase</b><p><code>L (110)^(n+4) (111)^j 1 1 0 0 1 A&gt; 0^&infin;</code> reaches <code>L (110)^n (111)^(j+6) 1 1 0 0 1 A&gt; 0^&infin;</code> in 32j+186 steps, for all n, j and any tape L: two sweeps eat four 110-units at the front and leave 18 ones; the tape grows by 6 cells.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>stall_two_sweeps</code>, <code>lean/Rules.lean</code>; <code>stall_step</code>, <code>lean/Phase.lean</code></div></div><div><b>Two sweeps of the stall phase</b><p><code>L (110)^(n+4) (111)^j 1 1 0 1 1 1 D&gt; 0^&infin;</code> reaches <code>L (110)^n (111)^(j+4) 1 1 0 1 1 1 D&gt; 0^&infin;</code> in 32j+124 steps: four units become twelve ones, the tape does not grow.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>growth_phase</code>, <code>stall_phase</code>, <code>lean/Phase.lean</code></div></div><div><b>Whole phases, by induction</b><p>For every i, 4i units are eaten in 2i sweeps of either phase without a halt, whatever the zone L holds.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA/c/phases.c</code></div></div><div><b>Rounds: growth then stall, length &times; about 3/2</b><p>In a direct C simulation to 1.5&middot;10<sup>10</sup> steps the run is a strict alternation of growth phases and stall phases (32 phases); at the start of each round the tape is a zone of under 50 cells followed by (110)<sup>k</sup>, and the length goes 252, 372, 546, 817, 1221, 1824, 2731, 4087, 6114, 9162, 13727, 20592, 30881, 46319, 69474, 104203 at the stall-phase starts: L&prime; = 3L/2 minus a few cells taken by the zone.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/fastsim.py</code>, <code>py/zones.py</code></div></div><div><b>Accelerated run</b><p>The macro simulator with unproved linear-cycle jumps (<code>py/fastsim.py</code>) follows the run to about 6&middot;10<sup>15</sup> steps (tape length 7&middot;10<sup>7</sup>) with no halt; its lengths agree with the direct run where both exist.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w">README, &ldquo;For later&rdquo;</div></div><div><b>The zone and the halting question</b><p>A halt needs the right-moving zigzag (states A, B, C, E, F) to find <code>1 1</code> where the 3-periodic tape has its 0; in the body the proved rules exclude it. The zone at the left end (a few walls such as <code>1110</code> and runs of ones, rewritten at each phase end, depending on how the front arrives, i.e. on the residue of the length) is not decoded, so whether it can ever present that pattern is open.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA 1000000000
+PYTHONPATH=tools/py python3 holdouts/1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA/py/gen_rules.py     # regenerates lean/Rules.lean</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

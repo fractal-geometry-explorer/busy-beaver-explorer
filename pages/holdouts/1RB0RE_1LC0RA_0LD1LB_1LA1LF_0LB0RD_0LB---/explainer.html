@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Two 8-cell words and a row of markers</a><a href="#rule">Going left, v turns into u</a><a href="#sibling">Same first three states, different machine</a><a href="#halt">Only on 1 D&gt; 1</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,27 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape looks like</span>
+  <h2>Two 8-cell words and a row of markers</h2>
+<p>Write <code>v</code> for <code>10100100</code> and <code>u</code> for <code>11111010</code>. At step 10<sup>9</sup> the tape is</p><pre>v^1269 0 1 0 v^392 1 0 [A0] 1 0 1 0 u^859 111 0 1 0 u^208 111 0 1 0 u^208 11 u^992 1^6 u^234 ... u^44 111 0 1 0 u^44 11 u^46 ... u^23 11 u^23 ... 1^9</pre><p>a long run of v on the left (it grows like the square root of time), then a region of u split into blocks by short markers like <code>111 0 1 0</code>, <code>11</code> and <code>1^6</code>.</p>
+</section>
+<section id="rule">
+  <span class="eyebrow">The rule</span>
+  <h2>Going left, v turns into u</h2>
+<p>Lean proves twelve shift rules: whenever the head runs left over a run of v-words (in any of their rotations, in states B, C, D or F), it leaves u-words behind (<code>lean/Rules.lean</code>). The way back is not a clean shift: the head works through the markers, which is where the block sizes change.</p>
+<p>The block sizes of u form a hierarchy: groups of about three nearly equal blocks (44, 44, 46; 22, 23, 23; 11, 10, 11), each group about half the size of the one before. That is the look of a counter whose digits are the gaps. In the space-time diagram the markers are dark curves drifting slowly.</p>
+</section>
+<section id="sibling">
+  <span class="eyebrow">Its sibling</span>
+  <h2>Same first three states, different machine</h2>
+<p>This machine shares states A, B and C with <a href="../1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---/explainer.html">1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---</a>, whose rounds were decoded into a Collatz-like map. Here the same sweeps over <code>10</code> and <code>11</code> appear (the shift rules <code>a_right</code>, <code>b_right</code>, <code>b_left</code>, <code>c_left</code> are the same), but D, E and F differ and the tape is organised in 8-cell words instead.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Can it stop?</span>
+  <h2>Only on 1 D> 1</h2>
+<p>The machine stops only when F reads a 1, and F is entered only from D reading a 1 and stepping left; so it stops exactly when D reads a 1 that has a 1 on its left. The marker rule decides whether that ever happens; it was not derived.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,15 +254,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>v_b1</code> ... <code>v_c3</code>, <code>a_right</code>, <code>b_right</code>, <code>b_left</code>, <code>c_left</code>, <code>lean/Rules.lean</code></div></div><div><b>Shift rules: v becomes u going left</b><p>Leftward, B, C, D and F cross runs of the rotations of <code>v = 10100100</code> and leave the matching rotations of <code>u = 11111010</code>; A and B cross <code>(01)<sup>n</sup></code> and <code>(10)<sup>n</sup></code> rightward, B and C fill them with 1s leftward.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>Where it can halt</b><p>Only F reading 1 halts; F is entered only from D reading 1 (1LF), so the machine halts exactly on <code>1 D&gt; 1</code>. Read off the table.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">a direct run (<code>tools/c/tmrun.c</code> equivalent)</div></div><div><b>The tape at step 10<sup>9</sup></b><p><code>v<sup>1269</sup> 0 1 0 v<sup>392</sup> 1 0 [A0] 1 0 1 0 u<sup>859</sup> 1<sup>3</sup> 0 1 0 u<sup>208</sup> 1<sup>3</sup> 0 1 0 u<sup>208</sup> 1<sup>2</sup> u<sup>992</sup> 1<sup>6</sup> u<sup>234</sup> ... u<sup>98</sup> 1<sup>3</sup> 0 1 0 u<sup>44</sup> 1<sup>3</sup> 0 1 0 u<sup>44</sup> 1<sup>2</sup> u<sup>46</sup> ... u<sup>23</sup> 1<sup>2</sup> u<sup>23</sup> ... u<sup>11</sup> ... u<sup>10</sup> ... u<sup>11</sup> ... 1<sup>9</sup></code>: the u-blocks come in groups of about three similar sizes, each group about half the size of the one before.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>A bouncer with a counter</b><p>The visited tape grows like the square root of time at the left end; the markers between u-blocks drift (the dark curves of the space-time diagram) and their spacings halve from group to group, the pattern of a binary counter stored in the gaps. Observed only.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/ctl.py</code></div></div><div><b>No closed tape language with small windows</b><p><code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS 3 to 7 fails; no invariant mod 2..12.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,247 cells have been visited and 30,463 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.494). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.011).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The halting pattern <code>1 D&gt; 1</code> could arise at the markers between u-blocks or at the turn; the markers' rule (how a group of gaps is rewritten when the head passes) was not derived.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---/lean/check.sh
+python3 holdouts/1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---/py/rules.py &gt; holdouts/1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---/lean/Rules.lean
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB--- 1000000000</code></pre>
 </section>
 <footer class="foot">

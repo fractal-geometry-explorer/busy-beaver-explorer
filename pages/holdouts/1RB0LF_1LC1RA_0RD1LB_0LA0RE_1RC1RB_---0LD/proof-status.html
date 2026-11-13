@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD</h1>
     <p class="machine">1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 9 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is a row of digits (runs of <code>1 0^5</code>) separated by two kinds of separators; Lean proves (kernel) one phase of the run, the bounce <code>C (n+1) m &rarr; C n (m+2)</code> for all n and m, and that blank tape enters it. The C simulator finds no halt in the first 10<sup>10</sup> steps. The full digit rule, needed for a reduction like the other machines of this group, is not yet written down.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The bounce</h3>
+        <p>In <code>C n m = 0^&infin; 1000 (100)^(n+1) 1000 100 100 E&gt;0 0 (100)^m 1 0^&infin;</code> one excursion of the head (10m + 53 steps) moves the marker <code>1000</code> one unit left and adds two units at the right end, for every n and m: <code>C (n+1) m &rarr; C n (m+2)</code>. So <code>C n m</code> reaches <code>C 0 (m+2n)</code> in n(10m + 53) + 10n(n &minus; 1) steps.</p>
+        <p class="where"><code>bounce</code> (<code>lean/Rules.lean</code>), <code>bounceC</code>, <code>bounces</code>, <code>bcost_closed</code>, <code>lean/Bounce.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Blank tape enters the bounce</h3>
+        <p>Blank tape reaches <code>C 17 4</code> after 5467 steps and <code>C 0 38</code>, where the two markers meet, after 9768.</p>
+        <p class="where"><code>init_C</code>, <code>init_meet</code>, <code>lean/Bounce.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,24 +125,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 39,197 cells have been visited and 13,061 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 10<sup>10</sup> steps</h3>
+        <p>The C simulator <code>tmrun</code> runs 10<sup>10</sup> steps without a halt; C visits the left end of the tape 139 times, and each time the tape reads as runs of <code>1 0^5</code> separated by T or S (at step 7,055,416,224: 20 runs, the longest 5436).</p>
+        <p class="where"><code>py/digits.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.455).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Digits</h3>
+        <p>Nearly every run of <code>1 0^5</code> has a length divisible by 3; runs of <code>1 0^2</code> are turned two for one into runs of <code>1 0^5</code> (same length) and runs of <code>1 0^5</code> are fed back as three units: a counter whose digits and carries are not yet described exactly.</p>
+        <p class="where"><code>README.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Open. It halts exactly when A reads a 1 with a 0 on its left (<code>0 A&gt;1</code>, then F reads 0); whether the digit dynamics ever produce that is not known.</p>
       </div>
     </div>
   </section>
@@ -140,7 +150,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 1000000000</code></pre>
+/home/user/w/tmrun 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 10000000000 at C L 1000000 | python3 holdouts/1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD/py/digits.py</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

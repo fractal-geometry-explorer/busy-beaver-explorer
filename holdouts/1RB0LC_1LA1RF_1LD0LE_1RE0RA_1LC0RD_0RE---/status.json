@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G10",
  "title": "What is known about 1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The tape is pairs <code>10</code> / <code>01</code> cut by markers <code>11</code>, plus a reservoir of the word <code>1010101</code> at the left end. Nearly all segments are frozen copies of a few shapes, grouped in levels of growing size. The run of pairs at the right end of the frozen part shrinks at a steady rate while the reservoir grows. The crossings of the pairs are proved in Lean. What happens when the last run is used up (a new level?) is not worked out, so halting (F reading a 1) is not ruled out."
  ],
  "claims": [
   {
@@ -46,9 +46,21 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Crossing pairs",
+   "text": "<code>D&gt; (01)^n &rarr; (10)^n D&gt;</code>, <code>E&gt; (10)^n &rarr; (01)^n E&gt;</code>, <code>(01)^n E&gt; 0 &rarr; E&gt; 0 (01)^n</code>, <code>(10)^n C&gt; 1 &rarr; C&gt; 1 (10)^n</code>, for every n.",
+   "where": "<code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Frozen levels and a steady drain",
+   "text": "At the left-end records at steps 838,623,265, 911,286,865 and 987,150,465 the tape is <code>C&gt; (01)^4 (1010101)^r (01)^7</code>, then 9 segments <code>(10)^11 11 (01)^43</code>, then 6 segments <code>(10)^83 11 (01)^403</code>, then larger ones (<code>(10)^162 11 (01)^893</code>, <code>(10)^565 11 (01)^893</code> twice, <code>(10)^6 11 (01)^1162</code>), and a final run <code>(01)^m</code>. Only r and m change: r = 5,323, 5,723, 6,123 and m = 4,323, 3,923, 3,523.",
+   "where": "<code>tmrun M 1000000000 records</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The machine halts only when F reads a 1. F is entered from B on a 1 (writing 1, moving right). In the steady phase above, the drain repeats the same moves. But the final run will be used up after about 9 more such samples, and what follows (likely a new level of segments) is not worked out. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.",
    "where": ""
   }
  ],
@@ -60,6 +72,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "4 rules",
+    "text": "D, E and C crossing runs of pairs."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -86,6 +103,23 @@
   },
   "sections": [
    {
+    "id": "levels",
+    "eyebrow": "Structure",
+    "heading": "Frozen levels",
+    "html": [
+     "<p>At step 987,150,465 (66,000 cells) the tape, compressed, is:</p><pre>C&gt; (01)^4 (1010101)^6123 (01)^7\n   [(10)^11 11 (01)^43] x 9   (10)^11 11 (01)^86\n   [(10)^83 11 (01)^403] x 6   (10)^83 11 (01)^187\n   (10)^162 11 (01)^893  (10)^565 11 (01)^893  (10)^565 11 (01)^1162  (10)^6 11 (01)^3523</pre>",
+     "<p>Everything between the reservoir <code>(1010101)^r</code> and the last run <code>(01)^m</code> is identical in the samples at 8.4&middot;10<sup>8</sup>, 9.1&middot;10<sup>8</sup> and 9.9&middot;10<sup>8</sup> steps. Segment sizes grow from level to level (43, 403, then about 900 and more), which suggests that each level was built when the previous drain ran out.</p>"
+    ]
+   },
+   {
+    "id": "drain",
+    "eyebrow": "Dynamics",
+    "heading": "Draining the last run",
+    "html": [
+     "<p>Between samples, 400 pairs of the last run disappear (4,323, 3,923, 3,523) and 400 copies of <code>1010101</code> join the reservoir (5,323, 5,723, 6,123). The tape grows by 2,000 cells to the left. The head crosses runs of pairs in one go (proved in Lean) and carries the material across the frozen levels.</p><p><b>What halting would need.</b> F reading a 1. The steady drain makes the same moves each time, so a halt could only come at a transition, such as when the last run is empty and a new level has to be built. The next step is to run until that happens (about 10<sup>9</sup> more steps) and record the transition as a rule.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +132,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A hierarchy of frozen segments (10)^a 11 (01)^b whose sizes grow level by level (43, 403, 893, …); the active end eats the last run of pairs 01 at a steady rate, 400 pairs per sample, and turns it into a growing reservoir of the word 1010101 at the far left.",
+ "family": "bouncer feeding a reservoir, with nested frozen levels",
+ "decision": "open"
 }

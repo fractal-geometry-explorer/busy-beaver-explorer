@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G12",
  "title": "What is known about 1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB.",
@@ -8,11 +8,14 @@
  "home": "../index.html",
  "source": "holdouts/1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
+  "Its run is a counter at the left end, a run of blocks <code>1^2 0</code> that grows by one block per overflow while the gap between overflows doubles, and a word of binary digits on its right in which each overflow rewrites a short window; when the changes reach the right end the word is rebuilt and the counting goes on."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves that the machine can halt only by stepping, in state F, onto the blank region right of everything written (kernel, from a closed tape language), and that there is no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in the first 10<sup>11</sup> steps.",
+  "<b>What it does.</b> At each overflow the tape reads <code>A&gt;0 1 0 (1^2 0)^m 1^4 0 W</code> (the block <code>1^4</code> is longer near restructures). m grows by one per overflow and the gap between overflows doubles (within 0.5% at 20 of the 24 overflows from step 100,161 on). Between overflows W changes only in a window that moves right through it. Restructures, where W is rebuilt, came at about 55,000 steps and between 2.5&middot;10<sup>10</sup> and 3.1&middot;10<sup>10</sup> steps.",
+  "<b>Why it is hard.</b> The halt needs the head to come to the right end in state F; that would happen at a restructure, and the rule that rebuilds W has not been worked out."
  ],
  "claims": [
   {
@@ -20,6 +23,18 @@
    "title": "The halting configurations",
    "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
    "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A halt can only happen at the right edge",
+   "text": "A closed tape language from windows of 3 cells covers every configuration of the run from blank tape; in all of its abstract configurations where F can read a 0 (the only halting transition), the tape right of the head is blank. So the machine halts exactly when F steps onto the blank region right of everything written.",
+   "where": "<code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A halt can only happen at the right edge",
+   "text": "A closed tape language from windows of 3 cells covers every configuration of the run from blank tape; in all of its abstract configurations where F can read a 0 (the only halting transition), the tape right of the head is blank. So the machine halts exactly when F steps onto the blank region right of everything written.",
+   "where": "<code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code>"
   },
   {
    "level": "kernel",
@@ -35,45 +50,57 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 149 cells have been visited and 67 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps without a halt; 178 cells visited (162 left of the start, 16 right), 90 ones at the end.",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The overflow configurations of the run",
+   "text": "In the first 10<sup>11</sup> steps there are 48 moments from step 373 on where the head reaches a new cell at the left end in state A followed by <code>1 0</code>; the tape then reads <code>A&gt;0 1 0 (1^2 0)^m 1^j 0 W</code>. j = 4 at 35 of them; the others lie near the restructures (j = 10 to 12 before step 31,544, j = 1 to 6 near 55,000, and j = 16 from step 2,885,841,555 to 25,031,766,563). The last is at step 66,670,838,854 with m = 29. m rises by one from each to the next except at the restructures at about 55,000 steps and at step 31,237,358,656 (one block fewer), and at step 2,885,841,555, where it stays the same.",
+   "where": "<code>tmrun ... records</code>"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: exp/fixed",
-   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.035). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "A counter whose gaps double",
+   "text": "The gap between successive overflows is within 0.5% of twice the previous one at 20 of the 24 overflows from step 100,161 on: 11,811,159,969 steps before step 25,031,766,563 and 23,622,320,125 before step 66,670,838,854. The four exceptions (steps 2,885,841,555, 4,362,236,690, 31,237,358,656 and 43,048,518,729) are where the block after the prefix changes and at the restructure.",
+   "where": "the records of the 10<sup>11</sup>-step run"
+  },
+  {
+   "level": "heuristic",
+   "title": "A moving window",
+   "text": "Between overflows the left part of W stays fixed and the changes stay in a window of about ten blocks, which drifts right as the epoch goes on; a restructure follows when the window meets the right end.",
+   "where": "the records of the 10<sup>11</sup>-step run"
   },
   {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "title": "The restructures, and the question itself",
+   "text": "Not known: the rule that maps W at one overflow to W at the next, the restructure rule, and whether the machine halts.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB 1000000000"
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB 100000000000 records 100000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>11</sup> steps without stopping. A counter on the left overflows at doubling gaps, and each overflow rewrites a window of the word on its right; Lean proves a halt can only happen at the right end. This page runs the real machine in your browser and lists what is known.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 149 cells visited."
+    "level": "kernel",
+    "value": "right edge",
+    "text": "A halt can only happen at the right end of the written tape."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator; 178 cells visited."
    },
    {
     "level": "heuristic",
-    "value": "exp/fixed",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "&times;2",
+    "text": "The gap between successive counter overflows doubles."
    }
   ],
   "presets": [
@@ -85,6 +112,22 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "family",
+    "eyebrow": "Macro structure",
+    "heading": "A counter that doubles",
+    "html": [
+     "<p>Stop the simulator whenever the head reaches a new cell at the left end in state A with <code>1 0</code> after it. For most of the run the tape then reads <code>A&gt;0 1 0 (1^2 0)^m 1^4 0 W</code>. From one such moment to the next m grows by one block and the gap in steps doubles:</p><table><tr><th>step</th><th>m</th><th>gap</th></tr><tr><td>184,604,713</td><td>21</td><td>92,274,735</td></tr><tr><td>369,153,952</td><td>22</td><td>184,549,239</td></tr><tr><td>738,252,743</td><td>23</td><td>369,098,791</td></tr><tr><td>1,476,450,176</td><td>24</td><td>738,197,433</td></tr></table><p>So the left prefix behaves like a counter that overflows at doubling gaps. Each overflow rewrites W, but only a stretch of about ten blocks; the part on the left of that window stays fixed, and the window moves right as the epoch goes on.</p>"
+    ]
+   },
+   {
+    "id": "restructure",
+    "eyebrow": "Why it is open",
+    "heading": "Restructures",
+    "html": [
+     "<p>When the window reaches the right end of the tape, W is rebuilt. In the first 10<sup>11</sup> steps this happened at about 55,000 steps (m fell to 0) and between steps 2.5&middot;10<sup>10</sup> and 3.1&middot;10<sup>10</sup>: the right end of the tape moved at step 25,426,136,323, and at step 31,237,358,656 the word had a new shape, the long block <code>1^16</code> of the previous epoch gone, and m one smaller. The doubling of the gaps went on across it, with the restructure taking a gap of about half the expected length.</p><p>Lean proves that the machine can only halt by stepping, in state F, onto the blank tape right of everything written. A run that only rewrites the inside of W never does that; the risk is at the restructures, and their rule is not known.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +141,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "binary counter driving a moving window through a word",
+ "summary": "Open. Lean proves that a halt can only happen at the right edge; no halt in 10^11 steps. A unary-coded counter on the left overflows at exactly doubling gaps, and each overflow rewrites a short stretch of the word on its right."
 }

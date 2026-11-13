@@ -127,11 +127,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Its tape switches between two solid blocks and an alternating-then-solid pair; at the left end the alternating block about doubles at the expense of the solid one.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 4,396 cells visited.</span></div>
+    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>8</sup> frames</b><span class="small">No halt in the first 10<sup>8</sup> frames of the frame map proved in Lean (about 9.7&middot;10<sup>11</sup> machine steps).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b><code>halts_iff</code></b><span class="small">It halts if and only if the frame map, iterated from the first frame, reaches a frame where it is undefined.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>15</sup> steps</b><span class="small">No halt in an exact macro simulator (blocks of 2 cells).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>doubling</b><span class="small">The alternating block doubles at the expense of the solid block.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>power/power</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 4,396 cells visited.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +143,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#structure">What the machine does</a><a href="#halting">Where a halt would have to come from</a><a href="#frame-map">The frame map in Lean</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +212,94 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="structure">
+  <span class="eyebrow">Macro structure</span>
+  <h2>What the machine does</h2>
+<p>Stop the machine whenever its head first reaches a new cell. With <code>a</code> for <code>10</code>, around step 9.8&middot;10<sup>7</sup>:</p>
+<ul><li>step 98,030,020: <code>1^1171 a 1^832 B&gt;0</code> (right end)</li><li>step 98,032,028: <code>F&gt;0 a^587 1^830 a</code> (left end)</li><li>step 98,668,985: <code>1^1659 a 1^347 A&gt;0</code> (right end)</li><li>step 98,670,998: <code>F&gt;0 a^831 1^346 a</code> (left end)</li><li>step 99,190,279: <code>1^691 a 1^1319 A&gt;0</code> (right end)</li><li>step 99,192,296: <code>F&gt;0 a^347 1^1318 a</code> (left end)</li><li>step 99,440,086: <code>E&gt;0^2 a^698 1^617 a</code> (left end)</li></ul>
+<p>At the right end the tape is two solid blocks <code>1^p 0 1^q</code>; about 2,000 steps later, at the left end, the first block has become an alternating block of about p/2 copies of <code>10</code> (1171 to 587, 1659 to 831, 691 to 347). At the left end the alternating block then doubles at the expense of the solid one (348 to 698 while 1316 falls to 617). So this is the doubling of the three machines <code>1RB1RD_0LC1RA_&hellip;_1RF0LD_---0RE</code> again, with an extra quick rewrite between solid and alternating. The width grows like the cube root of the step count.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">The halting transition</span>
+  <h2>Where a halt would have to come from</h2>
+<p>The halting transition is D reading a 0. D is entered only from C reading a 0 (<code>1RD</code>), so a halt needs <code>C&gt;0 0</code>. In the first 10<sup>8</sup> steps D was entered 111,425 times, every time on a 1, and 109,727 of those times at least 7 cells from the left end.</p>
+<p>Whether a round can leave C in front of two 0s is open.</p>
+</section>
+<section id="frame-map">
+  <span class="eyebrow">Proof</span>
+  <h2>The frame map in Lean</h2>
+<p>The frames (blank tape outside; <code>X</code> is the head in state X on the next cell; <code>u^v</code> is v copies of u, so <code>11^L</code> is 2L ones; a frame counts only at a moment where the head turns round):</p>
+<ul><li><code>e</code>: <code>11^L E 00 10^j 1^R</code></li><li><code>E</code>: <code>1 11^L E 00 10^j 1^R</code></li><li><code>f</code>: <code>11^L F 1^R</code></li><li><code>F</code>: <code>1 11^L F 1^R</code></li><li><code>g</code>: <code>F 0 10^j 1^R</code></li><li><code>h</code>: <code>11^L 0 11^M F 1^R</code></li><li><code>H</code>: <code>11^L 0 1 11^M F 1^R</code></li><li><code>i</code>: <code>1 11^L 0 11^M F 1^R</code></li><li><code>I</code>: <code>1 11^L 0 1 11^M F 1^R</code></li><li><code>k</code>: <code>11^L 0 1^M B</code></li><li><code>K</code>: <code>1 11^L 0 1^M B</code></li></ul>
+<p>The map <code>next</code> (Lean names; each variable a natural number):</p>
+<pre>def next : Ph → Option Ph
+  | .e l 0 0 =&gt; none
+  | .e 0 0 1 =&gt; some (.g (0) (1))
+  | .e 0 0 (r + 2) =&gt; some (.g (1) (r + 1))
+  | .e (l + 1) 0 1 =&gt; some (.g (1) (2 * l + 5))
+  | .e (l + 1) 0 2 =&gt; some (.g (1) (2 * l + 7))
+  | .e (l + 1) 0 (r + 3) =&gt; some (.f (l + 3) (r + 1))
+  | .e 0 1 0 =&gt; some (.g (0) (1))
+  | .e (l + 1) 1 0 =&gt; some (.g (1) (2 * l + 5))
+  | .e l (j + 2) 0 =&gt; some (.k (l + 2) (2 * j + 2))
+  | .e l 1 1 =&gt; some (.k (l + 2) (2))
+  | .e l (j + 2) 1 =&gt; some (.k (l + 2) (2 * j + 4))
+  | .e l 1 (r + 2) =&gt; some (.h (l + 2) (0) (r + 1))
+  | .e l (j + 2) (r + 2) =&gt; some (.h (l + 2) (j + 1) (r + 1))
+  | .E l 0 0 =&gt; none
+  | .E l 0 1 =&gt; some (.g (1) (2 * l + 4))
+  | .E l 0 2 =&gt; some (.g (1) (2 * l + 6))
+  | .E l 0 (r + 3) =&gt; some (.F (l + 2) (r + 1))
+  | .E l 1 0 =&gt; some (.g (1) (2 * l + 4))
+  | .E l (j + 2) 0 =&gt; some (.K (l + 2) (2 * j + 2))
+  | .E l 1 1 =&gt; some (.K (l + 2) (2))
+  | .E l (j + 2) 1 =&gt; some (.K (l + 2) (2 * j + 4))
+  | .E l 1 (r + 2) =&gt; some (.i (l + 2) (0) (r + 1))
+  | .E l (j + 2) (r + 2) =&gt; some (.i (l + 2) (j + 1) (r + 1))
+  | .f l 0 =&gt; some (.g (1) (2 * l + 1))
+  | .f 0 1 =&gt; none
+  | .f (l + 1) 1 =&gt; some (.e (0) (l) (1))
+  | .f 0 (r + 2) =&gt; some (.e (0) (0) (r + 1))
+  | .f (l + 1) (r + 2) =&gt; some (.e (0) (l + 1) (r + 1))
+  | .F l 0 =&gt; some (.g (1) (2 * l + 2))
+  | .F l 1 =&gt; some (.g (l) (1))
+  | .F 0 (r + 2) =&gt; some (.g (1) (r + 1))
+  | .F (l + 1) (r + 2) =&gt; some (.g (l + 2) (r + 1))
+  | .g j 0 =&gt; some (.g (1) (2 * j + 1))
+  | .g j 1 =&gt; some (.g (1) (2 * j + 3))
+  | .g j (r + 2) =&gt; some (.f (j + 1) (r + 1))
+  | .h 0 m 0 =&gt; some (.g (1) (2 * m + 1))
+  | .h (l + 1) m 0 =&gt; some (.k (l + 1) (2 * m + 2))
+  | .h l 0 1 =&gt; none
+  | .h l (m + 1) 1 =&gt; some (.e (l) (m) (1))
+  | .h l 0 (r + 2) =&gt; some (.e (l) (0) (r + 1))
+  | .h l (m + 1) (r + 2) =&gt; some (.e (l) (m + 1) (r + 1))
+  | .H 0 m 0 =&gt; some (.g (1) (2 * m + 2))
+  | .H 0 m 1 =&gt; some (.g (m) (1))
+  | .H 0 0 (r + 2) =&gt; some (.g (1) (r + 1))
+  | .H 0 (m + 1) (r + 2) =&gt; some (.g (m + 2) (r + 1))
+  | .H (l + 1) m 0 =&gt; some (.k (l + 1) (2 * m + 3))
+  | .H (l + 1) m 1 =&gt; some (.g (1) (2 * l + 2 * m + 5))
+  | .H (l + 1) m 2 =&gt; some (.g (1) (2 * l + 2 * m + 7))
+  | .H (l + 1) 0 (r + 3) =&gt; some (.f (l + 3) (r + 1))
+  | .H (l + 1) (m + 1) (r + 3) =&gt; some (.f (l + m + 4) (r + 1))
+  | .i l m 0 =&gt; some (.K (l) (2 * m + 2))
+  | .i l 0 1 =&gt; none
+  | .i l (m + 1) 1 =&gt; some (.E (l) (m) (1))
+  | .i l 0 (r + 2) =&gt; some (.E (l) (0) (r + 1))
+  | .i l (m + 1) (r + 2) =&gt; some (.E (l) (m + 1) (r + 1))
+  | .I l m 0 =&gt; some (.K (l) (2 * m + 3))
+  | .I l m 1 =&gt; some (.g (1) (2 * l + 2 * m + 4))
+  | .I l m 2 =&gt; some (.g (1) (2 * l + 2 * m + 6))
+  | .I l 0 (r + 3) =&gt; some (.F (l + 2) (r + 1))
+  | .I l (m + 1) (r + 3) =&gt; some (.F (l + m + 3) (r + 1))
+  | .k l 0 =&gt; none
+  | .k l 1 =&gt; some (.g (l) (1))
+  | .k l (m + 2) =&gt; some (.g (l + 1) (m + 1))
+  | .K l 0 =&gt; none
+  | .K l 1 =&gt; some (.e (0) (l) (1))
+  | .K l (m + 2) =&gt; some (.e (0) (l + 1) (m + 1))</pre>
+<p>The map was found by fitting the machine's runs (<code>py/framemap.py</code>) and collapsing the fit into cases (<code>py/pieces.py</code>); Lean then checks every case for all sizes. It is undefined only at <code>.e l 0 0</code>, <code>.E l 0 0</code>, <code>.f 0 1</code>, <code>.h l 0 1</code>, <code>.i l 0 1</code>, <code>.k l 0</code>, <code>.K l 0</code>, and those halt. So the open question is exactly whether the orbit of <code>Ph.g 0 1</code> reaches one of them; the first 10<sup>8</sup> frames do not.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +326,24 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 4,396 cells have been visited and 2,868 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/power</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.339). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.325).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/mrun.c</code></div></div><div><b>No halt in the first 10<sup>15</sup> steps</b><p>An exact macro simulator (blocks of 2 cells) runs 10<sup>15</sup> steps without a halt. The macro simulator cuts the tape into blocks of K cells, run-length codes them, and crosses a whole run at once when the head leaves it on the far side in the state it entered with; it agrees with the plain simulator <code>tools/c/tmrun</code> cell for cell.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tmrun.c</code> records</div></div><div><b>Halving on the way left, doubling at the left end</b><p>At consecutive moments the head reaches a new cell, a solid block of p ones at the right end becomes about p/2 copies of <code>10</code> at the left end (1171 to 587, 1659 to 831, 691 to 347), and then the alternating block doubles (348 to 698).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/sstat.c</code></div></div><div><b>The halting state, seen from the run</b><p>In the first 10<sup>8</sup> steps state D was entered 111,425 times, always reading a 1 (D0 halts).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/framemap.py</code></div></div><div><b>The frame map agrees with the machine on a grid</b><p>For each of the 11 frames and every canonical choice of sizes below 14, the machine reaches exactly the frame, sizes and step count the fitted map predicts (16,632 frames, <code>py/framemap.py verify 14</code>). The map is now proved in Lean; this check is how it was found.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/framemap.py</code></div></div><div><b>The frame map agrees with the run</b><p>Run from blank tape next to the machine, the fitted map predicts the whole tape at each of the 28,350 frames in the first 5&middot;10<sup>6</sup> steps (<code>py/framemap.py real 5000000</code>).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Phases.lean</code>, <code>lean/Pieces.lean</code></div></div><div><b>The whole frame map</b><p><code>next</code> in <code>lean/Phases.lean</code> sends each of the 11 frames to the next one the machine reaches, in 66 cases; <code>next_sound</code> proves every case for all parameters, each from a symbolic run in <code>lean/Pieces.lean</code> (generated by <code>py/pieces.py</code>) glued by <code>tape_eq</code>. Where <code>next</code> is undefined (<code>.e l 0 0</code>, <code>.E l 0 0</code>, <code>.f 0 1</code>, <code>.h l 0 1</code>, <code>.i l 0 1</code>, <code>.k l 0</code>, <code>.K l 0</code>) the machine halts (<code>none_halts</code>).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Phases.lean</code></div></div><div><b>Halts if and only if the map reaches an undefined case</b><p><code>init_start</code>: the run from blank tape reaches <code>Ph.g 0 1</code> after 6 steps. <code>halts_iff</code>: the machine halts from blank tape if and only if some iterate of <code>next</code> from there is a frame where <code>next</code> is <code>none</code>.</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>lean/Phases.lean</code></div></div><div><b>No halt in the first 10<sup>8</sup> frames</b><p><code>no_halt_phases</code>, by <code>native_decide</code>: the first 10<sup>8</sup> iterates are defined. By the step counts of the fitted map (<code>py/framemap.py run 100000000</code>) that is about 9.7&middot;10<sup>11</sup> machine steps.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 1000000000
+python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/framemap.py verify 30
+gcc -O2 -o mrun holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/mrun.c &amp;&amp; ./mrun 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 2 1000000000000000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

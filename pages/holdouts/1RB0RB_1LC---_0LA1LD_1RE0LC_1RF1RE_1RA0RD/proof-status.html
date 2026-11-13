@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The passes are simple rewritings, proved in Lean for every length, but their composition produces a digit string with no visible regularity. The machine halts only if E, moving right, finds a 0 followed by another 0 (and a 1 two cells later) inside the tape; so far a 0 under E inside the tape has always had a 1 after it.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The passes, for every length</h3>
+        <p>Going left, <code>(11)^n C&gt; 1</code> becomes <code>C&gt; 1 (01)^n</code> in 2n steps; going right, <code>D&gt; (0101)^n</code> becomes <code>(1110)^n D&gt;</code> and <code>E&gt; (0101)^n</code> becomes <code>(1011)^n E&gt;</code> in 4n steps, and E crosses <code>1^n</code> unchanged; each for every n and every tape around.</p>
+        <p class="where"><code>left_pass</code>, <code>right_D</code>, <code>right_E</code>, <code>right_ones</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +124,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,743 cells have been visited and 38,002 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in 10<sup>10</sup> steps</h3>
+        <p><code>tools/c/tmrun.c</code>: 10<sup>10</sup> steps from blank tape without a halt (122,739 ones).</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Where a halt would have to come from</h3>
+        <p>The halt is B reading a 1. B is entered only from A, which comes either from C reading 0 (then B reads the 0 that C wrote) or from F reading 0, which needs E to read 0 with a 0 next to it. In the first 2&middot;10<sup>8</sup> steps E read a 0 about 12.5 million times; inside the tape the next cell was always 1, and the 44 times F read a 0 in 10<sup>10</sup> steps were all at the blank right end, where B then reads blank tape.</p>
+        <p class="where"><code>tools/c/tm.h</code> (transition counts and windows)</p>
+      </div>
+      <div class="card">
+        <h3>No closed tape language from windows up to 7</h3>
+        <p><code>bbtools.ctl</code> with K = 2 to 7 closes but allows a halt (12 to 1,536 abstract halting configurations); n-gram CPS (widths 3 to 7, -H, -U) fails.</p>
+        <p class="where"><code>tools/py/bbtools/ctl.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +147,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.507). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.072).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>A digit string</h3>
+        <p>With the head in D at the left end, the tape reads as runs of 1 separated by single 0s, alternating 1 and 4j + 1 (j = 0, 1, 2, &hellip;; seen up to j = 8): a string of digits j. The string changes completely from one round trip to the next with no visible pattern, while the tape grows by about 2 cells per round trip on the left (square root of the steps) and very slowly on the right.</p>
+        <p class="where"><code>tools/c/tokrun.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>Does it halt?</h3>
+        <p>Not known, and not reduced to a number question: the digit string is not decoded. The halting question is whether a pair 00 can ever form inside the tape ahead of a right-moving E.</p>
       </div>
     </div>
   </section>

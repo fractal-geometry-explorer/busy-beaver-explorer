@@ -73,13 +73,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC</p>
     <h1>What is known about 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC</h1>
     <p class="machine">1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its run is an odometer with three wheels; it can only halt at the moment the slowest wheel turns over, and only if the fastest one is at one exact position then.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Every time the head reaches a new cell on the right in state B the tape is <code>S(c, a, b) = (10)^c 1^a 0 (10)^b 1 B&gt;0</code>, and a three-line rule (checked against direct simulation) gives the next one. The machine halts only at a <em>reset</em> (c = 0 and 2b ≥ a) with b = a/2 exactly.</p>
+      <p><b>Why a halt is unlikely.</b> The rule run for 10<sup>8</sup> macro steps from the start makes 38 resets, none halting; the left block now has tens of millions of cells. At a reset b is spread over about a/3 possible values, one of which halts, and resets grow roughly geometrically, so the chance of any future halt is of the order of 10<sup>−7</sup>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,20 +120,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 4,166 cells have been visited and 3,725 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The odometer rule</h3>
+        <p>For S(c, a, b) = 0^∞ (10)^c 1^a 0 (10)^b 1 B&gt;0 0^∞ with a even and a ≥ 2, the next right-end visit in state B is: if 2b &lt; a, S(c, a − 2b, 2b + 1) (the right block doubles, eating 1s); if 2b ≥ a and c ≥ 1, apply the rule to (c − 1, 2a + 4, max(b − a/2 − 1, 0)) (a carry: one 10 of the left block becomes 1s); if 2b ≥ a and c = 0, halt when b = a/2 and otherwise apply the rule to (a, 4, b − a/2 − 1) (a reset: the 1s become the new left block). Checked against direct simulation for all c &lt; 6, even 2 ≤ a &lt; 30, b &lt; 34 (2,856 configurations), and on every such visit in the first 3·10<sup>6</sup> steps of the run, which first reaches S(0, 4, 1) at step 43.</p>
+        <p class="where"><code>py/model.py check</code></p>
+      </div>
+      <div class="card">
+        <h3>38 resets, no halt</h3>
+        <p>The rule iterated 10<sup>8</sup> times from S(0, 4, 1): 38 resets, at none of which b = a/2; the left blocks they create grow from 2, 8, 4, 24, 52, … to 44,140,926 at the 38th.</p>
+        <p class="where"><code>py/model.py resets 1e8</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.358).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A halt has probability about 10<sup>−7</sup></h3>
+        <p>A reset follows a doubling step from (a′, b′) with 2b′ &lt; a′ ≤ 6b′ + 2, so b′ takes about a′/3 values and exactly one gives b = a/2. With resets at pool sizes in the tens of millions and growing, the sum of the remaining chances is of the order of 10<sup>−7</sup>.</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>Does a reset ever land on b = a/2?</h3>
+        <p>Open: nothing known controls the position of the fast wheel at the resets.</p>
       </div>
     </div>
   </section>
@@ -140,7 +150,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC 1000000000
+python3 holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/py/model.py check &amp;&amp; python3 holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/py/model.py resets 1e8</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

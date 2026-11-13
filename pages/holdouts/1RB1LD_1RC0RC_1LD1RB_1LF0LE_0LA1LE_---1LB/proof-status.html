@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open.</b> The tape is a short zone followed by the word <code>111011</code> repeated. The head sweeps from the zone to the right end and back, adding one unit per sweep, and rewrites the zone at every visit. The zone grows very slowly (77 to 102 cells from step 2,667 to at least 3&middot;10<sup>8</sup>); its map has not been extracted. Direct simulation: no halt in 10<sup>11</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 44,803 cells have been visited and 34,725 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in 10<sup>11</sup> steps</h3>
+        <p>Direct simulation from blank tape.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -131,8 +136,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>The zone map</h3>
+        <p>What one visit does to the zone; see the README's For later.</p>
       </div>
     </div>
   </section>
@@ -140,7 +145,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1RC0RC_1LD1RB_1LF0LE_0LA1LE_---1LB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1RC0RC_1LD1RB_1LF0LE_0LA1LE_---1LB 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1RC0RC_1LD1RB_1LF0LE_0LA1LE_---1LB 1000000000
+gcc -O2 -o /tmp/tmrun tools/c/tmrun.c &amp;&amp; /tmp/tmrun 1RB1LD_1RC0RC_1LD1RB_1LF0LE_0LA1LE_---1LB 100000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LD_1RC0RC_1LD1RB_1LF0LE_0LA1LE_---1LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

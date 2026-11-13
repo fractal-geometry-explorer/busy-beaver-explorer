@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA</p>
     <h1>What is known about 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA</h1>
     <p class="machine">1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this six-state machine halts from blank tape. Like <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</code> it runs two binary counters: a long block of 1s at the right end that counts to 2<sup>j</sup>, and the single 0s between the blocks on its left, which receive 2<sup>j</sup> at each full count. Its overflows are different from that machine's and are not modelled. This page lists what has been established, sorted by what each result rests on.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The event rule is proved in Lean for every size (the proof of <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</code>, states renamed); with <code>blank_to_P</code> it follows that the machine can only halt at an overflow. The overflow rule is not known; the exact accelerated run (jumps between overflows whose endpoints are proved, with step counts checked against the direct run; overflows simulated) reaches the third overflow at step 1.649·10<sup>12</sup> without a halt, and the next one is about 10<sup>15</sup> steps away.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules</h3>
+        <p>C erases a block of 1s leftwards; D fills 0s rightwards; F walks left over 0s; B rewrites pairs <code>1 1</code> as <code>1 0</code>; C on a separator walks left through a block, moving it one cell right. Each for every length and every surrounding tape.</p>
+        <p class="where"><code>erase</code>, <code>fill</code>, <code>walk</code>, <code>pairs</code>, <code>shift</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The all-ones counter halts</h3>
+        <p>The configurations <code>1^(2M+2) 0 1^(3M−2) E&gt;0</code> on blank tape halt for M = 4, 5, 6 (after 746, 1,514 and 3,050 steps).</p>
+        <p class="where"><code>allones_4</code>, <code>allones_5</code>, <code>allones_6</code>, <code>lean/Shapes.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The event rule, for every size</h3>
+        <p>This machine is <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</code> with one transition changed: with the states renamed (B, C, D, E, F there are E, F, B, C, D here) the tables agree except that machine's C0 = 1RD, here F0 = 0LF. In the counting phase that transition is used only on a counter digit, <code>E&gt; 0 0 x</code> (E0 1RF, F0 0LF, F1 1RA, A0 1RB, then B on x), which does what the other machine does in 5 steps instead of 3. So the proof of <code>lean/Count.lean</code> carries over with the states renamed and two step counts changed: <code>count</code>, <code>iter</code> and <code>event_rule</code> (from P(d, b1 :: lo ++ h) to P(d+1, b1 :: lo ++ inc h) when lo has d bits and h has a 0), <code>event_to_P</code>, and <code>blank_to_P</code> (the run reaches P(0, <code>1100111</code>) at step 311). Every pair of consecutive P configurations of a run to 2·10<sup>7</sup> steps follows the rule (33) or is an overflow (2).</p>
+        <p class="where"><code>event_rule</code>, <code>lean/Count.lean</code>; <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/pchain.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting only at an overflow</h3>
+        <p>Follows from <code>blank_to_P</code> and <code>event_rule</code> (the deduction is not itself a Lean theorem): the run from blank reaches a P configuration and the rules are runs, so the machine can halt only in a phase P(d, bs) whose addition of 2<sup>d+1</sup> carries out of the top bit.</p>
+        <p class="where"><code>event_rule</code>, <code>lean/Count.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +139,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 151 cells have been visited and 74 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
-    </div>
-    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
-    <div class="cards">
       <div class="card">
-        <h3>Growth shape: exp/fixed</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.032).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>No halt in 4·10<sup>11</sup> steps</h3>
+        <p>The C simulator runs 4·10<sup>11</sup> steps without a halt. The run has 50 events and 3 overflows; the last overflow (step 1,491,439) leaves 36 bits with j = 3, and the last event (step 206,159,921,357) has j = 33.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The exact run to the third overflow (step 1.649·10<sup>12</sup>)</h3>
+        <p><code>py/accel.py</code> follows the run from P configuration to P configuration with the proved rules (jumps whose endpoints are proved; the step count of each phase is a closed form in the carry lengths, read off the lemmas' proofs since the Lean statements give no step counts, and is checked against a direct run on every phase to 3·10<sup>6</sup> steps), and simulates only the overflows cell by cell (<code>c/transient.c</code>). It reproduces the two overflows of the direct run (P configurations at steps 1,308 and 1,491,493) and finds the third: at step 1,649,096,662,853 the string <code>100000000000011011011000011010110001</code> (d = 34) overflows, and 1,347,301 steps later the run is at P(28, <code>00000000000000000000000000000011100111110110110</code>) (47 bits), step 1,649,098,010,154, without a halt. The next overflow is near d = 46, about 10<sup>15</sup> steps.</p>
+        <p class="where"><code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/accel.py</code>, <code>1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/c/transient.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The current phase cannot halt</h3>
+        <p>In a phase the bits below the current position j never change again. In the phase from step 1,491,439 the event at step 206,159,921,357 has j = 33 and its 33 bits below j (<code>000000000011011011000011010101111</code>) include 0s, so the string never becomes all ones in this phase; it ends with an overflow after j = 35, near step 1.6·10<sup>12</sup> (the time per event doubles). (Now also a consequence of <code>event_rule</code>.)</p>
+        <p class="where"><code>tmrun 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA 400000000000 at E R</code></p>
       </div>
     </div>
+    <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
+    <p class="empty">Nothing yet.</p>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>The overflow rule</h3>
+        <p>What an overflow writes is not known as a formula. By direct simulation of all 240 overflowing phases P(d, bs) with at most 6 bits, the next P configuration has d = 0 in 219 cases (1 to 3 in the others) and a string 4 to 17 bits longer (mostly 5 to 12), in a way that depends on more than the low bits of R; the only 5 that halt are P(M−2, <code>10…01</code>), the phases that end in the all-ones halting pattern. The exact accelerated run gives the real overflows but no rule.</p>
       </div>
     </div>
   </section>
@@ -140,7 +169,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA 1000000000
+python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/bitmodel.py exhaust 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA E 6
+./tmrun 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA 400000000000 at E R 400 &gt; log &amp;&amp; python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/bitmodel.py events 1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA E log</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

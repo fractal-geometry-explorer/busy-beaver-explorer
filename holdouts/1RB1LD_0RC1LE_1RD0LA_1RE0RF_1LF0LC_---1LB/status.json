@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G03",
+ "generated": false,
+ "group": "Collatz-like (nested b/c counters)",
  "title": "What is known about 1RB1LD_0RC1LE_1RD0LA_1RE0RF_1LF0LC_---1LB",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LD_0RC1LE_1RD0LA_1RE0RF_1LF0LC_---1LB.",
  "machine": "1RB1LD_0RC1LE_1RD0LA_1RE0RF_1LF0LC_---1LB",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> One round of a phase is proved in Lean for all sizes (<code>round</code> in <code>lean/Rules.lean</code>), and so are half a round for any left part and three shift rules. The conversions between phases go through several gadgets and are only described from simulation."
  ],
  "claims": [
   {
@@ -46,34 +46,54 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "One round of a phase",
+   "text": "From state A at the left end of <code>1 0 0 b c b^(k+2) 0 0 1^m</code> (b = <code>1^6 0</code>, c = <code>1^5 0</code>) the machine reaches state A at the left end of <code>1 0 0 b c b^(k+1) 0 0 1^(m+10)</code> in 80k + 307 steps, for every k, m and every tape to the right.",
+   "where": "<code>round</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Half a round, and the sweeps",
+   "text": "For any left part L, <code>L 1 1 1 0 C&gt; (1110111)^(n+1) 1 1 1 0 0 0 1^m</code> reaches <code>L A&gt; 1 0 0 1^6 (0111111)^n 0 0 0 1^(m+5)</code> (<code>zig</code>); three shift rules cross runs of 7-cell words.",
+   "where": "<code>zig</code>, <code>cR1</code>, <code>cR2</code>, <code>dL</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Phases and conversions",
+   "text": "When a run b^k is used up, the block of 1s to its right is cut into copies of c (for example 1^40215 became c^6703 at step 1,046,735,917). The c's are then turned into b's and 1s (here b^3351 and 1^16752), and the next phase starts. Large conversions were seen with c^94, c^151, c^343, c^638, c^1064, c^2338, c^6703 and c^9773 (the last at step 1,834,926,828). The left end runs through several different gadgets on the way, and these control which conversion happens.",
+   "where": "<code>c/tok.c</code> (direct simulation, 2&middot;10<sup>9</sup> steps)"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The halting transition is F0, and F is entered only from E reading a 0 (<code>1LF</code>), so a halt needs E to read a 0 with a 0 to its left. A round cannot do that, so a halt could only come during a conversion. The conversions have not been reduced to a map.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LD_0RC1LE_1RD0LA_1RE0RF_1LF0LC_---1LB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LD_0RC1LE_1RD0LA_1RE0RF_1LF0LC_---1LB 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LD_0RC1LE_1RD0LA_1RE0RF_1LF0LC_---1LB 1000000000",
+  "PYTHONPATH=tools/py python3 holdouts/1RB1LD_0RC1LE_1RD0LA_1RE0RF_1LF0LC_---1LB/py/gen_rules.py   # rewrites lean/Rules.lean",
+  "gcc -O2 -o tok holdouts/1RB1LD_0RC1LE_1RD0LA_1RE0RF_1LF0LC_---1LB/c/tok.c && ./tok 1RB1LD_0RC1LE_1RD0LA_1RE0RF_1LF0LC_---1LB 100000000 at A L b=1111110,c=111110 1000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine is a nested counter. In each round one 7-cell word b turns into ten 1s (a Lean theorem for all sizes). When a run of b's is used up, the 1s are cut back into words and a new, longer phase starts. The way it is cut depends on a small gadget at the left end, and that part is not worked out.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 37,049 cells visited."
-   },
-   {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "1 round",
+    "text": "One round of a phase, proved for all counts."
    },
    {
     "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "c<sup>9773</sup>",
+    "text": "The largest conversion seen, at step 1.8&middot;10<sup>9</sup>."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>9</sup> steps",
+    "text": "No halt in the C simulator."
    }
   ],
   "presets": [
@@ -85,6 +105,30 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "round",
+    "eyebrow": "The basic move",
+    "heading": "One b becomes ten 1s",
+    "html": [
+     "<p>With b = <code>1^6 0</code> and c = <code>1^5 0</code>, the tape at the left end often reads <code>1 0 0 b c b^k 0 0 1^m ...</code>. The head starts in state A at the left end and zigzags twice across the run of b's. Each crossing re-encodes the run in another 7-cell word (<code>0111111</code>, <code>1110111</code>, <code>1101111</code>). The head comes back with <code>b^(k-1) 0 0 1^(m+10)</code>, and the tape is three cells wider. This is the theorem <code>round</code> (80k + 147 steps for a run of k), for every k, m and every tape to the right; <code>zig</code> is half of it, for any left part.</p>"
+    ]
+   },
+   {
+    "id": "phases",
+    "eyebrow": "The emergent behaviour",
+    "heading": "Phases and conversions",
+    "html": [
+     "<p>A run b^k next to a block 1^m is used up in k rounds and leaves 1^(m+10k). The machine then cuts that block back into words. For example, around step 1.05&middot;10<sup>9</sup>, <code>1^40215</code> became <code>c^6703</code>, and the c's then became <code>b^3351 0 0 1^16752</code>: a new run and a new block, and the next phase. Deeper in the tape there are further runs and blocks (for instance <code>b^1788 0 0 1^8934</code> at step 6.6&middot;10<sup>8</sup>), so the counter is nested. The left end runs through several gadgets (<code>1 0 0 b c</code>, <code>1 0^6 c 0 0 c</code>, <code>1 0^4 b 1^3 b c</code>, ...), and which conversion follows depends on them and on residues of the block lengths: this is the Collatz-like part.</p><p>Large conversions seen so far: c^94, c^151, c^343, c^638, c^1064, c^2338, c^6703, c^9773 (step 1,834,926,828).</p>"
+    ]
+   },
+   {
+    "id": "open",
+    "eyebrow": "Why it is open",
+    "heading": "Where a halt would have to come from",
+    "html": [
+     "<p>The only halting transition is F on a 0. F is entered only from E reading a 0, so a halt needs <code>0 0</code> with E arriving on the right-hand 0. The proved round never does that, so a halt could only come during a conversion. The next step is to list the gadgets and prove each conversion with symtm, which gives a map on the counts that can then be iterated (see the README).</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +142,6 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Words b = 1^6 0 and c = 1^5 0. In each round one b at the end of a run b^k becomes ten 1s of the block 1^m to its right (proved in Lean); when the run is empty the block 1^m is cut back into about m/6 copies of c and those into b's and 1s again, through several gadgets at the left end; the phase lengths grow irregularly."
 }

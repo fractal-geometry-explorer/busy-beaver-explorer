@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The head shuttles out from the right end over the background word <code>1110111110</code>, which it rewrites in a second phase and back (proved in Lean). It turns back at a defect or passes it depending on the defect's shape, and the excursions follow the ruler sequence of a binary counter whose bits are the defects. At the left end sits a unary counter <code>(0111)^n</code>: n grows by one at each of the rare events at that end (17 events between 3929 and 2.27&middot;10<sup>9</sup> steps, n from 6 to 22). Between the ends, domains of another pattern grow at the right end and dissolve into gliders that travel left.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweeps over the background</h3>
+        <p>Right: B crosses <code>(1110111110)^n</code> in 22n steps, leaving <code>(0111010111)^n</code>; left: C crosses the same word, leaving <code>(1101110101)^n</code>; and the two rules that restore the word from the other phase (18n steps each).</p>
+        <p class="where"><code>b_sweep</code>, <code>c_sweep</code>, <code>a_sweep</code>, <code>c_sweep2</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,9 +124,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 64,251 cells have been visited and 50,921 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>A unary counter at the left end</h3>
+        <p>Each time the left end grows (steps 3929, 5610, 11471, 15584, 50005, 101010, 405859, 851096, 2437041, 6477694, 16747343, 27831296, 79148713, 162337150, 471362435, 980924104, 2265696633) it grows by exactly one cell, and the tape there reads <code>0111 01 (0111)^n 0101&hellip;</code> with n one more than at the previous event (n = 6 at 3929, 22 at 2265696633).</p>
+        <p class="where"><code>py/analyse.py records</code></p>
+      </div>
+      <div class="card">
+        <h3>Excursions follow a binary ruler sequence</h3>
+        <p>Between consecutive visits of the head to the right end in state B, near 2&middot;10<sup>8</sup> steps, the head turns back after about 900, 15,600, 900, 22,900, 900, 15,600, 900, 28,500, &hellip; cells: the ruler sequence of a binary counter, each defect passing the head on every other visit.</p>
+        <p class="where"><code>py/analyse.py excursions</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>Domains and gliders</h3>
+        <p>In the defect picture, regions of a different pattern (black wedges) grow at the right end; when one stops growing, it is eaten from its left edge and sends gliders to the left; gliders slow down near the left end. The intervals between counter events grow irregularly (ratios 1.4 to 4).</p>
+        <p class="where">the picture <code>pages/holdouts/1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD/defects.png</code></p>
+      </div>
       <div class="card">
         <h3>Growth shape: exp/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.049). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).</p>
@@ -132,7 +152,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. Next step: Identify the domain types at the right end and their erosion, the gliders they release, and how a glider increments the counter; then accelerate the run event by event.</p>
+        <p class="where">README.md, Further work</p>
       </div>
     </div>
   </section>
@@ -140,7 +161,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD 1000000000
+python3 holdouts/1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD/py/rules.py      # rewrites lean/Rules.lean
+python3 holdouts/1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD/py/analyse.py image   # the defect picture
+python3 holdouts/1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD/py/rules.py      # rewrites lean/Rules.lean
+python3 holdouts/1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD/py/analyse.py image   # the defect picture</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_1RC1RA_0RD1LE_1RE1RF_1LC0RB_---1RD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

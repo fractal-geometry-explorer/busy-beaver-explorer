@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G04",
+ "generated": false,
+ "group": "phase-segment bouncer",
  "title": "What is known about 1RB0LB_1LC1RE_1LA1LD_0RB1LF_1LA0RC_---1LC",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LB_1LC1RE_1LA1LD_0RB1LF_1LA0RC_---1LC.",
  "machine": "1RB0LB_1LC1RE_1LA1LD_0RB1LF_1LA0RC_---1LC",
@@ -46,6 +46,12 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "Macro structure (observed)",
+   "text": "A bouncer over segments of one six-cell periodic word in its different phases (110101, 011101, 101110, 111010, ...); each sweep shifts the segment boundaries, so counts flow from segment to segment while the right end grows.",
+   "where": "README"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
@@ -86,6 +92,15 @@
   },
   "sections": [
    {
+    "id": "structure",
+    "eyebrow": "Macro structure (observed)",
+    "heading": "One word in many phases",
+    "html": [
+     "<p>Almost the whole tape is one periodic word, <code>110101</code>, read in different phases (<code>011101</code>, <code>101110</code>, <code>111010</code>, ...). Short defects cut it into segments. Every sweep of the head moves the defects a little, so one segment loses a copy of the word and its neighbour gains one, and the rightmost segment keeps growing.</p>",
+     "<p>This is read off long runs, not yet proved: the next step is to state these patterns as rules, prove them with <code>tools/py/bbtools/symtm.py</code>, and see whether the counters can ever reach the configuration that halts.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +113,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A bouncer over segments of one six-cell periodic word in its different phases (110101, 011101, 101110, 111010, ...); each sweep shifts the segment boundaries, so counts flow from segment to segment while the right end grows.",
+ "decision": "open"
 }

@@ -127,7 +127,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RE_1LC0RE_1LA1LD_0LB1LF_1RC1RA_1LB---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. The machine walks back and forth over a row of blocks. Each pass rewrites them, ones into copies of 10 and back, and the blocks shrink by 4, 8, 16, 32, ... cells from one visit of the left end to the next. That is a binary counter written in block lengths.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 81,751 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#words">Ones on the way left, copies of 10 on the way right</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="words">
+  <span class="eyebrow">The tape</span>
+  <h2>Ones on the way left, copies of 10 on the way right</h2>
+<p>At the left end the tape is <code>1^x0 0 1^x1 0 ... 0 1^xr</code>: blocks of ones separated by single 0s. On the way right, A and E rewrite each block as copies of <code>10</code>. On the way left, F turns <code>1010</code> into <code>1111</code> again. These three shift rules are proved in Lean. Between the two directions, the block lengths change by small amounts, and these changes add up to the counter.</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>step</th><th>x0, x1, x2, ...</th></tr></thead><tbody><tr><td>36,766,110</td><td>112, 374, 834, 586, 222, 942, 546, 1998, 8978, 614</td></tr><tr><td>69,844,480</td><td>110, 366, 822, 558, 166, 834, 330, 1562, 8102, 2550, 6782</td></tr><tr><td>267,430,903</td><td>110, 358, 806, 526, 102, 706, 74, 1050, 7078, 502, 2686, 24566</td></tr><tr><td>837,409,267</td><td>107, 350, 790, 490, 30, 554, 682, 6330, 698, 20582, 8114, 12454, 25118</td></tr></tbody></table></div>
+<p>From the second row to the third, the blocks after the first lose 8, 16, 32, 64, 128, 256 and 512. Machine <code>1RB0RE_1LC1LF_1RA1LD_0LB---_1RF1LE_0LB0RA</code> does the same in base 4.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -234,8 +241,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 81,751 cells have been visited and 45,246 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.477).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)</div></div><div><b>Shift rules of the sweeps</b><p><code>f_left</code>: going left, each <code>1010</code> becomes <code>1111</code> (8 steps a word). <code>e_right</code>: going right, each <code>1111</code> becomes <code>1010</code> again (4 steps a word). <code>a_right</code>: A turns a block of 2n ones into <code>(01)^n</code>. All three hold for every n and every surrounding tape.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">README</div></div><div><b>Lists at the left end</b><p>At the left end the tape is <code>1^x0 0 1^x1 0 ... 0 1^xr</code>. At steps 69,844,480 and 267,430,903 the lists are [110,366,822,558,166,834,330,1562,...] and [110,358,806,526,102,706,74,1050,...]. The differences are 0, &minus;8, &minus;16, &minus;32, &minus;64, &minus;128, ... until a block runs low and is refilled. No halt in 4&middot;10<sup>9</sup> steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">README, second round</div></div><div><b>The law between refills</b><p>Between visits to the left end where no block runs out and the list does not start with a lone 1, block i (i &ge; 1) loses exactly 2<sup>i+2</sup> ones and a new last block appears, e.g. [145,118,6,70,118,374] after [146,126,22,102,182] (differences &minus;1, &minus;8, &minus;16, &minus;32, &minus;64). This was checked on 4 such pairs up to 1.5&middot;10<sup>10</sup> steps; the other pairs involve refills or a leading block of length 1.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>A binary counter with refills</b><p>The halving and doubling between ones and copies of <code>10</code> make the blocks lose amounts in powers of 2, like the digits of a binary counter counting down. When a block runs low, it is refilled by an amount that depends on its neighbours. This refill is the irregular step.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts if F reads a 1.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

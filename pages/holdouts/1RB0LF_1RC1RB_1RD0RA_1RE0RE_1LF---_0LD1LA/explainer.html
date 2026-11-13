@@ -131,7 +131,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 47,528 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>42</b><span class="small">Right-end visits by C in 10<sup>9</sup> steps, always onto blank.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Blocks of ones, single zeros</a><a href="#sibling">The same tapes as another holdout</a><a href="#halt">A 1 just past the right end</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>Blocks of ones, single zeros</h2>
+<p>The tape is blocks of ones separated by single zeros. Written as block lengths (<code>7</code> = <code>11111110</code>, <code>3x2</code> = <code>1110 1110</code>), the tape at step 9,704,124 (C on a 0 at the right end) begins</p>
+<pre class="config">3 19 3x2 7 3x2 15 11 3 27 3x3 11 23 3 7 3x2 23 11 7 3x2 7 3 7 ...</pre>
+<p>Each sweep rewrites the blocks by local rules (the shift rules proved in Lean), much like a one-dimensional cellular automaton; the space-time picture is full of Sierpinski-like triangles.</p>
+</section>
+<section id="sibling">
+  <span class="eyebrow">A slower twin</span>
+  <h2>The same tapes as another holdout</h2>
+<p>At all 42 times C reaches a fresh 0 at the right end, the tape is exactly the tape of <a href="../1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF/explainer.html">1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF</a> at its own corresponding event, and this machine takes 1.5 times as many steps. A proof of that correspondence would let any result on one transfer to the other.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Could it stop?</span>
+  <h2>A 1 just past the right end</h2>
+<p>E reading a 1 halts. Working backwards through the table, the only way there is C reading a 0 with a 1 two cells to its right (Lean: <code>halt_shape0</code>, <code>halt_shape1</code>). C reads a 0 only at the right end of the tape, where everything to its right is blank; it did so 42 times in 10<sup>9</sup> steps. So a halt needs C to read a 0 inside the tape, which the sweeps seen so far never do.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +252,20 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,528 cells have been visited and 38,850 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.508). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.084).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>b_run</code>, <code>b_right</code>, <code>a_right</code>, <code>a_left</code>, <code>f_left</code>, <code>d_left</code>, <code>lean/Rules.lean</code></div></div><div><b>The sweeps' shift rules</b><p>Rightward, B crosses ones and turns <code>(1010)^n</code> into <code>(1101)^n</code>, A turns <code>(0101)^n</code> into <code>(1110)^n</code>; leftward, A and F turn ones into <code>(10)^n</code>, and F (on a 0) and D (on <code>1 0</code>) cross ones unchanged, 6 steps a pair.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_shape0</code>, <code>halt_shape1</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code></div></div><div><b>The shape of a halt</b><p>E on a 1 halts; E is entered only from D moving right, and D from C on a 0 moving right or from F on a 0 moving left (then E lands on the 0 F wrote). So it halts iff C reads a 0 with a 1 two cells to its right: <code>C&gt; 0 0 1</code> and <code>C&gt; 0 1 1</code> reach E on a 1 in 2 steps (the converse by reading the table, not formalized).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/nbhd.c</code> (<code>./nbhd M 1000000000 C 0</code>)</div></div><div><b>Near misses</b><p>In 10<sup>9</sup> steps C reads a 0 only 42 times, each time at the right end of the tape with <code>0 0 0</code> to its right; D runs 166,700,843 times and never has a 1 just to its right.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/tok.c</code> (<code>./tok M 1000000000 C 0 R 0 1000 0</code> for both machines)</div></div><div><b>Same tapes as 1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF</b><p>At each of the 42 events C on a 0 at the right end, the tape (as 1<sup>k</sup>0 blocks) is identical to the tape of 1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF at its own 42 such events (all in its first 5.9&middot;10<sup>8</sup> steps); the step counts are in ratio 1.5002 at the end. The correspondence is observed, not proved.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/tok.c</code></div></div><div><b>Growth and deep sweeps</b><p>The tape is 4,852 cells at step 10<sup>7</sup>, 15,028 at 10<sup>8</sup>, 47,528 at 10<sup>9</sup> (about 1.5&radic;t). The head turns at the left end about 23,700 times in 10<sup>9</sup> steps but reaches the right end only in rare deep sweeps, in clusters about 3.1 times apart (9.7&middot;10<sup>6</sup>, 2.9&middot;10<sup>7</sup>, 9.1&middot;10<sup>7</sup>, 2.8&middot;10<sup>8</sup>, 8.7&middot;10<sup>8</sup>).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. A halt needs C to read a 0 somewhere other than the right end, which never happened; the CA-like dynamics that decide when deep sweeps happen are not understood.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA 1000000000
+gcc -O2 -o tok holdouts/1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA/c/tok.c &amp;&amp; ./tok 1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA 1000000000 C 0 R 0 1000 0 | cut -c1-120</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

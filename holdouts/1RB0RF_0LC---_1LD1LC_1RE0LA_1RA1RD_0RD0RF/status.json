@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves the word conversions for levels 1 to 3 (D going right turns <code>011(01)<sup>3k</sup></code> into <code>100 1<sup>6k</sup></code>, C going left turns it back for k = 1, 2) and the 3-cell shifts. The behaviour of the boundaries between levels, where new levels are made, was not derived."
  ],
  "claims": [
   {
@@ -34,6 +34,36 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Word conversions at each level",
+   "text": "For k = 1, 2, 3: <code>D&gt; (011(01)<sup>3k</sup>)<sup>n</sup> &rarr; (100 1<sup>6k</sup>)<sup>n</sup> D&gt;</code> in (6k+5)n steps; for k = 1, 2: <code>(0 1<sup>6k+1</sup> 0)<sup>n</sup> C&gt; 1 &rarr; C&gt; 1 (011(01)<sup>3k</sup>)<sup>n</sup></code>; and the 3-cell shifts <code>D&gt; (011)<sup>n</sup> &rarr; (100)<sup>n</sup> D&gt;</code>, <code>(100)<sup>n</sup> D&gt; 1 &rarr; D&gt; 1 (110)<sup>n</sup></code>, <code>E&gt; (110)<sup>n</sup> &rarr; (001)<sup>n</sup> E&gt;</code>.",
+   "where": "<code>d_q1..d_q3</code>, <code>c_p1</code>, <code>c_p2</code>, <code>d_c</code>, <code>d_left</code>, <code>e_right</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where it can halt",
+   "text": "Only B reading 1 halts; B is entered only from A reading 0 (1RB), so the machine halts exactly on <code>A&gt; 0 1</code>. Read off the table.",
+   "where": "the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The tape over time",
+   "text": "Runs of period 3, 9, 15, 21, 27, 33 from left to right: at 2.5&middot;10<sup>8</sup> <code>(100)<sup>1347</sup> (111110011)<sup>243</sup> ... (111111111110011)<sup>398</sup> ... A&gt; ... (21-cell)<sup>38</sup></code>; at 4&middot;10<sup>9</sup> <code>(100)<sup>8078</sup> (9)<sup>662</sup> (15)<sup>1624</sup> (21)<sup>135</sup> (27)<sup>323</sup> (33)<sup>17</sup> ...</code> followed by a slowly growing right part of <code>(111)<sup>m</sup> 011011(01)<sup>j</sup></code> blocks.",
+   "where": "a direct run (<code>c/dump.c</code>-style simulator)"
+  },
+  {
+   "level": "heuristic",
+   "title": "A bouncer whose zones are levels",
+   "text": "The head sweeps the whole level structure; each pass converts the words of the level it crosses between dense and sparse form, and the boundaries between levels move, so the counts of each level rise and fall. The highest level present grows slowly (5 levels at 4&middot;10<sup>9</sup> steps). Observed only.",
+   "where": "README"
+  },
+  {
+   "level": "trusted",
+   "title": "No closed tape language with small windows",
+   "text": "<code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS fails; no invariant mod 2..12.",
+   "where": "<code>tools/py/bbtools/ctl.py</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 35,340 cells have been visited and 19,249 of them hold a 1.",
@@ -48,13 +78,14 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The machine stops only on <code>A&gt; 0 1</code>; inside a run of one level the proved conversions never produce it, so the question is about the boundaries between levels and the right end, where new levels form; their rules were not derived.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF/lean/check.sh",
+  "python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF/py/rules.py > holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF/lean/Rules.lean",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF 1000000000"
  ],
  "explainer": {
@@ -86,6 +117,31 @@
   },
   "sections": [
    {
+    "id": "tape",
+    "eyebrow": "What the tape looks like",
+    "heading": "Runs of words of length 9, 15, 21, ...",
+    "html": [
+     "<p>At step 4&middot;10<sup>9</sup> the tape, read left to right, is a run of <code>100</code> (8,078 copies), then runs of 9-cell words (662), 15-cell words (1,624), 21-cell words (135), 27-cell words (323), 33-cell words (17), and a right part of <code>(111)<sup>m</sup> 011011(01)<sup>j</sup></code> blocks. The run of level k is made of words of length 6k + 3.</p>",
+     "<p>Each word comes in two forms: dense, <code>100 1<sup>6k</sup></code> (nearly all 1s), and sparse, <code>011 (01)<sup>3k</sup></code> (alternating). Left of the head the words are dense, right of it sparse.</p>"
+    ]
+   },
+   {
+    "id": "rule",
+    "eyebrow": "The rule",
+    "heading": "D makes words dense, C makes them sparse",
+    "html": [
+     "<p>Lean proves, for levels 1 to 3, that D going right turns each sparse word into the dense one in 6k + 5 steps per word, and (for levels 1 and 2) that C going left turns the dense word back. So the head is a bouncer that flips the form of the words as it passes. What happens where two levels meet, and how a new level is made at the right end, was not derived.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Can it stop?",
+    "heading": "Only on A> 0 1",
+    "html": [
+     "<p>Only B reading 1 stops the machine, and B is reached only from A reading 0 and stepping right, so it stops exactly when A stands on <code>0 1</code>. The proved conversions never produce that inside a run; it could only happen at a boundary between levels.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +154,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A bouncer of runs at growing levels: level k is a run of (6k+3)-cell words, dense 100 1^(6k) on one side of the head and sparse 011 (01)^(3k) on the other; D going right makes them dense, C going left makes them sparse, and new levels appear slowly on the right.",
+ "family": "multi-level bouncer (word lengths 6k+3)",
+ "decision": "open"
 }

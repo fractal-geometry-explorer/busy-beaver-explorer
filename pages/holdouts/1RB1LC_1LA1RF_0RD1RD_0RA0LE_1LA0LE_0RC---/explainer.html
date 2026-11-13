@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. The tape is long runs of the word 110 with a few marks in between. The head shuttles between the marks and the right end, and each shuttle carries a mark a little further right. When a mark reaches the next one, the two merge and a new, longer phase starts. The crossings are proved in Lean; the merges are not worked out.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 22,729 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>4 crossings</b><span class="small">Shift rules over runs of 3-cell words, proved for all lengths.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>2507</b><span class="small">Length of the main run, in words, at the phase start at step 1.5&middot;10<sup>8</sup>.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Runs of 110 and travelling marks</a><a href="#phases">Phases</a><a href="#open">Where a halt would have to come from</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>Runs of 110 and travelling marks</h2>
+<p>Write d for the word <code>110</code>. Each time the tape grows on the right it reads something like</p><pre>d^607 0 0 1 1 d^1899 1^6 d^149 1 1 d^2 1 1 d 1^4 d^2 1 0 [A&gt;]</pre><p>(step 117,127,344): long runs of d, a mark <code>0 0 1 1</code>, more marks, and the head at the right end. The head shuttles between the marks and the right end. On the way it re-encodes the runs it crosses, <code>110</code> into <code>010</code> or <code>011</code>/<code>001</code> and back, and these crossings are the four shift rules in <code>lean/Rules.lean</code>. In this example, after one round of about 2.2&middot;10<sup>5</sup> steps the tape reads <code>d^615 0 0 1 1 d^1891 1^6 d^151 ...</code>: the mark has moved 8 words to the right and the run after <code>1^6</code> has gained 2.</p>
+</section>
+<section id="phases">
+  <span class="eyebrow">The emergent behaviour</span>
+  <h2>Phases</h2>
+<p>So within a phase x + y is fixed and the mark crosses the run at a steady rate, while the runs further right grow. When y reaches 0 the mark meets the next one, the marks merge, the runs are redistributed and a new phase starts with x small. The length x + y of the main run at the start of each phase went</p><p>25, 44, 64, 94, 147, 196, 204, 272, 325, 425, 459, 688, 785, 993, 1203, 1409, 1899, 2073, 2507 (step 1.5&middot;10<sup>8</sup>),</p><p>so the phases grow by irregular factors between about 1.04 and 1.8. The rate at which a mark moves (8 or 16 words per round in the phases looked at) and what a merge produces depend on the marks further right: a nested, Collatz-like counter.</p>
+</section>
+<section id="open">
+  <span class="eyebrow">Why it is open</span>
+  <h2>Where a halt would have to come from</h2>
+<p>The only halting transition is F on a 1. F is entered only from B reading a 1, so a halt needs the head in state B on <code>1 1</code>. The crossings never do that; a halt could only come at a merge. The next step is to list the marks, prove one round and each merge with symtm, and turn them into a map on the run lengths (see the README).</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +250,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 22,729 cells have been visited and 13,269 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.1). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.493).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>dR</code>, <code>eL</code>, <code>eL2</code>, <code>cR</code>, <code>lean/Rules.lean</code></div></div><div><b>Crossings of the runs</b><p>D crosses <code>010</code> words to the right and restores them to <code>110</code>; E crosses <code>110</code> words to the left writing <code>010</code>, and <code>011</code> words writing <code>001</code>; C crosses <code>001</code> words to the right restoring <code>110</code>.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/tok.c</code> (direct simulation, 2&middot;10<sup>8</sup> steps)</div></div><div><b>Marks move through the runs and merge</b><p>At the moments the tape grows on the right it reads <code>d^x 0 0 1 1 d^y M d^z ...</code> (d = 110, M another mark). Between such moments the mark <code>0 0 1 1</code> moves right by a fixed number of words (8 per round around step 1.2&middot;10<sup>8</sup>, with z growing by 2), so x + y stays fixed within a phase; when y reaches 0 the marks merge and a new phase starts with x small. The sum x + y at the start of a phase went 25, 44, 64, 94, 147, 196, 204, 272, 325, 425, 459, 688, 785, 993, 1203, 1409, 1899, 2073, 2507 (step 1.5&middot;10<sup>8</sup>).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The halting transition is F1, and F is entered only from B reading a 1 (<code>1RF</code>), so a halt needs <code>B&gt; 1 1</code>. A crossing never does that, so a halt could only come at a merge of two marks. The merges have not been worked out.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC--- 1000000000
+PYTHONPATH=tools/py python3 holdouts/1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---/py/gen_rules.py   # rewrites lean/Rules.lean
+gcc -O2 -o tok holdouts/1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---/c/tok.c &amp;&amp; ./tok 1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC--- 200000000 rec d=110,a=100 100000000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

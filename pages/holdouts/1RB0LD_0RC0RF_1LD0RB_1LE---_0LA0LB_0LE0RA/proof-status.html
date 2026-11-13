@@ -79,7 +79,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves the two conversions the sweeps make and the situations that lead to a halt (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
+      <p><b>What it does.</b> At the left end the tape is a handful of long blocks of 1s, for example <code>A&gt; 000 1<sup>3</sup> 00 1<sup>x</sup> 00 1<sup>7</sup> 000 1<sup>y</sup> 0001000 1<sup>z</sup></code>. Going right, C packs every <code>1111</code> into <code>1000</code>; going left, E unpacks every <code>0001</code> back into <code>1111</code>. One round trip changes the counts by fixed amounts: in the example x and y lose 8 and z gains 32. When a count runs out the blocks are rearranged and a new <em>epoch</em> starts with larger counts (epochs begin with a block of 285, 851, 1,145 and 1,553 ones in the first 6&middot;10<sup>6</sup> steps).</p>
+      <p><b>Where a halt would come from.</b> Only D reading a 1 halts; D is entered from A reading a 1 or C reading a 0 with a 1 to the left. In 2&middot;10<sup>8</sup> steps D always reads a 0. A proof would follow the counters through every epoch change, as for a counter machine.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +105,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules</h3>
+        <p>Going right, C turns each <code>1111</code> into <code>1000</code> (ten steps a copy); going left, E with <code>00</code> ahead turns each <code>0001</code> into <code>1111</code> (28 steps a copy).</p>
+        <p class="where"><code>pack</code>, <code>unpack</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The halting situations</h3>
+        <p><code>1 A&gt;1</code> and <code>1 C&gt;0</code> halt after one step, <code>1 1 E&gt;0</code> after two.</p>
+        <p class="where"><code>halt_A</code>, <code>halt_C</code>, <code>halt_E</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +131,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 31,579 cells have been visited and 21,306 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>D never reads a 1 in 2&middot;10<sup>8</sup> steps</h3>
+        <p>In the first 2&middot;10<sup>8</sup> steps the machine is in state D 26,324,186 times, every time on a 0: the halting transition D1 is never close to firing in a way the run shows.</p>
+        <p class="where"><code>c/visits.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +144,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.476). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.52).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Counters and epochs</h3>
+        <p>At every left-end visit with A in front of <code>000</code> in the first 10<sup>7</sup> steps, the tape is a short list of blocks of 1s; within an epoch the counts change by the same amounts every round trip (for example x &minus; 8, y &minus; 8, z + 32, or x &minus; 12, y &minus; 4, z + 32), and an epoch ends when one of them runs out.</p>
+        <p class="where"><code>py/turns.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The counts behave like the registers of a counter machine; a proof needs the rules for every epoch change, and nobody has them yet.</p>
       </div>
     </div>
   </section>

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is an exact ternary counter: its digits are pairs of runs of alternating cells, valued by their lengths mod 4, and each trip of the head adds one. That increment is proved in Lean (kernel) for every carry depth, and it covers 99.86% of the trips in the first 3&middot;10<sup>12</sup> steps. The counter keeps shrinking one run of each digit; when such a run runs out, a <em>transfer</em> moves a long run to the right end of the tape. Transfers and the right end are not yet described by rules, so non-halting is not proved.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Sweep moves</h3>
+        <p><code>L A&gt;(0101)^n R</code> &rarr; <code>L (1010)^n A&gt; R</code> (4n steps: going right A flips the phase of a block), <code>L (01)^n B&gt;0 R</code> &rarr; <code>L B&gt;0 (01)^n R</code> and <code>L (10)^n C&gt;1 R</code> &rarr; <code>L C&gt;1 (10)^n R</code> (2n steps: going left blocks are crossed unchanged), for every n, L, R.</p>
+        <p class="where"><code>a_right</code>, <code>b_left</code>, <code>c_left</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The pieces of a trip</h3>
+        <p>Eight rules for all run lengths and every surrounding tape: digit 0 going from 0 to 1 and from 1 to 2 (whole trips), the carry leaving digit 0, the carry passing a digit at 2 (a bounce), the carry stopping at a digit at 1 or at 0, and going home over a passed digit and over digit 0, with exact step counts.</p>
+        <p class="where"><code>inc0</code>, <code>inc1</code>, <code>out0</code>, <code>carry</code>, <code>absorb1</code>, <code>absorb0</code>, <code>home</code>, <code>home0</code>, <code>lean/Counter.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The increment, for every carry depth</h3>
+        <p>By induction over the list of digits a carry passes: from the start of a trip with digit 0 at 2, any number of digits at 2, then a digit at 1 (or at 0), the machine reaches the start of the next trip with the exact tape and step count stated. With <code>inc0</code> and <code>inc1</code> this is every kind of trip while the runs involved are long enough (r0 &ge; 7, r1 &ge; 5, a passed digit x &ge; 9, y &ge; 5, the stopping digit x &ge; 4, y &ge; 6 or x &ge; 6, y &ge; 7).</p>
+        <p class="where"><code>carry_chain</code>, <code>home_chain</code>, <code>trip_stop1</code>, <code>trip_stop0</code>, <code>lean/Counter.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +134,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 76,685 cells have been visited and 38,338 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The run-length table of a trip</h3>
+        <p>Read off the Lean statements: digit 0 changes (r0, r1) by (+2, +3) and takes one cell from x1, by (+5, &minus;1), or by (+1, +2) when it carries; a passed digit changes by (&minus;2, +2), a digit going from 1 to 2 by (+2, &minus;1), from 0 to 1 by (&minus;1, +3) and takes one cell from the next digit. Checked by expanding the statements for 2,000 random parameter choices.</p>
+        <p class="where">README, <code>py/counter.py</code></p>
+      </div>
+      <div class="card">
+        <h3>An exact fast simulator</h3>
+        <p><code>py/rsim.py</code> runs the machine on a run-length tape with the three proved sweep moves; it agrees with a plain cell simulator on the step of every one of the 17,669 trip starts in the first 4&middot;10<sup>9</sup> steps.</p>
+        <p class="where"><code>py/rsim.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>14</sup> steps</h3>
+        <p><code>py/rsim.py</code> runs 10<sup>14</sup> steps without a halt (3,153,668 trips).</p>
+        <p class="where"><code>py/rsim.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +157,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.554). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.389).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>99.86% of trips are the proved kinds</h3>
+        <p>Of the 726,270 trips in the first 3&middot;10<sup>12</sup> steps, 725,254 have one of the four proved shapes with the runs long enough. Of the other 1,016, the carry reaches the right end in 98, a run is too short in 269, and a digit has residues outside the table in 648 (and one is the first trip). They come, as far as we have looked, with transfers (a run x<sub>k</sub> has run out and the run y<sub>k&minus;1</sub> is shuttled, two cells at a time, to the right end of the tape, after which the digits past it are paired anew) or with the right end, where new digits are made from short runs.</p>
+        <p class="where"><code>py/classify.py</code>, README</p>
+      </div>
+      <div class="card">
+        <h3>How close it comes to halting</h3>
+        <p>The machine halts exactly when D reads a 1 whose left neighbour is a 1. Of the 6,032,756 times D read a 1 in the first 3&middot;10<sup>12</sup> steps, the alternating stretch ending at D's cell had length 2 158 times and length 3 17 times (a halt needs length 1); those we looked at were near the right end or in transfers.</p>
+        <p class="where"><code>py/classify.py</code>, README</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The increment is proved; transfers and the right end are only observed. A halt could only come from them.</p>
       </div>
     </div>
   </section>
@@ -140,7 +180,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- 1000000000
+gcc -O2 -o ev holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/c/ev.c &amp;&amp; ./ev 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- 2000000000 L B 1 100000 12 | awk &#x27;NR%100==0&#x27;
+. /etc/profile.d/lean.sh &amp;&amp; holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/lean/check.sh   # Rules.lean, Counter.lean
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/counter.py &gt; Counter.lean   # regenerates lean/Counter.lean
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/rsim.py 1e12 100000
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/classify.py 3e12</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

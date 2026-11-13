@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G13",
  "title": "What is known about 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE.",
@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state machine halts from blank tape. It belongs with <a href=\"../1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA/explainer.html\">1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA</a> (it differs only in state F): the tape is blocks of 1s separated by single 0s, and a round turns the first block into <code>1 0</code> pairs which come back as gliders, each moving a hole 3 cells left. In this machine the rounds from an <em>odd</em> first block are the simple ones, and Lean proves them for every length."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves the whole round from an odd first block (lengths 4k+3 and 4k+5, any second block) and no halt in the first 10<sup>7</sup> steps. Rounds from an even first block sweep on through the hole into the next block and are not yet rules. All 669 round starts in 10<sup>9</sup> steps had single holes only."
  ],
  "claims": [
   {
@@ -28,6 +28,18 @@
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "The pieces of a round",
+   "text": "The start <code>E&gt; 0 1 1 1</code> → <code>1 0 A&gt; 0 0 1</code>; one sweep step <code>A&gt; 0 0 1 1 1</code> → <code>1 0 A&gt; 0 0 1</code> (6 steps; it looks one cell ahead, so the sweep over n pairs is an induction, <code>sweep</code>); the end of an odd block <code>A&gt; 0 0 1 0 1^(a+3) 0 1</code> → <code>1 E&gt; 0 1^(a+2) 0 1 1 1 1</code>; the glider; the glider cycle <code>1 0 1 0 1 E&gt; 0 1^(p+2) 0 1</code> → <code>1 E&gt; 0 1^(p+3) 0 1 1 1 1</code>; the last pieces.",
+   "where": "<code>lean/Rules.lean</code> (from <code>py/rules.py</code>), <code>sweep</code> in <code>lean/Round.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Rounds from an odd first block",
+   "text": "<code>E&gt; 0 1^(4k+3) 0 1^(a+3) 0 1 R</code> reaches <code>E&gt; 0 1^(a+k+3) 0 1^(3k+7) R</code> and <code>E&gt; 0 1^(4k+5) 0 1^(a+5) 0 1 R</code> reaches <code>E&gt; 0 1^(a+k+5) 0 1^(3k+10) R</code>, for all k, a, R. In block terms [4K+3, a, b, …] → [a+K, 3K+6+b, …] and [4K+1, a, b, …] → [a+K−1, 3K+6+b, …].",
+   "where": "<code>round_mod3</code>, <code>round_mod1</code>, <code>lean/Round.lean</code>"
+  },
+  {
    "level": "native",
    "title": "No halt in the first 10<sup>7</sup> steps",
    "text": "The same run, evaluated by compiled code.",
@@ -40,40 +52,72 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "Every round starts on single holes",
+   "text": "At all 668 times after step 7, up to step 10<sup>9</sup>, that the head is at the left end in state E on a 0, the tape is blocks of 1s separated by single 0s: 2 blocks 465 times, 3 blocks 165, 4 blocks 32, 5 blocks 6.",
+   "where": "<code>tools/c/tmrun.c</code> (<code>at E L</code>), <code>py/rounds.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The odd rounds follow the formula",
+   "text": "All 344 rounds from an odd first block in the first 10<sup>9</sup> steps follow the proved formulas (with b = 0 when there is no third block).",
+   "where": "<code>py/rounds.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A class of round starts that is nearly closed",
+   "text": "For all 4,616 round starts <code>E&gt; 0</code> followed by <code>0? 1^a1 (0 1^ai)*</code> (single holes, a1 ≥ 1, the other blocks ≥ 2) of at most 20 cells, the round ends without halting, and on a tape of the same class except for one: <code>11011101101101111111</code> ends on <code>0 1^3 0 1 0 1^25 0 1^9</code>, with a block of length 1 inside. So single holes alone are not an invariant.",
+   "where": "<code>py/classround.py</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: power/power",
    "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.337). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.321).",
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "No small automaton proof",
+   "text": "A finite-automata-reduction search (DFA on one side, least NFA on the other; <code>py/far.c</code> of 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA) finds no certificate with up to 8 DFA states on either side.",
+   "where": "<code>far.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Why the width grows like t<sup>1/3</sup>",
+   "text": "About x/4 gliders each cross the second block and come back, so a round costs about 1.5·x·a ~ w<sup>2</sup> steps; it adds 3 ones (x = 4K+3), 4 (x = 4K+1) or 4 to 23 (even x). So w<sup>3</sup> ~ t.",
+   "where": "<code>py/rounds.py</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The odd rounds are proved; an even first block makes the sweep pass through the hole into the next block, a case still to be written as rules. A proof needs those rounds too and an invariant (single holes at every round start) that all rounds keep.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE 1000000000",
+  "python3 holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE/py/rules.py | diff - holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE/lean/Rules.lean",
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE 1000000000 at E L 100000 > el.txt && python3 holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE/py/rounds.py el.txt"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. A pair of 0s rides right through the first block of 1s, leaving <code>1 0</code> pairs behind; at the end of the block it becomes a glider, and every two pairs make another one, each knocking a hole 3 cells left. Rounds cost about the square of the width and add a few cells, so the width grows like the cube root of the time.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 3,914 cells visited."
+    "level": "kernel",
+    "value": "odd rounds",
+    "text": "A round from a first block of length 4k+3 or 4k+5 is proved for all k and all second blocks."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "344 / 344",
+    "text": "Odd rounds in the first 10<sup>9</sup> steps that follow the proved formula."
    },
    {
     "level": "heuristic",
-    "value": "power/power",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "t<sup>1/3</sup>",
+    "text": "Width after t steps: a round costs about w<sup>2</sup> steps and adds 3 to 23 ones."
    }
   ],
   "presets": [
@@ -85,6 +129,33 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "round",
+    "eyebrow": "What it does",
+    "heading": "A pair of 0s, pairs of cells, gliders",
+    "html": [
+     "<p>Stop the machine each time the head is at the left end in state E. The tape is then a few blocks of 1s separated by single 0s: at step 996,038,575 it is <code>E&gt;0 1^646 0 1^2825 0 1^438</code>, blocks [646, 2825, 438].</p>",
+     "<p>A round starts by turning the first two 1s into a pair of 0s, which then rides right through the block: <code>A&gt; 0 0 1 1 1</code> becomes <code>1 0 A&gt; 0 0 1</code> every 6 steps, leaving <code>1 0</code> pairs behind. If the block is odd, the pair reaches its last 1, the hole is filled, and the pair carries on as a <em>glider</em> through the second block, one cell every 5 steps. At the next hole it fills three 0s and the hole reappears 3 cells to the left. E walks back to the pairs, two pairs make a new glider, and so on until the pairs are used up.</p>",
+     "<p>Lean proves the whole round for every odd length: [4K+3, a, b, …] becomes [a+K, 3K+6+b, …] and [4K+1, a, b, …] becomes [a+K−1, 3K+6+b, …]. The old second block moves to the front, the hole after it disappears into the new second block, and a new hole opens about three quarters of the old first block before the next one. All 344 odd rounds of the first 10<sup>9</sup> steps match.</p>"
+    ]
+   },
+   {
+    "id": "even",
+    "eyebrow": "The hard case",
+    "heading": "Even blocks, and the halting pattern",
+    "html": [
+     "<p>In the twin machine <a href=\"../1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA/explainer.html\">1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA</a> it is the even blocks that end the sweep at the hole. Here, with a different state F, it is the odd ones; at the end of an even block the pair of 0s passes through the hole into the next block, leaving a mark, and the round's result depends on several blocks at once. Those rounds add 4 to 23 ones.</p>",
+     "<p>The machine halts only when B reads a 1. B comes only from A on a 0, and that needs C on a 1 followed by <code>0 0 1</code> (C, F, A, B in a row): a sweep meeting two 0s in a row before a 1. At the start of every round seen the holes were single.</p>"
+    ]
+   },
+   {
+    "id": "growth",
+    "eyebrow": "Growth law",
+    "heading": "Why the width grows like t<sup>1/3</sup>",
+    "html": [
+     "<p>Each glider crosses the second block and E walks back over it, so a round from [x, a] costs about 1.5·x·a steps, of the order of the width squared, and adds 3 to 23 ones. A constant gain per w<sup>2</sup> steps gives w<sup>3</sup> ~ t: 3,914 cells after 10<sup>9</sup> steps.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +169,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "hole-wandering solid block",
+ "summary": "Blocks of 1s with single holes; each round a pair of 0s sweeps the first block into 1 0 pairs, which return as gliders moving a hole 3 cells each. Rounds from an odd first block are proved in Lean; even ones run on through the hole."
 }

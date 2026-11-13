@@ -73,13 +73,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---</p>
     <h1>What is known about 1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---</h1>
     <p class="machine">1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this six-state machine halts from blank tape. This page describes what its run looks like at the level of words and counters, what a halt would need, and what is still missing. The description comes from simulation (first look, about an hour of study); nothing beyond the bounded runs is proved.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps, the C simulator none in 10<sup>9</sup>. The macro structure described below is observed in the simulation, not proved.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Four conversion cycles, for every length</h3>
+        <p>Each cycle turns nine 4-cell words into fifteen pairs, for any tape L: <code>(0011)^(n+9) 1011 (0101)^(m+1) A&gt;</code>, <code>(0110)^(n+9) 0111 0110 (1010)^(m+1) 1011 B&gt;</code>, <code>(1100)^(n+9) 1110 1001 1001 0010 (1010)^(m+1) C&gt;</code>, <code>(1001)^(n+9) 1101 (1010)^(m+1) C&gt;</code>.</p>
+        <p class="where"><code>cycA</code>&ndash;<code>cycD</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +124,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 54,017 cells have been visited and 26,998 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Those cycles cover 97.17% of the run</h3>
+        <p>With the cycle accelerator (block size 4), 0.9717 of the first 10<sup>9</sup> steps lie inside jumps of these four shapes (806, 570, 352 and 340 cycles, in 8 jumps).</p>
+        <p class="where"><code>py/coverage.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +137,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.662).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Conversion at the right end</h3>
+        <p>At D-right samples a run b^p of 1^2 0^2 words is converted into 10 pairs a^q at a constant rate (p - 450, q + 1,500 per 400 samples, observed between 4.6&middot;10<sup>8</sup> and 9.4&middot;10<sup>8</sup> steps).</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. No macro rule has been proved for this machine yet; see the README's Later section for the next steps.</p>
       </div>
     </div>
   </section>
@@ -140,7 +154,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA--- 1000000000
+python3 holdouts/1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---/py/coverage.py 1000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -124,14 +124,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 12 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows yet. The machine builds a solid wall of 1s that grows by 3 cells per pass, and in front of it the head shuttles over a short list of blocks that changes like a counter whose digits are counters. This page shows the rule and how far it has been checked.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev c">Computed</span><b>1,657,122</b><span class="small">wall visits in 10<sup>9</sup> steps, all following the pass map</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>3 cells</b><span class="small">the wall grows by 3 cells per pass; the list stays short</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 5,420,665 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/linear</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#wall">A wall, a list and a shuttle</a><a href="#passmap">From pass to pass: a counter whose digits are counters</a><a href="#collapse">When the list reaches the wall</a><a href="#phase2">One sweep proved for all lengths</a><a href="#crit">The one configuration that can halt</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,38 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="wall">
+  <span class="eyebrow">What it does</span>
+  <h2>A wall, a list and a shuttle</h2>
+<p>After a short start the tape always has the same three parts: some debris on the far left (<code>1^10536 0 1^2 0</code>), a solid <b>wall</b> of 1s that keeps growing, and right of the wall a short <b>list</b> of blocks of 1s that ends in a slightly longer block, the <b>tail</b>. The head shuttles between the wall and the end of the list. Every time it comes back to the wall, the wall is 3 cells longer: after 10<sup>9</sup> steps it has 5,420,553 cells while the list right of it is only 105 cells long.</p>
+<p>Stop the simulation each time the head stands just right of the wall. Then every block of the list is a run of 1s whose length is a multiple of 3, <code>1^(3k)</code>, followed by one 0; a block with k = 0 is just an extra 0. The tail is <code>1^(7+3j)</code>. Write the list as numbers: the tape <code>1^9 0 1^3 0 0 1^3 0 1^3 0 1^7</code> is <code>3 1 0 1 1 T0</code>.</p>
+<p>On the way right the head rewrites each block <code>1^(3k) 0</code> as <code>1^3 0 1^2 0 &hellip; 1^2 0</code> (one 3 and k&minus;1 2s, the same number of cells), and on the way back it turns it into <code>1^(3k) 0</code> again. So most of the list is just carried along; what changes is decided at one place.</p>
+</section>
+<section id="passmap">
+  <span class="eyebrow">Macro structure</span>
+  <h2>From pass to pass: a counter whose digits are counters</h2>
+<p>Between two visits to the wall the list changes by this rule (found from the simulation, not yet proved):</p><ul><li>No empty block in the list: the tail splits off, <code>&hellip; Tj &rarr; &hellip; j T0</code> if j &ge; 1, and <code>&hellip; T0 &rarr; &hellip; 0 T0</code> (an empty block is appended).</li><li>Otherwise look at the <em>first</em> empty block and the number n just left of it, <code>&hellip; n 0 X</code>. If n &ge; 2: <code>n 0 X &rarr; (n&minus;2) 1 f(X)</code>, where <code>f(T0) = 1 T0</code> and <code>f(1 Y) = 2 step(Y)</code>: the part after the empty block takes one step of the same map, as if the empty block were a wall of its own.</li><li>If n = 1, with a the number before it: <code>a 1 0 T0 &rarr; T(a+1)</code> (the tail swallows the block a), and <code>a 1 0 1 Y &rarr; (a+2) Y</code>.</li></ul>
+<p>Here is the end of the list at seven consecutive visits early in the run of the first machine of the family: <code>1 1 1 T3</code>, <code>1 1 1 3 T0</code>, <code>1 1 1 3 0 T0</code>, <code>1 1 1 1 1 1 T0</code>, <code>1 1 1 1 1 1 0 T0</code>, <code>1 1 1 1 T2</code>, <code>1 1 1 1 2 T0</code>. The last numbers behave like the low digits of a counter, and the first empty block acts like a small wall for everything after it, so the list is a counter whose digits are themselves counters. Changes deep in the list are rare: in the frequency table of the rules each deeper rule fires about half as often as the one before.</p>
+<p>The rule has no branch that halts. It is checked against the machine itself: <code>py/passmap.py</code> runs the C simulator and compares every visit with the rule applied to the previous one. All 1,657,122 visits of the first 10<sup>9</sup> steps agree.</p>
+</section>
+<section id="collapse">
+  <span class="eyebrow">The open part</span>
+  <h2>When the list reaches the wall</h2>
+<p>The rule needs a number left of the first empty block. When the empty block is the first entry, or when <code>a 1 0</code> has the wall itself as a, the wall takes part in the pass. In the sibling machine <code>1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA</code> this led, at step 1,858,969, to a <b>collapse</b>: the list became <code>1 T0</code>, the tail swallowed the wall, and the head swept left over a stack of older walls of lengths 8192, 2048, 512, 128, 32 (each a quarter of the one before), erasing them, before a new wall started growing. So the machine has epochs, and walls of sizes 2&middot;4<sup>k</sup> point to a regular structure in them.</p>
+<p>For this machine, 59 of the passes in the first 10<sup>9</sup> steps reached the wall. A proof that the machine never halts would need the pass rules proved for every list (an induction on the list in Lean) and a description of what happens at the wall, including the collapses. Neither is done yet.</p>
+</section>
+<section id="phase2">
+  <span class="eyebrow">Phase 2</span>
+  <h2>One sweep proved for all lengths</h2>
+<p>The unit <code>L 110 111 B&gt;000 R &rarr; L 111 B&gt;000 111 R</code> (11 steps) is proved for any surrounding tapes, and <code>unwind</code> chains it n times. This is one piece of the sweeps behind the pass map. The other sweep, the end-of-list rules and the wall passes are not proved yet, so the pass map is still a trusted computation, not a theorem.</p>
+</section>
+<section id="crit">
+  <span class="eyebrow">Phase 3</span>
+  <h2>The one configuration that can halt</h2>
+<p>Lean now proves where a halt has to come from: the run from blank tape halts if and only if it reaches <code>D&gt;0 1</code>. B is entered by A0 = 1RB and by D0 = 0RB; A is entered only by A1 and F1, which move left and leave a 0 right of the head, so <code>A&gt;0 1</code> cannot occur. So the halt is <code>D&gt;0 1</code>, <code>0 B&gt;1</code>; every other way into the halting transition is ruled out by a small invariant (while no such configuration has occurred, A on a 0 has a 0 on its right and B reads a 0), checked transition by transition.</p>
+<p>In the first 10<sup>9</sup> steps the head is in state D on a 0 33,926,084 times, and the cell right of it is a 0 every time: the three cells right of the head are <code>0 0 0</code> 2,721,021 times, <code>0 0 1</code> 1,814,007 times, <code>0 1 0</code> 16 times (the last at step 3,941,677) and <code>0 1 1</code> 29,391,040 times. The head was at the left end of the tape 53 times in 3&middot;10<sup>9</sup> steps, the last time at step 1,882,323. (C simulator, <code>c/crit.c</code>; a count, not a proof.)</p>
+<p>So the open question is exactly whether a restart of the structure can ever put that pattern under the head.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -221,7 +254,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 12 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -235,14 +268,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 5,420,665 cells have been visited and 5,420,637 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/linear</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows in proportion to the step count (the head drifts steadily that way) (fitted exponent 0.999).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/passmap.py</code>, <code>c/blkev.c</code></div></div><div><b>The pass map holds for the first 10<sup>9</sup> steps</b><p>Each time the head, in state D, stands just right of the wall (a run of at least 1000 1s followed by one 0), the tape right of the wall is a list of blocks <code>1^(3k) 0</code> (k = 0 meaning an extra 0) and a tail <code>1^(7+3j)</code>. Of these visits in the first 10<sup>9</sup> steps, 1,657,122 follow the pass map of the README from the previous visit: 1,657,095 after one pass, 27 after two or three (the head came back to the wall in another state in between, unseen by the sampler). 59 passes reach the wall itself, where the map does not apply. At step 999,999,9xx the wall has 5,420,553 cells and the list is <code>4 4 4 2 4 2 1 1 3 4 0 T0</code>.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/passmap.py</code> in each folder</div></div><div><b>The same map for three machines</b><p>The same pass map, with the same list notation, describes <code>1RB0LA_1RC---_0LD1RD_0RA0RE_0RF1RC_1LF0LA</code> and <code>1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC</code>; only the starting list, the state in which the head meets the wall and the tail offset differ (1^(7+3j) here).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">observed in the simulation</div></div><div><b>Two encodings of the same list</b><p>On the way right the head rewrites each block <code>1^(3k) 0</code> as <code>1^3 0 (1^2 0)^(k-1)</code> (same width), and on the way back it rewrites it again; only the end of the list, and the place of the first empty block, change from pass to pass.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>unit</code>, <code>lean/Rules.lean</code>; <code>unwind</code>, <code>lean/Unwind.lean</code></div></div><div><b>The leftward rewrite, for every n</b><p>From <code>L 111 (110)^n &hellip;</code> written as <code>L (110)^n 111 B&gt;000 R</code>, the machine reaches <code>L 111 B&gt;000 (111)^n R</code> in exactly 11n steps, for any tapes L and R: one 11-step unit <code>L 110 111 B&gt;000 R &rarr; L 111 B&gt;000 111 R</code> (generated by symtm) chained by induction.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff_crit</code>, <code>lean/HaltIff.lean</code></div></div><div><b>The only way to halt</b><p>The run from blank tape halts if and only if it reaches a configuration <code>D&gt;0 1</code> (the head in state D on a 0, with these cells to its right). B is entered by A0 = 1RB and by D0 = 0RB; A is entered only by A1 and F1, which move left and leave a 0 right of the head, so <code>A&gt;0 1</code> cannot occur. So the halt is <code>D&gt;0 1</code>, <code>0 B&gt;1</code>. The proof is an invariant of the run: while no such configuration has occurred, A on a 0 has a 0 on its right and B reads a 0.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/crit.c</code></div></div><div><b>State D on a 0 always had a 0 next to it in 10<sup>9</sup> steps</b><p>In the first 10<sup>9</sup> steps the head is in state D on a 0 33,926,084 times, and the cell right of it is a 0 every time: the three cells right of the head are <code>0 0 0</code> 2,721,021 times, <code>0 0 1</code> 1,814,007 times, <code>0 1 0</code> 16 times (the last at step 3,941,677) and <code>0 1 1</code> 29,391,040 times. The head was at the left end of the tape 53 times in 3&middot;10<sup>9</sup> steps, the last time at step 1,882,323.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Lean reduces the question to one pattern: the machine halts if and only if the run reaches <code>D&gt;0 1</code> (<code>halts_iff_crit</code>). Missing for a non-halting proof: Lean proofs of the pass rules for every list (they are recursive, so they need an induction on the list), and above all a rule for the passes that reach the wall, where the wall is erased, the structure restarts from the left end of the tape and later absorbs its own debris. Only a few such restarts have been seen, so their rule has to be derived from the machine, not fitted to data.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA 1000000000
+python3 holdouts/1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA/py/passmap.py 1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA 1000000000
+gcc -O2 -o /tmp/crit holdouts/1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA/c/crit.c &amp;&amp; /tmp/crit 1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA 1000000000 D</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

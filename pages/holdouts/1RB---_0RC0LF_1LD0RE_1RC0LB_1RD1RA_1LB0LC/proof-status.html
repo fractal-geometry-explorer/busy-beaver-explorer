@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is a list of numbers: runs <code>(001)^(2j)</code> separated by single <code>0001</code>. The bouncer side writes the same list in the complemented words <code>110</code> / <code>1110</code>. The recoding sweeps are proved in Lean (six crossing rules). In the samples, a cycle adds 2 to every entry and pushes new small entries at the left end. How the cycle starts and ends is not proved, so halting (A reading a 1) is not ruled out.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -102,6 +102,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Recoding sweeps</h3>
+        <p><code>E&gt; (001)^n &rarr; (110)^n E&gt;</code>, <code>D&gt; (010)^n &rarr; (101)^n D&gt;</code>, <code>C&gt; (100)^n &rarr; (011)^n C&gt;</code>, <code>A&gt; (0001)^n &rarr; (1101)^n A&gt;</code>, <code>E&gt; (1000)^n &rarr; (1110)^n E&gt;</code> and leftward <code>(0111)^n C&gt; 0 &rarr; C&gt; 0 (0001)^n</code>, for every n.</p>
+        <p class="where"><code>lean/Rules.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -127,12 +132,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.187). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.5).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Every entry +2</h3>
+        <p>Write the tape at B's visits to the left end as a list of the lengths of the <code>001</code> runs. Between steps 7,203,647 and 8,576,224 the list 8, 4 (7 times), 8, 6, 6, 6, 10, 8, 8, 8, 8, 6, 8, 10, 10, 8, 10, 8, 22, 12, ... becomes 4, 2, then 10, 6 (7 times), 10, 8, 8, 8, 12, 10, 10, 10, 10, 8, 10, 12, 12, 10, 12, 10, 24, 14, ...: every entry is up by exactly 2, and two new entries came in at the left.</p>
+        <p class="where"><code>tokrun M N a=001,b=0001 L</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The machine halts only when A reads a 1. A is entered from E on a 1 (writing 1, moving right), at a run boundary. The samples never show it, but the start and end of a cycle are not proved. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.</p>
       </div>
     </div>
   </section>

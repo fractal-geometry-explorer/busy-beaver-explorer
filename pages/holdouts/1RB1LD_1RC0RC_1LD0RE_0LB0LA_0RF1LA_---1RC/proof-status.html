@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> After step 731,206 the left end of the tape never moves again. The head bounces between a point well inside the tape and the right end. On each round trip, everything right of the turning point is shifted right by exactly two cells, unchanged. Near the turning point, the irregular region on the left produces new material. So the right part of the tape is a frozen record of what that generator produced. Nothing about the generator's own rules is known, and no Lean rules beyond the bounded run are proved.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 30,011 cells have been visited and 19,605 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The stream is translated rigidly</h3>
+        <p>Between consecutive arrivals of the head at the right end, the tape right of a boundary cell is exactly the previous tape shifted right by 2 cells. This held for 436 of 436 round trips between steps 10<sup>8</sup> and 1.2&middot;10<sup>8</sup>, with the boundary between cells 3,446 and 3,817 of a tape of 9,467 to 10,339 cells.</p>
+        <p class="where"><code>c/arrivals.c</code>, <code>py/check_translation.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The generator grows too</h3>
+        <p>For 39 round trips after each of 10<sup>6</sup>, 10<sup>7</sup>, 10<sup>8</sup> and 10<sup>9</sup> steps, the tape is 1,105, 3,161, 9,467 and 30,011 cells wide. The boundary of the rigid part lies between cells 777&ndash;808, 1,532&ndash;1,572, 3,446&ndash;3,531 and 11,845&ndash;11,890. In the first 10<sup>9</sup> steps the left end of the tape is last extended at step 731,206.</p>
+        <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +137,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.514).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Why it is hard</h3>
+        <p>The head drifts across the stream in a short local zigzag, not over a repeated word, so the shift rules used for other holdouts do not apply directly. The generator region has no visible block structure. The machine halts only when E reads 0 with a 0 to its right (F reading 0 is its only undefined transition). Whether the generator ever produces that is open.</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The open part is the generator: what it emits and how it changes.</p>
       </div>
     </div>
   </section>
@@ -140,7 +154,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC 1000000000</code></pre>
+gcc -O2 -o arrivals holdouts/1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC/c/arrivals.c &amp;&amp; ./arrivals 1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC 120000000 1000 -1000 100000000 | python3 holdouts/1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC/py/check_translation.py</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

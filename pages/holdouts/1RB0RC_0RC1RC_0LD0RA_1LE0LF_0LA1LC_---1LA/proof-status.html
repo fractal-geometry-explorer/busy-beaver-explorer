@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The run alternates two long phases that move a block of seven-cell words into a block of three-cell words and back, about seven times larger each round. The sweeps over the blocks are proved in Lean (kernel); the turnaround at the right end is an inner zigzag that is not yet stated as a rule.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -102,6 +102,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Sweeps over the long blocks</h3>
+        <p><code>L A&gt;(0011011)^n R</code> &rarr; <code>L (1100110)^n A&gt; R</code> (13n steps), <code>L (1011001)^n D&gt;1 R</code> &rarr; <code>L D&gt;1 (0110110)^n R</code> (23n steps), <code>L A&gt;(011)^n R</code> &rarr; <code>L (110)^n A&gt; R</code> (3n steps), for every n, L, R.</p>
+        <p class="where"><code>a_right</code>, <code>d_left</code>, <code>a_right3</code> in <code>lean/Rules.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -127,12 +132,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.498). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.478).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Rounds</h3>
+        <p>Collect phase (q into p, 1 for 1): p = 602 at step 1.3&middot;10<sup>7</sup>, 4,374 at 6.2&middot;10<sup>8</sup>; expand phase (p into q, 1 for 7): q = 4,134 at 1.1&middot;10<sup>8</sup>, 30,497 at 5.6&middot;10<sup>9</sup>.</p>
+        <p class="where">C run, <code>c/ev.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The phase rules are measured, not proved: each visit of the right end runs an inner zigzag whose length grows with the block, which the automatic prover does not compress.</p>
       </div>
     </div>
   </section>
@@ -140,7 +150,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA 1000000000
+. /etc/profile.d/lean.sh &amp;&amp; holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/lean/check.sh   # Rules.lean
+gcc -O2 -o ev holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/c/ev.c &amp;&amp; ./ev 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA 2000000000 L E 1 100000 12 | awk &#x27;NR%300==0&#x27;</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

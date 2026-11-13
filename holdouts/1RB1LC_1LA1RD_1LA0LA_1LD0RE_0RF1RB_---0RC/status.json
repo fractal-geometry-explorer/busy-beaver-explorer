@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G12",
  "title": "What is known about 1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC.",
@@ -8,11 +8,14 @@
  "home": "../index.html",
  "source": "holdouts/1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
+  "Its run is a counter of the Fibonacci kind on the left, whose overflows come at times growing by the golden ratio, and a word of binary digits on the right that the counter's carries rewrite; at rare restructures the word is rebuilt longer. Lean proves that a halt can only happen at the right edge."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>) and that a halt can only happen at the right edge (kernel); the C simulator finds no halt in the first 10<sup>11</sup> steps.",
+  "<b>What it does.</b> At each overflow of its counter the tape is <code>C&gt;0 (1 0)^z W</code>; z grows by one per overflow and the step counts grow by a factor tending to the golden ratio. Eleven times in 10<sup>11</sup> steps the word W is rebuilt (a restructure), the last at step 75,515,153,373.",
+  "<b>Why it is hard.</b> A halt can only come out of a restructure, they are rare and come at growing intervals, and the rule that maps one epoch to the next has not been decoded."
  ],
  "claims": [
   {
@@ -20,6 +23,12 @@
    "title": "The halting configurations",
    "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
    "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A halt can only happen at the right edge",
+   "text": "A closed tape language from windows of 4 cells covers every configuration of the run from blank tape; in all of its abstract configurations where F can read a 0 (the only halting transition), the tape right of the head is blank. So the machine halts exactly when F steps onto the blank region right of everything written.",
+   "where": "<code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code>"
   },
   {
    "level": "kernel",
@@ -35,45 +44,51 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 330 cells have been visited and 271 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps without a halt; 423 cells visited, 339 ones at the end.",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The overflow configurations of the run",
+   "text": "Every time C is at the left end on <code>0 1 0</code>, the tape from the head on is <code>(1 0)^z</code> followed by odd blocks of 1s separated by single 0s (a string of binary digits read in pairs). In the first 10<sup>11</sup> steps z rises by one from each such moment to the next, except at 11 restructures where it falls back to 1 (the first such moment is at step 40): steps 105, 184, 529, 660, 3,423, 13,944, 149,177, 370,694, 1,993,257, 442,705,820 and 75,515,153,373.",
+   "where": "<code>tmrun ... records</code>, read in pairs of cells"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: exp/fixed",
-   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.063). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "A Fibonacci counter",
+   "text": "Within an epoch the ratio of successive overflow times tends to 1.618 (1.534, 1.583, 1.604, 1.609 at z = 37, 39, 41, 42): the counter has Fibonacci-many states per digit count.",
+   "where": "the records of the 10<sup>11</sup>-step run"
   },
   {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "title": "The restructures, and the question itself",
+   "text": "Not known: the rule from one epoch to the next, whether a restructure can produce the halting configuration, and whether the machine halts.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC 1000000000"
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC 100000000000 records 100000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>11</sup> steps without stopping. It is a counter of the Fibonacci kind that rewrites a word of binary digits, rebuilt at rare restructures. This page runs the real machine in your browser and lists what is known.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 330 cells visited."
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator; 423 cells visited."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "right edge",
+    "text": "Lean proves a halt can only happen at the right end of the tape."
    },
    {
     "level": "heuristic",
-    "value": "exp/fixed",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "&phi; = 1.618",
+    "text": "The growth factor of the counter's overflow times."
    }
   ],
   "presets": [
@@ -85,6 +100,22 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "family",
+    "eyebrow": "Macro structure",
+    "heading": "A counter that grows by the golden ratio",
+    "html": [
+     "<p>Stop the simulator whenever the head, in state C, is at the left end of the tape reading a 0 followed by <code>1 0</code>. The tape then reads, from the head on, <code>C&gt;0 (1 0)^z W</code>: z pairs <code>1 0</code>, then a word W of odd blocks of 1s separated by single 0s. Read in pairs of cells, the whole tape is a string of binary digits (the second cell of each pair), and the <code>(1 0)^z</code> prefix is a run of z zero digits.</p><table><tr><th>step</th><th>z</th><th>digits</th><th>ratio to the previous step count</th></tr><tr><td>4,966,446,282</td><td>37</td><td>169</td><td>1.534</td></tr><tr><td>12,286,012,150</td><td>39</td><td>171</td><td>1.583</td></tr><tr><td>31,448,884,462</td><td>41</td><td>174</td><td>1.604</td></tr><tr><td>50,611,756,288</td><td>42</td><td>175</td><td>1.609</td></tr></table><p>Each such moment z is one larger than at the one before, and the step counts grow by a factor that tends to 1.618&hellip;, the golden ratio. That is the signature of a <b>Fibonacci counter</b>: a counter in which the number of states with z digits grows like the Fibonacci numbers, as in the Zeckendorf representation (no two adjacent 1s). Each overflow of the counter adds a digit to the zero run and changes W only near the counter.</p>"
+    ]
+   },
+   {
+    "id": "restructure",
+    "eyebrow": "Why it is open",
+    "heading": "Restructures",
+    "html": [
+     "<p>The regular growth is interrupted by <b>restructures</b>, where z falls back to 1 and W is rebuilt longer. In the first 10<sup>11</sup> steps they came at steps 105, 184, 529, 660, 3,423, 13,944, 149,177, 370,694, 1,993,257, 442,705,820 and 75,515,153,373, with W growing from 5 to 178 digits. Within an epoch W changes only in a window that the counter's carries reach; the digits beyond look random and do not settle into a pattern we could name.</p><p>Lean proves that a halt can only happen when F reads a 0 on blank tape at the right end, so a halt would come out of a restructure, when the far end of the word is rewritten. Restructures come at irregular, rapidly growing times (the last two epochs lasted 4&middot;10<sup>8</sup> and 7.5&middot;10<sup>10</sup> steps), so a direct simulation sees only a handful of chances to halt.</p><p>What decides how a restructure ends, and whether the map from one epoch to the next can ever lead to the halting configuration, is not known. Decoding it would turn the machine into a map on words, probably of the Collatz kind.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +129,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "Fibonacci counter feeding a word",
+ "summary": "A Fibonacci counter (step counts grow by the golden ratio) on the left that rewrites a word of binary digits, with restructures at growing intervals; halts only at the right edge. Open, no halt in 10^11 steps."
 }

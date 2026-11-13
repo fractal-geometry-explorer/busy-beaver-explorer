@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---</h1>
     <p class="machine">1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 9 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine is a base-4 counter whose digits carry timers. Lean proves the sweep rule (one increment, any number of carries) for all values, and also that tapes of the same counter shape with short timers halt: so nonhalting cannot follow from the shape of the tape alone, it depends on the timer values the run from blank tape produces. An accelerated simulation that applies the rule in closed form and simulates every irregular sweep exactly reaches 10<sup>2000</sup> steps without a halt, never with more than one irregular pattern inside the counter at a time.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweep rule, any number of carries</h3>
+        <p>At the left end in state C the tape is <code>a^n0 s(d1) a^n1 ... s(dk) a^nk</code> with <code>a = 001</code> and separators <code>s(0)=0, s(1)=011, s(2)=00, s(3)=0101</code>. One sweep adds one to the base-4 number d1 d2 ...: for every n0 &ge; 2, every block &ge; 1 and every list of carried digits 3 (a list of any length), the carried digits become 0 and their blocks gain one <code>a</code>, and the first digit below 3 goes up by one (its block loses one <code>a</code> on 0&rarr;1 and 2&rarr;3).</p>
+        <p class="where"><code>sweep0</code>, <code>sweep1</code>, <code>sweep2</code>, <code>lean/Rules.lean</code> (lists by induction, <code>lean/Seq.lean</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Exact step count without carry</h3>
+        <p>A sweep without carry takes 8&middot;n0 + 6 steps (with carries, 8(n0+...+nj) + 10j + 6, checked by simulation).</p>
+        <p class="where"><code>step0</code>, <code>step1</code>, <code>step2</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -110,6 +120,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The same tape shape halts with short timers</h3>
+        <p><code>C&gt; a^2 0 a^4 01</code> (one digit, block 4) halts at step 309,457 and <code>C&gt; a^43 0101 a^4 0101 a^4 01</code> (digits 3, 3, blocks 4, 4) at step 4,905,443. Both are sweep starts of exactly the counter form; the step counts agree with the accelerated simulator and a plain C simulator. A nonhalting proof must therefore use the timer values of the actual run.</p>
+        <p class="where"><code>counter_2_0_halts</code>, <code>counter_43_33_halts</code>, <code>lean/Perturbed.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -119,6 +134,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 68,700 cells have been visited and 26,681 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in 10<sup>2000</sup> steps</h3>
+        <p><code>py/accel.py</code> applies t sweeps at once between irregular events (the counter plus t, each timer N_i = n_i + c(d_i) minus the wraps of its digit, the step count summed in closed form) and simulates every irregular sweep (overflow, fused digits) with an exact run-length simulator. From blank tape it reaches 10<sup>2000</sup> steps without a halt. It agrees with the plain simulator at every sweep start (checked up to 3&middot;10<sup>6</sup> steps in Python and 3&middot;10<sup>8</sup> with <code>tools/c/tmrun.c</code>), and the run-length simulator agrees with the plain one on random tapes.</p>
+        <p class="where"><code>py/accel.py</code>, <code>py/rlsim.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Many counter tapes with other timers halt</h3>
+        <p>All tapes with one or two digits, blocks 1..4 and n0 = 2..12: 136 halt within 10<sup>7</sup> steps. 300 random tapes with 2..7 digits and the block after digit i up to 4<sup>i+2</sup>: 22 halt within 10<sup>150</sup> steps, 20 of them at steps of 6 to 25 digits, one near 10<sup>52</sup> and one near 10<sup>89</sup>.</p>
+        <p class="where"><code>py/perturb.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +152,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.523). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.092).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Only a small set of irregular patterns</h3>
+        <p>Up to 10<sup>300</sup> steps only about twenty different irregular separator patterns appear after the simulated sweeps (two separators touching when a timer has run out, and the end <code>01</code> during overflow), each recurring many times, and there is never more than one irregular pattern inside the counter at a time (3,008 simulated sweeps with one, 2,405 with none).</p>
+        <p class="where"><code>python3 py/accel.py run 1e300</code></p>
+      </div>
+      <div class="card">
+        <h3>A cryptid-like tail</h3>
+        <p>In the random runs the rate of halting falls off as the timers grow (a fusion of two digits is dangerous only when other timers run out in the same short window). The run from blank tape is far past the stage where most random runs halt; that it keeps surviving is likely, but nothing known forces it.</p>
+        <p class="where"><code>py/perturb.py</code>, README</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The only halting transition is F1; normal sweeps never reach it (proved). A halt needs several timers to run out close together, as in the short-timer tapes above; whether the run from blank tape ever produces such a coincidence is an open arithmetic question about its timers.</p>
       </div>
     </div>
   </section>
@@ -140,7 +175,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA--- 1000000000</code></pre>
+python3 holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/py/accel.py check 3e6
+python3 holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/py/accel.py run 1e300
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA--- 1000000000
+python3 holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/py/perturb.py random 7 300 150</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

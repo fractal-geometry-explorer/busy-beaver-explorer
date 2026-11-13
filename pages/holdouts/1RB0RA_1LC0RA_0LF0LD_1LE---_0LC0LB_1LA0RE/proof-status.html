@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine is a sweep counter: each sweep adds a 1 to the youngest block and moves a one or two 1s between older blocks at a place fixed by the binary digits of the sweep number. Lean proves ten whole-sweep rules for every block length (the generic parity patterns), and that the run from blank tape reaches such a sweep; the C simulator finds no halt in the first 1.03&middot;10<sup>11</sup> steps (226,517 sweeps).</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Ten whole-sweep rules</h3>
+        <p>With block counts written last block first, a sweep from <code>B&gt;0</code> at the right end back to it changes them by: (E | O ?) &rarr; (+1, +1, &minus;1); (E | E E ?) &rarr; (+1, &minus;1, +2, &minus;1); (E | E O E ?) &rarr; (+1, &minus;1, 0, +2, &minus;1); (O | E E E ?) and (O | E O O E) &rarr; (+1, 0, 0, +1, &minus;1); (O | E E O E E) &rarr; (+1, 0, 0, &minus;1, +2, &minus;1), where E/O is the parity of a count (inner counts at least 4, the last at least 5), for every value of the counts and every tape further left; the step counts are linear (e.g. 8c + 16y<sub>1</sub> + 76 for the first). Written by <code>bbtools.symtm.prove</code>.</p>
+        <p class="where"><code>sweep_E_OE</code> &hellip; <code>sweep_O_EEOEE</code>, <code>lean/Rules.lean</code> (<code>py/gen_rules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -111,28 +116,33 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>From blank tape to a generic sweep</h3>
+        <p>After 2,183 steps the tape is <code>(10)^27 0 (10)^12 0 (10)^4 0 (10)^9 1 B&gt;0</code> (counts 27, 12, 4, 10), and the next sweep is the rule <code>sweep_E_EEO</code>, ending at step 2,367 as the simulator says.</p>
+        <p class="where"><code>reach_2183</code>, <code>sweep_2367</code>, <code>lean/Reach.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 44,255 cells have been visited and 22,113 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 1.03&middot;10<sup>11</sup> steps</h3>
+        <p><code>c/sweeps.c</code> (a plain simulator that also counts sweeps) runs 1.03&middot;10<sup>11</sup> steps, 226,517 sweeps, without a halt. The sweeps that reach the leftmost 1 of the tape (the only ones that add new blocks there) are rare: 2, 3, 4, 6, 7, 8, 10, 12, 16, 32, 48, 64, 160, 192, 448, 1472, 1984, 2496, 3008, 3520, 11712, 28096, 60864 and 126400 (none more up to sweep 226,517).</p>
+        <p class="where"><code>c/sweeps.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.527).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>The sweep number is a binary counter</h3>
+        <p>In the 31,158 sweeps of the first 2&middot;10<sup>9</sup> steps, every sweep adds 1 to the last block and, except a handful where the number of blocks changes, makes exactly one more change: a <em>move</em> M<sub>k</sub> (block 2k+1 gains a 1, block 2k+2 loses one; blocks counted from the last, which is block 0) or a <em>split</em> S<sub>k,j</sub> (block 2k+1 loses one, a block j places further left gains two, the next one loses one). The level k is the number of trailing zeros of the sweep number n in binary (n odd: k = 0; n = 2 mod 4: k = 1; ...), and M or S follows n mod 2<sup>k+2</sup> and the parities of the blocks further left. Frequencies halve with each level, like the carries of a binary counter.</p>
+        <p class="where">computed from <code>tmrun ... at B R</code> snapshots (see README)</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>The only halting transition is D reading 1: the left-moving head (C, D, E, B rotating over the 10s) meeting two adjacent 1s. None of the generic sweep rules does that; whether a sweep over short blocks (counts below 4, the empty blocks that sometimes appear) or the arrival of a carry at the left end can do it is not settled.</p>
       </div>
     </div>
   </section>
@@ -140,7 +150,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE 1000000000</code></pre>
+python3 holdouts/1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE/py/gen_rules.py   # rewrites lean/Rules.lean
+gcc -O2 -o sweeps holdouts/1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE/c/sweeps.c &amp;&amp; ./sweeps 103079215104</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

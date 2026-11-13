@@ -74,12 +74,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA</h1>
     <p class="machine">1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 12 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open; the structure is partly known.</b> At the moments when the head is in state C at the right end on a 0, the tape is X(a, b) = <code>(10)^a 1^b C&gt; 0</code> or Y(a, b) = <code>(10)^a 1^b 0 C&gt; 0</code>. For a large enough, X(a, b) goes to X or Y (by the parity of b) with b&prime; = f(b) about 3.5b and a&prime; = a &minus; d(b), with f and d irregular but independent of a (checked for b &lt; 70); the run uses this until a cannot pay, and then the large b is turned back into a (for example X(127, 424) &rarr; X(318, 369)). The functions f, d and the turnover are not yet worked out.</p>
+      <p><b>Third pass.</b> No halt in 10<sup>18</sup> steps (macro simulation). Two inner loops of a round are identified; no pushdown certificate with a DFA of at most 6 states exists on either side.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +120,31 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 28,387 cells have been visited and 18,408 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The b-map</h3>
+        <p>For a large enough: X(a, b) &rarr; X(a&minus;d, f(b)) for even b and Y(a&minus;d, f(b)) for odd b, with (f, d) = (10, 4), (8, 3), (22, 8), (32, 13), (16, 4), (44, 17), (46, 18), &hellip; for b = 0, 1, 2, 3, 4, 5, 6, &hellip; and step counts linear in a; Y behaves the same with f larger by 2 to 4. Checked for b &lt; 70.</p>
+        <p class="where"><code>py/explore.py 400 70</code></p>
+      </div>
+      <div class="card">
+        <h3>The run from blank tape</h3>
+        <p>C-events include Y(84, 7) &rarr; X(71, 40) &rarr; X(33, 124) and later Y(322, 7) &rarr; X(309, 40) &rarr; X(271, 124) &rarr; X(127, 424) &rarr; X(318, 369) (step 1,168,114); at step 1.5&middot;10<sup>8</sup> the tape is (10)<sup>784</sup> 1<sup>8773</sup>.</p>
+        <p class="where">C simulator</p>
+      </div>
+      <div class="card">
+        <h3>The b-map, to b &lt; 400, and the X/Y relation</h3>
+        <p>For X(a, b) = <code>(10)^a 1^b C&gt; 0</code> with a large, the next event is X(a&minus;d(b), f(b)) for even b and Y(a&minus;d(b), f(b)) for odd b, the same for two values of a; from Y(a, b) = <code>(10)^a 1^b 0 C&gt; 0</code> it is exactly Y(a&minus;d(b)&minus;2, f(b)+4) for even b and X(a&minus;d(b), f(b)+2) for odd b. So one function pair (f, d) describes both kinds. Checked for every b &lt; 400.</p>
+        <p class="where"><code>py/bmap.py 400</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>18</sup> steps</h3>
+        <p>A macro simulator (blocks of 6 cells, whole runs of equal blocks crossed at once, exact step counts) runs 10<sup>18</sup> steps from blank tape without a halt. At the end the tape is (10)<sup>212,071,119</sup> 101 (011)<sup>71,857,433</sup> 1<sup>30,536,790</sup> &hellip;</p>
+        <p class="where"><code>holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA 1e18</code> (macro simulator <code>c/msim.c</code> there, checked against the direct simulator at 10<sup>9</sup> steps by <code>check_msim.py check</code>)</p>
+      </div>
+      <div class="card">
+        <h3>No pushdown certificate with a DFA of at most 6 states</h3>
+        <p>The pushdown reduction of <code>bb6-1RB0LF_1RC0LB/c/pds.c</code> (one side of the tape kept exactly, the other abstracted by a DFA, reachability by post* saturation) reaches a halt for every DFA with at most 6 states, on either side: <code>TM=1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA ./pds 6 L</code> and <code>R</code>.</p>
+        <p class="where"><code>bb6-1RB0LF_1RC0LB/c/pds.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +153,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.478). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.091).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>f is digit-driven in base 3</h3>
+        <p>For even b, f(b) changes by +12, &minus;6 as the last ternary digit of b/2 goes 0&rarr;1&rarr;2, with carries contributing amounts that depend on the higher digits: f looks like a 3-regular sequence (computed by a finite automaton reading the ternary digits), which would give it a closed form.</p>
+        <p class="where"><code>py/bmap.py</code> table</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known: f has no closed form yet, and the turnover when a cannot pay is not mapped.</p>
       </div>
     </div>
   </section>

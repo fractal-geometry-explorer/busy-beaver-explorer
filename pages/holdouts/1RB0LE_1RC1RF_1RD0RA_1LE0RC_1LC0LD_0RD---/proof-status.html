@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Sampled with the head in C at the left end, the tape is <code>a^n S b^k</code> (a = 1101010, b = 10) and each sweep takes n &rarr; n+1, k &rarr; k&minus;1; when k runs out a long reorganization rebuilds S and k (observed between steps 7.5&middot;10<sup>4</sup> and 8.2&middot;10<sup>6</sup>, and between 1.97&middot;10<sup>7</sup> and 6.48&middot;10<sup>8</sup>). The machine halts only from <code>C&gt; 1 0 1 1</code> (Lean); in 10<sup>9</sup> steps A always read a 0 followed by <code>1 0</code>, never by <code>1 1</code>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweeps' shift rules</h3>
+        <p>Over the (10)<sup>n</sup> part C and D shift the words by one cell (<code>01</code> &harr; <code>10</code>) going right and D, E run over them going left; over the counter blocks a = <code>1101010</code> the head rewrites each block through the phases <code>0011001</code>, <code>0101101</code>, <code>0010011</code> as it crosses them.</p>
+        <p class="where"><code>c_run</code>, <code>d_run</code>, <code>d_back</code>, <code>e_back</code>, <code>d_blocks</code>, <code>d_blocks_back</code>, <code>f_blocks</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The shape of a halt</h3>
+        <p>From <code>C&gt; 1 0 1 1</code> the machine reaches F on a 1 in 3 steps and halts on the next. By reading the table (not formalized): F is entered only from B on a 1, B with a 1 ahead only from A on a 0, and A only from C on a 1, so every halt comes this way.</p>
+        <p class="where"><code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +129,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 62,662 cells have been visited and 30,808 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Near misses</h3>
+        <p>In 10<sup>9</sup> steps A reads a 0 5,815,845 times: 5,815,812 times followed by <code>1 0 1</code>, 16 times by <code>1 0 0</code>, 17 times at the blank end; never followed by <code>1 1</code> (which would halt).</p>
+        <p class="where"><code>c/nbhd.c</code> (<code>./nbhd M 1000000000 A 0</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +142,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.04). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.553).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>The counter and its reorganizations</h3>
+        <p>At the samples (C at the left end) the tape reads <code>a^n b^2 a b^10 (a b^2 a b^10)^m ... a b^x a b^y ... a b^k</code>: a pile of n blocks a = 1101010, then a list of numbers written as runs of 10 separated by single a's (pairs like 2, 10 / 16, 32 / 160, 320 / 538, 914 repeat many times), ending with a run b<sup>k</sup>. Every sweep moves one <code>10</code> from the end into a new block a: n+1, k&minus;1, width +5. When k is used up the head stops visiting the left end, works on the right part as an expanding bouncer and rebuilds it with larger numbers; plain counting resumed at steps 8.2&middot;10<sup>6</sup> (width 5,254) and 6.48&middot;10<sup>8</sup> (width 49,385).</p>
+        <p class="where"><code>c/samples.c</code>, head-position traces</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. Halting needs A to read a 0 followed by <code>1 1</code>, which needs a <code>0 1 1</code> where the sweeps keep <code>0 1 0</code>. Whether some reorganization ever produces it depends on the exact nested numbers, for which no closed rule has been found.</p>
       </div>
     </div>
   </section>
@@ -140,7 +160,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD--- 1000000000
+gcc -O2 -o nbhd holdouts/1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD---/c/nbhd.c &amp;&amp; ./nbhd 1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD--- 1000000000 A 0</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

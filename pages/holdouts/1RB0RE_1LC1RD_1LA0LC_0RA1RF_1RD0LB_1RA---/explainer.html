@@ -127,7 +127,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. The machine spends almost all its time inside the tape, working at the boundaries between regions made of the words 100 and 101. Sweeps across the whole tape get rarer and rarer: one at step 827,042, the next at step 1,021,956,316.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 36,984 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#words">Regions of 100 and 101</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="words">
+  <span class="eyebrow">The tape</span>
+  <h2>Regions of 100 and 101</h2>
+<p>Cut the tape into words <code>10</code> followed by a 0 or a 1: <code>100</code> and <code>101</code>. On the way right, B turns <code>100</code> into <code>101</code>; on the way left, it turns them back (<code>b_right</code> and <code>b_left</code> in Lean). The head moves back and forth between two neighbouring regions, and the boundary between them creeps along one word at a time.</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>full sweep at step</th><th>tape width</th></tr></thead><tbody><tr><td>3,712</td><td>102</td></tr><tr><td>8,212</td><td>149</td></tr><tr><td>25,912</td><td>238</td></tr><tr><td>827,042</td><td>1,499</td></tr><tr><td>1,021,956,316</td><td>37,210</td></tr></tbody></table></div>
+<p>The gaps between full sweeps grow faster than any fixed ratio, which is typical of nested counters.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -234,8 +241,10 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 36,984 cells have been visited and 24,185 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.419).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)</div></div><div><b>Shift rules</b><p><code>b_right</code>: going right, B turns each <code>100</code> into <code>101</code>. <code>b_left</code>: going left, B turns <code>101</code> words back into <code>100</code> words. <code>a_right</code>: going right, A shifts a block of <code>100</code> words by one cell. All three hold for every n and every surrounding tape.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>edges</code></div></div><div><b>Rare full sweeps</b><p>The head reaches the left end after having been at the right end at steps 38, 110, 416, 660, 1,070, 1,904, 3,712, 8,212, 25,912, 827,042 and 1,021,956,316. At those times the tape is 12, 19, 37, 44, 55, 71, 102, 149, 238, 1,499 and 37,210 cells wide. No halt in 3&middot;10<sup>9</sup> steps.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Why it is hard</b><p>The gaps between full sweeps grow faster than geometrically: 25,912, then 827,042, then about 10<sup>9</sup>. This is the mark of nested counters, where each region of the tape is used up one unit at a time by the region to its left. To decode it, one has to find the counting rule at each kind of boundary, and there are several kinds.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts if F reads a 1.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

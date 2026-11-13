@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine moves material, one word every two visits, from one long run of a periodic word into another; each phase leaves a marker behind, and the runs it leaves have lengths in ratios close to 3/2, the usual sign of a Collatz-like map.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 73,042 cells have been visited and 40,382 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Transfer phases</h3>
+        <p>At the left-end visits in state D the first run loses one period-6 word and the second gains one period-9 word per round (750 per 1,500 rounds from 5.5&middot;10<sup>8</sup> to 8.0&middot;10<sup>8</sup> steps); the frozen runs to the right have lengths 133, 88, 58, 38, 15.</p>
+        <p class="where"><code>python3 py/view.py 2e9 1500 blocks D L 9</code></p>
+      </div>
+      <div class="card">
+        <h3>Transfer phases</h3>
+        <p>At the left-end visits in state D the first run loses one period-6 word and the second gains one period-9 word every two visits (750 per 1,500 visits from 5.5&middot;10<sup>8</sup> to 8.0&middot;10<sup>8</sup> steps); the frozen runs to the right have lengths 133, 88, 58, 38, 15.</p>
+        <p class="where"><code>python3 py/view.py 2e9 1500 blocks D L 9</code></p>
+      </div>
+      <div class="card">
+        <h3>Transfer phases</h3>
+        <p>At the left-end visits in state D the first run loses one period-6 word and the second gains one period-9 word every two visits (750 per 1,500 visits from 5.5&middot;10<sup>8</sup> to 8.0&middot;10<sup>8</sup> steps); the frozen runs to the right have lengths 133, 88, 58, 38, 15.</p>
+        <p class="where"><code>python3 py/view.py 2e9 1500 blocks D L 9</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -140,7 +155,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_1RC0LE_1RD1RF_1LB0LB_0RD0LD_0RC0RA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_1RC0LE_1RD1RF_1LB0LB_0RD0LD_0RC0RA 1000000000</code></pre>
+python3 holdouts/1RB---_1RC0LE_1RD1RF_1LB0LB_0RD0LD_0RC0RA/py/view.py   # the views of the run quoted in the README</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB---_1RC0LE_1RD1RF_1LB0LB_0RD0LD_0RC0RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

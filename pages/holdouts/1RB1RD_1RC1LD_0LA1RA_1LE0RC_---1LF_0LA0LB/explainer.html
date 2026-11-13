@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine keeps a long block on the left, sweeps it once for every tick of a small counter, and lets the counter eat a second block; when that block is gone the tape is rebuilt about a third larger. The sweeps are proved; the counter and the rebuild are still being decoded.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 41,526 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>2 sweep rules</b><span class="small">Proved in Lean for all block lengths.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>M × 4/3</b><span class="small">Observed growth of the eaten block from round to round.</span></div>
+    <div class="fact"><span class="ev o">Open</span><b>round map</b><span class="small">Counter and rebuild rules not yet found.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A long block, a counter, and its food</a><a href="#rounds">Rounds about 4/3 larger</a><a href="#halt">Open</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,25 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>A long block, a counter, and its food</h2>
+<p>With a = <code>111110</code> and c = <code>1<sup>11</sup>0</code>, when the head is at the left end the tape reads</p>
+<pre>F&gt;0 a^N [counter] c^M [right part]</pre>
+<p>for example <code>F&gt;0 a^974 1111 aa 11 aaa 11 aaa 11 aaa 11 aa 1111 c^86 ...</code> at step 27,213,697. Each round trip of the head (about 25N steps) rewrites the long block on the way right, pair by pair, and writes it back on the way left; this is proved in Lean. It also increments the counter in the middle, which eats c's as it carries, and adds a cell at the left end, so the left side grows like the square root of time.</p>
+</section>
+<section id="rounds">
+  <span class="eyebrow">The rule</span>
+  <h2>Rounds about 4/3 larger</h2>
+<p>When the c's run out the blocks are rebuilt and a new round starts. The lengths M of the c-block at the starts of the rounds:</p>
+<pre>24, 36, 50, 72, 116, 170, 248, 342, 454, 613, 814, 1100, 1466, 1967, 2628</pre>
+<p>a ratio of about 4/3 per round. The number of rounds grows like the logarithm of time, the right side of the tape with it.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>Open</h2>
+<p>The machine halts exactly when the head in state D reads 0 with a 0 to its left. The sweeps never do that. Whether a rebuild can depends on the exact rebuild rule, which looks like a Collatz-like map (multiply by about 4/3, with the remainder deciding the details); it has not been written down yet.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +254,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 41,526 cells have been visited and 28,752 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.53). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.067).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep_r</code>, <code>sweep_l</code>, <code>lean/Rules.lean</code> (generated by <code>py/gen_rules.py</code>)</div></div><div><b>The sweeps over the long block</b><p>Going right in state A each pair aa becomes 101110101101 (32 steps per pair); going left in state E it is written back. Proved for all lengths and any tapes around.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/events.c</code></div></div><div><b>Rounds, observed</b><p>At the left end the tape is <code>F&gt; 0 a^N [counter] c^M ...</code>; each round trip increments the counter, which consumes c's. The values of M when a round starts: 24, 36, 50, 72, 116, 170, 248, 342, 454, 613, 814, 1100, 1466, 1967, 2628, a ratio of about 4/3. Seen in simulation, not proved.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>Where it would halt</b><p>The only halting transition is E reading 0, and E is entered only from D reading 0, so the machine halts exactly when the head in state D reads 0 with a 0 to its left (from the transition table).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The rules for the counter and for the rebuild when the c's run out, and so a map M → M', are not found yet (see "For later" in the README).</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB 1000000000</code></pre>
+PYTHONPATH=tools/py python3 holdouts/1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB/py/gen_rules.py | diff - holdouts/1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB/lean/Rules.lean
+gcc -O2 -o events holdouts/1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB/c/events.c &amp;&amp; ./events 1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB 30000000 L 20 a=111110 c=111111111110</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -74,12 +74,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---</h1>
     <p class="machine">1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>It is one of a pair, <code>1RB0RD_1LC0RA_1LA0LB_1RE0LC_1L?1RF_0RB---</code>, that differ only in E0 (here <code>1LC</code>, there <code>1LD</code>). The outer sweeps never read E0, so the two machines share them; the inner phases differ.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The outer sweeps are proved in Lean, but the inner phases, which decide how the blocks grow, are only observed; no invariant that would exclude a halt is known.</p>
+      <p><b>Where a halt would have to come from.</b> The machine halts only in F reading a 1. F is entered only from E reading a 1, and E only from D reading a 0; so a halt needs the head in D on <code>0 1 1</code> (and as D is entered only from A reading a 1, the head in A on <code>1 0 1 1</code>). F is entered constantly (in the regular sweeps), 343,472,060 times in 2·10<sup>10</sup> steps, and always reads a 0: the cell after <code>…0011</code> is always the start of <code>0101…</code>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +105,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Single-token sweeps</h3>
+        <p>Moving right, B turns <code>c = 1101010</code> into <code>0011001</code> and <code>a = 10</code> into <code>01</code>; moving left, C crosses an <code>a</code> (shifted by one cell) unchanged.</p>
+        <p class="where"><code>b_c</code>, <code>b_a</code>, <code>c_a</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The outer sweep pair</h3>
+        <p>With the head in C on the leftmost cell and the tape <code>11010 w (10)<sup>k+2</sup> 1</code>, one round trip gives <code>11010 c w (10)<sup>k+1</sup> 1</code>, in 24·#c(w) + 4·#a(w) + 4k + 41 steps. Proved for every w with up to four blocks of c's: <code>w = c<sup>n</sup></code>, <code>c<sup>n</sup> a<sup>x+1</sup> c<sup>m</sup></code>, and so on, for all exponents.</p>
+        <p class="where"><code>sweep0</code>, <code>sweep1</code>, <code>sweep2</code>, <code>sweep3</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>From the blank tape to the first outer phase</h3>
+        <p>After 12262 steps the tape is <code>11010 w (10)<sup>k</sup> 1</code> with w = c a<sup>27</sup> c a<sup>8</sup> c a<sup>2</sup> c, k = 43.</p>
+        <p class="where"><code>init_run</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +136,34 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 84,091 cells have been visited and 40,430 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The sweep rule holds for every w seen</h3>
+        <p>Every arrival at the left end in the first 4·10<sup>8</sup> steps whose last block has k ≥ 2 is followed by the sweep pair above, with the exact step count, whatever w is: 3,216 sweep pairs, no exception.</p>
+        <p class="where"><code>py/sweepcheck.py</code>, <code>c/edges.c</code></p>
+      </div>
+      <div class="card">
+        <h3>F always reads 0</h3>
+        <p>In 2·10<sup>10</sup> steps state F is entered 343,472,060 times, always on a 0; no halt. The context is always <code>…0011 F&gt;0</code>, followed by <code>101…</code> or by cells not yet visited.</p>
+        <p class="where"><code>c/jumps.c</code> (counts), <code>c/fhit.c</code> (contexts)</p>
+      </div>
+      <div class="card">
+        <h3>Inner phases</h3>
+        <p>When the last block is used up the head stops reaching the left end for a long time. Recorded inner phases: the step of the last left-end arrival before the jump, the step of the first one after it, and the tape at these two arrivals, tokenised (a token is <code>c</code>, <code>a<sup>n</sup></code> or a stray bit), without its first cells (<code>11010</code> or <code>1</code>) and its trailing <code>1</code>s:<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>stop</th><th>resume</th><th>before</th><th>after</th></tr></thead><tbody><tr><td>53,616</td><td>745,695</td><td><code>c<sup>47</sup> a<sup>27</sup> c a<sup>8</sup> c a<sup>2</sup></code></td><td><code>c a<sup>3</sup> (c a<sup>2</sup> c a<sup>10</sup>)<sup>23</sup> c a<sup>31</sup> c a<sup>335</sup></code></td></tr><tr><td>3,154,621</td><td>55,649,188</td><td><code>c<sup>337</sup> a<sup>7</sup> (c a<sup>2</sup> c a<sup>10</sup>)<sup>23</sup> c a<sup>31</sup></code></td><td><code>764 tokens, last ones a<sup>589</sup> c a<sup>1155</sup></code></td></tr><tr><td>106,595,396</td><td>208,093,169</td><td><code>c<sup>1157</sup> …, 765 tokens</code></td><td><code>763 tokens, last a<sup>1690</sup></code></td></tr><tr><td>381,017,882</td><td>2,194,023,171</td><td><code>c<sup>2851</sup> …, 761 tokens</code></td><td><code>759 tokens, last ones a<sup>17217</sup> c a<sup>19492</sup></code></td></tr></tbody></table></div></p>
+        <p class="where"><code>c/jumps.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Why it is hard</h3>
+        <p>The inner phase is a smaller machine of the same kind working on the right end of the tape: short sweeps move one <code>a</code> at a time from one block into a longer one, so blocks get multiplied rather than added. Each outer phase takes time about quadratic in the tape length, and each inner phase produces a much longer last block, so the phases grow quickly and nothing in sight closes the loop.</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It halts only if the head is ever in D on <code>0 1 1</code>; it never was in 2·10<sup>10</sup> steps.</p>
       </div>
     </div>
   </section>
@@ -140,7 +171,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB--- 1000000000</code></pre>
+python3 holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/py/sweepcheck.py 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB--- 400000000
+gcc -O2 -o jumps holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/c/jumps.c &amp;&amp; ./jumps 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB--- 20000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -124,14 +124,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 9 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows yet. Started on a blank tape, this machine counts in base 4 at the left end of its tape; the digits sit between long blocks that each count down like a timer. The digit rules are proved in Lean, and so is the fact that the same kind of tape halts when its timers are short: whether the real run ever gets into such a state is the open question.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 57,981 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>4 digit rules</b><span class="small">Proved in Lean for all block lengths.</span></div>
+    <div class="fact"><span class="ev n">native_decide</span><b>short timers halt</b><span class="small">Two tapes of the same shape with short blocks halt (Lean).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>11</sup> steps</b><span class="small">No halt from blank tape in the C simulator.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Digits between blocks</a><a href="#timers">Every block counts down</a><a href="#right">The carry reaches the right end</a><a href="#halt">Open</a><a href="#short">Short timers halt</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,46 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>Digits between blocks</h2>
+<p>With the words <code>a = 10</code>, <code>b = 1110</code>, whenever the head is back at the left end the tape reads</p>
+<pre>D&gt;0 b (ba)^n1 s1 (ba)^n2 s2 ... (ba)^nk sk  [right end]</pre>
+<p>long blocks of pairs <code>ba</code> separated by digits s<sub>i</sub>, each one of a, b, ab, bb. The head walks to the first digit, changes it, and walks back:</p>
+<ul><li>a → b and ab → bb;</li><li>b → ab, and one pair <code>ba</code> moves from the block on its right to the block on its left;</li><li>bb → a with the block on its left one pair longer, and the same step is applied to the next digit (a carry).</li></ul>
+<p>So the digits count in base 4 (a = 0, b = 1, ab = 2, bb = 3), while the blocks between them slowly drift. An example run of five increments:</p>
+<pre>D&gt;0 b (ba)^4 a  (ba)^21 bb (ba)^59 b 1111
+D&gt;0 b (ba)^4 b  (ba)^21 bb (ba)^59 b 1111
+D&gt;0 b (ba)^5 ab (ba)^20 bb (ba)^59 b 1111
+D&gt;0 b (ba)^5 bb (ba)^20 bb (ba)^59 b 1111
+D&gt;0 b (ba)^6 a  (ba)^21 a  (ba)^59 b 1111</pre>
+</section>
+<section id="timers">
+  <span class="eyebrow">The timers</span>
+  <h2>Every block counts down</h2>
+<p>Number the blocks B0, B1, B2, ... from the left; digit j sits between B(j-1) and Bj. When digit j goes 1&rarr;2, one pair moves from Bj to B(j-1); when it wraps 3&rarr;0, B(j-1) gains a pair. Over one cycle of digit j+1 (4<sup>j+1</sup> increments) Bj gains 2 pairs and loses 4: <b>Bj drops by 2 every 4<sup>j+1</sup> increments</b>, while B0 grows by 2 per cycle of the first digit.</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>step</th><th>B0</th><th>B1</th><th>B2</th><th>digit 3</th></tr></thead><tbody><tr><td>131,121</td><td>6</td><td>13</td><td>18</td><td>a</td></tr><tr><td>135,647</td><td>14</td><td>11</td><td>18</td><td>ab</td></tr><tr><td>142,305</td><td>22</td><td>9</td><td>17</td><td>bb</td></tr><tr><td>152,177</td><td>30</td><td>7</td><td>17</td><td>a</td></tr><tr><td>163,137</td><td>38</td><td>5</td><td>16</td><td>b</td></tr><tr><td>176,267</td><td>46</td><td>3</td><td>16</td><td>ab</td></tr><tr><td>205,764</td><td>6</td><td>56</td><td>15</td><td>b (B1 ran out; the digits are rearranged)</td></tr></tbody></table></div>
+<p>The leftmost block grows by a constant per cycle, and the head crosses it on every increment, so the time per increment grows linearly and the tape's left side grows like the square root of time; the digits themselves, few and slowly changing, make the logarithmic side.</p>
+</section>
+<section id="right">
+  <span class="eyebrow">The other end</span>
+  <h2>The carry reaches the right end</h2>
+<p>When a carry runs off the last digit the head goes to the right end, which gains a cell. There the tape reads <code>1110 P^n1 Q P^n2 ... Q P^nk 1^8 0</code> with P = 1<sup>5</sup>0, Q = 1<sup>7</sup>0:</p>
+<table><tr><th>step</th><th>blocks</th></tr><tr><td>116,496</td><td>21, 59</td></tr><tr><td>303,811</td><td>62, 42, 12, 57</td></tr><tr><td>3,220,711</td><td>254, 186, 11, 4, 55</td></tr><tr><td>40,853,370</td><td>1022, 63, 607, 31, 130, 53</td></tr><tr><td>847,021,115</td><td>4094, 2751, 571, 280, 469, 119, 50</td></tr></table>
+<p>The number of digits grows slowly (the right side of the tape grows like the logarithm of time); the blocks, all swept by the head, make the left side grow like its square root.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>Open</h2>
+<p>The machine halts exactly when the head in state E reads <code>1 0</code>. None of the digit rules does that; whether one of the boundary cases (an empty block, the carry at the right end, a new digit at the left end) can is the open part. Decoding those cases would turn the machine into a map on the list of blocks and digits.</p>
+</section>
+<section id="short">
+  <span class="eyebrow">Halting</span>
+  <h2>Short timers halt</h2>
+<p>Tapes of exactly the same shape halt when their blocks are short. Lean checks two by evaluation:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>tape</th><th>halts at step</th></tr></thead><tbody><tr><td><code>D&gt; 0 b (ba)^3 a (ba)^3 a 1^4</code></td><td>81,375</td></tr><tr><td><code>D&gt; 0 b (ba)^7 a (ba)^4 a 1^4</code></td><td>227,426</td></tr></tbody></table></div>
+<p>In the second one the counter counts normally until every digit is 3 (<code>bb</code>), and the carry off the top runs into the short end and halts. So nothing about the shape of the tape rules a halt out: a proof of nonhalting would have to show that the timers in the run from blank tape never run out in such a combination, an arithmetic question about the block lengths that is open.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -221,7 +261,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 9 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -235,14 +275,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 57,981 cells have been visited and 43,904 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.506). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.063).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>c1</code>, <code>c2</code>, <code>c4</code>, <code>c5</code>, <code>lean/Rules.lean</code> (generated by <code>py/gen_rules.py</code>)</div></div><div><b>The digit rules</b><p>At the left end the tape is <code>D&gt; 0 b (ba)^n1 s1 (ba)^n2 s2 ...</code>; one excursion of the head increments the first separator: a → b, ab → bb (<code>c1</code>, any tape to the right), b → ab with one pair moving from the right block to the left block (<code>c2</code>), and bb → a with a carry into the next separator a or b (<code>c4</code>, <code>c5</code>), for all block lengths.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/events.c</code>, <code>py/tokens.py</code></div></div><div><b>The shape of the tape</b><p>At each new cell on the right the tape is <code>1^3 0 P^n1 Q P^n2 ... Q P^nk 1^8 0 C&gt;0</code> with P = 1<sup>5</sup>0 and Q = 1<sup>7</sup>0; the number of blocks grows from 2 to 7 in the first 8.5·10<sup>8</sup> steps, the last block losing one pair per event. Observed by simulation, not proved.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>Where it would halt</b><p>The only halting transition is F reading 0, and F is entered only from E reading 1, so the machine halts exactly when the head in state E reads <code>1 0</code> (from the transition table).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in the first 10<sup>11</sup> steps</b><p><code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps from blank tape without a halt (377,233 cells visited).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">README, <code>lean/Rules.lean</code> (the rules for the lowest digits)</div></div><div><b>Every block is a countdown timer</b><p>By the digit rules, when digit j goes 1&rarr;2 a pair moves from the block after it to the block before it, and when it wraps 3&rarr;0 the block before it gains a pair. So the block after digit j loses 2 pairs per cycle of digit j+1 (every 4<sup>j+1</sup> increments) and the first block gains 2 per cycle of the first digit; checked on the run from blank tape (e.g. the second block 13, 11, 9, 7, 5, 3 at consecutive cycles of the second digit, steps 131,121 to 176,267).</p></div></div>
+    <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>counter_3_0_3_0_halts</code>, <code>counter_7_0_4_0_halts</code>, <code>lean/Perturbed.lean</code></div></div><div><b>The same tape shape halts with short blocks</b><p><code>D&gt; 0 b (ba)^3 a (ba)^3 a 1^4</code> halts at step 81,375 and <code>D&gt; 0 b (ba)^7 a (ba)^4 a 1^4</code> at step 227,426 (both of the left-end form seen in the run from blank tape). A nonhalting proof must therefore use the block lengths of the actual run.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/perturb.py</code></div></div><div><b>Many short counter tapes halt</b><p>Of all tapes of that form with at most two inner separators and blocks 1..4, 142 halt within 10<sup>7</sup> steps; of 200 random ones with up to five inner separators and blocks 2..6, 8 halt within 5&middot;10<sup>7</sup>.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The halt would need the timers to run out in a bad combination (as in the short tapes above); whether the run from blank tape ever produces one is open. The boundary rules (a block running out, the carry off the top, a new digit at the left) are not yet written down.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD 1000000000</code></pre>
+PYTHONPATH=tools/py python3 holdouts/1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD/py/gen_rules.py | diff - holdouts/1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD/lean/Rules.lean
+gcc -O2 -o events holdouts/1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD/c/events.c &amp;&amp; ./events 1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD 200000 B 1 | python3 holdouts/1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD/py/tokens.py
+python3 holdouts/1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD/py/perturb.py 2 300000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

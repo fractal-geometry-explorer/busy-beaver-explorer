@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows, and the answer may be as hard as a Collatz question. The run is a simple map on two numbers, and it stops exactly when one of them lands on a value just below a power of two.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>halts &hArr; orbit hits H</b><span class="small">all six cases of the map proved in Lean for all parameters, chained from blank tape</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>4</sup> rounds</b><span class="small">the map, iterated, does not reach its halting case, so the machine does not halt in that many rounds</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 23,223 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>power/power</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#map">Two counters and a six-case map</a><a href="#halt">Landing just below a power of two</a><a href="#lean">The map is a theorem</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,26 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="map">
+  <span class="eyebrow">What it does</span>
+  <h2>Two counters and a six-case map</h2>
+<p>Watch the machine each time the head, in state C, is at the right end of the tape. From step 216 on, the tape then always reads <code>1^4 0 (10)^x 1^m</code>: four 1s, a 0, x copies of <code>10</code>, and a block of m 1s, with the head on one more cell s (0 or 1) just right of the block. At step 216 it is (x, m, s) = (7, 1, 0).</p>
+<p>From one such moment to the next, (x, m, s) changes by one of these rules:</p><ul><li><b>B</b> (m even, x &ge; 1): (x&minus;1, m+4, 1&minus;s). One <code>10</code> pair is turned into four more 1s.</li><li><b>R</b> (m even, x = 0): ((m+6)/2, 1 or 3, 0). The block is turned back into pairs; the new m is 1 if s was 0 and 3 if s was 1.</li><li><b>A</b> (m odd, x &lt; (m+5)/2): (2x+1, m&minus;2x+4, 1&minus;s). The pairs double. (One boundary case differs: x = (m+3)/2 with s = 0 gives (2x+3, 1, 0).)</li><li><b>C</b> (m odd, x &ge; (m+5)/2): (x&minus;(m+5)/2, 2m+7&minus;s, s). The block doubles, paid for with pairs.</li><li><b>H</b> (m odd, x = 0): the machine halts.</li></ul>
+<p>So a round looks like this: after R the block is tiny and x is large; a chain of C steps doubles the block, using up pairs, until an A step doubles the pairs again; then the block is even and the B steps pour all pairs into it, one at a time, until x = 0 and R starts the next round. Each round roughly doubles the size of everything, and the time per round roughly quadruples.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">The halting question</span>
+  <h2>Landing just below a power of two</h2>
+<p>The halt needs m odd and x = 0. Rules A, A&prime;, B and R never produce that, and rule C with s = 1 makes m even. So the only way in is a C step with s = 0 that uses up the pairs exactly: x = (m+5)/2. In a chain of C steps with s = 0 the block runs through m, 2m+7, 4m+21, &hellip; = (m+7)2<sup>i</sup> &minus; 7, so the chain halts exactly when the starting x equals (m+7)(2<sup>k+1</sup>&minus;1)/2 &minus; k &minus; 1 for some k.</p>
+<p>For the chains right after an R step with m = 1, that is x = 2<sup>k+3</sup> &minus; k &minus; 5: 3, 10, 25, 56, 119, 246, &hellip; So the machine stops if and only if, at the start of some chain, the number of pairs is one of these values just below a power of two. Nothing in the map seems to prevent that; it just has not happened. This is the same kind of question as the Collatz problem: easy to state, easy to test, and with no known way to settle it.</p>
+<p>The orbit was iterated for 10,000 rounds without a hit. A rough count of the chances (about 1/h for a chain ending at size h) adds up to about 0.32, nearly all of it in the first 20 rounds; later rounds are so large that their chances are tiny. So a halt looks very unlikely, but nothing in the map rules it out.</p>
+</section>
+<section id="lean">
+  <span class="eyebrow">What is proved</span>
+  <h2>The map is a theorem</h2>
+<p>Lean proves every case of the map for all values of x, m and s. Rules B and R are single sweeps. Rules A and C start the same way: the head walks into the block, and then one inner cycle per <code>10</code> pair moves a pair from the left into the block of 1s, <code>(10)^i (11)^j E&gt;111 0 (10)^k</code> becoming <code>(10)^(i-1) (11)^(j+2) E&gt;111 0 (10)^(k-1)</code>. Lean chains any number of cycles by induction. C ends when the right-hand pairs run out first, A when the left-hand ones do; each ending is a separate symbolic run.</p>
+<p>From blank tape the machine reaches K(7, 1, 0) after 216 steps, a finite computation that Lean's kernel checks. Put together, the theorem <code>halts_iff</code> says: the machine halts from blank tape if and only if the orbit of (7, 1, 0) under the map reaches H. All of the Turing machine is gone from the question; only the arithmetic remains.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +256,27 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 23,223 cells have been visited and 20,762 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/power</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.163). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.654).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>ruleB0</code>, <code>ruleB1</code>, <code>ruleR0</code>, <code>ruleR1</code>, <code>lean/Rules.lean</code></div></div><div><b>Rules B and R of the map</b><p>For all n, x: from K(x+1, 2n, s) the machine reaches K(x, 2n+4, 1&minus;s) (rule B, 6n+12 or 6n+10 steps), and from K(0, 2n, s) it reaches K(n+3, 1, 0) for s = 0 and K(n+3, 3, 0) for s = 1 (rule R). Here K(x, m, s) is <code>1^4 0 (10)^x 1^m</code> with the head in C on s at the right end, blank beyond.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>ruleC0</code>, <code>ruleC1</code>, <code>cycN0</code>, <code>cycN1</code>, <code>lean/CRule.lean</code>; <code>ruleA0</code>, <code>ruleA1</code>, <code>ruleA1z</code>, <code>ruleAp</code>, <code>lean/MapThm.lean</code>; pieces in <code>lean/Rules.lean</code></div></div><div><b>Rules A, A' and C of the map, for all parameters</b><p>For all parameters: rule C, K(i+n+3, 2n+1, 0) reaches K(i, 4n+9, 0) and K(i+n+3, 2n+1, 1) reaches K(i, 4n+8, 1); rule A, K(j+2, 2(j+1+k)+1, s) reaches K(2j+5, 2k+3, 1&minus;s), and K(j+2, 2j+1, 1) reaches K(2j+5, 1, 0); rule A&prime;, K(j+2, 2j+1, 0) reaches K(2j+7, 1, 0); and A for x = 1. Rules A and C share their first two parts: a start piece, then one inner cycle per <code>10</code> pair moved (chained by an induction written by hand); each ends with its own end piece. Every piece is proved by <code>bbtools.symtm</code>.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>nonhalt_of_orbit</code>, <code>step_ok</code>, <code>start</code>, <code>lean/MapThm.lean</code></div></div><div><b>Halting is equivalent to the orbit reaching H</b><p><code>step_ok</code>: from every sample K(x, m, s) the machine reaches the sample the map gives, in at least one step, or (case H) halts. <code>start</code>: from blank tape it reaches K(7, 1, 0) after 216 steps. <code>halts_iff</code>: the machine halts from blank tape if and only if the orbit of (7, 1, 0) under the map (<code>mstep</code>, <code>orbit</code>) reaches the case H. <code>nonhalt_of_orbit</code>: if the orbit never reaches H, the machine never halts. Axioms: propext, Classical.choice, Quot.sound only.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>toHalt0</code>, <code>halt0</code>, <code>toHalt1</code>, <code>halt1</code>, <code>lean/Rules.lean</code></div></div><div><b>The halting case</b><p>From K(0, 2n+1, s), for every n, the machine runs into its halting transition (A reads a 1) after 2n+11 (s = 0) or 2n+9 (s = 1) steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/samplemap.py</code></div></div><div><b>The whole map holds for the first 10<sup>10</sup> steps</b><p>Every sample from step 216 on (the head in C at the right end) has the form K(x, m, s), except one sample inside each R step where the tape is solid, and each sample follows from the previous one by the map: <code>py/samplemap.py check</code>, using <code>tools/c/tmrun.c</code>. See the README for the counts.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/samplemap.py small</code></div></div><div><b>The map agrees with the machine on all small samples</b><p>Started from K(x, m, s) for every x &lt; 25, m &lt; 30 and every x &lt; 45, odd m &lt; 70 (both s), the machine reaches the sample the map predicts (or halts where the map says H). This found the boundary case A&prime;, which the run itself meets only once, before step 216.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">README, section When it would halt</div></div><div><b>The halting condition is a near-power-of-2 condition</b><p>Only rule C with s = 0 can lead to the halting case: it leaves m odd, and it reaches x = 0 exactly when x = (m+5)/2. Along a chain of such C steps m runs through (m+7)2<sup>i</sup> &minus; 7, so a chain from (x, m, 0) halts exactly when x + k + 1 = (m+7)(2<sup>k+1</sup>&minus;1)/2 for some k &ge; 0 (after an R step with m = 1: x = 2<sup>k+3</sup> &minus; k &minus; 5). Elementary algebra on the map (not in Lean), checked by brute force for every x &lt; 3000 and odd m &lt; 200.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/samplemap.py orbit 10000</code></div></div><div><b>No halt of the map in 10,000 rounds</b><p>Iterating the map from K(7, 1, 0) (the sample at step 216), with whole B phases applied at once, gives 10,000 R steps, 29,225,208 C steps and 25,330 A steps without reaching the halting case; x then has thousands of bits, so this is far beyond any number of machine steps one could simulate. Since the map is a theorem, this shows that the machine does not halt in its first 10,000 rounds (the iteration itself is a Python computation).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/heuristic.py</code></div></div><div><b>Why a halt looks very unlikely</b><p>If the remainder at the end of each doubling chain were spread evenly, a chain whose last step has h = (m+5)/2 would halt with chance about 1/h. Summed over the orbit this gives 0.3187 in all, but almost all of it in the first 20 rounds (which are checked exactly); rounds 21 to 1,000 add less than 10<sup>&minus;4</sup>, and x gains about 0.58 bits per round (583 bits at round 1,000), so the rest is negligible. The remainders look spread over all of [0, h), somewhat more often near 0 (in 1,000 rounds the 1,409 chain ends fall 192 into the lowest tenth and 88 into the highest), so nothing rules a hit out either: this is evidence, not proof.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Lean reduces the question exactly to the map: the machine halts iff the orbit of (7, 1, 0) reaches H. What is missing is a proof that the orbit never meets the halting condition (x + k + 1 = (m+7)(2<sup>k+1</sup>&minus;1)/2 at the start of a doubling chain), a Collatz-type problem; heuristically a halt is very unlikely but nothing excludes it.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD 1000000000
+python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/samplemap.py check 10000000000
+python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/samplemap.py orbit 10000
+python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/samplemap.py small
+python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/heuristic.py 1000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

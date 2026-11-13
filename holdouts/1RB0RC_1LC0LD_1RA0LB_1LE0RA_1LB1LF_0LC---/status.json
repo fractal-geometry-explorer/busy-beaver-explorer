@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB0RC_1LC0LD_1RA0LB_1LE0RA_1LB1LF_0LC---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RC_1LC0LD_1RA0LB_1LE0RA_1LB1LF_0LC---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The tape is a list of blocks <code>(10)^n</code>; the shift rules over blocks are proved in Lean, the block dynamics are only observed, and nothing found says whether the halting transition (F on a 1) can fire."
  ],
  "claims": [
   {
@@ -34,6 +34,12 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules over the blocks",
+   "text": "Going right, <code>A&gt; (10)^n</code> becomes <code>(01)^n A&gt;</code> and <code>C&gt; (01)^n</code> becomes <code>(10)^n C&gt;</code>, each in 2n steps, for every n and every tape around.",
+   "where": "<code>right_A</code>, <code>right_C</code>, <code>lean/Rules.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 67,481 cells have been visited and 33,280 of them hold a 1.",
@@ -46,9 +52,33 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in 10<sup>10</sup> steps",
+   "text": "<code>tools/c/tmrun.c</code>: 10<sup>10</sup> steps from blank tape without a halt (114,618 ones).",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No closed tape language from windows up to 7",
+   "text": "<code>bbtools.ctl</code> with K = 2 to 6 closes but allows F to read a 1 (18 to 584 abstract halting configurations); at K = 7 it finds no closed set within its round limit; n-gram CPS (widths 3 to 7, -H, -U) fails.",
+   "where": "<code>tools/py/bbtools/ctl.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Blocks and fossils",
+   "text": "With the head in B at the left end the tape is <code>(10)^n1 0 1 10 0 (10)^n2 0 1 10 0 &hellip;</code>, blocks of <code>10</code> separated by <code>01100</code>. The first block changes by one unit per round trip and the first few blocks trade units in long phases (the leftmost block fell from 3,644 to 3,636 in 8 round trips near step 3&middot;10<sup>9</sup>); the blocks further right repeat periodically (113, 369, 113, 369, &hellip;; 9, 41, 9, 41, &hellip;; 1, 1, 1, &hellip;), left there by earlier phases. The tape grows by about 2 cells per round trip at the left end (square root of the steps); the head reaches the right end only in rare phases (932 times in 9&middot;10<sup>8</sup> steps), which is the logarithmic side.",
+   "where": "<code>tools/c/tokrun.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Where a halt would come from",
+   "text": "F is entered only from E reading a 1, after D read a 0, going left; in 10<sup>9</sup> steps (626,994 visits) F always read a 0, always with <code>11001</code> to its right and <code>01101</code> or <code>10101</code> (or the blank end) to its left. A halt needs D, moving left, to meet <code>1 1 0</code>.",
+   "where": "<code>tools/c/tm.h</code> (transition counts and windows)"
+  },
+  {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "title": "Does it halt?",
+   "text": "Not known; the rule by which the first blocks trade units, and the rare phases that reach the right end, are not decoded.",
    "where": ""
   }
  ],
@@ -86,6 +116,32 @@
   },
   "sections": [
    {
+    "id": "tape",
+    "eyebrow": "What the tape is made of",
+    "heading": "Blocks of 10, and fossils",
+    "html": [
+     "<p>Each time the head is at the left end in state B, the tape is a list of blocks of the word <code>a = 10</code> separated by <code>0 1 a 0</code> (= <code>01100</code>). At step 2,999,883,891 (width 116,432) it begins</p>",
+     "<div class=\"config\">B&gt;0 a^3636 0 1 a 0 a^5830 0 1 a 0 a^16251 0 1 a 0 a^2626 0 1 a 0 a^5075 &hellip; a^113 0 1 a 0 a^369 0 1 a 0 a^113 0 1 a 0 a^369 &hellip; a^9 0 1 a 0 a^41 0 1 a 0 a^9 &hellip; a 0 1 a 0 a 0 1 a 0 1</div>",
+     "<p>The first few blocks are where the work happens; further right the blocks repeat periodically. They are fossils: each long phase of the left-end activity leaves a periodic stretch behind it.</p>"
+    ]
+   },
+   {
+    "id": "dynamics",
+    "eyebrow": "What a round trip does",
+    "heading": "A bouncer trading units between blocks",
+    "html": [
+     "<p>Going right, the head shifts each block it crosses by one cell (<code>A&gt; (10)^n &rarr; (01)^n A&gt;</code> and <code>C&gt; (01)^n &rarr; (10)^n C&gt;</code>, proved in Lean for every n). Each round trip changes the first blocks by about one unit and adds about 2 cells at the left end; in long phases a unit at a time moves from one block to another, as in the leftmost block shrinking from 3,644 to 3,636 over 8 round trips. Rarely, a phase carries the head all the way to the right end (the logarithmic side).</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Can it halt?",
+    "heading": "Only F on a 1",
+    "html": [
+     "<p>The only halt is F reading a 1. F is entered from E after D, moving left, has read a 0 and E a 1. In the first 10<sup>9</sup> steps F was entered 626,994 times and always found a 0, always with <code>11001</code> to its right. The question is whether the block dynamics can ever put a <code>1 1 0</code> in front of a left-moving D; it is open.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +154,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A list of blocks (10)^n separated by 01100: a bouncer at the left end moves units between the first few blocks and adds 2 cells per round trip, while older blocks further right stay as periodic fossils of earlier phases; the right end is visited only in rare phases.",
+ "family": "block list + bouncer",
+ "decision": "open"
 }

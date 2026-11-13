@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Between visits of the head the tape is a word over the two letters <code>1</code> and <code>10</code> (no two 0s side by side). Each sweep acts on it like one generation of a cellular automaton whose patterns look random. The run proceeds in waves: a chaotic region spreads from the left end across the whole tape and freezes behind a slower front; each wave starts with three quick bursts of growth at the left end. Successive waves take about 3.06 times longer. The bbchallenge wiki lists it as "chaotic 1dCA in bell"; the same table started in states C, D, E, F is four other holdouts.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweeps cross blocks of ones</h3>
+        <p>C crosses <code>1^n</code> to the right in 3n steps (carrying the 0 behind it), E crosses it to the left in n steps: only the isolated 0s take work.</p>
+        <p class="where"><code>c_sweep</code>, <code>e_sweep</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,9 +124,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 53,911 cells have been visited and 42,422 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No 00 inside the tape</h3>
+        <p>At all 25,729 visits of the head to the right end in state B up to 3&middot;10<sup>8</sup> steps, the tape has no two adjacent 0s outside its last three cells: it is a word over <code>1</code> and <code>10</code>.</p>
+        <p class="where">snapshots, <code>py/sweeps.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Waves about 3.06 times longer each</h3>
+        <p>The left end grows in triples of bursts that start at steps 643294, 2108809, 6495092, 20126119, 60650898, 187352297, 570905460, 1767969175: ratios 3.28, 3.08, 3.10, 3.01, 3.09, 3.05, 3.10. The tape width at those moments grows by about 1.75 = &radic;3.06 each time.</p>
+        <p class="where"><code>py/analyse.py records</code></p>
+      </div>
+      <div class="card">
+        <h3>Same table, other start states</h3>
+        <p>Started in C, D, E or F (and renamed to normal form) this table is the holdout 1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD, 1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA, 1RB1RA_1RC0RF_1RD0RD_1LE---_0LC1LF_1RA0LE or 1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF; the wiki notes that they all behave alike.</p>
+        <p class="where">relabelling check; wiki.bbchallenge.org</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>Halting looks like a matter of chance</h3>
+        <p>Each wave ends with the chaotic content reaching the left end, where a halt (A reading 1) could happen. If the content arriving there were random with a fixed small chance p per wave of being a halting one, the machine would halt after about 1/p waves, i.e. after roughly 3.06<sup>1/p</sup> steps: a halt would be likely eventually but unobservably late. Whether any reachable left-end content halts is not known.</p>
+        <p class="where">reasoning from the wave structure</p>
+      </div>
       <div class="card">
         <h3>Growth shape: exp/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.07). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.503).</p>
@@ -132,7 +157,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. Next step: Extract the cellular automaton (the map from the word over {1, 10} before a sweep to the word after), then study the left-end boundary rule: which contents can make A read 1 there.</p>
+        <p class="where">README.md, Further work</p>
       </div>
     </div>
   </section>
@@ -140,7 +166,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD 1000000000
+python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/rules.py      # rewrites lean/Rules.lean
+python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/analyse.py image   # the defect picture
+python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/rules.py      # rewrites lean/Rules.lean
+python3 holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/py/analyse.py image   # the defect picture</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

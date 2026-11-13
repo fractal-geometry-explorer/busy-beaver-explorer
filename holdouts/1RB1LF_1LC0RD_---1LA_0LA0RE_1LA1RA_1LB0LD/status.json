@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G03",
+ "generated": false,
+ "group": "Collatz-like (4n/3) + tail stack",
  "title": "What is known about 1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD.",
  "machine": "1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD",
@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 12 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open, and reduced to an orbit.</b> The run is a sequence of <em>rounds</em>; a round takes <code>D&gt; 0 0 111 0 1^n T</code> to <code>D&gt; 0 0 111 0 1^n' T'</code> with <i>n</i>' = 4⌊(<i>n</i>−1)/3⌋ + <i>d</i>, where (<i>d</i>, <i>T</i>') is computed from the tail <i>T</i> and (<i>n</i>−1) mod 3 alone. Lean proves this round map for every tail on which its simulator answers, and that, as long as it answers along the orbit, the machine halts from blank tape exactly when the orbit reaches a halting round. The map has been iterated for 2·10<sup>6</sup> rounds without a halt (and it always answered). A random-model estimate puts the chance of a halt near 10<sup>-15</sup> per round: halting is expected eventually but only after an astronomically long run."
  ],
  "claims": [
   {
@@ -46,34 +46,97 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "The sweeps",
+   "text": "From <code>A&gt; 0 11 0 11 0 111 (0111)^k 0 1^(m+4) T</code> at the left end, one sweep (10k + 45 steps) takes three ones from the block and adds a counting block <code>1110</code>: <code>(0111)^(k+1) 0 1^(m+1)</code>; by induction any number of sweeps.",
+   "where": "<code>sweep</code>, <code>one_sweep</code>, <code>sweeps</code>, <code>to_end</code>, <code>lean/Rules.lean</code>, <code>lean/Round.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Rounds for the tails empty, 011 and 010111",
+   "text": "For n = c + 1 + 3t: from <code>D&gt; 0 0 111 0 1^n T</code> the machine reaches the next round start <code>D&gt; 0 0 111 0 1^(4t+d) T'</code>, for all t, with (d, T') = (11, T) or (7, next tail) for T empty or 011 (c = 1 gives the 7), and (19, empty) for T = 010111 and c ≠ 1. The theorem <code>round</code> states it for the map <code>next</code>.",
+   "where": "<code>round</code>, <code>end_e_1</code> … <code>end_b_3</code>, <code>lean/Round.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The run from blank tape enters the rounds",
+   "text": "After 51 steps the tape is the round start <code>D&gt; 0 0 111 0 1^3</code> (n = 3, empty tail).",
+   "where": "<code>blank_to_round</code>, <code>lean/Round.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Some round starts halt",
+   "text": "The round start with 57 ones and the tail <code>0110101010 11</code> (blocks of ones 2, 1, 1, 1, 2) halts within 2,575 steps. So the halting transition is reachable from the round shape; the question is whether the orbit from blank tape gets such a tail.",
+   "where": "<code>halting_round</code>, <code>lean/Round.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The round map for every tail",
+   "text": "After the sweeps the tape is <code>0 11 0 11 0 111 (0111)^t 0 1^c T</code>. A simulator keeps one copy of <code>0111</code> on each side, works cell by cell in the two ends, and crosses the <i>t</i> − 2 copies between only whole, by six shift rules; it never looks at <i>t</i>. Lean proves that whatever it answers is what the machine does: if <code>roundMap (n, T) = (n', T')</code> the machine goes from the round start (<i>n</i>, <i>T</i>) to the round start (<i>n</i>', <i>T</i>'), with <i>n</i>' = 4(<i>t</i> − 2) + <i>N</i> and (<i>N</i>, <i>T</i>') depending only on <i>T</i> and <i>c</i>; if it answers <code>halt</code> the machine halts in that round. For all <i>n</i> ≥ 7 and every word <i>T</i>. The simulator may also answer <code>stuck</code> (a meeting with the block that the six rules do not cover, or out of fuel); that has not been seen for any tail.",
+   "where": "<code>round_next</code>, <code>round_halt</code>, <code>lean/Reduction.lean</code>; <code>arun_sound</code>, <code>arun_halt</code>, <code>lean/Zone.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Reduction to the orbit",
+   "text": "Let <code>orbit</code> be the orbit of the round map from (11, empty tail), the second round start of the run. If the map never answers <code>stuck</code> along the orbit, the machine halts from blank tape if and only if the orbit reaches a halting round. Without any hypothesis: a halting round in the orbit gives a halt, and an orbit that goes on for ever gives a run that never halts.",
+   "where": "<code>halts_iff</code>, <code>halts_of_orbit</code>, <code>not_halts_of_orbit</code>, <code>lean/Reduction.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The first 500 rounds of the orbit",
+   "text": "Lean's kernel evaluates the round map along the orbit: it answers with a next round for each of the first 500 rounds (no halt, never stuck); after ten rounds the block has 579 ones and the tail is empty.",
+   "where": "<code>first_rounds</code>, <code>orbit_10</code>, <code>lean/Reduction.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The Lean round map agrees with plain simulation",
+   "text": "<code>py/zonemap.py</code> is the same simulator in Python. On the first 3,000 tails reachable from the empty tail with any <i>c</i> (about 7,900 cases) it gives the same answer as a plain simulation of the round with two values of <i>t</i> (<code>py/roundmap.py</code>), halting cases included, and it never answers <code>stuck</code>. The plain simulation agrees with the machine for the first 22 rounds (1.4·10<sup>8</sup> steps).",
+   "where": "<code>py/zonemap.py check 3000</code>, <code>py/roundmap.py check 22</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Orbit: 2·10<sup>6</sup> rounds, no halt, never stuck",
+   "text": "Iterating the round map from (11, empty tail) for 2·10<sup>6</sup> rounds (n then has 249,880 decimal digits) never reaches a halting tail and the simulator always answers; only 26 tails occur (the empty tail and 011 in 78% of the rounds, each deeper level about three times rarer), the longest with five blocks of ones (2, 1, 2, 1, 3). The nearest halting tail, blocks 2, 1, 1, 1, 2, is 36 rounds from the empty tail, 29 of them pushes.",
+   "where": "<code>py/zonemap.py orbit 2000000</code>, <code>py/roundmap.py graph</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Random model: halts eventually, but astronomically late",
+   "text": "If c is uniform and independent from round to round (it is, empirically, for each tail), the tail is a recurrent Markov chain that returns to empty with probability 1, and the chance that an excursion hits a halting tail is between about 10<sup>-18</sup> (one shortest path) and 10<sup>-13</sup> (no halting mass found with paths pruned below 10<sup>-13</sup>). So the model halts with probability 1, after some 10<sup>13</sup>–10<sup>18</sup> rounds; since n grows by 4/3 per round and a round takes about n<sup>2</sup>/3 steps, that is far beyond any simulation.",
+   "where": "<code>py/roundmap.py</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. By the reduction it halts iff the orbit of the round map reaches a halting (tail, c) pair (given that the map keeps answering, as it has for 2·10<sup>6</sup> rounds): a question about the base-3 digits of a number multiplied by about 4/3 each round, like other Collatz-like cryptids.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD 1000000000",
+  "python3 holdouts/1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD/py/zonemap.py check 500",
+  "python3 holdouts/1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD/py/zonemap.py orbit 100000",
+  "python3 holdouts/1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD/py/roundmap.py check 22"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Started on a blank tape, this machine runs in rounds: a block of ones is eaten three at a time and comes back 4/3 as long, while a short tail at the right end acts as a tiny stack driven by the block's length mod 3. Some tail shapes halt; the run has not produced one in 10<sup>6</sup> rounds.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 39,843 cells visited."
+    "level": "kernel",
+    "value": "rounds",
+    "text": "Sweeps and the round map for the three commonest tails, proved in Lean."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "10<sup>6</sup> rounds",
+    "text": "Orbit of the round map from blank tape: no halting tail."
    },
    {
     "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "~10<sup>-15</sup>/round",
+    "text": "Chance of a halt per round in a random model."
    }
   ],
   "presets": [
@@ -85,6 +148,37 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "rounds",
+    "eyebrow": "What it does",
+    "heading": "Rounds, sweeps and a tail",
+    "html": [
+     "<p>At the start of every round the whole tape is <code>D&gt; 0 0 111 0 1<sup>n</sup> T</code>: the head at the left end in state D, a long block of <i>n</i> ones, and a short <em>tail</em> <i>T</i> on the right. During the round the head sweeps back and forth across the tape. Each sweep runs right to the block of ones, takes three ones from it and comes back, leaving one more counting block <code>1110</code> on the left; the tape grows by one cell on the left every sweep. That is why the left side grows like the square root of the step count.</p>",
+     "<p>When only 1, 2 or 3 ones are left (<i>n</i> = <i>c</i> + 1 + 3<i>t</i>, <i>c</i> ∈ {0, 1, 2}), the end of the round turns each of the <i>t</i> counting blocks (4 cells) back into four ones, works a little on the tail, and the next round starts with <i>n</i>' = 4<i>t</i> + <i>d</i> ones. The tape reaches one cell further to the right only at these ends, once per round, and rounds come exponentially further apart: the right side grows like the logarithm.</p>",
+     "<table class=\"tbl\"><thead><tr><th>tail T</th><th>c = 0 or 2</th><th>c = 1</th></tr></thead><tbody><tr><td>empty</td><td>4t+11, empty</td><td>4t+7, <code>011</code></td></tr><tr><td><code>011</code></td><td>4t+11, <code>011</code></td><td>4t+7, <code>010111</code></td></tr><tr><td><code>010111</code></td><td>4t+19, empty</td><td>4t+11, <code>01101</code></td></tr><tr><td><code>01101</code></td><td>4t+23, empty</td><td>4t+7, <code>0110111</code></td></tr><tr><td><code>0110111</code></td><td>4t+11, <code>01101</code></td><td>4t+7, <code>0101111111</code></td></tr></tbody></table>",
+     "<p>The first three rows are proved in Lean for all <i>t</i>; the rest are computed. From blank tape: <i>n</i> = 3, 11, 19, 35, 51, 83, 115, 163, … with tails empty, empty, 011, 011, 010111, empty, 011, …</p>"
+    ]
+   },
+   {
+    "id": "reduction",
+    "eyebrow": "Lean",
+    "heading": "The round map, for every tail at once",
+    "html": [
+     "<p>The end of a round looks different for every tail, and there are infinitely many tails. What they share: after the sweeps the tape is <code>0 11 0 11 0 111 (0111)<sup>t</sup> 0 1<sup>c</sup> T</code>, and the head only ever crosses the long run of counting blocks <em>whole</em>, in one of six ways (for example in state A, left to right, turning every <code>0111</code> into <code>1001</code>). So the round end can be computed by a small simulator that keeps one counting block on each side, steps cell by cell at the two ends, and jumps over the <i>t</i> − 2 blocks between by a shift rule. It never looks at <i>t</i>.</p>",
+     "<table><tr><th>state</th><th>direction</th><th>block before</th><th>block after</th></tr><tr><td>A</td><td>→</td><td>0111</td><td>1001</td></tr><tr><td>D</td><td>→</td><td>1101</td><td>0110</td></tr><tr><td>A</td><td>←</td><td>1001</td><td>1101</td></tr><tr><td>F</td><td>←</td><td>0110</td><td>1111</td></tr><tr><td>C</td><td>←</td><td>1001</td><td>1111</td></tr><tr><td>D</td><td>←</td><td>0110</td><td>0111</td></tr></table>",
+     "<p>Lean proves that whatever this simulator answers is what the machine does, for every <i>t</i> (<code>lean/Zone.lean</code>, generic; <code>lean/Reduction.lean</code>, this machine). The result is a computable round map <code>roundMap (n, T)</code> = (4(<i>t</i> − 2) + <i>N</i>, <i>T</i>'), <code>halt</code>, or <code>stuck</code> (no answer), and the theorem <code>halts_iff</code>: if the map never answers <code>stuck</code> along the orbit of (11, empty tail), the machine halts from blank tape exactly when that orbit reaches a halting round. The kernel checks the first 500 rounds; the same simulator in Python has run 2·10<sup>6</sup> rounds and agrees with plain simulation on about 7,900 (tail, c) cases.</p>",
+     "<p>What is still missing for a statement with no hypothesis is a proof that the simulator never gets stuck, i.e. a description of all reachable tails.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Halting",
+    "heading": "Where a halt could come from",
+    "html": [
+     "<p>The sweeps and the common round ends never halt. The tail behaves like a small stack: a round with <i>c</i> = 1 (probability about 1/3) pushes it one shape deeper, other rounds keep it or pop it back toward empty. Some deep shapes make the end of the round run into the halting transition (C reading 0): the shortest one found, with blocks of ones 2, 1, 1, 1, 2, needs 36 rounds in a row of the right kind (29 pushes). Lean checks that such a round start really halts.</p>",
+     "<p>In 10<sup>6</sup> rounds from blank tape the deepest tail had five blocks of ones; tails come up about three times less often for each step of depth. If the residues <i>c</i> behave like dice, a halt is certain eventually, but only after about 10<sup>13</sup> to 10<sup>18</sup> rounds, when <i>n</i> has more than 10<sup>12</sup> digits. Deciding it means understanding the base-3 digits of an orbit of <i>n</i> → 4⌊(<i>n</i>−1)/3⌋ + <i>d</i>, which is out of reach, as for Antihydra.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +192,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A 4/3 growth map on one block of ones (n -> 4·floor((n-1)/3) + const) with a stack-like 'tail' at the right end; Lean proves the round map for every tail (computed by a simulator that never looks at n) and the reduction to its orbit; some tails halt, the orbit has not met one in 2 million rounds.",
+ "decision": "open"
 }

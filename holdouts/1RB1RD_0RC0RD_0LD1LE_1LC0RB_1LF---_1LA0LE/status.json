@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G10",
  "title": "What is known about 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>Open.</b> The tape is just two blocks, (10)<sup>x</sup> then 0<sup>y</sup>, but x moves irregularly from one visit of the right end to the next (no affine rule fits); the width is only 2,593 after 10<sup>9</sup> steps."
  ],
  "claims": [
   {
@@ -46,9 +46,16 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "The structure of the run",
+   "text": "Bouncer whose tape is (10)^x 0^y: a block of 10 pairs and a block of 0s, the width growing by 4 per event; x jumps irregularly between events, often by one when y is about 2x.",
+   "where": "README; <code>tools/c/tokrun.c</code>-style samples",
+   "hand": true
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. No closed rule set has been found; see the README for what a proof would need.",
    "where": ""
   }
  ],
@@ -58,7 +65,7 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This page runs the machine in your browser and describes the structure seen in its run.",
   "facts": [
    {
     "level": "trusted",
@@ -72,8 +79,8 @@
    },
    {
     "level": "heuristic",
-    "value": "power/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "chaotic",
+    "text": "two-block bouncer with an irregular exchange (chaotic)"
    }
   ],
   "presets": [
@@ -85,6 +92,23 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "structure",
+    "eyebrow": "Structure",
+    "heading": "What the tape looks like",
+    "html": [
+     "<p>At the moments the head is at the right end in state B, the tape is <code>(10)<sup>x</sup> 0<sup>y</sup></code> (sometimes with a short marker <code>10 000</code> or a final 1), and the width 2x + y grows by 4 per event. Between events x moves irregularly: up by one when y is close to 2x, otherwise by jumps of either sign. The visited tape grows very slowly (2,593 cells after 10<sup>9</sup> steps).</p>",
+     "<pre>successive events at the right end (a = 10):\nstep 3,634,088  B a^97 0^196\nstep 3,769,137  B a^98 0^198\nstep 3,883,262  B a^123 0^152\nstep 4,023,531  B a^100 0^202\nstep 4,112,854  B a^150 0^106\nstep 4,252,471  B a^139 0^132</pre>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Halting",
+    "heading": "Where it could halt",
+    "html": [
+     "<p>The only halting transition is E reading 1. A closed tape language with windows of 6 cells (<code>bbtools.ctl</code>) covers the run but still allows halts, with only a local constraint near the head: the head cell and the cells to its right read one of 101010, 101011, 101110, 111010, 111011. Nothing confines a halt to an edge.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +122,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Bouncer whose tape is (10)^x 0^y: a block of 10 pairs and a block of 0s, the width growing by 4 per event; x jumps irregularly between events, often by one when y is about 2x.",
+ "family": "two-block bouncer with an irregular exchange (chaotic)",
+ "decision": "open"
 }

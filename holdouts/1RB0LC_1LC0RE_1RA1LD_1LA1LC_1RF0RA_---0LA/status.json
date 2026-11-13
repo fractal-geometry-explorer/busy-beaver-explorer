@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G08",
  "title": "What is known about 1RB0LC_1LC0RE_1RA1LD_1LA1LC_1RF0RA_---0LA",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LC_1LC0RE_1RA1LD_1LA1LC_1RF0RA_---0LA.",
@@ -12,7 +12,9 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves three crossings the run uses and the situations that lead to a halt (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.",
+  "<b>What it does.</b> The head sweeps the whole tape, which is made of the three-cell words <code>011</code>, <code>110</code>, <code>100</code> and the pair <code>01</code>, mixed with longer blocks of 1s. Going right, A turns <code>011</code> into <code>100</code>; going left, C turns <code>110</code> into <code>011</code> and passes <code>01</code> unchanged. The mixture has no visible order.",
+  "<b>Where a halt would come from.</b> Only F reading a 0 halts; F is entered from E reading a 0, so <code>E&gt;0 0</code> halts. In 2&middot;10<sup>8</sup> steps F always reads a 1."
  ],
  "claims": [
   {
@@ -46,10 +48,28 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules",
+   "text": "A turns each <code>011</code> into <code>100</code> going right (three steps a copy); C with a 1 ahead crosses <code>01</code> blocks unchanged (four steps a copy) and turns <code>110</code> into <code>011</code> (three steps a copy) going left.",
+   "where": "<code>walk_A</code>, <code>walk_C01</code>, <code>walk_C110</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The halting situations",
+   "text": "<code>E&gt;0 0</code> halts after one step, <code>B&gt;1 0 0</code> after two, <code>A&gt;0 1 0 0</code> after three: two 0s in a row in the wrong place.",
+   "where": "<code>halt_E</code>, <code>halt_B</code>, <code>halt_A</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "F never reads a 0 in 2&middot;10<sup>8</sup> steps",
+   "text": "In the first 2&middot;10<sup>8</sup> steps the machine is in state F 5,702,121 times, every time on a 1: the halting transition F0 is never close to firing in a way the run shows.",
+   "where": "<code>c/visits.c</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
-   "where": ""
+   "where": "",
+   "text": "Not known. NGramCPS with n &le; 10 and window CTL with K &le; 7 leave it open."
   }
  ],
  "check": [
@@ -58,7 +78,7 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1LC0RE_1RA1LD_1LA1LC_1RF0RA_---0LA 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine sweeps a tape made of a few three-cell words, rewriting them on every pass, and the words come in no visible order. This page runs it in your browser.",
   "facts": [
    {
     "level": "trusted",
@@ -86,6 +106,28 @@
   },
   "sections": [
    {
+    "id": "words",
+    "eyebrow": "Local structure",
+    "heading": "Rewriting three-cell words",
+    "html": [
+     "<p>Going right, A turns each <code>011</code> into <code>100</code>, three steps a word:</p>",
+     "<pre>A&gt; 0 1 1 0 1 1 0 1 1      \n1 0 0 1 0 0 1 0 0 A&gt; 0    (9 steps later)</pre>",
+     "<p>Going left, C with a 1 ahead turns each <code>110</code> into <code>011</code>:</p>",
+     "<pre>1 1 0 1 1 0 C&gt; 1      \nC&gt; 1 0 1 1 0 1 1      (6 steps later)</pre>",
+     "<p>(Lean: <code>walk_A</code>, <code>walk_C110</code>, <code>walk_C01</code>.) Between such runs the head meets other words and does more complicated things; that is where the content changes.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The halting condition",
+    "heading": "Two 0s in the wrong place",
+    "html": [
+     "<p>Only F reading a 0 halts. E moving right enters F, so E reading a 0 with another 0 after it halts:</p>",
+     "<pre>E&gt; 0 0      \n1 F&gt; 0      (F on a 0: halt)</pre>",
+     "<p>F is entered 5.7 million times in the first 2&middot;10<sup>8</sup> steps, always on a 1.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +140,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Two-sided bouncer whose tape is made of the short words 011, 110, 100 and 01 in no visible order; the sweeps rewrite one word into another. Open.",
+ "family": "chaotic two-sided bouncer, words 011 / 110 / 100",
+ "decision": "open"
 }

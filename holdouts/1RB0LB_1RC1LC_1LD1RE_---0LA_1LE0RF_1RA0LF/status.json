@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G04",
+ "generated": false,
+ "group": "growing-block bouncer",
  "title": "What is known about 1RB0LB_1RC1LC_1LD1RE_---0LA_1LE0RF_1RA0LF",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LB_1RC1LC_1LD1RE_---0LA_1LE0RF_1RA0LF.",
  "machine": "1RB0LB_1RC1LC_1LD1RE_---0LA_1LE0RF_1RA0LF",
@@ -46,6 +46,12 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "Macro structure (observed)",
+   "text": "A left-growing bouncer: next to the left end a block (10101001)^n grows by about 50 copies per long cycle, behind it a long irregular but slowly changing stretch of 10-based words; this machine and its twin (E0 = 1LE or 1RE) behave alike.",
+   "where": "README"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
@@ -86,6 +92,15 @@
   },
   "sections": [
    {
+    "id": "structure",
+    "eyebrow": "Macro structure (observed)",
+    "heading": "A growing block and its wake",
+    "html": [
+     "<p>Next to the left end the tape is a block <code>(10101001)^n</code>; behind it a long stretch made of the words <code>10</code>, <code>01</code>, <code>0110</code> and <code>1001</code> that changes only near its left end. The block grows by about 50 copies per long cycle of the head. This machine and its twin, which differs only in what state E does on a 0, behave alike.</p>",
+     "<p>This is read off long runs, not yet proved: the next step is to state these patterns as rules, prove them with <code>tools/py/bbtools/symtm.py</code>, and see whether the counters can ever reach the configuration that halts.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +113,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A left-growing bouncer: next to the left end a block (10101001)^n grows by about 50 copies per long cycle, behind it a long irregular but slowly changing stretch of 10-based words; this machine and its twin (E0 = 1LE or 1RE) behave alike.",
+ "decision": "open"
 }

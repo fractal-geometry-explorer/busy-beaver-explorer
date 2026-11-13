@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---</h1>
     <p class="machine">1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 9 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine's tape is a row of blocks of <code>001</code>: all but the last are frozen, the last is rebuilt again and again by a bouncer that lives inside it. Phase P1 of that bouncer (any number of bounces, all sizes) is proved in Lean; the rule for a whole return of the head, a' = a + b + 7, is measured, not proved. Halting needs the head in D on two 1s side by side; that never happens in the first 10<sup>9</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -102,6 +102,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Shift rules of the sweeps</h3>
+        <p>Lean proves, for every count and every tape around, how the head crosses a block of <code>001</code> leftward in C (9 steps per copy, rewriting it as <code>100</code>), and one whole bounce of the inner bouncer of the live block: from <code>L 1 1 (001)^m 0 (001)^(j+4) 0 (110)^(k+1) 1 1 0 A&gt; 0^∞</code> the machine reaches the same shape with m+3, j−3 and k+1 in 36j + 24k + 151 steps (<code>bounce_tail</code>).</p>
+        <p class="where"><code>shift_l_C_001</code>, <code>bounce_tail</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Phase P1 of the live block, for every number of bounces</h3>
+        <p>Write <code>Live(x, y, z)</code> for the tape <code>L 1 1 (001)^x 0 (001)^y (011)^z 0 A&gt; 0^∞</code> (any L). Lean proves (x, y+1+3n, z+2) → (x+3n, y+1, z+2+n) for every x, y, z, n (<code>p1</code>, an induction over <code>bounce_tail</code>), and from an empty right part (x, y+6+3n, 0) → (x+4+3n, y+2, n+2) (<code>p1_from0</code>, using the first two bounces <code>bounce_z0</code> (12y + 35 steps) and <code>bounce_z1</code> (36y + 127 steps)). So phase P1 always ends with the middle part y equal to 2, 3 or 4.</p>
+        <p class="where"><code>p1</code>, <code>p1_from0</code>, <code>lean/P1.lean</code>; <code>bounce_z0</code>, <code>bounce_z1</code>, <code>lean/Rules.lean</code> (<code>py/rules.py</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -127,12 +137,32 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.131). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.387).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>The tape is a row of frozen blocks and one live block</h3>
+        <p>At every return of the head to the left end (state C there, 135 times in 10<sup>9</sup> steps) the tape is <code>C&gt;0 1 0 1 (100)^59 0^3 1 (100)^107 0 1^3 (001)^1452 0 (1001)^2 (001)^392 …</code>: blocks of 001 separated by short walls. Every block but the last stays the same from then on (59, 107, 1452, 392, 165, 337, 837 in the run to 10<sup>9</sup>); only the last one changes.</p>
+        <p class="where"><code>py/observe.py</code>, <code>tools/c/tmrun.c … at C L</code></p>
+      </div>
+      <div class="card">
+        <h3>Growth of the live block: a' = a + b + 7</h3>
+        <p>When the live block reads <code>(001)^a (011)^b 01</code> at a left return, at the next left return it reads <code>(001)^(a+b+7) (011)^(b')</code>: (229,6) → (242,82) → (331,87) → (425,116) → (548,148) → (703,189) → (899,240) → (1146,306). b'/a' tends to about 0.27, so the block grows by a factor of about 1.27 per return, until it splits a new frozen block off.</p>
+        <p class="where">the C-at-left samples of <code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The inner bouncer's phase change</h3>
+        <p>Inside the live block, phase P1 moves 001s from the middle part to the left part until the middle part is used up: (100)^a (010)^b (110)^c becomes (100)^(a+3) (010)^(b−3) (110)^(c+1) each bounce (now proved for any number of bounces, see above). The following phase P2 then turns (a, 0, c) into (a', b', 0) with a' + b' = a + c + 1 and a' = c − d for a constant d that depends on the block to its left (d = 39 for four phases in a row from step 4·10<sup>6</sup> on). In the coordinates of <code>Live</code>: from (x, 2, z) the next empty-right configuration is (x', y', 0) with x' + y' = x + z + 3 in all 9 cases seen in 10<sup>9</sup> steps; x' = z + 1 while there is no frozen block to the left (4 cases up to step 2·10<sup>4</sup>), x' = z + 1 − 41 for 3 phases (steps 4·10<sup>6</sup> to 2·10<sup>7</sup>) and z + 1 − 333 for 2 (steps 5·10<sup>8</sup> to 6·10<sup>8</sup>). P2 reaches the left end of the tape, so it is not a rule about the live block alone; it is not proved.</p>
+        <p class="where">the A-at-right samples of <code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Never one step from a halt</h3>
+        <p>The machine halts when F reads a 1, and F is entered only from D reading a 1 (D1 → 1RF). In the first 3·10<sup>6</sup> steps D reads a 1 3,851 times, always with a 0 to its right, so F always reads 0.</p>
+        <p class="where">the direct simulation of <code>py/observe.py</code> (scratch counter)</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. Deciding it would need the rule for a whole return of the head (phase P2 and the splitting of the live block, which both involve the frozen blocks to the left) as a map on the block sizes, proved, and then an argument that its outcome never puts D next to two 1s. Phase P1 is now proved; the splitting looks like a Collatz-like condition on the sizes modulo 3.</p>
       </div>
     </div>
   </section>
@@ -140,7 +170,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC--- 1000000000</code></pre>
+python3 holdouts/1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---/py/rules.py &amp;&amp; holdouts/1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---/lean/check.sh      # regenerate and check the rules
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC--- 1000000000
+python3 holdouts/1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---/py/observe.py 1e7 B 6      # the tape at the last moments each end grew</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

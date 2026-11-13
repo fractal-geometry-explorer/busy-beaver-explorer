@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this machine bounces back and forth across a tape of 4-cell blocks, and its run comes in phases: inside a phase every round trip does the same thing (proved in Lean for every size), and at the end of a phase the tape is rebuilt about three times bigger. Whether some phase end goes wrong is the open question.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 33,368 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>sqrt/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>all sizes</b><span class="small">The main-regime rule <code>P a (b+3) &rarr; P (a+6) (b+1)</code>, proved by the kernel.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>3&middot;10<sup>11</sup> steps</b><span class="small">No halt in a macro simulator; 10<sup>9</sup> in the plain C simulator.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>&times;3 per phase</b><span class="small">Phase lengths b = 0, 2, 6, 32, 94, 287, 862, then nested phases.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#halt">The one way to halt</a><a href="#regime">The main regime: blocks of four cells</a><a href="#phases">Phases, each about three times the last</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,32 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="halt">
+  <span class="eyebrow">Where it could stop</span>
+  <h2>The one way to halt</h2>
+<p>The table has one halting entry: state B reading a 1. B is entered in two ways: A reads a 0, writes a 1 and moves right (<code>A&gt;0 1</code> halts at once), or D reads a 1, writes a 0 and moves right (<code>D&gt;1 1</code> halts). So the machine halts exactly when, at one of these two moments, the cell to the right of the head holds a 1.</p>
+<p>In the first 10<sup>8</sup> steps B is entered more than 13 million times and always finds a 0. Most of these entries happen inside the long sweeps, where the blocks around the head are fixed words, so they are safe by construction; the danger is concentrated at the two ends of the tape, where the head turns.</p>
+</section>
+<section id="regime">
+  <span class="eyebrow">Macro structure</span>
+  <h2>The main regime: blocks of four cells</h2>
+<p>Stop the simulator each time the head stands at the left end of the tape in state F. Most of the time the tape then reads</p>
+<p><code>F&gt;0^6 (1000)^a 1 0 1 1 1 (0001)^b T</code></p>
+<p>where T, the <em>tail</em>, is one of three short words that take turns: <code>0 1 0 0 0 1 0 1 0 0 0 0 1</code>, <code>0 1 0 1 1 0 1 0 0 0 0 1</code> and <code>0 1 1 1 0 1 1</code>. One round trip of the head does this:</p>
+<ul><li>Moving right, a pair of 0s travels with the head (state D) and turns every block into solid ones: <code>0 0 D&gt;1 0 0 0</code> becomes <code>1 1 1 1 0 0 D&gt;</code>, 28 steps per block, and the 0001 blocks likewise. Halfway through a sweep the whole tape looks like <code>1^(4a+&hellip;) 0 0 0 1^(4b+1) &hellip;</code>.</li>
+<li>At the right end the tail changes to the next of its three shapes, and on two shapes of three it swallows one block <code>0001</code>.</li>
+<li>Moving left, state A turns the ones back into blocks: <code>1 1 1 1 A&gt;1</code> becomes <code>A&gt;1 0 0 0 1</code>, 10 steps per block, which, read from the other end, is again <code>1000</code>.</li>
+<li>At the left end a short dance (states F, D, A, E) writes two more blocks <code>1000</code>.</li></ul>
+<p>So three round trips take a = 13, b = 27 to a = 19, b = 25. Lean proves this for every a and b: with <code>P a b</code> the tape above with the first tail, <code>P a (b+3)</code> becomes <code>P (a+6) (b+1)</code> in 114a + 114b + 1115 steps (<code>P_step</code>), and by induction <code>P a (b+2k+1)</code> becomes <code>P (a+6k) (b+1)</code> (<code>P_iter</code>). The run from blank tape is exactly <code>P 13 27</code> after 30,224 steps (<code>reach_P</code>), so for the next 13 rounds of three trips nothing can go wrong.</p>
+</section>
+<section id="phases">
+  <span class="eyebrow">The long run</span>
+  <h2>Phases, each about three times the last</h2>
+<p>A regime like this cannot last: the 0001 blocks run out. Then the tail meets the solid part, the head carries a message to the left, and the tape is reorganised: the left blocks, about 3b of them, become the right reservoir of the next phase, and the left part starts again from <code>(1000)^3</code>. The phases start with</p>
+<p><code>b = 0, 2, 6, 32, 94, 287, 862</code></p>
+<p>at steps 613, 1,279, 3,045, 22,299, 150,253, 1,249,630 and 10,800,216 (<code>py/phases.py</code>). The factor is about 3, but the offsets (32 = 3&middot;6 + 14, 94 = 3&middot;32 &minus; 2, 287 = 3&middot;94 + 5) depend on which tail shape is current when the reservoir runs out: an arithmetic dependence of the kind that makes a machine Collatz-like.</p>
+<p>After the phase with b = 862 the rebuild is incomplete: a second segment <code>(1000)^859</code> stays behind on the right, and the next phases start at b = 8, 36, 290, 1156 while that segment shrinks to 850, 742, 454. So the long run is a nest of counters, a segment being used up as fuel by the phases inside it. At 3&middot;10<sup>11</sup> steps the tape has three long segments. Whether the machine halts depends on whether some phase end ever leaves a 1 to the right of <code>A&gt;0</code> or <code>D&gt;1</code>, and that needs the phase ends worked out in general, which is the next step.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -233,15 +259,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (B1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>phase3</code>, <code>lean/Rules.lean</code>; <code>P_step</code>, <code>P_iter</code>, <code>lean/Phase.lean</code></div></div><div><b>The main regime, for all sizes</b><p>Write <code>P a b</code> for the tape <code>F&gt;0^6 (1000)^a 1 0 1 1 1 (0001)^b 0 1 0 0 0 1 0 1 0 0 0 0 1</code> (blank on both sides). Three round trips of the head take <code>P a (b+3)</code> to <code>P (a+6) (b+1)</code> in 114a + 114b + 1115 steps, for every a and b; iterated, <code>P a (b+2k+1)</code> reaches <code>P (a+6k) (b+1)</code>. The one-cycle trace is written by <code>tools/py/bbtools/symtm.py</code> and checked by the kernel; the re-bracketing and the induction are hand-written.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>reach_P</code>, <code>reach_P_end</code>, <code>lean/Reach.lean</code></div></div><div><b>The run enters the main regime</b><p>After 30,224 steps from blank tape the configuration is exactly <code>P 13 27</code> (list simulator, evaluated by the kernel), so the run passes through <code>P (13+6k) (27&minus;2k)</code> and reaches <code>P 91 1</code>.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 33,368 cells have been visited and 12,501 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: sqrt/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.478). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.501).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">the run behind this page (a C macro simulator in the style of <code>tools/py/bbtools/macro.py</code>)</div></div><div><b>No halt in the first 3&middot;10<sup>11</sup> steps</b><p>A macro simulator (blocks of 4 cells, runs of equal blocks crossed at once) runs 3&middot;10<sup>11</sup> steps without a halt; at the end the tape has three long segments, <code>1111^26184 &hellip; 1000^24523 &hellip; 0010^91400</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">a transition counter run over the first 10<sup>8</sup> steps</div></div><div><b>B never reads a 1 (so far)</b><p>The machine halts only in B reading a 1, and B is entered from <code>A&gt;0</code> (writing 1, moving right) or from <code>D&gt;1</code>. In the first 10<sup>8</sup> steps B is entered 13,163,946 times and reads a 0 every time.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/phases.py</code></div></div><div><b>Phases that roughly triple</b><p>A phase starts at <code>F&gt;0^6 (1000)^3 1 0 1 1 1 (0001)^b &hellip;</code>. The successive starting values are b = 0, 2, 6, 32, 94, 287, 862 (steps 613 to 10,800,216): during a phase the left part grows by 6 blocks while the right loses 2, so it ends with about 3b blocks of 1000, and these become the next phase's 0001s. After b = 862 the rebuild is incomplete and a second segment <code>(1000)^859</code> stays to the right; the next phases (b = 8, 36, 290, 1156) eat it slowly (859, 850, 742, 454). The phase map depends on which of three tail shapes is current when the 0001s run out, an arithmetic (Collatz-like) dependence that is not analysed yet.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. A proof would have to follow the phase ends: what each of the three tail shapes does when the last 0001 is eaten, and how the nested segments are rebuilt.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/lean/check.sh
+python3 holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/phases.py 4e7
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD 1000000000</code></pre>
 </section>
 <footer class="foot">

@@ -79,7 +79,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine is now reduced exactly to a small one: a wall of n seven-cell words that only counts, and a data word at the fixed end of the tape. One <em>cycle</em> is a visit to the data followed by seven sweeps of the wall; the seven sweeps are proved in Lean for every n and never look at the data. What the visits do to the data is an odometer-like counter whose digits have periods 5, 3, 2, 2, 5, 3, 3, 5, 3, &hellip; with no rule yet for the periods of new digits, and that is what a proof would need.</p>
+      <p>The reduced machine ran 750,000,000 cycles, which is 1.4&middot;10<sup>20</sup> steps of the real machine, without halting; the data word is then 423 cells long.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +104,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The wall cycle, for every n</h3>
+        <p>Cut the tape between cells 12 and 13. Left of the cut: n words <code>1001111</code>, then <code>0100 111111</code> and two more cells; right of the cut: the data R. If the head comes back from the data onto cell 12 in state B or F, reading 1 with a 1 on its left, then 168(n&minus;1)+575 steps later the head is on the first data cell in state E, the wall has n+3 words, the two cells are <code>0 1</code> again and R is untouched. This is Z(n) &rarr; Z(n+3).</p>
+        <p class="where"><code>cycle_B</code>, <code>cycle_F</code>, <code>lean/Cycle.lean</code> (from <code>wall_cycle_B</code>, <code>wall_cycle_F</code>, <code>lean/Rules.lean</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Blank tape reaches Z(7)</h3>
+        <p>After 2,035 steps from blank tape the configuration is Z(7, R) with data R = <code>01010000010010001001</code>.</p>
+        <p class="where"><code>blank_reaches_Z</code>, <code>lean/Cycle.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Shift rules of the sweep</h3>
+        <p>For every n and any tape around: the head crosses the wall of 7-cell words in each of its forms, rewriting every word the same way.</p>
+        <p class="where"><code>c_right</code>, <code>f_left</code>, <code>e_left</code>, <code>b_right</code>, <code>e_right</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,24 +131,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 41,969 cells have been visited and 27,221 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in 750,000,000 cycles (1.4&middot;10<sup>20</sup> steps)</h3>
+        <p><code>c/edge.c</code> runs the machine step by step on the data and jumps over the seven sweeps with the Lean rule. It stops if the head ever touches the wall in a way the rule does not cover; that never happened. Its step counts agree with the plain machine on the first 106 cycles (3&middot;10<sup>6</sup> steps, <code>py/check_edge.py</code>) and on 123 cycles between steps 6&middot;10<sup>8</sup> and 7&middot;10<sup>8</sup>. After 750,000,000 cycles the wall has 2,250,000,007 words and the data 423 cells.</p>
+        <p class="where"><code>c/edge.c</code>, <code>py/check_edge.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Every prefix of the data is periodic</h3>
+        <p>Over cycles 50,000 to 300,000 the first k data cells repeat with an exact period, for every k up to 120: period 5 (k &le; 7), 15, 30, 60, 300, 900, 2,700, 13,500, 40,500. Each new stretch of cells multiplies the period by 2, 3 or 5.</p>
+        <p class="where"><code>py/check_edge.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.501). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A mixed-radix odometer</h3>
+        <p>How deep the head goes into the data in a cycle follows the same pattern: it turns at cell 16 in exactly one cycle out of 5, at each of 22, 25, 28, 31 in one out of 15, at each of 33, 34, 35, 40 in one out of 30, and so on (counted over 10<sup>7</sup> cycles). The data length grows like the logarithm of the cycle number, about 42 cells per factor 10. No rule is known for the period of the next digit, and nothing here is proved.</p>
+        <p class="where"><code>README.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The machine halts only on <code>A&gt; 1 0 (1 1 0)<sup>k</sup> 1 1 1</code>-like patterns (state D reading 1), and by the wall cycle such a pattern can only arise inside the data word. A proof of non-halting needs an invariant for the data word, i.e. a description of the odometer digits that covers the new digits made at the far end.</p>
       </div>
     </div>
   </section>
@@ -140,7 +161,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RD_1RC0LF_0LA0RB_1RE---_1LB1RA_0LE0LF/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RD_1RC0LF_0LA0RB_1RE---_1LB1RA_0LE0LF 1000000000</code></pre>
+python3 holdouts/1RB0RD_1RC0LF_0LA0RB_1RE---_1LB1RA_0LE0LF/py/check_edge.py
+gcc -O2 -o edge holdouts/1RB0RD_1RC0LF_0LA0RB_1RE---_1LB1RA_0LE0LF/c/edge.c &amp;&amp; ./edge 10000000     # 2.5e16 steps in a few seconds; more cycles for more</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RD_1RC0LF_0LA0RB_1RE---_1LB1RA_0LE0LF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

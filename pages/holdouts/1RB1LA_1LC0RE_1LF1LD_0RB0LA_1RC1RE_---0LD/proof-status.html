@@ -73,13 +73,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD</p>
     <h1>What is known about 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD</h1>
     <p class="machine">1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>This is <b>Space Needle</b>, a six-state machine found by mxdys in January 2025 and listed by the bbchallenge community as a <em>cryptid</em>: its halting from blank tape is equivalent to an open number-theory question. This page records what is established here, sorted by what each result rests on.</p>
+    <p>The tape is a few long blocks of 1s. From one visit of the left edge to the next, the machine applies mxdys's map to the lengths (b, c) of the two blocks of <code>0^&infin; A&gt;0 1^b 0 0 1^c 0^&infin;</code>. Lean proves the map, for all b and c, and proves that the machine halts exactly when Katelyn Doucette's one-variable sequence 6, 10, 17, 41, 101, 251, ... reaches a power of two.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and equivalent to a question about a simple sequence.</b> Lean proves, checked by the kernel alone, that the machine halts from blank tape if and only if some term of the sequence D<sub>0</sub> = 6, D<sub>k+1</sub> = D<sub>k</sub> + v + 3a, where D<sub>k</sub> = 2<sup>v</sup>(2a+1), is a power of two (<code>halts_iff_pow2</code>).</p>
+      <p><b>None of the first 300,000 terms is</b> (Lean, <code>native_decide</code>; the first 20,000 by the kernel), nor of the first 3&middot;10<sup>6</sup> (C). The terms grow by a factor of about 1.92 per step and their number of factors 2 stays small (at most 24 so far), so a power of two would be an extraordinary coincidence: the machine is <em>probviously</em> non-halting. A proof would need control of the 2-adic valuations of a sequence defined by additions, which is beyond current methods.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -95,52 +97,89 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card">
         <h3>The halting configurations</h3>
-        <p>The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.</p>
+        <p>The machine stops exactly when F reads a 0.</p>
         <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
+        <h3>Shift rules</h3>
+        <p>Fifteen rules on symbolic tapes, for all values of their parameters and any surrounding tape: one bounce of the bouncer (<code>L 0 1^(m+3) C&gt;0 R</code> to <code>L 1 0 1^(m+1) C&gt;0 1 R</code>), one zig-zag, the ends of the phases, the halt of (1, c), and blank tape to (3, 1) in 45 steps. Written by <code>tools/py/bbtools/symtm.py</code> as chains of <code>rfl</code> steps and the crossing lemmas.</p>
+        <p class="where"><code>lean/Rules.lean</code>, <code>py/gen_rules.py</code></p>
+      </div>
+      <div class="card">
+        <h3>mxdys's macro rules</h3>
+        <p>Write X(b, c) for <code>0^&infin; A&gt;0 1^b 0 0 1^c 0^&infin;</code>. For every b and c &ge; 1: X(0, c) reaches X(c + 2, 1); X(2k + 2, c) reaches X(5k + c + 7, 1); X(2k + 3, c) reaches X(k, k + c + 4); X(1, c) halts 13 steps later. Proved by three inductions (the bouncer, the zig-zag, the shift of a block) over the shift rules.</p>
+        <p class="where"><code>even_rule</code>, <code>odd_rule</code>, <code>zero_rule</code>, <code>halt_rule</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The reduction to mxdys's map</h3>
+        <p>Let g be the map above on pairs (b, c), and orbit n its n-th iterate from (3, 1). The machine halts from blank tape if and only if some orbit n has b = 1.</p>
+        <p class="where"><code>halts_iff</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The reduction to Doucette's sequence</h3>
+        <p>Let D<sub>0</sub> = 6 and D<sub>k+1</sub> = F(D<sub>k</sub>) with F(D) = D + v + 3a for D = 2<sup>v</sup>(2a + 1). The configurations X(b, 1) of the orbit are exactly b = D<sub>k</sub> &minus; 3; between two of them come v odd steps, each halving b + 3, and one even step. So the machine halts from blank tape if and only if some D<sub>k</sub> is a power of two.</p>
+        <p class="where"><code>halts_iff_pow2</code>, <code>macro_F</code>, <code>macro_pow2</code>, <code>lean/Collatz.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No power of two in the first 20,000 terms</h3>
+        <p>Checked by the kernel's arithmetic (numbers up to about 19,000 bits). By the reduction, no halt before the machine's 20,000th visit to a configuration X(b, 1).</p>
+        <p class="where"><code>Fit_kernel</code>, <code>lean/Bound.lean</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10,000 steps</h3>
-        <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
+        <p>Direct run of the list simulator from blank tape.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
       <div class="card">
+        <h3>No power of two in the first 300,000 terms</h3>
+        <p>The same check by compiled code (numbers up to about 282,000 bits).</p>
+        <p class="where"><code>Fit_native</code>, <code>lean/Bound.lean</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
-        <p>The same run, evaluated by compiled code.</p>
+        <p>The same run by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 3,249 cells have been visited and 3,246 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>The macro rules against the machine</h3>
+        <p>A direct run of 3&middot;10<sup>10</sup> steps (<code>c/verify.c</code>) meets the shape X(b, c) exactly at the configurations the orbit of g predicts, in order, and at no others: 19 of them, from X(3, 1) at step 45 to X(7483, 1) at step 10,608,569,291 and X(3740, 3745) at step 10,636,589,390.</p>
+        <p class="where"><code>c/verify.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No power of two in the first 3&middot;10<sup>6</sup> terms</h3>
+        <p>Multi-precision C (<code>c/doucette.c</code>, checked against Python for the first 10<sup>5</sup> terms: bit length and largest v agree). The 3&middot;10<sup>6</sup>th term has about 2.8&middot;10<sup>6</sup> bits; the largest v seen is 24, the mean v is 0.998. The community reports 10<sup>8</sup> terms with at most 25 factors of 2.</p>
+        <p class="where"><code>c/doucette.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: exp/power</h3>
-        <p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.311). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.059).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Probviously non-halting</h3>
+        <p>If the low bits of D<sub>k</sub> behave like random bits, v is geometric with mean 1, D grows by an average factor of about 1.920 per term (0.9412 bits, LegionMammal978's estimate; 0.9414 measured), and the chance that a term of n bits is a power of two is about 2<sup>&minus;n</sup>. Summed over the terms after the ones checked, the chance of a halt is far below 10<sup>&minus;10000</sup>.</p>
+        <p class="where"><code>c/doucette.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. Equivalent (in Lean) to: does Doucette's sequence ever reach a power of two? No method is known that controls the 2-adic valuation of terms of such a sequence.</p>
       </div>
     </div>
   </section>
   <section aria-labelledby="h-check">
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
-holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD 1000000000</code></pre>
+holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/lean/check.sh      # about 2 minutes
+cd holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD &amp;&amp; python3 py/gen_rules.py | diff - lean/Rules.lean
+gcc -O2 -o verify c/verify.c &amp;&amp; ./verify 30000000000 | tail -3
+gcc -O2 -o doucette c/doucette.c &amp;&amp; ./doucette 3000000 500000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

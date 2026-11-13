@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G06",
  "title": "What is known about 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA.",
@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The tape is a list of blocks of the word <code>110</code>. Its main move is an exact transfer cycle between three neighbouring blocks: <code>(x, y, z) &rarr; (x&minus;2, y+3, z&minus;1)</code> in 28y+111 steps, checked on all 8,397 cycles in the first 10<sup>8</sup> steps. Lean proves the shift rules inside blocks. What happens when a cycle runs out, and so the map on whole lists, is not known."
  ],
  "claims": [
   {
@@ -40,15 +40,33 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules of the sweeps",
+   "text": "<code>a_right</code>: going right, A shifts a block of n words <code>110</code> by one cell (3n+1 steps). <code>d_left</code> and <code>c_left</code>: going left, D and C cross a block written as <code>110</code> or <code>101</code> words. All three hold for every n and every surrounding tape.",
+   "where": "<code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Lists at the ends",
+   "text": "Right end, step 1,539,966,585: <code>10 (110)^1633 0 (110)^4080 0 (110)^1838 0 ... 0 (110)^3 1</code> (18 blocks, all separators 0). Left end, step 2,243,100,986: 2448, 1156, 1843, 364, 588, ... with separators 1 1 1 0 0 0 1 1 1 1 1 0 0 1 ... No halt in 3&middot;10<sup>9</sup> steps.",
+   "where": "README"
+  },
+  {
+   "level": "trusted",
+   "title": "The transfer cycle",
+   "text": "When the tape around the head reads <code>(110)^x 0 (110)^y 1 A&gt; 1 0 1 0 1 1 0 0 (110)^z 0</code>, the next turn in state A at the same place finds <code>(x, y, z)</code> changed to <code>(x&minus;2, y+3, z&minus;1)</code> after exactly 28y+111 steps. All 8,397 such cycles in the first 10<sup>8</sup> steps follow this, step count included.",
+   "where": "<code>py/transfer.py</code> on <code>hturn</code> output"
+  },
+  {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.545). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Why it is hard",
+   "text": "The main move is a 3-for-2 exchange between three neighbouring blocks, the arithmetic of Collatz-like machines. Each cycle is exact, but which blocks meet next depends on how earlier cycles ended, and those end rules are not known yet.",
+   "where": ""
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The machine halts if F reads a 0.",
    "where": ""
   }
  ],
@@ -58,7 +76,7 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The machine sweeps over a row of blocks. Crossing a block is a plain shift, but at each boundary something more complicated happens: the one-cell separator flips between 0 and 1, and the neighbouring blocks trade length in a way that is not understood yet.",
   "facts": [
    {
     "level": "trusted",
@@ -86,6 +104,26 @@
   },
   "sections": [
    {
+    "id": "words",
+    "eyebrow": "The tape",
+    "heading": "Blocks of 110 and one-cell separators",
+    "html": [
+     "<p>At the right end the tape is <code>10 (110)^x0 0 (110)^x1 0 ... 0 (110)^3 1</code>. At the left end the same blocks are separated by a mix of 0s and 1s. Crossing the inside of a block is a plain shift by one cell (three Lean rules). The changes happen at the separators.</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>end</th><th>first blocks</th></tr></thead><tbody><tr><td>97,433,463</td><td>right</td><td>555, 401, 749, 316, 218, 99, 221, 70, 160, ...</td></tr><tr><td>112,083,053</td><td>left</td><td>831, 324, 517, 370, 167, 178, 41, 21, 168, ...</td></tr><tr><td>468,333,147</td><td>right</td><td>4587, 369, 679, 1056, 9, 126, 178, 65, ...</td></tr><tr><td>746,418,191</td><td>left</td><td>1226, 2184, 120, 2572, 19, 200, 243, 62, ...</td></tr><tr><td>1,539,966,585</td><td>right</td><td>1633, 4080, 1838, 305, 1874, 709, 298, ...</td></tr></tbody></table></div>",
+     "<p>Many sweeps turn back before they reach an end, so these rows are far apart. The rule that takes one row to the next is the open part.</p>"
+    ]
+   },
+   {
+    "id": "transfer",
+    "eyebrow": "Deeper pass",
+    "heading": "A 3-for-2 transfer",
+    "html": [
+     "<p>Most of the work is one local cycle. When the head turns in state A at <code>(110)^x 0 (110)^y 1 A&gt; 1 0 1 0 1 1 0 0 (110)^z 0</code>, it zigzags left and right and comes back to the same place with the left block two words shorter, the right block one word shorter, and the middle block three words longer:</p>",
+     "<p style=\"text-align:center\"><code>(x, y, z) &rarr; (x&minus;2, y+3, z&minus;1)</code> in exactly 28y+111 steps.</p>",
+     "<p>All 8,397 cycles in the first 10<sup>8</sup> steps obey this, step count included. Paying two to get three is the arithmetic of Collatz-like machines, and it is why the block lengths look irregular. The rules for what happens when a cycle runs out (x below 2, or z at 0) are the next thing to find.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +136,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A list of 110-blocks whose main move is an exact transfer cycle (x, y, z) -> (x-2, y+3, z-1) in 28y+111 steps between three neighbouring blocks, a 3-for-2 exchange; the rules at the end of a cycle are not known.",
+ "family": "block list with a 3-for-2 transfer cycle (Collatz-like)"
 }

@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RD_1RC1LE_1LD---_1RF0LE_1LD1LE_1RA0RF</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. The tape is the pair 10 repeated, broken by many short walls. Near the left end the stretches between walls are thousands of cells long, toward the right end only a few. The head crosses the stretches by a proved rule; the walls follow no rule anyone has found.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 36,175 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>&asymp;&frac12;</b><span class="small">Ratio of consecutive domain lengths near the left end, roughly.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Pairs 10 and many walls</a><a href="#seen">Long domains on the left, short on the right</a><a href="#halting">One pattern at a wall</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,24 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">The tape</span>
+  <h2>Pairs 10 and many walls</h2>
+<p>The background is <code>10</code> (read <code>01</code> in the other phase). The leftward sweep over it is a proved shift rule (<code>lean/Rules.lean</code>). The right end of the tape at step 398,057,107 (width 23,283), long runs written as powers:</p>
+<pre>1 (10)^5 (01)^5205 (10)^3 1 (10)^3 000 (10)^1301 1 (10)^18 1 (10)^61 (01)^8 (10)^1129 1 (10)^79 (01)^495
+(10)^20 (01)^556 (10)^54 1 (10)^411 (01)^58 0000 (10)^118 (01)^122 0 (01)^76 (10)^143 000 (10)^87 ...
+... 0010100 (101101010101)^5 00101 (10)^3 1 (10)^3 000 10100101 (10)^5 0101 0000 10100101 (10)^4 1101 (10)^5 (0101000)^3</pre>
+</section>
+<section id="seen">
+  <span class="eyebrow">What is seen</span>
+  <h2>Long domains on the left, short on the right</h2>
+<p>The domains are longest at the left end and shrink toward the right roughly by halves (5205, 1301, 1129, 495, 556, 411, ... above; 11,712 and 2932 first at step 2&middot;10<sup>9</sup>). The right end is a dense, irregular mix of short periodic pieces. A similar picture appears in <code>1RB1LC_1RC---_1LD1LC_1RE0LC_1RF0RE_1RA0RD</code> of the same batch (a different machine).</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">What halting would need</span>
+  <h2>One pattern at a wall</h2>
+<p>C1 is the only halting transition, reached as <code>B&gt;0 1</code>. Inside a domain this never happens; a halt would have to come from a wall. That is open.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +254,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 36,175 cells have been visited and 18,177 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.52). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.242).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</div></div><div><b>Shift rules of the sweeps</b><p>The leftward sweep over the background: <code>L (10)^n D&gt;1 R</code> and <code>L (01)^n E&gt;0 R</code> cross a whole domain, 2 steps a pair, leaving it as it is, for every n and all tapes L, R.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tokrun.c</code></div></div><div><b>Domains shrinking by halves</b><p>Read at the right end at step 398,057,107 (width 23,283) the domains from the left are about 5205, 1301, 1129, 495, 556, 411, ... pairs long and the right end of the tape is a mix of pieces a few pairs long; at step 1,993,416,764 (width 50,020) the first two are 11,712 and 2932. Seen at every end turn; not proved.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts on C1, reached as <code>B&gt;0 1</code> (B reads 0, moves right onto a 1). Inside a domain of <code>10</code> the sweeps never do that; whether a wall ever does is open, and the walls have no known rule.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RD_1RC1LE_1LD---_1RF0LE_1LD1LE_1RA0RF/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RD_1RC1LE_1LD---_1RF0LE_1LD1LE_1RA0RF 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RD_1RC1LE_1LD---_1RF0LE_1LD1LE_1RA0RF 1000000000
+python3 holdouts/1RB0RD_1RC1LE_1LD---_1RF0LE_1LD1LE_1RA0RF/py/rules.py | diff - holdouts/1RB0RD_1RC1LE_1LD---_1RF0LE_1LD1LE_1RA0RF/lean/Rules.lean   # the rules file is current</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0RD_1RC1LE_1LD---_1RF0LE_1LD1LE_1RA0RF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

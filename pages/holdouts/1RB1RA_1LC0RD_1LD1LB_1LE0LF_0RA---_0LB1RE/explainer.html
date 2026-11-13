@@ -124,12 +124,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 12 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">This machine writes blocks of 1s on the left that change like the digits of a counter, and a long stretch of short words on the right that grows like a power of the step count. Its macro rules have not been worked out yet. It has run 10<sup>10</sup> steps without halting.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 44,635 cells visited.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>10</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>exp/power</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
   </div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Two regions</a><a href="#halt">Where a halt could happen</a><a href="#neighbour">The proved neighbour</a><a href="#later">What is not known</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,30 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">The tape</span>
+  <h2>Two regions</h2>
+<p>Left of the start the tape is blocks of an odd number of 1s separated by double 0s, like <code>C&gt;0 1 0^2 1^3 0^2 1^9 0^2 1 0^2 1 0^2 1^357 0^2 1 0^2 1 ...</code>. The head arrives at the left end in state C, grows the tape there by one cell, and goes back. Most blocks are short (1, 3, 5, 7, 9, 11) and a few are long, and the long ones grow.</p>
+<p>Right of the start the tape is a long stretch of the words <code>1 0</code> and <code>1 1 0</code>, mostly <code>(1 0)^n</code>. It grows like a power of the step count (exponent about 0.68), much faster than the left side, which grows like its logarithm.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Halting</span>
+  <h2>Where a halt could happen</h2>
+<p>The machine stops when E reads a 1. A closed tape language with windows of 5 cells, which contains every configuration reachable from blank tape, says more: a halt needs <code>E&gt;1 1 1 1 1</code>, so E must stand on a run of at least five 1s. The right region has not had one in the run so far, so a halt would have to happen in the left region, inside one of its long blocks.</p>
+</section>
+<section id="neighbour">
+  <span class="eyebrow">Round 6</span>
+  <h2>The proved neighbour</h2>
+<p>The community tracker notes that the same table from another start is proved in busycoq. That machine is <code>1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1LB</code> (<code>verify/CTLv2.v</code>, lemma <code>nonhalt17</code>): this table with left and right exchanged, started in this machine's state D. Lean proves what that start amounts to here: three steps from blank tape in state D give state A with a single 1 on its left. So the proved machine is this one started on <code>1 A&gt;0</code> instead of <code>A&gt;0</code>.</p>
+<p>The two runs look different. After 10<sup>8</sup> steps the neighbour's tape is long regular stretches (<code>1 0 0</code> repeated, and a 22-cell word repeated); this machine's tape still has irregular blocks of 1s (one of 97) and an irregular region of words <code>1 0</code> and <code>1 1 0</code>.</p>
+<p>The neighbour's proof is a <i>closed tape language</i>: a finite description of tapes, in blocks of 8 cells, that contains its configuration after 10<sup>6</sup> steps, is closed under the machine's moves, and contains no halt. We rebuilt the search (<code>c/cpslru.cpp</code>) and it reproduces that result: 4,091 abstract configurations for start D. Started from this machine's own configurations after 10<sup>8</sup>, 10<sup>9</sup>, 10<sup>10</sup> and 10<sup>11</sup> steps, with the neighbour's parameters and nine others, it never closes. That also tells us these configurations lie outside the neighbour's language, so its theorem says nothing about them.</p>
+<p>Two more holdouts are the same table from the remaining starts: <code>1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD</code> (state B, mirrored) and <code>1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC</code> (state C, mirrored). Our search does not close from starts B and C either (after 10<sup>8</sup> and 10<sup>9</sup> steps). Of these four starts, only D is proved.</p>
+</section>
+<section id="later">
+  <span class="eyebrow">Open</span>
+  <h2>What is not known</h2>
+<p>Not known: the macro configuration (what the head does between visits to the left end), the rules between such configurations, and the map they amount to. The next step is to watch the left end with <code>python3 -m bbtools.explore events</code> and tokenise the right region into the words <code>1 0</code> and <code>1 1 0</code>.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -221,7 +245,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 12 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -232,17 +256,29 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   </div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (E1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>neighbour_start</code>, <code>neighbour_start'</code>, <code>lean/Neighbour.lean</code></div></div><div><b>The proved neighbour is this machine with one extra 1 on the tape</b><p>From blank tape in state D, three steps lead to state A on blank tape with a single 1 on the cell to its left. busycoq's proved machine <code>1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1LB</code> is this table with left and right exchanged, started in state D (its states A&ndash;F are D, E, A, B, C, F here), so its run is this machine's run from <code>1 A&gt;0</code>. Nothing here says that run and the run from blank tape ever meet.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tmrun 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 10000000000</code></div></div><div><b>No halt in the first 10<sup>10</sup> steps</b><p>The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>10</sup> steps from blank tape without a halt; at the end the tape holds 94,290 ones.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 44,635 cells have been visited and 19,460 of them hold a 1.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 -m bbtools.ctl 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 5</code></div></div><div><b>Where a halt can be</b><p>A closed tape language of windows of 5 cells (<code>tools/py/bbtools/ctl.py</code>, closure checked by the script, not by Lean) contains every configuration reachable from blank tape, and its only halting configurations have E reading a 1 with at least four 1s right of the head (<code>E&gt;1 1 1 1 1</code>). In the run so far the right region has shown no runs of five 1s, so a halt would have to happen inside a long block of 1s, as in the left region.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>ngramcps MACHINE N [-H 1 | -U] -m 30000000</code></div></div><div><b>Not decided by n-gram CPS up to width 14</b><p>The n-gram Closed Position Set decider (<code>tools/c/ngramcps.c</code>) with equal widths 4, 6, 8, 10, 12 and 14, plain and with the fixed-length (1) and LRU history augmentations, either reaches a halting local configuration (UNKNOWN) or stops at 3&middot;10<sup>7</sup> local configurations: it does not prove non-halting at these settings.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/rvisits.c</code>: <code>./rvisits MACHINE 2000000000 50</code></div></div><div><b>The right end grows by three cells per visit</b><p>Counting a visit as the head reaching the right end after having been more than 50 cells to its left, the first 2&middot;10<sup>9</sup> steps have 15,470 visits; at 15,386 of them the right end has grown by exactly 3 cells since the previous visit (57 times by 6, the rest by 0, 1 or 5). The head turns back at a point that drifts to the right by about 29 cells per visit, so the zone it sweeps shrinks, and every so often (3,478 times) the turning point jumps far to the left and a new phase starts. Visits get further apart as the right region grows, which gives the power-law growth.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/cpslru.cpp</code>: <code>cpslru MACHINE 1000001 300000 D - 8,2,6,0</code></div></div><div><b>The neighbour's proof, reproduced for start D</b><p>busycoq proves the neighbour with <code>CPS_LRU 100000001 400000 400000 8 3200 2 6 0 0</code>: run 10<sup>8</sup>+1 steps, then find a set of abstract configurations (blocks of 8 cells; on each side the 2 nearest blocks and the list of up to 6 different blocks seen beyond) that is closed under the machine and contains no halt. Our own implementation of that search, on this table started in D, finds such a set with 4,091 abstract configurations from the configuration after 10<sup>6</sup>+1 steps (about 4,035 on busycoq's mirrored machine, also from 10<sup>7</sup>+1 and 10<sup>8</sup>+1). From blank tape and from 10<sup>5</sup> steps it does not close within 300,000 summaries: the neighbour's run has to settle first. A search program, not a proof.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>cpslru MACHINE 10000000001 300000 A - 8,2,6,0 8,1,6,0 8,2,4,0 8,3,4,0 4,2,6,0 6,2,6,0 12,1,6,0 16,1,4,0 2,4,8,0 1,8,8,0</code></div></div><div><b>The same search does not close from this machine's run</b><p>From this machine's own configurations after 10<sup>8</sup>+1 steps (parameters 8,2,6), and after 10<sup>9</sup>+1 and 10<sup>10</sup>+1 steps with ten parameter sets (blocks of 1, 2, 4, 6, 8, 12, 16 cells; 1 to 8 exact blocks; lists of 4 to 8), and after 10<sup>11</sup>+1 steps with two, the search either exceeds 300,000 summaries or 6,000,000 abstract configurations, or (blocks of one cell) reaches a halting abstract configuration. A closed set is the smallest one containing its start, so this also shows that these four configurations are <b>not</b> in the neighbour's closed language: had one been, its closure would have stayed inside those 4,091 configurations. It does not show that no closed language exists.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/power</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.062). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.677).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tmrun 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000000000 records 100000</code></div></div><div><b>The two regions</b><p>Left: <code>C&gt;0 1 0^2 1^3 0^2 1^9 0^2 1 0^2 1 0^2 1^357 0^2 ...</code>, blocks of odd length separated by <code>0^2</code>, a few of them long (one of them has 205, 357 and 421 ones at three of the last left records before 10<sup>9</sup>). Right: words <code>1 0</code> and <code>1 1 0</code>, with long stretches <code>(1 0)^n</code>.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The macro configuration family has not been found, and the proof of the neighbouring start (state D) does not cover this run at any of the four times tested.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000000000
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 10000000000
+cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 5
+gcc -O2 -o rvisits holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/rvisits.c &amp;&amp; ./rvisits 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 2000000000 50
+g++ -O2 -std=c++17 -o cpslru holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/cpslru.cpp &amp;&amp; ./cpslru 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000001 300000 D - 8,2,6,0 &amp;&amp; ./cpslru 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000000001 300000 A - 8,2,6,0 8,1,6,0</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

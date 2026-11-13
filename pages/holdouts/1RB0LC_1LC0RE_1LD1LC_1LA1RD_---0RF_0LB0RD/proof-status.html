@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open, and only looked at.</b> At every visit of the head, in state A, to the left end, the tape is a list of blocks of 1s separated by single 0s. The first blocks run through a short cycle and every cycle feeds into the blocks further right, like a counter whose digits are blocks of irregular, growing sizes. The rules of this counter were not derived.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 31,044 cells have been visited and 31,010 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>A list of blocks at every left-end visit</h3>
+        <p>At all 12,927 moments in the first 10<sup>9</sup> steps when the head, in state A, is at the left end of the tape, the tape is <code>A&gt;0 1^a<sub>1</sub> 0 1^a<sub>2</sub> &hellip; 0 1^a<sub>k</sub></code> (10,342 times) or the same with the head on the first 1. At step 809,445,816 the list has 17 blocks, the largest 8,967.</p>
+        <p class="where"><code>gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LC_1LC0RE_1LD1LC_1LA1RD_---0RF_0LB0RD 1000000000 at A L 50000000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -132,7 +137,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The block-list structure is described here, but its rules were not derived or proved; this machine was left at a first analysis.</p>
       </div>
     </div>
   </section>

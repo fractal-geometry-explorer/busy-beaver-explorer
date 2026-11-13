@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB0RC_1LC1RF_1RE0LD_1LC1LA_---1RD_0RB0RA",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RC_1LC1RF_1RE0LD_1LC1LA_---1RD_0RB0RA.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The run is a Collatz-like process: a big block on the left is converted back and forth between two words, growing by a factor about 4/3 per cycle, while a small counter at the right end keeps the remainders. Shift rules are proved in Lean; the cycle map is observed, not decoded exactly, and no reduction of the halting question is given yet."
  ],
  "claims": [
   {
@@ -34,6 +34,12 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules, for every length",
+   "text": "Going right: B crosses <code>(10)^n</code> unchanged, F crosses <code>(01)^n</code> unchanged, A turns each <code>011</code> into <code>110</code>, B turns each <code>110</code> into <code>101</code>; each for every n and every tape around.",
+   "where": "<code>right_B_a</code>, <code>right_F_d</code>, <code>right_A_011</code>, <code>right_B_110</code>, <code>lean/Rules.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 43,966 cells have been visited and 17,659 of them hold a 1.",
@@ -46,9 +52,33 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in 10<sup>10</sup> steps",
+   "text": "<code>tools/c/tmrun.c</code>: 10<sup>10</sup> steps from blank tape without a halt (57,846 ones).",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No closed tape language from windows up to 7",
+   "text": "<code>bbtools.ctl</code> with K = 2 to 7 closes but allows a halt (7 to 579 abstract halting configurations); n-gram CPS (widths 3 to 7, -H, -U) fails.",
+   "where": "<code>tools/py/bbtools/ctl.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The 4/3 cycle",
+   "text": "With the head in A at the left end the tape is <code>a b</code> (a = 10, b = 110), then one big block, then a short tail. The big block alternates between <code>d^Y</code> (d = 010) and <code>a^X</code>: from <code>d^Y</code> the sweeps usually build <code>a^(2Y+2)</code> (for example Y = 17,473 gives X = 34,948), and from <code>a^X</code> they build <code>d</code>-blocks of about 2X/3 plus what the tail contributes. The successive Y: 61, 83, 137, 195, 261, 357, 481, 667, 887, 1239, 1675, 2247, 3009, 4025, 5375, 7171, 9565, 12953, 17473, 23325 (to 2.9&middot;10<sup>9</sup> steps), ratios about 4/3. The tail at the right end (runs such as <code>d^24 a^14 d^8 a^8 d^8 a^8 d^4 a^2</code>) changes only at the conversions: it holds the remainders.",
+   "where": "<code>tools/c/tokrun.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Where a halt would come from",
+   "text": "The halt is E reading a 0. E is entered only from C reading a 0 (going right); in 10<sup>9</sup> steps E was entered 5,798,513 times and always read a 1. A halt needs C, moving right, to meet two 0s in a row.",
+   "where": "<code>tools/c/tm.h</code> (transition counts and windows)"
+  },
+  {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "title": "Does it halt?",
+   "text": "Not known. The exact cycle map (how the remainder mod 3 of X and the tail combine) is not written down yet; with it the question should become a Collatz-like question about that map.",
    "where": ""
   }
  ],
@@ -86,6 +116,34 @@
   },
   "sections": [
    {
+    "id": "tape",
+    "eyebrow": "What the tape looks like",
+    "heading": "One big block and a small tail",
+    "html": [
+     "<p>With the head in A at the left end, and words <code>a = 10</code>, <code>b = 110</code>, <code>d = 010</code>, the tape at step 2,831,052,048 is</p>",
+     "<div class=\"config\">A&gt;a b d a^34948 0 d^23 a d^10 a^26 d^8 a^8 d^8 a^8 d^4 a^2 1</div>",
+     "<p>and at step 2,851,126,369</p>",
+     "<div class=\"config\">A&gt;a b d^23325 a d^2 a^32 d^16 a^26 d^4 b d^7 a^8 d^4 a^8 1</div>",
+     "<p>Almost all of the tape is one big block, written either with <code>a</code> or with <code>d</code>; the short tail on the right is a small counter.</p>"
+    ]
+   },
+   {
+    "id": "cycle",
+    "eyebrow": "The rule from one cycle to the next",
+    "heading": "Double, then take two thirds",
+    "html": [
+     "<p>Sweep by sweep, the machine rewrites the big block from one word into the other. A block <code>d^Y</code> (three cells per unit) becomes <code>a^(2Y+2)</code> (two cells per unit): Y = 17,473 gave X = 34,948. A block <code>a^X</code> becomes a <code>d</code>-block of about 2X/3 units, the leftover (X mod 3) and a little from the tail being settled in the tail: X = 34,948 gave Y = 23,325. So Y grows by about 4/3 per cycle: 61, 83, 137, 195, 261, 357, 481, 667, 887, 1239, 1675, 2247, 3009, 4025, 5375, 7171, 9565, 12953, 17473, 23325. Each cycle sweeps a tape about 4/3 longer about 4/3 more often, which is why the left side looks like a bouncer while the tail, changed only once per cycle, grows like a logarithm.</p>"
+    ]
+   },
+   {
+    "id": "halting",
+    "eyebrow": "Can it halt?",
+    "heading": "Only E on a 0",
+    "html": [
+     "<p>The only halt is E reading a 0, right after C has read a 0 and moved right. In 10<sup>9</sup> steps this setup happened almost six million times and the second cell was always a 1. The places where something irregular happens are the conversions of the big block, where the remainder mod 3 is handed to the tail; whether a tail state can ever put two 0s in front of C is the open question.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +156,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "One big block that alternates between (010)^Y and (10)^X: turning d's into a's doubles it, turning a's back into d's takes two thirds of it, so Y grows by about 4/3 per cycle (a Collatz-like 4/3 map), with the remainders kept in a small counter at the right end.",
+ "family": "Collatz-like 4/3 block map + bouncer",
+ "decision": "open"
 }

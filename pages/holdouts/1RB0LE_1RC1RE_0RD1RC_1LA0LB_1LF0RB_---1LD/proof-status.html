@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The run is the iteration of a map f on the numbers N for which the tape is exactly 1<sup>N</sup> with F on its leftmost cell: 8, 22, 42, 58, 90, 148, 218, ... (the first ones proved in Lean). No starting value N &le; 6,000 makes the machine halt before it returns to an all-ones tape, so the machine halts only if some phase from 1<sup>N</sup> halts; none is known to.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The first samples</h3>
+        <p>From blank tape the machine reaches F on the leftmost cell of 1<sup>8</sup> (43 steps), 1<sup>90</sup> (5,156 steps) and 1<sup>148</sup> (13,203 steps), with nothing else on the tape.</p>
+        <p class="where"><code>orbit_8</code>, <code>orbit_90</code>, <code>orbit_148</code>, <code>lean/Orbit.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Sweep rules and the shape of a halt</h3>
+        <p>Rightward, E turns each pair <code>11</code> into <code>01</code> (the first sweep of a phase), and E or D turn every three blocks <code>1110</code> into one 12-cell word (the merging sweeps). The only way to a halt: D on a 0 with <code>1 0 0</code> to its left reaches F on a 0 in 3 steps (F on a 0 is the halting transition). By reading the table (not formalized), F on a 0 needs E on a 0 entered from A on a 1, and A comes only from D on a 0.</p>
+        <p class="where"><code>e_halve</code>, <code>e_triple</code>, <code>d_triple</code>, <code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -110,6 +120,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Later samples</h3>
+        <p>1<sup>4992</sup> after 17,659,931 steps and 1<sup>8906</sup> after 56,708,301 steps.</p>
+        <p class="where"><code>orbit_4992</code>, <code>orbit_8906</code>, <code>lean/Orbit.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -119,6 +134,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 37,504 cells have been visited and 37,450 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The map f on all-ones tapes</h3>
+        <p>For every N from 1 to 6,000, the machine started in F on the leftmost cell of 1<sup>N</sup> returns to an all-ones tape 1<sup>f(N)</sup> with F on its leftmost cell, without halting. The orbit from 8 is 8, 22, 42, 58, 90, 148, 218, 298, 410, 554, 746, 1002, 1344, 1558, 2090, 2794, 3738, 4992, 6674, 8906, 11882, 15850, 21146, 28202, 37610, 50154 (to step 1.8&middot;10<sup>9</sup>) , then 89188, 132216, 146976, 348442 (3.5&middot;10<sup>11</sup> steps in all, by the same program).</p>
+        <p class="where"><code>c/phasemap.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Near misses</h3>
+        <p>In 10<sup>9</sup> steps D reads a 0 about 62,600 times; the left neighbours are never <code>1 0 0</code> (the closest: <code>1 0 1</code>, 32,865 times).</p>
+        <p class="where"><code>c/nbhd.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +152,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.066). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.499).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>What a phase does</h3>
+        <p>From 1<sup>N</sup> a first sweep writes (1110)<sup>k</sup>; then merging sweeps group the blocks three at a time into 1<sup>11</sup>0, 1<sup>35</sup>0, ... (lengths 3&middot;a+2), the leftovers of each division by 3 making a growing left part. When the regrouping stops, the tape is filled with ones again. So f depends on the base-3 digits of N: 3f(N) &minus; 4N takes the value 22 when N &equiv; 2 or 14 (mod 36) and other small values for most N, but large values for N divisible by high powers of 3 (for example f(16) = 90, f(35) = 240).</p>
+        <p class="where"><code>c/phasemap.c</code>, traces of single phases</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It halts iff some phase of the orbit 8, 22, 42, ... halts. Since no phase from any N &le; 6,000 halts, the most likely answer is that no phase ever halts, which would prove that the machine runs forever; a proof needs the exact description of a phase for every N (a recursion on the base-3 digits).</p>
       </div>
     </div>
   </section>
@@ -140,7 +170,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD 1000000000
+gcc -O2 -o phasemap holdouts/1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD/c/phasemap.c &amp;&amp; ./phasemap 600 200000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

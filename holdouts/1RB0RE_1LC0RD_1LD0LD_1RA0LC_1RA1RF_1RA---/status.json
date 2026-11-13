@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G06",
  "title": "What is known about 1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The machine is a binary counter whose digits are pairs of blocks of <code>10</code>s. One sweep adds one to it, with an exact rule and an exact step count. That rule is checked against the machine on 24,787 sweeps, and its first two cases are proved in Lean for every size. Rare merge and end events change the list of digits, and they are only partly described."
  ],
  "claims": [
   {
@@ -40,26 +40,51 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules of the sweep",
+   "text": "For every n and any tape around: states A and E cross blocks of <code>10</code>/<code>01</code> to the right, shifting them by one cell, and C and D cross them to the left unchanged.",
+   "where": "<code>a_right</code>, <code>a_right1</code>, <code>d_left</code>, <code>c_left</code>, <code>e_right</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The first two cases of the tick",
+   "text": "The whole sweep when the first digit is 0 (<code>tick_stop</code>, 4a + 10 steps) and when the carry passes one digit (<code>tick_pass1</code>, 4a + 8b + 4c + 34 steps). Both hold for every block length and any tape to the right.",
+   "where": "<code>tick_stop</code>, <code>tick_pass1</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "One sweep is a binary increment",
+   "text": "At each left turn the tape is <code>0^inf D&gt; 0 (10)^a</code> followed by digits <code>s (10)^b 1 (10)^c</code>, where the separator s is <code>0</code> for a 1 and <code>0 0 0</code> for a 0. A sweep turns the leading 1s into 0s (each loses one <code>10</code> from c), turns the first 0 into a 1 (it gains one <code>10</code> in b), and adds one to a. It takes exactly 6 + 4a + 8&Sigma;b + 4&Sigma;c + 8n steps over the n digits passed. This holds for 24,787 of the 25,117 sweeps in the first 3&middot;10<sup>8</sup> steps. The rest are the merge and end events.",
+   "where": "<code>c/blocks.c</code>, <code>py/ticks.py</code>"
+  },
+  {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.564). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "A list of blocks with carries",
+   "text": "The events: when the carry passes a digit whose c is 1 and the next digit is 0, the two digits merge into one digit 0, <code>(10)^(b+b'+2) 1 (10)^c'</code> (22 of 25 cases). When the carry passes every digit, the first block is cut off and becomes a new digit. Read off the simulation; the remaining cases are not yet described.",
+   "where": "<code>README.md</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The block dynamics has not been reduced to a rule.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA--- 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA--- 1000000000",
+  "gcc -O2 -o blocks holdouts/1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---/c/blocks.c && ./blocks 300000000 0 > blocks.txt",
+  "python3 holdouts/1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---/py/ticks.py blocks.txt"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The tape of this machine is a long list of blocks of <code>10</code>s with short separators. The head crosses the whole list on every sweep. On the way the first block grows, and single units of length pass from one block to the next, a little like carries in a counter.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "+1 per sweep",
+    "text": "Each sweep adds one to a binary counter written in block lengths, with an exact step count."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -71,9 +96,9 @@
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
    },
    {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "kernel",
+    "value": "5 crossings",
+    "text": "Shift rules for the head crossing blocks, proved in Lean."
    }
   ],
   "presets": [
@@ -96,7 +121,27 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>954,211,951</td><td><code>C&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^4 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0</code></td></tr><tr><td>left</td><td>969,891,771</td><td><code>C&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>985,526,295</td><td><code>C&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "blocks",
+    "eyebrow": "The structure",
+    "heading": "A list of blocks",
+    "html": [
+     "<p>Three million steps in, the tape reads <code>D&gt; 0 (10)^129 0 (10)^191 1 (10)^255 0 0 0 (10)^158 1 (10)^159 &hellip;</code>. The head crosses each block in a fixed number of steps per pair; those crossings are proved in Lean.</p>",
+     "<p>Over consecutive sweeps the first block grows by one. Separators flip between <code>0</code> and <code>0 0 0</code>. The blocks on either side of a separator trade single units, so 191 and 255 become 192 and 254, then 193 and 253. How these changes add up over many sweeps is the open part.</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "The tick",
+    "heading": "A binary counter in block lengths",
+    "html": [
+     "<p>Between the blocks of <code>10</code>s sit separators: a single <code>0</code> or a triple <code>0 0 0</code>. Read the blocks in pairs joined by a <code>1</code>, and the separator before each pair as a binary digit: <code>0</code> means 1 and <code>0 0 0</code> means 0. Each sweep adds one to this number, from the left. Every leading 1 becomes 0 and the first 0 becomes 1, exactly like counting in binary. The head only goes as far as the carry before turning back.</p>",
+     "<p>The digits also keep a tally. Each time a digit goes from 0 to 1, its first block grows by one <code>10</code>; each time it goes from 1 to 0, its second block shrinks by one. When a second block runs out, the digit merges with its neighbour. When the carry runs off the end, the first block of the tape is cut off and becomes a new digit. Those rare events are where a halt could hide, and they are not yet fully described.</p>"
+    ]
    }
   ]
- }
+ },
+ "family": "block list with carries (unclassified)",
+ "summary": "A binary counter whose digits are pairs of 10-blocks, ticked once per sweep by an exact increment rule (checked on 24,787 sweeps, its first cases proved in Lean); rare merge and end events change the digit list."
 }

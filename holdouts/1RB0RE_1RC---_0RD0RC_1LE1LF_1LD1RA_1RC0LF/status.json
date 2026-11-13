@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The run is a sequence of phases; in each, rounds (proved in Lean) move two <code>10</code>s from a stack into a growing gap of 0s, and at the end the gap is turned back into a stack about 3/2 times as large. The phase map, checked by simulation for every x ≤ 120 in the decoded cases, takes the blank-tape orbit through 63 phases, to P(1, 2,162,240,868,156,300); the next phase is in the case x ≡ 4 (mod 8) with the leading 1, which splits further by higher powers of 2 (e.g. 32i + 20 → 243i + 202) and was not decoded."
  ],
  "claims": [
   {
@@ -34,6 +34,42 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Rounds of a phase",
+   "text": "With the stack <code>(10)<sup>x+2</sup> 1 1 1 0</code>, a gap of 2g + 2 zeros and D at the right end, one round removes two <code>10</code>s and adds six zeros: <code>(10)<sup>x+2</sup> 1110 (00)<sup>g</sup> 00 D&gt;</code> → <code>(10)<sup>x</sup> 1110 (00)<sup>g+3</sup> 00 D&gt;</code> in 4g + 26 steps (and the first round, from no gap, in 22 steps). Plus the shift rules: C erases 1s going right, D and E fill 0s going left.",
+   "where": "<code>round</code>, <code>first_round</code>, <code>c_ones</code>, <code>d_zeros</code>, ..., <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The phase map",
+   "text": "P(pre, x) = <code>[1] (10)<sup>x</sup> 1110 D&gt;</code> at the right end of blank tape. Checked by direct simulation for all 225 decoded cases with x ≤ 120: P(0, x) → P(x mod 2, 3⌊x/2⌋ + 6); P(1, 2i+1) → P(0, 3i + 6); P(1, 4i+2) → P(1, 9i + 15); P(1, 8i) → P(1, 27i + 18). The slopes 3/2, 9/4, 27/8 are powers of 3/2.",
+   "where": "<code>py/phasemap.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "63 phases, then the undecoded case",
+   "text": "From blank tape the machine reaches P(1, 3) at step 34; the map then gives P(0, 9), P(1, 18), P(1, 51), P(0, 81), P(1, 126), P(1, 294), P(1, 672), P(1, 2286), P(1, 5154), P(1, 11607), P(0, 17415), ... (the first 14 agree with the run to 1.8·10<sup>9</sup> steps) and stays in the decoded cases for 63 phases, to P(1, 2,162,240,868,156,300), which is ≡ 4 (mod 8). The map itself is only checked for small x, so the long orbit is a prediction, not a proof.",
+   "where": "<code>py/phasemap.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The case P(1, 8i+4)",
+   "text": "It splits further: 32i + 20 → P(0, 243i + 202) and 32i + 28 → P(0, 243i + 264) for i ≤ 3 (243 = 3<sup>5</sup>, 32 = 2<sup>5</sup>), while 4 → P(0, 193), 12 → P(1, 3771), 36 → P(1, 492), and 44, 68 take more than 10<sup>8</sup> steps. No halt in any of these runs.",
+   "where": "<code>py/phasemap.py</code> (<code>run</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Where it can halt",
+   "text": "Only B reading 1 halts; B is entered only from A reading 0, and A only from E reading 1, so the machine halts exactly on <code>E&gt; 1 0 1</code>. Read off the table.",
+   "where": "the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No closed tape language with small windows",
+   "text": "<code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS 3 to 7 fails; no invariant mod 2..12.",
+   "where": "<code>tools/py/bbtools/ctl.py</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 63,228 cells have been visited and 26,115 of them hold a 1.",
@@ -48,13 +84,14 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The decoded cases multiply x by (3/2)<sup>k</sup>; which case applies depends on the low binary digits of x, and each further level of 2-adic digits brings another factor 3/2. Deciding halting means understanding this map on all of its 2-adic levels (and whether some level produces <code>E&gt; 1 0 1</code>), a Collatz-type problem.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF/lean/check.sh",
+  "python3 holdouts/1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF/py/phasemap.py",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF 1000000000"
  ],
  "explainer": {
@@ -86,6 +123,33 @@
   },
   "sections": [
    {
+    "id": "tape",
+    "eyebrow": "What the tape looks like",
+    "heading": "A stack of 10s and a gap of 0s",
+    "html": [
+     "<p>At the start of a phase the tape is <code>[1] (10)<sup>x</sup> 1 1 1 0</code> with the head in state D just right of it; call it P(pre, x), pre = 1 when the leading 1 is there. The blank-tape run is at P(1, 3) after 34 steps, P(0, 9) after 139, P(1, 18) after 520, P(1, 51) after 3,606.</p><p>During a phase, at step 10<sup>8</sup> for instance: <pre>1 0 0 (10)^3408 1 1 1 0 0^2590 [D0] 1^10388</pre> a stack of 10s, a gap of 0s that grows, and (in some phases) a run of 1s further right.</p>"
+    ]
+   },
+   {
+    "id": "rule",
+    "eyebrow": "The rule",
+    "heading": "Two 10s out, six 0s in; then the gap becomes the new stack",
+    "html": [
+     "<p>Each round the head goes from the right end to the top of the stack and back: two copies of <code>10</code> leave the stack and the gap grows by six 0s (proved in Lean, 4g + 26 steps). When the stack is empty, the gap of about 3x zeros is turned into a stack of about 3x/2 copies of <code>10</code>. So in the simplest case P(0, x) → P(x mod 2, 3⌊x/2⌋ + 6).</p>",
+     "<p>With the leading 1 present and x even, the end of the phase goes through more levels: P(1, 4i+2) → P(1, 9i + 15), P(1, 8i) → P(1, 27i + 18), and x = 8i + 4 splits again by 32 (slope 243/32). The slopes are 3/2, 9/4, 27/8, ..., 243/32: each extra power of 2 dividing x adds a factor 3/2.</p>",
+     "<p>Worked example: P(1, 18), 18 = 4·4 + 2, goes to P(1, 9·4 + 15) = P(1, 51); 51 is odd, so P(0, 3·25 + 6) = P(0, 81); 81 with pre = 0 gives P(1, 3·40 + 6) = P(1, 126). These are exactly the phase starts of the real run.</p>"
+    ]
+   },
+   {
+    "id": "orbit",
+    "eyebrow": "How far it goes",
+    "heading": "63 phases in the decoded cases",
+    "html": [
+     "<p>Iterating the map from P(1, 3), the orbit stays in the decoded cases for 63 phases and reaches P(1, 2,162,240,868,156,300), which is 4 mod 8, the first case without a formula. The map was checked against the machine for every decoded case with x ≤ 120, not proved, so this is a strong prediction rather than a theorem.</p>",
+     "<p>The machine can only stop on <code>E&gt; 1 0 1</code>. Whether it does is a question about this (3/2)<sup>k</sup> map on all levels of the binary digits of x: of the same kind as the Collatz problem.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +162,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A Collatz-like map that multiplies by powers of 3/2: phase starts [1] (10)^x 1110 go to x' ≈ (3/2)^k·x, with k set by the low binary digits of x; the orbit from blank tape stays in the decoded cases for 63 phases, up to x ≈ 2.2·10^15.",
+ "family": "Collatz-like (3/2)^k map",
+ "decision": "open"
 }

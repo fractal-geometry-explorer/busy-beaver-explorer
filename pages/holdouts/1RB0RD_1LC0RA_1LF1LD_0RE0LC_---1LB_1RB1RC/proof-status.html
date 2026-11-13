@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, but it is now reduced in Lean to one configuration about 1.96·10<sup>20</sup> steps in.</b> The machine is a counter ticked once per round trip across a growing wall, and the tick is a carry automaton on the counter's digits; both facts are proved for every wall and every digit string. A certificate checked by compiled Lean code shows that the first 8,072,508,823 sweeps after step 30,225 all stop inside the digits. The next sweep runs off the end without halting and turns the whole wall into pairs <code>11</code>. So the machine halts from blank tape exactly when it halts from that configuration, <code>C&gt; 1 (11)^8072508832 R1</code>.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,36 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The wall's round trip</h3>
+        <p>From D leaving the counter, <code>0^inf (10)^n D&gt; 1 R</code>, the head crosses the wall, adds one pair at the blank end and comes back: <code>0^inf (10)^(n+1) A&gt; 0 R</code> after 6n + 4 steps, for every n and every tape R. Built from the three pieces <code>wall_right</code>, <code>wall_left</code>, <code>left_end</code>.</p>
+        <p class="where"><code>round</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A whole sweep that sets x1</h3>
+        <p>When the counter's first digit x1 is 0: <code>0^inf (10)^n 1 0 A&gt; 1 1 0 1 R</code> reaches <code>0^inf (10)^(n+2) A&gt; 1 1 1 1 R</code> in 6n + 18 steps: x1 becomes 1, the wall grows by one pair, and A is back at x0.</p>
+        <p class="where"><code>toggle</code>, <code>sweep_toggle</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The carry's zigzag</h3>
+        <p>Over a stretch of ones the carry moves right three cells per 7 steps: <code>L 1 0 0 D&gt; (111)^n R</code> reaches <code>L (110)^n 1 0 0 D&gt; R</code>.</p>
+        <p class="where"><code>zig</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A sweep is one step of the carry automaton, for every digit string</h3>
+        <p>An arrival <code>0^inf (10)^(n+1) A&gt; 1 1 x1 1 ... xk 1 R</code> reaches <code>0^inf (10)^(n+2) A&gt; 1 1 y1 1 ... yk 1 R</code> whenever the automaton (a: 0&rarr;1 stop, 1&rarr;0 b; b: 0&rarr;1 a, 1&rarr;0 c; c: 0&rarr;0 c, 1&rarr;1 a) stops inside the digits and turns xs into ys. This holds for every n, every digit string and every tape R. The proof is by induction over the digits, chaining symtm rules for each state and digit on the way right and each pending pair on the way back.</p>
+        <p class="where"><code>sweep</code>, <code>run</code>, <code>lean/Sweep.lean</code>; rules in <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting only at end events</h3>
+        <p>If no sweep ever runs off the end of the digits, the machine never halts from that arrival. Along any number of sweeps that stop inside the digits, halting is unchanged.</p>
+        <p class="where"><code>not_halts_arrival</code>, <code>halts_arrival_iff</code>, <code>lean/Event.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The first arrival</h3>
+        <p>From blank tape, step 30,225 is the arrival with a wall of 10 pairs and the 109 digits <code>X0</code>, followed by a last cell 1. The list simulator is evaluated by the kernel.</p>
+        <p class="where"><code>first_arrival</code>, <code>lean/Event.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -110,6 +140,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>8,072,508,823 sweeps without reaching the end</h3>
+        <p>The automaton becomes a transducer on words of generators, and a<sup>k</sup> is kept as a straight-line program of 6,010 nodes. The checker's soundness is proved in Lean, and the certificate of 7,351 entries is checked by compiled code. The result: all 8,072,508,823 sweeps after the first arrival stop inside the digits, ending with the digits <code>Y0</code>.</p>
+        <p class="where"><code>sweeps_X0</code>, <code>lean/Cert.lean</code> (generated by <code>py/slp.py</code>); checker <code>entry_sound</code>, <code>chain_sound</code>, <code>pow_sound</code>, <code>lean/Orbit.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The first end event does not halt; halting reduces to one configuration</h3>
+        <p>The next sweep runs into the last cell in state b and passes it without halting. It then comes back across the whole wall, turning each pair <code>10</code> into <code>11</code>, and reaches <code>post n = C&gt; 1 (11)^n R1</code>; the kernel checks this for every wall n. Together with the claims above: the machine reaches <code>post 8072508832</code> from blank tape, about 1.96&middot;10<sup>20</sup> steps in, and it halts from blank tape if and only if it halts from there.</p>
+        <p class="where"><code>event</code>, <code>reaches_post</code>, <code>halts_iff_post</code>, <code>lean/Event.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -119,20 +159,35 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 36,723 cells have been visited and 18,406 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The automaton permutes digit strings</h3>
+        <p>Digit i of a sweep's result depends only on digits 1..i, and on the strings of each length up to 12 the automaton is a bijection whose cycles all have power-of-two lengths: an odometer-like map. Deep carries are rare: the first sweeps reaching x40, x70, x100 come 1,635, 402,291 and 69,230,963 sweeps after step 2&middot;10<sup>7</sup>.</p>
+        <p class="where"><code>py/automaton.py</code>, <code>c/counter.c</code></p>
+      </div>
+      <div class="card">
+        <h3>After the first end event</h3>
+        <p>The counter runs on with the same automaton on the n + 111 digits, now on the other parity of cells, and a new wall grows from the left end. This was simulated from that counter with walls of 1 to 33 pairs.</p>
+        <p class="where"><code>py/automaton.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Which end events halt</h3>
+        <p>An end event is a carry that runs into the last cell; the outcome depends on the state the carry is in after that cell. With the last cell a digit (as from blank tape): a halts, c turns the wall into 11s (the first event), and b goes back in the normal mode. This was checked on 20,000 random carry paths of up to 40 digits. With the last cell a 1 (as after the first event), b halts; this was checked on counters of k ones with walls of 3 to 6 pairs.</p>
+        <p class="where"><code>py/automaton.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.491). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>The next end event is beyond simulation</h3>
+        <p>The second end event needs a carry through all n + 111 digits, n &asymp; 8&middot;10<sup>9</sup>, most of them ones. Simulation cannot reach it. Which state it arrives in is a question about the automaton group generated by a = (e, b)&sigma;, b = (a, c)&sigma;, c = (c, a); the straight-line programs of <code>py/slp.py</code> might reach it if the number of sweeps can be found.</p>
+        <p class="where"><code>README.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It halts if and only if it halts from <code>post 8072508832</code>, the configuration right after the first end event, which does not halt.</p>
       </div>
     </div>
   </section>
@@ -140,7 +195,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC 1000000000</code></pre>
+python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/automaton.py
+python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/slp.py
+gcc -O2 -o counter holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/c/counter.c &amp;&amp; ./counter</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

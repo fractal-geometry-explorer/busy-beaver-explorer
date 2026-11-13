@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The machine is a base-5 counter written as walls in a sea of <code>1000</code> blocks (described below; its one-sweep and carry rules are proved in Lean). It can halt only during a rare event, the merger of two walls; every merger type tried symbolically (both walls in any of their six shapes, 0 to 2 blocks apart) ends without halting, and the C simulator finds no halt in the first 10<sup>10</sup> steps. A proof would have to cover every merger and edge event; that has not been done."
  ],
  "claims": [
   {
@@ -40,40 +40,65 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
-   "level": "heuristic",
-   "title": "Growth shape: exp/sqrt",
-   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.506). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.025).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "level": "kernel",
+   "title": "The sweep and carry rules",
+   "text": "With the head in state D on the first 1 at the left end, <code>0^&infin; D&gt; (1000)^(x+1) W (1000)^(y+1) R</code>, one sweep moves the first wall W one step along its cycle <code>1001 → 1001100 → 100110 → 10011 → 10010 → 1001</code>, for every x, y and every tape R (four theorems, one per shape that does not carry). From <code>10011</code> the sweep carries: it also moves the second wall one step (four theorems, one per shape of the second wall that does not carry on). The step counts are linear in x.",
+   "where": "<code>sweep_w0</code> &hellip; <code>sweep_w4</code>, <code>carry_w0</code> &hellip; <code>carry_w4</code>, <code>lean/Walls.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>10</sup> steps",
+   "text": "The C simulator (<code>tools/c/tm.h</code>) runs 10<sup>10</sup> steps without a halt; at the end the tape has 7 walls. Along the way the counter overflowed 11 times (every wall in shape <code>10011</code> at once: the carry runs off the right end and the tape grows there) and walls merged 10 times.",
+   "where": "<code>py/walls.py</code> in the folder of 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD&hellip;"
+  },
+  {
+   "level": "trusted",
+   "title": "Where F comes in",
+   "text": "State F is reached only through E reading a 1, which an ordinary sweep never does: in 10<sup>10</sup> steps it happened 4 times, never in an ordinary sweep or carry (their Lean proofs never pass through F) but in the rare events, and each time F read a 0 (<code>F0 → 0RD</code>).",
+   "where": "<code>py/walls.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The mergers tried end without a halt",
+   "text": "A symbolic run (head, literal cells and repeated blocks with variable counts, any tape R beyond) from <code>0^&infin; D&gt; (1000)^(x+3) W₁ (1000)^g W₂ (1000)^(y+6) W₃ (1000)^(z+4) R</code>, for each of the 36 pairs of shapes W₁, W₂ and each gap g = 0, 1, 2: 108 of the 108 cases return to the ordinary form without a halt, and none halts. It is evidence, not a proof: mergers deeper in the tape have another wall near on the left, and the edge events (a wall reaching the right end, the overflow) are not covered.",
+   "where": "<code>py/collisions.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "n-gram CPS fails",
+   "text": "The n-gram closed position set decider of the Coq-BB5 paper finds a (spurious) path to the halt for windows of 3 to 7 cells with or without history, and for the lead machine of the family up to 40 cells: windows cannot tell how the walls are spaced.",
+   "where": "<code>tools/c/ngramcps.c</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. It would halt only if some merger of walls (or edge event) put E on a 1 followed by a 1. The mergers tried never do, which suggests it never halts; a proof needs a closed description of every configuration between samples (a regular language over walls and gaps), which is the next thing to try.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD--- 1000000000"
+  "python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD---/py/wall_rules.py 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD---   # writes lean/Walls.lean",
+  "python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD---/py/walls.py 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD--- 1000000000   # the counts"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows, but the machine has a clear structure: it is a <b>base-5 counter</b>. The tape is long runs of the block <code>1000</code> broken by short <em>walls</em>; each wall is one digit, and its shape is the digit's value. A head bouncing between the left end and the first wall counts the sweeps.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 80,015 cells visited."
+    "value": "10<sup>10</sup> steps",
+    "text": "No halt in the C simulator."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "kernel",
+    "value": "8 rules",
+    "text": "One sweep and one carry, for every size, proved in Lean."
    },
    {
     "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "base 5",
+    "text": "Each wall cycles through five shapes."
    }
   ],
   "presets": [
@@ -85,6 +110,36 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "walls",
+    "eyebrow": "Macro structure",
+    "heading": "Blocks and walls",
+    "html": [
+     "<p>Stop the machine each time its head is back at the left end of the tape, in state D on a 1. The tape always reads the same way: runs of the four-cell block <code>1000</code>, separated by short <em>walls</em>. Written <code>c</code> for the block and the walls by their cells, here is the tape of <code>1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD---</code> at step 9,999,734,415:</p>",
+     "<p><code>c^17457 10011 c^15393 10011 c^24758 1001 c^638 1001 c^1161 100110 c^235 10011 c^228 0 c^6 1001</code></p>",
+     "<p>A wall is always one of five words, <code>1001</code>, <code>1001100</code>, <code>100110</code>, <code>10011</code>, <code>10010</code>, or a single <code>0</code> (a digit that has not started counting yet, see below), and the tape ends on the right with <code>1001</code>. In the middle of a merger, described below, a wall can briefly be a longer word.</p>"
+    ]
+   },
+   {
+    "id": "sweeps",
+    "eyebrow": "Macro structure",
+    "heading": "One sweep moves one digit",
+    "html": [
+     "<p>From the left end the head runs right over the first run of blocks, turning each <code>1000</code> into <code>0101</code> in four steps, and stops at the first wall. It changes the wall's shape and walks back, zigzagging six steps per block and turning <code>0101</code> back into <code>1000</code>. The run in front grows by one block, so the sweeps get longer and the left side of the tape grows like the square root of the time: that is the bouncer half of the growth shape.</p>",
+     "<p>The wall's shape goes round a cycle of five: <code>1001 → 1001100 → 100110 → 10011 → 10010 → 1001</code>. The step from <code>10011</code> to <code>10010</code> is the <b>carry</b>: on that sweep the head does not turn at the first wall but goes on to the second and moves it one step too (and if that one is also at <code>10011</code>, on to the third). So the walls are the digits of the number of sweeps written in base 5, the first wall the lowest digit. Lean proves these rules for runs of any length (<code>lean/Walls.lean</code>).</p>",
+     "<p>When every wall is at <code>10011</code> the carry runs through all of them to the right end: the tape grows there by three cells, every wall becomes a single <code>0</code>, and a new lowest digit is born at the left end. A <code>0</code> wall becomes <code>1001</code> the first time a carry reaches it, and stops the carry. So the counter gains a digit at each overflow, the overflows come about five times further apart each time, and the right end of the tape grows like a logarithm of the time. In 10<sup>10</sup> steps there were 11 overflows.</p>"
+    ]
+   },
+   {
+    "id": "mergers",
+    "eyebrow": "Emergent behavior",
+    "heading": "Drifting walls and mergers",
+    "html": [
+     "<p>A plain counter would be easy to prove non-halting. This one is not plain, because the walls move. Each time a wall goes round its cycle it shifts two blocks to the right, so a low digit drifts right faster than the digit after it and the run between them shrinks. When it is used up the two walls <b>merge</b>: for a few sweeps the wall is a longer word, then one ordinary wall is left and a new lowest digit is born at the left end. In 10<sup>10</sup> steps walls merged 10 times.</p>",
+     "<p>When a merger happens, and with which shapes, depends on the whole history of the counter: it is the kind of arithmetic that makes these machines hard. State F is reached only through E reading a 1, which an ordinary sweep never does: in 10<sup>10</sup> steps it happened 4 times, never in an ordinary sweep or carry (their Lean proofs never pass through F) but in the rare events, and each time F read a 0 (<code>F0 → 0RD</code>).</p>",
+     "<p>The variants of this family share states A to D and differ only in E and F, that is, only in what a merger does: <code>1RB0RC_1LC0RD_0LD0LC_1RE0LA_0LE1RF_0RA---</code>, <code>1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LB---</code>, <code>1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1LB---</code>, <code>1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_0RE---</code>. Every merger tried by symbolic simulation (36 pairs of shapes, gaps of 0 to 2 blocks) ends in the ordinary form without a halt, which points to a machine that never halts. Turning that into a proof means describing every configuration, mergers and edge events included, by a finite set of patterns that the machine maps into itself.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +153,8 @@
     ]
    }
   ]
- }
+ },
+ "family": "wall counter (base 5, drifting walls)",
+ "summary": "A base-5 counter: the tape is runs of the block 1000 split by walls that each cycle through five shapes; a bouncer sweeps from the left end to the first wall, walls drift right and merge, and the right end grows only when every digit overflows.",
+ "decision": "open"
 }

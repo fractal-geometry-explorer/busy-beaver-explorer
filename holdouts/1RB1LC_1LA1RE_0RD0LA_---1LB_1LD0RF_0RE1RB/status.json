@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G12",
  "title": "What is known about 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB.",
@@ -8,11 +8,14 @@
  "home": "../index.html",
  "source": "holdouts/1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
+  "Its run is a binary counter on the left, whose overflows come at doubling times, and a word of binary digits on the right through which each overflow moves a marker one block; when the marker reaches the end of the tape the word is rebuilt longer and the counter starts again."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in the first 10<sup>11</sup> steps.",
+  "<b>What it does.</b> At each overflow of its counter the tape is <code>C&gt;0 (1 0)^z W</code>; z grows by one per overflow while the step count doubles, and a marker block <code>1^11</code> moves one block right through the periodic end <code>(1^5 0)^m</code> of W. When it reaches the end, W is rebuilt longer (at steps 17,682,600, 5,745,422,543 and 49,800,461,566).",
+  "<b>Why it is hard.</b> A halt can only come out of a restructure; similar configurations with random words halt quickly, so the run is kept safe by the particular words it writes, and nobody has worked out the restructure rule."
  ],
  "claims": [
   {
@@ -35,45 +38,57 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 252 cells have been visited and 202 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 10<sup>11</sup> steps",
+   "text": "The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps without a halt; 385 cells visited, 312 ones at the end.",
+   "where": "<code>tools/c/tmrun.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The overflow configurations of the run",
+   "text": "All 144 moments in the first 10<sup>11</sup> steps where C is at the left end on <code>0 1 0</code> have the shape <code>(1 0)^z W</code> with W of odd blocks; z rises by one from each to the next except at 16 restructures where it falls back to 1 or 2, the last three at steps 17,682,600, 5,745,422,543 and 49,800,461,566.",
+   "where": "<code>tmrun ... records</code>, read in pairs of cells"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: exp/fixed",
-   "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.063). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "A binary counter and a moving marker",
+   "text": "Within an epoch the step counts of successive overflows double, and the block <code>1^11</code> in the periodic tail <code>(1^5 0)^m</code> moves one block right per overflow.",
+   "where": "the records of the 10<sup>11</sup>-step run"
+  },
+  {
+   "level": "heuristic",
+   "title": "Random words of the same shape halt",
+   "text": "Started from <code>C&gt;0 (1 0)^z W</code> with random short words W, the machine often halts within a hundred steps (in state D reading the 0 next to the last cell), so non-halting is a property of the words the run writes, not of the shape.",
+   "where": "experiments with a direct simulator started from given tapes"
   },
   {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "title": "The restructures, and the question itself",
+   "text": "Not known: the rule that maps one epoch to the next, why the run's words never lead to the halting configuration, and whether the machine halts.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB 1000000000"
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB 100000000000 records 100000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>11</sup> steps without stopping. A binary counter moves a marker through a word one block per overflow, and the word is rebuilt whenever the marker reaches its end. This page runs the real machine in your browser and lists what is known.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 252 cells visited."
+    "value": "10<sup>11</sup> steps",
+    "text": "No halt in the C simulator; 385 cells visited."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "3 epochs",
+    "text": "Restructures at 1.8&middot;10<sup>7</sup>, 5.7&middot;10<sup>9</sup> and 5.0&middot;10<sup>10</sup> steps."
    },
    {
     "level": "heuristic",
-    "value": "exp/fixed",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "&times;2",
+    "text": "The step counts of successive counter overflows double."
    }
   ],
   "presets": [
@@ -85,6 +100,22 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "family",
+    "eyebrow": "Macro structure",
+    "heading": "A counter and a marker",
+    "html": [
+     "<p>Stop the simulator whenever the head, in state C, is at the left end of the tape reading a 0 followed by <code>1 0</code>. From the head on the tape then reads <code>C&gt;0 (1 0)^z W</code>, where W is a word of odd blocks of 1s separated by single 0s. Read in pairs of cells, the tape is a string of binary digits (the second cell of each pair); the prefix is a run of z zero digits.</p><p>From one such moment to the next z grows by one and the step count doubles: the prefix is a binary counter, and each of its overflows makes one change to W. In most of the run that change is easy to see. The far end of W is periodic, blocks <code>1^5</code> separated by single 0s, with one longer block <code>1^11</code>, a <b>marker</b>, among them; each overflow moves the marker one block to the right:</p><table><tr><th>step</th><th>z</th><th>end of the tape</th></tr><tr><td>20,479,436</td><td>16</td><td><code>&hellip; 0 1^11 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^6</code></td></tr><tr><td>23,276,234</td><td>17</td><td><code>&hellip; 0 1^5 0 1^11 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^6</code></td></tr><tr><td>28,869,832</td><td>18</td><td><code>&hellip; 0 1^5 0 1^5 0 1^11 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^6</code></td></tr></table><p>(The rows are 2,796,798 and 5,593,598 steps apart.)</p>"
+    ]
+   },
+   {
+    "id": "restructure",
+    "eyebrow": "Why it is open",
+    "heading": "Restructures",
+    "html": [
+     "<p>When the marker reaches the end of the tape the word is rebuilt longer and z starts again from 1: a <b>restructure</b>. In the first 10<sup>11</sup> steps the last restructures came at steps 17,682,600 (W then has 102 digits), 5,745,422,543 (131 digits) and 49,800,461,566 (163 digits); at step 96,162,430,390 the run is at z = 30 with 192 digits and the marker a few blocks from the end, so the next restructure should come at a few times 10<sup>11</sup> steps. Each epoch lasts about as many doublings as there are blocks in the periodic tail, so the epochs grow roughly geometrically, by a factor of 8 in the last two.</p><p>The machine halts only in state D reading a 0. Started from configurations of the same shape with random words, it often halts within a hundred steps with <code>D&gt;0 1</code> at the right end of the tape. The run never meets such words: what it writes at a restructure is special, and what makes it safe has not been worked out. A halt, if there is one, would come out of a restructure.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +129,7 @@
     ]
    }
   ]
- }
+ },
+ "family": "binary counter moving a marker through a word",
+ "summary": "A binary counter on the left whose overflows move a marker block through the periodic end of a word; when the marker reaches the end the word is rebuilt longer (epochs of 5.7e9 and 4.4e10 steps). Open, no halt in 10^11 steps."
 }

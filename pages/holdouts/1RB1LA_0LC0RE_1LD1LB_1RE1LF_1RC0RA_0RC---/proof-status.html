@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The machine is a base-4 counter of walls in a sea of <code>100</code>, incremented from the right end. Lean proves one sweep for every carry chain (any length) for every edge event seen: the overflow, four kinds of merger and seven left-end cases; an exact digit simulator, checked against the direct run, ran to 2.2&middot;10<sup>15</sup> steps without a halt or an unknown event. No closed set of digit configurations has been found: the safe mergers depend on a mod-4 relation between neighbouring digits.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The shift rules</h3>
+        <p>Going right, E turns (101)<sup>n</sup> and (011)<sup>n</sup> into (010)<sup>n</sup>, A turns (011)<sup>n</sup> into (100)<sup>n</sup>, B turns (110)<sup>n</sup> into (001)<sup>n</sup>; going left, D turns (100)<sup>n</sup> back into (101)<sup>n</sup>, B and C rewrite (010)<sup>n</sup> and (001)<sup>n</sup>, A runs over 1s. Each for every n and every surrounding tape.</p>
+        <p class="where"><code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>One sweep adds one, for a carry chain of any length</h3>
+        <p>At the sample point (C on a 0 at the right end) the tape is a list of digits <code>(100)^r W</code>. With the first non-S3 digit (the <em>stop</em>) in shape S0, S1 or S2 and any list <code>ts</code> of S3 digits after it (any length, any runs), one sweep turns the stop into the next shape (S0&rarr;S1, S1&rarr;S2 with its left run one shorter, S2&rarr;S3), every S3 of the chain into S0, and lengthens the last run by one. Proved by induction on the list (<code>seqtm</code>).</p>
+        <p class="where"><code>sweep_s0</code>, <code>sweep_s1</code>, <code>sweep_s2</code>, <code>lean/Sweeps.lean</code>, <code>lean/Seq.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The overflow, the mergers and the left end</h3>
+        <p><code>0^inf 10</code> followed only by S3 digits (any number): one sweep crosses the whole tape, every S3 becomes S0 and a new digit S1 is born at the right end (<code>overflow</code>). An S1 with left run 0 receiving a carry fuses with the wall before it: after S into one S0 (<code>merge_s_s1</code>), after S3 into S and S0 (<code>merge_s3_s1</code>), after S2 into X6 = <code>1000000</code> (<code>merge_s2_s1</code>); X6 and X5 as stops (<code>sweep_x6</code>, <code>sweep_x5</code>). At the left end, eight cases with a first digit of run 0 (<code>left_s_s1</code>, <code>left_s0</code>, <code>left_s1</code>, <code>left_s2</code>, <code>left_s3</code>, <code>left_s_s0</code>, <code>left_s_s2</code>, <code>left_s3_s</code>). Each for any carry chain.</p>
+        <p class="where"><code>lean/Sweeps.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +134,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 64,212 cells have been visited and 26,731 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The digit model is exact</h3>
+        <p><code>py/digits.py</code> maps one sample to the next by running the machine symbolically (<code>symtm</code>) on a window (the carry chain, the stop, and as many digits before it as the run touches; the rest an unknown context; long runs as variables). Compared with the direct run from blank tape: the same tapes and the same step counts at all 14,148 sample points up to 2&middot;10<sup>8</sup> steps.</p>
+        <p class="where"><code>py/digits.py check</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 2.2&middot;10<sup>15</sup> steps</h3>
+        <p>From the sample at 2&middot;10<sup>9</sup> steps the digit model ran 4.9&middot;10<sup>7</sup> sweeps more, to 2.2&middot;10<sup>15</sup> steps: no halt and no window it could not read back as digits; overflows and mergers as described, the first block went from 14 down to 0 (one per overflow) near 2.1&middot;10<sup>15</sup> steps, the left end rearranged (<code>[0]S3 [0]S [436]S0</code> &rarr; <code>[0]S [0]S0 [435]S0</code>) and the counter went on.</p>
+        <p class="where"><code>py/digits.py far</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +152,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.064). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.539).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Why it probably never halts</h3>
+        <p>Every event seen is one of a small catalogue of local rewrites of digits, each a Lean rule, none of which reaches F on a 1. The dangerous mergers (an S1 of run 0 after S0 or S1, which would leave the vocabulary) never occur, because of a mod-4 relation: for neighbouring digits y x, phase(y) + run(x) + [x is S2 or S3] mod 4 is fixed while both live, and is 2 or 3 in 2,091,564 of 2,092,788 neighbour pairs over the first 3&middot;10<sup>5</sup> sweeps (the rest inside S[0]S0 compounds).</p>
+        <p class="where"><code>py/closure.py kinv</code>; README, Notes for later</p>
+      </div>
+      <div class="card">
+        <h3>No small closed language</h3>
+        <p>The fixpoint search <code>py/closure.py ngram</code> (every place a sweep can happen in a word of the language, run symbolically) does not close for bigrams or trigrams with run classes 0, 1, &ge;2, nor for bigrams with residues mod 4, a marked left end and the compounds S[0]S0, S[0]S1 (536 bigrams, then windows with X5 or X6 before an S1 of run 0, which the real run never shows).</p>
+        <p class="where"><code>py/closure.py</code>; README, Notes for later</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. Missing: a closed set of digit configurations. n-gram languages over (wall, run class), with classes 0/1/&ge;2 or with residues mod 4, compounds and a marked left end, all fail to close in <code>py/closure.py</code>, and cell-level closed tape languages (windows of 3..7 cells, block trackers) do not close within 4&middot;10<sup>5</sup> abstract configurations. Also missing: carry chains with an S3 of run 0 in <code>seqtm</code>, and the assembly in Lean.</p>
       </div>
     </div>
   </section>
@@ -140,7 +175,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC--- 1000000000</code></pre>
+python3 holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/py/digits.py check 2e8
+python3 holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/py/digits.py far 1e6 300000 50000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

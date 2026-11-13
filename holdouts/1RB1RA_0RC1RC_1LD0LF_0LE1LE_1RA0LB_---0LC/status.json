@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G07",
  "title": "What is known about 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC.",
@@ -8,11 +8,12 @@
  "home": "../index.html",
  "source": "holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its run is a sequence of <em>epochs</em>, each a Collatz-like countdown; an epoch ends either in a halt or in a new, vastly longer epoch. The bbchallenge community lists it as <em>probviously halting</em>: with fair-coin parities every epoch halts with probability 1/3."
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> In configurations <code>X(n, m) = C&gt;0 0^n 1^m 0 1</code> the machine sends n to about 3n/2 and m down by 1 or 2 according to n mod 4. When m runs out it halts or starts a new epoch with m ≈ 3n/2.",
+  "<b>Where the run is (computed exactly).</b> Epochs start with m = 5, 57, 210,273,201. The third epoch lasts 140,180,848 macro steps (the number reaches 82 million bits) and ends in a new epoch, whose countdown has about 24,684,623 decimal digits. Its end is out of reach of any computation. Heuristically each epoch halts with probability 1/3, so the machine halts with probability 1, after a number of steps with tens of millions of digits in its exponent."
  ],
  "claims": [
   {
@@ -40,40 +41,54 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "The macro rules",
+   "text": "For X(n, m) = 0^∞ C&gt;0 0^n 1^m 0 1 0^∞ with n ≥ 2 even: for m ≥ 2, n ≡ 0 (mod 4) goes to X(3n/2 + 4, m − 1) and n ≡ 2 to X((3n + 10)/2, m − 2); for m = 1, n ≡ 0 gives X(3n/2 + 4, 0) and n ≡ 2 a new epoch X(4, 3n/2 + 6); for m = 0, n ≡ 0 gives X(4, 3n/2 + 5) and n ≡ 2 halts. Checked against direct simulation for every even 2 ≤ n &lt; 60 and m &lt; 12. Inside a step the head fills the run of 0s with 1s from the left, two cells per round trip while the tape grows by one at the left; then a 1 is taken off the countdown block.",
+   "where": "<code>py/macro.py check</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The first three epochs, exactly",
+   "text": "From blank tape the run reaches X(4, 5) after 50 steps; epochs start with m = 5, 57 (step 2,619) and 210,273,201. The third epoch was run exactly with a divide-and-conquer parity iteration (the parities of t steps of y ↦ ⌈3y/2⌉ depend only on y mod 2<sup>t</sup>; blocks are combined with powers of 3, GMP through gmpy2): it ends after 140,180,848 macro steps at m = 1 with n ≡ 2 (mod 4), so a fourth epoch starts with m = 3n/2 + 6, a number of 82,000,544 bits (about 24,684,623 digits; m mod 2<sup>64</sup> = 15369781771884450229). Two runs with different block sizes agree; the fast iteration agrees with plain big-integer iteration on epochs with m up to 10<sup>5</sup>.",
+   "where": "<code>py/macro.py epochs</code>, <code>py/epoch.py 210273201 22</code>, <code>py/fastwalk.py</code>"
+  },
+  {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.481). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Halts with probability 1, but not soon",
+   "text": "With y = n/2 + 4 the rule is y ↦ ⌈3y/2⌉, with m −1 for y even and −2 for y odd. With fair-coin parities the countdown lands on m = 1 with probability 2/3 and on 0 with probability 1/3; m = 1 continues to 0 or starts a new epoch, and m = 0 halts or starts a new epoch, each with probability 1/2. So an epoch halts with probability 1/3 and the machine halts with probability 1, the community's reading. The fourth epoch alone lasts about 10<sup>24,684,623</sup> macro steps.",
+   "where": "<code>holdouts/known.json</code>"
   },
   {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "title": "How does the fourth epoch end?",
+   "text": "It needs the parities of about 1.6 · 10<sup>24,684,622</sup> iterates of ⌈3y/2⌉ from y = 6: no method computes them.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC 1000000000",
+  "python3 holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/py/macro.py check && python3 holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/py/macro.py epochs",
+  "pip install gmpy2 && python3 holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/py/epoch.py 210273201 22"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows whether it halts, but almost everyone expects it to — eventually. This machine plays rounds of a game: a number grows by a factor 3/2 while a countdown ticks down by 1 or 2, depending on the number's last binary digits. When the countdown runs out, the machine either halts or starts a new round with a countdown about 3/2 times the number. We computed the third round exactly — 140 million steps of the game. It does not halt: it starts a fourth round whose countdown has almost 25 million digits.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 36,156 cells visited."
+    "value": "m = 5, 57, 210,273,201",
+    "text": "Countdowns of the first three epochs, computed exactly."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "trusted",
+    "value": "24.7 million digits",
+    "text": "The fourth epoch's countdown: out of reach."
    },
    {
     "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "1/3 per epoch",
+    "text": "Chance an epoch ends in a halt with fair-coin parities."
    }
   ],
   "presets": [
@@ -82,21 +97,23 @@
    1000000
   ],
   "spacetime": {
-   "steps": 20000
+   "steps": 3000
   },
   "sections": [
    {
-    "id": "shape",
-    "eyebrow": "First look",
-    "heading": "The shape of the run",
+    "id": "epochs",
+    "eyebrow": "What the machine does",
+    "heading": "Rounds of a 3/2 game",
     "html": [
-     "<p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.481). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>",
-     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"159.1\" y2=\"159.1\" stroke=\"var(--line)\"/><text x=\"34\" y=\"163.1\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"118.2\" y2=\"118.2\" stroke=\"var(--line)\"/><text x=\"34\" y=\"122.2\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"77.3\" y2=\"77.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"81.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,183.8 L59.2,179.6 L78.4,166.0 L97.6,160.1 L116.8,156.6 L136.0,150.9 L155.2,145.6 L174.4,142.3 L193.6,132.8 L212.8,128.2 L232.0,123.8 L251.2,119.3 L270.4,114.6 L289.6,109.7 L308.8,104.9 L328.0,100.1 L347.2,96.4 L366.4,91.1 L385.6,85.8 L404.8,80.5 L424.0,75.2 L443.2,70.0 L462.4,65.1 L481.6,61.1 L500.8,55.6 L520.0,50.2\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,183.8 L59.2,173.6 L78.4,173.6 L97.6,173.6 L116.8,173.6 L136.0,173.6 L155.2,173.6 L174.4,173.6 L193.6,167.6 L212.8,167.6 L232.0,167.6 L251.2,167.6 L270.4,167.6 L289.6,167.6 L308.8,167.6 L328.0,167.6 L347.2,167.6 L366.4,167.6 L385.6,167.6 L404.8,167.6 L424.0,167.6 L443.2,167.6 L462.4,167.6 L481.6,167.6 L500.8,167.6 L520.0,167.6\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
-     "<p>After 10<sup>9</sup> steps the tape spans 36,156 cells (25,769 left of the start, 8 right), with a density of 1s of 0.667.</p>",
-     "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>953,906,502</td><td><code>E&gt;0 1^22080 0 1 0^13376 1^30 0 1</code></td></tr><tr><td>left</td><td>969,586,119</td><td><code>E&gt;0 1^22780 0^12911 1^30 0 1</code></td></tr><tr><td>left</td><td>985,261,479</td><td><code>E&gt;0 1^23458 0^12459 1^30 0 1</code></td></tr></tbody></table></div>",
-     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+     "<div class=\"col\"><p>Over and over, the head stands at the left end of the tape in state C, looking at a run of 0s, then a block of 1s, then <code>0 1</code>:</p></div>",
+     "<svg viewBox=\"0 0 640 110\" role=\"img\" aria-label=\"the tape at a macro configuration\" style=\"width:100%;max-width:640px;height:auto;font:12px var(--mono)\">\n<polygon points=\"8,40 20,57 8,74\" fill=\"var(--head)\"/><text x=\"4\" y=\"92\" fill=\"var(--head)\">C</text>\n<rect x=\"24\" y=\"40\" width=\"330\" height=\"34\" fill=\"var(--cell0)\" stroke=\"var(--line-strong)\"/><text x=\"189\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">0^n — the number</text>\n<rect x=\"358\" y=\"40\" width=\"200\" height=\"34\" fill=\"var(--accent-soft)\" stroke=\"var(--accent)\"/><text x=\"458\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">1^m — the countdown</text>\n<rect x=\"562\" y=\"40\" width=\"20\" height=\"34\" fill=\"var(--cell0)\" stroke=\"var(--line-strong)\"/><rect x=\"586\" y=\"40\" width=\"20\" height=\"34\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"596\" y=\"62\" text-anchor=\"middle\" fill=\"var(--fg)\">1</text>\n<text x=\"189\" y=\"28\" text-anchor=\"middle\" fill=\"var(--fg2)\">n → about 3n/2 per step</text><text x=\"458\" y=\"28\" text-anchor=\"middle\" fill=\"var(--fg2)\">m → m−1 or m−2</text></svg>",
+     "<div class=\"col\"><p>From there the head sweeps back and forth, filling the 0s with 1s two at a time from the left while the tape grows by one cell at the left each round trip, and then takes one or two 1s off the countdown. The net effect: <b>n becomes 3n/2 + 4 and the countdown loses 1 if n is a multiple of 4; n becomes (3n + 10)/2 and the countdown loses 2 otherwise</b>. With y = n/2 + 4 the number simply goes y ↦ ⌈3y/2⌉.</p><p>When the countdown is used up the round ends: with one parity the machine <b>halts</b>, with the other it starts a <b>new round</b> with n = 4 and a countdown of about 3n/2. Since n has grown by a factor 3/2 per step, every round's countdown is exponentially longer than the last.</p><p>From blank tape the rounds start with countdowns 5, 57 and 210,273,201. We played the third round exactly: 140,180,848 steps of the game, with the number growing to 82 million binary digits. The trick is that the parities of the next t steps depend only on the last t binary digits of y, so long stretches can be computed by divide and conquer (35 seconds instead of years). The round did not halt: it started a fourth round whose countdown has <b>about 24,684,623 decimal digits</b>. That round can never be played out.</p><p>If the parities behave like fair coins, each round halts with probability 1/3, so the machine should halt eventually — that is what <em>probviously halting</em> means — but only after a number of steps far too large to write down, and nobody can prove it.</p></div>"
     ]
    }
-  ]
- }
+  ],
+  "title": "A countdown that resets into a bigger one"
+ },
+ "family": "Collatz-like epochs (y ↦ ⌈3y/2⌉ countdown)",
+ "decision": "open",
+ "summary": "Epochs of y ↦ ⌈3y/2⌉ with a countdown m (−1 even, −2 odd); an epoch ends in a halt or a new epoch with m ≈ 3y. Computed exactly: epochs start at m = 5, 57, 210,273,201 and then a 24.7-million-digit m; probviously halting, but open."
 }

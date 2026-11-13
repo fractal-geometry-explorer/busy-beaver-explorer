@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. The machine keeps a list of runs of 01 and sends cursors through it that triple every run they cross; the cursors live on a budget, stall and collide, and only a collision could stop the machine.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>10 rules</b><span class="small">describe the machine between visits of state A, for every tape; one of them halts.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>11</sup> steps</b><span class="small">without a halt (C simulator); the exact run-length simulator agrees with it at every left-end event of the first 3&middot;10<sup>8</sup>.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 71,228 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#rules">Ten rules and one way to halt</a><a href="#budget">Cursors on a budget</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +210,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="rules">
+  <span class="eyebrow">Macro structure</span>
+  <h2>Ten rules and one way to halt</h2>
+<p>Look at the machine only when it is in state A. If A reads <code>01</code> it flips the pair to <code>10</code> and moves on (R1). If it reads <code>00</code>, the ones that follow are erased up to the next 0 and the head turns (R2). When A reads a 1 it is on its way left, and the few cells on its left decide: <code>10</code> is crossed (L1), <code>10101</code> becomes <code>01100</code> (L2), <code>111</code> becomes <code>101</code> (L3), three patterns turn the head right again (L5 to L8), and <b><code>1101</code> halts</b> (L4). Lean proves each rule for every tape, and a finite case split shows there is no other case.</p>
+<p>On the tape this looks as follows. Most of it is runs of <code>01</code>, separated by the word <code>00110</code>. The head flips the runs on its way right, crosses the separators, and turns at the first <em>cursor</em>, a single cell that breaks the pattern. On the way back each separator moves two pairs from its left to its right. After the round trip the cursor has moved: two rounds take it six cells to the right while eating two pairs of the run in front of it, so a run of length b is about 3b long once the cursor has gone through.</p>
+</section>
+<section id="budget">
+  <span class="eyebrow">Why it is hard</span>
+  <h2>Cursors on a budget</h2>
+<p>Every round costs the first run one pair. A cursor in the first run feeds it, so a new cursor starts with a budget of about twice the run it first ate and then spends one pair per round. When the budget is gone, the first separator becomes a new cursor and the old one stops where it is. The tape so carries a stack of stalled cursors; each new one triples the runs up to the next stalled cursor and collides with it. Some collisions make both vanish, some leave one cursor or a new separator.</p>
+<p>Exactly how a run grows depends on its parity and on the cursor&rsquo;s mode: 3b, 3b+4 or 3b+8. That gives the layers seen in long runs: pairs of lengths (3, 11), (9, 41), (27, 131), (81, 401). The halting pattern <code>1101</code> next to the head cannot come from one cursor among long runs; it would take a collision with runs of length 0 or 1 in the wrong place. Whether the exact lengths ever line up that way is the open question. No halt in 10<sup>11</sup> steps.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +248,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 71,228 cells have been visited and 35,574 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.483). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>Macro structure (observed)</b><p>A layered bouncer: the tape is runs (01)^n separated by the marker 00110, in repeating pairs whose lengths triple from layer to layer ((9, 41), (27, 131), (81, 401), ...), while a block (10)^m at the left end grows and is spent.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>R1</code>, <code>R2</code>, <code>L1</code>&hellip;<code>L8</code>, <code>bad_halts</code>, <code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</div></div><div><b>Ten rules between visits of state A</b><p>From any configuration in state A the next one is given by R1 (A&gt; 01 &rarr; 10 A&gt;), R2 (A&gt; 00 1<sup>k</sup> 0 &rarr; 1 0<sup>k</sup> A&gt;1 1) or, when A reads 1, by the cells on its left (L1 &hellip; L8). Each is proved for every tape; L4 (1101 A&gt;1) halts.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>pass_run</code> &hellip; <code>annihilate</code>, <code>lean/Rules.lean</code></div></div><div><b>Passes and rounds</b><p>The right and left passes over a run of 01 and over a separator 00110 (the left pass moves two pairs across the separator), the left end, and nine rounds for all run lengths: a cursor moving through a run (a &ldquo;1&rdquo; b &rarr; a+2 &ldquo;0&rdquo; b &rarr; a+6 &ldquo;1&rdquo; b&minus;2), crossing a separator, and two cursors vanishing.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/macro.py</code></div></div><div><b>The case split is complete</b><p>Running the machine from state A to the next visit of state A, branching on every unread cell, gives a finite tree: the ten rules and no other case; one halt.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/engine.py check 3e8</code>, <code>python3 py/engine.py run 2e10</code></div></div><div><b>An exact run-length simulator</b><p>Machine steps plus the two proved jumps over runs. Same step count at each of the 22,399 left-end events of the first 3&middot;10<sup>8</sup> steps of the C simulator, same tape at the 409 compared. No halt in 2&middot;10<sup>10</sup> steps (133,716 rounds); the C simulator: none in 10<sup>11</sup>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/laws.py</code></div></div><div><b>A cursor triples the runs it crosses</b><p>A run of length b becomes 3b, 3b+4 or 3b+8 according to the parity of b and the mode in which the cursor entered (two modes); checked on 300 random run lists with the exact simulator.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w">README, &ldquo;Why it is open&rdquo;</div></div><div><b>Does it halt?</b><p>Unknown. A halt needs the pattern 1101 A&gt;1, which a single cursor among long runs never makes; it could only come from a collision of cursors with short runs, and which collisions happen depends on the exact run lengths and budgets.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA--- 1000000000</code></pre>
+python3 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---/py/rules.py   # re-proves the rules (symtm)
+python3 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---/py/macro.py   # the case split
+python3 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---/py/engine.py check 3e8   # the run-length simulator against the C simulator
+python3 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---/py/laws.py   # the crossing law</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

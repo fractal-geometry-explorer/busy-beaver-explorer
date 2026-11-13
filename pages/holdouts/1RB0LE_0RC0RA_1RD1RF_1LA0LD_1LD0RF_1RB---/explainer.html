@@ -127,7 +127,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows yet. This machine keeps an alternating tape cut into blocks, and its separators count like an odometer whose rules depend on the parities of the blocks. This page runs it in your browser and shows the counter.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 76,681 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#blocks">Blocks, separators and complementing sweeps</a><a href="#counter">An odometer read through parities</a><a href="#rebuilds">Rebuilds that recur</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,42 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="blocks">
+  <span class="eyebrow">Macro structure</span>
+  <h2>Blocks, separators and complementing sweeps</h2>
+<p>Stop the simulator whenever the head turns at the right end. The tape is always an alternating pattern cut into blocks by single extra cells. Writing <code>a</code> for <code>10</code>, at step 2,614 it reads</p>
+<pre>a<sup>3</sup> 1 a<sup>3</sup> 1 a<sup>12</sup> 1 a<sup>15</sup> 1 a<sup>27</sup> A&gt;1 1</pre>
+<p>Each sweep <em>complements</em> the cells it crosses, which on an alternating stretch is the same as shifting it by one cell. Moving left, A, E and D take four cells at a time (<code>sweep_left</code>); moving right, B and A take two (<code>sweep_right</code>). A separator is where two equal cells sit side by side, and that is where the head changes phase or turns. Below a list such as <code>3|3|12|15|27</code> means block lengths 3, 3, 12, 15, 27 with separators 1 (<code>|</code>) or 0 (<code>.</code>) between them.</p>
+</section>
+<section id="counter">
+  <span class="eyebrow">Macro structure</span>
+  <h2>An odometer read through parities</h2>
+<p>Consecutive right-end turns after step 2,614:</p>
+<pre>2,614  3|3|12|15|27
+2,792  3|3|12.16|28
+2,912  3|3|12.16.30
+3,224  3|3.12|17|31
+3,426  3|3.12.18|32
+3,562  3|3.12.18.34</pre>
+<p>Each line is one tick. The sweep from the right passes some separators and turns at one; the rules found by running the machine symbolically, with the block lengths as variables (e even, o odd):</p>
+<pre>x | e                  &rarr;  x . e+2                    (tick_last)
+x | o | o'             &rarr;  x . o+1 | o'+1             (tick_oo)
+x | e . e . e          &rarr;  x . e | e+1 | e+1
+x | o | o' . e . e     &rarr;  x . o+1 | o'-1 | e+1 | e+1
+x | e . e . e . e . e  &rarr;  x . e | e+1 | e-1 | e+1 | e+1</pre>
+<p>The separator 1 where the sweep turns becomes 0, the 0s after it become 1s, and the blocks after it change by +1, &minus;1, &hellip;, +1, +1. These two families cover 30,528 of the 30,932 ticks of the first 10<sup>10</sup> steps; Lean proves the first two lines for all lengths. For example the tick from 2,792 to 2,912 is <code>tick_last</code> with e = 28: <code>&hellip;16 | 28</code> becomes <code>&hellip;16 . 30</code>.</p>
+</section>
+<section id="rebuilds">
+  <span class="eyebrow">Macro structure</span>
+  <h2>Rebuilds that recur</h2>
+<p>238 ticks reach the left end. The head then works there for a long time and rebuilds the front of the list. The striking thing is that the same rebuilds come back, later and with more blocks behind them:</p>
+<pre>   22,986  3|3|12|15|1.48.94               &rarr;  88|6|2|13|21|94
+  778,692  3|3|12|15|1.48.212.258.468      &rarr;  88|6|2|13|21|210|259|469
+   81,286  2|97|3|11|1.58.168              &rarr;  108|4|100|1|17|168
+1,452,208  2|97|3|11|1.58.174.370.692      &rarr;  108|4|100|1|17|172|371|693</pre>
+<p>So the list behaves like a counter whose digits are themselves counters, recurring on growing scales; the list has only 14 blocks after 10<sup>10</sup> steps, but some of them are tens of thousands of cells long.</p>
+<p>The only halt is <code>B&gt;0 1 1</code> two steps ahead (<code>halt_route</code>): B on the last 0 of a block followed by a separator 1. The open steps are the tick families for chains of any length, the rules of the rebuilds, and an invariant of the lists that rules this out.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +271,28 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 76,681 cells have been visited and 38,337 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: sqrt/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.389). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.554).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)</div></div><div><b>Every way to a halt</b><p>Two steps before any halt the machine is at <code>B&gt;0 1 1</code>. In particular <code>E&gt;1 1</code>, which would halt (<code>halt_E</code>), is never reached.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep_left</code>, <code>sweep_right</code>, <code>lean/Rules.lean</code></div></div><div><b>The sweeps</b><p>Moving left, A crosses <code>1010</code> in four steps and complements it; moving right, B crosses <code>10</code> in two steps and writes <code>01</code>. Both for any number of copies.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>tick_last</code>, <code>tick_oo</code>, <code>lean/Rules.lean</code></div></div><div><b>Two whole ticks</b><p>From the right-end turn back to the next one: <code>x | e</code> becomes <code>x . e+2</code> for every even e (8k+8 steps for e = 2k), and <code>x | o | o'</code> becomes <code>x . o+1 | o'+1</code> for all odd o, o' &ge; 3 (written in the block notation: lengths of <code>(10)</code>-blocks, <code>|</code> a separator 1, <code>.</code> a 0).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>tick_chain</code>, <code>tick_chain_oo</code>, <code>left_pass</code>, <code>right_pass</code>, <code>lean/Chain.lean</code> (written by <code>py/chain.py</code>)</div></div><div><b>Tick chains of any length</b><p>The two tick families, for chains of any length and blocks of any size: <code>x | a . b<sub>1</sub> . c<sub>1</sub> . &hellip; . b<sub>k</sub> . c<sub>k</sub> . d . e</code> with all blocks even (<code>tick_chain</code>) and <code>x | p | a . b<sub>1</sub> . c<sub>1</sub> . &hellip; . d . e</code> with p, a odd and the rest even (<code>tick_chain_oo</code>), from one right-end turn to the next, for every list of pairs, every size and every tape x. With <code>tick_last</code> and <code>tick_oo</code> (no pairs) this covers the families <code>x | e (. e . e)<sup>k</sup></code> and <code>x | o | o (. e . e)<sup>k</sup></code> for every k. The proof splits a tick into five pieces: entering, one pair on the way left, the turn, one pair on the way right, and leaving. Each piece is a symbolic run with unknown tape around it, and the passes over the pairs are inductions on the list.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>rebuild_3_3_12_15_1_48</code>, <code>lean/Rebuild.lean</code> (written by <code>py/rebuild.py</code>)</div></div><div><b>One rebuild, for every last block</b><p>The left-end tick at step 22,986, <code>3|3|12|15|1.48.94</code> to <code>88|6|2|13|21|94</code>, holds with the last block of any even length 2v+4 (8v + 16,500 steps). The rebuild reads the block 48 cell by cell, so that block cannot be made a variable this way.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/blocks.c</code></div></div><div><b>The block form</b><p>At every right-end turn of the first 10<sup>10</sup> steps (30,932 turns) the tape is <code>(10)<sup>n<sub>0</sub></sup> s<sub>1</sub> (10)<sup>n<sub>1</sub></sup> &hellip; s<sub>k</sub> (10)<sup>n<sub>k</sub></sup> A&gt;1 1</code> with single separators s<sub>i</sub>; the program stops if not.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/ticks.py</code> (symbolic runs with <code>bbtools.symtm</code>, not Lean)</div></div><div><b>The tick rules</b><p>Each tick of the first 10<sup>10</sup> steps, run symbolically with the last block lengths as variables, follows a rule valid for all lengths of the same parities: 30,528 ticks are in the families <code>x | e (. e . e)<sup>k</sup></code> and <code>x | o | o (. e . e)<sup>k</sup></code> (the separator 1 becomes 0, the 0s after it become 1s, the blocks after it change by +1, &minus;1, &hellip;, +1, +1), 30,674 follow one of 61 patterns, 238 reach the left end and 20 have a block of length 1 that the templates do not cover.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/blocks.c</code></div></div><div><b>Recurrence on growing scales</b><p>The rebuild at step 22,986 (<code>3|3|12|15|1.48.94</code> to <code>88|6|2|13|21|94</code>) recurs at step 778,692 with three blocks more on the right (<code>&hellip;1.48.212.258.468</code> to <code>88|6|2|13|21|210|259|469</code>), and likewise 81,286 / 1,452,208; the list has 8 blocks at 10<sup>6</sup> steps, 12 at 10<sup>9</sup>, 14 at 10<sup>10</sup>.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The ordinary ticks of the two common families are proved for every length. Still missing: the other tick patterns (166 of the 30,932 ticks of the first 10<sup>10</sup> steps, besides the 238 rebuilds), rules for the left-end rebuilds, and an invariant of the block lists, kept by all rules, that keeps B off <code>0 1 1</code>. A rebuild reads its blocks cell by cell. It also comes back to the right in a state that depends on the blocks there, so it does not split into the pass pieces of the ordinary ticks. A general rebuild rule would have to follow the counter it runs on the block after the turning point.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- 1000000000
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/blocks.py 40000
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/rules.py   # writes lean/Rules.lean
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/route.py   # writes lean/Route.lean
+gcc -O2 -o blocks holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/c/blocks.c &amp;&amp; ./blocks 1e8 | python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/ticks.py
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/chain.py     # writes lean/Chain.lean
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/rebuild.py   # writes lean/Rebuild.lean</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

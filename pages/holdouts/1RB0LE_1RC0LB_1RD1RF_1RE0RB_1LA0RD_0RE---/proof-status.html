@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is a row of blocks (10)<sup>n</sup> separated by <code>S = 01100</code>, with one <em>defect</em> (a single 0 or 1 in place of an S). Every time the head reaches a new cell at the right end (an <em>E-record</em>) one sweep has run left to the defect and back. Lean proves (kernel) the four generic sweep rules, for every block size and every tape left of the defect, and that the run from blank tape reaches such a record. A Python macro simulator built from symbolic one-sweep runs, checked tape for tape against direct simulation, runs 5.69&middot;10<sup>6</sup> sweeps (2.96&middot;10<sup>13</sup> steps) without a halt. With <code>native_decide</code>: no halt in the first 10<sup>7</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -99,6 +99,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
+        <h3>The cell gadgets</h3>
+        <p>The leftward signal crosses a block <code>(10)^n A&gt;1</code> in 2n steps (<code>across</code>) and a separator S in 21 steps, leaving <code>(10)^2 1</code> on its right (<code>sgad</code>); it turns at a defect 1 (2Y + 4 steps, <code>turn1</code>) or at a defect 0 after a block of at least 2 (2Y + 16 steps, <code>turn0</code>); D, going right, turns each <code>(10)^(w+2) 1</code> into <code>S (10)^w</code> (2w + 5 steps, <code>dunit</code>). Written by <code>bbtools.symtm.prove</code>, for all sizes and all surrounding tapes.</p>
+        <p class="where"><code>lean/Gadgets.lean</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The generic sweep rules</h3>
+        <p>For an E-record <code>T d y S w<sub>1</sub> S &hellip; S w<sub>r</sub> S z 1 E&gt;0</code>, any r, any tape T: defect 1 becomes 0, y + 3, z &minus; 2 (<code>record_d1</code>, 4z + 4y + 40 + &Sigma;(4w + 26) steps, <code>rcost_eq</code>); defect 0 after a block x + 2: x &minus; 2, defect 1, y + 5, z &minus; 2 (<code>record_d0</code>, 12 steps more); the same for a zone of one block (<code>record1_d1</code>: z + 1; <code>record1_d0</code>: x &minus; 2, z + 3). Each sweep passes over the whole zone and lengthens the tape by two cells.</p>
+        <p class="where"><code>apass</code>, <code>dpass</code>, <code>record_d1</code>, <code>record_d0</code>, <code>record1_d1</code>, <code>record1_d0</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The run reaches the rules</h3>
+        <p>From blank tape the machine is at the E-record <code>2 S 2 S 2 S 1 5 1 E&gt;0</code> after 431 steps (list simulator, kernel evaluation), and by <code>record1_d1</code> at <code>2 S 2 S 2 S 0 6 1 E&gt;0</code> after 457.</p>
+        <p class="where"><code>fsteps431</code>, <code>reach431</code>, <code>reach457</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
@@ -115,6 +130,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
+        <h3>The macro simulator agrees with the machine</h3>
+        <p><code>py/mac15b.py</code> takes each sweep from a symbolic run (<code>bbtools.symtm</code>) on a window around the defect and the zone, with the middle of the zone abstracted and paid by the generic cost; all 891 window rules met are cached. It reproduces the whole tape and the step count at every E-record of the first 2&middot;10<sup>8</sup> steps (12,384 from its start record at step 3513) (<code>py/cmpm.py</code> against <code>c/erec.c</code>), and the sample records up to 4.09&middot;10<sup>9</sup> steps (<code>py/verify_e27k.py</code>). The run-length version <code>py/mac15c.py</code> agrees on 12,014 of them (<code>py/test15c.py</code>). About 80% of the sweeps follow the four generic rules; the rest are events at the end of the zone, at the left edge or when the defect moves.</p>
+        <p class="where"><code>py/</code>, <code>c/erec.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 2.96&middot;10<sup>13</sup> steps</h3>
+        <p>The macro simulator ran 5,692,991 sweeps, 29,654,000,000,000 steps (2.9654&middot;10<sup>13</sup>), without a halting window. At the end the tape has 244,161 blocks, the zone is the whole tape (one defect), and the last blocks are <code>1048574 S 1048574 S 491400</code> (1048574 = 4<sup>10</sup> &minus; 2).</p>
+        <p class="where"><code>py/long15.py</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 88,351 cells have been visited and 43,124 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
@@ -123,16 +148,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.494).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Why it does not halt soon</h3>
+        <p>The machine can only stop with <code>D&gt;1 0 1 1</code> on the tape, which within a sweep means a turn at the defect with the first right block Y &le; 1. In a zone of two or more blocks Y = y + 2 &ge; 2, so the generic rules never halt; in a zone of one block Y = z, and in the runs z only comes back as 2 after an event and then grows. No reachable window rule halts. The block sizes settle into values 4<sup>k</sup> &minus; 2 (2, 14, 62, 254, &hellip;), each made by the n &rarr; 4n + 6 growth of a block as the defect passes, so the tape behaves like a counter whose digits are blocks; nothing in it is seen to drift toward a halting turn.</p>
+        <p class="where"><code>README.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. A proof would need a closed set of macro configurations covering the events (the end of the zone running out, the defect reaching a frozen separator or the left edge), with the generic rules already in Lean.</p>
       </div>
     </div>
   </section>
@@ -140,7 +165,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE--- 1000000000</code></pre>
+python3 holdouts/1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE---/py/gen_gadgets.py      # rewrites lean/Gadgets.lean
+gcc -O2 -o erec holdouts/1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE---/c/erec.c &amp;&amp; ./erec 1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE--- 200000000 &gt; e2e8.txt
+cd holdouts/1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE---/py &amp;&amp; python3 mac15b.py 12400 m.txt &amp;&amp; python3 cmpm.py ../../../e2e8.txt m.txt
+cd holdouts/1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE---/py &amp;&amp; python3 long15.py 3e13 long15.log</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

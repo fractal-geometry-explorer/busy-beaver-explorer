@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G04",
+ "generated": false,
+ "group": "counter on a periodic background",
  "title": "What is known about 1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC",
  "description": "Proof status of the six-state BB(6) holdout 1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC.",
  "machine": "1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>Open.</b> Between rare rebuilds the machine is a binary counter written with four-valued digits on a background of the word <code>01011111</code>; this is checked against the simulator over 10<sup>8</sup> steps. The rebuilds (ten so far, the last at step 29,787,121; none up to 2·10<sup>10</sup>) are not understood, so there is no decision."
  ],
  "claims": [
   {
@@ -35,20 +35,26 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 52,296 cells have been visited and 37,690 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "The counter passes",
+   "text": "At every right-end turn in the first 10^8 steps where the tape ends in digits separated by runs of 01011111, the next pass steps the lowest digit a → b → c → d → a and passes a carry left exactly on d → a and a → b (2,480 passes checked).",
+   "where": "<code>py/passes.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Ten rebuilds, no halt in 2·10^10 steps",
+   "text": "The head reaches the left end in state C at steps 38, 107, 251, 394, 726, 1,603, 1,979, 5,272, 39,576 and 29,787,121 and not again before step 2·10^10.",
+   "where": "<code>tools/c/tmrun.c</code> (<code>at C L</code>)"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.522).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "Nonhalting expected",
+   "text": "The halting pattern (state B reading 1 1) does not occur in the counter passes; whether a rebuild can produce it is not known.",
+   "where": "README"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The self-similar structure is described here, but its rules were not derived or proved; this machine was left at a first analysis.",
    "where": ""
   }
  ],
@@ -58,8 +64,13 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Not known, and only looked at: the tape is a self-similar word whose block exponents double, so the long returns of the head come at exponentially spaced times. The rules were not derived here.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "10 returns",
+    "text": "of the head to the left end in state C in 10<sup>9</sup> steps, the last at step 29,787,121."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -69,11 +80,6 @@
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +91,16 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "counter",
+    "eyebrow": "What it does",
+    "heading": "A counter with four-valued digits",
+    "html": [
+     "<p>Read the tape two cells at a time, from the right end. Most of it is the same eight-cell word, <code>01011111</code>, repeated. Between the repeats sit a few special groups, the <b>digits</b>, each with four possible values a, b, c, d.</p>",
+     "<p>Every pass of the head changes the digit nearest the right end to its next value: a, b, c, d, a, ... On two of those four steps (d to a, and a to b) the head carries on to the next digit and steps it too. So each digit moves half as often as its right neighbour, exactly like the digits of a binary counter, and the stretches of background between the digits slowly grow.</p>",
+     "<p>Ten times so far a carry ran off the top of the counter and the head went to the far left end, rebuilding the tape into a larger arrangement (after the tenth, a row of two-digit counters). Those rebuilds are the part nobody has described yet, and the reason the machine is still open.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +114,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A counter on a periodic background: between rare rebuilds the right part of the tape is a row of four-valued digits separated by runs of the word 01011111, and every pass steps the lowest digit and sends a carry on two of its four steps, so each digit moves half as often as the one to its right.",
+ "decision": "open"
 }

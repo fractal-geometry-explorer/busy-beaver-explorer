@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open, and it is the same question as for <a href="../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a>.</b> Mirrored and with its states renamed this machine is that one, started in that machine's state F; after its first step it runs that machine from a tape with one extra 1, and in the first 10<sup>9</sup> steps the two tapes stay equal except for that 1 at the end of the wall (C). Lean proves (kernel) that a halt needs an E-run (<code>halt_needs_erun</code>), the mirror of the other machine's D-run.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>A halt needs an E-run</h3>
+        <p>Two steps before a halt the head is in state E reading a 1: F (halting on a 0) is entered only from E0, and E from D1 (then F reads the 1 that D wrote) or from E1.</p>
+        <p class="where"><code>halt_needs_erun</code>, <code>lean/Halt.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,24 +120,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 65,135 cells have been visited and 34,221 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>The same run as 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</h3>
+        <p>Mirror this machine and rename A..F to F, A, B, C, D, E: the table is the other machine's, started in its state F, whose first step writes a 1 and enters its state A. Run from that tape side by side with the other machine from blank tape, at all 32,539 left-end records of the first 10<sup>9</sup> steps the tapes agree except for one extra 1 at the end of the far wall, and the step counts differ by 56 (57 with the first step), constant since step 4,194,242.</p>
+        <p class="where"><code>c/twin.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.516).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>The analysis</h3>
+        <p>Everything in the analysis of <a href="../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a> applies in the mirror: a sea of 1010 with particles pushed by a 2-bit gadget like a counter with carries; the machines could only differ on a trip that reaches the wall.</p>
+        <p class="where"><code>holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/README.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Open, as for the other machine.</p>
       </div>
     </div>
   </section>
@@ -140,7 +145,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB 1000000000</code></pre>
+gcc -O2 -o twin holdouts/1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB/c/twin.c &amp;&amp; ./twin 1000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

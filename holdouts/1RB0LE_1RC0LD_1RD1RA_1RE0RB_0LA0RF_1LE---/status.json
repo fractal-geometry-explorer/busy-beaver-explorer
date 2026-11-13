@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G05",
  "title": "What is known about 1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---.",
@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 9 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> This is the counter of <code>1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---</code> with its states renamed (A&rarr;B, B&rarr;C, C&rarr;D, D&rarr;E, E&rarr;A), started in a different state. Lean proves every ordinary sweep, every left-end sweep except the start of a nested run, and that the inner sweeps of a nested run follow the same digit rule; it runs 258,046 proved sweeps: <b>no halt in the first 266,357,150,814 steps</b>, where the third nested run starts. The cell simulator reaches 3&middot;10<sup>11</sup> steps, inside that nested run."
  ],
  "claims": [
   {
@@ -34,46 +34,89 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "One sweep, for every digit list",
+   "text": "Read a block <code>0 1^(3d+2)</code> as the digit d. From the right end the head passes every odd digit, stops at the first even digit b (with the digit a on its left) and returns: <code>a 0 (2k+1)&hellip;</code> becomes <code>(a+2) 0^(2k) 1&hellip;</code> and <code>a b (2k+1)&hellip;</code> (b = 2i+2) becomes <code>(a+1) 0^(b&minus;1) 1 0^(2k) 1&hellip;</code>, in 21 + 10b + &Sigma;(20k+16) steps, for all values and any tape left of a.",
+   "where": "<code>sweep_zero</code>, <code>sweep_even</code>, <code>cost_sum</code>, <code>lean/Sweep.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Sweeps at the left end",
+   "text": "A stop at the first digit grows the leftmost block <code>1^r</code> by 6 (digit 0) or 3 (digit 2i+2); a carry through all digits at <code>r = 3</code> adds two leading zeros and three cells on the left; at <code>r = 6j+9</code> the leftmost block becomes <code>1^3</code> and 2j+3 zeros. The other phase of the right end (<code>0 1^4 C&gt;0</code>) turns the last digit 1 into <code>2 0</code>.",
+   "where": "<code>raw_zero</code>, <code>raw_even</code>, <code>lean/Sweep.lean</code>; <code>carry3_sweep</code>, <code>carry9_sweep</code>, <code>phase2_sweep</code>, <code>lean/Carry.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "From blank tape to sweep 29",
+   "text": "After 5,512 steps (after two nested runs, checked step by step) the tape is <code>1^3</code>, the digits 0 0 1 1 1 0 2 and ten digits 1, and the right end in its other phase <code>0 1^4 C&gt;0</code>.",
+   "where": "<code>reach_D0</code>, <code>lean/Reach.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 266,357,150,814 steps",
+   "text": "From the proved configuration at step 5,512, 258,046 sweeps on run-length coded digits (<code>runR</code>), each covered by a proved rule: no halt in the first 266,357,150,814 steps. The next sweep is the start of the third nested run, at <code>1^12 | 1 1 5 1^9 3 1^129022 | 0 1 C&gt;0</code> (<code>run_stops</code>). (The earlier digit-list run <code>no_halt_1595848115</code> is kept.)",
+   "where": "<code>no_halt_long</code>, <code>run_stops</code>, <code>lean/RunLong.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Inside a nested run: the same counter",
+   "text": "A carry through odd digits, the first one 1, into <code>1^(6j+6)</code> turns the block into <code>1^3</code> and 2j+1 digits 0 and turns the head back before the right end (<code>nest_sweep</code>). From there the inner sweeps change the digits by exactly the outer rule (<code>core_zero</code>, <code>core_even</code>, with any tape right of the pass), their right end alternates between two phases, and every second sweep eats one passed digit 1 (<code>inner_X_zero</code>, <code>inner_X_even</code>, <code>inner_Y_zero</code>, <code>inner_Y_even</code>).",
+   "where": "<code>lean/Inner.lean</code>, <code>lean/InnerRules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Sweeps on run-length coded digits",
+   "text": "<code>nextR</code> does one sweep on digits coded as runs (<code>(d, c)</code>: c copies of d, from the right end), covering the same cases as <code>next</code>; whenever it answers, the machine makes that sweep in that many steps.",
+   "where": "<code>nextR_sound</code>, <code>runR_sound</code>, <code>lean/Rle.lean</code>"
+  },
+  {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,531 cells have been visited and 26,492 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
+   "title": "No halt in the first 3&middot;10<sup>11</sup> steps",
+   "text": "The cell-by-cell simulator <code>c/brec.c</code> finds no halt in the first 3&middot;10<sup>11</sup> steps. That bound ends inside the third nested run (which starts at step 266,357,150,814 on a tape of about 7.7&middot;10<sup>5</sup> cells). <code>c/dsim.c</code>, which runs the proved sweep rules on run-length coded digits, reproduces the Lean run and stops at the same sweep.",
+   "where": "<code>c/brec.c</code>, <code>c/dsim.c</code>"
   },
   {
    "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.497).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "The rest of a nested run",
+   "text": "Passed digits 3, 5, &hellip; are eaten in another phase pattern; the inner counter has its own left-end events, including nested runs inside the nested run; the run ends with the right end in its other phase when the passed region is used up. Seen in simulation (on both machines), not formalized. In this run nested runs come at sweeps 5, 28 and 258,075.",
+   "where": "README, section The nested run"
+  },
+  {
+   "level": "heuristic",
+   "title": "Where a halt would come from",
+   "text": "Following the table backwards, the machine halts exactly when C reads a 0 followed by <code>0 1 1</code> (a right-moving head meeting <code>0 0 1 1</code>). No proved sweep produces it; a halt would have to come from a nested run.",
+   "where": "README, section Where it could halt"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. Closing it needs the whole nested run as a theorem (shared with the other machine), so that the sweep program is total, and an argument that nested runs always end in a sweep configuration. The third nested run, about 3&middot;10<sup>11</sup> steps long, is beyond a cell-by-cell native_decide check.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE--- 1000000000"
+  "gcc -O2 -o dsim holdouts/1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---/c/dsim.c && ./dsim 3 1 0,0,1,1,1,0,2,1,1,1,1,1,1,1,1,1,1 5512 1e12",
+  "gcc -O2 -o brec holdouts/1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---/c/brec.c && ./brec 1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE--- 300000000000 50000 C"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet, but we know what it is doing: it counts, exactly like its twin 1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD--- with the states renamed. The tape is a row of blocks of ones, each block a digit, and once per trip of the head the number goes up by one. Now and then a carry falls off the left end and the machine starts counting inside its own count. Lean proves every ordinary trip and the inner trips of a nested count, and runs the counter up to its third nested count: no halt in 2.66&middot;10<sup>11</sup> steps.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 47,531 cells visited."
-   },
-   {
     "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "value": "2.66&middot;10<sup>11</sup> steps",
+    "text": "No halt, proved in Lean: 258,046 proved trips, up to the third nested run."
    },
    {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "kernel",
+    "value": "every trip",
+    "text": "The trip rule, for all digit values; inside a nested run too."
+   },
+   {
+    "level": "trusted",
+    "value": "3&middot;10<sup>11</sup> steps",
+    "text": "No halt, cell by cell in C (inside the third nested run)."
    }
   ],
   "presets": [
@@ -96,7 +139,79 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,815,415</td><td><code>1^3 0 1^2 0 1^2 0 1^5 0 1^8 0 1^2 0 1^2 0 1^2 0 1^2 0 1^5 0 1^5 0 1^2 0 1^5 0 1^5 0 1^8 0 1^2 0 1^8 0 1^5 0 1^2 0 1^5 0 1^2 0 1^2 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5</code></td></tr><tr><td>right</td><td>970,452,485</td><td><code>1^3 0 1^2 0 1^2 0 1^5 0 1^8 0 1^2 0 1^2 0 1^2 0 1^2 0 1^5 0 1^5 0 1^2 0 1^5 0 1^8 0 1^5 0 1^2 0 1^8 0 1^2 0 1^8 0 1^5 0 1^2 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5</code></td></tr><tr><td>right</td><td>986,090,986</td><td><code>1^3 0 1^2 0 1^2 0 1^5 0 1^8 0 1^2 0 1^2 0 1^2 0 1^2 0 1^5 0 1^5 0 1^2 0 1^8 0 1^2 0 1^8 0 1^2 0 1^8 0 1^2 0 1^5 0 1^14 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^5 0 1^</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "tape",
+    "eyebrow": "The parts",
+    "heading": "What the tape is made of",
+    "html": [
+     "<p>Cut the tape at its 0s. Every piece is a block of ones, and almost every block has 2, 5, 8, 11, &hellip; ones: 3d+2 ones for a whole number d. Call that block the <b>digit d</b>. Only the leftmost block (three ones for most of the run) is not a digit.</p>",
+     "<svg viewBox=\"0 0 418 45\" role=\"img\" aria-label=\"the tape as digits\" style=\"width:100%;max-width:418px;height:auto;font:10px var(--mono);\"><rect x=\"0\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"12\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"24\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"36\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"48\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"60\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"72\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"84\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"96\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"108\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"120\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"132\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"144\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"156\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"168\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"180\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"192\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"204\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"216\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"228\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"240\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"252\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"264\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"276\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"288\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"300\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"312\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"324\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"336\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"348\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"360\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"372\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><rect x=\"384\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"396\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><path d=\"M24,22 v3 H59 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"41.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">edge</text><path d=\"M72,22 v3 H95 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"83.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">0</text><path d=\"M108,22 v3 H203 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"155.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">2</text><path d=\"M216,22 v3 H275 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"245.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">1</text><path d=\"M288,22 v3 H347 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"317.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">1</text></svg>",
+     "<p>Above: the leftmost block, then the digits 0, 2, 1, 1, then the right end <code>0 1</code> with the head (outlined) in state C. Most of the tape is digit 1 (<code>1^5</code>): a long run of them fills the right part and grows by one every two trips. The interesting digits sit in one short cluster at the left.</p>"
+    ]
+   },
+   {
+    "id": "sweep",
+    "eyebrow": "The motion",
+    "heading": "One trip of the head",
+    "html": [
+     "<p>From the right end the head walks left in state E, rewriting each block it crosses as alternating <code>0 1</code>. A block of odd length is crossed; at the first block of even length (an <b>even digit</b>) it turns at once, walks back to the right end in state B and rebuilds every block it crossed, now three cells further right. So every trip adds exactly three cells.</p>",
+     "<svg viewBox=\"0 0 490 101\" role=\"img\" aria-label=\"one sweep: before, at the turn, after\" style=\"width:100%;max-width:490px;height:auto;font:10px var(--mono);\"><text x=\"0\" y=\"17\" fill=\"var(--fg2)\">before</text><rect x=\"48\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"60\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"72\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"84\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"96\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"108\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"120\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"132\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"144\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"156\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"168\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"180\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"192\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"204\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"216\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"228\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"240\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"252\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"264\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"276\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"288\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"300\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"312\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"324\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"336\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"348\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"360\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"372\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"384\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"396\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"408\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"420\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"432\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><rect x=\"444\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"456\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"468\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><path d=\"M48,22 v3 H83 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"65.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">edge</text><path d=\"M96,22 v3 H155 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"125.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">1</text><path d=\"M168,22 v3 H191 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"179.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">0</text><path d=\"M204,22 v3 H335 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"269.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">3</text><path d=\"M348,22 v3 H407 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"377.5\" y=\"36\" text-anchor=\"middle\" fill=\"var(--muted)\">1</text><text x=\"0\" y=\"54\" fill=\"var(--fg2)\">turn</text><rect x=\"48\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"60\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"72\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"84\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"96\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"108\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"120\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"132\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"144\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"156\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><rect x=\"168\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"180\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"192\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"204\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"216\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"228\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"240\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"252\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"264\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"276\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"288\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"300\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"312\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"324\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"336\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"348\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"360\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"372\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"384\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"396\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"408\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"420\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"432\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"444\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"456\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"468\" y=\"45\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><text x=\"0\" y=\"73\" fill=\"var(--fg2)\">after</text><rect x=\"48\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"60\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"72\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"84\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"96\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"108\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"120\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"132\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"144\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"156\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"168\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"180\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"192\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"204\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"216\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"228\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"240\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"252\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"264\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"276\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"288\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"300\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"312\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"324\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"336\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"348\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"360\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"372\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"384\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"396\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"408\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"420\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"432\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"444\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"456\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"var(--accent)\" stroke=\"var(--line)\" stroke-width=\"1\"/><rect x=\"468\" y=\"64\" width=\"11\" height=\"11\" rx=\"2\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><path d=\"M48,78 v3 H83 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"65.5\" y=\"92\" text-anchor=\"middle\" fill=\"var(--muted)\">edge</text><path d=\"M96,78 v3 H227 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"161.5\" y=\"92\" text-anchor=\"middle\" fill=\"var(--muted)\">3</text><path d=\"M240,78 v3 H263 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"251.5\" y=\"92\" text-anchor=\"middle\" fill=\"var(--muted)\">0</text><path d=\"M276,78 v3 H299 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"287.5\" y=\"92\" text-anchor=\"middle\" fill=\"var(--muted)\">0</text><path d=\"M312,78 v3 H371 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"341.5\" y=\"92\" text-anchor=\"middle\" fill=\"var(--muted)\">1</text><path d=\"M384,78 v3 H443 v-3\" fill=\"none\" stroke=\"var(--muted)\"/><text x=\"413.5\" y=\"92\" text-anchor=\"middle\" fill=\"var(--muted)\">1</text></svg>",
+     "<p>Above: the digits 1 0 3 1. The left pass crosses 1 and 3 (odd), stops at the 0; the 0 merges into the 1 on its left, which becomes 3; the crossed 3 comes back as 0 0 1 and the 1 as 1. Exactly (for all values, proved in Lean): with <i>a</i> the digit left of the stop digit <i>b</i> and odd digits 2k+1 after it,</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>stop digit</th><th>before</th><th>after</th></tr></thead><tbody><tr><td>b = 0</td><td><code>a 0 (2k&#8321;+1) &hellip; (2k&#8345;+1)</code></td><td><code>(a+2) 0^(2k&#8321;) 1 &hellip; 0^(2k&#8345;) 1</code></td></tr><tr><td>b = 2i+2</td><td><code>a b (2k&#8321;+1) &hellip;</code></td><td><code>(a+1) 0^(b&minus;1) 1 0^(2k&#8321;) 1 &hellip;</code></td></tr></tbody></table></div>",
+     "<p>The trip takes 21 + 10b + &Sigma;(20k + 16) steps: it is linear in the length of the tape it crosses, so the n-th trip takes about 8n steps and the run is quadratic: the square-root growth of the tape.</p>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "The meaning",
+    "heading": "An odometer",
+    "html": [
+     "<p>Read it like a car's odometer. The rightmost even digit is the one that moves. Odd digits to its right are like the 9s in 1999 + 1: the increment turns each of them into zeros and a 1 and carries on to the left. A long run of 1s is a run of carries already made, crossed for free. Here the active digits sit in one cluster at the left end of the tape, and the run of 1s to their right grows by one every two trips (24,985 of them at trip 50,000).</p>",
+     "<p>This is digit for digit, step for step, the counter of <a href=\"../1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---/explainer.html\">1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---</a>: the two machines write the same blocks and take the same number of steps for every trip; they differ in their state names and in how the head turns at the stop digit (this one turns as soon as it reaches the even block: <code>L 0 11 E&gt;0</code> becomes <code>L 1111 B&gt;</code> in 9 steps).</p>"
+    ]
+   },
+   {
+    "id": "leftend",
+    "eyebrow": "The rare event",
+    "heading": "At the left end: counting inside the count",
+    "html": [
+     "<p>When no even digit is left, the head reaches the leftmost block <code>1^r</code>. If the first digit is even it merges into that block (r grows by 6 or 3). If every digit is odd the carry falls off the end: for r = 3 the tape grows three cells to the left and gets two new leading zeros, for r = 9, 15, 21, &hellip; the block shrinks back to three ones and leaves zeros behind. All of this is proved.</p>",
+     "<p>If r is even (6, 12, 18, &hellip;) something new happens: a <b>nested run</b>. Next section.</p>"
+    ]
+   },
+   {
+    "id": "nested",
+    "eyebrow": "Counting inside the count",
+    "heading": "The nested run",
+    "html": [
+     "<p>On its way left the head has rewritten every digit it passed (a digit 1 becomes the word <code>0 0 1 0 1 0</code>). At an even leftmost block <code>1^(6j+6)</code> it does not go back to the right end. The block becomes <code>1^3</code> followed by 2j+1 digits 0, and the head turns at a <em>frontier</em> just left of the passed region. Left of the frontier is a new, small counter; right of it the passed region plays the part that blank tape plays for the outer counter.</p>",
+     "<p>Lean proves that every inner trip changes the inner digits by <b>exactly the same rule</b> as an ordinary trip, that the inner right end alternates between two shapes, and that every second inner trip eats one passed digit 1. Not yet proved: passed digits 3, 5, &hellip;, the inner counter&rsquo;s own left-end events (which can start a nested run inside the nested run), and the end of the run.</p>",
+     "<p>From blank tape this happens at trips 5 and 28, while the tape is short (these are checked step by step), and again at trip 258,075, step 266,357,150,814, from <code>1^12 | 1 1 5 1^9 3 1^129022</code>. That third nested run, on a tape of about 770,000 cells, should last about 3&middot;10<sup>11</sup> steps; it is where the proved run stops.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "The question",
+    "heading": "Where it could halt",
+    "html": [
+     "<p>The only missing transition is F reading a 1. Following the table backwards, the machine halts exactly when <b>C reads a 0 followed by 0 1 1</b>: a head moving right meets <code>0 0 1 1</code>. No proved trip ever shows it that pattern, so a halt would have to come out of a nested run. The open question is whether a nested run, which can contain nested runs of its own, always ends cleanly.</p>"
+    ]
+   },
+   {
+    "id": "proved",
+    "eyebrow": "The proof so far",
+    "heading": "What is proved",
+    "html": [
+     "<p><b>Lean, kernel.</b> The pieces of a trip (<code>lean/Rules.lean</code>); a whole trip for every digit list (<code>sweep_zero</code>, <code>sweep_even</code>); the left-end cases except the nested run (<code>raw_zero</code>, <code>raw_even</code>, <code>carry3_sweep</code>, <code>carry9_sweep</code>, <code>phase2_sweep</code>); the configuration at step 5,512 (<code>reach_D0</code>); the trips on run-length coded digits (<code>nextR_sound</code>, <code>lean/Rle.lean</code>); the start of a nested run and its inner trips (<code>nest_sweep</code>, <code>inner_X_zero</code>, &hellip;, <code>lean/Inner.lean</code>).</p>",
+     "<p><b>Lean, native_decide.</b> 258,046 proved trips: no halt in the first 266,357,150,814 steps (<code>no_halt_long</code>, <code>lean/RunLong.lean</code>), and the next trip is the third nested run (<code>run_stops</code>).</p>",
+     "<p><b>Trusted (C).</b> <code>c/brec.c</code>, cell by cell: no halt in 3&middot;10<sup>11</sup> steps.</p>",
+     "<p><b>Open.</b> The nested run as a whole, and whether nested runs always end cleanly.</p>"
+    ]
    }
   ]
- }
+ },
+ "family": "counter in blocks 1^(3d+2), with nested runs of itself at the left end",
+ "summary": "The same counter as 1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD--- under renamed states: digits are blocks of 3d+2 ones, one sweep per increment, and a carry into an even leftmost block starts a nested run of the counter inside the tape. Lean gives no halt in 2.66·10^11 steps, up to the start of the third nested run.",
+ "decision": "open"
 }

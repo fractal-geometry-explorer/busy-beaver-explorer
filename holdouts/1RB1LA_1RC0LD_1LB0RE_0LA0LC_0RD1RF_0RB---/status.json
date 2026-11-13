@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G06",
  "title": "What is known about 1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---.",
@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 12 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>Open, not decoded.</b> A multi-level counter on a background of <code>110</code>: copies of a unit <code>t^13 D</code> are added one by one while a reservoir on the right is used up, then units of size 51, 241, 1191 appear in turn, each level built while the one before is consumed. This page shows the levels; no rule has been proved."
  ],
  "claims": [
   {
@@ -40,25 +40,33 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
-   "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.57).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "level": "trusted",
+   "title": "Units of growing size, to 2&middot;10<sup>10</sup> steps",
+   "text": "Written with t = <code>110</code> and the defect D = <code>0 t^2 1 0 1 0</code>, the tape is a sequence of units <code>t^s D</code>. In direct simulation the unit sizes come in levels s = 13, 51, 241, 1191 (ratios about 4, 4.7, 4.9): units of one level are added one at a time at the left end of the active region, about six t of a reservoir on the right being spent for each, and when the reservoir is empty the next level's units are built. No halt.",
+   "where": "<code>holdouts/1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---/c/reservoir.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The level-1 rule, with its step count",
+   "text": "With t = <code>110</code>, the unit U = <code>t^13 0 t^2 1 0 1 0</code> and the left end P = <code>1 0 t 1 0 1 0</code>: the tape <code>P U^n t^(r+6)</code> with the head in E on the blank cell at its right becomes <code>P U^(n+1) t^r</code> with the head again in E at the right, after exactly 972n + 48r + 1014 steps. Four sweeps add one unit and use six t; the tape grows by 14 cells on the left and 18 on the right. Checked by direct simulation for all n &#8804; 8, r &#8804; 12 (117 cases); from blank tape it first applies at step 6,335 with n = 2, r = 5. Not proved in Lean: the symbolic prover does not find the rule, because a sweep does not cross a unit as one shift.",
+   "where": "<code>holdouts/1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---/py/level1.py</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "The rule by which a level is built from the one before it, and what happens at the moment a reservoir runs out (where a halt, F reading 1, could occur), have not been written down; the question is not reduced.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB--- 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB--- 1000000000",
+  "gcc -O2 -o reservoir holdouts/1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---/c/reservoir.c && ./reservoir 20000000000",
+  "python3 holdouts/1RB1LA_1RC0LD_1LB0RE_0LA0LC_0RD1RF_0RB---/py/level1.py"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The tape is made of units of a repeated word, and the machine counts them in levels, each level's units several times longer than the last. This page shows the levels; the rule between them has not been found.",
   "facts": [
    {
     "level": "trusted",
@@ -71,9 +79,9 @@
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
    },
    {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "level": "trusted",
+    "value": "13, 51, 241, 1191",
+    "text": "Unit sizes of the first four levels."
    }
   ],
   "presets": [
@@ -86,6 +94,20 @@
   },
   "sections": [
    {
+    "id": "story",
+    "eyebrow": "What it does",
+    "heading": "Counters made of counters",
+    "html": [
+     "<p>Read the tape in the word t = <code>110</code>. Almost all of it is t repeated, broken by a defect D = <code>0 t^2 1 0 1 0</code>, so the tape is a list of units <code>t^s D</code> and a block of plain t at the right end, the reservoir.</p>",
+     "<h3>Level 1</h3>",
+     "<p>Every few sweeps one more unit <code>t^13 D</code> appears at the left, and the reservoir shrinks: by 1, 1, 3 and 1 copies of t in four sweeps, six per unit. So level 1 counts the reservoir down in steps of six.</p>",
+     "<h3>Higher levels</h3>",
+     "<p>When the reservoir is empty the head eats into the next unit on its right and the process starts again with longer units, 51, then 241, then 1191 copies of t. By step 10<sup>9</sup> a second background has appeared to the right of the head, u = <code>100</code>, in blocks <code>u^1194 1 0</code> that are turned into units <code>t^1191 D</code> one at a time, the leftmost levels standing still:</p>",
+     "<table class=\"tbl\"><thead><tr><th>step</th><th>tape (t = <code>110</code>, u = <code>100</code>, D = <code>0 t^2 1 0 1 0</code>)</th></tr></thead><tbody><tr><td>12,100</td><td><code>0 t^10 D [t^13 D]x3 1^2 &gt;1</code></td></tr><tr><td>5,089,773</td><td><code>1 0 t 1 0 1 0 [t^13 D]x10 t^31 D [t^51 D]x2 t^676 D t^350 1^2 &gt;1</code></td></tr><tr><td>87,391,760</td><td><code>&hellip; [t^13 D]x80 t^44 D [t^51 D]x68 t^141 D t^241 D t^241 0 t^2 1 0 1 &gt;1</code></td></tr><tr><td>10<sup>9</sup></td><td><code>&hellip; [t^13 D]x80 t^44 D [t^51 D]x43 &hellip; [t^241 D]x15 t^48 1 t^941 D [t^1191 D]x3 1 &gt;t 0 u^1192 1 0 u^1194 1 0 u^1194 1 0 u^1194 1 0 u^6784 1</code></td></tr><tr><td>2&middot;10<sup>9</sup></td><td><code>&hellip; [t^51 D]x43 &hellip; [t^241 D]x2 t^119 0 t^588 D [t^1191 D]x20 t^391 &gt;0^2 u^357 1</code></td></tr></tbody></table>",
+     "<p>The widths grow like the square root of the time (88,948 cells at step 2&middot;10<sup>9</sup>).</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -96,7 +118,17 @@
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,567,282</td><td><code>1 0 1^2 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2</code></td></tr><tr><td>right</td><td>970,243,783</td><td><code>1 0 1^2 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2</code></td></tr><tr><td>right</td><td>985,980,127</td><td><code>1 0 1^2 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^2 1^2 0 1^2 0 1 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
     ]
+   },
+   {
+    "id": "why",
+    "eyebrow": "What is left",
+    "heading": "The step between levels",
+    "html": [
+     "<p>Each level is a simple countdown, of the kind symtm proves easily. What is missing is the transition: how the sizes 13, 51, 241, 1191 and the counts of each level are produced, and whether the transition can ever meet the halting cell. That is the work left for this machine.</p>"
+    ]
    }
   ]
- }
+ },
+ "summary": "A multi-level counter on a 110 background: units t^13 D added while a reservoir drains, then levels of size 51, 241, 1191. Not decoded.",
+ "family": "nested multi-level counter (undecoded)"
 }

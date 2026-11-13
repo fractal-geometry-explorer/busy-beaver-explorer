@@ -127,11 +127,10 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows whether it halts. This machine grows a word of 1100 and 10 blocks to the right, each new cell costing a constant factor more time.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 299 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/fixed</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>359 cells</b><span class="small">After 18,417,187,404 steps, no halt.</span></div>
+    <div class="fact"><span class="ev o">Open</span><b>halting</b><span class="small">Needs E&gt;1 1; not seen.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +139,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#growth">A word that grows slowly to the right</a><a href="#halting">What halting would take</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +208,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="growth">
+  <span class="eyebrow">First look</span>
+  <h2>A word that grows slowly to the right</h2>
+<p>The machine grows its tape mostly to the right, each new cell costing a roughly constant factor more time, the signature of a counter. Rightmost cell reached and the step it was first reached (direct run of 2·10<sup>10</sup> steps):</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>cell</th><th>step</th></tr></thead><tbody><tr><td>50</td><td>1,089</td></tr><tr><td>100</td><td>15,405</td></tr><tr><td>150</td><td>131,443</td></tr><tr><td>200</td><td>2,803,197</td></tr><tr><td>300</td><td>1,182,697,357</td></tr><tr><td>350</td><td>16,667,114,039</td></tr></tbody></table></div>
+<p>Read in the words <code>a = 1100</code> and <code>b = 10</code>, the tape is a word like <code>a^6 b^14 a 1 b^2 a^3 1 b^4 a^5 …</code> followed by a regular tail <code>(1 b^2)^n</code>. Its front changes at every pass of the head; the rule is not yet known.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Can it stop?</span>
+  <h2>What halting would take</h2>
+<p>The only halting transition is F on 1, and F is entered only from E on 1 (0RF): the machine halts exactly when E reads a 1 followed by another 1, <code>E&gt;1 1</code>. It has not happened in 2·10<sup>10</sup> steps.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -234,15 +245,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 299 cells have been visited and 155 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/fixed</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.063).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">the transition table (by inspection); <code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>Where it can halt</b><p>The only halting transition is F on 1, and F is entered only from E on 1 (0RF): the machine halts exactly when E reads a 1 followed by another 1, <code>E&gt;1 1</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code> (<code>records</code>), 2·10<sup>10</sup> steps</div></div><div><b>Logarithmic growth</b><p>The tape grows mostly to the right; the time to reach a new rightmost cell grows by a roughly constant factor per cell (cell 50 at step 1,089, cell 350 at step 16,667,114,039); 359 cells after 18,417,187,404 steps, no halt.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">observed</div></div><div><b>What the tape is</b><p>Read as words <code>a = 1100</code> and <code>b = 10</code> (<code>tools/c/tokrun.c</code>), the tape is a string over a, b and single 1s, a counter-like word whose front changes at every pass and whose back is a long regular tail <code>(1 b^2)^n</code> that grows by one unit now and then. The sibling 1RB0RD_1LC1RE_1LD0LC_0LE0LC_0RA0RF_1RA--- (C and D swapped, two transitions differ) behaves the same way.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Open; halting needs <code>E&gt;1 1</code>, not seen.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 1000000000
+./tmrun 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 20000000000 records 1500
+./tokrun 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 2000000000 a=1100,b=10 R 300</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

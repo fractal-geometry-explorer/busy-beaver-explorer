@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC---",
  "description": "Proof status of the six-state BB(6) holdout 1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC---.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves fourteen shift rules (C going left turns every c = 100 into d = 101, D leaves it; A and E cross pairs going right). The visited tape grows on the left like the square root of time; the halting question sits at the irregular wall between the bouncer and the frozen tail, whose rule was not derived."
  ],
  "claims": [
   {
@@ -34,6 +34,36 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Shift rules over c = 100 and d = 101",
+   "text": "Going left, C turns <code>(100)<sup>n</sup></code> into <code>(101)<sup>n</sup></code> and D leaves it; A and E cross pairs of words going right; B crosses the tail word <code>110100</code> both ways.",
+   "where": "<code>c_cd</code>, <code>d_cc</code>, ... <code>b_tail_l</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where it can halt",
+   "text": "Only F reading 1 halts; F is entered only from E reading 1 (1RF), so the machine halts exactly on <code>E&gt; 1 1</code>. Read off the table.",
+   "where": "the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The tape over time",
+   "text": "With <code>c = 100</code>, <code>d = 101</code>: at step 10<sup>8</sup> <code>0 c<sup>3815</sup> 1 [C0] d<sup>83</sup> 00 c<sup>11</sup> 1 d 00 ...</code>; at 4·10<sup>8</sup> <code>0 c<sup>4022</sup> 1 [B1] d 00 1 d<sup>3805</sup> 00 1 d<sup>5</sup> ...</code>; at 10<sup>9</sup> <code>0 c<sup>3955</sup> 1 0 [E0] 0 1 d<sup>8435</sup> 00 c 1 d<sup>2</sup> ...</code>; at 2·10<sup>9</sup> <code>0 c<sup>11883</sup> d [A0] 1 d<sup>5646</sup> 00 1 d 00 ...</code>; each followed by an irregular stretch and a long tail <code>(1 d 00)<sup>n</sup> = (110100)<sup>n</sup></code>.",
+   "where": "a direct run"
+  },
+  {
+   "level": "heuristic",
+   "title": "A bouncer whose sweeps trade c for d",
+   "text": "The head sweeps the left part; going left in state C it turns c into d, going right it works in pairs; the boundary between the c-part and the d-part moves back and forth (the bands of the space-time diagram). Observed only.",
+   "where": "README"
+  },
+  {
+   "level": "trusted",
+   "title": "No closed tape language with small windows",
+   "text": "<code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS 3 to 7 fails; no invariant mod 2..12.",
+   "where": "<code>tools/py/bbtools/ctl.py</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 38,451 cells have been visited and 21,467 of them hold a 1.",
@@ -48,13 +78,14 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The machine stops only on <code>E&gt; 1 1</code>; the clean c/d sweeps and the tail never make it, so the question is about the irregular wall between them, whose evolution was not derived.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC---/lean/check.sh",
+  "python3 holdouts/1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC---/py/rules.py > holdouts/1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC---/lean/Rules.lean",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC--- 1000000000"
  ],
  "explainer": {
@@ -86,6 +117,30 @@
   },
   "sections": [
    {
+    "id": "tape",
+    "eyebrow": "What the tape looks like",
+    "heading": "Words 100 and 101, a wall, and a frozen tail",
+    "html": [
+     "<p>Write <code>c = 100</code> and <code>d = 101</code>. At step 2·10<sup>9</sup> the tape is</p><pre>0 c^11883 d [A0] 1 d^5646 00 1 d 00 c^3 1 d 00 c 1 d^2 00 ... (1 d 00)^n</pre><p>On the left a long run of c then d (the part that grows like a square root), in the middle a short irregular wall, on the right a long tail of <code>110100</code> words that hardly changes (the part that grows like a logarithm).</p>"
+    ]
+   },
+   {
+    "id": "rule",
+    "eyebrow": "The rule",
+    "heading": "Sweeps that trade c for d",
+    "html": [
+     "<p>Lean proves fourteen shift rules. Going left in state C the head turns every <code>100</code> into <code>101</code>; in state D it leaves them alone. Going right, A and E cross the words in pairs. So each sweep moves the boundary between the c-run and the d-run, which is what the bands in the space-time diagram show: at step 10<sup>8</sup> there are 3,815 c and 83 d next to each other, at 4·10<sup>8</sup> 4,022 and 3,805, at 10<sup>9</sup> 3,955 and 8,435, at 2·10<sup>9</sup> 11,883 and 5,646.</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Can it stop?",
+    "heading": "Only on E> 1 1",
+    "html": [
+     "<p>Only F reading 1 stops the machine, and F is reached only from E reading 1 and stepping right, so it stops exactly when E stands on <code>1 1</code>. That never happens inside the c/d runs or the tail; the wall between them is where it could, and its rule was not found.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +153,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A bouncer over 3-cell words c = 100 and d = 101: the sweeps on the growing left part trade c for d and back, next to a small irregular wall and a frozen tail of 110100 words on the right.",
+ "family": "bouncer of 100/101 words + wall debris",
+ "decision": "open"
 }

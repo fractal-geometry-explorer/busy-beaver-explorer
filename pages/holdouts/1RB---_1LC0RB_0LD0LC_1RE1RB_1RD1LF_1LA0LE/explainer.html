@@ -127,11 +127,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB---_1LC0RB_0LD0LC_1RE1RB_1RD1LF_1LA0LE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows, and it is a Collatz-type problem: a counter grows by a factor 3/2 per phase, and its parities edit a short word that halts the machine only after a precise run of 42 of them.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev c">Computed</span><b>42 phases</b><span class="small">the shortest parity sequence from the empty word to a halt.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>20,000</b><span class="small">phases of the real orbit computed: no halt, the word never longer than 8 cells.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>42 phases</b><span class="small">the shortest parity sequence from the empty word to a halt.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>20,000</b><span class="small">phases of the real orbit computed: no halt, the word never longer than 8 cells.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 61,957 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +143,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#phases">Phases: a counter and a word</a><a href="#halting">A halting word</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +212,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="phases">
+  <span class="eyebrow">Macro structure</span>
+  <h2>Phases: a counter and a word</h2>
+<p>Stop the machine every time the head, in state C, is at the left end of the tape with the tape reading</p>
+<p style="text-align:center"><code>C>0 0^4 111 (01)^n P</code></p>
+<p>a word P, a run of n pairs and the block <code>111</code>. During a phase the head bounces between the block and the far end: each round it takes two pairs and comes back six cells further, so the visited part grows into a long run of zeros. When one or no pair is left the head reaches P, edits it, and on the way back turns the zeros into the next run of pairs: n becomes about 3n/2 (3n/2 + d for even n, (3n + d)/2 for odd n, with d between 3 and 17 depending on P).</p>
+<p>So the counter follows a 3/2 map like <a href="https://wiki.bbchallenge.org/wiki/Antihydra">Antihydra</a>, and its parity at the end of each phase is fed into the word P: from the empty word an odd n writes <code>1</code>, an even n then appends <code>000</code>, and so on: alternating parities make P count up like a binary counter.</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Open question</span>
+  <h2>A halting word</h2>
+<p>Exploring the word dynamics for all parity sequences shows that the word <code>1111</code> halts the machine when the next n is even (and a few other words do too). The shortest way to get there from the empty word is 42 phases with the parities 1, 0, 1, 0, &hellip; and a few others in a precise order: the word has to count far enough without being reset.</p>
+<p>The real orbit is driven by the parities of the 3/2 counter, which look random. Computed exactly for 20,000 phases (n then has 11,704 binary digits) it never halts, and the word never gets longer than 8 cells. With random parities the word keeps returning to empty, and the precise run of 42 needed has a chance of about 2<sup>&minus;40</sup> each time, so the machine would halt with probability 1, but only after about 2<sup>40</sup> phases. Deciding it means understanding the parities of a 3/2 map: the Antihydra obstacle.</p>
+<p><b>Related machines.</b> 1RB---_0RC0RB_1LD1LE_1LC1RF_1RB0LE_1RA0RD, 1RB---_1LC0RB_0LD0LC_1RE1RB_1RD1LF_1LA0LE and 1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LA--- share this core. The second is the third mirrored and relabelled (the same table, started in another state); the first differs from the third in one transition that is used only at a few phase ends. Their word maps agree on all 400 words compared (both parities), except two transitions of the first (from <code>11111</code> and <code>1111011</code>), and all three reach a halt by the same 42-phase route; their orbits differ because they start differently.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,7 +253,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 61,957 cells have been visited and 9,579 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.484). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>), <code>lean/Phase.lean</code></div></div><div><b>One round of a phase, and whole phases of rounds</b><p>The round <code>C&gt;0 0^(2g+1) 111 (01)^(c+2) P</code> &rarr; two pairs fewer, six more visited zeros, for every count and every tape beyond (<code>drain</code>), and any number of rounds at once (<code>drain_iter</code>).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/phases.py check 4e8</code></div></div><div><b>The phase map agrees with the machine</b><p>At all 17 transitions between the 19 phase starts of the first 4&middot;10<sup>8</sup> steps (the last at step 293,598,006, n = 15,633) the measured word map predicts the next phase start.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/phases.py bfs 1500</code></div></div><div><b>A halt is reachable in the word dynamics</b><p>Exploring every word P for every sequence of parities (1,500 words): from the empty word a halt is reached after 42 phases with parities 1, 0, 1, 0, &hellip; (the word counts up like a binary counter), through the word <code>1111</code> with n even. Halting transitions are reachable from 26 of the transitions explored.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/phases.py orbit 20000</code></div></div><div><b>20,000 phases without a halt</b><p>From the first phase start (step 143, P empty, n = 6), computed exactly: no halt in 20,000 phases (n then has 11,704 bits); 27 distinct words, none longer than 8 cells.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>python3 py/phases.py walk 200 2000</code></div></div><div><b>Halts with probability 1, at an absurd time</b><p>With random parities the word stays short and keeps returning to the empty word (200 random walks of 2,000 phases: no halt in 400,000 phases). Reaching the halting word needs a specific run of about 42 parities, about one chance in 2<sup>40</sup> per return, so with coin-flip parities the machine halts with probability 1, but after about 2<sup>40</sup> phases, when n has about 10<sup>11</sup> digits.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>), <code>lean/Phase.lean</code></div></div><div><b>One round of a phase, and whole phases of rounds</b><p>The round <code>C&gt;0 0^(2g+1) 111 (01)^(c+2) P</code> &rarr; two pairs fewer, six more visited zeros, for every count and every tape beyond (<code>drain</code>), and any number of rounds at once (<code>drain_iter</code>).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/phases.py check 4e8</code></div></div><div><b>The phase map agrees with the machine</b><p>At all 17 transitions between the 19 phase starts of the first 4&middot;10<sup>8</sup> steps (the last at step 293,598,006, n = 15,633) the measured word map predicts the next phase start.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/phases.py bfs 1500</code></div></div><div><b>A halt is reachable in the word dynamics</b><p>Exploring every word P for every sequence of parities (1,500 words): from the empty word a halt is reached after 42 phases with parities 1, 0, 1, 0, &hellip; (the word counts up like a binary counter), through the word <code>1111</code> with n even. 26 of the word transitions explored end in a halt.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/phases.py orbit 20000</code></div></div><div><b>20,000 phases without a halt</b><p>From the first phase start (step 143, P empty, n = 6), computed exactly: no halt in 20,000 phases (n then has 11,704 bits); 27 distinct words, none longer than 8 cells.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>python3 py/phases.py walk 200 2000</code></div></div><div><b>Halts with probability 1, at an absurd time</b><p>With random parities the word stays short and keeps returning to the empty word (200 random walks of 2,000 phases: no halt in 400,000 phases). Reaching the halting word needs a specific run of about 42 parities, about one chance in 2<sup>40</sup> per return, so with coin-flip parities the machine halts with probability 1, but after about 2<sup>40</sup> phases, when n has about 10<sup>11</sup> digits.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>It halts if and only if the parities of the 3/2 counter ever spell out one of the halting runs of the word dynamics: a Collatz-type question.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

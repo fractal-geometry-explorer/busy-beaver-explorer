@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open; the round rule is not found.</b> The machine runs a layered counter: a growing prefix <code>(110)^k</code> is turned, at each reset, into runs of groups of sizes 4, 7, 10, 13, … with large multiplicities, which the following sweeps use up. Nothing beyond the generated bounded runs is proved.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -127,12 +127,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.5). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.1).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Prefix, groups and resets</h3>
+        <p>At each visit of the left end in state B the tape is <code>B&gt; 00 (110)^k (10)^a₁ 1 (10)^a₂ 1 …</code>. Between resets <code>k</code> grows by 2 a visit and the sweeps merge the groups into runs of sizes 4, 7, 10, 13, …; at a reset the prefix becomes about <code>k/2</code> groups of size 4. Large and small resets alternate (<code>k</code> = 909, 37, 1670, 220, 2591, 397, 3185 between steps 3.6·10<sup>7</sup> and 5.3·10<sup>8</sup>). Observed in simulation, not proved.</p>
+        <p class="where"><code>c/sim.c</code>, <code>c/resets.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The carry rule between the levels is the missing piece.</p>
       </div>
     </div>
   </section>
@@ -140,7 +145,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC--- 1000000000</code></pre>
+gcc -O2 -o sim holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/c/sim.c &amp;&amp; ./sim 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC--- 600000000 1 | python3 holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/c/resets.py</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -127,11 +127,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RB_1LC0LF_1RD0LB_1RE1RC_0RA---_1LA1RE</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Probably not, but nobody can prove it: a bouncer that rebuilds its tape at rare resets, and a few resets lead to a halt.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 39,335 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>ternary rounds</b><span class="small">Every reset starts from 1 1 0 (10)<sup>y</sup> and runs rounds a &rarr; 3a+2, proved for all sizes.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>y = 1461</b><span class="small">The smallest reset that halts; then 3158 and 5834.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>5 ends</b><span class="small">Every way the rounds of a reset run out, proved: back to the bouncer, or a nested start.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +142,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#sweeps">A bouncer trading 1s for 10s</a><a href="#reset">Resets</a><a href="#ends">How the rounds run out</a><a href="#halting">What halting would require</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +211,36 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="sweeps">
+  <span class="eyebrow">Structure</span>
+  <h2>A bouncer trading 1s for 10s</h2>
+<p>Each time the head, in state A, reaches the blank cell right of the tape, the tape is <code>1<sup>x</sup> 0 (10)<sup>y</sup></code>. One sweep takes two 1s from the left block and makes two more <code>10</code> pairs: <code>1<sup>x+3</sup> 0 (10)<sup>y</sup> &rarr; 1<sup>x+1</sup> 0 (10)<sup>y+2</sup></code>. If one 1 is left at the end, the tape is rebuilt as <code>1<sup>2y+8</sup> 0</code> and the sweeps start over; if two are left, a reset starts. Both are Lean theorems for all sizes (<code>q_to_two</code>), so every reset starts from <code>1 1 0 (10)<sup>y</sup></code>.</p>
+</section>
+<section id="reset">
+  <span class="eyebrow">The rule</span>
+  <h2>Resets</h2>
+<p>A reset from <code>1 1 0 (10)<sup>y</sup></code> runs <b>ternary rounds</b> at the left end: a block of a pairs <code>10</code> becomes a block of 3a+2 pairs (2, 8, 26, 80, 242, &hellip;), and each round eats 2a+1 pairs of the right block. Inside a round the head bounces between a shrinking block of 1s and the right block, moving pairs three at a time into the middle. This is proved in Lean for all sizes (<code>round</code>, <code>rounds</code>).</p>
+<p>When a round runs out of right pairs, its leftover 1s turn into a gap of 0s, and the same kind of rounds start inside the gap, with the gap as their budget, sometimes nested several levels deep. That part is only read off runs. The reset ends with a new bouncer <code>1<sup>x'</sup> 0 (10)<sup>y'</sup></code>, and x', y' depend on y irregularly:</p>
+<pre>y = 4 -> (15, 2)    38 -> (6, 51)    55 -> (17, 53)    144 -> (89, 107)
+resets from blank tape: 4, 38, 55, 144, 396, 451, 1190, 3388, 4980, 5776, 6174, 19656, 39352, ...</pre>
+<p>For y = 1461, 3158 and 5834 (and no other y below 3000) the nested rounds end with the head in state E reading a 1 in the middle of the tape, and the machine halts.</p>
+</section>
+<section id="ends">
+  <span class="eyebrow">In Lean</span>
+  <h2>How the rounds run out</h2>
+<p>A round needs 2a + 1 pairs on the right. When fewer are left, the round starts anyway and stops after some steps; there are five ways it can stop, and Lean proves each for all sizes:</p>
+<pre>L(a, 1)        -&gt;  Q(2a-1, 3)            reset over
+S(p, m, 0)     -&gt;  Q(p+1, m+2)           reset over
+S(0, m, 1)     -&gt;  Q(2m+9, 0)            reset over
+L(a, 0)        -&gt;  N(2a-1, 2)            nested start
+S(p+2, m, 1)   -&gt;  N(p+1, m+4)           nested start</pre>
+<p>with N(P, M) = <code>1^P 0 (10)^M 1^4 0 A&gt;</code>: a tiny tank to the right of the pairs, whose own reset runs the rounds again with the pairs and 1s to its left as its budget. So the reset map is a Lean function on the resets that do not nest (about half of them: y = 4 goes to 38), and the open part is the nested phase. From blank tape the second reset already nests: y = 38 ends in N(35, 26).</p>
+</section>
+<section id="halting">
+  <span class="eyebrow">Halting</span>
+  <h2>What halting would require</h2>
+<p>The machine halts exactly if the orbit of resets from blank tape ever reaches a halting y. Those values are sparse (1461, 3158, 5834 below 6000), so a hit is unlikely, but unlike the related machine 1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA, where the halting values are 2<sup>j+1</sup>&minus;2j&minus;7 and the whole reduction is a Lean theorem, here even the reset map is not yet understood in closed form: the nested rounds are the next thing to prove.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +267,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 39,335 cells have been visited and 25,462 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.25). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.451).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>rule0</code>&ndash;<code>rule2</code>, <code>lean/Rules.lean</code></div></div><div><b>The sweep rules</b><p>Three one-sweep rules found and proved by <code>bbtools.cycles</code>, e.g. from (11)<sup>n+2</sup> (10)<sup>m+1</sup> with B at the right end the machine reaches the same tape with one 11 pair fewer and two more 10 pairs in 6m + 16 steps, for all n, m.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>q_to_two</code>, <code>blank_to_two</code>, <code>lean/Top.lean</code></div></div><div><b>Every reset starts from Q(2, y)</b><p>With Q(x, y) = 1<sup>x</sup> 0 (10)<sup>y</sup> A&gt;: the sweep Q(x+3, y) &rarr; Q(x+1, y+2), Q(1, y) &rarr; Q(2y+8, 0), hence every Q(x, y) with x &ge; 1 reaches Q(2, y') with an explicit y'; blank tape reaches Q(6, 0) and Q(2, 4).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>round</code>, <code>rounds</code>, <code>two_rounds</code>, <code>lean/Top.lean</code>, <code>lean/Leaves.lean</code></div></div><div><b>The ternary rounds</b><p>Q(2, y+2) &rarr; C&gt; 0 (10)<sup>2</sup> 1 1 0 (10)<sup>y+2</sup> 1, and one round C&gt; 0 (10)<sup>a</sup> 1 1 0 (10)<sup>k+2a+1</sup> R &rarr; C&gt; 0 (10)<sup>3a+2</sup> 1 1 0 (10)<sup>k</sup> R for all a &ge; 2, k and tapes R; any number of rounds by induction. Leaf rules by <code>bbtools.symtm.prove</code>.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>reset_end</code>, <code>reset_step</code>, <code>blank_to_nested</code>, <code>lean/Reset.lean</code> (rules in <code>lean/Ends.lean</code>, by <code>py/gen_ends.py</code>)</div></div><div><b>The end of the rounds</b><p>For every y &ge; 2 the reset from Q(2, y) reaches <code>resetEnd y</code>, an explicit Lean function: after the last full round L(a, K) with K &lt; 2a + 1 the run either is back at the bouncer, Q(2a&minus;1, 3) from L(a, 1), Q(p+1, m+2) from a round step S(p, m, 0), Q(2m+9, 0) from S(0, m, 1), or reaches a <b>nested start</b> N(P, M) = <code>1^P 0 (10)^M 1^4 0 A&gt;</code>, from L(a, 0) or S(p+2, m, 1). When the reset is over, <code>reset_step</code> gives the next reset Q(2, y&prime;) (<code>resetMap</code>). From blank tape Lean follows the resets 4 and 38 and reaches the nested start N(35, 26) (<code>blank_to_nested</code>). Of the y from 2 to 3000, 1502 resets are over at once and 1497 nest; all three halting y (1461, 3158, 5834) nest.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/nq.c</code></div></div><div><b>How a reset ends</b><p>When a round runs out of pairs the leftover 1s become a gap of 0s and the same rounds start inside the gap, nested several levels deep; the reset ends at some Q(x', y'), irregular in y (4 &rarr; Q(15,2), 38 &rarr; Q(6,51), 55 &rarr; Q(17,53), &hellip;). Read off runs. The first step of this, from the end of the rounds to the nested start N(P, M), is now a theorem (see above); the nested rounds themselves are read off runs.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/nq.c</code></div></div><div><b>Halting resets</b><p>From Q(2, y) the machine halts for y = 1461 (2,574,053 steps), 3158 and 5834, and for no other y &lt; 3000 (full runs of <code>c/nq.c</code>). The resets from blank tape are y = 4, 38, 55, 144, 396, 451, 1190, 3388, 4980, 5776, 6174, 19656, 39352, &hellip;</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known: whether the reset orbit ever reaches a halting y. The end of the top-level rounds is a theorem, including when a reset is over; what is not in Lean is the nested phase that follows a nested start N(P, M), so the reset map is a theorem only on the resets that do not nest.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RB_1LC0LF_1RD0LB_1RE1RC_0RA---_1LA1RE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RB_1LC0LF_1RD0LB_1RE1RC_0RA---_1LA1RE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RB_1LC0LF_1RD0LB_1RE1RC_0RA---_1LA1RE 1000000000
+gcc -O2 -o nq holdouts/1RB0RB_1LC0LF_1RD0LB_1RE1RC_0RA---_1LA1RE/c/nq.c &amp;&amp; ./nq 1RB0RB_1LC0LF_1RD0LB_1RE1RC_0RA---_1LA1RE 2 0 3000 | grep -v &#x27; Q &#x27;</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0RB_1LC0LF_1RD0LB_1RE1RC_0RA---_1LA1RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

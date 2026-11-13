@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The left side is a pile of segments x<sup>k</sup> (x = 10111110) that the head sweeps over; Lean proves the three shift rules of a sweep. The rule that moves the separators between segments, and the counter at the right end, are not decoded. No halt in 10<sup>9</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -102,6 +102,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The shift rules of a sweep</h3>
+        <p>Going right, F turns each word x = 10111110 into y = 10011001 (26 steps a word, <code>right_pass</code>); going left, B turns them back (20 steps a word, <code>left_pass</code>); at the left end A starts the next pass over the leading segment (<code>left_end</code>). For every n and every tape around.</p>
+        <p class="where"><code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -127,12 +132,22 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.482). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.0).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>The pile of segments</h3>
+        <p>At step 2,266,312,097 the left side is 112 segments x<sup>k</sup> with lengths falling from 218 to 1 towards the start, separated mostly by <code>1010</code> or <code>(10)^4</code> and by a few longer markers (<code>1 0 1^9 0</code>, <code>1 0 1^13 0</code>). Each sweep adds one x to the leading segment (about 148,000 steps a sweep at that width); when it reaches about 218 a new segment starts.</p>
+        <p class="where"><code>/home/user/w/bin/ev M 3e9 '*' L x=10111110</code></p>
+      </div>
+      <div class="card">
+        <h3>No small closed tape language</h3>
+        <p><code>bbtools.ctl</code> with windows K = 3, 4, 5 leaves a halt (E reading 1) reachable in the abstraction.</p>
+        <p class="where"><code>python3 -m bbtools.ctl M K</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Open: the rule that moves the separators and the right-end counter are not decoded, so the question is not yet reduced to a map.</p>
       </div>
     </div>
   </section>

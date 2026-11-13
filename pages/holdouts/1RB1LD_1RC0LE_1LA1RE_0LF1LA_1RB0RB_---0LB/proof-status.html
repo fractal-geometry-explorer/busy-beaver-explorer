@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> After 1.1&middot;10<sup>6</sup> steps the left end of the tape never moves again. The tape is a fixed left part, a reserve block <code>(011)^k</code>, a counter, and a block of ones at the right end. Each tick a hole runs across the ones and back, and the counter changes near its right end. The counter grows only like the logarithm of the time, and it grows by eating the reserve from the right (k = 481, 476, 472, 468 at 7&middot;10<sup>6</sup>, 4&middot;10<sup>7</sup>, 2&middot;10<sup>8</sup>, 10<sup>9</sup> steps). The two sweeps are proved in Lean. What happens when the reserve runs out is far beyond simulation.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweeps across the ones</h3>
+        <p>Going right, a hole <code>00</code> moves across <code>(111)^n</code>, three cells every five steps (<code>hole</code>). Going left, the head runs across the ones in states D and A, one cell a step (<code>run_left</code>). Both hold for every n and every tape around.</p>
+        <p class="where"><code>hole</code>, <code>run_left</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +124,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 49,014 cells have been visited and 48,508 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The left end is fixed and the counter eats the reserve</h3>
+        <p>In the first 10<sup>9</sup> steps, the leftmost cell visited is last reached at step 1,072,561. From then on, the 1,621 cells left of the block of ones read: a fixed part, the reserve <code>(011)^k</code>, then the counter. The reserve has k = 481, 476, 474, 472, 470 at steps 7.4&middot;10<sup>6</sup>, 3.7&middot;10<sup>7</sup>, 9.1&middot;10<sup>7</sup>, 1.7&middot;10<sup>8</sup>, 4.0&middot;10<sup>8</sup>, and 468 at 10<sup>9</sup>. Over the same times the counter has 94, 109, 115, 121, 127 cells.</p>
+        <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c</code></p>
+      </div>
+      <div class="card">
+        <h3>A counter that carries</h3>
+        <p>Over 5,240 ticks in the first 4&middot;10<sup>8</sup> steps, how far back from the ones a tick changes the tape falls off roughly geometrically. 2,618 ticks change at most 10 cells, 219 reach 30&ndash;39 cells back, 19 reach 80&ndash;89, and 2 reach 120&ndash;129.</p>
+        <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +142,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.454).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>When the reserve runs out</h3>
+        <p>The counter takes about 2 units of the reserve each time the time grows by a factor of about 2.4. At that rate the remaining 468 units last until about 10<sup>90</sup> steps. Only then does the counter reach the fixed left part, where something new must happen. The machine halts only when D reads 0 and the cell to its left is also 0 (F reading 0 is its only undefined transition). Before then, the counter's digits would have to produce the pattern, and their rules are not worked out.</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The open part is the counter's carry rules, and what happens when the reserve block is used up.</p>
       </div>
     </div>
   </section>
@@ -140,7 +159,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1RC0LE_1LA1RE_0LF1LA_1RB0RB_---0LB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1RC0LE_1LA1RE_0LF1LA_1RB0RB_---0LB 1000000000</code></pre>
+gcc -O2 -o turns holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c &amp;&amp; ./turns 1RB1LD_1RC0LE_1LA1RE_0LF1LA_1RB0RB_---0LB 1000000000 100000 0</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LD_1RC0LE_1LA1RE_0LF1LA_1RB0RB_---0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The left end is a periodic block that grows steadily; the middle of the tape is disordered and now and then swallows the block. No rule for the middle is known.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules</h3>
+        <p>For every length n of the run and any tape around it: <code>L (111110110)^n D&gt; 1 R</code> reaches <code>L D&gt; 1 (101101101)^n R</code>; <code>L (011011111)^n E&gt; 0 R</code> reaches <code>L E&gt; 0 (110110110)^n R</code>; <code>L (110)^n D&gt; 1 R</code> reaches <code>L D&gt; 1 (101)^n R</code>. These are the moves the head makes across the long uniform stretches of the tape.</p>
+        <p class="where"><code>lean/Shifts.lean</code> (written by <code>bbtools.symtm.prove</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Shift rules</h3>
+        <p>For every length n of the run and any tape around it: <code>L (111110110)^n D&gt; 1 R</code> reaches <code>L D&gt; 1 (101101101)^n R</code>; <code>L (011011111)^n E&gt; 0 R</code> reaches <code>L E&gt; 0 (110110110)^n R</code>; <code>L (110)^n D&gt; 1 R</code> reaches <code>L D&gt; 1 (101)^n R</code>. These are the moves the head makes across the long uniform stretches of the tape.</p>
+        <p class="where"><code>lean/Shifts.lean</code> (written by <code>bbtools.symtm.prove</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +129,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 63,728 cells have been visited and 51,851 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p><code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps from blank tape without a halt.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>11</sup> steps</h3>
+        <p><code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps from blank tape without a halt.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The collapses of the block</h3>
+        <p>Up to 10<sup>9</sup> steps the periodic block at the left end grows by one copy every three visits and is swallowed thirteen times, with 11, 9, 84, 36, 135, 100, 36, 324, 36, 36, 260, 999 and 36 copies just before; the value 36 recurs five times.</p>
+        <p class="where"><code>tools/c/tmrun.c</code> (<code>at D L</code>), README</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -132,7 +157,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It halts exactly when state F reads a 0, which would have to happen inside the disordered middle.</p>
       </div>
     </div>
   </section>

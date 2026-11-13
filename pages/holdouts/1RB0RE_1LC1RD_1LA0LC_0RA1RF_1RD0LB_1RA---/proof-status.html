@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is made of the words <code>100</code> and <code>101</code>, grouped into regions. The head works for a long time at the boundary between two regions before it moves on. Full sweeps across the tape come at steps 25,912, 827,042 and 1,021,956,316, ever further apart, as in a nested counter. Lean proves three shift rules. The macro structure has not been decoded.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules</h3>
+        <p><code>b_right</code>: going right, B turns each <code>100</code> into <code>101</code>. <code>b_left</code>: going left, B turns <code>101</code> words back into <code>100</code> words. <code>a_right</code>: going right, A shifts a block of <code>100</code> words by one cell. All three hold for every n and every surrounding tape.</p>
+        <p class="where"><code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +124,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 36,984 cells have been visited and 24,185 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Rare full sweeps</h3>
+        <p>The head reaches the left end after having been at the right end at steps 38, 110, 416, 660, 1,070, 1,904, 3,712, 8,212, 25,912, 827,042 and 1,021,956,316. At those times the tape is 12, 19, 37, 44, 55, 71, 102, 149, 238, 1,499 and 37,210 cells wide. No halt in 3&middot;10<sup>9</sup> steps.</p>
+        <p class="where"><code>edges</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.419).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Why it is hard</h3>
+        <p>The gaps between full sweeps grow faster than geometrically: 25,912, then 827,042, then about 10<sup>9</sup>. This is the mark of nested counters, where each region of the tape is used up one unit at a time by the region to its left. To decode it, one has to find the counting rule at each kind of boundary, and there are several kinds.</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The machine halts if F reads a 1.</p>
       </div>
     </div>
   </section>

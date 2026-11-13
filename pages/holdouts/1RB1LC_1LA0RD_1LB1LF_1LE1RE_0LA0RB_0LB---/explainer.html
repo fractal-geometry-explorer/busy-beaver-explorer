@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LC_1LA0RD_1LB1LF_1LE1RE_0LA0RB_0LB---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Two big blocks of ones trade cells, four in for every three out, so each round is a third longer than the one before: a Collatz-like map that looks like a twin of another holdout.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 45,954 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>40</sup> steps</b><span class="small">No halt in the accelerated (proved-rule) run.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>40 rules</b><span class="small">Cycle rules of the run to 10<sup>15</sup>, proved in Lean.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>4n/3</b><span class="small">Each regime about 4/3 as long as the last.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">Two big blocks of ones</a><a href="#rule">Four in, three out</a><a href="#halt">Open</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +218,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>954,641,969</td><td><code>B&gt;0 1^38328 0 1^6878 0 1^138</code></td></tr><tr><td>left</td><td>970,307,651</td><td><code>B&gt;0 1^37710 0 1^7702 0 1^138</code></td></tr><tr><td>left</td><td>986,015,441</td><td><code>B&gt;0 1^37080 0 1^8542 0 1^138</code></td></tr><tr><td>right</td><td>813,940,524</td><td><code>1 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape looks like</span>
+  <h2>Two big blocks of ones</h2>
+<p>After 10<sup>9</sup> steps the left side is <code>B&gt;0 1^37710 0 1^7702 0 1^138</code>, and about 15 million steps later <code>B&gt;0 1^37080 0 1^8542 0 1^138</code>: the outer block lost 630 cells and the inner gained 840, four for every three. Right of the start there are only 77 cells, a slow counter.</p>
+</section>
+<section id="rule">
+  <span class="eyebrow">The rule</span>
+  <h2>Four in, three out</h2>
+<p>Read in blocks of 3 cells, one cycle adds 8 words <code>111</code> to one block and removes 6 from the other (proved, for every size). When the shrinking block is used up a new regime starts, about 4/3 as long: the cycles per regime go 3, 7, 10, 14, 18, 23, …, 1344830, 1793083, 2390779, 3187809, 4250412.</p>
+<p>The small blocks that appear at the end of the tape between regimes (13, 24, 45, 192, 459, 597 words …) are exactly the ones seen in <code>1RB1LB_0RC0LD_1LD1RE_1RC0LA_1RD1RF_0RD---</code>, another holdout of the same shape: the two machines seem to compute the same map.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>Open</h2>
+<p>The only halting transition is F reading 1. As for its twin, the end-of-regime map (how the remainder mod 3 changes the short tail) has not been extracted, so the question is not yet reduced. The accelerated run reaches 10<sup>40</sup> steps without a halt.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -235,7 +251,10 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 45,954 cells have been visited and 45,454 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.508). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.072).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Cycles.lean</code> (from <code>py/cycles_rules.py</code>)</div></div><div><b>The cycle rules</b><p>40 one-cycle rules, each for all values of its variables, e.g. <code>(111)^n2</code> +8 and <code>(111)^n4</code> −6 per cycle: the rules the cycle accelerator applied on the run to 10<sup>15</sup> steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 -m bbtools.cycles M 3 1e40</code></div></div><div><b>No halt up to 10<sup>40</sup> steps</b><p><code>bbtools.cycles</code> with blocks of 3 cells: 146 jumps, 78 proved rules, no halt by 10<sup>40</sup> steps.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/cycles_rules.py</code> (the jumps)</div></div><div><b>The 4/3 map</b><p>Cycles per regime: 3, 7, 10, 14, 18, 23, …, 75496, 100978, 134640, 179519, 239361, 319153, 425537, 567383, 756508, 1008656, 1344830, 1793083, 2390779, 3187809, 4250412, 5667216: each about 4/3 of the last. The small blocks that come and go at the end of the tape (<code>111^13</code>, <code>111^24</code>, <code>111^45</code>, <code>111^192</code>, <code>111^459</code>, <code>111^597</code>, …) are the same numbers as in the run of <code>1RB1LB_0RC0LD_1LD1RE_1RC0LA_1RD1RF_0RD---</code>, which suggests the two machines simulate the same map.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Open: the end-of-regime rule is not extracted, so the halting transition (F reading 1) is not reduced to a condition on the map.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

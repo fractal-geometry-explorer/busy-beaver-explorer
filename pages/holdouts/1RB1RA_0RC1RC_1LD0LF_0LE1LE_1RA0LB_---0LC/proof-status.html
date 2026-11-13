@@ -73,13 +73,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC</p>
     <h1>What is known about 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC</h1>
     <p class="machine">1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC</p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its run is a sequence of <em>epochs</em>, each a Collatz-like countdown; an epoch ends either in a halt or in a new, vastly longer epoch. The bbchallenge community lists it as <em>probviously halting</em>: with fair-coin parities every epoch halts with probability 1/3.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> In configurations <code>X(n, m) = C&gt;0 0^n 1^m 0 1</code> the machine sends n to about 3n/2 and m down by 1 or 2 according to n mod 4. When m runs out it halts or starts a new epoch with m ≈ 3n/2.</p>
+      <p><b>Where the run is (computed exactly).</b> Epochs start with m = 5, 57, 210,273,201. The third epoch lasts 140,180,848 macro steps (the number reaches 82 million bits) and ends in a new epoch, whose countdown has about 24,684,623 decimal digits. Its end is out of reach of any computation. Heuristically each epoch halts with probability 1/3, so the machine halts with probability 1, after a number of steps with tens of millions of digits in its exponent.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,20 +120,30 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 36,156 cells have been visited and 24,110 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The macro rules</h3>
+        <p>For X(n, m) = 0^∞ C&gt;0 0^n 1^m 0 1 0^∞ with n ≥ 2 even: for m ≥ 2, n ≡ 0 (mod 4) goes to X(3n/2 + 4, m − 1) and n ≡ 2 to X((3n + 10)/2, m − 2); for m = 1, n ≡ 0 gives X(3n/2 + 4, 0) and n ≡ 2 a new epoch X(4, 3n/2 + 6); for m = 0, n ≡ 0 gives X(4, 3n/2 + 5) and n ≡ 2 halts. Checked against direct simulation for every even 2 ≤ n &lt; 60 and m &lt; 12. Inside a step the head fills the run of 0s with 1s from the left, two cells per round trip while the tape grows by one at the left; then a 1 is taken off the countdown block.</p>
+        <p class="where"><code>py/macro.py check</code></p>
+      </div>
+      <div class="card">
+        <h3>The first three epochs, exactly</h3>
+        <p>From blank tape the run reaches X(4, 5) after 50 steps; epochs start with m = 5, 57 (step 2,619) and 210,273,201. The third epoch was run exactly with a divide-and-conquer parity iteration (the parities of t steps of y ↦ ⌈3y/2⌉ depend only on y mod 2<sup>t</sup>; blocks are combined with powers of 3, GMP through gmpy2): it ends after 140,180,848 macro steps at m = 1 with n ≡ 2 (mod 4), so a fourth epoch starts with m = 3n/2 + 6, a number of 82,000,544 bits (about 24,684,623 digits; m mod 2<sup>64</sup> = 15369781771884450229). Two runs with different block sizes agree; the fast iteration agrees with plain big-integer iteration on epochs with m up to 10<sup>5</sup>.</p>
+        <p class="where"><code>py/macro.py epochs</code>, <code>py/epoch.py 210273201 22</code>, <code>py/fastwalk.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.481). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Halts with probability 1, but not soon</h3>
+        <p>With y = n/2 + 4 the rule is y ↦ ⌈3y/2⌉, with m −1 for y even and −2 for y odd. With fair-coin parities the countdown lands on m = 1 with probability 2/3 and on 0 with probability 1/3; m = 1 continues to 0 or starts a new epoch, and m = 0 halts or starts a new epoch, each with probability 1/2. So an epoch halts with probability 1/3 and the machine halts with probability 1, the community's reading. The fourth epoch alone lasts about 10<sup>24,684,623</sup> macro steps.</p>
+        <p class="where"><code>holdouts/known.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <h3>How does the fourth epoch end?</h3>
+        <p>It needs the parities of about 1.6 · 10<sup>24,684,622</sup> iterates of ⌈3y/2⌉ from y = 6: no method computes them.</p>
       </div>
     </div>
   </section>
@@ -140,7 +151,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC 1000000000
+python3 holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/py/macro.py check &amp;&amp; python3 holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/py/macro.py epochs
+pip install gmpy2 &amp;&amp; python3 holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/py/epoch.py 210273201 22</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

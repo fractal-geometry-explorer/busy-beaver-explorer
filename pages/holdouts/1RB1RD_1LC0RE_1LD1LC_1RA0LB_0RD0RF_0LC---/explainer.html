@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows yet. The machine builds a long run of the word 110 at the left end, then turns it into groups of sizes 4, 7, 10, 13, … that later sweeps use up: a counter with several levels. How the levels carry into each other has not been worked out.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 39,716 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup></b><span class="small">Steps simulated from blank tape without a halt.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>4, 7, 10, 13, …</b><span class="small">Group sizes after the sweeps, in long runs.</span></div>
+    <div class="fact"><span class="ev o">Open</span><b>carry rule</b><span class="small">How the levels interact is not yet known.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A prefix and a list of groups</a><a href="#rule">The prefix becomes groups</a><a href="#halt">Not known</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,32 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">The tape</span>
+  <h2>A prefix and a list of groups</h2>
+<p>Each time the head reaches the left end in state B, the tape reads</p>
+<pre>B&gt; 00 (110)^k  (10)^a₁ 1 (10)^a₂ 1 (10)^a₃ 1 …</pre>
+<p>a prefix of <code>k</code> words <code>110</code>, then a list of groups. Between resets the prefix grows by two words a visit, and the sweeps merge groups so that the list becomes long runs of equal sizes 4, 7, 10, 13, 16, …; at step 2.8·10<sup>8</sup> it starts</p>
+<pre>2 4^140 3 1 7^514 10^28 13^105 16^3 15 1 4 19^21 18 22 25^3 23 …</pre>
+<p>(<code>4^140</code>: 140 groups of size 4 in a row).</p>
+</section>
+<section id="rule">
+  <span class="eyebrow">The resets</span>
+  <h2>The prefix becomes groups</h2>
+<p>When the list is used up far enough, the prefix is turned into about <code>k/2</code> groups of size 4 and a new round starts. Large and small resets alternate:</p>
+<pre>step          k     list after the reset
+136,979,965   1670  2 3 4^835 7^38 6 1 10^170 9 13^5 16^35 …
+143,004,220   220   2 3 4^110 7^108 5 1 5 1^2 …
+336,918,693   2591  1 1 4^1295 3 1 7^70 6 10^257 13^14 16^53 …
+354,166,720   397   1 1 4^198 3 1 7^197 5 1 5 1^2 …
+528,837,280   3185  2 3 4^1592 6 7^98 6 1 4 10^323 9 7 13^16 …</pre>
+<p>The multiplicities of the sizes 4, 7, 10, 13, … act like the digits of a counter with several levels; the rule by which they carry is not worked out.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Does it halt?</span>
+  <h2>Not known</h2>
+<p>The machine stops only if the head in state F reads a 1; in 10<sup>9</sup> simulated steps it never does. Without the carry rule there is no honest estimate either way.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +261,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 39,716 cells have been visited and 22,109 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.5). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.1).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/sim.c</code>, <code>c/resets.py</code></div></div><div><b>Prefix, groups and resets</b><p>At each visit of the left end in state B the tape is <code>B&gt; 00 (110)^k (10)^a₁ 1 (10)^a₂ 1 …</code>. Between resets <code>k</code> grows by 2 a visit and the sweeps merge the groups into runs of sizes 4, 7, 10, 13, …; at a reset the prefix becomes about <code>k/2</code> groups of size 4. Large and small resets alternate (<code>k</code> = 909, 37, 1670, 220, 2591, 397, 3185 between steps 3.6·10<sup>7</sup> and 5.3·10<sup>8</sup>). Observed in simulation, not proved.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The carry rule between the levels is the missing piece.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC--- 1000000000</code></pre>
+gcc -O2 -o sim holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/c/sim.c &amp;&amp; ./sim 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC--- 600000000 1 | python3 holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/c/resets.py</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

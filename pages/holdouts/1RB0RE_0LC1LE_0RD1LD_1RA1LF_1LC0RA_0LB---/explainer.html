@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine runs a cousin of the Collatz map. Each phase it turns a run of Z zeros into a wall of <code>100</code> words and back into about 3Z/2 zeros. The remainder of Z mod 4 ticks a counter kept in a short word at the far end of the tape, and the counter runs through cycles that grow threefold.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 34,606 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>4 zeros, 2 words</b><span class="small">What one sweep eats and builds; chained over a whole phase in Lean.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>Z &rarr; 3Z/2</b><span class="small">The phase map on the run of zeros, with a constant set by Z mod 4.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>1,500 phases</b><span class="small">No halt from blank tape, far past 10<sup>350</sup> steps.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#phase">A phase: zeros to wall and back</a><a href="#counter">A counter in the word D</a><a href="#question">An open, Collatz-like question</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +218,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>955,047,282</td><td><code>0 1 0^5 1 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^739 1 0^3 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1</code></td></tr><tr><td>right</td><td>970,753,668</td><td><code>0 1 0^5 1 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^415 1 0^3 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1</code></td></tr><tr><td>right</td><td>986,497,988</td><td><code>0 1 0^5 1 0 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^95 1 0^3 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1 0^2 1</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="phase">
+  <span class="eyebrow">The engine</span>
+  <h2>A phase: zeros to wall and back</h2>
+<p>A phase starts with the tape <code>D 0^Z 1 0 0</code>: a short word D at the fixed left end, a run of Z zeros, and the head in state E at the right end. Each sweep the head runs left across a growing wall of <code>100</code> words, eats four zeros at the edge of the run, and comes back with two more words on the wall. After about Z/4 sweeps the zeros are used up. The head then works on D, and the wall, now about 3Z/2 cells long, becomes the next run of zeros.</p>
+<p>So Z' = (3Z + c)/2, with a small c that depends on D and on Z mod 4. A phase costs about 9Z<sup>2</sup>/8 steps.</p>
+</section>
+<section id="counter">
+  <span class="eyebrow">The memory</span>
+  <h2>A counter in the word D</h2>
+<p>Write D(a, b) = <code>0 1 0^a 1 0 1 (001)^b</code>. A phase with Z &equiv; 1 mod 4 leaves D alone. A phase with Z &equiv; 3 moves one unit from a to b. Z stays odd throughout. When a reaches 0, the next phase with Z &equiv; 3 resets the word to <code>0 1 0^(3b+5) 1</code>, and a new cycle three times as long begins: 11, 35, 107, 323, 971 units.</p>
+<p>That holds only if Z &equiv; 3 mod 8 at the reset. Otherwise the word grows a second level, a counter that moves by four and two units per phase. From blank tape the first four resets went the simple way. The fifth, at phase 1001, did not.</p>
+</section>
+<section id="question">
+  <span class="eyebrow">What is left</span>
+  <h2>An open, Collatz-like question</h2>
+<p>Halting depends on the orbit of Z under a 3/2 map whose constant depends on Z mod 4, together with the nested counters it drives. Words D on which a phase halts do exist. Choosing the residues freely reaches them, but the real orbit has not produced one so far.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -234,15 +251,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 34,606 cells have been visited and 2,752 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.525).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep</code>, <code>wall_left</code>, <code>lean/Rules.lean</code>; <code>sweeps</code>, <code>lean/Sweeps.lean</code></div></div><div><b>The sweeps of a phase</b><p>With 4j + 4 zeros left of <code>1 0 0 0 (100)^n 0 A&gt;</code> at the right end, j sweeps eat 4j zeros and add 2j words <code>100</code> to the wall (one sweep: 18n + 64 steps, any tape to the left).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/phases.py</code>, <code>c/nextps.c</code></div></div><div><b>The phase map</b><p>From PS(D, Z) = <code>D 0^Z 1 0 0 E&gt;</code> the next phase start is PS(D', Z') with Z' = (3Z + c)/2, where D' and c depend only on D and Z mod 4: found by running the machine at three Z of the same residue and extrapolating, checked against the plain machine on the 16 phase starts from blank tape (to step 8.7&middot;10<sup>7</sup>).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/phases.py</code></div></div><div><b>The counter in D</b><p>For D(a, b) = <code>0 1 0^a 1 0 1 (001)^b</code>: Z &equiv; 1 leaves D alone, Z &equiv; 3 makes it D(a&minus;1, b+1), Z stays odd; at a = 0 a phase with Z &equiv; 3 resets D to <code>0 1 0^(3b+5) 1</code>, which continues as D(3b+4, 0) if Z &equiv; 3 mod 8 and leaves the family otherwise. Checked for a, b &lt; 16.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/phases.py 1500</code></div></div><div><b>No halt in 1,500 phases</b><p>Iterating the phase map from the first phase start (assuming the linear extrapolation, checked as above): resets of the counter at phases 5, 29, 92, 332 stay in the family (cycles of length 11, 35, 107, 323); at phase 1001 (Z has 178 digits) the word leaves it and a second-level counter starts. No halt up to phase 1,500.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/search.py 24</code></div></div><div><b>Halting words exist</b><p>With the residue Z mod 4 chosen freely at every phase, 23,305 words of at most 24 cells are reachable from the first phase start, and 7,145 of the (word, residue) pairs met halt, for example <code>0 1 0 0 1 1 1 0 1</code> with Z &equiv; 3. So halting is not excluded by the words alone; it depends on the residues along the real orbit.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It reduces to the orbit of the map Z &rarr; (3Z + c)/2 and the nested counters it drives in D: whether the residues along the orbit ever build a halting word.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- 1000000000</code></pre>
+python3 holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/py/phases.py</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

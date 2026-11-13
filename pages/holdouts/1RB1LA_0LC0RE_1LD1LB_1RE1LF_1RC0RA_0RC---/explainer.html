@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine counts in base 4: its tape is a sea of the word <code>100</code> with walls in it, each wall a digit, and every trip of the head from the right end adds one. The gaps between the walls slowly close, walls merge, and when every digit reads 3 the counter overflows and a new digit is born. This page shows how, with the rules proved in Lean.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 64,212 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>2.2&middot;10<sup>15</sup> steps</b><span class="small">No halt in the exact digit simulator.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>17 sweep rules</b><span class="small">Every edge event seen, proved in Lean for carry chains of any length.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>&minus;1 per cycle</b><span class="small">How fast the gap in front of a wall shrinks: walls merge.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A sea of 100 with digits in it</a><a href="#walls">Adding one</a><a href="#events">Overflows and mergers</a><a href="#halt">Only by F reading a 1</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,33 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="tape">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>A sea of 100 with digits in it</h2>
+<p>Look at the tape each time the head is at the right end in state C, reading a 0. It is the word <code>100</code> repeated, interrupted by short <em>walls</em>; each wall with the run of <code>100</code> in front of it is one <em>digit</em>:</p>
+<table><tr><th>wall</th><th>cells</th><th>digit value</th></tr><tr><td>S0</td><td><code>1000</code></td><td>0</td></tr><tr><td>S1</td><td><code>110</code></td><td>1</td></tr><tr><td>S2</td><td><code>10000</code></td><td>2</td></tr><tr><td>S3</td><td><code>1010</code></td><td>3</td></tr></table>
+<p>A real tape (step 1,999,995,206), each digit written <code>[run]wall</code>: <code>[0]S [14]S1 [490]S0 [922]S1 [1642]S0 [427]S0 [5933]S2 [15297]S0 [4360]</code>. S is the <code>10</code> at the left end; the last number is the run at the right end, one word longer after every trip of the head.</p>
+</section>
+<section id="walls">
+  <span class="eyebrow">One sweep to the next</span>
+  <h2>Adding one</h2>
+<p>From the right end the head walks left over the digits that read 3 (S3) &mdash; the <em>carry chain</em> &mdash; to the first digit that does not, moves it one step along S0&rarr;S1&rarr;S2&rarr;S3, and walks back turning every S3 into S0: adding one to a base-4 number whose lowest digit is next to the head. The head passes the k-th digit only once every 4<sup>k</sup> trips, so most trips are short.</p>
+<p>Example: <code>[a+1]S1 [c+1]S3 [d+1]S3 [z+1]</code> becomes <code>[a]S2 [c+1]S0 [d+1]S0 [z+2]</code>. Lean proves each such rule for every value of the runs and a carry chain of <em>any</em> length, by induction on the list (<code>sweep_s0</code>, <code>sweep_s1</code>, <code>sweep_s2</code>).</p>
+<p>Only the S1&rarr;S2 step changes a run: the run in front of the digit loses one word. So the gap in front of every wall shrinks by one per cycle of that wall. Between two overflows the i-th digit from the left goes round 4<sup>i&minus;1</sup> times, which is what the first look at this machine saw: block i loses 4<sup>i&minus;1</sup> between visits of the left end.</p>
+</section>
+<section id="events">
+  <span class="eyebrow">When something special happens</span>
+  <h2>Overflows and mergers</h2>
+<p><b>Overflow.</b> When every digit reads 3, the head runs to the left end: every S3 becomes S0 and a new digit S1 is born at the right end, the old last run in front of it (<code>overflow</code>, proved for any number of digits). At step 3,364,427,683 the tape was <code>[0]S [13]S0 [487]S0 [910]S0 [1595]S0 [239]S0 [5182]S0 [12291]S0 [16383]S1 [1]</code>. These overflows are the rare visits of the left end, about four times further apart each time.</p>
+<p><b>Merger.</b> When the gap in front of an S1 is used up, the next carry cannot shorten it, and the S1 fuses with the wall before it: after S the two become one S0 (<code>merge_s_s1</code>), after S3 they become S and S0 (<code>merge_s3_s1</code>), after S2 a long wall X6 = <code>1000000</code> (<code>merge_s2_s1</code>), which the next carry splits again (<code>sweep_x6</code>). After S0 or S1 it would make walls outside the list; that never happens in the run, because of a mod-4 relation between a digit's phase and its neighbour's run (see the README).</p>
+<p><b>The first block.</b> The gap behind the leading <code>10</code> loses one word per overflow; when it is gone, <code>10 110</code> becomes <code>1000</code> (<code>left_s_s1</code>). The seven other ways the left end was seen to look are Lean theorems too (<code>left_s0</code> &hellip; <code>left_s3_s</code>): none halts, all come back to the digit form.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Could it stop?</span>
+  <h2>Only by F reading a 1</h2>
+<p>The only halt is state F reading a 1. None of the rules above gets there. A simulator that applies them (each an actual symbolic run of the machine, not a model) matched the real run at every sample point checked and ran on to 2.2&middot;10<sup>15</sup> steps without a halt or an unknown event.</p>
+<p>To make that a proof one has to describe a set of digit configurations that the rules map into itself, including every way a short gap can sit next to every wall, and check it in Lean. The rules for every event seen are done, for any length of carry chain; the closed set is not: simple descriptions (which wall may follow which, with gap lengths 0, 1 or more, or gap lengths mod 4) all let in configurations the machine never reaches, and those leave the list of walls.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,14 +262,22 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 64,212 cells have been visited and 26,731 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.064). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.539).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</div></div><div><b>The shift rules</b><p>Going right, E turns (101)<sup>n</sup> and (011)<sup>n</sup> into (010)<sup>n</sup>, A turns (011)<sup>n</sup> into (100)<sup>n</sup>, B turns (110)<sup>n</sup> into (001)<sup>n</sup>; going left, D turns (100)<sup>n</sup> back into (101)<sup>n</sup>, B and C rewrite (010)<sup>n</sup> and (001)<sup>n</sup>, A runs over 1s. Each for every n and every surrounding tape.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep_s0</code>, <code>sweep_s1</code>, <code>sweep_s2</code>, <code>lean/Sweeps.lean</code>, <code>lean/Seq.lean</code></div></div><div><b>One sweep adds one, for a carry chain of any length</b><p>At the sample point (C on a 0 at the right end) the tape is a list of digits <code>(100)^r W</code>. With the first non-S3 digit (the <em>stop</em>) in shape S0, S1 or S2 and any list <code>ts</code> of S3 digits after it (any length, any runs), one sweep turns the stop into the next shape (S0&rarr;S1, S1&rarr;S2 with its left run one shorter, S2&rarr;S3), every S3 of the chain into S0, and lengthens the last run by one. Proved by induction on the list (<code>seqtm</code>).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Sweeps.lean</code></div></div><div><b>The overflow, the mergers and the left end</b><p><code>0^inf 10</code> followed only by S3 digits (any number): one sweep crosses the whole tape, every S3 becomes S0 and a new digit S1 is born at the right end (<code>overflow</code>). An S1 with left run 0 receiving a carry fuses with the wall before it: after S into one S0 (<code>merge_s_s1</code>), after S3 into S and S0 (<code>merge_s3_s1</code>), after S2 into X6 = <code>1000000</code> (<code>merge_s2_s1</code>); X6 and X5 as stops (<code>sweep_x6</code>, <code>sweep_x5</code>). At the left end, eight cases with a first digit of run 0 (<code>left_s_s1</code>, <code>left_s0</code>, <code>left_s1</code>, <code>left_s2</code>, <code>left_s3</code>, <code>left_s_s0</code>, <code>left_s_s2</code>, <code>left_s3_s</code>). Each for any carry chain.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/digits.py check</code></div></div><div><b>The digit model is exact</b><p><code>py/digits.py</code> maps one sample to the next by running the machine symbolically (<code>symtm</code>) on a window (the carry chain, the stop, and as many digits before it as the run touches; the rest an unknown context; long runs as variables). Compared with the direct run from blank tape: the same tapes and the same step counts at all 14,148 sample points up to 2&middot;10<sup>8</sup> steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/digits.py far</code></div></div><div><b>No halt in 2.2&middot;10<sup>15</sup> steps</b><p>From the sample at 2&middot;10<sup>9</sup> steps the digit model ran 4.9&middot;10<sup>7</sup> sweeps more, to 2.2&middot;10<sup>15</sup> steps: no halt and no window it could not read back as digits; overflows and mergers as described, the first block went from 14 down to 0 (one per overflow) near 2.1&middot;10<sup>15</sup> steps, the left end rearranged (<code>[0]S3 [0]S [436]S0</code> &rarr; <code>[0]S [0]S0 [435]S0</code>) and the counter went on.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/closure.py kinv</code>; README, Notes for later</div></div><div><b>Why it probably never halts</b><p>Every event seen is one of a small catalogue of local rewrites of digits, each a Lean rule, none of which reaches F on a 1. The dangerous mergers (an S1 of run 0 after S0 or S1, which would leave the vocabulary) never occur, because of a mod-4 relation: for neighbouring digits y x, phase(y) + run(x) + [x is S2 or S3] mod 4 is fixed while both live, and is 2 or 3 in 2,091,564 of 2,092,788 neighbour pairs over the first 3&middot;10<sup>5</sup> sweeps (the rest inside S[0]S0 compounds).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/closure.py</code>; README, Notes for later</div></div><div><b>No small closed language</b><p>The fixpoint search <code>py/closure.py ngram</code> (every place a sweep can happen in a word of the language, run symbolically) does not close for bigrams or trigrams with run classes 0, 1, &ge;2, nor for bigrams with residues mod 4, a marked left end and the compounds S[0]S0, S[0]S1 (536 bigrams, then windows with X5 or X6 before an S1 of run 0, which the real run never shows).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Missing: a closed set of digit configurations. n-gram languages over (wall, run class), with classes 0/1/&ge;2 or with residues mod 4, compounds and a marked left end, all fail to close in <code>py/closure.py</code>, and cell-level closed tape languages (windows of 3..7 cells, block trackers) do not close within 4&middot;10<sup>5</sup> abstract configurations. Also missing: carry chains with an S3 of run 0 in <code>seqtm</code>, and the assembly in Lean.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC--- 1000000000</code></pre>
+python3 holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/py/digits.py check 2e8
+python3 holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/py/digits.py far 1e6 300000 50000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

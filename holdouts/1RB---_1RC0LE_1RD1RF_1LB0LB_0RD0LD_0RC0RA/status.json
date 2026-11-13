@@ -1,6 +1,6 @@
 {
- "generated": true,
- "group": "G04",
+ "generated": false,
+ "group": "transfer phases (Collatz-like?)",
  "title": "What is known about 1RB---_1RC0LE_1RD1RF_1LB0LB_0RD0LD_0RC0RA",
  "description": "Proof status of the six-state BB(6) holdout 1RB---_1RC0LE_1RD1RF_1LB0LB_0RD0LD_0RC0RA.",
  "machine": "1RB---_1RC0LE_1RD1RF_1LB0LB_0RD0LD_0RC0RA",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> The machine moves material, one word every two visits, from one long run of a periodic word into another; each phase leaves a marker behind, and the runs it leaves have lengths in ratios close to 3/2, the usual sign of a Collatz-like map."
  ],
  "claims": [
   {
@@ -46,6 +46,24 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "Transfer phases",
+   "text": "At the left-end visits in state D the first run loses one period-6 word and the second gains one period-9 word per round (750 per 1,500 rounds from 5.5&middot;10<sup>8</sup> to 8.0&middot;10<sup>8</sup> steps); the frozen runs to the right have lengths 133, 88, 58, 38, 15.",
+   "where": "<code>python3 py/view.py 2e9 1500 blocks D L 9</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Transfer phases",
+   "text": "At the left-end visits in state D the first run loses one period-6 word and the second gains one period-9 word every two visits (750 per 1,500 visits from 5.5&middot;10<sup>8</sup> to 8.0&middot;10<sup>8</sup> steps); the frozen runs to the right have lengths 133, 88, 58, 38, 15.",
+   "where": "<code>python3 py/view.py 2e9 1500 blocks D L 9</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Transfer phases",
+   "text": "At the left-end visits in state D the first run loses one period-6 word and the second gains one period-9 word every two visits (750 per 1,500 visits from 5.5&middot;10<sup>8</sup> to 8.0&middot;10<sup>8</sup> steps); the frozen runs to the right have lengths 133, 88, 58, 38, 15.",
+   "where": "<code>python3 py/view.py 2e9 1500 blocks D L 9</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
@@ -55,11 +73,16 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB---_1RC0LE_1RD1RF_1LB0LB_0RD0LD_0RC0RA/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB---_1RC0LE_1RD1RF_1LB0LB_0RD0LD_0RC0RA 1000000000"
+  "python3 holdouts/1RB---_1RC0LE_1RD1RF_1LB0LB_0RD0LD_0RC0RA/py/view.py   # the views of the run quoted in the README"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. The machine moves material, one word every two visits, from one long run of a periodic word into another; each phase leaves a marker behind, and the runs it leaves have lengths in ratios close to 3/2, the usual sign of a Collatz-like map.",
   "facts": [
+   {
+    "level": "heuristic",
+    "value": "ratios &asymp; 3/2",
+    "text": "between consecutive frozen runs: probably a Collatz-like map."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -69,11 +92,6 @@
     "level": "native",
     "value": "10<sup>7</sup> steps",
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
-   },
-   {
-    "level": "heuristic",
-    "value": "fixed/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
    }
   ],
   "presets": [
@@ -85,6 +103,15 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "transfer",
+    "eyebrow": "Macro structure",
+    "heading": "Moving material between runs",
+    "html": [
+     "<p>The tape is made of long runs of a few periodic words, mostly <code>100010000</code> (9 cells) and <code>000100</code> or <code>000001</code> (6 cells), separated by short markers. Every second time the head, in state D, comes back to the left end, one more word has moved from the first run to the next one: the first run shrinks by one word of 6 cells and the second grows by one word of 9 cells. When the first run is empty a new phase begins with other words.</p>",
+     "<p>Each phase leaves a marker and a run behind it. The runs further right are frozen; their lengths, 133, 88, 58, 38 and 15 for one kind of word, shrink by factors close to 3/2. That is how Collatz-like maps usually show up in these machines, but the exact map and its halting condition have not been worked out.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +125,7 @@
     ]
    }
   ]
- }
+ },
+ "summary": "Phases of transfer between long runs of period-6 and period-9 words; the frozen runs it leaves behind shrink by ratios close to 3/2, the mark of a Collatz-like map (not extracted).",
+ "decision": "open"
 }

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Almost the whole tape is the seven-cell word <code>0101111</code> (five 1s) in one of its seven phases. Long runs of it are separated by a handful of short defects. Two crossings of a run are proved in Lean. The defects' dynamics, and with it halting (E reading a 0), is not understood.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -102,6 +102,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Crossing a run</h3>
+        <p><code>1 0 1 1 1 B&gt; (0111110)^n &rarr; 1 0 1 1 1 (1010111)^n B&gt;</code> and <code>1 0 1 1 1 0 C&gt; (1111100)^n &rarr; 1 0 1 1 1 (1010111)^n 0 C&gt;</code>, for every n.</p>
+        <p class="where"><code>b_cross</code>, <code>c_cross</code>, <code>lean/Rules.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -127,12 +132,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.148). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.553).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Runs and defects</h3>
+        <p>At step 999,903,180 (66,332 cells) the tape is <code>(11110)^2 (1011110)^302 1^5 (0101111)^191 (0111101)^1341 (1010111)^1001 10 1^5 (0101111)^731 (01011)^2 (1101011)^753 11 (01)^4 (1110101)^3767 1^7 (0101111)^1382 01 01 11 0 C&gt;0</code>: nine runs of the same word, about 99.9% of the cells.</p>
+        <p class="where"><code>tmrun M 1000000000 records</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The machine halts only when E reads a 0. E is entered from D on a 0 (writing 1, moving right), and the sweeps run the zigzag D, C, A, E through the defects. A halt would need a defect shape not seen so far. Ruling it out needs the defect dynamics. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.</p>
       </div>
     </div>
   </section>

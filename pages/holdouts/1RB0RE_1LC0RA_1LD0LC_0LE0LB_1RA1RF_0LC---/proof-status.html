@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves fourteen shift rules (C going left turns every c = 100 into d = 101, D leaves it; A and E cross pairs going right). The visited tape grows on the left like the square root of time; the halting question sits at the irregular wall between the bouncer and the frozen tail, whose rule was not derived.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules over c = 100 and d = 101</h3>
+        <p>Going left, C turns <code>(100)<sup>n</sup></code> into <code>(101)<sup>n</sup></code> and D leaves it; A and E cross pairs of words going right; B crosses the tail word <code>110100</code> both ways.</p>
+        <p class="where"><code>c_cd</code>, <code>d_cc</code>, ... <code>b_tail_l</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,6 +120,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
+        <h3>Where it can halt</h3>
+        <p>Only F reading 1 halts; F is entered only from E reading 1 (1RF), so the machine halts exactly on <code>E&gt; 1 1</code>. Read off the table.</p>
+        <p class="where">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The tape over time</h3>
+        <p>With <code>c = 100</code>, <code>d = 101</code>: at step 10<sup>8</sup> <code>0 c<sup>3815</sup> 1 [C0] d<sup>83</sup> 00 c<sup>11</sup> 1 d 00 ...</code>; at 4·10<sup>8</sup> <code>0 c<sup>4022</sup> 1 [B1] d 00 1 d<sup>3805</sup> 00 1 d<sup>5</sup> ...</code>; at 10<sup>9</sup> <code>0 c<sup>3955</sup> 1 0 [E0] 0 1 d<sup>8435</sup> 00 c 1 d<sup>2</sup> ...</code>; at 2·10<sup>9</sup> <code>0 c<sup>11883</sup> d [A0] 1 d<sup>5646</sup> 00 1 d 00 ...</code>; each followed by an irregular stretch and a long tail <code>(1 d 00)<sup>n</sup> = (110100)<sup>n</sup></code>.</p>
+        <p class="where">a direct run</p>
+      </div>
+      <div class="card">
+        <h3>No closed tape language with small windows</h3>
+        <p><code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS 3 to 7 fails; no invariant mod 2..12.</p>
+        <p class="where"><code>tools/py/bbtools/ctl.py</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 38,451 cells have been visited and 21,467 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
@@ -122,6 +142,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>A bouncer whose sweeps trade c for d</h3>
+        <p>The head sweeps the left part; going left in state C it turns c into d, going right it works in pairs; the boundary between the c-part and the d-part moves back and forth (the bands of the space-time diagram). Observed only.</p>
+        <p class="where">README</p>
+      </div>
       <div class="card">
         <h3>Growth shape: exp/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.462). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.032).</p>
@@ -132,7 +157,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The machine stops only on <code>E&gt; 1 1</code>; the clean c/d sweeps and the tail never make it, so the question is about the irregular wall between them, whose evolution was not derived.</p>
       </div>
     </div>
   </section>
@@ -140,6 +165,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC---/lean/check.sh
+python3 holdouts/1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC---/py/rules.py &gt; holdouts/1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC---/lean/Rules.lean
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC--- 1000000000</code></pre>
   </section>
   <footer>

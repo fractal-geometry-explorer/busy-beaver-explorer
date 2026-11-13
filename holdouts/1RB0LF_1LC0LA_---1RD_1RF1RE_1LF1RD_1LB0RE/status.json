@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G08",
  "title": "What is known about 1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE.",
@@ -12,7 +12,9 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves the passes over the regular left part, two passes in the irregular part and the halting situation (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.",
+  "<b>What it does.</b> The head sweeps the whole tape. Seen from the left end the tape is <code>0 (011)<sup>4</sup> (1011011011)<sup>k</sup></code> followed by an irregular region. k grows steadily, about 14 copies per hundred new cells at the left end (k = 21 at step 103,296, 172 at 6,990,882, 329 at 24,861,720), while the irregular region stays between about 150 and 430 cells long. So all the growth of the tape ends up in the regular part; the irregular part acts like a machine that produces copies of the word.",
+  "<b>Where a halt would come from.</b> Only C reading a 0 halts, and C is entered only from B reading a 0 (writing a 1 and stepping left); so <code>0 B&gt;0</code> halts (<code>halt_B</code>). In the run B reads a 0 only with a 1 to its left."
  ],
  "claims": [
   {
@@ -46,19 +48,59 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Every way to a halt",
+   "text": "Two steps before any halt the machine is in <code>0 0 F&gt;0</code>; no other configuration halts within three steps.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "Passes over the left part",
+   "text": "E moving right rewrites each copy of <code>1101101101</code> as <code>1011110110</code>, 12 steps a copy, and A moving left rewrites it back (one cell shifted), 50 steps a copy, for any number of copies.",
+   "where": "<code>pass_right</code>, <code>pass_left</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Passes in the irregular part",
+   "text": "D moving right turns each <code>011</code> into <code>101</code>; B moving left turns each <code>101</code> into <code>100</code>.",
+   "where": "<code>cross_D</code>, <code>cross_B</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The halting situation",
+   "text": "<code>0 B&gt;0</code> halts after two steps; it is the only way into C reading a 0.",
+   "where": "<code>halt_B</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Regular part grows, irregular part does not",
+   "text": "At every hundredth new cell on the left, up to 2.5&middot;10<sup>7</sup> steps, the tape is <code>0 (011)<sup>4</sup> (1011011011)<sup>k</sup></code> plus an irregular rest; k goes from 21 to 329 while the rest stays between 156 and 426 cells.",
+   "where": "<code>py/shape.py 2.5e7 L 100</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Never close to halting",
+   "text": "In the first 10<sup>6</sup> steps B reads a 0 about 31,000 times, always with a 1 to its left.",
+   "where": "<code>py/near_halt.py 1e6</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. The irregular part has not been described; the next step is to find how it hands copies of the word to the left part, or a set of patterns for it that is closed under the machine.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE 1000000000",
+  "python3 holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/py/route.py   # writes lean/Route.lean",
+  "python3 holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/py/rules.py   # writes lean/Rules.lean",
+  "python3 holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/py/shape.py 2.5e7 L 100 200",
+  "python3 holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/py/near_halt.py 1e6"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows yet. A crystal of a ten-cell word grows on the left of the tape, fed by a disordered region on the right that never grows. This page runs it in your browser.",
   "facts": [
    {
     "level": "trusted",
@@ -86,6 +128,18 @@
   },
   "sections": [
    {
+    "id": "crystal",
+    "eyebrow": "Macro structure",
+    "heading": "A crystal and its feeder",
+    "html": [
+     "<p>Compress the tape into repeated words each time the head reaches a new cell at the left end. At step 1,160,914 it starts</p>",
+     "<pre>[A]0 (011)<sup>4</sup> (1011011011)<sup>72</sup> (001)<sup>3</sup> (100)<sup>4</sup> (110)<sup>3</sup> 0 111 0110010 (011)<sup>3</sup> 10100110 111 &hellip;</pre>",
+     "<p>The first part is regular: the 10-cell word <code>1011011011</code> repeated. After it comes an irregular region with short runs of three-cell words. Counting at every hundredth new cell on the left, the regular part has 21 copies at step 103,296, 72 at 1,160,914, 172 at 6,990,882 and 329 at 24,861,720, while the irregular rest has between 156 and 426 cells the whole time. Every new cell of the tape ends up in the regular part.</p>",
+     "<p>The sweeps over the regular part are exact rewrites: E moving right turns each <code>1101101101</code> into <code>1011110110</code> in 12 steps, and A moving left turns it back in 50 steps (<code>pass_right</code>, <code>pass_left</code>). In the irregular part the head crosses runs such as <code>011 011 011</code>, which D turns into <code>101 101 101</code> in nine steps (<code>cross_D</code>).</p>",
+     "<p>The only halt is <code>0 B&gt;0</code> (<code>halt_B</code>): B writes a 1 and steps left onto a 0 in state C, which has no transition for 0. How the irregular region keeps its size and passes copies of the word to the left is the open question.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -98,5 +152,8 @@
     ]
    }
   ]
- }
+ },
+ "family": "growing periodic part fed by an irregular region of bounded size",
+ "summary": "A regular left part, the 10-cell word 1011011011 repeated, grows by one copy every few round trips, while an irregular right part of 300 to 430 cells keeps roughly the same size and feeds it. Open.",
+ "decision": "open"
 }

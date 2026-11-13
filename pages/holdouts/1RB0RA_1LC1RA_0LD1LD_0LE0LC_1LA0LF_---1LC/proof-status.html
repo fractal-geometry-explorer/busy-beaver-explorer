@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RA_1LC1RA_0LD1LD_0LE0LC_1LA0LF_---1LC</h1>
     <p class="machine">1RB0RA_1LC1RA_0LD1LD_0LE0LC_1LA0LF_---1LC</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 12 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves, for every size and with any tape around them, the four moves of a unit <code>(10)^x 00 (10)^y 110 0 1^w 0</code>: its cycle with six blank cells to the left, its slower cycle against a wall of 1s, its turn into a wall when y is 0, and the return that makes a wall a unit again. What happens where two units meet is known only from simulation. An exact run-length simulator with phase jumps runs 5.1&middot;10<sup>36</sup> steps without a halt.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The cycle and the phase at the left end</h3>
+        <p><code>P x y w R</code> is <code>A&gt;0 (10)^x 00 (10)^y 110 0 1^w 0 R</code> with blank tape to the left. One cycle: <code>P x (y+1) w R</code> reaches <code>P (x+3) y (w+2) R</code> in 8x + 4(y+1) + 26 steps, for every x, y, w and every tape R. A whole phase: <code>P x y w R</code> reaches <code>P (x+3y) 0 (w+2y) R</code> in <code>pcost x y</code> steps.</p>
+        <p class="where"><code>cyc_ee</code>, <code>cyc_eo</code>, <code>cyc_oe</code>, <code>cyc_oo</code>, <code>lean/Rules.lean</code>; <code>cycle</code>, <code>phase</code>, <code>lean/Phase.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The phase at any depth: six blank cells per cycle</h3>
+        <p>With U x y w = <code>(10)^x 00 (10)^y 110 0 1^w 0</code>: <code>0^(6k) A&gt;0 U x (y+k) w</code> reaches <code>A&gt;0 U (x+3k) y (w+2k)</code> in k(8x+4y+16) + 14k<sup>2</sup> steps, for every x, y, w, k, whatever is left of the 6k zeros and right of the unit.</p>
+        <p class="where"><code>g_cycle</code>, <code>lean/Gap.lean</code> (<code>py/gen_gap.py</code>); <code>cycle_gap</code>, <code>phase_gap</code>, <code>lean/Levels.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The phase against a wall of 1s: two 1s per cycle</h3>
+        <p>With the head on the last of 2k+2 ones, <code>U (x+1) (y+k+1) w</code> right of it: after (k+1)(8x+4y+24) + 6(k+1)<sup>2</sup> steps the ones are gone, the unit is <code>U (x+k+2) y (w+2k+2)</code> and the head is on the cell that was left of the ones, whatever it holds.</p>
+        <p class="where"><code>g_q</code>, <code>lean/Gap.lean</code>; <code>cycle_ones</code>, <code>phase_ones</code>, <code>lean/Levels.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The turn and the return</h3>
+        <p>Turn: <code>0^9 A&gt;0 U x 0 w R</code> reaches, in 14x + 60 steps, a wall of 2x+10 ones with the head on the last of them, followed by <code>1 0 1^(w+4) 0 R</code>. Return: <code>0^4 A&gt;0 (10)^(x+1) 11 000 R</code> reaches <code>A&gt;0 U 1 x 2 R</code> in 4x + 16 steps. At the left end of the tape: a main phase <code>P 1 y w R</code> reaches the wall of 6y+12 ones, and <code>A&gt;0 (10)^(x+1) 11 000 R</code> reaches the main phase <code>P 1 x 2 R</code>.</p>
+        <p class="where"><code>g_turn</code>, <code>g_ret</code>, <code>lean/Gap.lean</code>; <code>turn</code>, <code>ret</code>, <code>main_to_turn</code>, <code>main_from_ret</code>, <code>lean/Levels.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -111,28 +131,38 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>From blank tape to the first three main phases</h3>
+        <p>Blank tape reaches <code>P 1 4 2 R0</code> at step 173, <code>P 1 14 2 R1</code> at step 1,225 and <code>P 1 46 2 R2</code> at step 5,625 (R0, R1, R2 written out); each of these phases reaches its wall, of 36, 96 and 288 ones, at steps 735, 4,967 and 38,359.</p>
+        <p class="where"><code>reach_173</code>, <code>reach_1225</code>, <code>reach_5625</code>, <code>turn_173</code>, <code>turn_1225</code>, <code>turn_5625</code>, <code>phase_493</code>, <code>lean/Reach.lean</code> (<code>py/gen_reach.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 74,462 cells have been visited and 53,874 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>No halt in the first 5.1&middot;10<sup>36</sup> steps</h3>
+        <p><code>c/macro.c</code> keeps the tape as runs of 0, 1 and 10, crosses a run in one move and jumps over k cycles of a unit with the two phase rules proved in Lean. It runs 5,135,031,925,650,943,510,945,361,186,015,609,585 steps (37 main phases, 495 million moves, 8 seconds) without a halt; 64-bit counters stop it there. Tests: the whole tape equals the plain simulator's at 20 stops up to step 2,971,093; the main phase starts equal the plain simulator's up to 3.3&middot;10<sup>6</sup> steps and agree with and without jumps up to 10<sup>15</sup> steps (once, by hand, up to 1.3&middot;10<sup>18</sup>).</p>
+        <p class="where"><code>c/macro.c</code>, <code>py/test_macro.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.501). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>The main phases: y &rarr; 3y + 4, with an exception</h3>
+        <p>The phases at the left end that start with x = 1 have y = 4, 14, 46, 142, 430, &hellip;: from the second on y &rarr; 3y + 4, up to the 37th (y = 567,663,852,794,517,601, step 6.2&middot;10<sup>35</sup>), except from the 17th (y = 229,582,510) to the 18th (y = 488,413,207 = 3y + 4 &minus; 200,334,327). There the unit right of the wall went on against the wall with the slower cycle and took 200,334,327 pairs from it. So y &rarr; 3y + 4 is not a law of the machine.</p>
+        <p class="where">output of <code>c/macro.c</code>, see README</p>
+      </div>
+      <div class="card">
+        <h3>Where units meet</h3>
+        <p>How a unit is entered after a turn, how it freezes when its blank cells run out and when it goes on against the wall depend on a few cells at the joints. Classing every left turn of the head by the cell runs around it gives 387 classes in 1.5 million events up to 10<sup>28</sup> steps, the same 387 as up to 10<sup>20</sup>. They have not been written down as rules.</p>
+        <p class="where">README, section &ldquo;Where units meet&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>The only halting transition is F reading 0: a left sweep (C keeps a cell, D erases a 1, alternately) that finds <code>0 1 0</code> just left of a cell C passed, for example C arriving on the right end of <code>(10)^2 1^m</code> with m odd. Whether that can happen is a question about parities at the joints of the units, for which there is no macro machine yet.</p>
       </div>
     </div>
   </section>
@@ -140,7 +170,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RA_1LC1RA_0LD1LD_0LE0LC_1LA0LF_---1LC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RA_1LC1RA_0LD1LD_0LE0LC_1LA0LF_---1LC 1000000000</code></pre>
+python3 holdouts/1RB0RA_1LC1RA_0LD1LD_0LE0LC_1LA0LF_---1LC/py/gen_rules.py   # rewrites lean/Rules.lean
+python3 holdouts/1RB0RA_1LC1RA_0LD1LD_0LE0LC_1LA0LF_---1LC/py/gen_gap.py     # rewrites lean/Gap.lean
+python3 holdouts/1RB0RA_1LC1RA_0LD1LD_0LE0LC_1LA0LF_---1LC/py/gen_reach.py   # rewrites lean/Reach.lean
+python3 holdouts/1RB0RA_1LC1RA_0LD1LD_0LE0LC_1LA0LF_---1LC/py/test_macro.py  # macro.c against the plain simulator
+gcc -O2 -o macro holdouts/1RB0RA_1LC1RA_0LD1LD_0LE0LC_1LA0LF_---1LC/c/macro.c &amp;&amp; ./macro 36</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RA_1LC1RA_0LD1LD_0LE0LC_1LA0LF_---1LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

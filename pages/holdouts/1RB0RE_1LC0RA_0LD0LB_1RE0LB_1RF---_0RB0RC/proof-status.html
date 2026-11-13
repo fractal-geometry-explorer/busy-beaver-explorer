@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is a list of nested counters (segments of ones and of <code>10</code>s). Both kinds of sweep of the last segment are proved in Lean for every size. An exact accelerated run built on them finds no halt in the first 1.4&middot;10<sup>16</sup> steps. The events between batches of sweeps, where a segment runs out and the one before it ticks, are read off the simulation.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules of the sweep</h3>
+        <p>The pieces of a sweep (<code>wall_right</code>, <code>ones_left</code>, <code>fill</code>) and the two whole sweeps, for every size and any tape to the left. Mode Q: <code>L 1^4 (10)^(b+2) 0 1 0 0 (10)^(c+1) A&gt;</code> to <code>L (10)^(b+4) 0 1 0 0 (10)^(c+2) A&gt;</code> in 8b + 4c + 38 steps. Mode P: <code>L 1 1 (10)^(b+1) A&gt;</code> to <code>L (10)^(b+3) A&gt;</code> in 4b + 10 steps.</p>
+        <p class="where"><code>sweep</code>, <code>sweep_p</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +124,25 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 66,103 cells have been visited and 44,834 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 1.39&middot;10<sup>16</sup> steps</h3>
+        <p><code>c/accel.c</code> does every sweep that one of the two proved rules covers in batches, with the proved step counts, and simulates everything else step by step. It agrees with the plain machine at the sweep ends at steps 59,136,370, 111,168,816 and 2,401,664,914. It runs 13,977,446,236,662,410 steps without a halt, in 10 seconds, with 136,198,641 sweeps in 78 batches; the tape is then 272,397,888 cells long.</p>
+        <p class="where"><code>c/accel.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.49).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A hierarchy of counters</h3>
+        <p>The events between batches follow a cycle per segment. A segment <code>1^x (10)^9</code> ticks four times (4 ones fewer, 2 <code>10</code>s more each time) while its small companion goes through the shapes 0.4, 2.3, 2.4, 4.4, 0.6, 10.1 and 6.3. Then it freezes, and the new last segment, about three times as long, starts the same cycle. Later segments also show other companion shapes (2.5, 6.4), depending on residues. Read off the event log of the accelerated run; not proved.</p>
+        <p class="where"><code>LOG=1 c/accel.c</code>, <code>README.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. It halts only if the nested counters ever produce a shape that leads to E reading 1; which shapes do is not known.</p>
       </div>
     </div>
   </section>
@@ -140,7 +150,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC 1000000000
+gcc -O2 -o accel holdouts/1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC/c/accel.c &amp;&amp; ./accel 1e16</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

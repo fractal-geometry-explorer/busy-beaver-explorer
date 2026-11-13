@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is a list of blocks of the word <code>110</code>, and a zigzag at each block boundary moves units from one block to the next. Each time the head returns to the left end, block i (counted from the left, i = 0, 1, 2, ...) has lost about 4<sup>i</sup> words, so the list acts like a base-4 counter. Lean proves the two shift rules of a sweep. The map on lists, with its carries and new blocks, has not been worked out.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules of a sweep</h3>
+        <p><code>sweep_left</code>: going left, B turns n words <code>100</code> into <code>110</code> in 3n steps. <code>sweep_right</code>: going right, A and E turn n+1 words <code>110</code> back into <code>100</code> in 7n+9 steps. Both hold for every n and every surrounding tape.</p>
+        <p class="where"><code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +124,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 65,085 cells have been visited and 31,349 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Lists at the left end</h3>
+        <p>At the left end the tape reads <code>10 (110)^x0 1010 (110)^x1 1010 ... (110)^xr 10 11</code>. The lists are [11,3], [9,19], [8,15,15], [7,10,67], [6,6,51,63], [5,2,34,259], [3,19,199,143,191], ... and, at steps 1,369,502,933 and 1,488,296,050, [117,336,50,715,5582,17411] and [116,332,34,651,5326,18435]: differences &minus;1, &minus;4, &minus;16, &minus;64, &minus;256, +1024.</p>
+        <p class="where">README</p>
+      </div>
+      <div class="card">
+        <h3>The exact law between refills</h3>
+        <p>Write the lists at visits to the left end with positions i = 0, 1, 2, ... Of the 13 pairs of consecutive visits up to step 1.86&middot;10<sup>10</sup> whose lists parse as plain block lists, 10 follow one of two exact rules. In the first (5 pairs), block i loses exactly 4<sup>i</sup> words, and a new last block of 4<sup>r</sup>&minus;1 words appears (15, 63, 1023, 4095, 16383). In the second (5 pairs), at the next visit that block has become 4<sup>r+1</sup>+3 (16387, 65539), and its left neighbour has lost 4<sup>r&minus;1</sup>+1 instead of 4<sup>r&minus;1</sup>. Example: [112,315,480,4642,15698,13634,8963,16383] at step 4,589,471,184 becomes [111,311,464,4578,15442,12610,4866,65539] at step 18,558,703,739.</p>
+        <p class="where">README, second round</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.47).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>A base-4 counter</h3>
+        <p>Between two visits to the left end, block i loses about 4<sup>i</sup> words. A block that runs low is refilled, and new blocks appear at the right with lengths like 4095 = 4<sup>6</sup>&minus;1 and 16387 = 4<sup>7</sup>+3. So the blocks behave like the digits of a base-4 counter that is counting down. The irregular part is what a refill does, since the refill amounts depend on the other blocks.</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The machine halts if D reads a 1.</p>
       </div>
     </div>
   </section>

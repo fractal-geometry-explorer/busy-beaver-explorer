@@ -127,11 +127,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine sweeps back and forth over most of its tape, turning one 8-cell word into another and back. Where each sweep turns around is decided by a counter at the left end, made of groups of runs separated by small digits. The sweeping is proved in Lean; the counter has only been watched.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 52,296 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>11</sup> steps</b><span class="small">No halt, on the plain simulator.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>38n + 169</b><span class="small">Steps of the proved right half of a round trip over n + 4 words.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>30 steps</b><span class="small">Per word of the leftward sweep, with a word carried on each side.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>4 digits</b><span class="small">The 6-cell separators of the counter cycle through four values.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +141,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#words">Two 8-cell words and a counter</a><a href="#sweep">The bouncer part is exact</a><a href="#counter">A counter of groups</a><a href="#halt">Only at the counter</a><a href="#proved">Proved, computed, observed</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +219,39 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>955,189,963</td><td><code>1^7 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1 0 1^13 0 1 0 1 0 1 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1 0 1^3 0 1 0 1^5 0 1 0 1 0 1^11 0 1 0 1^5 0 1 0 1^5 0 1 0 1^11 0 1 0 1^5 0 1 0 1^11 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^11 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^11 0 1 0 1^5 0 1 0 1^5 0 1</code></td></tr><tr><td>right</td><td>970,815,087</td><td><code>1^7 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1 0 1^13 0 1 0 1 0 1 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1 0 1 0 1^9 0 1 0 1^7 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^</code></td></tr><tr><td>right</td><td>986,487,677</td><td><code>1^7 0 1 0 1 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1^3 0 1 0 1 0 1^5 0 1 0 1 0 1^13 0 1 0 1 0 1 0 1^7 0 1 0 1^3 0 1 0 1^3 0 1 0 1^7 0 1 0 1^7 0 1 0 1 0 1^9 0 1 0 1^7 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^7 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^3 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^5 0 1 0 1^</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="words">
+  <span class="eyebrow">What the tape is made of</span>
+  <h2>Two 8-cell words and a counter</h2>
+<p>Most of the tape is a run of <code>P = 11111010</code> or of <code>Q = 01010010</code>. The head sweeps right turning every <code>Q</code> into a <code>P</code> (8 steps a word), turns at the right end, and sweeps left turning <code>P</code> back into <code>Q</code> (30 steps a word, zig-zagging with the word <code>1010</code> on its left and <code>101</code> on its right). Each round trip makes the tape a few cells wider, which is why it grows like the square root of the step count.</p>
+<p>Where the leftward sweep stops is decided at the left end, where the tape is a row of groups <code>11 P^a s P^b s' P^c</code> with separators <code>s, s'</code> from <code>111010</code>, <code>101111</code>, <code>101011</code>, <code>111111</code>. Here is the tape at five consecutive turns at the right end, with the runs of <code>P</code> and <code>Q</code> counted:</p>
+<pre style="white-space:pre-wrap;font-size:12px">30,354,281  &hellip; 11 P19 111010 P17 101011 P99 11 P4 101011 P4 101011 P26 101 Q234 010101 Q542
+30,360,081  &hellip; 11 P19 101111 P17 111111 P99 11 P4 111111 P4 111111 P27 101 Q233 010101 Q542
+30,373,293  &hellip; 11 P19 101011 P18 111010 P98 11 P5 101011 P5 101011 P32 101 Q226 010101 Q542
+30,378,699  &hellip; 11 P19 101011 P18 101111 P98 11 P5 111111 P5 111111 P33 101 Q225 010101 Q542
+30,392,939  &hellip; 11 P19 101011 P18 101011 P98 11 P6 101011 P6 101011 P38 101 Q218 010101 Q542</pre>
+</section>
+<section id="sweep">
+  <span class="eyebrow">One round trip</span>
+  <h2>The bouncer part is exact</h2>
+<p>Lean proves both sweeps for every number of words and their composition with the turn at the right end: <code>A&gt; Q^(n+4) 0101</code> comes back as <code>1 1010 C&gt; 101 Q^(n+4)</code> in exactly 38n + 169 steps, and <code>A&gt; Q^(n+4)</code> as <code>1 1010 C&gt; 101 Q^(n+3) 0101</code> in 38n + 139 steps (<code>round_a</code>, <code>round_b</code>). The leftward sweep needs a shift rule with a word carried on both sides of the head, <code>cross_l2</code>, which the file proves by induction.</p>
+</section>
+<section id="counter">
+  <span class="eyebrow">The hard part</span>
+  <h2>A counter of groups</h2>
+<p>In the sample above the last group cycles <code>101011 / 101011</code> &rarr; <code>111111 / 111111</code> &rarr; <code>101011 / 101011</code> with its first two runs one longer every second trip and its last run 5, then 1, longer; the group before it cycles its second separator through <code>101011</code>, <code>111111</code>, <code>111010</code>, <code>101111</code>, one step per trip, and its runs shift by one between neighbours. So each leftward sweep runs through the last few groups, changing each a little, and turns at a group that is not ready to pass the change on, like the carry of a counter.</p>
+<p>Further right the tape keeps runs of <code>Q</code> (<code>Q^269 010101 Q^542</code> at 3&middot;10<sup>7</sup> steps): the nearest one loses 8 words every two round trips and the last group gains 8 (1 + 1 + 6), until it is used up and a new group <code>11 P^2 101011 P^2 101011 P^14</code> appears. The group lengths grow roughly geometrically from left to right.</p>
+</section>
+<section id="halt">
+  <span class="eyebrow">Where it could halt</span>
+  <h2>Only at the counter</h2>
+<p>The machine halts when state F reads a 1. The proved sweeps and turns never do, so a halt can only come from the work at the left turn, on the counter. An exact rule for that work, as a function of the group lengths and separators, would turn the run into an explicit recursion; it has not been found.</p>
+</section>
+<section id="proved">
+  <span class="eyebrow">What is proved</span>
+  <h2>Proved, computed, observed</h2>
+<p><b>Lean, kernel:</b> the halting configurations; no halt in 10,000 steps; the sweeps, the turns at the right end and the two round-trip halves for every n (<code>lean/Sweep.lean</code>). <b>Lean, native_decide:</b> no halt in 10<sup>7</sup> steps.</p>
+<p><b>Computed (trusted):</b> no halt in 10<sup>11</sup> steps on the plain simulator. <b>Observed:</b> the counter of groups and the runs of <code>Q</code> that it eats.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -233,16 +267,18 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
-    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 52,296 cells have been visited and 37,690 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.522).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep_right</code>, <code>sweep_left</code>, <code>turn_a</code>, <code>turn_b</code>, <code>round_a</code>, <code>round_b</code>, <code>lean/Sweep.lean</code></div></div><div><b>The sweeps and the turn at the right end</b><p>With <code>P = 11111010</code>, <code>Q = 01010010</code> and <code>W = 11110101</code> (so <code>P^n 1 = 1 W^n</code>): state A turns <code>A&gt; Q^n</code> into <code>P^n A&gt;</code> in 8n steps; state C turns <code>W^n 1010 C&gt; 101</code> into <code>1010 C&gt; 101 Q^n</code> in 30n steps (a shift rule with a word carried on each side, so the file proves <code>cross_l2</code>). Composed with the turn at the right end: <code>A&gt; Q^(n+4) 0101</code> comes back as <code>1 1010 C&gt; 101 Q^(n+4)</code> in 38n + 169 steps, and <code>A&gt; Q^(n+4)</code> as <code>1 1010 C&gt; 101 Q^(n+3) 0101</code> in 38n + 139 steps, for every n.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/snap.c</code></div></div><div><b>No halt in the first 10<sup>11</sup> steps</b><p>The plain simulator of <code>tools/c/tm.h</code> (<code>c/snap.c</code>) runs 10<sup>11</sup> steps from blank tape without a halt.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/sweeps.c</code>, <code>c/snap.c</code></div></div><div><b>A counter of groups at the left</b><p>Left of the long run of <code>P</code> the tape is a row of groups <code>11 P^a s P^b s' P^c</code>, the separators <code>s, s'</code> being one of <code>111010</code>, <code>101111</code>, <code>101011</code>, <code>111111</code>. Each leftward sweep passes through the last few groups and changes their separators and lengths by one; the group lengths grow roughly geometrically from left to right. Right of the long run lie runs of <code>Q</code> (for example <code>Q^269 010101 Q^542</code> at 3&middot;10<sup>7</sup> steps); the nearest one loses 8 words every two round trips while the last group gains 8, and when it is used up a new group is built.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts only when state F reads a 1. The sweeps and turns proved in Lean never do; a halt could only come from the work at the left turn, on the counter, whose exact rule has not been found.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA--- 1000000000</code></pre>
+python3 holdouts/1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---/py/gen_sweep.py &gt; holdouts/1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---/lean/Sweep.lean   # regenerate the sweeps
+gcc -O2 -o snap holdouts/1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---/c/snap.c &amp;&amp; ./snap 1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA--- 0 100000000000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

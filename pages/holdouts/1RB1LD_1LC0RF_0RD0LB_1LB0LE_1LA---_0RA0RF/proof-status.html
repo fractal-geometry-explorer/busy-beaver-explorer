@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> The tape is a short counter region at the left end, written as runs of zeros between 1s, followed by a long block <code>(1000000)^n</code>. Each tick the head zigzags left across the block, changes the counter near its right end, and sweeps back, and the block grows by about 3 every 7 ticks. The two sweeps are proved in Lean. The counter carries further left exponentially rarely, and its region grows like the logarithm of the time. Whether it ever produces the halting pattern (E reading 1) is not known.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweeps across the block</h3>
+        <p>Going left, the head zigzags across <code>(1000000)^n</code>, rewriting each copy as <code>0011111</code> in 17 steps (<code>zig</code>). Going right in state F, it rewrites them back in 7 steps a copy (<code>back</code>). Both hold for every n and every tape around.</p>
+        <p class="where"><code>zig</code>, <code>back</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +124,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 41,955 cells have been visited and 28,191 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>A counter that carries</h3>
+        <p>Over the 8,791 ticks in the first 4&middot;10<sup>8</sup> steps, the cells changed by a tick reach back d cells from the block with a frequency that falls roughly geometrically in d: 5,023 ticks change at most 10 cells, 439 reach 30&ndash;39 cells back, 40 reach 70&ndash;79, and 1 reaches 120&ndash;129. The counter region is 89, 119, 127 and 135 cells long at 10<sup>6</sup>, 10<sup>7</sup>, 10<sup>8</sup> and 10<sup>9</sup> steps, while the block holds 187, 595, 1887 and 5974 copies.</p>
+        <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +137,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.5).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Why it is hard</h3>
+        <p>The low digits of the counter cycle through a few patterns, and a carry moves further left exponentially rarely. When it reaches the left end, the head crosses the whole tape and the counter gets a new digit (steps 5.3&middot;10<sup>6</sup>, 8.4&middot;10<sup>6</sup>, 1.09&middot;10<sup>7</sup>, 1.48&middot;10<sup>8</sup>, &hellip;). The digits are runs of zeros of several lengths, not the two symbols of a binary counter. Their rules have not been worked out, so it is not known whether some carry can create the halting pattern.</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The open part is the counter: its digits, its carry rules, and whether any carry reaches E reading 1.</p>
       </div>
     </div>
   </section>
@@ -140,7 +154,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1LC0RF_0RD0LB_1LB0LE_1LA---_0RA0RF/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LD_1LC0RF_0RD0LB_1LB0LE_1LA---_0RA0RF 1000000000</code></pre>
+gcc -O2 -o turns holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c &amp;&amp; ./turns 1RB1LD_1LC0RF_0RD0LB_1LB0LE_1LA---_0RA0RF 1000000000 100000 0</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LD_1LC0RF_0RD0LB_1LB0LE_1LA---_0RA0RF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> At 12 of the 13 epoch starts up to 1.7·10<sup>9</sup> steps this machine's configuration is identical, cell for cell, to that of <a href="../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> (it gets there about 1.5 times later); so it runs the same running-parity computation. Lean proves eleven shift rules over its 4-cell words. It halts only when B stands left of a cell holding 1.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules over the 4-cell words</h3>
+        <p>D runs left over <code>1111</code> leaving it (on a 0) or writing <code>0101</code> (on a 1); E runs left over 1111 writing 1010; E, F, A cross <code>0101</code>, <code>1010</code> going right, D and E going left.</p>
+        <p class="where"><code>d_v0</code> ... <code>e_1010</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -115,6 +120,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
+        <h3>Same epoch starts as its twin</h3>
+        <p>The epoch starts (a crossing of 80% of the tape) of this machine at steps 3,350, 8,689, 19,594, 72,335, 220,328, 734,951, 2,145,468, 6,420,857, 60,731,203, 186,137,520, 574,984,133 and 1,744,002,084 have exactly the configuration (tape, head position, state) of 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF at its steps 2,284, 5,873, 13,248, 47,799, 145,962, 487,979, 1,427,948, 4,277,179, 40,483,837, 124,076,294, 383,276,545 and 1,162,585,978. (The epoch near 2·10<sup>7</sup> was sampled at different turns in the two runs.) Left end at 56, 103, 172, 374, ... 68,091 cells, as for the twin.</p>
+        <p class="where"><code>c/dump.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Where it can halt</h3>
+        <p>Only C reading 1 halts; C is entered only from B (1RC on 0, 0RC on 1), so the machine halts exactly when B stands just left of a 1 (<code>B&gt; x 1</code>). Read off the table.</p>
+        <p class="where">the table; <code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No closed tape language with small windows</h3>
+        <p><code>bbtools.ctl</code> K = 3..6 leaves halting configurations; n-gram CPS 3 to 7 fails; no invariant mod 2..12.</p>
+        <p class="where"><code>tools/py/bbtools/ctl.py</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,528 cells have been visited and 37,059 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
@@ -122,6 +142,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>What it computes</h3>
+        <p>As for the twin: a binary word in letters u = 1110, v = 1111, replaced on each leftward sweep by its running XOR, giving Sierpinski triangles in space-time, in epochs growing by about 1.75. Inferred from the identical epoch starts.</p>
+        <p class="where">README</p>
+      </div>
       <div class="card">
         <h3>Growth shape: exp/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.502). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.04).</p>
@@ -132,7 +157,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The two twins agree at epoch starts; between them they take different routes (this one about 1.5 times slower), and each has its own halting pattern, so a proof for one would have to be redone for the other unless the agreement itself is proved.</p>
       </div>
     </div>
   </section>
@@ -140,6 +165,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/lean/check.sh
+gcc -O2 -o dump holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/c/dump.c &amp;&amp; ./dump 1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF 72335 &amp;&amp; ./dump 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF 47799
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF 1000000000</code></pre>
   </section>
   <footer>

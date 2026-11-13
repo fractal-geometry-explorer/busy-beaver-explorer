@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> A block of 8-cell words grows at the right end of the tape; the region between it and the left end (213 cells after the event at sweep 91) is transformed sweep after sweep by a map that does not depend on the block's length, checked against direct simulation over 8,000 sweeps (1.6&middot;10<sup>8</sup> steps). Its busy part behaves like the chaotic counters of 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -119,6 +119,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 48,970 cells have been visited and 29,203 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>The sweep map ignores the block</h3>
+        <p>At each visit of the right end in state B the tape, read leftwards, is <code>B&gt;0 (10111010)^n R</code>; with n cut to 10 at every visit, R agrees with the true run at all of the first 8,000 visits except the event at visit 91.</p>
+        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code>, <code>check</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -132,7 +137,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. The run is a fixed map applied to a region of fixed length, interrupted by rare events whose spacing grows exponentially; whether some event halts is not known.</p>
       </div>
     </div>
   </section>
@@ -140,6 +145,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB/lean/check.sh
+gcc -O2 -o resetsim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c -I tools/c
+./resetsim 1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB R B 10111010 10 1 8000 check
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB 1000000000</code></pre>
   </section>
   <footer>

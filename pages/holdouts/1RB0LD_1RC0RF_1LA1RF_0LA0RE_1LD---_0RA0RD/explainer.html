@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Its tape is a list of counters, like an odometer read backwards: the counters near one end drain at rates 6, 18, 54, &hellip; while new ones are wound up at the other end. It has survived every collapse seen so far, up to 10<sup>19</sup> steps.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 99,142 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>19</sup> steps</b><span class="small">No halt in an accelerated simulation, through several collapses.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>11 rules</b><span class="small">The moves across the counter blocks, proved in Lean.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>2&middot;3<sup>j</sup></b><span class="small">Blocks lost per cycle by the j-th segment from the growing end.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counters">A list of counters that drain</a><a href="#drain">Faster drains near the end</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -209,6 +209,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="counters">
+  <span class="eyebrow">What it does</span>
+  <h2>A list of counters that drain</h2>
+<p>Each time the head writes a new cell at the right end, the tape, read as lengths of runs of 1s from the far end, is <code>6 3^x1 9 3^x2 9 &hellip; 9 3^xm</code> and a little junk: blocks <code>111</code> grouped into segments by markers of nine 1s. The numbers x<sub>i</sub> of blocks per segment are the state. The head sweeps over all of it, so the tape grows like the square root of the time on the far side and very slowly at the growing end.</p>
+<p>Its mirror image <code>1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB</code> is this machine started in state E, with left and right swapped and the states relabelled (A&rarr;E, B&rarr;D, C&rarr;A, D&rarr;B, E&rarr;C); the two runs follow the same law with different numbers.</p>
+</section>
+<section id="drain">
+  <span class="eyebrow">The rule</span>
+  <h2>Faster drains near the end</h2>
+<p>From one cycle to the next the segment next to the growing end loses 6 blocks, the one before it 18, then 54, 162, &hellip; (2&middot;3<sup>j</sup>), like the wheels of an odometer turned backwards. New, very long segments appear at the far end. When a segment near the end runs out the last segments merge and the count starts again: a collapse. The segments next to the growing end in the accelerated run (from the growing end):</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>step</th><th>last four segments</th></tr></thead><tbody><tr><td>2.30e+15</td><td><code>47 143 3833 5717</code></td></tr><tr><td>2.72e+16</td><td><code>22 65 3599 5015</code></td></tr><tr><td>2.90e+17</td><td><code>3 7 3425 4493</code></td></tr><tr><td>3.00e+17</td><td><code>3399 4405 23281 180681</code></td></tr><tr><td>9.06e+18</td><td><code>3353 4271 22879 179475</code></td></tr></tbody></table></div>
+<p>The jump in the table is a collapse: the two small segments vanish and the next ones take their place. The next one is far away: the 4,261 runs out first, after about 240 more cycles; cycles have been getting longer by a factor of about 2 on average, so that is far beyond reach.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -235,7 +248,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 99,142 cells have been visited and 42,433 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.489). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.062).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code>, generated by <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/rules.py</code></div></div><div><b>11 shift rules</b><p>For every n, the head crosses n copies of a short word in a fixed number of steps per copy and leaves another word behind (for example the head going left over <code>0111</code> and leaving <code>0100</code>, 18 steps a copy; these cross the 111-blocks of the counter). Generated and proved by <code>bbtools.symtm</code>, checked by Lean's kernel.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c</code>; output in <code>holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/data/c2_msim.txt</code></div></div><div><b>No halt in the first 10<sup>19</sup> steps</b><p>A macro simulator (blocks of 4 cells, crossing long runs of equal blocks in one go; it agrees with the direct simulator at 2&times;10<sup>9</sup> steps) runs 10,000,000,000,378,843,465 steps without a halt, through the collapses at about 3&times;10<sup>17</sup>.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>python3 holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/py/cmap.py c2</code></div></div><div><b>The draining law</b><p>Between collapses, the segment j places from the growing end loses 2&middot;3<sup>j</sup> blocks per cycle (6, 18, 54, 162, &hellip; per sampled cycle of the macro run), with occasional off-by-one irregularities at the junk near the ends. It is checked on the cycles of the direct run to 4.5&times;10<sup>9</sup> steps (failing exactly at the collapses) and on the macro run to 10<sup>19</sup>; the far-end rule that makes new segments is not pinned down.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/data/c2_msim.txt</code></div></div><div><b>The next collapse</b><p>At 10<sup>19</sup> steps the three segments next to the growing end hold 22,849, 4,261 and 3,351 blocks; the 4,261 runs out first, after about 240 more cycles; cycles have been getting longer by a factor of about 2 on average, so that is far beyond reach.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Halting needs the head in state D on a 1 with a 1 to its right (D1 &rarr; 0RE, E1 halts); inside the draining regime this does not occur, and what a collapse does in general is not known.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

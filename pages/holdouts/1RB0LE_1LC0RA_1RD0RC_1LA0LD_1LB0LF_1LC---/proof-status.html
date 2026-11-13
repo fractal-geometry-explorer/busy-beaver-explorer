@@ -79,7 +79,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves two erasing runs and the situations that lead to a halt (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
+      <p><b>What it does.</b> At the left end the tape is a mix of runs of the word <code>001011</code> and short blocks like <code>000 10 11 0 11 0 11</code>; at the right end it is stretches of <code>1010&hellip;</code> separated by <code>00</code>. The sweeps translate between the two; C erases blocks of 1s going right and D erases them going left. The mixture changes without visible order.</p>
+      <p><b>Where a halt would come from.</b> Only F reading a 1 halts; F is entered from E reading a 1, so <code>1 E&gt;1</code> halts. F itself is rare (111 thousand visits in 2&middot;10<sup>8</sup> steps), always on a 0.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +105,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Shift rules</h3>
+        <p>C erases any block of 1s going right, one step a cell; D with a 1 ahead erases any block of 1s going left.</p>
+        <p class="where"><code>erase_C</code>, <code>erase_D</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The halting situations</h3>
+        <p><code>1 E&gt;1</code> halts after one step, <code>1 1 A&gt;1</code> after two, <code>1 1 1 D&gt;0</code> after three, <code>1 1 C&gt;0 0</code> after four.</p>
+        <p class="where"><code>halt_E</code>, <code>halt_A</code>, <code>halt_D</code>, <code>halt_C</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +131,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 22,985 cells have been visited and 11,860 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>F never reads a 1 in 2&middot;10<sup>8</sup> steps</h3>
+        <p>In the first 2&middot;10<sup>8</sup> steps the machine is in state F 111,044 times, every time on a 0: the halting transition F1 is never close to firing in a way the run shows.</p>
+        <p class="where"><code>c/visits.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -132,7 +149,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. NGramCPS with n &le; 10 and window CTL with K &le; 7 leave it open.</p>
       </div>
     </div>
   </section>

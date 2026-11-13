@@ -127,11 +127,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LC_1LA0RE_0LD---_1RE0LF_1RF0RD_1LD0LB</p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows. This machine keeps a list of numbers on its tape, written as blocks of the pair 10, and every sweep of the head over the list multiplies them by about three.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 72,856 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>12</sup> steps</b><span class="small">No halt, followed exactly by jumping over proved rounds (checked against the machine to 10<sup>11</sup>).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>3 kinds of rounds</b><span class="small">Junction in the first block, further in, or none: proved in Lean for every size.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>&times; 3</b><span class="small">A block the junction passes comes back three times as long.</span></div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
@@ -140,7 +140,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#tape">A list of blocks</a><a href="#sweeps">Times three</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -218,6 +218,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>954,364,799</td><td><code>F&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>970,029,661</td><td><code>F&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr><tr><td>left</td><td>985,722,669</td><td><code>F&gt;0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="tape">
+  <span class="eyebrow">The tape</span>
+  <h2>A list of blocks</h2>
+<p>Write <code>a = 10</code> and <code>s = 01100</code>. Left of the start the tape reads</p><pre><code>0^inf D&gt; 0 a^x j a^y s a^m1 s a^m2 s ...</code></pre>
+<p>At the left end the head moves the block a^y over, two a's added on the left for each one taken on the right, flipping the junction cell j each time (Lean: <code>half_round_0</code>, <code>half_round_1</code>, <code>rounds</code>). This costs about x steps per a, so the visited tape grows like the square root of the time.</p>
+</section>
+<section id="sweeps">
+  <span class="eyebrow">Sweeps</span>
+  <h2>Times three</h2>
+<p>When the block runs out the head sweeps into the list. Blocks it passes come back about three times longer: pairs 3, 11 become 9, 41, then 35, 123, then 105, 377; the pair 51, 107 becomes 153, 329. The exact rule, and how the next first block is made, is the open part. The only halting transition is C reading 1.</p>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -234,15 +245,21 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 72,856 cells have been visited and 36,256 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.573). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>half_round_0</code>, <code>half_round_1</code>, <code>lean/Rules.lean</code>; <code>rounds</code>, <code>lean/Rounds.lean</code></div></div><div><b>Rounds at the left end, for all sizes</b><p><code>0^inf D&gt; 0 (10)^x 0 (10)^(y+1) R</code> reaches <code>0^inf D&gt; 0 (10)^(x+2) 1 (10)^y R</code> in 4x+10 steps and <code>0^inf D&gt; 0 (10)^x 1 (10)^(y+1) R</code> reaches <code>0^inf D&gt; 0 (10)^(x+2) 0 (10)^y R</code> in 4x+6 steps, never reading R; k full rounds take (x, 0, y+2k) to (x+4k, 0, y).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/rec.c</code>, records on the left parsed (see <code>README.md</code>)</div></div><div><b>Phase starts and the list of blocks</b><p>At the records in D of the first 2&middot;10<sup>9</sup> steps the tape is <code>0^inf D&gt; 0 a^x j a^y s a^m1 s a^m2 ...</code>. New phases start with x = 2 and y = 3, 11, 17, 100, 35, 17, 107, 4, 118, 422, 177, 808, 339, 1312, 2049, 394, 106, ...; the lists behind them are made of pairs of block lengths that grow about threefold from one sweep to the next (3, 11; 9, 41; 35, 123; 105, 377; 51, 107; 153, 329; 977, 3393; 2939, 10179).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)</div></div><div><b>Rounds with the junction further in, and at the right end</b><p><code>mid_round_0</code>: <code>0^inf D&gt; 0 a^(a+2) s a^b 0 a^(c+1) R</code> &rarr; <code>0^inf D&gt; 0 a^(a+1) s a^(b+3) 1 a^c R</code> in 4a+4b+38 steps (<code>mid_round_1</code>: junction 1 &rarr; 0, 4a+4b+34 steps), and the same with one or two blocks <code>s a^(d+2)</code> between, each adding 4d+28 steps (<code>mid_round_j_1</code>, <code>mid_round_j_2</code>). <code>tail_round</code>: <code>0^inf D&gt; 0 a^(a+2) s a^(f+2) (1001100)^n 1 0^inf</code> &rarr; the same with a^(a+1) and (1001100)^(n+1), in 4a+4f+24n+46 steps, and with one or two blocks between. For all lengths and every R.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/m5fast 12 11</code></div></div><div><b>An accelerated simulator, checked against the machine</b><p><code>c/m5fast.c</code> applies the three kinds of rounds in one stroke wherever the tape has their form (with any number of blocks between; the step counts follow the same pattern), and simulates the rest. Run beside the plain machine it agrees in tape and state at all 13,356 records in D on the left (every jump included) up to 1.015&middot;10<sup>11</sup> steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/m5fast 18</code></div></div><div><b>No halt to 10<sup>12</sup> steps</b><p>From blank tape <code>c/m5fast</code> reaches 10<sup>12</sup> steps without a halt (26 minutes; the visited tape is then about 2&middot;10<sup>6</sup> cells wide). The rounds it jumps over are the long ones; the steps it still simulates are those where the junction crosses a separator or meets the tail, a bounded number of rounds each, every one costing a sweep of the tape.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Why the blocks triple</b><p>While the junction sits in a block after a separator, every round moves one word from the block after the junction to the block before it and adds two more there (b &rarr; b+3, c &rarr; c&minus;1). So a block of c words that the junction passes leaves 3c words plus what was there before, which matches the pairs seen earlier (3, 11 &rarr; 9, 41 &rarr; 35, 123, ...); the first block pays for it, one word a round. What happens when the junction reaches a separator, or the first block runs out, is still simulated, not decoded.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The only halting transition is C reading 1; none of the proved rounds can halt, so a halt could only come in the short stretches where the junction crosses a separator, meets the tail, or the first block runs out.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
-  <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
+  <pre><code>. /etc/profile.d/lean.sh
 holdouts/1RB1LC_1LA0RE_0LD---_1RE0LF_1RF0RD_1LD0LB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LC_1LA0RE_0LD---_1RE0LF_1RF0RD_1LD0LB 1000000000</code></pre>
+gcc -O2 -o m5fast holdouts/1RB1LC_1LA0RE_0LD---_1RE0LF_1RF0RD_1LD0LB/c/m5fast.c &amp;&amp; SZ=268435456 ./m5fast 12 11   # validation, 7 minutes
+./m5fast 18   # the long run (stopped by a timeout)</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LC_1LA0RE_0LD---_1RE0LF_1RF0RD_1LD0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -79,7 +79,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves the shift rules of the sweeps and the two halting shapes (<code>C&gt; 0 0 1</code>, <code>C&gt; 0 1 1</code>). C reads a 0 only at the right end of the tape, 42 times in 10<sup>9</sup> steps, always with <code>0 0</code> to its right. The sweeps behave like a chaotic cellular automaton, for which no invariant is known.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The sweeps' shift rules</h3>
+        <p>Rightward, B crosses ones and turns <code>(1010)^n</code> into <code>(1101)^n</code>, A turns <code>(0101)^n</code> into <code>(1110)^n</code>; leftward, A and F turn ones into <code>(10)^n</code>, and F (on a 0) and D (on <code>1 0</code>) cross ones unchanged, 6 steps a pair.</p>
+        <p class="where"><code>b_run</code>, <code>b_right</code>, <code>a_right</code>, <code>a_left</code>, <code>f_left</code>, <code>d_left</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The shape of a halt</h3>
+        <p>E on a 1 halts; E is entered only from D moving right, and D from C on a 0 moving right or from F on a 0 moving left (then E lands on the 0 F wrote). So it halts iff C reads a 0 with a 1 two cells to its right: <code>C&gt; 0 0 1</code> and <code>C&gt; 0 1 1</code> reach E on a 1 in 2 steps (the converse by reading the table, not formalized).</p>
+        <p class="where"><code>halt_shape0</code>, <code>halt_shape1</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,6 +129,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 47,528 cells have been visited and 38,850 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Near misses</h3>
+        <p>In 10<sup>9</sup> steps C reads a 0 only 42 times, each time at the right end of the tape with <code>0 0 0</code> to its right; D runs 166,700,843 times and never has a 1 just to its right.</p>
+        <p class="where"><code>c/nbhd.c</code> (<code>./nbhd M 1000000000 C 0</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Same tapes as 1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF</h3>
+        <p>At each of the 42 events C on a 0 at the right end, the tape (as 1<sup>k</sup>0 blocks) is identical to the tape of 1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF at its own 42 such events (all in its first 5.9&middot;10<sup>8</sup> steps); the step counts are in ratio 1.5002 at the end. The correspondence is observed, not proved.</p>
+        <p class="where"><code>c/tok.c</code> (<code>./tok M 1000000000 C 0 R 0 1000 0</code> for both machines)</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -127,12 +147,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.508). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.084).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Growth and deep sweeps</h3>
+        <p>The tape is 4,852 cells at step 10<sup>7</sup>, 15,028 at 10<sup>8</sup>, 47,528 at 10<sup>9</sup> (about 1.5&radic;t). The head turns at the left end about 23,700 times in 10<sup>9</sup> steps but reaches the right end only in rare deep sweeps, in clusters about 3.1 times apart (9.7&middot;10<sup>6</sup>, 2.9&middot;10<sup>7</sup>, 9.1&middot;10<sup>7</sup>, 2.8&middot;10<sup>8</sup>, 8.7&middot;10<sup>8</sup>).</p>
+        <p class="where"><code>c/tok.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Not known. A halt needs C to read a 0 somewhere other than the right end, which never happened; the CA-like dynamics that decide when deep sweeps happen are not understood.</p>
       </div>
     </div>
   </section>
@@ -140,7 +165,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA 1000000000
+gcc -O2 -o tok holdouts/1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA/c/tok.c &amp;&amp; ./tok 1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA 1000000000 C 0 R 0 1000 0 | cut -c1-120</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

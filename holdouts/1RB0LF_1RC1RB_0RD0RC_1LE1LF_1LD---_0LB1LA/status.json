@@ -1,5 +1,5 @@
 {
- "generated": true,
+ "generated": false,
  "group": "G02",
  "title": "What is known about 1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA",
  "description": "Proof status of the six-state BB(6) holdout 1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA.",
@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves the shift rules of a sweep and the only halting shape (<code>1 D&gt; 0</code>). In 10<sup>9</sup> steps D read a 0 66,714,267 times, always with a 0 to its left. The phase structure is observed, not proved."
  ],
  "claims": [
   {
@@ -46,16 +46,41 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "The sweeps' shift rules",
+   "text": "Leftward, D and E turn <code>(00)^n</code> into <code>(11)^n</code>, then A and F turn <code>(11)^n</code> into <code>(10)^n</code>, 2 steps a pair; rightward, a zigzag from <code>0 0 D&gt;</code> turns <code>(10)^n</code> back into <code>(11)^n</code>, 10 steps a pair; B crosses ones unchanged and C turns them into zeros.",
+   "where": "<code>d_run</code>, <code>a_run</code>, <code>d_zigzag</code>, <code>b_run</code>, <code>c_run</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The shape of a halt",
+   "text": "E on a 1 halts; E is entered only from D on a 0 (1LE). D comes from C on a 0 moving right (C wrote a 0 where E would land) or from E on a 0 moving left. So it halts iff D reads a 0 with a 1 to its left: <code>1 D&gt; 0</code> puts E on that 1 (the converse by reading the table, not formalized).",
+   "where": "<code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Near misses",
+   "text": "In 10<sup>9</sup> steps D reads a 0 66,714,267 times; the cell to its left is always 0. E reads a 0 about 6.67&middot;10<sup>7</sup> times, never with <code>1 0</code> (nearest first <code>0 1</code>) to its left.",
+   "where": "<code>c/nbhd.c</code> (<code>./nbhd M 1000000000 D 0</code>)"
+  },
+  {
+   "level": "heuristic",
+   "title": "Sweeps and phases",
+   "text": "Sampled with C on a 0 at the right end (once a sweep), the tape is a short counter followed by <code>1^K 0^Z</code>. One sweep (about 4.6 times the tape length in steps) takes K down by 1 or 3 and Z up by 4 while the counter on the left ticks. When K is used up a new phase starts with K about the whole tape: phases began near steps 5.8&middot;10<sup>5</sup>, 2.3&middot;10<sup>6</sup>, 9.4&middot;10<sup>6</sup>, 3.8&middot;10<sup>7</sup>, 1.5&middot;10<sup>8</sup>, 6.0&middot;10<sup>8</sup> with tape lengths 838, 1678, 3358, 6718, 13446, 26894.",
+   "where": "<code>c/tok.c</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
+   "text": "Not known. Halting needs <code>1 D&gt; 0</code>, which the sweeps never produce; it would have to come from the counter on the left or from the change of phase, whose rules have not been worked out.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA 1000000000",
+  "gcc -O2 -o nbhd holdouts/1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA/c/nbhd.c && ./nbhd 1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA 1000000000 D 0"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
@@ -72,8 +97,8 @@
    },
    {
     "level": "heuristic",
-    "value": "exp/sqrt",
-    "text": "The growth shape of the two sides of the tape (see below)."
+    "value": "length &times;2 per phase",
+    "text": "Phases last about 4 times longer each."
    }
   ],
   "presets": [
@@ -85,6 +110,32 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "sweep",
+    "eyebrow": "One sweep",
+    "heading": "Rewriting the right part, back and forth",
+    "html": [
+     "<p>At step 16,085,367 the tape (as runs) is <code>11 0^6 111 0^8 1^21 0^7 1^2670 0^1377</code> with C on a 0 at the right end. Going left, D and E fill the zeros with ones, then A and F turn the big block of ones into <code>(10)^1334</code>. Near the left the head turns, and a slow zigzag (10 steps a pair) turns the <code>(10)</code> back into ones; then C, crossing the ones that were zeros, turns them back into zeros. After 18,762 steps the tape is <code>... 1^21 0^6 1^2669 0^1381</code>: the block of ones lost one cell, the zeros gained four. All these passes are shift rules proved in Lean.</p>"
+    ]
+   },
+   {
+    "id": "phases",
+    "eyebrow": "Many sweeps",
+    "heading": "A tape that doubles",
+    "html": [
+     "<p>The short counter on the left (<code>21/7</code>, <code>21/6</code>, <code>21/2 2/3</code>, <code>21/2 2/2</code>, <code>22/7</code>, ...) ticks once a sweep and decides whether the block of ones loses 1 or 3 cells. When the block is gone, the zeros become the new block and a new phase starts. The tape length at the starts of the phases is</p>",
+     "<pre class=\"config\">838  1678  3358  6718  13446  26894</pre>",
+     "<p>about doubling, at steps about four times apart (5.8&middot;10<sup>5</sup> to 6.0&middot;10<sup>8</sup>).</p>"
+    ]
+   },
+   {
+    "id": "halt",
+    "eyebrow": "Could it stop?",
+    "heading": "Never a 1 behind D",
+    "html": [
+     "<p>E reading a 1 halts. Working backwards through the table, the only way there is D reading a 0 with a 1 just to its left (Lean: <code>halt_shape</code>). D reads a 0 in every leftward pass over the zeros, but the cell to its left is then still a 0: in 10<sup>9</sup> steps it read a 0 66.7 million times, always with a 0 on its left.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -98,5 +149,8 @@
     ]
    }
   ]
- }
+ },
+ "summary": "A bouncer that rewrites the right part of the tape on every sweep (ones to (10), back to ones, zeros to ones and back), while a short counter on the left ticks; the tape length roughly doubles each phase and each phase lasts about four times longer.",
+ "family": "bouncer with a doubling tape (phases about 4 times longer each)",
+ "decision": "open"
 }

@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA</h1>
     <p class="machine">1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 12 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps.</p>
+      <p><b>Open, probviously halting.</b> The run alternates between two kinds of sweep that multiply a count k of copies of <code>10</code> by about 3/2 per half-phase (the zigzag is proved in Lean). A short word w at the left end is a memory: the next w and the exact correction depend only on w and the parity of k, by a table read off simulation. The machine halts exactly when w reaches a pattern with four ones in a row together with the wrong parity of k. The orbit avoids it for 2,000,005 half-phases; with random parities it is reached after about 2<sup>40</sup> half-phases.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -103,6 +103,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The zigzag that turns (10)<sup>k</sup> into ones</h3>
+        <p>For every j, x, y and every tape L on the left: <code>L (10)^(x+2j) 1 1 E&gt; 0 1 1^(2y+1) 0^inf</code> reaches <code>L (10)^x 1 1 E&gt; 0 1 1^(2y+6j+1) 0^inf</code>. Each round uses up two copies of <code>10</code> at the junction and adds six ones at the right end of the tape, the head sweeping over the whole block of ones and back.</p>
+        <p class="where"><code>zig</code>, <code>lean/Zig.lean</code>; the round <code>e_round</code> in <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -119,20 +124,40 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 63,022 cells have been visited and 26,863 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>34 half-phases, 7.6&middot;10<sup>13</sup> steps, no halt</h3>
+        <p>With the macro simulator the run reaches step 7.6&middot;10<sup>13</sup>. At the end of each half-phase the tape is a short word w followed by k copies of <code>10</code> or of <code>01</code>, with k = 4, 10, 19, 35, 55, 86, 133, 203, 307, 464, 700, 1055, 1585, 2381, 3578, &hellip;, 7,950,370; the two words alternate.</p>
+        <p class="where"><code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/phases.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The exact half-phase map on (w, k)</h3>
+        <p>At a half-phase end the tape is <code>w (10)^k F&gt;</code> (or <code>w (01)^k A&gt;</code>). The next end is <code>w&prime; (10)^k&prime;</code> with <b>k&prime; = (3k + c)/2</b>, where w&prime; and c depend only on w and the parity of k. Each entry of the table is read off direct simulation for 12 values of k of that parity between 60 and 140 and is the same for all of them; the 50 entries the orbit uses so far give c &#8712; {5, 7, 8, 9, 11, 14, 17}. Along the run from blank tape the table reproduces all 21 half-phases simulated directly (k up to 61,267) and the 34 of the macro simulator (k up to 7,950,370).</p>
+        <p class="where"><code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py check 60000</code>, <code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/c/halfphase.c</code></p>
+      </div>
+      <div class="card">
+        <h3>2,000,005 half-phases without a halt</h3>
+        <p>Run with the table, the orbit from blank tape makes 2,000,005 half-phases without meeting a halting entry; k then has 352,184 digits (about 10<sup>704,000</sup> machine steps; others report direct simulation to 1.1&middot;10<sup>79</sup>). It visits only 42 word states, most often w = '', '1', '1000', '101', '11000' (each about half as often as the one before), and never one where the other parity of k would have halted. The shortest way to a halting entry needs 41 prescribed parities in a row, so a halt is expected only after about 2<sup>40</sup> half-phases (the estimate below), when k has about 10<sup>12</sup> bits: out of reach of this method.</p>
+        <p class="where"><code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py long 2000000</code></p>
+      </div>
+      <div class="card">
+        <h3>Where it halts: words with four ones in a row</h3>
+        <p>A half-phase halts (B reads 1 near the left end) only from a few (w, parity) pairs, all with <code>1111</code> in w: ('1111', odd), ('111101', odd), ('11111', even), &hellip; Among the 2,958 word states reachable from the start under some sequence of parities (|w| &#8804; 18) there are 45 halting entries. The shortest way there takes 41 half-phases with prescribed parities: w counts up through '1', '1000', '101', '11000', '1101', '1000000', &hellip;, '1111000', '111101' and then needs an odd k.</p>
+        <p class="where"><code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py markov 18</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.51).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>Probviously halting, after about 2<sup>40</sup> half-phases</h3>
+        <p>If the parities of k behave like fair coins, the word state is a Markov chain on these states, and the chance of a halt within 2<sup>e</sup> half-phases is 6&middot;10<sup>-8</sup> for e = 16, 4&middot;10<sup>-3</sup> for e = 32, 0.62 for e = 40 and 0.9996 for e = 43. So the machine halts with probability 1 in this model, but only after about 10<sup>12</sup> half-phases, when k has about 2&middot;10<sup>11</sup> digits.</p>
+        <p class="where"><code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py markov 18</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p>
+        <p>Given the table (sampled, not proved), exactly when the orbit of (w = '', k = 4) meets a halting entry, i.e. a word with four ones in a row and the wrong parity of k. That is a question about the parities of the &times;3/2 sequence k, coupled to the word: Collatz-like.</p>
       </div>
     </div>
   </section>
@@ -140,7 +165,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA 1000000000
+python3 holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/phases.py 1e13
+python3 holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py check 60000
+python3 holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py long 2000000
+python3 holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/wordmap.py markov 18</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>
