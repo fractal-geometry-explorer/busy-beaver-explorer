@@ -82,10 +82,10 @@
    "where": "direct simulation"
   },
   {
-   "level": "kernel",
-   "title": "The same table as 1RB0RC_1LC1LA",
-   "text": "Renaming the states A, B, C, D, E, F of this machine to E, A, B, C, D, F gives the transition table of <code>1RB0RC_1LC1LA_1RD0LB_1RE1RC_1RA0RF_1RC---</code> exactly; so this machine started on blank tape is that one started in state E. Read off the two tables (both in their <code>lean/Machine.lean</code>); the runs differ in their first steps but show the same background, defects and growth.",
-   "where": "the transition tables"
+   "level": "trusted",
+   "title": "The same table as 1RB0RC_1LC1LA, a different start",
+   "text": "Renaming the states A, B, C, D, E, F of this machine to E, A, B, C, D, F gives the transition table of <code>1RB0RC_1LC1LA_1RD0LB_1RE1RC_1RA0RF_1RC---</code> exactly (read off the two tables in their <code>lean/Machine.lean</code>, and checked by a script; there is no Lean theorem for it here). So this machine started on blank tape runs like that one started in state E instead of A. The shared table does not make the halting questions the same. The two machines start from different configurations, and their runs from blank tape never reach a common configuration (checked for the first 200,000 steps, up to the renaming). So one could halt and the other not; each is its own open question. What the two do share is every rule about the table: the sweeps, the background and the way defects move.",
+   "where": "the transition tables; <code>py/compare_starts.py</code> in the folder of 1RB0RC_1LC1LA"
   },
   {
    "level": "open",
@@ -149,7 +149,7 @@
     "id": "halt",
     "eyebrow": "Halting",
     "heading": "What a halt would need",
-    "html": "<p>The only halting transition is F on a 1, and F is entered only from A on a 1 (writing 0, moving right). So the machine halts exactly when A reads a 1 whose right neighbour is also 1. In the rightward sweep over the background, A reads the 1 of a <code>001</code> and F then reads the first 0 of the next <code>001</code>; a halt needs a gap of length 0 (two adjacent 1s) where a <code>001</code> should start, at that phase. Gaps of length 0 have never been seen.</p><p>In the first 10<sup>9</sup> steps F is entered 53,330,403 times; it read 0 every time. No halt in 10<sup>10</sup> steps.</p><p>This machine is <code>1RB0RC_1LC1LA_1RD0LB_1RE1RC_1RA0RF_1RC---</code> with its states renamed (A, B, C, D, E, F here are E, A, B, C, D, F there), started in that machine's state E; its runs show the same background, defects and growth.</p>"
+    "html": "<p>The only halting transition is F on a 1, and F is entered only from A on a 1 (writing 0, moving right). So the machine halts exactly when A reads a 1 whose right neighbour is also 1. In the rightward sweep over the background, A reads the 1 of a <code>001</code> and F then reads the first 0 of the next <code>001</code>; a halt needs a gap of length 0 (two adjacent 1s) where a <code>001</code> should start, at that phase. Gaps of length 0 have never been seen.</p><p>In the first 10<sup>9</sup> steps F is entered 53,330,403 times; it read 0 every time. No halt in 10<sup>10</sup> steps.</p><p>This machine has the transition table of <code>1RB0RC_1LC1LA_1RD0LB_1RE1RC_1RA0RF_1RC---</code> with the states renamed (A, B, C, D, E, F here are E, A, B, C, D, F there). On blank tape it runs like that machine started in state E instead of A. The shared table does not make the halting questions the same. The two machines start from different configurations, and their runs from blank tape never reach a common configuration (checked for the first 200,000 steps, up to the renaming). So one could halt and the other not; each is its own open question. Their runs do show the same background, defects and growth, because every rule about the table holds for both.</p>"
    },
    {
     "id": "shape",
@@ -165,7 +165,7 @@
    }
   ]
  },
- "summary": "The same machine as 1RB0RC_1LC1LA with its states renamed, started in another state: a bouncer over a periodic background (<code>001</code> / <code>111110</code>) carrying sparse drifting defects; no halt in any run.",
+ "summary": "Has the transition table of 1RB0RC_1LC1LA with the states renamed, but starts differently, so it is a separate halting question: a bouncer over a periodic background (<code>001</code> / <code>111110</code>) carrying sparse drifting defects; no halt in any run.",
  "family": "bouncer with drifting defects",
  "decision": "open"
 }
