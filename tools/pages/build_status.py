@@ -13,7 +13,8 @@ The page sorts every claim by what it rests on, so that a reader never mistakes 
 
 The JSON has: title, machine, crumb (text after the site name), intro (list of paragraphs), asof, verdict (list of
 paragraphs), sections (optional list of {heading, paragraphs}), claims (list of {level, title, text, where}), and
-check (shell lines).  Text fields may hold inline HTML (code, b, i, a).  The design is the one of
+check (shell lines), and optionally elsewhere (list of {kind, title, text}: proofs and labels from outside the
+machine's own ledger, shown in a box of their own under the verdict; kind is "proof", "report" or "label").  Text fields may hold inline HTML (code, b, i, a).  The design is the one of
 pages/proof-status.html (same colours, fonts and tags), written out here so that new pages share it without editing
 that page.
 """
@@ -88,6 +89,13 @@ section { display: grid; gap: 14px; }
 footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 """
 
+# Added to the style sheet only on pages that have an "elsewhere" box, so that the others stay byte for byte.
+CSS_ELSE = """.else { display: grid; gap: 10px; }
+.else .card { border-left: 4px solid var(--heur); }
+.else .card.proof { border-left-color: var(--kernel); }
+.else .card.report { border-left-color: var(--native); }
+"""
+
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
          '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
          '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;'
@@ -104,7 +112,8 @@ def build(spec, home="../index.html"):
            '<meta name="viewport" content="width=device-width,initial-scale=1">',
            f"<title>{html.escape(spec['title'])}</title>",
            f'<meta name="description" content="{html.escape(spec.get("description", spec["title"]))}">',
-           FONTS, f"<style>{CSS}</style>", "</head>", "<body>", '<main class="wrap">', '  <header class="top">',
+           FONTS, f"<style>{CSS}{CSS_ELSE if spec.get('elsewhere') else ''}</style>", "</head>", "<body>",
+           '<main class="wrap">', '  <header class="top">',
            f'    <p class="crumb"><a href="{home}">Busy Beaver Explorer</a> / {spec.get("crumb", "")}</p>',
            f"    <h1>{spec['title']}</h1>", f'    <p class="machine">{html.escape(spec["machine"])}</p>']
     out += [f"    <p>{p}</p>" for p in spec.get("intro", [])]
@@ -114,6 +123,13 @@ def build(spec, home="../index.html"):
     if spec.get("verdict"):
         out += ['  <section aria-labelledby="h-short">', '    <h2 id="h-short">In short</h2>', '    <div class="verdict">']
         out += [f"      <p>{p}</p>" for p in spec["verdict"]]
+        out += ["    </div>", "  </section>"]
+    if spec.get("elsewhere"):
+        out += ['  <section aria-labelledby="h-else">', '    <h2 id="h-else">Other proofs and outside reports</h2>',
+                '    <div class="else">']
+        for e in spec["elsewhere"]:
+            out += [f'      <div class="card {html.escape(e["kind"])}">', f"        <h3>{e['title']}</h3>",
+                    f"        <p>{e['text']}</p>", "      </div>"]
         out += ["    </div>", "  </section>"]
     for i, s in enumerate(spec.get("sections", [])):
         out += [f'  <section aria-labelledby="h-s{i}">', f'    <h2 id="h-s{i}">{s["heading"]}</h2>', '    <div class="prose">']
