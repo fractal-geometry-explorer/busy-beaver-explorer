@@ -49,6 +49,36 @@ Only the generated `lean/Blank.lean`: the halting configurations, no halt in 10^
 - Describe the rebuild when a counter reaches 0. That is where the irregular right-end words come from and where a
   halt would happen, if it does.
 
+## Family screen (F09, 13 November 2026)
+
+The 22 machines of family F09 were screened in one way, to decide which family each belongs to. `holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py`
+runs the machine from blank tape for 2·10^10 steps and, at the first new leftmost and rightmost cell after each
+threshold 10^6·4^k, compresses the tape twice: repeats of a word of at most 40 cells (level 1), then repeats of
+groups of such tokens (level 2). A bounded description keeps the number of level-2 tokens bounded while the tape
+grows. The long runs use the macro simulator `holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c`, sampled at one record per leading digit of the step count.
+Everything in this section is observed in one run; none of it is proved.
+
+| record | step | visited cells | cells in no repeat | repeats | level-2 tokens | largest repeat / tape |
+|---|---|---|---|---|---|---|
+| left | 256,031,852 | 39,174 | 12 | 11 | 23 | 0.53 |
+| right | 265,922,464 | 39,822 | 9 | 12 | 21 | 0.53 |
+| left | 1,024,049,454 | 77,665 | 7 | 11 | 18 | 0.50 |
+| right | 1,041,449,125 | 78,345 | 11 | 11 | 22 | 0.50 |
+| right | 4,096,092,650 | 149,242 | 13 | 11 | 21 | 0.59 |
+| left | 4,418,819,154 | 152,716 | 14 | 9 | 20 | 0.57 |
+| left | 16,384,720,828 | 335,801 | 11 | 15 | 26 | 0.39 |
+| right | 16,610,321,653 | 337,961 | 15 | 15 | 27 | 0.40 |
+
+**Proposed family: F06, block-list counters** (blocks of pairs with a base-3 counter, as in 1RB1RF_1LC0LB… (same table)).
+
+The description grows slowly: 20 to 27 level-2 tokens at every record from 2.6·10^8 to 1.7·10^10 steps, and 11 to 46 runs in the macro simulator (blocks of 4 cells) at the sampled records up to 2·10^16 steps.
+
+The machine shares its table with 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- (states renamed, some of the four mirrored; `related.json`), started in another state. On the screen the four runs show the same list of blocks at the same moments. For example near step 6.4·10^7 all four tapes read (mirrored) blocks of 3, 1,546, 39, 1,753, 117, 1,467 and 997 pairs `01` and then a last block, of 4,405 pairs in 1RB1RF_1LC0LB… and of 4,411 pairs here. The four last blocks differ by 2, 4 and 6 pairs and the records come at slightly different steps. This is an observation at the sampled records: it is not a proof that the runs correspond, and nothing about halting is carried over.
+
+For 1RB1RF_1LC0LB… the right end is proved in Lean to be a base-3 counter on the separators of such a list (`bb6-1RB1RF_1LC0LB/lean/Counter.lean`). Those theorems are about that machine's table with its own state names; they apply here only after the renaming is carried through, which has not been done. A list of blocks with a base-3 counter is F06.
+
+Next step: Carry the renaming through, so that the counter theorems of 1RB1RF_1LC0LB… become theorems about this machine, and state exactly how the two tapes differ (the last block and the left end).
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

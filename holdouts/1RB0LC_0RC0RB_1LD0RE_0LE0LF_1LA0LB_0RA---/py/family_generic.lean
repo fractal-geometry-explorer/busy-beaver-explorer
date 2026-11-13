@@ -519,6 +519,98 @@ theorem visit_closed (l : List Nat) (h : big l) (L : Tape) :
   rw [← hg]
   exact go_spec _ l hc L
 
+/-! ## What a clean visit conserves
+
+Between exceptional events the blocks after the first only drain (`go_closed`): the i-th of them (from 0) loses
+18·5^i a visit, and only the last one grows.  Two quantities are therefore conserved by every clean visit, for
+every block that is neither the first nor the last: its residue modulo 18·5^i (`res`), and its difference to five
+times the block before it (`drift`).  The residue decides at which phase and with which small value the block runs
+out; the drift decides how long the next block still is at that moment.  Only the exceptional events (a block
+running out, a birth, an F-event, the left end) change them. -/
+
+/-- The residues of the blocks after the first, the i-th (from 0) modulo 18·5^i; the last block is left out. -/
+def res : Nat → List Nat → List Nat
+  | _, [] => []
+  | _, [_] => []
+  | i, x :: y :: r => x % (18 * 5 ^ i) :: res (i + 1) (y :: r)
+
+/-- `y - 5x` for every two neighbours x, y among the blocks after the first, the last block left out. -/
+def drift : List Nat → List Int
+  | [] => []
+  | [_] => []
+  | [_, _] => []
+  | x :: y :: z :: r => ((y : Int) - 5 * (x : Int)) :: drift (y :: z :: r)
+
+theorem tailEff_res (i : Nat) : ∀ r, bigT 1 i r → res i (tailEff i r) = res i r := by
+  intro r
+  induction r generalizing i with
+  | nil => intro _; rfl
+  | cons x r ih =>
+    cases r with
+    | nil => intro _; rfl
+    | cons y r =>
+      intro h
+      simp only [bigT] at h
+      obtain ⟨_, h2, h3⟩ := h
+      have e : tailEff i (x :: y :: r) = (x - 18 * 5 ^ i) :: tailEff (i + 1) (y :: r) := rfl
+      rw [e]
+      have hne : tailEff (i + 1) (y :: r) ≠ [] := tailEff_ne _ _ (by simp)
+      obtain ⟨y', r', e'⟩ : ∃ y' r', tailEff (i + 1) (y :: r) = y' :: r' := by
+        cases h' : tailEff (i + 1) (y :: r) with
+        | nil => exact absurd h' hne
+        | cons a b => exact ⟨a, b, rfl⟩
+      have ih' := ih (i + 1) h3
+      rw [e'] at ih' ⊢
+      show (x - 18 * 5 ^ i) % (18 * 5 ^ i) :: res (i + 1) (y' :: r') = x % (18 * 5 ^ i) :: res (i + 1) (y :: r)
+      rw [ih']
+      congr 1
+      generalize 18 * 5 ^ i = a at *
+      have ha : a ≤ x := by omega
+      have : x = (x - a) + a := by omega
+      conv => rhs; rw [this, Nat.add_mod_right]
+
+theorem tailEff_drift (i : Nat) : ∀ r, bigT 1 i r → drift (tailEff i r) = drift r := by
+  intro r
+  induction r generalizing i with
+  | nil => intro _; rfl
+  | cons x r ih =>
+    cases r with
+    | nil => intro _; rfl
+    | cons y r =>
+      cases r with
+      | nil => intro _; rfl
+      | cons z r =>
+        intro h
+        simp only [bigT] at h
+        obtain ⟨_, h2, _, h4, h5⟩ := h
+        have ih' := ih (i + 1) ⟨by assumption, h4, h5⟩
+        have e : tailEff i (x :: y :: z :: r) =
+            (x - 18 * 5 ^ i) :: (y - 18 * 5 ^ (i + 1)) :: tailEff (i + 2) (z :: r) := rfl
+        have e1 : tailEff (i + 1) (y :: z :: r) = (y - 18 * 5 ^ (i + 1)) :: tailEff (i + 2) (z :: r) := rfl
+        rw [e]
+        rw [e1] at ih'
+        have hne : tailEff (i + 2) (z :: r) ≠ [] := tailEff_ne _ _ (by simp)
+        obtain ⟨z', r', e'⟩ : ∃ z' r', tailEff (i + 2) (z :: r) = z' :: r' := by
+          cases h' : tailEff (i + 2) (z :: r) with
+          | nil => exact absurd h' hne
+          | cons a b => exact ⟨a, b, rfl⟩
+        rw [e'] at ih' ⊢
+        show (((y - 18 * 5 ^ (i + 1) : Nat) : Int) - 5 * ((x - 18 * 5 ^ i : Nat) : Int)) ::
+            drift ((y - 18 * 5 ^ (i + 1)) :: z' :: r') = ((y : Int) - 5 * (x : Int)) :: drift (y :: z :: r)
+        rw [ih']
+        congr 1
+        have p : 18 * 5 ^ (i + 1) = 5 * (18 * 5 ^ i) := by rw [Nat.pow_succ]; omega
+        rw [p] at h4 ⊢
+        generalize 18 * 5 ^ i = a at *
+        omega
+
+/-- **A clean visit conserves the residues and the drifts** of the blocks after the first: the visit of
+`visit_closed` leaves `(b - 5) :: t` with the same `res` and the same `drift` as before. -/
+theorem visit_conserves (b c : Nat) (r : List Nat) (h : big (b :: c :: r)) :
+    ∃ t, cfl (b :: c :: r) = (b - 5) :: t ∧ res 0 t = res 0 (c :: r) ∧ drift t = drift (c :: r) := by
+  obtain ⟨_, _, h3⟩ := h
+  exact ⟨tailEff 0 (c :: r), rfl, tailEff_res 0 _ h3, tailEff_drift 0 _ h3⟩
+
 /-! ## Rounds: a visit, then the TAIL of the spread block on its left (phase p to p + 1) -/
 
 theorem round1 (n q : Nat) (l : List Nat) (h : clean n l) (L : Tape) :

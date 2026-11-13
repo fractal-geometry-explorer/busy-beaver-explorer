@@ -45,46 +45,80 @@ have power-of-two lengths (an odometer-like map, but not a single cycle). The ca
 every sweep, and the first sweeps that reach x10, x40, x70, x100 are sweeps 3, 1,635, 402,291 and 69,230,963 after
 step 2·10^7 (`c/counter.c`).
 
-## When the carry reaches the end
+## When the carry reaches the end: the event system
 
-The counter ends at x110, with blank tape beyond. Iterating the automaton (`c/counter.c`, a minute), the carry
-first runs past x110 at the sweep with a wall of **8,072,508,833** pairs, about **1.96·10^20 steps** from blank
-tape, arriving in state c. What the machine does then was simulated from that counter with walls of 1 to 33 pairs
-(`py/automaton.py`): it does **not** halt; it writes one new cell on the right, and the pass back turns the whole
-wall into counter digits, shifted by one cell (digits now on the odd cells, 1s on the even ones). After that the
-counter runs on with the same automaton, now on n + 111 digits, with a new wall growing from the left end.
+The counter is `x0 1 x1 1 ... xk 1 d`: the digits x1..xk, each followed by a separator 1, then a last cell d with
+blank tape after it. A sweep whose carry runs through all of x1..xk reads d in some state q. What happens then is
+proved in Lean for every wall and every digit string (`lean/Ends.lean`):
 
-Whether such an end event halts depends only on the state the carry arrives in and on the shape of the right end
-(checked with counters of k ones, k mod 3 picking the state, walls of 3 to 6 pairs):
+| carry state at d | d = 0 | d = 1 |
+|---|---|---|
+| a | d becomes 1 (`last_stop_event`) | **extension**: one more digit 1, last cell 1 (`ext_event`) |
+| b | **the machine halts** (`halt_event_b`) | **conversion** (`conv_event_b`) |
+| c | **conversion** (`conv_event_c`) | **the machine halts** (`halt_event_c`) |
 
-| right end | arriving in a | in b | in c |
-|---|---|---|---|
-| last cell a digit (as in the run from blank) | **halts** | 2 new cells | 1 new cell |
-| last cell a 1 (as after the first event) | 1 new cell | **halts** | 2 new cells |
+A conversion is what the run from blank tape does at its first end event. The pass back runs one cell out of step,
+turns every separator it crosses into a digit and crosses the whole wall, turning each `10` into `11`. Afterwards a
+wall of n + 1 pairs and digits xs have become
 
-The first event was the harmless kind. The next one is of the second kind, and it comes only when a carry runs
-through all ~8·10^9 digits that the old wall became.
+```
+wall of 1 pair,   digits  1^n  0  marks(xs)  1,   last cell 1
+```
+
+where `marks(xs)` has a 1 for every digit after which the carry was in state c. Every outcome leaves a counter of
+the same shape (digits with separators, then one last cell), so these five cases are all there is.
+
+So the machine is a system of events on (wall, digits, last cell), `evstep` in Lean, and
+
+- `halts_iff_events` (Lean, kernel only): from any arrival of this shape, the machine halts **if and only if**
+  iterating `evstep` reaches a halting event;
+- `blank_halts_iff_events` (kernel only): from blank tape, if and only if the event system halts from a wall of 10
+  pairs, the digits `X0` and last cell 1 (step 30,225).
+
+## The run from blank tape
+
+Iterating the automaton (`c/counter.c`, a minute; `py/slp.py`, under a second), the carry first runs through all
+109 digits at the sweep with a wall of **8,072,508,833** pairs, about **1.96·10^20 steps** from blank tape. It
+reads the last cell, a 1, in state b: a conversion. `second_arrival` (Lean, with `native_decide` for the
+certificate of the 8·10^9 sweeps): the machine reaches the arrival with a wall of one pair and the counter
+
+```
+1^8072508832  0  marks(Y0)  1,   last cell 1          (8,072,508,943 digits)
+```
+
+and `blank_halts_iff_second`: it halts from blank tape if and only if the event system halts from there.
+
+The first sweep after that runs straight through the 8·10^9 ones (on ones the carry only cycles a, b, c, writing
+0, 0, 1). After it the counter starts with `001` repeated 2.7·10^9 times, and the carry has to work its way through
+all of that before the next end event. On the stand-in runs below the number of sweeps to the next end event
+doubles about every 3 digits, so the real one is out of reach of any simulation: of the order of 2^(2.5·10^9)
+sweeps.
+
+**What kind of event comes next is not known, and it decides the question.** A halting event stops the machine,
+an extension adds one digit and the next end event follows after a comparable number of sweeps, a conversion starts
+the same game on a counter exponentially longer. Observed (not proved), with `py/events.py`:
+
+- From 300 random counters of 30 to 60 digits, the events up to the first halt or conversion: 170 end in a halt,
+  130 in a conversion (at most 4 events).
+- From the counter after the first end event, with a stand-in wall of w pairs in place of 8,072,508,833
+  (w = 1..30): 7 runs end in a halt and 23 in a second conversion, after one to three events and 4·10^9 to
+  10^13 sweeps.
+
+Nothing here says which way the real run goes: the outcome changes with w with no visible pattern.
 
 ## Status
 
-**Open**, but reduced in Lean to one configuration about 1.96·10^20 steps in:
+**Open**, and reduced in Lean to a system of events on digit strings:
 
-- `halts_iff_post` (Lean, with `native_decide` for the certificate of the 8·10^9 sweeps): the machine halts from
-  blank tape **if and only if** it halts from `post 8072508832`, which is
-  `C> 1 (11)^8072508832 R1 0^inf` on blank tape (R1 a fixed word of 223 cells): the old wall turned into
-  8,072,508,832 pairs `11`, the head at its left end.  `reaches_post`: the machine gets there from blank tape, so it
-  does not halt in the first ~1.96·10^20 steps.
-- `not_halts_arrival`: from any arrival, if no sweep ever runs off the end of the digits the machine never halts.
-  So halting can only happen at an end event.
-
-After `post` the counter runs on with the same automaton on the n + 111 digits (simulated, walls up to 33). The
-next end event needs a carry through all ~8·10^9 digits; which state it arrives in is a question about the
-automaton group generated by `a = (e, b)σ`, `b = (a, c)σ`, `c = (c, a)` acting on a string that starts with
-8·10^9 ones.
+- `blank_halts_iff_events` (kernel only) and `blank_halts_iff_second` (with the certificate): see above. The machine
+  does not halt in the first ~1.96·10^20 steps (`reaches_post`, `second_arrival`).
+- `not_halts_arrival`: if no sweep ever runs through all the digits the machine never halts.
+- Deciding it needs the state in which the carry first runs through a counter of 8·10^9 digits, a question about
+  the automaton group generated by `a = (e, b)σ`, `b = (a, c)σ`, `c = (c, a)` on an almost periodic string.
 
 ## Proved in Lean
 
-`lean/check.sh` checks everything below (about 30 seconds).
+`lean/check.sh` checks everything below (about 45 seconds).
 
 `lean/Rules.lean` (generated by `lean/rules.py` with symtm):
 
@@ -126,6 +160,28 @@ entries, all checked by `native_decide`.
   - it reaches `post n`.
 - `reaches_post`, `halts_iff_post`: put together from these.
 
+`lean/Ends.lean` (by hand): every end event, for every wall and every digit string, and the event system.
+
+- `exitQ`, `thru`, `cind`: the state in which a carry leaves the digits, the digits it writes, and its marks.
+- `run_thru`, `thru_sweep`, `last_stop_event`, `ext_event`: the carry reads the last cell in state a.
+- `halt_event_b`, `halt_event_c`: the two halting events.
+- `cb_step`, `cb_all`, `ok_off`, `cunw_off`, `conv_back`, `conv_event_b`, `conv_event_c`: the conversion. `cb_step`
+  is the pass back one cell out of step; `ok_off` shows that the pending pairs of a carry never stop it;
+  `left_restart` starts the new wall.
+- `evstep`, `evstep_some`, `evstep_none`, `halts_iff_events`, `blank_halts_iff_events` (kernel only).
+- `second_arrival`, `blank_halts_iff_second`: the run from blank tape after its first end event.
+
+`lean/Twin132695.lean` (by hand): the machine 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC (bbchallenge 132695) is
+this table in a mirror with the states renamed, so its run from blank tape is this machine's run from blank tape
+started in state C.
+
+- `mirror_step`, `mirror_steps`, `halts_mirror` (for any two tables related this way), `is_mirror`.
+- `twin_arrival` (kernel): 16 steps from blank tape in state C is the arrival (wall of 1 pair, digits [1], last
+  cell 1). `twin_halts_iff_events` (kernel only): 132695 halts from blank tape if and only if the event system halts
+  from there.
+- `twin_conversion`, `twin_halts_iff_after` (`native_decide`): after 410,976 sweeps, the last a conversion of a wall
+  of 410,923 pairs. See that machine's README.
+
 `lean/Blank.lean` (generated): the halting configurations (`step_none_iff`, E reading 0) and no halt in the first
 10^7 steps.
 
@@ -134,14 +190,13 @@ entries, all checked by `native_decide`.
 - `py/slp.py` (under a second): the binary search for the first sweep that runs into x110, using a
   straight-line program for a^k (hash-consed, about 6,000 nodes for k ~ 8·10^9). It finds sweep 8,072,508,824,
   arriving in state b, the same answer as `c/counter.c`. It writes `lean/Cert.lean`.
-- End events by state, checked on 20,000 random carry paths (pending pairs from real carries) of up to 40 digits.
-  The table counts the state after the last cell, digit last:
-  - **a**: halts (from b on 0 or c on 1);
-  - **b**: back in D, the normal mode (from a on 1);
-  - **c**: back in C, the mode of `wall_left_C`, which turns the wall into `11`s (from b on 1 or c on 0).
-
-  With arbitrary pending pairs (not from a carry) the outcome can differ, so that check uses real carries only.
-
+- `py/events.py twin` (a second): the run from blank tape in state C against the event system, and its events up
+  to the conversion at sweep 410,976. `py/events.py program` (under a minute): the exit states of the prefixes of a
+  counter as one straight-line program, which stops compressing after about 150 digits.
+- `py/events.py check` (a second): the Python copy of `evstep` against the machine itself on 20,000 random
+  arrivals (walls of 1 to 7 pairs, up to 12 digits), every kind of event. `py/events.py epochs` and
+  `py/events.py standin`: the statistics quoted above, with the sweeps between events jumped by straight-line
+  programs.
 - `py/automaton.py` (a few seconds): runs the machine from blank tape; the counter is x0 1 x1 1 ... at every arrival
   and the wall is (10)^n; a sweep run on the counter alone reproduces all 979 sweeps of the first 3·10^6 steps; finds
   the automaton (4 states) and checks it on 3,000 random 80-digit counters; checks that no counter of up to 16 digits
@@ -152,11 +207,10 @@ entries, all checked by `native_decide`.
 
 ## For later
 
-- Compute the state of the second end event: `a^N` on a string of 8·10^9 + 111 digits, most of them made from the
-  wall, for the first N at which the carry passes the top. The group is contracting-like on most digits (state c
-  passes zeros unchanged), so a renormalisation (`a^2 = (b, b)`, `b^2 = (ca, ac)`) may give it.
-- Prove the post-event sweeps in Lean (a second arrival shape, with the digits on the other parity) and the end
-  event rules for every carry path, not only for `Y0`.
+- The state of the second end event: the first sweep that runs through `(001)^m 0 ...`, m = 2.7·10^9. The exit
+  states of a prefix, as a sequence in time, are the image of the sequence a, a, a, ... under one two-state
+  transducer per digit, so the question is about a product of 8·10^9 transducers of period 3. Kept as a
+  straight-line program these sequences stop compressing after about 150 digits (`py/events.py program`).
 - Make the certificate kernel-checkable (the string parsing does not reduce in the kernel; it would need the data as
   a balanced tree of literals).
 
@@ -166,6 +220,11 @@ entries, all checked by `native_decide`.
 . /etc/profile.d/lean.sh && holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/check.sh
 python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/automaton.py
 python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/slp.py      # rewrites lean/Cert.lean
+python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py check
+python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py epochs
+python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py standin 30   # a few minutes
+python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py twin
+python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py program
 gcc -O2 -o counter holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/c/counter.c && ./counter
 ```
 

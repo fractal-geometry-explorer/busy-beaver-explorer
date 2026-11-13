@@ -134,6 +134,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>c/leftedge.c</code>: 10<sup>10</sup> steps from blank tape without a halt; 16 new leftmost cells (at steps 5, 12, 49, &hellip;, 664,325,733, 5,128,930,040; width 88,956 at the last); the leftmost cell held 1 every time the head was to its right; F stood on the second cell 4 times (reading a 1) and never on the leftmost.</p>
         <p class="where"><code>c/leftedge.c</code></p>
       </div>
+      <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 6 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 23,445 to 186,485 visited cells and compresses to 24 to 72 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0RC_1RC1LB_1LD1RA_1LE0LB_---1LF_0LF0LC</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -151,6 +156,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Layers that grow about 2.8 times per epoch</h3>
         <p>At the left-end records, with t = 1110 and u = 111100, the tape is a short left prefix and then layers of periodic words, the outer one with period <code>u t^15 u t</code> and an inner one with period <code>u t u t^2 u u t^4</code>. Their repeat counts at the records from step 225,725 on: 2, 5, 15, 40, 114 and 6, 19, 56, 159, 446; width 597, 1533, 4173, 11509, 31981 (ratio about 2.76); the time between records grows about 7.7 times.</p>
         <p class="where">a Python run of <code>bbtools.machine.records</code></p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F01, periodic blocks driven by a bounded engine</h3>
+        <p>With repeats of single words only the tape looks irregular (33,389 level-1 tokens for 186,485 cells at 1.6&middot;10<sup>10</sup> steps), but the words repeat in groups: with groups counted once the description is 24 to 72 level-2 tokens at every record from 2.6&middot;10<sup>8</sup> to 1.6&middot;10<sup>10</sup> steps. For example at the left-end record at step 5,128,930,040 the whole tape is <code>0 1^9 0 (0111)^25 [100 1^3 0 1^4 0 (0111)^16]^316 100 1^3 0 1^4 0 (0111)^11 100 1^3 0 1^4 0 (0111)^4 1 [0 (0111)^3 100 1^4 0 (0111)^5 100 1^3 0 1^4]^1245 00 111</code>: two layers and about twenty short pieces. A few periodic blocks of long period (76 and 52 cells in the example; 28 cells for a third layer seen at the right-end records) and a bounded rest is the F01 shape. The README's layers that grow about 2.8 times per epoch are these blocks.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

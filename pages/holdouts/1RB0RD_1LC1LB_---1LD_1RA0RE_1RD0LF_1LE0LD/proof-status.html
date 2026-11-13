@@ -129,6 +129,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>At each visit in state F to the left end, the tape reads <code>F&gt;0 0 a^n X Y W</code> (a = 10, P = 110, Q = 100), and (X, Y) runs through (P,P), (Q,P), (P,Q), (Q,Q), (P,aP), (Q,aP), with n going up by 1 at each step and by 2 at the last. In the first 10<sup>9</sup> steps 981 transitions follow the cycle (164 full cycles) and 4 do not (all at the start, n &le; 4); the last sample has n = 1151.</p>
         <p class="where"><code>py/leftcounter.py</code></p>
       </div>
+      <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 4 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 114,381 to 6,668,265 visited cells and compresses to 6,654 to 387,336 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0RD_1LC1LB_---1LD_1RA0RE_1RD0LF_1LE0LD</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -140,6 +145,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <div class="card">
         <h3>A row of pair counters</h3>
         <p>At the left-end samples in state E the tape is a long run of 10 pairs, two markers 1^2 0, a second long run, and then shorter runs of pairs separated by markers 1^2 0 or 1 0^2 (observed up to 2&middot;10<sup>7</sup> steps).</p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F11, defect gases and irregular zones</h3>
+        <p>This machine stopped being a bouncer early in the run. The last new cell on the left (cell &minus;1,973) was reached before step 6.4&middot;10<sup>7</sup>, and since then the head has stayed near the right end: in the eight successive doublings of the step count from 6.4&middot;10<sup>7</sup> to 1.6&middot;10<sup>10</sup> its greatest distance from the rightmost visited cell was 19,277, 24,350, 25,882, 29,767, 35,564, 39,489, 41,342 and 37,190 cells (<code>c/front.c</code>), while the right end moved from cell 54,852 to cell 6,666,290, in proportion to the steps (about 0.4 cells per 1,000 steps). What is left behind is frozen and does not compress: 24,137, 96,613 and 387,336 level-2 tokens at 10<sup>9</sup>, 4.1&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps for 419,103, 1,661,759 and 6,668,265 cells (one token per 17 cells each time). It is runs <code>(10)^k</code> and <code>(01)^k</code> with k mostly below 40, separated by single cells. The first 4,400 cells (<code>(10)^1153 111 (01)^1054 …</code>) are the same at the three records. So the description is not bounded and the tape is not a list that is swept: it is an irregular sea written once by a zone of some tens of thousands of cells at the right end. F11. The zone itself is where a proof would have to work; its depth grew by a factor of about 2 while the tape grew by a factor of about 120.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

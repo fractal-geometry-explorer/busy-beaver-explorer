@@ -125,6 +125,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.8&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 16,252 to 149,702 visited cells and compresses to 8 to 20 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB1LB_1LC0RE_0LE0LD_0LC---_1LA0RF_1RE1LC</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -146,6 +151,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The counter on the right</h3>
         <p>The right side gains one cell at steps 3.0·10<sup>8</sup>, 4.9·10<sup>8</sup>, 7.6·10<sup>8</sup>, 1.11·10<sup>9</sup>, 1.61·10<sup>9</sup>, 2.41·10<sup>9</sup>: each record about 1.5 times later.</p>
         <p class="where"><code>/home/user/w/bin/side M 3e9 R 60</code></p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F01, periodic blocks driven by a bounded engine</h3>
+        <p>8 to 20 level-2 tokens at every record from 2.6&middot;10<sup>8</sup> to 1.8&middot;10<sup>10</sup> steps. In the macro simulator (blocks of 4 cells) the tape has 6 to 26 runs at the sampled right-end records up to 1.5&middot;10<sup>19</sup> steps. For example at step 18,119,743,260 the tape is <code>1 (1000)^5621 101 (0010)^25428 1 (0010)^4347 (0001)^1938 0^6 (1000)^88 100</code>: four long blocks, one of 88 copies and five short pieces. The table is that of 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB--- read in a mirror with the states renamed (<code>related.json</code>), started in another state. The two runs are different (the block lengths have nothing in common on this screen), so nothing is claimed about one from the other; what carries over is the table, and with it any sweep rule proved for all lengths. A few periodic blocks trading copies, with a bounded rest: the F01 shape.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

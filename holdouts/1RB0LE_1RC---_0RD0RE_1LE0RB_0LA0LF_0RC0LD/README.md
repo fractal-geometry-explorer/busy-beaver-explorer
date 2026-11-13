@@ -54,19 +54,80 @@ counters.
   not in the repo; `tools/py/bbtools/cycles.py MACHINE 4 ...` reproduces the early part).
 - The phase sequence above (`py/phases.py`).
 
+## Where it can halt: one shape, reached only on two exact lines (symbolic class search, 13 November 2026)
+
+Tools in `py/closure/` (not Lean; the results below rest on these programs and on the comparison with a plain
+simulator):
+
+- `paccel.py`: the exact accelerated simulator of `holdouts/1RB0RD_1RC0LF_…/py/closure/accel.py`, extended to runs
+  with several free counts. A symbolic run refuses every step whose outcome depends on a variable.
+- `pclosure.py`: a *node* is the tape at a left-end event in state F that reads `00001 (1000)^k 101…` (k ≥ 1). A
+  *class* is a node shape with every count ≥ 20 free, each with a fixed residue. A class is run symbolically to the
+  next node; when the run needs the residue of a count, or the sign of an affine form in two counts, the class is
+  split into *pieces* and each piece is run again.
+- `pvalidate.py` with `c/round.c`: every piece, and random points of every class, against a plain step-by-step
+  simulator (the tape of the next node must be equal cell by cell).
+- `hline.py`: reads the certificates, the plain runs of the lines below, the run from blank tape.
+
+**Result of the search (tool level).** Started from the class of the node at step 20,791 of the run from blank tape
+(`00001 (1000)^35 1010000100001`), the search ends with an empty queue and no undecided piece:
+
+| residues | classes | pieces | halting pieces | certificate |
+|---|---|---|---|---|
+| mod 2 | 185 | 3,768 | 2, both in H | `classes_mod2.json.gz` |
+| mod 4 | 318 | | only in H | (not stored) |
+| mod 8 | 430 | 2,877 | 3, all in H | `classes_mod8.json.gz` |
+
+Every other piece runs to a node of a class in the set. The only halting shape is
+
+    H(P)    =  F> 00001 (1000)^P 101000011011101                        P odd, P ≥ 21
+
+and the only pieces that lead to H are, for odd P ≥ 21,
+
+    A(P, Q) =  F> 00001 (1000)^P 10100001101000 (0001)^Q 01000000101          with Q = 3P − 16   →  H(8P − 27)
+    B(P, Q) =  F> 00001 (1000)^P 101000010000001011 (1000)^Q 101000000101     with Q = 3P − 24   →  H(8P − 41)
+
+So, as far as the tools are right: **from blank tape the machine halts if and only if the run visits A on the line
+Q = 3P − 16 or B on the line Q = 3P − 24.** The class set does not decide this: the classes of A and B off the lines
+have the same residues as on them (with residues mod 8 the predecessors of H are A with (P, Q) ≡ (1,3), (3,1), (7,5)
+and B with (7,5)), so no finer residue split separates the lines. This is the "a class halts" outcome of the
+closed-set method: a Collatz-like question about the orbit of the pair (P, Q), not a closed set.
+
+**Checks.** `pvalidate.py`: mod 2 certificate, 4,539 piece runs and 713 class points, 0 problems; mod 8 certificate,
+4,476 piece runs and 1,702 class points, 0 problems (for a point, exactly one piece of its class must contain it).
+Plain runs (`hline.py plain`): H(P) halts for P = 21, 23, 25, 31, 51, 101 (after 1,645 … 6,925 steps; it also halts
+for the even P tried, which the class set never reaches); A(P, 3P−16) halts for P = 27, 29, 41, 101 and
+B(P, 3P−24) for P = 29, 31, 45, while the neighbours Q ± 2 do not halt in 3·10^6 steps.
+
+**The run from blank tape (observed).** `hline.py run 120 …`: 2,992 nodes, up to a step count of 112 digits (about
+10^111 steps), no halt; every node from step 20,791 on is in a class of the mod 2 certificate. H is never visited.
+A is visited 108 times, the closest to its line being |Q − 3P + 16| = 749 (P mod 8 is 1, 3 or 7; Q takes every
+residue mod 8). B is visited 1,236 times, always with P ≡ 7 mod 8 and Q even, so Q − 3P + 24 is odd and the B line
+is never hit in this sample (not proved: the class set allows B with Q odd), the closest being 2,999 away.
+
 ## Open, and next steps
 
-- Prove the phase end for each tail shape: `P a 1`, `P a 2` (and the other two tails) run to the next phase start
-  `F>0^6 (1000)^3 1 0 1 1 1 (0001)^b' ...` with b' an explicit function of a. symtm can do this if the reorganising
-  sweeps are crossed by shift rules (try `rotate=True` and splitting a by its residue).
-- Then the nested case: describe a segment `(1000)^m` to the right of a phase and how a phase end consumes it, and
-  find the induction (on the list of segment sizes) that would close the argument, or the residue class that halts.
+- The machine is a two-register process on (P, Q) with one halting shape. Halting from blank tape is the question
+  whether the orbit ever lands on one of the two lines. It looks like the Collatz-like ("cryptid") machines of
+  family F12 rather than a closed-set candidate.
+- Prove that B is only visited with Q even (an invariant finer than the class set: it would remove the B line).
+- Write the node map as an explicit map on (shape, P, Q) from the certificate and iterate it with big integers; the
+  certificate has every piece as affine forms, so this is mechanical.
+- A Lean replay of the certificate (as for 1RB0RC_0RC1RC…) would make "halts iff a line is hit" a kernel result; it
+  needs an executor with two variables.
 
 ## Check
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/lean/check.sh
 python3 holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/phases.py 4e7
+D=holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/closure
+python3 $D/pclosure.py bfs /tmp/classes.json 5          # the search, about 5 minutes (BBMOD=8: residues mod 8); it prints
+                                                        # NOT CLOSED because of the halting pieces
+python3 $D/hline.py summary $D/classes_mod2.json.gz
+python3 $D/pvalidate.py $D/classes_mod2.json.gz pieces && python3 $D/pvalidate.py $D/classes_mod2.json.gz points
+python3 $D/hline.py plain
+python3 $D/hline.py run 120 $D/classes_mod2.json.gz
 ```
 
 <!-- related machines: written by holdouts/related.py -->

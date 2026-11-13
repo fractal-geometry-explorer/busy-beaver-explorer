@@ -1,7 +1,7 @@
 # 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC
 
 bbchallenge id 132695. One of the six-state holdouts whose halting from blank tape is open. (group G07).
-Family: **counter that overflows at the left end**. Decision: **open**.
+Family: **counter that overflows at the left end**. Decision: **open**. Same table as 74982, mirrored.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -14,70 +14,90 @@ Family: **counter that overflows at the left end**. Decision: **open**.
 
 ## What it does
 
-Read the tape as runs of 1s separated by single 0s, left to right; `u` is a run of length 1 (cells `10`).
-The tape is `P C u^N`: a short prefix P, a **counter region** C of short odd runs, and a block of N units that
-grows by one at every visit of the right end in state A. Between two such visits the head walks left across the
-units into C, rewrites it a little near its right edge, and walks back. The rewrites are carries:
+This machine is the table of [`1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC`](../1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/README.md) (74982) read in a mirror, with the states renamed: A, B, C,
+D, E, F here are C, F, B, A, D, E there (`is_mirror`, Lean). So its run from blank tape is, cell for cell in the
+mirror, the run of 74982 started on blank tape in state C, and everything proved there for every tape holds here.
+The two machines start in different states, so they are two separate halting questions.
 
-    (1, 3) -> (5)          every other visit
-    (3, 3) -> (7)          every 4th
-    (3, 1, 5) -> (7, 3)    every 8th
-    (7, 3) -> (11)         every 8th
-    ...                    the k-th deepest kind every 2^k-th visit
+In this machine's own orientation the tape is
 
-(counts over the first 8,000 visits, `c/tok.c` and direct runs), so C behaves like a **binary counter** of the visits,
-written with odd runs; its width stays fixed while it counts (123 cells from step ~10^4 to 5·10^11).
+```
+d 1 xk 1 ... 1 x2 1 x1 1 1 (01)^(n+1)        the head arrives from the right, on the first 1 left of the units
+```
 
-When the counter **overflows**, the carry runs all the way to the left end of the tape, where the head arrives in
-state D (D0 -> 1LC, C0 -> 1RA: it bounces back). This has happened eight times, at steps 3, 28, 91, 309, 450, 1,252,
-7,545 and **506,587,790,058**. The last overflow also rewrote the 410,921 units into a new, much wider counter region
-(the tape went from about 0.8·10^6 cells of mostly units to 273,969 run-length tokens of short runs), so the next
-overflow is far away: in the old counter the carry depth grew by about 7 cells per doubling of the visits, so a
-region of ~8·10^5 cells needs on the order of 2^(10^5) visits.
+- **The units** `01` at the right end (runs of a single 1) are 74982's wall. The head crosses them twice per sweep
+  and one unit is added at the blank end each time.
+- **The counter** is the digits x1, x2, ..., xk on every second cell, with a 1 between neighbours, and a last cell d
+  at the left end of the tape. Read as runs of 1s separated by single 0s this is a row of odd runs: a digit 0 ends a
+  run. The rewrites seen in a run (`(1,3) -> 5`, `(3,3) -> 7`, ...) are the carry of 74982's automaton: three carry
+  states a, b, c; a: 0 becomes 1 and the carry stops, 1 becomes 0 and it goes on in b; b: 0 becomes 1 (go on in a),
+  1 becomes 0 (go on in c); c: 0 stays (c), 1 stays (a).
 
-## Where it can halt
+An **overflow** is a carry that runs through all the digits and reads the last cell d at the left end. What it does
+then is proved in Lean for every counter (`lean/Ends.lean` in the folder of 74982):
 
-The halting transition is F0, reached only as E0 -> 0LF. A closed tape language from windows of 4 cells
-(`lean/EdgeCert.lean`, checked in `lean/Edge.lean`) proves that **it halts from blank tape exactly when F reads a 0
-with only blank tape to its left** (`halts_iff_edge`), i.e. when the head comes off the left end in state E instead
-of D. The head reaches the left end only at an overflow of the counter, so each overflow is one chance to halt; the
-eight seen so far arrived in D.
+| carry state at d | d = 0 | d = 1 |
+|---|---|---|
+| a | d becomes 1 | **extension**: the counter gains a digit |
+| b | **the machine halts** | **conversion**: all the units become counter digits |
+| c | **conversion** | **the machine halts** |
+
+After every one of these the last cell is 1, so from the first overflow on the machine halts exactly when a carry
+reaches the left end **in state c**. On the tape that is the head arriving on the leftmost 1 in state D with a 1
+just crossed (`D1 -> 0LE`, `E0 -> 0LF`, `F0` halts): the head comes off the left end in state E instead of D, as
+`halts_iff_edge` says.
+
+## The run from blank tape
+
+16 steps from blank tape the machine is at an arrival with one unit, the single digit 1 and last cell 1
+(`twin_arrival`, kernel). From there on it is the event system of 74982:
+
+- `twin_halts_iff_events` (Lean, kernel only): **the machine halts from blank tape if and only if the event system
+  `evstep` halts from (wall of 1 pair, digits [1], last cell 1).**
+- The overflows of the run are events of that system (`py/events.py twin` in the folder of 74982, which also
+  compares the system with the machine on the first 200,000 steps):
+
+  | sweep | step of the overflow | event | units before | digits after |
+  |---|---|---|---|---|
+  | 1 | 28 | conversion | 1 | 3 |
+  | 3 | 91 | conversion | 2 | 6 |
+  | 8 | 309 | extension | 5 | 7 |
+  | 10 | 450 | conversion | 7 | 15 |
+  | 21 | 1,252 | extension | 11 | 16 |
+  | 53 | 7,545 | conversion | 43 | 60 |
+  | 410,976 | 506,587,790,058 | conversion | 410,923 | 410,984 |
+
+  (The overflow at step 3 is before the first arrival.) The steps are those found by `c/tok.c`; the sweeps and
+  events are computed by the event system.
+- `twin_conversion`, `twin_halts_iff_after` (Lean, with `native_decide` for the 410,975 sweeps): the 410,976th
+  sweep is a conversion of 410,923 units, and the machine halts from blank tape if and only if the event system
+  halts from the counter it leaves: 410,922 ones, a 0, the 60 marks of the last carry and a 1 (410,984 digits), last
+  cell 1, one unit. So the machine does not halt in the first 5·10^11 steps, and the last conversion is why the
+  tape changed from mostly units to a wide region of short runs.
+
+## Where it stands
+
+**Open.** The next overflow needs a carry through 410,984 digits. On small counters the number of sweeps to the next
+overflow doubles about every 3 digits, which puts it at the order of 2^(1.3·10^5) sweeps. Whether it is an
+extension, a conversion or a halt is not known, and no shortcut was found: the sequence of carry states leaving a
+prefix of the counter, kept as a straight-line program, stops compressing after about 150 digits (the program grows
+from 5,000 nodes at 100 digits to 7.3·10^6 at 200; `py/events.py program` in the folder of 74982).
+
+Observed on other counters (not proved, and no guide to this one): of 300 random counters of 30 to 60 digits
+followed to their first halt or conversion, 170 end in a halt.
 
 ## Status
 
-Open.
-
-- **Kernel:** `step_none_iff`, `blank_runs_kernel` (`lean/Blank.lean`); `halts_iff_edge` (`lean/Edge.lean`, the
-  left-side version of the shared CTL halting lemma, proved there). **native_decide:** `blank_runs_native` (10^7 steps).
+- **Kernel:** `step_none_iff`, `blank_runs_kernel` (`lean/Blank.lean`); `halts_iff_edge` (`lean/Edge.lean`).
+  In `holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/`: every sweep and every end event for every counter (`Sweep.lean`, `Ends.lean`),
+  `is_mirror`, `halts_mirror`, `twin_arrival`, `twin_halts_iff_events` (`Twin132695.lean`). The table of this
+  machine is restated in that file, because the two folders' Lean modules cannot be imported together; it is the text
+  of this folder's generated `lean/Machine.lean`.
+- **native_decide:** `blank_runs_native` (10^7 steps); `twin_conversion`, `twin_halts_iff_after`.
 - **Trusted computation:** `c/tok.c`, an exact run-length simulator (it agrees with `tools/c/tmrun.c` on the number
   of 1s at step 10,000,208,949), runs 10^16 steps: 5.8·10^7 visits of the right end, no halt; the head reads a 0 with
-  only blank tape to its left only at the eight overflows above, each time in state D.
-- **Heuristic:** the counter picture (carry frequencies halving, fixed width between overflows). The next overflow,
-  the next chance to halt, is estimated at ~2^(10^5) visits (~10^(6·10^4) steps), far beyond any simulation.
-- **Open:** whether the head ever leaves the left end in state E. That needs the counter's encoding (which runs
-  stand for which binary digits) and what an overflow does to the prefix.
-
-## Third pass: the epoch after the overflow at step 7,545
-
-Written as runs of 1s (single 0s between them; `u` = a run of length 1 at the right end), the visits of the right
-end in state A after the overflow at step 7,545 read
-
-    4 1 5 1 1 1 1 1 3 1 1 1 1 5  (1,3)^k  ACTIVE  u^N
-
-with a fixed 14-run prefix, a reservoir of k copies of the pair (1,3) made by the overflow from the old units, and an
-active counter region that grows leftwards into the reservoir (k = 14 at visit 56; 10, 5, 4, 4, 2, 1, 1, 0 at visits
-2^6 .. 2^13). After the reservoir is used up the active region keeps one growing long run (21, 25, 27, 31, 33 at
-visits 2^12 .. 2^16), so its carries get slower; the next overflow came at step 506,587,790,058. The active region
-counts with odd runs and carries like `(1,3) -> 5`, `(3,1,5) -> (7,3)`, `(7,3) -> 11`, `(9,3) -> 13`, `(15,3) -> 19` (the full run lists
-are printed by a run-length dump of each visit, e.g. `./tok ... A R 1`). This is a more intricate numeral system than
-a fixed-width binary counter (the run lengths themselves grow), and it was not decoded in this pass.
-
-## Next steps
-
-Decode the active region of the epoch after step 7,545 first (it is small: about 80 cells, 2^16 visits up to step
-1.3*10^10), as a rewriting system on run lengths; then check that it explains the overflow at 5*10^11 and the shape of
-the counter region it left behind. Then decode the counter: find the value V(C) with V' = V + 1 at each visit (the carry rules above suggest one), then
-compute the configuration at the next overflow symbolically and see whether the head arrives in E.
+  only blank tape to its left only at the eight overflows above, each time in state D. `py/events.py twin`.
+- **Open:** the kind of the next overflow.
 
 ## Pages
 
@@ -88,6 +108,8 @@ compute the configuration at the next overflow symbolically and see whether the 
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/lean/check.sh
+holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/check.sh                                   # Ends.lean, Twin132695.lean
+python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py twin
 (cd tools/py && python3 -m bbtools.ctl 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC 4 lean H132695 Blank) | diff - holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/lean/EdgeCert.lean
 gcc -O2 -o tok holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/c/tok.c
 ./tok 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC 1e16 A R 100000      # the tape every 10^5 visits of the right end, ~3 min

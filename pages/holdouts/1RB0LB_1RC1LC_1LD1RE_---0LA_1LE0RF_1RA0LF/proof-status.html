@@ -119,6 +119,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 19,947 cells have been visited and 10,929 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 7 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 11,364 to 85,732 visited cells and compresses to 138 to 3,202 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LB_1RC1LC_1LD1RE_---0LA_1LE0RF_1RA0LF</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -131,6 +136,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Macro structure (observed)</h3>
         <p>A left-growing bouncer: next to the left end a block (10101001)^n grows by about 50 copies per long cycle, behind it a long irregular but slowly changing stretch of 10-based words; this machine and its twin (E0 = 1LE or 1RE) behave alike.</p>
         <p class="where">README</p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F11, defect gases and irregular zones</h3>
+        <p>At the left-end records the tape is <code>0^3 101 (01101010)^n</code> followed by a zone that is a sequence of the pairs <code>01</code> and <code>10</code> without a period. The block grows (n = 2,438 at 10<sup>9</sup> steps, 7,909 at 1.6&middot;10<sup>10</sup>), and so does the zone: 466, 138, 1,119 and 3,202 level-2 tokens at the left-end records at 2.6&middot;10<sup>8</sup>, 10<sup>9</sup>, 4.1&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps (955, 283, 2,417 and 7,101 cells outside every repeat). In the macro simulator (blocks of 8 cells) the tape has up to 25,746 runs by 10<sup>13</sup> steps. The zone is not bounded and has no block structure of its own, so this is not a bounded engine (F01) and not a list of counters (F06). It belongs with the irregular zones of F11. The sister machine 1RB0LB_1RC1LC_1LD1RE_---0LA_1RE0RF_1RA0LF differs in one transition (E on 0) and its zone stayed small on the same screen; the two runs are different and nothing is claimed about one from the other.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

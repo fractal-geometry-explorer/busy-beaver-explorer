@@ -34,6 +34,54 @@ The family: `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---` (reference), `1RB0LB_0RC
 steps of each other), `1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1RE---` and `1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA1RB_1RE---` (same
 right part at the left-end visits, 3·2^k), and the mirror case `1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---`.
 
+<!-- F02-visit-law:begin -->
+## The visit law, and where the run leaves the PR59 machines (F02, 13 November 2026)
+
+**Proved in Lean (kernel), `lean/Visit.lean`.** A *visit*: the head enters a stream `s` (all cells from some cell on)
+in state C with a 0 on its left, and comes back in state A two cells further left, the 0 restored and `s` rewritten
+to `v(s)`. `Vis s s'` says exactly that, for every tape to the left. The rules, for every stream `s`:
+
+| stream | after the visit | theorem |
+|---|---|---|
+| `0 s` | `1 s` | `vis_0` |
+| `100 s` | `000 v(s)` | `vis_100` |
+| `110 s` | `000 v(s)` | `vis_110` |
+| `1010 s` | `1010 v(v(s))` | `vis_1010` |
+| `1011 s` | `0001 s` | `vis_1011` |
+| `111 s` | the machine halts | `vis_111_halts` |
+
+`111 s` halts the machine (`vis_111_halts`). The six prefixes 0, 100, 110, 111, 1010, 1011 cover every stream, so the
+rules are the whole machine: it halts from blank tape only if some visit meets `111` (each rule is a theorem; this
+"only if" is read off the case list and is not itself stated in Lean).
+
+The run is a sequence of rounds (`start`, `round`, `round_halts`): after 4 steps the tape is `0^inf A> 1 0 S_1` with
+`S_1 = 1 0^inf`, and a round turns `0^inf A> 1 0 S` into `0^inf A> 1 0 S'` with `S' = v(1 0 S)`. If a nested visit
+halts, so does the visit around it (`vis_100_halts_1`, `vis_110_halts_1`, `vis_1010_halts_1`, `vis_1010_halts_2`).
+
+**The same first four rules as the machines of busycoq PR59.** `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---` and its two
+relatives obey `0 s -> 1 s`, `100 s -> 000 v(s)`, `110 s -> 000 v(s)`, `1010 s -> 1010 v(v(s))` too, with the same
+rounds; they halt on `1011` (on `111` the three differ). PR59 proves in Rocq that they halt: rounds 1 to 161,210 use
+only those four rules and round 161,211 meets `1011`. This machine differs only in what it does on `1011` and `111`.
+
+**Computed (not proved): this machine does not halt there.** `c/vis.c` in
+`../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/` runs the visit law with counts (2^j visits cross the word
+in round 2j; counts are kept as 2^e - c). It learns every rule from the machine's own table, by direct simulation of a
+visit, and falls back to direct simulation for anything without a rule. Checks: against a direct run of the machine
+(every top-level visit of the first 3·10^7 steps, `py/vis_check.py`), against the same algorithm with exact integers
+(`py/vis.py`, 1,500 rounds, same tape), and on the PR59 reference machine it halts in round 161,211 on `1011`, as PR59
+proves. Result: rounds 1 to 161,210 use the four shared rules only; round 161,211 meets `1011` at the right end of
+the word, rewrites it to `0001` and the run goes on. Observed: no halt and no visit to `111` up to round 200,000
+(the run is still going; each further 100,000 rounds costs more than the last, the cost grows with the square).
+
+A guess at how `1011` arises (not checked against the run): a count that dies exactly on a block leaves a stale
+`110`; a later round whose blocks are aligned two cells earlier reads `0011`, writes `1011`, and comes again. Aligned
+one cell earlier it would read `011` and then `111`. Nothing we know excludes a halt of this kind, and nothing proves one.
+
+Tools (all in `../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/`): `py/visit.py MACHINE NAMESPACE OUT` writes
+`lean/Visit.lean` by symbolic execution; `c/vis.c` (`gcc -O2 -o vis c/vis.c; ulimit -s unlimited; ./vis MACHINE [TOPVISITS [DUMP]]`,
+two top-level visits per round for machines whose A1 is 0LB, one for A1 = 1LD); `py/vis.py`, `py/vis_check.py`.
+<!-- F02-visit-law:end -->
+
 ## Events, third round
 
 The reference's event theorems (`../1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---/py/events.py`) prove here unchanged (`lean/Events.lean`,

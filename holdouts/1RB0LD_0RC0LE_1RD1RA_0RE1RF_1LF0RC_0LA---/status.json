@@ -68,6 +68,18 @@
    "addon": true
   },
   {
+   "level": "trusted",
+   "title": "Size of the tape description (family screen)",
+   "text": "At the 8 records between 2.6&middot;10<sup>8</sup> and 1.7&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 18,577 to 133,374 visited cells and compresses to 17 to 36 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).",
+   "where": "<code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LD_0RC0LE_1RD1RA_0RE1RF_1LF0RC_0LA---</code>, saved in <code>screen.json</code> next to it"
+  },
+  {
+   "level": "heuristic",
+   "title": "Proposed family: F06, block-list counters",
+   "text": "The description grows slowly: 19, 24, 36 and 35 level-2 tokens at the left-end records at 2.8&middot;10<sup>8</sup>, 10<sup>9</sup>, 4.2&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps. At the last one the tape is a block <code>(010)^1537</code>, then a list of blocks of the words <code>10101</code> and <code>100</code> (3 to 1,184 copies each) closed by markers <code>1010 (01)^3</code>, and a last block <code>(10101)^21602</code>. A list of units of the same form whose number grows slowly is a list of counters (F06) and not a bounded description (F01): the token count nearly doubled on the screen.",
+   "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. No macro rule has been proved for this machine yet; see the README's Later section for the next steps.",
@@ -133,6 +145,19 @@
      "<p>Runs of a and of c are crossed by shift rules proved for every length: C over <code>(100)^n</code> leaves <code>(110)^n</code>, A over <code>(001)^n</code> leaves <code>(101)^n</code>, and E over <code>(11010)^n</code> leaves <code>(01010)^n</code>. The counter map between left-end samples was not found.</p>"
     ],
     "addon": true
+   },
+   {
+    "id": "screen",
+    "eyebrow": "Family screen, 13 November 2026",
+    "heading": "Which family it belongs to",
+    "html": [
+     "<p>The 22 machines of family F09 (&ldquo;bouncers over lists of counters, not yet classified&rdquo;) were screened in one way. The machine runs from blank tape for 2&middot;10<sup>10</sup> steps; each time the tape reaches a new cell after a threshold, the tape is compressed twice: first repeats of one word, then repeats of groups of words. If the tape is a few growing blocks and a bounded rest, the number of level-2 tokens stays bounded while the tape grows. Everything in this section is observed in one run. None of it is proved.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>record</th><th>step</th><th>visited cells</th><th>cells in no repeat</th><th>repeats</th><th>level-2 tokens</th></tr></thead><tbody><tr><td>right</td><td>256,071,848</td><td>18,577</td><td>12</td><td>11</td><td>17</td></tr><tr><td>left</td><td>279,146,051</td><td>19,447</td><td>15</td><td>13</td><td>19</td></tr><tr><td>left</td><td>1,035,688,785</td><td>24,785</td><td>15</td><td>15</td><td>24</td></tr><tr><td>right</td><td>1,488,650,106</td><td>24,829</td><td>6</td><td>14</td><td>20</td></tr><tr><td>right</td><td>4,099,398,448</td><td>49,147</td><td>7</td><td>20</td><td>27</td></tr><tr><td>left</td><td>4,175,558,235</td><td>50,232</td><td>36</td><td>23</td><td>36</td></tr><tr><td>left</td><td>16,405,165,975</td><td>133,330</td><td>28</td><td>25</td><td>35</td></tr><tr><td>right</td><td>17,002,373,871</td><td>133,374</td><td>7</td><td>20</td><td>27</td></tr></tbody></table></div>",
+     "<p><b>Proposed family: F06, block-list counters</b> (a slowly growing list of units made of two words).</p>",
+     "<p>The description grows slowly: 19, 24, 36 and 35 level-2 tokens at the left-end records at 2.8&middot;10<sup>8</sup>, 10<sup>9</sup>, 4.2&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps. At the last one the tape is a block <code>(010)^1537</code>, then a list of blocks of the words <code>10101</code> and <code>100</code> (3 to 1,184 copies each) closed by markers <code>1010 (01)^3</code>, and a last block <code>(10101)^21602</code>.</p>",
+     "<p>A list of units of the same form whose number grows slowly is a list of counters (F06) and not a bounded description (F01): the token count nearly doubled on the screen.</p>",
+     "<p><b>Next step.</b> The round rule on the list of pairs (a, b), sampled at the left-end records, and the rule that adds a unit.</p>"
+    ]
    },
    {
     "id": "shape",

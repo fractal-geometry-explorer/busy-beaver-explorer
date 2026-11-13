@@ -125,6 +125,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 24,549 to 183,278 visited cells and compresses to 555 to 837 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC---</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB0LF_1RC0RB_0RD1LE_0LE0RA_1LC1LA_0LD--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -141,6 +146,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Lengths in base 3</h3>
         <p>At step 199,354,683 (22,052 cells), read as <code>a = 0001, b = 1101, c = 0111, d = 0100</code>, the tape is <code>D&gt;0 a^11 11 b^16 a</code>, then <code>(d^10 c^4 d^13 c^10 d^4 c^13)</code> repeated 12 times, then runs <code>d^16 c^7 d^22 c^28 ... d^149</code> (lengths 1 mod 3), then groups <code>c^3 d c^k d^3 c d^m</code> with k and m multiples of 3 (36, 21, 9, 42, ...; 66, 51, 57, 69, ...).</p>
         <p class="where"><code>tokrun M 200000000 a=0001,b=1101,c=0111,d=0100,e=1000 L</code></p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F06, block-list counters</h3>
+        <p>With repeats of single words only, the number of pieces is proportional to the tape (21,095 level-1 tokens for 183,249 cells at 1.6&middot;10<sup>10</sup> steps). Most of them are one block of long period: <code>[(0111)^10 (0100)^4 (0111)^13 (0100)^10 (0111)^4 (0100)^13]^N</code> with N = 264 at the right-end record at 4.1&middot;10<sup>9</sup> steps and N = 595 at 1.6&middot;10<sup>10</sup> (a period of 216 cells). With such groups counted once, the description is constant: 588, 564 and 588 level-2 tokens at the left-end records at 10<sup>9</sup>, 4.1&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps, and 837 at each of the three right-end records. Right of the block the tape is a frozen list of runs of growing lengths (16, 7, 22, 28, 22, 22, 16, 25, &hellip; up to 149) and then a list of units <code>(1110)^a (1000)^3 111 (0100)^b (0111)^3 01 000</code> with (a, b) = (18, 15), (66, 36), (51, 21), (57, 9), &hellip; at the left-end record at 1.6&middot;10<sup>10</sup> steps; the right-end record at 4.1&middot;10<sup>9</sup> steps shows the same units with b one smaller. The table is that of 1RB0LF_1RC0RB_0RD1LE_0LE0RA_1LC1LA_0LD--- with the states renamed (<code>related.json</code>), from another start. The two runs are different and nothing is claimed about one from the other. A list of units that changes slowly while a periodic block grows behind it is read here as a list of counters: F06. The round rule is not known. Because the description outside the block is constant over a factor of 16 in steps, it is also worth one try of the F01 closure with the 216-cell word as the block.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

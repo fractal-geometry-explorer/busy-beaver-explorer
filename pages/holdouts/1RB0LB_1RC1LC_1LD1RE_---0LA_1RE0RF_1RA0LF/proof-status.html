@@ -119,6 +119,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 23,775 cells have been visited and 12,567 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 6 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 10,390 to 83,440 visited cells and compresses to 72 to 139 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LB_1RC1LC_1LD1RE_---0LA_1RE0RF_1RA0LF</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -131,6 +136,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Macro structure (observed)</h3>
         <p>A left-growing bouncer: next to the left end a block (10101001)^n grows by about 50 copies per long cycle, behind it a long irregular but slowly changing stretch of 10-based words; this machine and its twin (E0 = 1LE or 1RE) behave alike.</p>
         <p class="where">README</p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F11, defect gases and irregular zones</h3>
+        <p>At the left-end records the tape is <code>0^3 101 (01101010)^n</code> followed by a zone written in the pairs <code>01</code> and <code>10</code>. The block grows (n = 1,230 at 2.6&middot;10<sup>8</sup> steps, 9,822 at 1.6&middot;10<sup>10</sup>). The zone has 98, 139, 90 and 118 level-2 tokens at the left-end records at 2.6&middot;10<sup>8</sup>, 10<sup>9</sup>, 4.1&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps, so it did not grow on this screen. It does contain long waves: at 4.1&middot;10<sup>9</sup> steps one 64-cell word is repeated 390 times inside it, at 1.6&middot;10<sup>10</sup> steps 69 times, which is why the count of cells outside short repeats swings between 177 and 12,699. On these numbers alone the machine fits F01 (two periodic blocks and about a hundred irregular tokens). It is put in F11 with its sister 1RB0LB_1RC1LC_1LD1RE_---0LA_1LE0RF_1RA0LF, whose zone of the same kind grows, because the zone is the engine and it is a word over two letters with no bound known. The two machines differ in one transition (E on 0) and their runs are different: nothing is claimed about one from the other. If a closed-set test is wanted, this is the one of the two to try.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

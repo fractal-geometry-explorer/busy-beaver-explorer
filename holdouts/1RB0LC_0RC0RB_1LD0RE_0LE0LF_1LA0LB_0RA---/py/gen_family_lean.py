@@ -91,7 +91,8 @@ def conj(machine, fr, st):
         init_proof = "  rfl"
     fr_txt = {"A": "frame A itself (`img` only renames nothing)",
               "B": "frame B: the mirror image of frame A, states renamed",
-              "X": "frame X: the mirror image of frame A, states renamed"}[fr]
+              "X": "frame X: the mirror image of frame A, states renamed",
+              "G": "frame G: the mirror image of frame A, states renamed"}[fr]
     return f"""
 /-! ## The machine is its frame-A conjugate seen through `img` ({fr_txt}) -/
 

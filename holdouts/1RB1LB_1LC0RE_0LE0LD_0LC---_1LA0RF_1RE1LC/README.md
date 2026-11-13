@@ -38,6 +38,36 @@ Only D1 halts. Open. n-gram CPS (widths 3..7) fails; no halt in 10^9 steps (C).
   exact rule depends on parities) with `bbtools.symtm`, then the rule for the marker's rebirth; this gives a
   multi-digit counter whose overflow should decide D1.
 
+## Family screen (F09, 13 November 2026)
+
+The 22 machines of family F09 were screened in one way, to decide which family each belongs to. `holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py`
+runs the machine from blank tape for 2·10^10 steps and, at the first new leftmost and rightmost cell after each
+threshold 10^6·4^k, compresses the tape twice: repeats of a word of at most 40 cells (level 1), then repeats of
+groups of such tokens (level 2). A bounded description keeps the number of level-2 tokens bounded while the tape
+grows. The long runs use the macro simulator `holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c`, sampled at one record per leading digit of the step count.
+Everything in this section is observed in one run; none of it is proved.
+
+| record | step | visited cells | cells in no repeat | repeats | level-2 tokens | largest repeat / tape |
+|---|---|---|---|---|---|---|
+| left | 256,060,160 | 16,252 | 7 | 9 | 16 | 0.48 |
+| right | 300,981,518 | 19,408 | 4 | 4 | 8 | 0.58 |
+| left | 1,024,035,610 | 31,804 | 11 | 10 | 18 | 0.33 |
+| right | 1,112,489,184 | 35,733 | 4 | 5 | 9 | 0.49 |
+| left | 4,096,189,910 | 73,208 | 11 | 10 | 18 | 0.65 |
+| right | 6,272,872,020 | 95,117 | 9 | 4 | 13 | 0.73 |
+| left | 16,384,326,928 | 136,162 | 9 | 11 | 20 | 0.38 |
+| right | 18,119,743,260 | 149,702 | 8 | 6 | 14 | 0.68 |
+
+**Proposed family: F01, periodic blocks driven by a bounded engine** (the table of 1RB0LC_0RC0RF… mirrored, from another start: a few long blocks and a short rest).
+
+8 to 20 level-2 tokens at every record from 2.6·10^8 to 1.8·10^10 steps. In the macro simulator (blocks of 4 cells) the tape has 6 to 26 runs at the sampled right-end records up to 1.5·10^19 steps. For example at step 18,119,743,260 the tape is `1 (1000)^5621 101 (0010)^25428 1 (0010)^4347 (0001)^1938 0^6 (1000)^88 100`: four long blocks, one of 88 copies and five short pieces.
+
+The table is that of 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB--- read in a mirror with the states renamed (`related.json`), started in another state. The two runs are different (the block lengths have nothing in common on this screen), so nothing is claimed about one from the other; what carries over is the table, and with it any sweep rule proved for all lengths.
+
+A few periodic blocks trading copies, with a bounded rest: the F01 shape.
+
+Next step: Sample at the right-end records (state F), where the tape has 4 to 6 tokens, and find the map between consecutive ones; then the F01 closure test.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LB_1LC0RE_0LE0LD_0LC---_1LA0RF_1RE1LC/explainer.html`](../../pages/holdouts/1RB1LB_1LC0RE_0LE0LD_0LC---_1LA0RF_1RE1LC/explainer.html)

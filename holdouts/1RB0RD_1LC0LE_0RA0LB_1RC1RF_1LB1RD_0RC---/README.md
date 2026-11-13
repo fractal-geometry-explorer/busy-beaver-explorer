@@ -77,6 +77,34 @@ python3 holdouts/1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---/py/rules.py          
 python3 holdouts/1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---/py/observe.py 1e7 B 6  # the tape at the last moments each end grew
 ```
 
+## Family screen (F09, 13 November 2026)
+
+The 22 machines of family F09 were screened in one way, to decide which family each belongs to. `holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py`
+runs the machine from blank tape for 2·10^10 steps and, at the first new leftmost and rightmost cell after each
+threshold 10^6·4^k, compresses the tape twice: repeats of a word of at most 40 cells (level 1), then repeats of
+groups of such tokens (level 2). A bounded description keeps the number of level-2 tokens bounded while the tape
+grows. The long runs use the macro simulator `holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c`, sampled at one record per leading digit of the step count.
+Everything in this section is observed in one run; none of it is proved.
+
+| record | step | visited cells | cells in no repeat | repeats | level-2 tokens | largest repeat / tape |
+|---|---|---|---|---|---|---|
+| left | 267,471,845 | 9,496 | 31 | 11 | 30 | 0.46 |
+| right | 272,180,549 | 9,497 | 17 | 12 | 29 | 0.45 |
+| right | 1,079,042,429 | 25,667 | 20 | 13 | 33 | 0.44 |
+| left | 1,188,757,164 | 27,361 | 31 | 11 | 30 | 0.57 |
+| right | 4,637,250,694 | 56,873 | 20 | 13 | 33 | 0.51 |
+| left | 4,819,237,177 | 61,075 | 34 | 13 | 35 | 0.60 |
+| right | 19,255,482,922 | 111,671 | 23 | 14 | 37 | 0.33 |
+| left | 19,693,788,191 | 118,465 | 34 | 13 | 35 | 0.55 |
+
+**Proposed family: F01, periodic blocks driven by a bounded engine** (frozen blocks of 001 and one live block rebuilt by an inner bouncer).
+
+The description grows slowly if at all: 29 to 37 level-2 tokens at every record from 2.7·10^8 to 2·10^10 steps, and 10 to 32 runs in the macro simulator (blocks of 3 cells) at the sampled records from 10^6 to 9·10^12 steps. At step 19,693,788,191 the tape has frozen blocks of 60, 107, 1,452, 394, 165, 338, 838 and 12,270 copies of `100` or `001` and a live part `(001)^21588 (011)^2262`.
+
+Within a level this is the F01 shape (a live block with a short engine, phase P1 already proved in Lean), and a level ends with the block frozen, as in 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---. The list of frozen blocks is not bounded: 5 blocks at 7.6·10^7 steps, 8 at 2·10^10.
+
+Next step: Prove the whole return `a' = a + b + 7` (measured), then the F01 closure on (a, b) with the frozen list treated as arbitrary.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---/explainer.html`](../../pages/holdouts/1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---/explainer.html)

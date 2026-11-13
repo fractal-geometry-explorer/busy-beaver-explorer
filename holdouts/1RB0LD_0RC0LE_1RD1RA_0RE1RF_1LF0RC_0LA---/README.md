@@ -36,6 +36,34 @@ Open. Lean (`lean/Blank.lean`): the halting configurations, no halt in 10^4 step
 2. If it is a counter with fixed digit rules, prove the per-level rules with `bbtools.symtm` and the counter by induction.
 3. Work out what happens when a c-run reaches 0 (the moment a level carries).
 
+## Family screen (F09, 13 November 2026)
+
+The 22 machines of family F09 were screened in one way, to decide which family each belongs to. `holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py`
+runs the machine from blank tape for 2·10^10 steps and, at the first new leftmost and rightmost cell after each
+threshold 10^6·4^k, compresses the tape twice: repeats of a word of at most 40 cells (level 1), then repeats of
+groups of such tokens (level 2). A bounded description keeps the number of level-2 tokens bounded while the tape
+grows. The long runs use the macro simulator `holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c`, sampled at one record per leading digit of the step count.
+Everything in this section is observed in one run; none of it is proved.
+
+| record | step | visited cells | cells in no repeat | repeats | level-2 tokens | largest repeat / tape |
+|---|---|---|---|---|---|---|
+| right | 256,071,848 | 18,577 | 12 | 11 | 17 | 0.88 |
+| left | 279,146,051 | 19,447 | 15 | 13 | 19 | 0.88 |
+| left | 1,035,688,785 | 24,785 | 15 | 15 | 24 | 0.32 |
+| right | 1,488,650,106 | 24,829 | 6 | 14 | 20 | 0.32 |
+| right | 4,099,398,448 | 49,147 | 7 | 20 | 27 | 0.49 |
+| left | 4,175,558,235 | 50,232 | 36 | 23 | 36 | 0.50 |
+| left | 16,405,165,975 | 133,330 | 28 | 25 | 35 | 0.81 |
+| right | 17,002,373,871 | 133,374 | 7 | 20 | 27 | 0.81 |
+
+**Proposed family: F06, block-list counters** (a slowly growing list of units made of two words).
+
+The description grows slowly: 19, 24, 36 and 35 level-2 tokens at the left-end records at 2.8·10^8, 10^9, 4.2·10^9 and 1.6·10^10 steps. At the last one the tape is a block `(010)^1537`, then a list of blocks of the words `10101` and `100` (3 to 1,184 copies each) closed by markers `1010 (01)^3`, and a last block `(10101)^21602`.
+
+A list of units of the same form whose number grows slowly is a list of counters (F06) and not a bounded description (F01): the token count nearly doubled on the screen.
+
+Next step: The round rule on the list of pairs (a, b), sampled at the left-end records, and the rule that adds a unit.
+
 ## Pages
 
 - [`pages/holdouts/1RB0LD_0RC0LE_1RD1RA_0RE1RF_1LF0RC_0LA---/explainer.html`](../../pages/holdouts/1RB0LD_0RC0LE_1RD1RA_0RE1RF_1LF0RC_0LA---/explainer.html)

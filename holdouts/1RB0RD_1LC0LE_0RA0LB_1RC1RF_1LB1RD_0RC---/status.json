@@ -82,6 +82,18 @@
    "where": "the direct simulation of <code>py/observe.py</code> (scratch counter)"
   },
   {
+   "level": "trusted",
+   "title": "Size of the tape description (family screen)",
+   "text": "At the 8 records between 2.7&middot;10<sup>8</sup> and 2.0&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 9,496 to 118,465 visited cells and compresses to 29 to 37 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).",
+   "where": "<code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---</code>, saved in <code>screen.json</code> next to it"
+  },
+  {
+   "level": "heuristic",
+   "title": "Proposed family: F01, periodic blocks driven by a bounded engine",
+   "text": "The description grows slowly if at all: 29 to 37 level-2 tokens at every record from 2.7&middot;10<sup>8</sup> to 2&middot;10<sup>10</sup> steps, and 10 to 32 runs in the macro simulator (blocks of 3 cells) at the sampled records from 10<sup>6</sup> to 9&middot;10<sup>12</sup> steps. At step 19,693,788,191 the tape has frozen blocks of 60, 107, 1,452, 394, 165, 338, 838 and 12,270 copies of <code>100</code> or <code>001</code> and a live part <code>(001)^21588 (011)^2262</code>. Within a level this is the F01 shape (a live block with a short engine, phase P1 already proved in Lean), and a level ends with the block frozen, as in 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---. The list of frozen blocks is not bounded: 5 blocks at 7.6&middot;10<sup>7</sup> steps, 8 at 2&middot;10<sup>10</sup>.",
+   "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. Deciding it would need the rule for a whole return of the head (phase P2 and the splitting of the live block, which both involve the frozen blocks to the left) as a map on the block sizes, proved, and then an argument that its outcome never puts D next to two 1s. Phase P1 is now proved; the splitting looks like a Collatz-like condition on the sizes modulo 3.",
@@ -150,6 +162,19 @@
     "heading": "What a halt would need",
     "html": [
      "<p>The machine stops only when it is in F reading a 1, and it enters F only from D reading a 1. So a halt needs <code>D&gt;1 1</code>: the head in D on a 1 that has another 1 to its right. In the first 3·10<sup>6</sup> steps D reads a 1 3,851 times and the next cell is always 0. In the block picture, a halt would need a wall of a shape that the splitting of the live block has never produced. Whether it ever does depends on the block sizes, probably modulo 3, through rules that are measured but not proved: the question is open.</p>"
+    ]
+   },
+   {
+    "id": "screen",
+    "eyebrow": "Family screen, 13 November 2026",
+    "heading": "Which family it belongs to",
+    "html": [
+     "<p>The 22 machines of family F09 (&ldquo;bouncers over lists of counters, not yet classified&rdquo;) were screened in one way. The machine runs from blank tape for 2&middot;10<sup>10</sup> steps; each time the tape reaches a new cell after a threshold, the tape is compressed twice: first repeats of one word, then repeats of groups of words. If the tape is a few growing blocks and a bounded rest, the number of level-2 tokens stays bounded while the tape grows. Everything in this section is observed in one run. None of it is proved.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>record</th><th>step</th><th>visited cells</th><th>cells in no repeat</th><th>repeats</th><th>level-2 tokens</th></tr></thead><tbody><tr><td>left</td><td>267,471,845</td><td>9,496</td><td>31</td><td>11</td><td>30</td></tr><tr><td>right</td><td>272,180,549</td><td>9,497</td><td>17</td><td>12</td><td>29</td></tr><tr><td>right</td><td>1,079,042,429</td><td>25,667</td><td>20</td><td>13</td><td>33</td></tr><tr><td>left</td><td>1,188,757,164</td><td>27,361</td><td>31</td><td>11</td><td>30</td></tr><tr><td>right</td><td>4,637,250,694</td><td>56,873</td><td>20</td><td>13</td><td>33</td></tr><tr><td>left</td><td>4,819,237,177</td><td>61,075</td><td>34</td><td>13</td><td>35</td></tr><tr><td>right</td><td>19,255,482,922</td><td>111,671</td><td>23</td><td>14</td><td>37</td></tr><tr><td>left</td><td>19,693,788,191</td><td>118,465</td><td>34</td><td>13</td><td>35</td></tr></tbody></table></div>",
+     "<p><b>Proposed family: F01, periodic blocks driven by a bounded engine</b> (frozen blocks of 001 and one live block rebuilt by an inner bouncer).</p>",
+     "<p>The description grows slowly if at all: 29 to 37 level-2 tokens at every record from 2.7&middot;10<sup>8</sup> to 2&middot;10<sup>10</sup> steps, and 10 to 32 runs in the macro simulator (blocks of 3 cells) at the sampled records from 10<sup>6</sup> to 9&middot;10<sup>12</sup> steps. At step 19,693,788,191 the tape has frozen blocks of 60, 107, 1,452, 394, 165, 338, 838 and 12,270 copies of <code>100</code> or <code>001</code> and a live part <code>(001)^21588 (011)^2262</code>.</p>",
+     "<p>Within a level this is the F01 shape (a live block with a short engine, phase P1 already proved in Lean), and a level ends with the block frozen, as in 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---. The list of frozen blocks is not bounded: 5 blocks at 7.6&middot;10<sup>7</sup> steps, 8 at 2&middot;10<sup>10</sup>.</p>",
+     "<p><b>Next step.</b> Prove the whole return <code>a' = a + b + 7</code> (measured), then the F01 closure on (a, b) with the frozen list treated as arbitrary.</p>"
     ]
    },
    {

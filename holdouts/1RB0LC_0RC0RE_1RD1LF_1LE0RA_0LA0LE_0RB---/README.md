@@ -41,6 +41,14 @@ start, 52 right), 21,074 ones.
 - left, step 970,328,269: `C>0 0^4 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^`
 - left, step 986,046,105: `C>0 0^4 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^3 1 0^`
 
+<!-- F05 -->
+
+## Family F05: next to the forty-machine core
+
+The family plan groups this machine with the nested block counter, 40 holdouts that are the core `1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??---` in different frames. This machine's table is not a renaming or mirror image of that core, so the family's Lean theorems are not proved for it. Compared with [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/README.md): the first pass found the same tape at every sweep end up to 10^11 steps (the mirrored members from sweep 157,376 on, with a different first block). That is an observation, and the two halting transitions are read in different situations, so one halting question does not settle the other. The family's records are in [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/README.md).
+
+<!-- end F05 -->
+
 ## Pages
 
 - [`pages/holdouts/1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---/explainer.html`](../../pages/holdouts/1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---/explainer.html)

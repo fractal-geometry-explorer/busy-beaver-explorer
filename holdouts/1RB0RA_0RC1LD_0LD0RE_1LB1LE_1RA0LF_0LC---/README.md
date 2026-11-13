@@ -38,6 +38,36 @@ Check the mod-3 pattern over a long run (all samples), find the sweep rules on r
 . /etc/profile.d/lean.sh && holdouts/1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC---/lean/check.sh
 ```
 
+## Family screen (F09, 13 November 2026)
+
+The 22 machines of family F09 were screened in one way, to decide which family each belongs to. `holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py`
+runs the machine from blank tape for 2·10^10 steps and, at the first new leftmost and rightmost cell after each
+threshold 10^6·4^k, compresses the tape twice: repeats of a word of at most 40 cells (level 1), then repeats of
+groups of such tokens (level 2). A bounded description keeps the number of level-2 tokens bounded while the tape
+grows. The long runs use the macro simulator `holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c`, sampled at one record per leading digit of the step count.
+Everything in this section is observed in one run; none of it is proved.
+
+| record | step | visited cells | cells in no repeat | repeats | level-2 tokens | largest repeat / tape |
+|---|---|---|---|---|---|---|
+| left | 256,224,779 | 24,549 | 704 | 876 | 555 | 0.04 |
+| right | 257,032,468 | 24,578 | 1,067 | 753 | 790 | 0.04 |
+| left | 1,024,451,627 | 46,629 | 1,932 | 2,333 | 588 | 0.02 |
+| right | 1,025,987,316 | 46,658 | 2,852 | 1,972 | 837 | 0.02 |
+| left | 4,096,203,795 | 91,948 | 4,489 | 5,352 | 564 | 0.01 |
+| right | 4,098,133,485 | 91,972 | 6,611 | 4,495 | 837 | 0.01 |
+| left | 16,385,027,297 | 183,249 | 9,654 | 11,441 | 588 | 0.01 |
+| right | 16,391,067,486 | 183,278 | 14,138 | 9,595 | 837 | 0.01 |
+
+**Proposed family: F06, block-list counters** (a periodic block of long period, a frozen list of growing runs and a list of counters at the right).
+
+With repeats of single words only, the number of pieces is proportional to the tape (21,095 level-1 tokens for 183,249 cells at 1.6·10^10 steps). Most of them are one block of long period: `[(0111)^10 (0100)^4 (0111)^13 (0100)^10 (0111)^4 (0100)^13]^N` with N = 264 at the right-end record at 4.1·10^9 steps and N = 595 at 1.6·10^10 (a period of 216 cells). With such groups counted once, the description is constant: 588, 564 and 588 level-2 tokens at the left-end records at 10^9, 4.1·10^9 and 1.6·10^10 steps, and 837 at each of the three right-end records.
+
+Right of the block the tape is a frozen list of runs of growing lengths (16, 7, 22, 28, 22, 22, 16, 25, … up to 149) and then a list of units `(1110)^a (1000)^3 111 (0100)^b (0111)^3 01 000` with (a, b) = (18, 15), (66, 36), (51, 21), (57, 9), … at the left-end record at 1.6·10^10 steps; the right-end record at 4.1·10^9 steps shows the same units with b one smaller. The table is that of 1RB0LF_1RC0RB_0RD1LE_0LE0RA_1LC1LA_0LD--- with the states renamed (`related.json`), from another start. The two runs are different and nothing is claimed about one from the other.
+
+A list of units that changes slowly while a periodic block grows behind it is read here as a list of counters: F06. The round rule is not known. Because the description outside the block is constant over a factor of 16 in steps, it is also worth one try of the F01 closure with the 216-cell word as the block.
+
+Next step: The rule of one unit `(a, b)` of the right-hand list, and what turns a unit into a piece of the frozen list.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC---/explainer.html`](../../pages/holdouts/1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC---/explainer.html)

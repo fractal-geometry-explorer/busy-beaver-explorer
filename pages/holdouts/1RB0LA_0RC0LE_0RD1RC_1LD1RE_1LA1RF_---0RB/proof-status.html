@@ -136,6 +136,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 36,366 cells have been visited and 20,923 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 18,358 to 157,898 visited cells and compresses to 41 to 71 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LA_0RC0LE_0RD1RC_1LD1RE_1LA1RF_---0RB</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -153,6 +158,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>New last blocks, and how deep a round trip reaches</h3>
         <p>The last run of <code>110</code> grows by two copies a round trip until a carry reaches it. Then it is frozen and a new last run starts: at steps 1,909, 13,265, 47,957, 319,522 and 98,472,504, with frozen runs of 11, 23, 35, 133 and 3923 copies. No new run starts between 9.8&middot;10<sup>7</sup> and 3&middot;10<sup>10</sup> steps, while the last run grows past 50,000 copies. Of the 4,170 round trips in the first 10<sup>8</sup> steps, more than 90% change the list of runs at 19 or more runs from the front.</p>
         <p class="where"><code>c/events.c 3e10</code></p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F06, block-list counters</h3>
+        <p>The description grows slowly if at all: 41 to 71 level-2 tokens at the records from 2.6&middot;10<sup>8</sup> to 1.6&middot;10<sup>10</sup> steps, and 27 to 63 runs in the macro simulator (blocks of 3 cells) at the sampled records from 10<sup>6</sup> to 2&middot;10<sup>12</sup> steps. The frozen run of 3,923 copies made near step 10<sup>8</sup> is still there at 1.6&middot;10<sup>10</sup> steps, the last run has 48,470 copies, and the short blocks to their left differ from record to record. A list of blocks whose front is rewritten like the low digits of a counter, with carries that reach further at longer and longer intervals (new last runs at steps 1,909, 13,265, 47,957, 319,522 and 98,472,504), is the shape of F06.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

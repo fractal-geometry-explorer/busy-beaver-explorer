@@ -65,6 +65,36 @@ gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RF_1LC0RB_1RD0LC_1LE1RA_0RC1LB_-
 cd tools/py && python3 -m bbtools.ctl 1RB1RF_1LC0RB_1RD0LC_1LE1RA_0RC1LB_---1RE 5
 ```
 
+## Family screen (F09, 13 November 2026)
+
+The 22 machines of family F09 were screened in one way, to decide which family each belongs to. `holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py`
+runs the machine from blank tape for 2·10^10 steps and, at the first new leftmost and rightmost cell after each
+threshold 10^6·4^k, compresses the tape twice: repeats of a word of at most 40 cells (level 1), then repeats of
+groups of such tokens (level 2). A bounded description keeps the number of level-2 tokens bounded while the tape
+grows. The long runs use the macro simulator `holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c`, sampled at one record per leading digit of the step count.
+Everything in this section is observed in one run; none of it is proved.
+
+| record | step | visited cells | cells in no repeat | repeats | level-2 tokens | largest repeat / tape |
+|---|---|---|---|---|---|---|
+| left | 272,473,080 | 1,302 | 96 | 65 | 101 | 0.27 |
+| right | 272,931,140 | 1,305 | 72 | 58 | 97 | 0.27 |
+| left | 1,035,523,665 | 1,551 | 109 | 71 | 112 | 0.23 |
+| right | 1,036,761,542 | 1,554 | 90 | 72 | 113 | 0.22 |
+| left | 4,104,025,694 | 1,935 | 111 | 78 | 126 | 0.18 |
+| right | 4,164,164,597 | 1,938 | 111 | 85 | 132 | 0.18 |
+| right | 16,540,838,531 | 2,055 | 102 | 79 | 132 | 0.17 |
+| left | 18,077,824,728 | 2,058 | 108 | 84 | 126 | 0.17 |
+
+**Proposed family: F06, block-list counters** (not a bouncer: a counter on a tape that grows like the logarithm of the time).
+
+The tape is short: 1,302 visited cells at 2.7·10^8 steps, 1,551 at 10^9, 1,935 at 4.1·10^9 and 2,058 at 1.8·10^10. Both ends grow like the logarithm of the step count, which is the mark of a counter, not of a bouncer.
+
+The tape is runs of 1s of length 3 (some 6 or 9) separated by one, two or five 0s, with stretches of the words `01110` and `10011` of up to 70 copies; about 100 to 130 level-2 tokens, in proportion to the length. Nothing is periodic on a large scale.
+
+Among the three families offered it is F06 (a counter); by its shape it would sit better with the counters on a logarithmic tape (F02 or F03).
+
+Next step: Read the tape as digits (the gaps of one, two and five 0s) and look for the increment rule; the two sides seem to hold two counters.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RF_1LC0RB_1RD0LC_1LE1RA_0RC1LB_---1RE/explainer.html`](../../pages/holdouts/1RB1RF_1LC0RB_1RD0LC_1LE1RA_0RC1LB_---1RE/explainer.html)

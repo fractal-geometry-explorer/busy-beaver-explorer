@@ -74,12 +74,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---</h1>
     <p class="machine">1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> This machine is in <b>frame B</b>: its table is the mirror image (L and R exchanged) of the frame-A table <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---</code> with the states renamed A&rarr;D, B&rarr;E, C&rarr;A, D&rarr;B, E&rarr;C, F&rarr;F, and it starts where that machine would be in state C. So its run from blank tape is, step for step and mirrored, the run of <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---</code> started in C (checked from the two tables by <code>frames.py</code> and by simulation). The F-transition of the analysis is this machine's B1, the halting state is F. The nested counter that drives the run is proved in Lean for every depth (<code>go_spec</code>), with its closed form, the birth of blocks and the F-event; the remaining exceptions (merges, the left end) are simulated exactly. No halt in 6.8&middot;10<sup>100</sup> steps: every F-event so far is of the proved harmless kind.</p>
+      <p><b>Family F05.</b> One of 40 holdouts on the same five-state core; the family's exact block-list map runs this machine for 1.0&middot;10<sup>200</sup> steps without a halt.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -102,6 +103,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>One of 40 holdouts on the same five-state core</h3>
+        <p>In frame A all 40 machines have states A to E of <code>1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??---</code> and differ in D1 (0LF or 1LF), in F0 and in the start state. This machine is the mirror image of that table with the states renamed A&rarr;D, B&rarr;E, C&rarr;A, D&rarr;B, E&rarr;C, F&rarr;F, with D1 = 0LF and F0 = 0RA: <code>step_img</code> proves that every step of the machine is a step of <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---</code>, and <code>halts_iff</code> that it halts from blank tape if and only if <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---</code> halts from blank tape started in state C. The tables of all 40 are compared by <code>frames.py</code>.</p>
+        <p class="where"><code>step_img</code>, <code>halts_iff</code>, <code>lean/Family.lean</code>; <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/frames.py</code></p>
+      </div>
+      <div class="card">
+        <h3>What a clean visit conserves</h3>
+        <p>For the blocks after the first, the last one left out: a clean visit (a list the closed form applies to) changes neither the residue of block i modulo 18&middot;5<sup>i&minus;2</sup> nor the drift b<sub>i+1</sub> &minus; 5&middot;b<sub>i</sub> of two neighbours. So these numbers change only at the exceptional events (a block running out, a birth, an entry into F, the left end). This is a law between events, not a proof that the machine never halts.</p>
+        <p class="where"><code>tailEff_res</code>, <code>tailEff_drift</code>, <code>visit_conserves</code>, <code>lean/Family.lean</code></p>
       </div>
       <div class="card">
         <h3>The visit rule for every depth</h3>
@@ -139,6 +150,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 1.0&middot;10<sup>200</sup> steps (exact block-list map)</h3>
+        <p>The machine run as a map on block lists (clean visits by the closed form, a Lean theorem; every other visit by the exact run-length simulator, memoised) reaches step 1.0&middot;10<sup>200</sup> without a halt: 505 returns to the left end, 278 entries into F, all reading 0, all with the tape of the proved harmless kind around the head (<code>010001000100[F]001010101010</code> (189&times;); <code>010001000100[F]001010110101</code> (89&times;)). The list has 143 blocks at the last left-end event. Its F-events (step and cell read) agree with the plain cell-by-cell simulation of the machine on the first 3&middot;10<sup>9</sup> steps (5 F-events).</p>
+        <p class="where"><code>data/f05_run.json</code>, <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py</code> (<code>hybrid.py</code>)</p>
+      </div>
       <div class="card">
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 73,874 cells have been visited and 24,457 of them hold a 1.</p>
@@ -178,6 +194,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
+        <h3>Halting would need two exceptional events close together</h3>
+        <p>A clean visit cannot halt, and in the runs every exceptional event with long blocks around it ends without a halt; short lists of the same shape do halt. When block i runs out, the next block has about the length of their drift, so a second event close by needs a drift near 0 at that moment. Observed at the left-end events of this run: after step 10<sup>20</sup> the smallest drift in absolute value is 478,842, after step 10<sup>100</sup> it is 521,954. New drifts are made of sums and differences of earlier blocks, which grow with the run, so close pairs of events should become ever rarer; but nothing proved keeps a drift away from 0, and the figures are sampled at the left-end events only.</p>
+        <p class="where"><code>data/f05_run.json</code> (<code>drift</code>), <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py</code></p>
+      </div>
+      <div class="card">
         <h3>Where a halt would have to come from</h3>
         <p>F is entered only by D1 (D reads a 1 during the left sweep, where a spread block is turned back), and halts only when it then reads a 1. In this run every F-event has the same clean context (<code>010001000100[F]0010101</code> (13&times;)). Random block lists do reach a halting F-event (about 1 in 150 F-entries; e.g. <code>[15, 31, 17, 59, 31]</code> halts after 63,153 steps), so the halt is reachable in principle; whether the blank-tape run ever produces such a list is the open part. F-events get rarer as the blocks grow (the top-level round time grows about fivefold per block).</p>
         <p class="where"><code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/random_lists.py</code></p>
@@ -205,7 +226,8 @@ python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_family_lean.py
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/hybrid_run.py 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD--- 1e100     # writes data/hybrid.json
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_lean.py 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD--- H173562 &gt; holdouts/1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---/lean/Rules.lean
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/trajectory.py 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD--- 1e11 holdouts/1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---/data/trajectory.json
-cc -O2 -o family holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/c/family.c &amp;&amp; ./family events 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---:C 1e8 &gt; ev.txt &amp;&amp; python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/check_rounds.py ev.txt</code></pre>
+cc -O2 -o family holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/c/family.c &amp;&amp; ./family events 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---:C 1e8 &gt; ev.txt &amp;&amp; python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/check_rounds.py ev.txt
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD--- 1e200          # the exact block-list map; writes data/f05_run.json</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

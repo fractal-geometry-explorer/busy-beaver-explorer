@@ -136,6 +136,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>In the first 2&middot;10<sup>8</sup> steps the machine is in state E 17,398,306 times, every time on a 1: the halting transition E0 is never close to firing in a way the run shows.</p>
         <p class="where"><code>c/visits.c</code></p>
       </div>
+      <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 25,212 to 201,727 visited cells and compresses to 389 to 3,217 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LD_1RC1RB_1RD0RA_0LE1LF_---1LA_1LA0LC</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -143,6 +148,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Growth shape: sqrt/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.499). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.502).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F11, defect gases and irregular zones</h3>
+        <p>The number of pieces is proportional to the length of the tape at every scale: 389, 787, 1,572 and 3,217 level-2 tokens at the left-end records at 2.6&middot;10<sup>8</sup>, 10<sup>9</sup>, 4.1&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps, for 25,212, 50,578, 100,222 and 201,727 cells (one token per 63 or 64 cells each time). No block holds more than 4% of the tape. Seen from the left end the tape is stretches <code>(10)^k</code> separated by single 1s, and stretches of a second word <code>(1101010)^k</code> between them: two periodic backgrounds with domain walls and point defects, in number proportional to the tape. That is a defect sea (F11), not a list of counters (the stretches have no bounded number and no visible order) and not a bounded description.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

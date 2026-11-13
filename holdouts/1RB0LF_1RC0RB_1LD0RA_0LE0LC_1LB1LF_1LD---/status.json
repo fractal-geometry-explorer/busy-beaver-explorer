@@ -58,6 +58,18 @@
    "where": "<code>py/snapshots.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "Size of the tape description (family screen)",
+   "text": "At the 8 records between 2.6&middot;10<sup>8</sup> and 1.7&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 39,174 to 337,961 visited cells and compresses to 18 to 27 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).",
+   "where": "<code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LF_1RC0RB_1LD0RA_0LE0LC_1LB1LF_1LD---</code>, saved in <code>screen.json</code> next to it"
+  },
+  {
+   "level": "heuristic",
+   "title": "Proposed family: F06, block-list counters",
+   "text": "The description grows slowly: 20 to 27 level-2 tokens at every record from 2.6&middot;10<sup>8</sup> to 1.7&middot;10<sup>10</sup> steps, and 11 to 46 runs in the macro simulator (blocks of 4 cells) at the sampled records up to 2&middot;10<sup>16</sup> steps. The machine shares its table with 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- (states renamed, some of the four mirrored; <code>related.json</code>), started in another state. On the screen the four runs show the same list of blocks at the same moments. For example near step 6.4&middot;10<sup>7</sup> all four tapes read (mirrored) blocks of 3, 1,546, 39, 1,753, 117, 1,467 and 997 pairs <code>01</code> and then a last block, of 4,405 pairs in 1RB1RF_1LC0LB&hellip; and of 4,411 pairs here. The four last blocks differ by 2, 4 and 6 pairs and the records come at slightly different steps. This is an observation at the sampled records: it is not a proof that the runs correspond, and nothing about halting is carried over. For 1RB1RF_1LC0LB&hellip; the right end is proved in Lean to be a base-3 counter on the separators of such a list (<code>bb6-1RB1RF_1LC0LB/lean/Counter.lean</code>). Those theorems are about that machine's table with its own state names; they apply here only after the renaming is carried through, which has not been done. A list of blocks with a base-3 counter is F06.",
+   "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The rates suggest a counter system (the first runs as unary counters that pass amounts down the list), but the defects between the runs and the words at the right end change from visit to visit, and what happens when a shrinking counter reaches 0 (a run disappears and the list is rebuilt) has not been described; both are where a halt could come from.",
@@ -122,6 +134,20 @@
      "<p><code>E&gt;0 (01)^284 (10)^167 (01)^242 (10)^19 (01)^12 0 (01)^3 (10)^3 1</code> (step 404,490)<br><code>C&gt;0 (01)^301 0 (01)^174 0 (01)^240 0 (01)^20 0 (01)^11 (10)^5 110101</code> (step 432,128)<br><code>E&gt;0 (01)^318 0 (01)^182 0 (01)^237 (10)^23 1 (10)^11 (01)^6 00101</code> (step 459,974)</p>",
      "<p>A run of <code>01</code>s and a run of <code>10</code>s with a single cell between them are the same counter seen with a different defect: <code>(01)^a (10)^b</code> and <code>(01)^a 0 (01)^b</code> are both a followed by b. Read that way the tape is a list a, b, c, d, &hellip; of numbers. a grows by 17 every 50 left-end visits, b by about 8 (half as fast), c shrinks by about 3, d grows by about 4. The last 20 to 100 cells are short irregular words.</p>",
      "<p>Earlier, at step 136,230, the list is (185, 127, 110) and at step 284,618 it is (201, 124, 257): the list is rebuilt when a counter runs out. Those rebuilds are what a proof would have to describe; they are not analysed.</p>"
+    ]
+   },
+   {
+    "id": "screen",
+    "eyebrow": "Family screen, 13 November 2026",
+    "heading": "Which family it belongs to",
+    "html": [
+     "<p>The 22 machines of family F09 (&ldquo;bouncers over lists of counters, not yet classified&rdquo;) were screened in one way. The machine runs from blank tape for 2&middot;10<sup>10</sup> steps; each time the tape reaches a new cell after a threshold, the tape is compressed twice: first repeats of one word, then repeats of groups of words. If the tape is a few growing blocks and a bounded rest, the number of level-2 tokens stays bounded while the tape grows. Everything in this section is observed in one run. None of it is proved.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>record</th><th>step</th><th>visited cells</th><th>cells in no repeat</th><th>repeats</th><th>level-2 tokens</th></tr></thead><tbody><tr><td>left</td><td>256,031,852</td><td>39,174</td><td>12</td><td>11</td><td>23</td></tr><tr><td>right</td><td>265,922,464</td><td>39,822</td><td>9</td><td>12</td><td>21</td></tr><tr><td>left</td><td>1,024,049,454</td><td>77,665</td><td>7</td><td>11</td><td>18</td></tr><tr><td>right</td><td>1,041,449,125</td><td>78,345</td><td>11</td><td>11</td><td>22</td></tr><tr><td>right</td><td>4,096,092,650</td><td>149,242</td><td>13</td><td>11</td><td>21</td></tr><tr><td>left</td><td>4,418,819,154</td><td>152,716</td><td>14</td><td>9</td><td>20</td></tr><tr><td>left</td><td>16,384,720,828</td><td>335,801</td><td>11</td><td>15</td><td>26</td></tr><tr><td>right</td><td>16,610,321,653</td><td>337,961</td><td>15</td><td>15</td><td>27</td></tr></tbody></table></div>",
+     "<p><b>Proposed family: F06, block-list counters</b> (blocks of pairs with a base-3 counter, as in 1RB1RF_1LC0LB&hellip; (same table)).</p>",
+     "<p>The description grows slowly: 20 to 27 level-2 tokens at every record from 2.6&middot;10<sup>8</sup> to 1.7&middot;10<sup>10</sup> steps, and 11 to 46 runs in the macro simulator (blocks of 4 cells) at the sampled records up to 2&middot;10<sup>16</sup> steps.</p>",
+     "<p>The machine shares its table with 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- (states renamed, some of the four mirrored; <code>related.json</code>), started in another state. On the screen the four runs show the same list of blocks at the same moments. For example near step 6.4&middot;10<sup>7</sup> all four tapes read (mirrored) blocks of 3, 1,546, 39, 1,753, 117, 1,467 and 997 pairs <code>01</code> and then a last block, of 4,405 pairs in 1RB1RF_1LC0LB&hellip; and of 4,411 pairs here. The four last blocks differ by 2, 4 and 6 pairs and the records come at slightly different steps. This is an observation at the sampled records: it is not a proof that the runs correspond, and nothing about halting is carried over.</p>",
+     "<p>For 1RB1RF_1LC0LB&hellip; the right end is proved in Lean to be a base-3 counter on the separators of such a list (<code>bb6-1RB1RF_1LC0LB/lean/Counter.lean</code>). Those theorems are about that machine's table with its own state names; they apply here only after the renaming is carried through, which has not been done. A list of blocks with a base-3 counter is F06.</p>",
+     "<p><b>Next step.</b> Carry the renaming through, so that the counter theorems of 1RB1RF_1LC0LB&hellip; become theorems about this machine, and state exactly how the two tapes differ (the last block and the left end).</p>"
     ]
    },
    {

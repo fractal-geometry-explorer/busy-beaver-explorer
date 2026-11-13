@@ -1,4 +1,5 @@
-"""Write README.md and status.json for the 14 machines of the block-list family from the shared analysis.
+"""Write README.md and status.json for the 14 machines of the block-list family that were analysed first (frames.FIRST)
+from the shared analysis; f05_records.py then adds the part common to all 40 machines of the family.
 
 The generated parts (Blank.lean claims, the triage run, the "shape" section of the explainer) come from
 holdouts/gen.py as before; the rest is the family analysis, with the numbers of each machine taken from its
@@ -135,7 +136,7 @@ def family_table_html(me):
     head = ("<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>machine</th><th>frame</th>"
             "<th>F0 in frame A</th><th>D1</th><th>starts in</th><th>F-events to 10<sup>11</sup></th></tr></thead><tbody>")
     rows = []
-    for m, fr, fa, st in frames.FAMILY:
+    for m, fr, fa, st in frames.FIRST:
         try:
             tr, _ = load(m)
             nf = str(len(tr["f_events"]))
@@ -151,7 +152,7 @@ def family_table_html(me):
 
 def family_table_md(me):
     rows = ["| machine | frame | F0 in frame A | D1 | frame-A start | F-events to 10^11 |", "|---|---|---|---|---|---|"]
-    for m, fr, fa, st in frames.FAMILY:
+    for m, fr, fa, st in frames.FIRST:
         try:
             tr, _ = load(m)
             nf = str(len(tr["f_events"]))
@@ -385,7 +386,7 @@ def records(m):
     claims += [base["claims"][4]]  # growth shape (heuristic)
     # ---- explainer sections
     sec_family = {
-        "id": "family", "eyebrow": "The family", "heading": "Fourteen machines, one engine",
+        "id": "family", "eyebrow": "The family", "heading": "The fourteen machines of the first pass",
         "html": [f"<p>{frame_html}</p>",
                  "<p>The table below lists the family. Frame B machines are mirror images of frame-A ones started in "
                  "state C; the X machine is a mirror image started in F (and its D1 writes 1). Different F0 or start "
@@ -664,7 +665,7 @@ def strip(s):
 
 
 def main(argv):
-    ms = argv or [r[0] for r in frames.FAMILY]
+    ms = argv or [r[0] for r in frames.FIRST]
     for m in ms:
         spec, readme = records(m)
         with open(os.path.join(HOLD, m, "status.json"), "w") as f:

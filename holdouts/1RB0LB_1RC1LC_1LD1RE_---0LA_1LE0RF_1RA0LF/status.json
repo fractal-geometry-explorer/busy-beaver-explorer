@@ -52,6 +52,18 @@
    "where": "README"
   },
   {
+   "level": "trusted",
+   "title": "Size of the tape description (family screen)",
+   "text": "At the 7 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 11,364 to 85,732 visited cells and compresses to 138 to 3,202 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).",
+   "where": "<code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LB_1RC1LC_1LD1RE_---0LA_1LE0RF_1RA0LF</code>, saved in <code>screen.json</code> next to it"
+  },
+  {
+   "level": "heuristic",
+   "title": "Proposed family: F11, defect gases and irregular zones",
+   "text": "At the left-end records the tape is <code>0^3 101 (01101010)^n</code> followed by a zone that is a sequence of the pairs <code>01</code> and <code>10</code> without a period. The block grows (n = 2,438 at 10<sup>9</sup> steps, 7,909 at 1.6&middot;10<sup>10</sup>), and so does the zone: 466, 138, 1,119 and 3,202 level-2 tokens at the left-end records at 2.6&middot;10<sup>8</sup>, 10<sup>9</sup>, 4.1&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps (955, 283, 2,417 and 7,101 cells outside every repeat). In the macro simulator (blocks of 8 cells) the tape has up to 25,746 runs by 10<sup>13</sup> steps. The zone is not bounded and has no block structure of its own, so this is not a bounded engine (F01) and not a list of counters (F06). It belongs with the irregular zones of F11. The sister machine 1RB0LB_1RC1LC_1LD1RE_---0LA_1RE0RF_1RA0LF differs in one transition (E on 0) and its zone stayed small on the same screen; the two runs are different and nothing is claimed about one from the other.",
+   "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
@@ -98,6 +110,19 @@
     "html": [
      "<p>Next to the left end the tape is a block <code>(10101001)^n</code>; behind it a long stretch made of the words <code>10</code>, <code>01</code>, <code>0110</code> and <code>1001</code> that changes only near its left end. The block grows by about 50 copies per long cycle of the head. This machine and its twin, which differs only in what state E does on a 0, behave alike.</p>",
      "<p>This is read off long runs, not yet proved: the next step is to state these patterns as rules, prove them with <code>tools/py/bbtools/symtm.py</code>, and see whether the counters can ever reach the configuration that halts.</p>"
+    ]
+   },
+   {
+    "id": "screen",
+    "eyebrow": "Family screen, 13 November 2026",
+    "heading": "Which family it belongs to",
+    "html": [
+     "<p>The 22 machines of family F09 (&ldquo;bouncers over lists of counters, not yet classified&rdquo;) were screened in one way. The machine runs from blank tape for 2&middot;10<sup>10</sup> steps; each time the tape reaches a new cell after a threshold, the tape is compressed twice: first repeats of one word, then repeats of groups of words. If the tape is a few growing blocks and a bounded rest, the number of level-2 tokens stays bounded while the tape grows. Everything in this section is observed in one run. None of it is proved.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>record</th><th>step</th><th>visited cells</th><th>cells in no repeat</th><th>repeats</th><th>level-2 tokens</th></tr></thead><tbody><tr><td>left</td><td>256,392,705</td><td>11,364</td><td>955</td><td>133</td><td>466</td></tr><tr><td>right</td><td>1,002,910,013</td><td>19,970</td><td>229</td><td>58</td><td>210</td></tr><tr><td>left</td><td>1,024,171,037</td><td>20,208</td><td>283</td><td>35</td><td>138</td></tr><tr><td>right</td><td>1,033,700,217</td><td>20,278</td><td>221</td><td>52</td><td>223</td></tr><tr><td>left</td><td>4,096,535,933</td><td>41,868</td><td>2,417</td><td>302</td><td>1,119</td></tr><tr><td>right</td><td>6,122,920,685</td><td>48,724</td><td>290</td><td>75</td><td>294</td></tr><tr><td>left</td><td>16,384,435,612</td><td>85,732</td><td>7,101</td><td>918</td><td>3,202</td></tr></tbody></table></div>",
+     "<p><b>Proposed family: F11, defect gases and irregular zones</b> (a growing block (01101010)^n and behind it a zone without period, written in the pairs 01 and 10, that grows).</p>",
+     "<p>At the left-end records the tape is <code>0^3 101 (01101010)^n</code> followed by a zone that is a sequence of the pairs <code>01</code> and <code>10</code> without a period. The block grows (n = 2,438 at 10<sup>9</sup> steps, 7,909 at 1.6&middot;10<sup>10</sup>), and so does the zone: 466, 138, 1,119 and 3,202 level-2 tokens at the left-end records at 2.6&middot;10<sup>8</sup>, 10<sup>9</sup>, 4.1&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps (955, 283, 2,417 and 7,101 cells outside every repeat). In the macro simulator (blocks of 8 cells) the tape has up to 25,746 runs by 10<sup>13</sup> steps.</p>",
+     "<p>The zone is not bounded and has no block structure of its own, so this is not a bounded engine (F01) and not a list of counters (F06). It belongs with the irregular zones of F11. The sister machine 1RB0LB_1RC1LC_1LD1RE_---0LA_1RE0RF_1RA0LF differs in one transition (E on 0) and its zone stayed small on the same screen; the two runs are different and nothing is claimed about one from the other.</p>",
+     "<p><b>Next step.</b> Read the zone as a binary word (<code>01</code> and <code>10</code> as two letters) and look for the rule that rewrites it once per round; a cellular-automaton rule is the first thing to test.</p>"
     ]
    },
    {

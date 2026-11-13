@@ -11,8 +11,9 @@ usage: python3 automaton.py        (about a minute)
    the odd cells for every counter of up to 16 digits (unless the carry runs off the end), and that it permutes the
    digit strings of each length k <= 12 (a causal permutation: cycles of power-of-two lengths).
 5. End events: what the machine does when the carry runs past the last cell, in each of the three states, for both
-   shapes of the right end (last cell a digit, as in the run from blank tape, or a separator, as after the first such
-   event), with walls of 3 to 6 pairs.
+   shapes of the right end (last cell a digit, as in the run from blank tape and after every end event, or a
+   separator, a shape the run does not take: `lean/Ends.lean`), with walls of 3 to 6 pairs.  `py/events.py` and
+   `lean/Ends.lean` have the end events of the run for every counter.
 """
 import itertools
 import random

@@ -52,6 +52,18 @@
    "where": "README"
   },
   {
+   "level": "trusted",
+   "title": "Size of the tape description (family screen)",
+   "text": "At the 6 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 10,390 to 83,440 visited cells and compresses to 72 to 139 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).",
+   "where": "<code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LB_1RC1LC_1LD1RE_---0LA_1RE0RF_1RA0LF</code>, saved in <code>screen.json</code> next to it"
+  },
+  {
+   "level": "heuristic",
+   "title": "Proposed family: F11, defect gases and irregular zones",
+   "text": "At the left-end records the tape is <code>0^3 101 (01101010)^n</code> followed by a zone written in the pairs <code>01</code> and <code>10</code>. The block grows (n = 1,230 at 2.6&middot;10<sup>8</sup> steps, 9,822 at 1.6&middot;10<sup>10</sup>). The zone has 98, 139, 90 and 118 level-2 tokens at the left-end records at 2.6&middot;10<sup>8</sup>, 10<sup>9</sup>, 4.1&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps, so it did not grow on this screen. It does contain long waves: at 4.1&middot;10<sup>9</sup> steps one 64-cell word is repeated 390 times inside it, at 1.6&middot;10<sup>10</sup> steps 69 times, which is why the count of cells outside short repeats swings between 177 and 12,699. On these numbers alone the machine fits F01 (two periodic blocks and about a hundred irregular tokens). It is put in F11 with its sister 1RB0LB_1RC1LC_1LD1RE_---0LA_1LE0RF_1RA0LF, whose zone of the same kind grows, because the zone is the engine and it is a word over two letters with no bound known. The two machines differ in one transition (E on 0) and their runs are different: nothing is claimed about one from the other. If a closed-set test is wanted, this is the one of the two to try.",
+   "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
@@ -98,6 +110,19 @@
     "html": [
      "<p>Next to the left end the tape is a block <code>(10101001)^n</code>; behind it a long stretch made of the words <code>10</code>, <code>01</code>, <code>0110</code> and <code>1001</code> that changes only near its left end. The block grows by about 50 copies per long cycle of the head. This machine and its twin, which differs only in what state E does on a 0, behave alike.</p>",
      "<p>This is read off long runs, not yet proved: the next step is to state these patterns as rules, prove them with <code>tools/py/bbtools/symtm.py</code>, and see whether the counters can ever reach the configuration that halts.</p>"
+    ]
+   },
+   {
+    "id": "screen",
+    "eyebrow": "Family screen, 13 November 2026",
+    "heading": "Which family it belongs to",
+    "html": [
+     "<p>The 22 machines of family F09 (&ldquo;bouncers over lists of counters, not yet classified&rdquo;) were screened in one way. The machine runs from blank tape for 2&middot;10<sup>10</sup> steps; each time the tape reaches a new cell after a threshold, the tape is compressed twice: first repeats of one word, then repeats of groups of words. If the tape is a few growing blocks and a bounded rest, the number of level-2 tokens stays bounded while the tape grows. Everything in this section is observed in one run. None of it is proved.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>record</th><th>step</th><th>visited cells</th><th>cells in no repeat</th><th>repeats</th><th>level-2 tokens</th></tr></thead><tbody><tr><td>left</td><td>256,132,772</td><td>10,390</td><td>177</td><td>24</td><td>98</td></tr><tr><td>right</td><td>288,785,204</td><td>10,846</td><td>95</td><td>27</td><td>90</td></tr><tr><td>left</td><td>1,024,087,802</td><td>23,968</td><td>3,025</td><td>382</td><td>139</td></tr><tr><td>right</td><td>2,797,177,046</td><td>33,802</td><td>72</td><td>24</td><td>72</td></tr><tr><td>left</td><td>4,096,047,796</td><td>49,202</td><td>12,699</td><td>1,581</td><td>90</td></tr><tr><td>left</td><td>16,384,178,554</td><td>83,440</td><td>2,441</td><td>298</td><td>118</td></tr></tbody></table></div>",
+     "<p><b>Proposed family: F11, defect gases and irregular zones</b> (a growing block (01101010)^n and behind it a zone written in the pairs 01 and 10; borderline F01).</p>",
+     "<p>At the left-end records the tape is <code>0^3 101 (01101010)^n</code> followed by a zone written in the pairs <code>01</code> and <code>10</code>. The block grows (n = 1,230 at 2.6&middot;10<sup>8</sup> steps, 9,822 at 1.6&middot;10<sup>10</sup>). The zone has 98, 139, 90 and 118 level-2 tokens at the left-end records at 2.6&middot;10<sup>8</sup>, 10<sup>9</sup>, 4.1&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps, so it did not grow on this screen. It does contain long waves: at 4.1&middot;10<sup>9</sup> steps one 64-cell word is repeated 390 times inside it, at 1.6&middot;10<sup>10</sup> steps 69 times, which is why the count of cells outside short repeats swings between 177 and 12,699.</p>",
+     "<p>On these numbers alone the machine fits F01 (two periodic blocks and about a hundred irregular tokens). It is put in F11 with its sister 1RB0LB_1RC1LC_1LD1RE_---0LA_1LE0RF_1RA0LF, whose zone of the same kind grows, because the zone is the engine and it is a word over two letters with no bound known. The two machines differ in one transition (E on 0) and their runs are different: nothing is claimed about one from the other. If a closed-set test is wanted, this is the one of the two to try.</p>",
+     "<p><b>Next step.</b> The same reading of the zone as a binary word; in this machine also the life of one wave (the 64-cell word), from its birth to its end.</p>"
     ]
    },
    {

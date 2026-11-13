@@ -77,6 +77,18 @@
    "where": "<code>c/leftsnap.c</code> (<code>./leftsnap 1RB1RF_1LC0RB_1RD0LC_1LE1RA_0RC1LB_---1RE 1000000000 60</code>), <code>c/rvisits.c</code> (<code>./rvisits 1RB1RF_1LC0RB_1RD0LC_1LE1RA_0RC1LB_---1RE 1000000000 50</code>)"
   },
   {
+   "level": "trusted",
+   "title": "Size of the tape description (family screen)",
+   "text": "At the 8 records between 2.7&middot;10<sup>8</sup> and 1.8&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 1,302 to 2,058 visited cells and compresses to 97 to 132 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).",
+   "where": "<code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB1RF_1LC0RB_1RD0LC_1LE1RA_0RC1LB_---1RE</code>, saved in <code>screen.json</code> next to it"
+  },
+  {
+   "level": "heuristic",
+   "title": "Proposed family: F06, block-list counters",
+   "text": "The tape is short: 1,302 visited cells at 2.7&middot;10<sup>8</sup> steps, 1,551 at 10<sup>9</sup>, 1,935 at 4.1&middot;10<sup>9</sup> and 2,058 at 1.8&middot;10<sup>10</sup>. Both ends grow like the logarithm of the step count, which is the mark of a counter, not of a bouncer. The tape is runs of 1s of length 3 (some 6 or 9) separated by one, two or five 0s, with stretches of the words <code>01110</code> and <code>10011</code> of up to 70 copies; about 100 to 130 level-2 tokens, in proportion to the length. Nothing is periodic on a large scale. Among the three families offered it is F06 (a counter); by its shape it would sit better with the counters on a logarithmic tape (F02 or F03).",
+   "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The macro configuration family has not been found.",
@@ -141,6 +153,20 @@
     "heading": "What is not known",
     "html": [
      "<p>Not known: the digits of the counter (which words play the part of digits), the carry rule, and whether a carry can ever produce <code>1 1 1 F&gt;0</code>.</p>"
+    ]
+   },
+   {
+    "id": "screen",
+    "eyebrow": "Family screen, 13 November 2026",
+    "heading": "Which family it belongs to",
+    "html": [
+     "<p>The 22 machines of family F09 (&ldquo;bouncers over lists of counters, not yet classified&rdquo;) were screened in one way. The machine runs from blank tape for 2&middot;10<sup>10</sup> steps; each time the tape reaches a new cell after a threshold, the tape is compressed twice: first repeats of one word, then repeats of groups of words. If the tape is a few growing blocks and a bounded rest, the number of level-2 tokens stays bounded while the tape grows. Everything in this section is observed in one run. None of it is proved.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>record</th><th>step</th><th>visited cells</th><th>cells in no repeat</th><th>repeats</th><th>level-2 tokens</th></tr></thead><tbody><tr><td>left</td><td>272,473,080</td><td>1,302</td><td>96</td><td>65</td><td>101</td></tr><tr><td>right</td><td>272,931,140</td><td>1,305</td><td>72</td><td>58</td><td>97</td></tr><tr><td>left</td><td>1,035,523,665</td><td>1,551</td><td>109</td><td>71</td><td>112</td></tr><tr><td>right</td><td>1,036,761,542</td><td>1,554</td><td>90</td><td>72</td><td>113</td></tr><tr><td>left</td><td>4,104,025,694</td><td>1,935</td><td>111</td><td>78</td><td>126</td></tr><tr><td>right</td><td>4,164,164,597</td><td>1,938</td><td>111</td><td>85</td><td>132</td></tr><tr><td>right</td><td>16,540,838,531</td><td>2,055</td><td>102</td><td>79</td><td>132</td></tr><tr><td>left</td><td>18,077,824,728</td><td>2,058</td><td>108</td><td>84</td><td>126</td></tr></tbody></table></div>",
+     "<p><b>Proposed family: F06, block-list counters</b> (not a bouncer: a counter on a tape that grows like the logarithm of the time).</p>",
+     "<p>The tape is short: 1,302 visited cells at 2.7&middot;10<sup>8</sup> steps, 1,551 at 10<sup>9</sup>, 1,935 at 4.1&middot;10<sup>9</sup> and 2,058 at 1.8&middot;10<sup>10</sup>. Both ends grow like the logarithm of the step count, which is the mark of a counter, not of a bouncer.</p>",
+     "<p>The tape is runs of 1s of length 3 (some 6 or 9) separated by one, two or five 0s, with stretches of the words <code>01110</code> and <code>10011</code> of up to 70 copies; about 100 to 130 level-2 tokens, in proportion to the length. Nothing is periodic on a large scale.</p>",
+     "<p>Among the three families offered it is F06 (a counter); by its shape it would sit better with the counters on a logarithmic tape (F02 or F03).</p>",
+     "<p><b>Next step.</b> Read the tape as digits (the gaps of one, two and five 0s) and look for the increment rule; the two sides seem to hold two counters.</p>"
     ]
    },
    {

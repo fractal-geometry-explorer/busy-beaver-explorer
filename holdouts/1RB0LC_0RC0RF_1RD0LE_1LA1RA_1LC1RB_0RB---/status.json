@@ -53,6 +53,18 @@
    "where": "<code>bb6-1RB0LF_1RC0LB/c/pds.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "Size of the tape description (family screen)",
+   "text": "At the 8 records between 2.6&middot;10<sup>8</sup> and 1.9&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 18,250 to 164,261 visited cells and compresses to 9 to 14 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).",
+   "where": "<code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---</code>, saved in <code>screen.json</code> next to it"
+  },
+  {
+   "level": "heuristic",
+   "title": "Proposed family: F01, periodic blocks driven by a bounded engine",
+   "text": "The description is the smallest of the family: 9 to 14 level-2 tokens at every record from 3.8&middot;10<sup>8</sup> to 1.9&middot;10<sup>10</sup> steps. At the left-end records the tape is <code>(0010)^190 (01)^3 (0001)^633 001 (0100)^n</code> and a tail of at most 40 cells (n = 5,040, 10,216, 20,361, 40,231). The macro simulator (blocks of 4 cells) at its last left-end record before 1.45&middot;10<sup>18</sup> steps shows eleven blocks: 189, 633, 40,231, 8,119, 92,808, 5,890,878, 1,188,870, 19,851,057, 48,010,873, 11,795,335 and 284,041,139 copies. So a level ends with its block frozen and a new block started. Within a level this is the F01 shape: one growing periodic block, a short tail, and frozen blocks that the sweeps cross. The list of frozen blocks is not bounded, so a closed set has to treat the frozen part as an arbitrary list; whether the sweeps allow that is the first thing to check.",
+   "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
    "level": "open",
    "title": "The map and the halting condition",
    "text": "The growth ratio of the last block is not constant (1.44 falling to 1.40), and the tail changes from event to event, so the event map has more structure than a single number. During a sweep 14 copies of the middle block move at a time. No halting configuration of a high-level map has been identified yet.",
@@ -105,6 +117,20 @@
     "html": [
      "<p>When the head is in state E at the left end, the tape reads, from left to right, <code>(10)^2 (0100)^189 (10)^3 (0010)^633 (01)^2 (0001)^n</code> and a short tail. Only <i>n</i> changes: 13, 159, 363, 649, 1,050, 1,612, 2,398, 3,499, 5,039, 7,197, 10,215, 14,443, 20,361, 28,645, 40,230, a factor of about 1.4 per sweep.</p>",
      "<p>The frozen blocks are what is left of earlier levels. The block of <code>0100</code> grew to 189 copies and froze at step 432,110, and the block of <code>0010</code> grew to 633 copies and froze at step 9.1 million. At step 1.9&middot;10<sup>10</sup> the tail <code>0^2 (10)^2 (0010)^7 0^2 1^2</code> may be the start of the next level.</p>"
+    ]
+   },
+   {
+    "id": "screen",
+    "eyebrow": "Family screen, 13 November 2026",
+    "heading": "Which family it belongs to",
+    "html": [
+     "<p>The 22 machines of family F09 (&ldquo;bouncers over lists of counters, not yet classified&rdquo;) were screened in one way. The machine runs from blank tape for 2&middot;10<sup>10</sup> steps; each time the tape reaches a new cell after a threshold, the tape is compressed twice: first repeats of one word, then repeats of groups of words. If the tape is a few growing blocks and a bounded rest, the number of level-2 tokens stays bounded while the tape grows. Everything in this section is observed in one run. None of it is proved.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>record</th><th>step</th><th>visited cells</th><th>cells in no repeat</th><th>repeats</th><th>level-2 tokens</th></tr></thead><tbody><tr><td>right</td><td>256,019,877</td><td>18,250</td><td>11</td><td>6</td><td>14</td></tr><tr><td>left</td><td>377,565,301</td><td>23,466</td><td>5</td><td>5</td><td>10</td></tr><tr><td>right</td><td>1,024,198,203</td><td>35,580</td><td>7</td><td>7</td><td>14</td></tr><tr><td>left</td><td>1,351,970,933</td><td>44,170</td><td>8</td><td>4</td><td>12</td></tr><tr><td>right</td><td>4,096,317,183</td><td>69,916</td><td>7</td><td>7</td><td>14</td></tr><tr><td>left</td><td>5,068,405,965</td><td>84,747</td><td>5</td><td>4</td><td>9</td></tr><tr><td>right</td><td>16,384,192,613</td><td>138,502</td><td>11</td><td>6</td><td>14</td></tr><tr><td>left</td><td>19,312,182,341</td><td>164,261</td><td>7</td><td>5</td><td>12</td></tr></tbody></table></div>",
+     "<p><b>Proposed family: F01, periodic blocks driven by a bounded engine</b> (frozen blocks, one growing block and a short tail).</p>",
+     "<p>The description is the smallest of the family: 9 to 14 level-2 tokens at every record from 3.8&middot;10<sup>8</sup> to 1.9&middot;10<sup>10</sup> steps. At the left-end records the tape is <code>(0010)^190 (01)^3 (0001)^633 001 (0100)^n</code> and a tail of at most 40 cells (n = 5,040, 10,216, 20,361, 40,231).</p>",
+     "<p>The macro simulator (blocks of 4 cells) at its last left-end record before 1.45&middot;10<sup>18</sup> steps shows eleven blocks: 189, 633, 40,231, 8,119, 92,808, 5,890,878, 1,188,870, 19,851,057, 48,010,873, 11,795,335 and 284,041,139 copies. So a level ends with its block frozen and a new block started.</p>",
+     "<p>Within a level this is the F01 shape: one growing periodic block, a short tail, and frozen blocks that the sweeps cross. The list of frozen blocks is not bounded, so a closed set has to treat the frozen part as an arbitrary list; whether the sweeps allow that is the first thing to check.</p>",
+     "<p><b>Next step.</b> The cheap test of F01: run the growing block symbolically, n = r + m&middot;x with the tail from the finite set seen, and ask whether a class halts or freezes; the levels would then be a map on (tail, n mod m).</p>"
     ]
    },
    {
