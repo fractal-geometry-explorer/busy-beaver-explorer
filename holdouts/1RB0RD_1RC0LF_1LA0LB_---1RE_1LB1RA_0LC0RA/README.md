@@ -173,6 +173,10 @@ python3 holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/py/closure/validate.p
 gcc -O2 -o ev holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/c/ev.c && ./ev 1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA 2000000000 L A 1 100000 12 | awk 'NR%300==0'
 ```
 
+## Coq (busycoq) proof
+
+`coq/` holds a second, independent-kernel proof of the same statement on top of [busycoq](https://github.com/meithecatte/busycoq): `nonhalt : ~ halts tm c0` in `coq/H11019.v`, no axioms (`Print Assumptions` says closed under the global context), all runs evaluated by `vm_compute`. Build: `sh coq/build_H11019.sh /path/to/busycoq` (Coq 8.18.0, about 2.5 min). Details: [coq/README.md](coq/README.md).
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

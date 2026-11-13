@@ -63,6 +63,12 @@
   },
   {
    "level": "kernel",
+   "title": "The machine does not halt: a second proof, in Coq (busycoq)",
+   "text": "The same argument, ported to Coq on top of busycoq's definitions: <code>nonhalt : ~ halts tm c0</code>. The symbolic executor is proved sound against busycoq's <code>step</code>, and all runs are evaluated inside Coq's kernel by <code>vm_compute</code>; <code>Print Assumptions nonhalt</code> reports no axioms. Clean build with Coq 8.18.0: about 2.5 min.",
+   "where": "<code>coq/H11019.v</code>, <code>coq/SymExecN.v</code>; build: <code>sh coq/build_H11019.sh /path/to/busycoq</code>"
+  },
+  {
+   "level": "kernel",
    "title": "A closed set of round ends implies that it never halts",
    "text": "If the run from blank tape reaches a round end <code>A&gt; 01001000 (01)^B T</code> that belongs to a set S, and every round end in S reaches a round end in S after at least one step, then the machine does not halt. Its two hypotheses are proved by the replay below.",
    "where": "<code>nonhalting_of_closed_set</code>, <code>lean/Closed.lean</code>"
