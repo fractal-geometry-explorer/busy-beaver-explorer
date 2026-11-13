@@ -58,6 +58,18 @@
    "where": "<code>python3 py/wall.py 2e10</code>"
   },
   {
+   "level": "trusted",
+   "title": "Size of the tape description (family screen)",
+   "text": "At the 4 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 17,886 to 137,401 visited cells and compresses to 146 to 176 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).",
+   "where": "<code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</code>, saved in <code>screen.json</code> next to it"
+  },
+  {
+   "level": "heuristic",
+   "title": "Proposed family: F06, block-list counters",
+   "text": "During the present epoch the description of the tape does not grow: 146 to 176 level-2 tokens at the four left-end records from 2.6&middot;10<sup>8</sup> to 1.6&middot;10<sup>10</sup> steps, and in the macro simulator (blocks of 5 cells) exactly 314 runs at each of 80 sampled left-end records from 3&middot;10<sup>7</sup> to 10<sup>16</sup> steps. Only the block <code>(11010)^n</code> grows. The wall is a counter with digits of 25 cells. After its first 44 cells, each of the first 40 digits has the form <code>x110 x110 x011 0011 0x11 0x11 0</code> at every one of 2,819 sweeps (steps 2&middot;10<sup>7</sup> to 3&middot;10<sup>8</sup>): five free cells per digit. The first digit returns to the same contents every 8 sweeps, the first two digits together every 64 sweeps and the first three every 512 sweeps, taking 8, 64 and 512 different values (<code>py/digits.py</code>). The deepest digit changed by a sweep is digit 2 on 1,336 sweeps, digit 3 on 782, digit 4 on 326, digit 5 on 124, and so on down to digit 11 once. The counter has overflowed before. At the left-end record at step 1,428,412 the tape was <code>(11010)^244</code> followed by about 240 cells that end in 16 eight-cell words. No new cell was added at the left end for the next three million steps, and at the next left-end record (step 4,487,735) the block was gone, a 25-cell word <code>0101100110111001100110111</code> stood 45 times in a row (new digits, all equal) and the tape ended in 30 eight-cell words. So the machine is a counter that is rebuilt longer when it overflows, with the block as its clock, and the next overflow is far beyond simulation. That is the shape of the counter families (F06), not of a bounded engine (F01): the wall is bounded only within an epoch.",
+   "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.",
@@ -116,6 +128,20 @@
      "<p>The left part of the tape is the word <code>01101</code> repeated, about one more copy per sweep. The right part is a wall that has had exactly 1,573 cells since 2&middot;10<sup>7</sup> steps: the right end of the tape never moves.</p>",
      "<p>The wall is different after every sweep, but not at random. Comparing one wall with the next, the changes always start at the same cell, 44, and usually stay within a hundred cells; only now and then do they reach further, and each new depth (25 cells further each time) is reached about three times later than the previous one. That is how the carries of a counter behave: digits about 25 cells wide, in a base near 3.</p>",
      "<p>About 48 such digits are left before the carries reach the end of the wall, which would take something like 3<sup>48</sup> sweeps. Whether the machine then halts or makes room is the open question; decoding the digits would make it exact.</p>"
+    ]
+   },
+   {
+    "id": "screen",
+    "eyebrow": "Family screen, 13 November 2026",
+    "heading": "Which family it belongs to",
+    "html": [
+     "<p>The 22 machines of family F09 (&ldquo;bouncers over lists of counters, not yet classified&rdquo;) were screened in one way. The machine runs from blank tape for 2&middot;10<sup>10</sup> steps; each time the tape reaches a new cell after a threshold, the tape is compressed twice: first repeats of one word, then repeats of groups of words. If the tape is a few growing blocks and a bounded rest, the number of level-2 tokens stays bounded while the tape grows. Everything in this section is observed in one run. None of it is proved.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>record</th><th>step</th><th>visited cells</th><th>cells in no repeat</th><th>repeats</th><th>level-2 tokens</th></tr></thead><tbody><tr><td>left</td><td>256,082,924</td><td>17,886</td><td>211</td><td>54</td><td>164</td></tr><tr><td>left</td><td>1,024,109,487</td><td>35,011</td><td>184</td><td>43</td><td>146</td></tr><tr><td>left</td><td>4,096,593,925</td><td>69,161</td><td>207</td><td>50</td><td>163</td></tr><tr><td>left</td><td>16,384,808,833</td><td>137,401</td><td>207</td><td>54</td><td>176</td></tr></tbody></table></div>",
+     "<p><b>Proposed family: F06, block-list counters</b> (a counter in a wall that is rebuilt longer at each overflow, with a growing block as its clock).</p>",
+     "<p>During the present epoch the description of the tape does not grow: 146 to 176 level-2 tokens at the four left-end records from 2.6&middot;10<sup>8</sup> to 1.6&middot;10<sup>10</sup> steps, and in the macro simulator (blocks of 5 cells) exactly 314 runs at each of 80 sampled left-end records from 3&middot;10<sup>7</sup> to 10<sup>16</sup> steps. Only the block <code>(11010)^n</code> grows.</p>",
+     "<p>The wall is a counter with digits of 25 cells. After its first 44 cells, each of the first 40 digits has the form <code>x110 x110 x011 0011 0x11 0x11 0</code> at every one of 2,819 sweeps (steps 2&middot;10<sup>7</sup> to 3&middot;10<sup>8</sup>): five free cells per digit. The first digit returns to the same contents every 8 sweeps, the first two digits together every 64 sweeps and the first three every 512 sweeps, taking 8, 64 and 512 different values (<code>py/digits.py</code>). The deepest digit changed by a sweep is digit 2 on 1,336 sweeps, digit 3 on 782, digit 4 on 326, digit 5 on 124, and so on down to digit 11 once.</p>",
+     "<p>The counter has overflowed before. At the left-end record at step 1,428,412 the tape was <code>(11010)^244</code> followed by about 240 cells that end in 16 eight-cell words. No new cell was added at the left end for the next three million steps, and at the next left-end record (step 4,487,735) the block was gone, a 25-cell word <code>0101100110111001100110111</code> stood 45 times in a row (new digits, all equal) and the tape ended in 30 eight-cell words. So the machine is a counter that is rebuilt longer when it overflows, with the block as its clock, and the next overflow is far beyond simulation. That is the shape of the counter families (F06), not of a bounded engine (F01): the wall is bounded only within an epoch.</p>",
+     "<p><b>Next step.</b> Decode the five cells of a digit into a carry rule (a transducer on digits), prove it with <code>symtm</code>, and work out the rebuild; then the question is whether the rebuild can go wrong for some length of the block.</p>"
     ]
    },
    {

@@ -76,6 +76,36 @@ mark `110` occurs at the left-end moments only right after a block, never after 
 walls nest (`py/replay.py`); a wall is made when the walk meets a level with a single pair to its left: the left end
 then copies that level's X pairs into a new first block of about 2X, one round of the head per pair. See the log.
 
+## Family screen (F09, 13 November 2026)
+
+The 22 machines of family F09 were screened in one way, to decide which family each belongs to. `holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py`
+runs the machine from blank tape for 2·10^10 steps and, at the first new leftmost and rightmost cell after each
+threshold 10^6·4^k, compresses the tape twice: repeats of a word of at most 40 cells (level 1), then repeats of
+groups of such tokens (level 2). A bounded description keeps the number of level-2 tokens bounded while the tape
+grows. The long runs use the macro simulator `holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c`, sampled at one record per leading digit of the step count.
+Everything in this section is observed in one run; none of it is proved.
+
+| record | step | visited cells | cells in no repeat | repeats | level-2 tokens | largest repeat / tape |
+|---|---|---|---|---|---|---|
+| right | 256,023,668 | 39,174 | 10 | 11 | 21 | 0.53 |
+| left | 265,731,616 | 39,810 | 9 | 12 | 21 | 0.53 |
+| right | 1,024,074,398 | 77,669 | 9 | 11 | 20 | 0.50 |
+| left | 1,041,094,069 | 78,333 | 11 | 11 | 22 | 0.50 |
+| left | 4,096,013,794 | 149,234 | 13 | 11 | 21 | 0.59 |
+| right | 4,418,382,534 | 152,704 | 14 | 9 | 20 | 0.57 |
+| right | 16,384,142,034 | 335,797 | 11 | 15 | 26 | 0.39 |
+| left | 16,609,117,837 | 337,949 | 15 | 15 | 27 | 0.40 |
+
+**Proposed family: F06, block-list counters** (blocks of pairs with a base-3 counter (proved) and walls).
+
+The description grows slowly: 20 to 27 level-2 tokens at every record from 2.6·10^8 to 1.7·10^10 steps, and 14 to 46 runs in the macro simulator (blocks of 4 cells) at the sampled records from 10^6 to 10^17 steps.
+
+Three holdouts share this machine's table from other start states (1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---, 1RB0LF_1RC0RB_1LD0RA_0LE0LC_1LB1LF_1LD---, 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---). On the screen the four runs show the same list of blocks at the same moments: near step 6.4·10^7 blocks of 3, 1,546, 39, 1,753, 117, 1,467 and 997 pairs and a last block of 4,405, 4,409, 4,411 and 4,407 pairs. An observation at the sampled records, not a proof that the runs correspond.
+
+The base-3 counter on the separators is proved in Lean for this machine. A list of blocks counted in base 3, with walls, is F06.
+
+Next step: Unchanged: the top of the counter as a whole. New: carry the state renamings through so that the three sister machines inherit the counter theorems.
+
 ## Files
 
 | path | what it is |

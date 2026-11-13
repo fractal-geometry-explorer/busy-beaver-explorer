@@ -58,6 +58,34 @@ tape languages (`tools/py/bbtools/ctl.py`) find no closed set for windows of 3 t
    `holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/lean/Chain.lean`).
 3. Find an invariant language of lists closed under the rule, without `E> 1 0`.
 
+## Family screen (F09, 13 November 2026)
+
+The 22 machines of family F09 were screened in one way, to decide which family each belongs to. `holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py`
+runs the machine from blank tape for 2·10^10 steps and, at the first new leftmost and rightmost cell after each
+threshold 10^6·4^k, compresses the tape twice: repeats of a word of at most 40 cells (level 1), then repeats of
+groups of such tokens (level 2). A bounded description keeps the number of level-2 tokens bounded while the tape
+grows. The long runs use the macro simulator `holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c`, sampled at one record per leading digit of the step count.
+Everything in this section is observed in one run; none of it is proved.
+
+| record | step | visited cells | cells in no repeat | repeats | level-2 tokens | largest repeat / tape |
+|---|---|---|---|---|---|---|
+| right | 256,003,734 | 18,358 | 34 | 16 | 41 | 0.64 |
+| left | 256,460,212 | 18,373 | 45 | 22 | 52 | 0.64 |
+| left | 1,024,118,388 | 36,821 | 69 | 24 | 68 | 0.66 |
+| right | 1,024,251,711 | 36,823 | 70 | 22 | 71 | 0.66 |
+| right | 4,096,553,242 | 76,620 | 54 | 22 | 55 | 0.84 |
+| left | 4,096,936,360 | 76,625 | 52 | 23 | 54 | 0.84 |
+| left | 16,384,165,168 | 157,896 | 43 | 18 | 41 | 0.92 |
+| right | 16,384,581,208 | 157,898 | 44 | 16 | 45 | 0.92 |
+
+**Proposed family: F06, block-list counters** (a list of 110-blocks with a counter at the left end).
+
+The description grows slowly if at all: 41 to 71 level-2 tokens at the records from 2.6·10^8 to 1.6·10^10 steps, and 27 to 63 runs in the macro simulator (blocks of 3 cells) at the sampled records from 10^6 to 2·10^12 steps. The frozen run of 3,923 copies made near step 10^8 is still there at 1.6·10^10 steps, the last run has 48,470 copies, and the short blocks to their left differ from record to record.
+
+A list of blocks whose front is rewritten like the low digits of a counter, with carries that reach further at longer and longer intervals (new last runs at steps 1,909, 13,265, 47,957, 319,522 and 98,472,504), is the shape of F06.
+
+Next step: The carry rule of the front blocks as an exact macro map; then run it to the next freeze of the last run.
+
 ## Check
 
 ```sh

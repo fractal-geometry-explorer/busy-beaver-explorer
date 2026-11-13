@@ -64,6 +64,18 @@
    "where": "<code>/home/user/w/bin/side M 3e9 R 60</code>"
   },
   {
+   "level": "trusted",
+   "title": "Size of the tape description (family screen)",
+   "text": "At the 8 records between 2.6&middot;10<sup>8</sup> and 1.8&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 16,252 to 149,702 visited cells and compresses to 8 to 20 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).",
+   "where": "<code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB1LB_1LC0RE_0LE0LD_0LC---_1LA0RF_1RE1LC</code>, saved in <code>screen.json</code> next to it"
+  },
+  {
+   "level": "heuristic",
+   "title": "Proposed family: F01, periodic blocks driven by a bounded engine",
+   "text": "8 to 20 level-2 tokens at every record from 2.6&middot;10<sup>8</sup> to 1.8&middot;10<sup>10</sup> steps. In the macro simulator (blocks of 4 cells) the tape has 6 to 26 runs at the sampled right-end records up to 1.5&middot;10<sup>19</sup> steps. For example at step 18,119,743,260 the tape is <code>1 (1000)^5621 101 (0010)^25428 1 (0010)^4347 (0001)^1938 0^6 (1000)^88 100</code>: four long blocks, one of 88 copies and five short pieces. The table is that of 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB--- read in a mirror with the states renamed (<code>related.json</code>), started in another state. The two runs are different (the block lengths have nothing in common on this screen), so nothing is claimed about one from the other; what carries over is the table, and with it any sweep rule proved for all lengths. A few periodic blocks trading copies, with a bounded rest: the F01 shape.",
+   "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Open: the rule of the cascade is not proved and the halting transition (D reading 1) is not located in it.",
@@ -109,6 +121,20 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "screen",
+    "eyebrow": "Family screen, 13 November 2026",
+    "heading": "Which family it belongs to",
+    "html": [
+     "<p>The 22 machines of family F09 (&ldquo;bouncers over lists of counters, not yet classified&rdquo;) were screened in one way. The machine runs from blank tape for 2&middot;10<sup>10</sup> steps; each time the tape reaches a new cell after a threshold, the tape is compressed twice: first repeats of one word, then repeats of groups of words. If the tape is a few growing blocks and a bounded rest, the number of level-2 tokens stays bounded while the tape grows. Everything in this section is observed in one run. None of it is proved.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>record</th><th>step</th><th>visited cells</th><th>cells in no repeat</th><th>repeats</th><th>level-2 tokens</th></tr></thead><tbody><tr><td>left</td><td>256,060,160</td><td>16,252</td><td>7</td><td>9</td><td>16</td></tr><tr><td>right</td><td>300,981,518</td><td>19,408</td><td>4</td><td>4</td><td>8</td></tr><tr><td>left</td><td>1,024,035,610</td><td>31,804</td><td>11</td><td>10</td><td>18</td></tr><tr><td>right</td><td>1,112,489,184</td><td>35,733</td><td>4</td><td>5</td><td>9</td></tr><tr><td>left</td><td>4,096,189,910</td><td>73,208</td><td>11</td><td>10</td><td>18</td></tr><tr><td>right</td><td>6,272,872,020</td><td>95,117</td><td>9</td><td>4</td><td>13</td></tr><tr><td>left</td><td>16,384,326,928</td><td>136,162</td><td>9</td><td>11</td><td>20</td></tr><tr><td>right</td><td>18,119,743,260</td><td>149,702</td><td>8</td><td>6</td><td>14</td></tr></tbody></table></div>",
+     "<p><b>Proposed family: F01, periodic blocks driven by a bounded engine</b> (the table of 1RB0LC_0RC0RF&hellip; mirrored, from another start: a few long blocks and a short rest).</p>",
+     "<p>8 to 20 level-2 tokens at every record from 2.6&middot;10<sup>8</sup> to 1.8&middot;10<sup>10</sup> steps. In the macro simulator (blocks of 4 cells) the tape has 6 to 26 runs at the sampled right-end records up to 1.5&middot;10<sup>19</sup> steps. For example at step 18,119,743,260 the tape is <code>1 (1000)^5621 101 (0010)^25428 1 (0010)^4347 (0001)^1938 0^6 (1000)^88 100</code>: four long blocks, one of 88 copies and five short pieces.</p>",
+     "<p>The table is that of 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB--- read in a mirror with the states renamed (<code>related.json</code>), started in another state. The two runs are different (the block lengths have nothing in common on this screen), so nothing is claimed about one from the other; what carries over is the table, and with it any sweep rule proved for all lengths.</p>",
+     "<p>A few periodic blocks trading copies, with a bounded rest: the F01 shape.</p>",
+     "<p><b>Next step.</b> Sample at the right-end records (state F), where the tape has 4 to 6 tokens, and find the map between consecutive ones; then the F01 closure test.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",

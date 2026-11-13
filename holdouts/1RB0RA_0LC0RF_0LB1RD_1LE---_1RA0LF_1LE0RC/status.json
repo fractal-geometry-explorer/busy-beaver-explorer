@@ -52,6 +52,18 @@
    "where": "README"
   },
   {
+   "level": "trusted",
+   "title": "Size of the tape description (family screen)",
+   "text": "At the 4 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 17,894 to 137,409 visited cells and compresses to 117 to 147 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).",
+   "where": "<code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC</code>, saved in <code>screen.json</code> next to it"
+  },
+  {
+   "level": "heuristic",
+   "title": "Proposed family: F06, block-list counters",
+   "text": "This machine has the table of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE read in a mirror with the states renamed (<code>related.json</code>), started in another state. On the screen the two runs have the same numbers within a few cells at every record (for example 137,409 and 137,401 visited cells at 1.6&middot;10<sup>10</sup> steps, a block of 27,165 five-cell words in both and 32 copies of a 25-cell word in both). That is an observation at the sampled records, not a proof that the two runs correspond. The description does not grow during the present epoch: 117 to 147 level-2 tokens at the four right-end records from 2.6&middot;10<sup>8</sup> to 1.6&middot;10<sup>10</sup> steps, and 306 to 314 runs in the macro simulator (blocks of 5 cells) at 80 sampled right-end records from 3&middot;10<sup>7</sup> to 10<sup>16</sup> steps. Only the block <code>(11010)^k</code> grows. The counter in the wall, with its five free cells per 25-cell digit, is described above; the sister's page has the periods 8, 64 and 512 of its first digits and the one overflow seen so far (between steps 1.4&middot;10<sup>6</sup> and 4.5&middot;10<sup>6</sup> in the sister's run). A counter that is rebuilt when it overflows belongs with the counter families (F06), not with the bounded engines (F01).",
+   "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. It halts exactly when C reads a 1 with a 1 on its right. The passes never do this; the counter work between them is not a closed rule yet.",
@@ -97,6 +109,20 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "screen",
+    "eyebrow": "Family screen, 13 November 2026",
+    "heading": "Which family it belongs to",
+    "html": [
+     "<p>The 22 machines of family F09 (&ldquo;bouncers over lists of counters, not yet classified&rdquo;) were screened in one way. The machine runs from blank tape for 2&middot;10<sup>10</sup> steps; each time the tape reaches a new cell after a threshold, the tape is compressed twice: first repeats of one word, then repeats of groups of words. If the tape is a few growing blocks and a bounded rest, the number of level-2 tokens stays bounded while the tape grows. Everything in this section is observed in one run. None of it is proved.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>record</th><th>step</th><th>visited cells</th><th>cells in no repeat</th><th>repeats</th><th>level-2 tokens</th></tr></thead><tbody><tr><td>right</td><td>256,087,371</td><td>17,894</td><td>165</td><td>51</td><td>147</td></tr><tr><td>right</td><td>1,024,113,934</td><td>35,019</td><td>197</td><td>43</td><td>117</td></tr><tr><td>right</td><td>4,096,598,372</td><td>69,169</td><td>171</td><td>48</td><td>132</td></tr><tr><td>right</td><td>16,384,813,280</td><td>137,409</td><td>197</td><td>51</td><td>138</td></tr></tbody></table></div>",
+     "<p><b>Proposed family: F06, block-list counters</b> (the same table as 1RB---_1LC0RF_1LD0LC&hellip; (mirrored): a counter in a wall with a growing block as its clock).</p>",
+     "<p>This machine has the table of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE read in a mirror with the states renamed (<code>related.json</code>), started in another state. On the screen the two runs have the same numbers within a few cells at every record (for example 137,409 and 137,401 visited cells at 1.6&middot;10<sup>10</sup> steps, a block of 27,165 five-cell words in both and 32 copies of a 25-cell word in both). That is an observation at the sampled records, not a proof that the two runs correspond.</p>",
+     "<p>The description does not grow during the present epoch: 117 to 147 level-2 tokens at the four right-end records from 2.6&middot;10<sup>8</sup> to 1.6&middot;10<sup>10</sup> steps, and 306 to 314 runs in the macro simulator (blocks of 5 cells) at 80 sampled right-end records from 3&middot;10<sup>7</sup> to 10<sup>16</sup> steps. Only the block <code>(11010)^k</code> grows. The counter in the wall, with its five free cells per 25-cell digit, is described above; the sister's page has the periods 8, 64 and 512 of its first digits and the one overflow seen so far (between steps 1.4&middot;10<sup>6</sup> and 4.5&middot;10<sup>6</sup> in the sister's run).</p>",
+     "<p>A counter that is rebuilt when it overflows belongs with the counter families (F06), not with the bounded engines (F01).</p>",
+     "<p><b>Next step.</b> The same as for the sister machine: the carry rule of a digit, then the rebuild at an overflow.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",

@@ -135,6 +135,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The n-gram Closed Position Set decider (<code>tools/c/ngramcps.c</code>) with equal widths 4, 6, 8, 10, 12 and 14, plain and with the fixed-length (1) and LRU history augmentations, either reaches a halting local configuration (UNKNOWN) or stops at 3&middot;10<sup>7</sup> local configurations: it does not prove non-halting at these settings.</p>
         <p class="where"><code>ngramcps MACHINE N [-H 1 | -U] -m 30000000</code></p>
       </div>
+      <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 8 records between 2.7&middot;10<sup>8</sup> and 1.8&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 1,302 to 2,058 visited cells and compresses to 97 to 132 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB1RF_1LC0RB_1RD0LC_1LE1RA_0RC1LB_---1RE</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -152,6 +157,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The ends grow three cells at a time</h3>
         <p>In snapshots of the leftmost 60 cells taken whenever they change (4,922 snapshots in 10<sup>9</sup> steps), the left end moved 176 times, every time by exactly 3 cells. At the 312 visits to the right end (the head arriving after being more than 50 cells away) in 10<sup>9</sup> steps it had grown by 3 cells 294 times. The left end is made of words <code>1110</code>, <code>11100</code> and <code>1100</code>, with a marker <code>0000</code> that travels along it; what they encode is not known.</p>
         <p class="where"><code>c/leftsnap.c</code> (<code>./leftsnap 1RB1RF_1LC0RB_1RD0LC_1LE1RA_0RC1LB_---1RE 1000000000 60</code>), <code>c/rvisits.c</code> (<code>./rvisits 1RB1RF_1LC0RB_1RD0LC_1LE1RA_0RC1LB_---1RE 1000000000 50</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F06, block-list counters</h3>
+        <p>The tape is short: 1,302 visited cells at 2.7&middot;10<sup>8</sup> steps, 1,551 at 10<sup>9</sup>, 1,935 at 4.1&middot;10<sup>9</sup> and 2,058 at 1.8&middot;10<sup>10</sup>. Both ends grow like the logarithm of the step count, which is the mark of a counter, not of a bouncer. The tape is runs of 1s of length 3 (some 6 or 9) separated by one, two or five 0s, with stretches of the words <code>01110</code> and <code>10011</code> of up to 70 copies; about 100 to 130 level-2 tokens, in proportion to the length. Nothing is periodic on a large scale. Among the three families offered it is F06 (a counter); by its shape it would sit better with the counters on a logarithmic tape (F02 or F03).</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

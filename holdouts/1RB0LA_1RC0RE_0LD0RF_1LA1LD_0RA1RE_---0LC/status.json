@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its run alternates between two regular regimes, both proved in Lean for every size, joined by transitions that are only observed. This page lists what has been established, sorted by what each result rests on."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its run is a sequence of epochs, each starting from one long reservoir of blocks and a short tail. For seven of the eight tails that have turned up, the next epoch is now known for every size (a symbolic run, not yet in Lean). The eighth, S1, starts an epoch that contains a binary counter, and what the counter leaves behind is not understood. This page lists what has been established, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves by the kernel the round-trip rule of the main regime and the 14-trip cycle of the second one for all sizes, and (with <code>native_decide</code> for the first 4&middot;10<sup>6</sup> steps) that the run enters both; the transitions between regimes are observed, not proved. No halt in the first 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Lean proves by the kernel the round-trip rule of the main regime and the 14-trip cycle of the second one for all sizes. A symbolic run of the accelerated simulator gives the epoch map for the tails S0 and S2 to S7 for every reservoir size n &ge; 2000 (28 classes by n mod 4, none halts; checked against the plain simulator, not in Lean). Epochs with the tail S1 run a binary counter with about log<sub>2</sub> n digits, and their outcome depends on those digits: no finite set of classes covers them. No halt in the first 4.9&middot;10<sup>14</sup> steps (accelerated run)."
  ],
  "claims": [
   {
@@ -78,19 +78,37 @@
   {
    "level": "trusted",
    "title": "Epochs: the tape comes back to A&gt; (01111)^n S",
-   "text": "Along the run from blank tape the left-A records of the form <code>A&gt; (01111)^n S</code> (S at most 60 cells, n &ge; 20) are n = 63, 293, 2363 and 18924, at steps 42,291, 853,349, 54,698,577 and 3,502,378,736. Write <code>E(n, S)</code> for that configuration. Started from <code>E(n, S)</code> on otherwise blank tape, the machine reaches a next epoch <code>E(n', S')</code>. Only six tails S0&ndash;S5 have turned up so far, besides a few rarer ones from S1. For S0, S2, S3, S4 and S5, both n' and S' depend only on n mod 4, and n' is affine in n on each class: from S0, n&nbsp;&equiv;&nbsp;1 gives S0 with n' = 8n + 19, and n&nbsp;&equiv;&nbsp;0, 2, 3 give S1 with n' = 8n + 23, 8n + 17 and 8n + 20. From S2, n' = 8n + 54, 52, 53, 50. From S3, S4 and S5 the slope is 9/2. These hold at n = 100&ndash;115 and n = 400&ndash;407 for every tail, and at n = 20&ndash;39 from S0. They predict the run's epochs: 293 &equiv; 1 gives E(2363, S0), and 2363 &equiv; 3 gives E(18924, S1), which the run reaches at step 3,502,378,736.",
-   "where": "<code>py/epochs.py run 6e9</code>, <code>py/epochs.py table 100</code>, <code>table 400</code>, <code>c/epochs.c</code>"
+   "text": "Along the run from blank tape the left-A records of the form <code>A&gt; (01111)^n S</code> (S at most 60 cells, n &ge; 20) are n = 63, 293, 2363 and 18924, at steps 42,291, 853,349, 54,698,577 and 3,502,378,736. Write <code>E(n, S)</code> for that configuration. Started from <code>E(n, S)</code> on otherwise blank tape, the machine reaches a next epoch <code>E(n', S')</code>. Only six tails S0&ndash;S5 have turned up so far, besides a few rarer ones from S1. For S0, S2, S3, S4 and S5, both n' and S' depend only on n mod 4, and n' is affine in n on each class: from S0, n&nbsp;&equiv;&nbsp;1 gives S0 with n' = 8n + 19, and n&nbsp;&equiv;&nbsp;0, 2, 3 give S1 with n' = 8n + 23, 8n + 17 and 8n + 20. From S2, n' = 8n + 54, 52, 53, 50. From S3, S4 and S5 the slope is 9/2. These hold at n = 100&ndash;115 and n = 400&ndash;407 for every tail, and at n = 20&ndash;39 from S0. They predict the run's epochs: 293 &equiv; 1 gives E(2363, S0), and 2363 &equiv; 3 gives E(18924, S1), which the run reaches at step 3,502,378,736. With the accelerated simulator the run from blank tape goes on to n = 350131 (tail S3, step 1,196,474,995,557), n = 1575589 (S3, step 24,366,344,552,101) and n = 7090149 (S1, step 493,555,240,386,637); these follow the class table below (18924 is an S1 epoch).",
+   "where": "<code>py/epochs.py run 6e9</code>, <code>py/epochs.py table 100</code>, <code>table 400</code>, <code>c/epochs.c</code>; <code>py/closure/epochmap.py run 300</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The epoch map for seven tails, for every size",
+   "text": "For the tails S0, S2, S3, S4, S5 and the two rarer ones S6 = <code>0011110111110011110111</code> and S7 = <code>0011110111101111001</code>, and every n &ge; 2000, the next epoch is known: 28 classes (tail, n mod 4), each with one symbolic run of the accelerated simulator in which n = r + 4x and x is a free variable. The simulator refuses any step whose outcome would depend on x, so a run that ends at <code>E(k + c x, S')</code> holds for every x. From S0, S2 and S6: n' = 8n + 17 &hellip; 54 (c = 32 per 4). From S3, S4, S5 and S7: n' = 9n/2 + d (c = 18 per 4). For S0 to S5 the next tails are exactly those of the table measured earlier at n = 100&ndash;115 and 400&ndash;407. No class halts, and every class leads to S0, S1, S3 or S4; the tails S2, S5, S6 and S7 arise only from S1. All 28 classes were compared at x = 0 and x = 1 with the plain C simulator: next n, next tail and the step count agree in 56 of 56 runs. This is a result of our own tool, not a Lean theorem.",
+   "where": "<code>py/closure/epochmap.py classes</code>, <code>validate</code>; <code>py/closure/epoch_classes.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "An S1 epoch contains a binary counter",
+   "text": "From <code>E(n, S1)</code> the reservoir is first turned into a block <code>(110011)^k</code> with k about n/2 (k = 200 for n = 400). Then the right-end eater takes the blocks <code>110011</code> one at a time, and between it and the big block <code>(100)^N</code> a binary number appears, written with the words <code>100</code> (digit 0) and <code>11100</code> (digit 1) after a leading <code>11100</code>: it goes up by one for every two blocks eaten (observed for n = 400: 1, 10, 11, 100, &hellip;, 1100010 after 196 blocks), and each new digit costs the big block one word. When the blocks <code>110011</code> are used up the eater takes the number apart digit by digit from the low end (50 round trips for 7 digits at n = 400) and leaves a word to its right that depends on the digits. So the outcome of an S1 epoch depends on the binary digits of about n/4, which explains why it shows no residue pattern.",
+   "where": "<code>py/closure/epochmap.py s1 400</code>"
   },
   {
    "level": "heuristic",
-   "title": "The S1 epochs are irregular",
-   "text": "From <code>E(n, S1)</code> the next epoch does not follow a short residue pattern. For n = 100&ndash;179 the offset n' &minus; 8n jumps around (about 3.5n for odd n, 10n&ndash;14n for even n, never periodic). S' runs over all six tails and some new ones, e.g. <code>0011110111110011110111</code> at n = 120, 168 and 405. Inside an S1 epoch the tape carries a second long counter, a list <code>(001111)^k</code> made from the reservoir, so the epoch contains an epoch of its own. The run is in an S1 epoch from step 3.5&middot;10<sup>9</sup>, with n = 18924.",
-   "where": "<code>py/epochs.py map 00111101111001 100 180</code>"
+   "title": "Taking the counter apart is not a finite-state process",
+   "text": "On tapes of the shape seen just before the blocks <code>110011</code> run out, with a random number in place of the counter (200 samples each): the part of the tape right of the remaining digits takes 114 different values for numbers of up to 6 digits, 524 for up to 12 and 1,221 for up to 24, and its longest value grows from 60 to 90 cells. A finite set of classes (the method that proved 1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA) therefore does not cover the S1 epochs; a proof would need an invariant over all digit strings. None of the 600 samples halts.",
+   "where": "<code>py/closure/epochmap.py unwind 1 200 6</code>, <code>unwind 2 200 12</code>, <code>unwind 3 200 24</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No S1 epoch halts in two sampled ranges",
+   "text": "From <code>E(n, S1)</code> for every n in 2000&ndash;2299 and 5000&ndash;5199 (exact accelerated runs): no halt, and each reaches a next epoch, with n' between 11.5n and 22.5n. The next tails seen are S0 to S7 and no others (S3 144 times, S1 106, S2 72, S0 63, S4 46, S5 28, S6 22, S7 19).",
+   "where": "<code>py/closure/epochmap.py s1map 2000 2300</code>, <code>s1map 5000 5200</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The epoch map <code>E(n, S) &rarr; E(n', S')</code> is affine on residue classes mod 4 for five of the six tails, so for those a certificate of finitely many symbolic templates looks within reach. The approach is the one used for 1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC: the Q and Z trips as round templates, plus the transitions and the eater's start-up as symbolic runs in n. The sixth tail, S1, is the obstacle. Its epochs contain a second counter, and their outcome shows no residue pattern, so a full proof needs the inner dynamics of S1 epochs as a map of their own. The run from blank tape is in an S1 epoch from step 3.5&middot;10<sup>9</sup>.",
+   "text": "Not known. For seven of the eight tails seen, the epoch map is settled for every n &ge; 2000 by symbolic runs, and no class halts. Everything now rests on the S1 epochs. An S1 epoch counts in binary up to about n/4 and then takes the number apart, and the result depends on the digits. A proof that it never halts needs an invariant that holds for every digit string, which is a different kind of argument from a finite set of residue classes. The run from blank tape is in an S1 epoch from step 4.9&middot;10<sup>14</sup> (n = 7090149); the S1 epoch before it (n = 18924) ended at <code>E(350131, S3)</code>.",
    "where": ""
   },
   {
@@ -106,10 +124,14 @@
   "python3 holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/phases.py 3e8",
   "python3 holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/epochs.py run 6e9          # about 40 s",
   "python3 holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/epochs.py table 400        # about 40 s",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC 1000000000",
+  "python3 holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/closure/epochmap.py classes        # about 1 minute",
+  "python3 holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/closure/epochmap.py validate holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/closure/epoch_classes.json   # about 5 minutes",
+  "python3 holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/closure/epochmap.py s1 400",
+  "python3 holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC/py/closure/epochmap.py unwind 2 200 12"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this machine builds its tape out of 5-cell and 3-cell blocks. In one regime each round trip of the head turns one block of a reservoir into two new blocks; in another a little machine at the right end eats blocks four at a time. Both are proved in Lean for every size; what happens in between, where each big cycle comes out about eight times bigger, is the open part.",
+  "lede": "Nobody knows. Started on a blank tape, this machine builds its tape out of 5-cell and 3-cell blocks, in epochs that each begin with one long reservoir and a short tail. For seven of the eight tails seen so far the next epoch is known for every size. The eighth makes the machine count in binary, and what it does with the number afterwards is the open part.",
   "facts": [
    {
     "level": "kernel",
@@ -123,8 +145,13 @@
    },
    {
     "level": "trusted",
-    "value": "&times;8 per epoch",
-    "text": "Epochs <code>A&gt;(01111)^n S</code> at n = 293, 2363, 18924; the map n &rarr; 8n + c depends only on n mod 4 for five of six tails."
+    "value": "28 classes",
+    "text": "The epoch map for seven of eight tails, every n &ge; 2000 by n mod 4: n' = 8n + c or 9n/2 + c, none halts."
+   },
+   {
+    "level": "trusted",
+    "value": "4.9&middot;10<sup>14</sup> steps",
+    "text": "No halt in the accelerated run; epochs at n = 293, 2363, 18924, 350131, 1575589, 7090149."
    }
   ],
   "presets": [
@@ -177,6 +204,18 @@
     ]
    },
    {
+    "id": "epochmap",
+    "eyebrow": "The long run",
+    "heading": "The epoch map, and the binary counter in the way",
+    "html": [
+     "<p>An epoch starts from <code>A&gt; (01111)^n S</code>. Running the accelerated simulator with n = r + 4x and x left as a variable gives the next epoch for all sizes at once (for n &ge; 2000):</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>from</th><th>n &equiv; 0</th><th>n &equiv; 1</th><th>n &equiv; 2</th><th>n &equiv; 3 (mod 4)</th></tr></thead><tbody><tr><td>S0</td><td>S1, 8n + 23</td><td>S0, 8n + 19</td><td>S1, 8n + 17</td><td>S1, 8n + 20</td></tr><tr><td>S2</td><td>S1, 8n + 54</td><td>S3, 8n + 52</td><td>S4, 8n + 53</td><td>S0, 8n + 50</td></tr><tr><td>S3</td><td>S0, (9n &minus; 2)/2</td><td>S1, (9n &minus; 3)/2</td><td>S4, (9n &minus; 2)/2</td><td>S3, (9n &minus; 1)/2</td></tr><tr><td>S4</td><td>S0, (9n &minus; 4)/2</td><td>S1, (9n &minus; 5)/2</td><td>S4, (9n &minus; 4)/2</td><td>S3, (9n &minus; 3)/2</td></tr><tr><td>S5</td><td>S3, (9n + 8)/2</td><td>S0, (9n + 7)/2</td><td>S1, (9n + 6)/2</td><td>S4, (9n + 7)/2</td></tr><tr><td>S6</td><td>S3, 8n + 42</td><td>S1, 8n + 38</td><td>S4, 8n + 43</td><td>S0, 8n + 40</td></tr><tr><td>S7</td><td>S4, (9n + 18)/2</td><td>S3, (9n + 19)/2</td><td>S0, (9n + 18)/2</td><td>S1, (9n + 17)/2</td></tr></tbody></table></div>",
+     "<p>S6 and S7 are two rarer tails (<code>0011110111110011110111</code> and <code>0011110111101111001</code>). None of these 28 classes halts, each was compared with the plain simulator at two sizes, and every one leads to S0, S1, S3 or S4. If S1 were as tame, the machine would be settled. It is not. From S1 the machine first turns the reservoir into about n/2 blocks <code>110011</code>. Then the eater takes these blocks one by one, and next to it a number grows in binary, with <code>100</code> for the digit 0 and <code>11100</code> for the digit 1: one step up for every two blocks. At n = 400 it counts to 1100010 (98). When the blocks are gone the eater takes the number apart again, lowest digit first, and what it leaves on the tape depends on every digit.</p>",
+     "<p>So the result of an S1 epoch depends on the binary digits of about n/4. In 500 sizes tried (n = 2000&ndash;2299 and 5000&ndash;5199) no S1 epoch halts and each ends in a new epoch 11.5 to 22.5 times larger, with one of the eight tails. On 600 tapes with random numbers in place of the counter none halts either, but the number of different things the eater leaves behind keeps growing with the number of digits (114, 524, 1,221 for up to 6, 12, 24 digits). A finite list of cases cannot cover that; a proof needs a statement about all digit strings.</p>",
+     "<p>From blank tape the epochs are n = 63, 293 (S0), 2363 (S0), 18924 (S1), 350131 (S3), 1575589 (S3) and 7090149 (S1, from step 4.9&middot;10<sup>14</sup>).</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -199,7 +238,7 @@
    }
   ]
  },
- "summary": "Bouncer that grows left by converting a reservoir of blocks 01111 into 01110 and 001 one round trip at a time; a small machine at the right end eats the 001s 4 per 14 trips; each big cycle multiplies the reservoir by about 8 (both regimes proved in Lean for all sizes).",
- "family": "bouncer with reservoir and right-end eater, cycles growing about 8x",
+ "summary": "Bouncer in epochs A> (01111)^n S. For seven of eight tails the next epoch is known for every n (28 classes mod 4, n' = 8n + c or 9n/2 + c, none halts; symbolic run, not Lean). The tail S1 starts an epoch with a binary counter of about log n digits whose outcome depends on the digits: open.",
+ "family": "epochs with a reservoir; seven tails settled by classes mod 4, the eighth (S1) runs a binary counter",
  "decision": "open"
 }

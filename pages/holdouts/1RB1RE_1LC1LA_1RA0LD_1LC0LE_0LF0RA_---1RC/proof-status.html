@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC</h1>
     <p class="machine">1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 9 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The machine is a counter: every sweep adds one to a binary-like counter made of odd runs, and the head reaches the left end of the tape only when the counter overflows. Lean proves that a halt can only happen there (in state E). The eight overflows so far came in state D and bounced; the last (step 506,587,790,058) rebuilt the counter about 8&middot;10<sup>5</sup> cells wide, so the next one is astronomically far away.</p>
+      <p><b>The question is open, and it is now a question about a small system of events, proved in Lean.</b> This machine is the table of 1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC (bbchallenge 74982) read in a mirror and started in another state. It is a counter ticked once per sweep by a carry automaton. When a carry runs through all the digits it reaches the left end of the tape, and there, for every counter, it either adds a digit, turns all the units at the right end into digits, or halts. The machine halts from blank tape exactly when this event system halts from a one-digit counter (kernel only). The eight overflows so far were extensions and conversions; the last, at step 506,587,790,058, turned 410,923 units into digits. The next one is of the order of 2<sup>1.3&middot;10<sup>5</sup></sup> sweeps away, and its kind is not known. The two machines are separate halting questions.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -108,9 +108,29 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>A closed tape language from windows of 4 cells covers the run from blank tape; in it the halting transition F0 can only fire with blank tape to the left of the head. So the machine halts iff F reads a 0 with only blank tape to its left (it can only get there as E0 &rarr; 0LF).</p>
         <p class="where"><code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The same table as 74982, in a mirror</h3>
+        <p>Reading the table right to left and renaming the states (A, B, C, D, E, F here are C, F, B, A, D, E of 1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC) gives that machine's table. A step of one is a step of the other on the mirrored tape, so this machine halts from blank tape exactly when 74982 halts from blank tape started in state C. The table of this machine is restated in that Lean file.</p>
+        <p class="where"><code>is_mirror</code>, <code>mirror_step</code>, <code>halts_mirror</code>, <code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/Twin132695.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Every overflow, for every counter</h3>
+        <p>The counter is digits on every second cell with a 1 between neighbours and a last cell at the left end. When the carry runs through all the digits and reads the last cell d: in state a, d = 0 becomes 1 and d = 1 gives the counter one more digit; in state b on 0 or state c on 1 the machine halts; in state b on 1 or state c on 0 all the units become counter digits. After each of these the last cell is 1, so from then on the machine halts exactly when a carry reaches the left end in state c.</p>
+        <p class="where"><code>last_stop_event</code>, <code>ext_event</code>, <code>halt_event_b</code>, <code>halt_event_c</code>, <code>conv_event_b</code>, <code>conv_event_c</code>, <code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/Ends.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The machine is the event system</h3>
+        <p>16 steps from blank tape the machine is at an arrival with one unit, the single digit 1 and last cell 1. It halts from blank tape if and only if the event system <code>evstep</code> halts from there.</p>
+        <p class="where"><code>twin_arrival</code>, <code>twin_halts_iff_events</code>, <code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/Twin132695.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
+      <div class="card">
+        <h3>The eighth overflow is a conversion of 410,923 units</h3>
+        <p>The first 410,975 sweeps of the event system do not halt, and the next one turns a wall of 410,923 units into digits. The machine halts from blank tape if and only if the event system halts from the counter this leaves: 410,922 ones, a 0, the 60 marks of the last carry and a 1 (410,984 digits). The sweeps are evaluated by compiled code.</p>
+        <p class="where"><code>twin_conversion</code>, <code>twin_halts_iff_after</code>, <code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/Twin132695.lean</code></p>
+      </div>
       <div class="card">
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
@@ -119,6 +139,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
+      <div class="card">
+        <h3>The overflows of the run are events of the system</h3>
+        <p>The event system gives the machine's own arrivals on the first 200,000 steps, and its events are the overflows found by the run-length simulator: conversions at steps 28, 91, 450, 7,545 and 506,587,790,058 (sweeps 1, 3, 10, 53 and 410,976), extensions at steps 309 and 1,252 (sweeps 8 and 21).</p>
+        <p class="where"><code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py twin</code>, <code>c/tok.c</code></p>
+      </div>
       <div class="card">
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 36,625 cells have been visited and 18,342 of them hold a 1.</p>
@@ -144,13 +169,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>A binary counter of odd runs</h3>
-        <p>Between visits of the right end the head rewrites the odd runs next to the unit block: (1,3)&rarr;(5) every other visit, (3,3)&rarr;(7) every 4th, (3,1,5)&rarr;(7,3) every 8th, and so on, halving: a binary counter of the visits. Its width stays fixed between overflows (123 cells from step 10<sup>4</sup> to 5&middot;10<sup>11</sup>).</p>
+        <p>Between visits of the right end the head rewrites the odd runs next to the unit block: (1,3)&rarr;(5) every other visit, (3,3)&rarr;(7) every 4th, (3,1,5)&rarr;(7,3) every 8th, and so on, halving: a binary counter of the visits. Its width stays fixed between overflows (123 cells from step 10<sup>4</sup> to 5&middot;10<sup>11</sup>). These rewrites are the carry automaton of 74982 seen on run lengths; the automaton itself is proved for every digit string.</p>
         <p class="where">README</p>
       </div>
       <div class="card">
-        <h3>The next overflow is ~2<sup>10<sup>5</sup></sup> visits away</h3>
-        <p>The eighth overflow turned the 410,921 units into a new counter region of about 8&middot;10<sup>5</sup> cells. The carry depth grew about 7 cells per doubling of the visits in the old counter, so the next overflow, the next chance to halt, needs on the order of 2<sup>10<sup>5</sup></sup> visits.</p>
-        <p class="where">README</p>
+        <h3>The next overflow is out of reach</h3>
+        <p>The next overflow needs a carry through 410,984 digits. On small counters the number of sweeps to the next overflow doubles about every 3 digits, which puts it at the order of 2<sup>1.3&middot;10<sup>5</sup></sup> sweeps. The sequence of carry states leaving a prefix of the counter, kept as a straight-line program, stops compressing after about 150 digits (5,000 nodes at 100 digits, 7.3&middot;10<sup>6</sup> at 200), so its kind was not computed.</p>
+        <p class="where"><code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py program</code></p>
       </div>
       <div class="card">
         <h3>The epoch after step 7,545</h3>
@@ -162,7 +187,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known: it depends on the state in which the head arrives at the left end at some overflow, which needs the counter's encoding.</p>
+        <p>Not known. It halts if and only if, at some overflow, the carry reaches the left end in state c. The next overflow is the first chance.</p>
       </div>
     </div>
   </section>
@@ -170,6 +195,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/lean/check.sh
+holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/check.sh      # Ends.lean, Twin132695.lean
+python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py twin
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC 1000000000
 (cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC 4 lean H132695 Blank) | diff - holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/lean/EdgeCert.lean
 gcc -O2 -o tok holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/c/tok.c &amp;&amp; ./tok 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC 1e16 D L 1</code></pre>

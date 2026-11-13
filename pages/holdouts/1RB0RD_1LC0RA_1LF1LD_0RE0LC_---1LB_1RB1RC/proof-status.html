@@ -74,12 +74,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC</h1>
     <p class="machine">1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open, but it is now reduced in Lean to one configuration about 1.96·10<sup>20</sup> steps in.</b> The machine is a counter ticked once per round trip across a growing wall, and the tick is a carry automaton on the counter's digits; both facts are proved for every wall and every digit string. A certificate checked by compiled Lean code shows that the first 8,072,508,823 sweeps after step 30,225 all stop inside the digits. The next sweep runs off the end without halting and turns the whole wall into pairs <code>11</code>. So the machine halts from blank tape exactly when it halts from that configuration, <code>C&gt; 1 (11)^8072508832 R1</code>.</p>
+      <p><b>The question is open, and it is now a question about a small system of events, proved in Lean.</b> The machine is a counter ticked once per round trip across a growing wall, and the tick is a carry automaton on the counter's digits. When a carry runs through all the digits it reads the last cell, and one of four things happens, each proved for every wall and every digit string: the last cell is set, the counter gains a digit, the whole wall is turned into counter digits, or the machine halts. So the machine halts from blank tape exactly when this event system reaches a halting event (kernel only). In the run from blank tape the first such event comes about 1.96&middot;10<sup>20</sup> steps in and turns a wall of 8,072,508,833 pairs into digits; the next one is of the order of 2<sup>2.5&middot;10<sup>9</sup></sup> sweeps later, and which kind it is is not known.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -133,6 +133,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>From blank tape, step 30,225 is the arrival with a wall of 10 pairs and the 109 digits <code>X0</code>, followed by a last cell 1. The list simulator is evaluated by the kernel.</p>
         <p class="where"><code>first_arrival</code>, <code>lean/Event.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Every end event, for every counter</h3>
+        <p>The counter is the digits x1..xk, each followed by a separator 1, then a last cell d with blank tape after it. When the carry runs through all the digits and reads d: in state a, d = 0 becomes 1, and d = 1 gives the counter one more digit; in state b on 0 or state c on 1 the machine halts; in state b on 1 or state c on 0 the pass back runs one cell out of step and turns the wall of n + 1 pairs into digits, leaving a wall of one pair and the digits 1<sup>n</sup> 0 marks 1, where the marks are 1 after each digit that left the carry in state c. Each case holds for every wall and every digit string, and each leaves a counter of the same shape.</p>
+        <p class="where"><code>last_stop_event</code>, <code>ext_event</code>, <code>halt_event_b</code>, <code>halt_event_c</code>, <code>conv_event_b</code>, <code>conv_event_c</code>, <code>lean/Ends.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The machine is the event system</h3>
+        <p><code>evstep</code> is one sweep as a map on (wall, digits, last cell), with no value when the sweep halts. From any arrival of this shape the machine halts if and only if iterating <code>evstep</code> reaches a halting event; from blank tape, if and only if it does so from a wall of 10 pairs, the 109 digits <code>X0</code> and last cell 1.</p>
+        <p class="where"><code>halts_iff_events</code>, <code>blank_halts_iff_events</code>, <code>lean/Ends.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The mirrored table is the same event system</h3>
+        <p>1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC (bbchallenge 132695) is this table in a mirror with the states renamed. Its run from blank tape is this machine's run from blank tape started in state C, which reaches an arrival after 16 steps, so it halts if and only if the event system halts from a wall of one pair, the single digit 1 and last cell 1. The two machines are separate halting questions: the same event system from two different counters.</p>
+        <p class="where"><code>halts_mirror</code>, <code>twin_halts_iff_events</code>, <code>lean/Twin132695.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -151,6 +166,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The next sweep runs into the last cell in state b and passes it without halting. It then comes back across the whole wall, turning each pair <code>10</code> into <code>11</code>, and reaches <code>post n = C&gt; 1 (11)^n R1</code>; the kernel checks this for every wall n. Together with the claims above: the machine reaches <code>post 8072508832</code> from blank tape, about 1.96&middot;10<sup>20</sup> steps in, and it halts from blank tape if and only if it halts from there.</p>
         <p class="where"><code>event</code>, <code>reaches_post</code>, <code>halts_iff_post</code>, <code>lean/Event.lean</code></p>
       </div>
+      <div class="card">
+        <h3>After the first end event</h3>
+        <p>The first end event of the run from blank tape is a conversion (state b on the last cell 1). The machine reaches the arrival with a wall of one pair and a counter of 8,072,508,943 digits: 8,072,508,832 ones, a 0, the 109 marks of the last carry and a 1. It halts from blank tape if and only if the event system halts from there. The certificate of the 8&middot;10<sup>9</sup> sweeps before the event is checked by compiled code; the event itself by the kernel.</p>
+        <p class="where"><code>second_arrival</code>, <code>blank_halts_iff_second</code>, <code>lean/Ends.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
@@ -165,14 +185,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/automaton.py</code>, <code>c/counter.c</code></p>
       </div>
       <div class="card">
-        <h3>After the first end event</h3>
-        <p>The counter runs on with the same automaton on the n + 111 digits, now on the other parity of cells, and a new wall grows from the left end. This was simulated from that counter with walls of 1 to 33 pairs.</p>
-        <p class="where"><code>py/automaton.py</code></p>
-      </div>
-      <div class="card">
-        <h3>Which end events halt</h3>
-        <p>An end event is a carry that runs into the last cell; the outcome depends on the state the carry is in after that cell. With the last cell a digit (as from blank tape): a halts, c turns the wall into 11s (the first event), and b goes back in the normal mode. This was checked on 20,000 random carry paths of up to 40 digits. With the last cell a 1 (as after the first event), b halts; this was checked on counters of k ones with walls of 3 to 6 pairs.</p>
-        <p class="where"><code>py/automaton.py</code></p>
+        <h3>The event system against the machine</h3>
+        <p>The Python copy of <code>evstep</code> gives the same next arrival, or the same halt, as the machine itself on 20,000 random arrivals with walls of 1 to 7 pairs and up to 12 digits, covering every kind of event.</p>
+        <p class="where"><code>py/events.py check</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>
@@ -183,16 +198,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
+        <h3>What end events do on other counters</h3>
+        <p>Observed, not proved. From 300 random counters of 30 to 60 digits, followed to the first halt or conversion, 170 end in a halt and 130 in a conversion. From the counter after the first end event with a stand-in wall of 1 to 30 pairs in place of 8,072,508,833, 7 end in a halt and 23 in a second conversion, after 4&middot;10<sup>9</sup> to 10<sup>13</sup> sweeps. The outcome changes with the stand-in wall with no visible pattern, so this says nothing about the real run.</p>
+        <p class="where"><code>py/events.py epochs</code>, <code>py/events.py standin 30</code></p>
+      </div>
+      <div class="card">
         <h3>The next end event is beyond simulation</h3>
-        <p>The second end event needs a carry through all n + 111 digits, n &asymp; 8&middot;10<sup>9</sup>, most of them ones. Simulation cannot reach it. Which state it arrives in is a question about the automaton group generated by a = (e, b)&sigma;, b = (a, c)&sigma;, c = (c, a); the straight-line programs of <code>py/slp.py</code> might reach it if the number of sweeps can be found.</p>
-        <p class="where"><code>README.md</code></p>
+        <p>After the conversion the first sweep runs through the 8&middot;10<sup>9</sup> ones and leaves the counter starting with <code>001</code> repeated 2.7&middot;10<sup>9</sup> times. On the stand-in runs the number of sweeps to the next end event doubles about every 3 digits, which puts the real one at the order of 2<sup>2.5&middot;10<sup>9</sup></sup> sweeps. Which state the carry is in then is a question about the automaton group generated by a = (e, b)&sigma;, b = (a, c)&sigma;, c = (c, a) on an almost periodic string.</p>
+        <p class="where"><code>README.md</code>, <code>py/events.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. It halts if and only if it halts from <code>post 8072508832</code>, the configuration right after the first end event, which does not halt.</p>
+        <p>Not known. It halts if and only if the event system reaches a halting event from the counter after the first end event. That needs the carry to read the last cell in state b on a 0 or in state c on a 1.</p>
       </div>
     </div>
   </section>
@@ -202,7 +222,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/check.sh
 python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/automaton.py
 python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/slp.py
-gcc -O2 -o counter holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/c/counter.c &amp;&amp; ./counter</code></pre>
+python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py check
+python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py epochs
+python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py standin 30
+gcc -O2 -o counter holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/c/counter.c &amp;&amp; ./counter
+python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py twin</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

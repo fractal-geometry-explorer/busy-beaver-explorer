@@ -76,6 +76,18 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "Size of the tape description (family screen)",
+   "text": "At the 8 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 31,354 to 195,526 visited cells and compresses to 1,033 to 4,135 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).",
+   "where": "<code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LF_1RC0RB_0RD1LE_0LE0RA_1LC1LA_0LD---</code>, saved in <code>screen.json</code> next to it"
+  },
+  {
+   "level": "heuristic",
+   "title": "Proposed family: F06, block-list counters",
+   "text": "With repeats of single words only, the number of pieces is proportional to the tape (18,641 level-1 tokens for 195,502 cells at 1.6&middot;10<sup>10</sup> steps). Most of them are one block of long period: <code>[(0100)^13 (0111)^10 (0100)^4 (0111)^13 (0100)^10 (0111)^4]^N</code> with N = 69 at 4.1&middot;10<sup>9</sup> steps and N = 363 at 1.6&middot;10<sup>10</sup> (left-end records; a period of 216 cells). With such groups counted once, the left-end records have 2,772 and 2,817 level-2 tokens at 4.1&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps and the right-end records 4,033 and 4,135: the rest of the tape hardly grows over a factor of 4 in steps. Right of the block the tape is a frozen list of runs of growing lengths (10, 37, 16, 28, 19, 34, &hellip; up to 202) and then a list of units <code>(1110)^a (1000)^3 111 (0100)^b (0111)^3 01 000</code> with a and b between 3 and 42. The table is that of 1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC--- with the states renamed (<code>related.json</code>), from another start; that machine shows the same period-216 word with other counts. The two runs are different and nothing is claimed about one from the other. A list of units that changes slowly while a periodic block grows behind it is read here as a list of counters: F06. The round rule is not known.",
+   "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. A proof would describe how a sweep pair acts on the list of counters (where values are consumed and new ones are written) and show that three 1s in a row never meet E or C or D in the halting way. Window CTL up to 7 cells and n-gram CPS (widths up to 9, see the README for the larger runs) fail.",
@@ -153,6 +165,20 @@
      "<p>The only missing transition is F reading 1. F is entered only from A reading 1, which writes 0 and steps left; A is entered from D reading 1 (then F reads the 0 that D just wrote, which is safe) or from E reading 1, moving left. So the machine stops exactly when</p>",
      "<pre>1 1 E&gt;1   →   1 A&gt;1 1   →   F&gt;1 0 1   halt</pre>",
      "<p>This is proved in Lean (<code>lean/Halt.lean</code>). The tape is sparse in 1s where E works, and in 169 million visits the two cells left of E were never both 1.</p>"
+    ]
+   },
+   {
+    "id": "screen",
+    "eyebrow": "Family screen, 13 November 2026",
+    "heading": "Which family it belongs to",
+    "html": [
+     "<p>The 22 machines of family F09 (&ldquo;bouncers over lists of counters, not yet classified&rdquo;) were screened in one way. The machine runs from blank tape for 2&middot;10<sup>10</sup> steps; each time the tape reaches a new cell after a threshold, the tape is compressed twice: first repeats of one word, then repeats of groups of words. If the tape is a few growing blocks and a bounded rest, the number of level-2 tokens stays bounded while the tape grows. Everything in this section is observed in one run. None of it is proved.</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>record</th><th>step</th><th>visited cells</th><th>cells in no repeat</th><th>repeats</th><th>level-2 tokens</th></tr></thead><tbody><tr><td>left</td><td>256,078,994</td><td>31,354</td><td>1,146</td><td>1,293</td><td>1,033</td></tr><tr><td>right</td><td>257,242,630</td><td>31,402</td><td>1,802</td><td>1,109</td><td>1,487</td></tr><tr><td>left</td><td>1,024,512,387</td><td>66,114</td><td>2,273</td><td>2,510</td><td>2,005</td></tr><tr><td>right</td><td>1,025,093,207</td><td>66,126</td><td>3,533</td><td>2,212</td><td>2,878</td></tr><tr><td>right</td><td>4,096,370,281</td><td>114,470</td><td>6,324</td><td>4,222</td><td>4,033</td></tr><tr><td>left</td><td>4,096,738,189</td><td>114,479</td><td>4,142</td><td>4,821</td><td>2,772</td></tr><tr><td>left</td><td>16,385,265,339</td><td>195,502</td><td>8,556</td><td>10,085</td><td>2,817</td></tr><tr><td>right</td><td>16,389,344,111</td><td>195,526</td><td>12,747</td><td>8,616</td><td>4,135</td></tr></tbody></table></div>",
+     "<p><b>Proposed family: F06, block-list counters</b> (a periodic block of long period, a frozen list of growing runs and a list of counters at the right).</p>",
+     "<p>With repeats of single words only, the number of pieces is proportional to the tape (18,641 level-1 tokens for 195,502 cells at 1.6&middot;10<sup>10</sup> steps). Most of them are one block of long period: <code>[(0100)^13 (0111)^10 (0100)^4 (0111)^13 (0100)^10 (0111)^4]^N</code> with N = 69 at 4.1&middot;10<sup>9</sup> steps and N = 363 at 1.6&middot;10<sup>10</sup> (left-end records; a period of 216 cells). With such groups counted once, the left-end records have 2,772 and 2,817 level-2 tokens at 4.1&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps and the right-end records 4,033 and 4,135: the rest of the tape hardly grows over a factor of 4 in steps.</p>",
+     "<p>Right of the block the tape is a frozen list of runs of growing lengths (10, 37, 16, 28, 19, 34, &hellip; up to 202) and then a list of units <code>(1110)^a (1000)^3 111 (0100)^b (0111)^3 01 000</code> with a and b between 3 and 42. The table is that of 1RB0RA_0RC1LD_0LD0RE_1LB1LE_1RA0LF_0LC--- with the states renamed (<code>related.json</code>), from another start; that machine shows the same period-216 word with other counts. The two runs are different and nothing is claimed about one from the other.</p>",
+     "<p>A list of units that changes slowly while a periodic block grows behind it is read here as a list of counters: F06. The round rule is not known.</p>",
+     "<p><b>Next step.</b> The rule of one unit <code>(a, b)</code> of the right-hand list, and what turns a unit into a piece of the frozen list.</p>"
     ]
    },
    {

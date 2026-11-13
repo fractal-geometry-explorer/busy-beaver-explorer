@@ -79,6 +79,8 @@ empty groups at the end).
   In words: the machine halts from blank tape iff iterating the model's bounce from `(0; (1,5), (0,0))` reaches
   `halt`. Nothing is assumed (axioms: propext, Classical.choice, Quot.sound). The earlier version had the hypothesis
   "the model never gets stuck"; it is gone.
+- `lean/Charge.lean` (13 November): `good_not_halt`, a list in which every pair is neutral (see "Charged pairs"
+  below) does not halt at the next bounce.
 - `lean/Rules.lean` (sweep rules), `lean/Blank.lean` (halting configurations; no halt in 10^4 / 10^7 steps).
 
 ## Evidence (computation)
@@ -90,24 +92,54 @@ empty groups at the end).
   rounds, about 10^292 bounces, without a halt or a stuck state (880 s). The list grows to 608 groups. A phases started only
   at rounds 23 and 49,668.
 
-## Why it has not halted (heuristic)
+## Charged pairs: what a halt needs (13 November)
 
-- In the run, consecutive groups satisfy `n_i ≡ d_(i+1) + 2 (mod 3)` (all of the first 300,000 bounces except 9
-  states right after the F event). So when a block runs out, the next digit is 1 and the groups merge: the halting
-  pattern cannot form in the middle of the list.
-- Counting groups from the right end, per round group p loses 3^(p−1) (the last loses 2), so the differences
-  `n_(p+1) − 3 n_p` (p ≥ 2) are conserved between merges. A halt needs the group before the last to be exactly empty
-  when the last group runs out during an A phase: one conserved difference equal to one small value at a rare
-  moment. Open, Collatz-like.
+Call two neighbouring groups `(d, n), (d', n')` **neutral** when `n ≡ d' + 2 (mod 3)` and **charged** otherwise
+(residue `n − d' − 2 mod 3` equal to 1 or 2).
+
+- **A halt needs a charged pair (Lean, kernel).** In a neutral pair an empty group is followed by a digit 1, and the
+  two merge. Every halting pattern starts with an empty group followed by a digit 0. `lean/Charge.lean`,
+  `good_not_halt`: if every pair of the list is neutral, the next bounce is not a halt, for every `n0`. The pairs
+  behind the empty groups that the end-of-round events leave at the very end of the list (`[X, (0,0)]`,
+  `[X, (1,0)]`, `[X, (0,0), (0,0)]`) are exempt: this is the "tail" of the earlier notes, and it turns out to need
+  no size argument.
+- **Where a charge comes from (checked on all small states, not proved).** A decrement changes `n` and `d'` of
+  every pair by the same amount mod 3, and when a group runs out in a neutral pair the merge leaves the residues
+  of the pairs around it as they were, so a charge stays on its block. The only new pair is made at the end of a round, `(1, n0+1), (0, m1+1)`, and it
+  is neutral exactly when `n0 ≡ 1 (mod 3)`. `n0 + d1 ≡ 1 (mod 3)` holds from the start and is kept by every
+  bounce except one in which the first group runs out and merges into the front block. `py/charge.py exhaust`
+  checks all three statements on every good list of up to 6 groups with digits < 3 and blocks < 5 (230,592 states).
+- **In the run (observed, `py/charge.py run 50000`).** The first group runs out in rounds 22, 183 and 49,668.
+  The first two leave `n0` right by the end of the round. Round 49,668 is the second "A phase": the last group
+  runs out at the end of a round, two empty groups stay at the end and supply borrows without end, and the counter
+  wraps round millions of times while the groups at the right end are used up one after the other. In those wraps the
+  whole front of the list runs out, and round 49,669 starts with a **charged pair of residue 1**. It has been there ever since (seen to
+  round 255,000, `py/charge.py run 255000`, 9 minutes): the charge sits on one block of about 1.3·10^113 copies of `x`, 214th from the right end.
+- **What the charge means.** If the charged block runs out while the group after it is nonempty, the borrow finds an
+  empty group followed by a digit 0, which is the first halting pattern. So **the model halts if that block ever
+  runs out before its right neighbour does** (read off the definition of the model; for residue 2 the turn `M1`
+  comes first and the halt two bounces later).
+- **Why it has not happened, and will not soon (heuristic).** A group with p − 1 groups to its right loses
+  3^(p−1) per round (the last group 2). At that rate the charged block lasts 3·10^11 rounds and its right neighbour
+  1.9·10^11 (the table printed by `py/charge.py run`), so the neighbour would go first, and a group that runs out
+  in a neutral pair merges the group after it into the group before it, here into the charged block. The charged
+  block is also fed from the left: the young groups born at the front run out sooner (the three to its left would last 10^7 rounds at
+  round 255,000) and the last of them merge into it. The first event among the 213 groups to its right is due about 1.9·10^7 rounds
+  later, when the second group from the right end (5.7·10^7, losing 3 per round) runs out. A round costs 3^m bounces
+  with m > 200 groups, and the present simulator does about 400 rounds a second, so none of this is within reach.
+
+So the earlier guess, that a halt would have to come from the tail during an A phase, was wrong: the tail is
+harmless, and the A phases matter because their wraps empty the front of the list and can leave a charge there.
 
 ## For later
 
-- Deciding the model. A halt in the middle of the list needs an empty group in front of a digit 0 or 2; the mod-3
-  pattern `n_i ≡ d_(i+1) + 2` excludes it, and is preserved by decrements, merges and the end of a round for all
-  pairs except the last two groups (the tail: after `D` the last pair is off by one, after `F` too). A proof needs
-  the pattern stated with the tail as a separate small state machine (`D`, `A`, `F`), and then an argument about
-  sizes for the A phases: the exact condition on the last groups at the start of an A phase under which it ends in
-  a halt.
+- `good` is preserved by every bounce as long as `n0 + d1 ≡ 1`, and that relation only breaks at a first-group
+  merge: both are checked exhaustively on small states but not proved. A Lean proof needs an induction through
+  `norm` with the passed groups; it would give "a halt needs an earlier bounce in which the first group ran out".
+- A simulator that skips whole rounds. Between events every group loses 3^(p−1) per round, so the groups behind
+  the charged block could be followed alone, event by event; the front needs a closed form for its two-round cycle
+  (a new first group, the one before it left with 2 and merged). With both, the fate of the charged block (and of
+  the charges that later A phases make) becomes computable.
 
 ## Reproduce
 
@@ -118,6 +150,8 @@ python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/model.py check m1c
 python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/model.py random 3000
 python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/model.py far 880
 python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/counter.py      # the symbolic pieces of Counter.lean
+python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/charge.py exhaust   # neutral lists: no halt, and where a charge can be made
+python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/charge.py run 50000 # the charge made in round 49,668 (40 s)
 ```
 
 ## Pages

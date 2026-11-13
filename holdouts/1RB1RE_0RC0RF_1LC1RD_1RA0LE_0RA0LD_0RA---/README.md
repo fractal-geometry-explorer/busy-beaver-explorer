@@ -53,6 +53,34 @@ Open. Lean: the halting configurations (`step_none_iff`), no halt in 10,000 step
 by `native_decide` (`lean/Blank.lean`); the sweep `b_right` for all lengths (`lean/Rules.lean`). C
 (`tools/c/triage.c`): no halt in 1,000,000,000 steps.
 
+## Family screen (F09, 13 November 2026)
+
+The 22 machines of family F09 were screened in one way, to decide which family each belongs to. `holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py`
+runs the machine from blank tape for 2·10^10 steps and, at the first new leftmost and rightmost cell after each
+threshold 10^6·4^k, compresses the tape twice: repeats of a word of at most 40 cells (level 1), then repeats of
+groups of such tokens (level 2). A bounded description keeps the number of level-2 tokens bounded while the tape
+grows. The long runs use the macro simulator `holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c`, sampled at one record per leading digit of the step count.
+Everything in this section is observed in one run; none of it is proved.
+
+| record | step | visited cells | cells in no repeat | repeats | level-2 tokens | largest repeat / tape |
+|---|---|---|---|---|---|---|
+| right | 256,050,275 | 28,120 | 8 | 8 | 9 | 0.60 |
+| left | 301,141,577 | 33,328 | 2 | 6 | 8 | 0.67 |
+| right | 1,024,079,361 | 61,218 | 25 | 15 | 26 | 0.64 |
+| left | 2,837,208,615 | 88,738 | 21 | 12 | 20 | 0.50 |
+| right | 4,096,170,579 | 125,163 | 30 | 20 | 31 | 0.35 |
+| left | 6,800,106,734 | 144,067 | 19 | 13 | 27 | 0.31 |
+| right | 16,384,038,241 | 251,500 | 26 | 20 | 35 | 0.65 |
+| left | 17,371,479,775 | 265,812 | 31 | 20 | 26 | 0.67 |
+
+**Proposed family: F01, periodic blocks driven by a bounded engine** (three to six long blocks of period-6 words and a short tail).
+
+The description is small: 8 to 35 level-2 tokens at every record from 2.6·10^8 to 1.7·10^10 steps, and 13 to 38 runs in the macro simulator (blocks of 6 cells) at the sampled records from 10^6 to 7·10^16 steps. For example at step 5·10^12 the macro tape is `000110 (111110)^130829 111011 (011111)^354778 011100 (101110)^52876 111010 (101110)^59089` and 12 more six-cell words.
+
+A few long periodic blocks that are transferred into one another, with a short tail, is the F01 shape. The number of blocks changes with the phase (between 3 and 7 long blocks at the sampled records above 10^12 steps) but did not grow.
+
+Next step: Sample at the records where the tape is shortest (state D at the left end) and find the map on the block lengths and the tail; then the F01 closure.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA---/explainer.html`](../../pages/holdouts/1RB1RE_0RC0RF_1LC1RD_1RA0LE_0RA0LD_0RA---/explainer.html)

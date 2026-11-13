@@ -38,6 +38,32 @@ Open. Lean (`lean/Blank.lean`): the halting configurations, no halt in 10^4 step
 2. Check whether the two long runs N and K grow linearly in the number of sweeps and what feeds them.
 3. Look at what happens when a counter between markers reaches 0 (the only place a double 0 could meet B).
 
+## Family screen (F09, 13 November 2026)
+
+The 22 machines of family F09 were screened in one way, to decide which family each belongs to. `holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py`
+runs the machine from blank tape for 2·10^10 steps and, at the first new leftmost and rightmost cell after each
+threshold 10^6·4^k, compresses the tape twice: repeats of a word of at most 40 cells (level 1), then repeats of
+groups of such tokens (level 2). A bounded description keeps the number of level-2 tokens bounded while the tape
+grows. The long runs use the macro simulator `holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c`, sampled at one record per leading digit of the step count.
+Everything in this section is observed in one run; none of it is proved.
+
+| record | step | visited cells | cells in no repeat | repeats | level-2 tokens | largest repeat / tape |
+|---|---|---|---|---|---|---|
+| right | 256,000,097 | 114,381 | 2,011 | 5,728 | 6,654 | 0.02 |
+| right | 1,024,003,651 | 419,103 | 6,763 | 21,218 | 24,137 | 0.01 |
+| right | 4,096,008,437 | 1,661,759 | 26,591 | 84,911 | 96,613 | 0.00 |
+| right | 16,384,032,961 | 6,668,265 | 103,396 | 341,205 | 387,336 | 0.00 |
+
+**Proposed family: F11, defect gases and irregular zones** (a working zone at the right end that moves right and leaves a frozen irregular sea behind).
+
+This machine stopped being a bouncer early in the run. The last new cell on the left (cell −1,973) was reached before step 6.4·10^7, and since then the head has stayed near the right end: in the eight successive doublings of the step count from 6.4·10^7 to 1.6·10^10 its greatest distance from the rightmost visited cell was 19,277, 24,350, 25,882, 29,767, 35,564, 39,489, 41,342 and 37,190 cells (`c/front.c`), while the right end moved from cell 54,852 to cell 6,666,290, in proportion to the steps (about 0.4 cells per 1,000 steps).
+
+What is left behind is frozen and does not compress: 24,137, 96,613 and 387,336 level-2 tokens at 10^9, 4.1·10^9 and 1.6·10^10 steps for 419,103, 1,661,759 and 6,668,265 cells (one token per 17 cells each time). It is runs `(10)^k` and `(01)^k` with k mostly below 40, separated by single cells. The first 4,400 cells (`(10)^1153 111 (01)^1054 …`) are the same at the three records.
+
+So the description is not bounded and the tape is not a list that is swept: it is an irregular sea written once by a zone of some tens of thousands of cells at the right end. F11. The zone itself is where a proof would have to work; its depth grew by a factor of about 2 while the tape grew by a factor of about 120.
+
+Next step: Describe the working zone: the tape within 50,000 cells of the right end at successive records, compressed, to see whether it is a counter of slowly growing length that is carried along.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RD_1LC1LB_---1LD_1RA0RE_1RD0LF_1LE0LD/explainer.html`](../../pages/holdouts/1RB0RD_1LC1LB_---1LD_1RA0RE_1RD0LF_1LE0LD/explainer.html)

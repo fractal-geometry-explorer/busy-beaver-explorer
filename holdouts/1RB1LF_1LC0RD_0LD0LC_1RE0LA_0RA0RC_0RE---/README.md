@@ -94,6 +94,14 @@ end to the next as arithmetic on (x1, ..., xk, L) and iterate it instead of the 
 longer per round; (4) a second-level acceleration (jump over whole cycles of gadget 2, 3, ... with the closed form
 of the counter) would let `py/accel.py` reach far more rounds.
 
+<!-- F05 -->
+
+## Family F05: next to the forty-machine core
+
+The family plan groups this machine with the nested block counter, 40 holdouts that are the core `1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??---` in different frames. This machine's table is not a renaming or mirror image of that core, so the family's Lean theorems are not proved for it. Compared with [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/README.md): the first pass found the same tape at every sweep end up to 10^11 steps (the mirrored members from sweep 157,376 on, with a different first block). That is an observation, and the two halting transitions are read in different situations, so one halting question does not settle the other. The family's records are in [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/README.md).
+
+<!-- end F05 -->
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---/explainer.html`](../../pages/holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---/explainer.html)

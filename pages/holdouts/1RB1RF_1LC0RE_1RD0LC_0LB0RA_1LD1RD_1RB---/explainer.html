@@ -124,12 +124,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB--- / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 12 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 13 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---</p>
-  <div class="col"><p class="lede">Nobody knows, but the question is now a question about a counter. Each round trip of the head is a ternary decrement, proved in Lean for every size, and the machine halts exactly when this counter meets one pattern. This page runs the real machine in your browser and explains the counter.</p></div>
+  <div class="col"><p class="lede">Nobody knows, but the question is now a question about a counter. Each round trip of the head is a ternary decrement, proved in Lean for every size, the machine halts exactly when this counter meets one pattern, and that pattern needs a pair of blocks that is out of step mod 3. This page runs the real machine in your browser and lets you run the counter.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev k">Kernel</span><b>halts &harr; counter</b><span class="small">Proved in Lean: halting from blank tape is halting of an explicit counter model.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>halt &rArr; charged pair</b><span class="small">Proved in Lean: a list whose pairs all match mod 3 does not halt at the next bounce.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>87,809 bounces</b><span class="small">The model and the C simulator agree at every bounce to 4&middot;10<sup>9</sup> steps.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>292</sup> steps</b><span class="small">No halt in 332,875 rounds of the model.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
@@ -141,7 +142,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counter">The tape is a ternary counter</a><a href="#bounce">One round trip is one decrement</a><a href="#rounds">Rounds, and why the blocks shrink by powers of 3</a><a href="#merge">Merges and the end of the list</a><a href="#halting">Where a halt would come from</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counter">The tape is a ternary counter</a><a href="#bounce">One round trip is one decrement</a><a href="#rounds">Rounds, and why the blocks shrink by powers of 3</a><a href="#merge">Merges and the end of the list</a><a href="#halting">Where a halt would come from</a><a href="#charge">Charged pairs: what a halt needs</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -240,7 +241,134 @@ step 3,065   (8; (2,8),  (0,1), (2,0))</pre><p>The digits count down in base 3, 
 <section id="halting">
   <span class="eyebrow">Halting</span>
   <h2>Where a halt would come from</h2>
-<p>The machine halts (F reading 1) exactly when the borrow meets an empty group <code>(0,0)</code> followed by a nonempty group with digit 0, or by an empty group and then such a group, or by two empty groups and anything more: proved (<code>bounce_halt</code>). And that is the only way: <b>the machine halts from blank tape if and only if the counter model reaches that pattern</b> (<code>halts_iff_model</code>, checked by Lean's kernel, nothing assumed). The model is a function defined on every list of groups. For the patterns that have never occurred in the run it was proved what the machine does: for example, if the borrow meets an empty group followed by a group with digit 2, the machine turns round right there, as it does at the end of a round, and the digit 2 becomes 0 &mdash; which is the halting pattern two bounces later unless that group is empty too.</p><p>In the run, consecutive groups always satisfy n<sub>i</sub> &equiv; d<sub>i+1</sub> + 2 (mod 3) (checked, apart from a few states after an F event; not proved). When a block runs out, its next digit is therefore 1 and the groups merge: the halting pattern cannot form in the middle of the list. What remains is the end of an A phase: if the group before the last is exactly empty at the moment the last group runs out, the machine halts. Counting from the right, the differences n<sub>p+1</sub> &minus; 3n<sub>p</sub> are conserved between merges, so this asks whether one large conserved difference hits one small value at one rare moment. That is a Collatz-like question; no halt in 332,875 rounds, about 10<sup>292</sup> steps.</p>
+<p>The machine halts (F reading 1) exactly when the borrow meets an empty group <code>(0,0)</code> followed by a nonempty group with digit 0, or by an empty group and then such a group, or by two empty groups and anything more: proved (<code>bounce_halt</code>). And that is the only way: <b>the machine halts from blank tape if and only if the counter model reaches that pattern</b> (<code>halts_iff_model</code>, checked by Lean's kernel, nothing assumed). The model is a function defined on every list of groups. For the patterns that have never occurred in the run it was proved what the machine does: for example, if the borrow meets an empty group followed by a group with digit 2, the machine turns round right there, as it does at the end of a round, and the digit 2 becomes 0 &mdash; which is the halting pattern two bounces later unless that group is empty too.</p><p>Which lists can reach that pattern? The next section answers half of it: only lists with a <a href="#charge">charged pair</a>, and the run has had one since round 49,668. No halt in 332,875 rounds, about 10<sup>292</sup> steps.</p>
+</section>
+<section id="charge">
+  <span class="eyebrow">Halting, continued</span>
+  <h2>Charged pairs: what a halt needs</h2>
+<p>Take two neighbouring groups <code>(d, n)</code> and <code>(d', n')</code>: a digit and a block length each. Call the pair <b>neutral</b> when <code>n &equiv; d' + 2 (mod 3)</code>, and <b>charged</b> otherwise. A decrement lowers <code>n</code> and <code>d'</code> together (or neither), so a pair keeps its residue <code>n &minus; d' &minus; 2 (mod 3)</code> for as long as both groups exist.</p>
+<p>In a neutral pair, a block that has run out (<code>n = 0</code>) is followed by a digit 1, and those two groups simply merge. Every halting pattern starts with an empty group followed by a digit <b>0</b>. So: <b>a halt needs a charged pair</b>. This is proved in Lean for every list (<code>good_not_halt</code>): if all pairs are neutral, the next bounce is not a halt. The empty groups that the end of a round leaves at the very end of the list are exempt (shown as <code>&middot;</code> below), so the end of the list, which the earlier version of this page suspected, is harmless.</p>
+<style>
+.f06g{display:inline-block;border:1px solid var(--line-strong);border-radius:6px;padding:2px 7px;margin:3px 0;font-family:var(--mono);font-size:.82rem;background:var(--surface)}
+.f06e{background:var(--sunk);color:var(--muted)}
+.f06p{display:inline-block;min-width:1.6em;text-align:center;font-family:var(--mono);font-size:.72rem;margin:0 2px;border-radius:9px;padding:1px 4px}
+.f06r0{background:var(--kernel-bg);color:var(--kernel)}
+.f06r1,.f06r2{background:var(--open-bg);color:var(--open);font-weight:700;outline:1px solid var(--open)}
+.f06rt{color:var(--muted)}
+#f06list{line-height:2.1;overflow-x:auto;white-space:nowrap;padding:6px 0}
+</style>
+<div class="card" style="padding:12px">
+<p><b>Run the counter and watch the pairs.</b> Each chip is a group, <code>digit | block length</code>; between two chips is the residue of the pair: <code>0</code> neutral, <code>+1</code> or <code>+2</code> charged. One bounce is one round trip of the machine's head (the model proved in Lean, transcribed to JavaScript and tested against the Python model on 20,000 random lists).</p>
+<p><button id="f06p1">blank-tape start</button> <button id="f06p2">a charged pair that halts</button> <button id="f06p3">a charge that leaves through the front</button></p>
+<p><label>front block <input id="f06n0" value="0" size="4"></label>
+<label>groups (digit,length; &hellip;) <input id="f06G" value="1,5; 0,0" size="30"></label>
+<button id="f06start">set</button> <button id="f06one" class="primary">1 bounce</button> <button id="f06ev">to the next event</button></p>
+<div id="f06list" aria-live="polite"></div>
+<p id="f06msg" style="font-size:.9rem;margin:.3rem 0 0"></p></div>
+<script>
+(function(){
+  function norm(n0,G){
+    var ms=[]; G=G.slice();
+    for(;;){
+      if(G.length&&G[0][0]==0&&G[0][1]>=1){ ms.push(G[0][1]-1); G=G.slice(1); }
+      else if(G.length>=2&&G[0][0]==0&&G[0][1]==0&&G[1][0]==1){
+        if(ms.length) ms[ms.length-1]+=1+G[1][1]; else n0+=1+G[1][1];
+        G=G.slice(2); }
+      else if(G.length>=3&&G[0][0]==0&&G[0][1]==0&&G[1][0]==0&&G[1][1]==0&&G[2][0]==1){ ms.push(G[2][1]); G=G.slice(3); }
+      else return [n0,ms,G];
+    }
+  }
+  function isE(g){ return g[0]==0&&g[1]==0; }
+  function bounce(n0,G){
+    var r=norm(n0,G); n0=r[0]; var ms=r[1], rest=r[2];
+    var Z=ms.map(function(m){return [0,m+1];}), A=ms.map(function(m){return [2,m];});
+    if(!rest.length){
+      if(!ms.length) return [0,[[1,n0],[0,0]],"the round ends (no group)"];
+      var out=[[1,n0+1]].concat(Z.slice(0,-1)); out.push([0,ms[ms.length-1]]); out.push([0,0]);
+      return [0,out,"the round ends: every digit was 0; a new first group and an empty group at the end"];
+    }
+    var d=rest[0][0], n=rest[0][1], tl=rest.slice(1);
+    if(d>=1){
+      if(d==1&&n==0&&tl.length&&tl[0][0]==1){
+        var n2=tl[0][1], t2=tl.slice(1);
+        if(!ms.length) return [n0+2+n2,t2,"decrement; the first group ran out and merged into the front block"];
+        var B=A.slice(0,-1); B.push([2,ms[ms.length-1]+1+n2]);
+        return [n0+1,B.concat(t2),"decrement; a group ran out and merged with its neighbours"];
+      }
+      return [n0+1,A.concat([[d-1,n]]).concat(tl),"decrement"];
+    }
+    if(!tl.length) return [n0+1,A,"the empty group at the end is used up"];
+    if(tl.length==1&&isE(tl[0])) return [n0+1,A.concat([[0,0],[0,0]]),"two empty groups at the end: a free borrow (A phase)"];
+    if(tl.length==2&&isE(tl[0])&&isE(tl[1])) return [n0+1,A.concat([[1,0]]),"three empty groups at the end become (1,0)"];
+    if(tl[0][0]>=2) return [0,[[1,n0+1]].concat(Z).concat([[0,0],[tl[0][0]-2,tl[0][1]]]).concat(tl.slice(1)),"the head turns at an empty group in front of a digit 2 or more"];
+    if(!isE(tl[0])) return null;
+    if(tl[1][0]>=2) return [0,[[1,n0+1]].concat(Z).concat([[0,0],[0,0],[tl[1][0]-2,tl[1][1]]]).concat(tl.slice(2)),"the head turns at two empty groups in front of a digit 2 or more"];
+    return null;
+  }
+  function tailFree(G){
+    if(G.length<=1) return true;
+    if(G[1][1]!=0) return false;
+    if(G.length==2) return G[1][0]<=1;
+    return G.length==3&&G[1][0]==0&&isE(G[2]);
+  }
+  function residues(G){
+    var out=[];
+    for(var i=0;i+1<G.length;i++){
+      if(tailFree(G.slice(i))){ for(var j=i;j+1<G.length;j++) out.push(-1); break; }
+      out.push((((G[i][1]-G[i+1][0]-2)%3)+3)%3);
+    }
+    return out;
+  }
+  if(typeof module!=="undefined"){ module.exports={bounce:bounce,residues:residues}; return; }
+  var st=null, nb=0, log=[];
+  function parse(){
+    var n0=parseInt(document.getElementById("f06n0").value,10)||0, G=[];
+    document.getElementById("f06G").value.split(/[;]+/).forEach(function(t){
+      var p=t.replace(/[()\s]/g,"").split(","); if(p.length<2||p[0]==="") return;
+      G.push([Math.max(0,parseInt(p[0],10)||0),Math.max(0,parseInt(p[1],10)||0)]); });
+    return [n0,G];
+  }
+  function chips(n0,G){
+    var res=residues(G), h='<span class="f06g" style="border-style:dashed">front '+n0+'</span>';
+    G.forEach(function(g,i){
+      h+='<span class="f06g'+(g[1]==0?' f06e':'')+'"><b>'+g[0]+'</b>&thinsp;|&thinsp;'+g[1]+'</span>';
+      if(i<res.length){ var r=res[i];
+        h+='<span class="f06p f06r'+(r<0?'t':r)+'" title="'+(r<0?'end of the list: no condition':r==0?'neutral pair':'charged pair, residue '+r)+'">'+(r<0?'·':r==0?'0':'+'+r)+'</span>'; }
+    });
+    return h;
+  }
+  function render(msg,halted){
+    document.getElementById("f06list").innerHTML=chips(st[0],st[1]);
+    var res=residues(st[1]), ch=res.filter(function(r){return r>0;}).length;
+    document.getElementById("f06msg").innerHTML=(halted?'<b style="color:var(--open)">HALT</b> after '+nb+' bounces: the borrow met an empty group followed by a digit 0. ':
+      'bounce '+nb+(msg?': '+msg:'')+'. ')+(ch?'<b>'+ch+' charged pair'+(ch>1?'s':'')+'</b>.':'Every pair is neutral: no halt at the next bounce (Lean).');
+  }
+  function load(n0,G){ document.getElementById("f06n0").value=n0;
+    document.getElementById("f06G").value=G.map(function(g){return g[0]+","+g[1];}).join("; "); start(); }
+  function start(){ st=parse(); nb=0; render("start",false); }
+  function go(k,stopAtEvent){
+    if(!st) start();
+    var msg="";
+    for(var i=0;i<k;i++){
+      var r=bounce(st[0],st[1]);
+      if(!r){ render("",true); return; }
+      st=[r[0],r[1]]; nb++; msg=r[2];
+      if(stopAtEvent&&msg!="decrement") break;
+    }
+    render(msg,false);
+  }
+  document.getElementById("f06start").onclick=start;
+  document.getElementById("f06one").onclick=function(){go(1,false);};
+  document.getElementById("f06ev").onclick=function(){go(100000,true);};
+  document.getElementById("f06p1").onclick=function(){load(0,[[1,5],[0,0]]);};
+  document.getElementById("f06p2").onclick=function(){load(1,[[0,6],[0,3],[1,1]]);};
+  document.getElementById("f06p3").onclick=function(){load(1,[[0,4],[1,2],[0,1]]);};
+  start();
+})();
+</script>
+<p><b>Where a charge comes from.</b> The only new pair is the one made at the end of a round, between the new first group <code>(1, n0+1)</code> and the old one, and it is neutral exactly when the front block has <code>n0 &equiv; 1 (mod 3)</code>. The relation <code>n0 + d<sub>1</sub> &equiv; 1</code> holds from the start and survives every bounce except one in which the first group runs out and merges into the front block. (Checked on all 230,592 neutral lists of up to 6 small groups; not proved for all sizes.)</p>
+<p><b>In the real run</b> (observed, not proved): the first group runs out in rounds 22, 183 and 49,668. The first two are repaired before the round ends. In round 49,668 the last group runs out exactly at the end of a round; two empty groups then sit at the end and hand out borrows without end, the counter wraps round millions of times, and the whole front of the list runs out. Round 49,669 starts with <b>one charged pair, of residue 1</b>, and it is still there at round 255,000. Its block holds about 1.3&middot;10<sup>113</sup> copies of <code>x</code> and sits 214th from the right end.</p>
+<p><b>What it means.</b> If that block ever runs out while the group after it is not empty, the model, and so the machine, halts. A group with p &minus; 1 groups to its right loses 3<sup>p&minus;1</sup> per round; at that rate the charged block would last 3&middot;10<sup>11</sup> rounds and its right neighbour 1.9&middot;10<sup>11</sup>, so the neighbour would go first, and the charged block is also fed by the young groups that run out on its left. That is a forecast from sizes, not a proof, and with more than 3<sup>200</sup> bounces per round no simulator we have can follow it. The halting question is now: <i>does a charged block ever run out before its right neighbour?</i></p>
 </section>
 <section id="shape">
   <span class="eyebrow">First look</span>
@@ -254,7 +382,7 @@ step 3,065   (8; (2,8),  (0,1), (2,0))</pre><p>The digits count down in base 3, 
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 12 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 13 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -275,9 +403,12 @@ step 3,065   (8; (2,8),  (0,1), (2,0))</pre><p>The digits count down in base 3, 
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/cdump.c</code>, <code>py/model.py</code></div></div><div><b>The model is the machine's run, bounce by bounce</b><p>At all 87,809 visits of the head in C to the left end up to step 4&middot;10<sup>9</sup>, the tape read by <code>c/cdump.c</code> is the counter the model predicts (<code>py/model.py check</code>).</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/model.py</code></div></div><div><b>The model agrees with the machine on random states</b><p>On 3,000 random lists of blocks (digits 0 to 3, including every pattern that does not occur in the run) one bounce of the Python transcription of the model gives the tape the machine itself reaches, or a halt exactly when the machine halts (<code>py/model.py random 3000</code>). This is a check of the transcription; the Lean theorem does not depend on it.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/model.py</code></div></div><div><b>No halt for 332,875 rounds of the model</b><p>The model with many bounces applied at once (<code>py/model.py far</code>; the jumps checked against single bounces for 300,000 bounces) runs 332,875 rounds in 880 s, about 10<sup>292</sup> bounces (each at least one machine step), without halting or getting stuck. The list grows to 608 blocks. The last block ran out with odd size, starting the endless-supply phase, only twice (rounds 23 and 49,668).</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">this page</div></div><div><b>Why the merges never halt</b><p>In every state of the run checked (the first 300,000 bounces), except 9 states right after the F event, consecutive blocks satisfy n<sub>i</sub> &equiv; d<sub>i+1</sub> + 2 (mod 3). So when a block runs out (its digit drops 1 &rarr; 0 with no <code>x</code> left), the next digit is 1 and the two merge; the halting pattern, an empty block before a digit 0, cannot form there.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">this page</div></div><div><b>Conserved differences</b><p>Counting blocks from the right end, per round block p loses 3<sup>p-1</sup> (the last loses 2), so the differences n<sub>p+1</sub> &minus; 3n<sub>p</sub> (p &ge; 2) do not change between merges. A halt needs the block before the last to be exactly empty when the last runs out during an endless-supply phase, which is one such difference taking one small value: a coincidence of two independent large numbers, as in other Collatz-like holdouts.</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Equivalent (in Lean, with no assumption) to the counter model reaching its halting pattern; no invariant excluding it is known. The mod-3 pattern of the next claim-level heuristic would, if proved, exclude a halt in the middle of the list, but the end of the list (the endless-supply phases) needs an argument about sizes.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>good_not_halt</code>, <code>lean/Charge.lean</code></div></div><div><b>A halt needs a charged pair of blocks</b><p>Call two neighbouring blocks (d, n), (d', n') <em>neutral</em> when n &equiv; d' + 2 (mod 3) and <em>charged</em> otherwise. In a neutral pair an empty block is followed by a digit 1 and the two merge, while every halting pattern starts with an empty block followed by a digit 0. Proved: if every pair of the list is neutral, the next bounce of the model is not a halt, for every n0. The pairs behind the empty blocks that the end of a round leaves at the very end of the list are exempt, so the end of the list needs no argument about sizes.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/charge.py exhaust</code></div></div><div><b>Where a charge can be made (all small states)</b><p>On every list of up to 6 blocks with digits below 3 and block lengths below 5 in which every pair is neutral (230,592 states): the next bounce is not a halt; if n0 + d<sub>1</sub> &equiv; 1 (mod 3), every pair is neutral afterwards too; and n0 + d<sub>1</sub> &equiv; 1 is kept unless the first block ran out and merged into the front block in that bounce. A charged pair is made only at the end of a round, when n0 &equiv; 1 (mod 3) fails. Checked by enumeration, not proved for all sizes.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/charge.py run 50000</code> (40 s), <code>run 255000</code> (9 min)</div></div><div><b>The run carries a charged pair since round 49,668</b><p>In the model's run from blank tape the first block runs out in rounds 22, 183 and 49,668. The first two leave n0 right by the end of the round. In round 49,668 the last block runs out at the end of a round, two empty blocks stay at the end and supply borrows without end, and while the counter wraps round the whole front of the list runs out; round 49,669 starts with one charged pair (residue 1). It is still there at round 255,000, on a block of about 1.3&middot;10<sup>113</sup> copies of x, 214th from the right end.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>python3 py/charge.py run 50000</code> prints the lifetimes</div></div><div><b>What the charge means for halting</b><p>If the charged block runs out while the block after it is not empty, the borrow finds an empty block followed by a digit 0: the model halts. A block with p &minus; 1 blocks to its right loses 3<sup>p&minus;1</sup> per round, so the charged block would last 3&middot;10<sup>11</sup> rounds and its right neighbour 1.9&middot;10<sup>11</sup>: the neighbour would go first, and the charged block is also fed by the young blocks that run out on its left. Nothing is proved about the long run, and each round costs more than 3<sup>200</sup> bounces, so the present simulator cannot follow it. The earlier guess on this page, that a halt would come from the end of the list, is withdrawn.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">this page</div></div><div><b>Conserved differences</b><p>Counting blocks from the right end, per round block p loses 3<sup>p-1</sup> (the last loses 2), so the differences n<sub>p+1</sub> &minus; 3n<sub>p</sub> (p &ge; 2) do not change between merges. That is why the blocks at the right end run out together, in rare collapses (rounds 23 and 49,668 so far).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. Equivalent (in Lean, with no assumption) to the counter model reaching its halting pattern. A halt needs a charged pair of blocks (Lean); the run has carried one since round 49,668 (observed), and the model halts if its block runs out before the block after it. Whether that ever happens is a question about sizes, like a Collatz problem.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
@@ -287,6 +418,8 @@ holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/lean/check.sh
 gcc -O2 -o cdump holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/c/cdump.c &amp;&amp; ./cdump 4000000000 1 &gt; m1c.txt
 python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/model.py check m1c.txt
 python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/model.py random 3000
+python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/charge.py exhaust
+python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/charge.py run 50000
 python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/model.py far 150</code></pre>
 </section>
 <footer class="foot">

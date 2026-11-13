@@ -71,6 +71,36 @@ No pushdown certificate with a small DFA exists: the reduction of `bb6-1RB0LF_1R
 exact, the other a DFA, post* saturation) reaches a halt for every DFA with at most 6 states, on either side
 (`TM=1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB--- ./pds 6 L`, then `R`; 1.5 minutes each).
 
+## Family screen (F09, 13 November 2026)
+
+The 22 machines of family F09 were screened in one way, to decide which family each belongs to. `screen/screen.py`
+runs the machine from blank tape for 2·10^10 steps and, at the first new leftmost and rightmost cell after each
+threshold 10^6·4^k, compresses the tape twice: repeats of a word of at most 40 cells (level 1), then repeats of
+groups of such tokens (level 2). A bounded description keeps the number of level-2 tokens bounded while the tape
+grows. The long runs use the macro simulator `holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/c/msim.c`, sampled at one record per leading digit of the step count.
+Everything in this section is observed in one run; none of it is proved.
+
+| record | step | visited cells | cells in no repeat | repeats | level-2 tokens | largest repeat / tape |
+|---|---|---|---|---|---|---|
+| right | 256,019,877 | 18,250 | 11 | 6 | 14 | 0.71 |
+| left | 377,565,301 | 23,466 | 5 | 5 | 10 | 0.86 |
+| right | 1,024,198,203 | 35,580 | 7 | 7 | 14 | 0.60 |
+| left | 1,351,970,933 | 44,170 | 8 | 4 | 12 | 0.93 |
+| right | 4,096,317,183 | 69,916 | 7 | 7 | 14 | 0.53 |
+| left | 5,068,405,965 | 84,747 | 5 | 4 | 9 | 0.96 |
+| right | 16,384,192,613 | 138,502 | 11 | 6 | 14 | 0.51 |
+| left | 19,312,182,341 | 164,261 | 7 | 5 | 12 | 0.98 |
+
+**Proposed family: F01, periodic blocks driven by a bounded engine** (frozen blocks, one growing block and a short tail).
+
+The description is the smallest of the family: 9 to 14 level-2 tokens at every record from 3.8·10^8 to 1.9·10^10 steps. At the left-end records the tape is `(0010)^190 (01)^3 (0001)^633 001 (0100)^n` and a tail of at most 40 cells (n = 5,040, 10,216, 20,361, 40,231).
+
+The macro simulator (blocks of 4 cells) at its last left-end record before 1.45·10^18 steps shows eleven blocks: 189, 633, 40,231, 8,119, 92,808, 5,890,878, 1,188,870, 19,851,057, 48,010,873, 11,795,335 and 284,041,139 copies. So a level ends with its block frozen and a new block started.
+
+Within a level this is the F01 shape: one growing periodic block, a short tail, and frozen blocks that the sweeps cross. The list of frozen blocks is not bounded, so a closed set has to treat the frozen part as an arbitrary list; whether the sweeps allow that is the first thing to check.
+
+Next step: The cheap test of F01: run the growing block symbolically, n = r + m·x with the tail from the finite set seen, and ask whether a class halts or freezes; the levels would then be a map on (tail, n mod m).
+
 ## Pages
 
 - [`pages/holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/explainer.html`](../../pages/holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/explainer.html)

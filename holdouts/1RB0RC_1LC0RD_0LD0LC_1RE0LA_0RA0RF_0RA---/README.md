@@ -136,6 +136,70 @@ follows the near miss. So the four runs first part ways at the first `0 1 0` (st
 - 10^16 steps: 70,410,521 visits, no halt; the near miss 9 times.
 - `py/census.py`: plain visits and what the others meet; `py/frames.py`: the widget data.
 
+<!-- F05 -->
+
+## Family F05: one core, forty machines
+
+This machine is one of 40 holdouts with the same five states. In frame A all of them are `1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??---`: they differ in D1 (0LF or 1LF), in F0 and in the start state. This one is the mirror image of `1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---` with the states renamed A->B, B->C, C->D, D->E, E->A, F->F (frame G), started in that table's state E. `lean/Family.lean` proves it (`step_img`, `halts_iff`: the machine halts from blank tape iff `1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---` halts from blank tape in state E).
+
+Shared by all 40 and proved in Lean on each machine's own frame-A table (`lean/Family.lean`, written by `holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_family_lean.py`):
+
+- `go_spec`: the visit rule for every depth (a clean visit to [b1, ..., bk] makes five visits to the list without b1);
+- `go_closed`, `visit_closed`: its closed form (b1-5, b2-18, b3-90, ..., bk+12·5^(k-2));
+- `visit_conserves` (new): a clean visit conserves, for the blocks after the first and before the last, the residue of block i modulo 18·5^(i-2) and the drift b(i+1) - 5·b(i);
+- `birth`, `fevent`, `fevent_reads_zero`: the birth of a block, and the harmless entry into F.
+
+**Run (trusted).** The exact block-list map (`holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py`, `hybrid.py`) reaches step 3.5·10^200 without a halt: 528 returns to the left end, 232 entries into F, all reading 0, tape around the head `010001000100[F]001010101010` (193x); `010001000100[F]001010110101` (39x). Its F-events agree with the plain simulation on the first 3e+09 steps (3 F-events). Summary and the first 80 left-end block lists: `data/f05_run.json`.
+
+**Drifts (observed, at left-end events only).** Smallest |b(i+1) - 5·b(i)| after step 10^20: 5480; after step 10^100: 2019104. Halting would need a drift near 0 at the moment its block runs out (two exceptional events close together); nothing proved excludes that, so the question stays open.
+
+The (D1, F0) variants and their machines (runs marked with the same letter had the same block list at their last left-end event, observed):
+
+| D1 | F0 | machine | frame | frame-A start | same run | exact block-list map |
+|---|---|---|---|---|---|---|
+| 0LF | 0LC | [`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA---`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA---/README.md) | B | C |  | no halt in 10^200 steps, 214 F-events, all reading 0 |
+| 0LF | 0LC | [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---/README.md) | A | A |  | no halt in 10^200 steps, 199 F-events, all reading 0 |
+| 0LF | 0LC | [`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD---`](../1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD---/README.md) | G | E |  | no halt in 10^200 steps, 223 F-events, all reading 0 |
+| 0LF | 0LE | [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE---/README.md) | A | A |  | no halt in 10^200 steps, 214 F-events, all reading 0 |
+| 0LF | 0LE | [`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC---`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC---/README.md) | B | C |  | no halt in 10^200 steps, 251 F-events, all reading 0 |
+| 0LF | 0LE | **`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RA---`** | G | E |  | no halt in 10^200 steps, 232 F-events, all reading 0 |
+| 0LF | 0RA | [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/README.md) | A | A |  | no halt in 10^200 steps, 278 F-events, all reading 0 |
+| 0LF | 0RA | [`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---/README.md) | B | C |  | no halt in 10^200 steps, 278 F-events, all reading 0 |
+| 0LF | 0RA | [`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LB---`](../1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LB---/README.md) | G | E |  | no halt in 10^200 steps, 245 F-events, all reading 0 |
+| 0LF | 0RB | [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---/README.md) | A | A |  | no halt in 10^200 steps, 200 F-events, all reading 0 |
+| 0LF | 0RB | [`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LE---`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LE---/README.md) | B | C |  | no halt in 10^200 steps, 200 F-events, all reading 0 |
+| 0LF | 0RB | [`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LC---`](../1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LC---/README.md) | G | E |  | no halt in 10^200 steps, 184 F-events, all reading 0 |
+| 0LF | 0RE | [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---/README.md) | A | A |  | no halt in 10^200 steps, 292 F-events, all reading 0 |
+| 0LF | 0RE | [`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LA---`](../1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LA---/README.md) | G | E |  | no halt in 10^200 steps, 265 F-events, all reading 0 |
+| 0LF | 1LA | [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LA---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LA---/README.md) | A | A |  | no halt in 10^200 steps, 214 F-events, all reading 0 |
+| 0LF | 1LB | [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---/README.md) | A | A |  | no halt in 10^200 steps, 292 F-events, all reading 0 |
+| 0LF | 1LB | [`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---/README.md) | B | C | a | no halt in 10^200 steps, 292 F-events, all reading 0 |
+| 0LF | 1LB | [`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RC---`](../1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RC---/README.md) | G | E |  | no halt in 10^200 steps, 265 F-events, all reading 0 |
+| 0LF | 1LC | [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LC---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LC---/README.md) | A | A |  | no halt in 10^200 steps, 192 F-events, all reading 0 |
+| 0LF | 1LC | [`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RA---`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RA---/README.md) | B | C |  | no halt in 10^200 steps, 192 F-events, all reading 0 |
+| 0LF | 1LC | [`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RD---`](../1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RD---/README.md) | G | E |  | no halt in 10^200 steps, 197 F-events, all reading 0 |
+| 0LF | 1RA | [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1RA---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1RA---/README.md) | A | A |  | no halt in 10^200 steps, 240 F-events, all reading 0 |
+| 0LF | 1RA | [`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1LD---`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1LD---/README.md) | B | C |  | no halt in 10^200 steps, 240 F-events, all reading 0 |
+| 0LF | 1RA | [`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1LB---`](../1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1LB---/README.md) | G | E |  | no halt in 10^200 steps, 287 F-events, all reading 0 |
+| 1LF | 0LB | [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0LB---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0LB---/README.md) | A | A |  | no halt in 10^200 steps, 209 F-events, all reading 0 |
+| 1LF | 0LB | [`1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RE---`](../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RE---/README.md) | B | C |  | no halt in 10^200 steps, 192 F-events, all reading 0 |
+| 1LF | 0LB | [`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_0RC---`](../1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_0RC---/README.md) | G | E |  | no halt in 10^200 steps, 211 F-events, all reading 0 |
+| 1LF | 0LD | [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0LD---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0LD---/README.md) | A | A |  | no halt in 10^22 steps, 21 F-events, all reading 0 |
+| 1LF | 0LD | [`1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RB---`](../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RB---/README.md) | B | C |  | no halt in 10^22 steps, 21 F-events, all reading 0 |
+| 1LF | 0LD | [`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_0RE---`](../1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_0RE---/README.md) | G | E |  | not run |
+| 1LF | 0RC | [`1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0LA---`](../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0LA---/README.md) | B | C |  | no halt in 10^200 steps, 251 F-events, all reading 0 |
+| 1LF | 0RC | [`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_0LD---`](../1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_0LD---/README.md) | G | E |  | no halt in 10^200 steps, 232 F-events, all reading 0 |
+| 1LF | 0RE | [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/README.md) | A | A |  | no halt in 10^200 steps, 193 F-events, all reading 0 |
+| 1LF | 1LB | [`1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA`](../1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA/README.md) | X | F |  | no halt in 10^200 steps, 206 F-events, all reading 0 |
+| 1LF | 1LB | [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---/README.md) | A | A |  | no halt in 10^200 steps, 193 F-events, all reading 0 |
+| 1LF | 1LB | [`1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RE---`](../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RE---/README.md) | B | C |  | no halt in 10^200 steps, 193 F-events, all reading 0 |
+| 1LF | 1LD | [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LD---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LD---/README.md) | A | A |  | no halt in 10^200 steps, 209 F-events, all reading 0 |
+| 1LF | 1LD | [`1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RB---`](../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RB---/README.md) | B | C |  | no halt in 10^200 steps, 192 F-events, all reading 0 |
+| 1LF | 1LD | [`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_1RE---`](../1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_1RE---/README.md) | G | E |  | no halt in 10^200 steps, 211 F-events, all reading 0 |
+| 1LF | 1RA | [`1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1LD---`](../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1LD---/README.md) | B | C | a | no halt in 10^200 steps, 292 F-events, all reading 0 |
+
+<!-- end F05 -->
+
 ## Reproduce
 
 ```sh

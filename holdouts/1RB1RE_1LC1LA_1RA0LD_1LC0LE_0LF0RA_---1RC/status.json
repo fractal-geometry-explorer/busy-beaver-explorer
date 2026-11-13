@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The machine is a counter: every sweep adds one to a binary-like counter made of odd runs, and the head reaches the left end of the tape only when the counter overflows. Lean proves that a halt can only happen there (in state E). The eight overflows so far came in state D and bounced; the last (step 506,587,790,058) rebuilt the counter about 8&middot;10<sup>5</sup> cells wide, so the next one is astronomically far away."
+  "<b>The question is open, and it is now a question about a small system of events, proved in Lean.</b> This machine is the table of 1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC (bbchallenge 74982) read in a mirror and started in another state. It is a counter ticked once per sweep by a carry automaton. When a carry runs through all the digits it reaches the left end of the tape, and there, for every counter, it either adds a digit, turns all the units at the right end into digits, or halts. The machine halts from blank tape exactly when this event system halts from a one-digit counter (kernel only). The eight overflows so far were extensions and conversions; the last, at step 506,587,790,058, turned 410,923 units into digits. The next one is of the order of 2<sup>1.3&middot;10<sup>5</sup></sup> sweeps away, and its kind is not known. The two machines are separate halting questions."
  ],
  "claims": [
   {
@@ -32,6 +32,36 @@
    "title": "A halt can only happen at the left end",
    "text": "A closed tape language from windows of 4 cells covers the run from blank tape; in it the halting transition F0 can only fire with blank tape to the left of the head. So the machine halts iff F reads a 0 with only blank tape to its left (it can only get there as E0 &rarr; 0LF).",
    "where": "<code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The same table as 74982, in a mirror",
+   "text": "Reading the table right to left and renaming the states (A, B, C, D, E, F here are C, F, B, A, D, E of 1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC) gives that machine's table. A step of one is a step of the other on the mirrored tape, so this machine halts from blank tape exactly when 74982 halts from blank tape started in state C. The table of this machine is restated in that Lean file.",
+   "where": "<code>is_mirror</code>, <code>mirror_step</code>, <code>halts_mirror</code>, <code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/Twin132695.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Every overflow, for every counter",
+   "text": "The counter is digits on every second cell with a 1 between neighbours and a last cell at the left end. When the carry runs through all the digits and reads the last cell d: in state a, d = 0 becomes 1 and d = 1 gives the counter one more digit; in state b on 0 or state c on 1 the machine halts; in state b on 1 or state c on 0 all the units become counter digits. After each of these the last cell is 1, so from then on the machine halts exactly when a carry reaches the left end in state c.",
+   "where": "<code>last_stop_event</code>, <code>ext_event</code>, <code>halt_event_b</code>, <code>halt_event_c</code>, <code>conv_event_b</code>, <code>conv_event_c</code>, <code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/Ends.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The machine is the event system",
+   "text": "16 steps from blank tape the machine is at an arrival with one unit, the single digit 1 and last cell 1. It halts from blank tape if and only if the event system <code>evstep</code> halts from there.",
+   "where": "<code>twin_arrival</code>, <code>twin_halts_iff_events</code>, <code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/Twin132695.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "The eighth overflow is a conversion of 410,923 units",
+   "text": "The first 410,975 sweeps of the event system do not halt, and the next one turns a wall of 410,923 units into digits. The machine halts from blank tape if and only if the event system halts from the counter this leaves: 410,922 ones, a 0, the 60 marks of the last carry and a 1 (410,984 digits). The sweeps are evaluated by compiled code.",
+   "where": "<code>twin_conversion</code>, <code>twin_halts_iff_after</code>, <code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/Twin132695.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The overflows of the run are events of the system",
+   "text": "The event system gives the machine's own arrivals on the first 200,000 steps, and its events are the overflows found by the run-length simulator: conversions at steps 28, 91, 450, 7,545 and 506,587,790,058 (sweeps 1, 3, 10, 53 and 410,976), extensions at steps 309 and 1,252 (sweeps 8 and 21).",
+   "where": "<code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py twin</code>, <code>c/tok.c</code>"
   },
   {
    "level": "native",
@@ -60,14 +90,14 @@
   {
    "level": "heuristic",
    "title": "A binary counter of odd runs",
-   "text": "Between visits of the right end the head rewrites the odd runs next to the unit block: (1,3)&rarr;(5) every other visit, (3,3)&rarr;(7) every 4th, (3,1,5)&rarr;(7,3) every 8th, and so on, halving: a binary counter of the visits. Its width stays fixed between overflows (123 cells from step 10<sup>4</sup> to 5&middot;10<sup>11</sup>).",
+   "text": "Between visits of the right end the head rewrites the odd runs next to the unit block: (1,3)&rarr;(5) every other visit, (3,3)&rarr;(7) every 4th, (3,1,5)&rarr;(7,3) every 8th, and so on, halving: a binary counter of the visits. Its width stays fixed between overflows (123 cells from step 10<sup>4</sup> to 5&middot;10<sup>11</sup>). These rewrites are the carry automaton of 74982 seen on run lengths; the automaton itself is proved for every digit string.",
    "where": "README"
   },
   {
    "level": "heuristic",
-   "title": "The next overflow is ~2<sup>10<sup>5</sup></sup> visits away",
-   "text": "The eighth overflow turned the 410,921 units into a new counter region of about 8&middot;10<sup>5</sup> cells. The carry depth grew about 7 cells per doubling of the visits in the old counter, so the next overflow, the next chance to halt, needs on the order of 2<sup>10<sup>5</sup></sup> visits.",
-   "where": "README"
+   "title": "The next overflow is out of reach",
+   "text": "The next overflow needs a carry through 410,984 digits. On small counters the number of sweeps to the next overflow doubles about every 3 digits, which puts it at the order of 2<sup>1.3&middot;10<sup>5</sup></sup> sweeps. The sequence of carry states leaving a prefix of the counter, kept as a straight-line program, stops compressing after about 150 digits (5,000 nodes at 100 digits, 7.3&middot;10<sup>6</sup> at 200), so its kind was not computed.",
+   "where": "<code>holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py program</code>"
   },
   {
    "level": "heuristic",
@@ -79,7 +109,7 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known: it depends on the state in which the head arrives at the left end at some overflow, which needs the counter's encoding.",
+   "text": "Not known. It halts if and only if, at some overflow, the carry reaches the left end in state c. The next overflow is the first chance.",
    "where": ""
   },
   {
@@ -92,32 +122,29 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/lean/check.sh",
+  "holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/check.sh      # Ends.lean, Twin132695.lean",
+  "python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py twin",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC 1000000000",
   "(cd tools/py && python3 -m bbtools.ctl 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC 4 lean H132695 Blank) | diff - holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/lean/EdgeCert.lean",
   "gcc -O2 -o tok holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/c/tok.c && ./tok 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC 1e16 D L 1"
  ],
  "explainer": {
-  "lede": "Nobody knows. This machine is an odometer: every trip of its head adds one to a counter written with runs of ones, and only when the counter rolls over does the head reach the one place where it could stop. It has rolled over eight times without stopping; the next roll-over is unimaginably far away.",
+  "lede": "Nobody knows. This machine is an odometer: every trip of its head adds one to a counter written with runs of ones, and only when the counter rolls over does the head reach the one place where it could stop. Lean proves what every roll-over does: it adds a digit, or turns the long block of units into new digits, or halts. It has rolled over eight times without stopping; the next roll-over is unimaginably far away.",
   "facts": [
    {
     "level": "kernel",
-    "value": "left edge",
-    "text": "The only place a halt can happen (proved)."
+    "value": "halts &hArr; event system halts",
+    "text": "From blank tape, for the event system started on a one-digit counter (proved)."
    },
    {
-    "level": "trusted",
+    "level": "native",
     "value": "8 overflows",
-    "text": "The last at step 506,587,790,058; each bounced."
+    "text": "The last at step 506,587,790,058 turned 410,923 units into counter digits."
    },
    {
     "level": "trusted",
     "value": "10<sup>16</sup> steps",
     "text": "No halt in an exact run-length simulation."
-   },
-   {
-    "level": "heuristic",
-    "value": "~2<sup>10<sup>5</sup></sup>",
-    "text": "Sweeps until the next overflow, the next chance to halt."
    }
   ],
   "presets": [
@@ -145,8 +172,10 @@
     "heading": "Only when the counter rolls over",
     "html": [
      "<p>The machine stops only when state F reads a 0, and Lean proves (with a closed tape language from windows of 4 cells) that this can only happen at the very left end of the tape, after state E steps off it. The head gets there only when a carry runs through the whole counter: an overflow, like an odometer going from 999,999 to 1,000,000.</p>",
-     "<p>That has happened eight times, the last three at steps 1,252, 7,545 and 506,587,790,058. Each time the head arrived in state D, which writes a 1 and turns back, so the run went on. The last overflow also turned the 410,921 units into a new counter region about 820,000 cells wide.</p>",
-     "<p>Filling a counter that wide takes on the order of 2<sup>100,000</sup> trips, so the next chance to stop is far beyond any computer. Whether the head would then arrive in D (no halt) or E (halt) depends on how the counter's digits are written, which is not decoded yet.</p>"
+     "<p>The counter is decoded now. This machine is the table of 74982 read in a mirror, and for that table Lean proves the carry rule for every digit string: three carry states a, b, c walk from the units into the counter, rewriting one digit each. When a carry runs through every digit it reads the last cell at the left end, and one of three things happens:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>carry state at the left end</th><th>what happens</th></tr></thead><tbody><tr><td>a</td><td>the counter gains a digit</td></tr><tr><td>b</td><td>all the units at the right end become counter digits</td></tr><tr><td>c</td><td><b>the machine halts</b></td></tr></tbody></table></div>",
+     "<p>That has happened eight times. The seven overflows after the first arrival, 16 steps in, were b, b, a, b, a, b, b (at steps 28, 91, 309, 450, 1,252, 7,545 and 506,587,790,058). The last one turned 410,923 units into digits, which is why the tape changed from a long block of units into a wide region of short runs. So the machine halts from blank tape exactly when this little event system, started on a one-digit counter, ever meets state c at the left end (proved in Lean).</p>",
+     "<p>Filling the new counter of 410,984 digits takes on the order of 2<sup>130,000</sup> trips, so the next chance to stop is far beyond any computer, and no shortcut for finding the carry's state then was found. On random small counters each of the three outcomes is common (observed), which says nothing about this one.</p>"
     ]
    },
    {
@@ -172,7 +201,7 @@
    }
   ]
  },
- "summary": "A binary-like counter of odd runs counts the sweeps; only when it overflows does the head reach the left end, the only place a halt is possible (proved in Lean); the eight overflows so far (the last at step 5.07&middot;10<sup>11</sup>) bounced, and the last one widened the counter to ~8&middot;10<sup>5</sup> cells, putting the next chance to halt ~2<sup>10<sup>5</sup></sup> sweeps away.",
+ "summary": "The table of 74982 in a mirror: a counter ticked by a carry automaton, where every overflow adds a digit, turns the units into digits, or halts (proved in Lean for every counter). The machine halts exactly when the event system does from a one-digit counter; the eight overflows so far did not halt, the last (step 5.07&middot;10<sup>11</sup>) made a counter of 410,984 digits, and the next is ~2<sup>1.3&middot;10<sup>5</sup></sup> sweeps away.",
  "family": "counter that overflows at the left end",
  "decision": "open"
 }

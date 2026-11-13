@@ -41,6 +41,14 @@ The family shares states A–D and differs in E and F (that is, in what a merger
 
 A non-halting proof looks within reach but is more than a day of work: describe the configurations at the sample points as walls and gaps (gaps as exact small values or a symbolic n + k), prove the sweep, carry, merger and edge rules for every combination that can occur (the merger runs of `py/collisions.py` are the start), and show the set is closed. A closed-tape-language search over macro tokens (blocks and walls instead of cells) is the other route; windows of cells (n-gram CPS up to 40) are not enough.
 
+<!-- F05 -->
+
+## Family F05: next to the forty-machine core
+
+The family plan groups this machine with the nested block counter, 40 holdouts that are the core `1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??---` in different frames. This machine's table is not a renaming or mirror image of that core, so the family's Lean theorems are not proved for it. Compared with [`1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA`](../1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA/README.md): its run has the tape and head of a configuration of the other run for 8,330,405 of its first 10^7 steps, in the same order (`holdouts/related.py`, relation “same tapes, another pace”). That is an observation, and the two halting transitions are read in different situations, so one halting question does not settle the other. The family's records are in [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/README.md).
+
+<!-- end F05 -->
+
 ## Pages
 
 - [`pages/holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0LE1RF_0RA---/explainer.html`](../../pages/holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0LE1RF_0RA---/explainer.html)

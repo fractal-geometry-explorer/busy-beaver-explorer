@@ -129,6 +129,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 25,666 cells have been visited and 8,997 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 8 records between 2.7&middot;10<sup>8</sup> and 2.0&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 9,496 to 118,465 visited cells and compresses to 29 to 37 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -156,6 +161,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Never one step from a halt</h3>
         <p>The machine halts when F reads a 1, and F is entered only from D reading a 1 (D1 → 1RF). In the first 3·10<sup>6</sup> steps D reads a 1 3,851 times, always with a 0 to its right, so F always reads 0.</p>
         <p class="where">the direct simulation of <code>py/observe.py</code> (scratch counter)</p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F01, periodic blocks driven by a bounded engine</h3>
+        <p>The description grows slowly if at all: 29 to 37 level-2 tokens at every record from 2.7&middot;10<sup>8</sup> to 2&middot;10<sup>10</sup> steps, and 10 to 32 runs in the macro simulator (blocks of 3 cells) at the sampled records from 10<sup>6</sup> to 9&middot;10<sup>12</sup> steps. At step 19,693,788,191 the tape has frozen blocks of 60, 107, 1,452, 394, 165, 338, 838 and 12,270 copies of <code>100</code> or <code>001</code> and a live part <code>(001)^21588 (011)^2262</code>. Within a level this is the F01 shape (a live block with a short engine, phase P1 already proved in Lean), and a level ends with the block frozen, as in 1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---. The list of frozen blocks is not bounded: 5 blocks at 7.6&middot;10<sup>7</sup> steps, 8 at 2&middot;10<sup>10</sup>.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

@@ -129,6 +129,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 45,385 cells have been visited and 30,990 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 20,924 to 177,839 visited cells and compresses to 32 to 52 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB1RA_1RC0RE_0RD1LE_0LE---_1LF0LC_0RA1LC</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -146,6 +151,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Run lengths 2<sup>k</sup> &minus; 1</h3>
         <p>In the last 200 samples before step 2&middot;10<sup>9</sup> (state F at the left end, the tape read in the words <code>s = 111010</code> etc.), 259,121 of the 260,035 runs <code>1 s^n 1</code> have n = 2<sup>k</sup> &minus; 1.</p>
         <p class="where"><code>tokrun M 2000000000 p=010111,q=101011,r=110101,s=111010 L</code></p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F06, block-list counters</h3>
+        <p>At the records the tape is blocks of the rotations of one six-cell word (<code>110101</code>, <code>111010</code>, <code>010111</code>, <code>101011</code>), and many of the numbers of copies are one less than a power of two (7, 15, 31, 127, 1,023, 2,047), the same count repeated for the rotations of the word. With groups counted once the description is 32 to 52 level-2 tokens at the records from 2.6&middot;10<sup>8</sup> to 1.6&middot;10<sup>10</sup> steps; counted singly the blocks number 161 to 185 from 10<sup>9</sup> steps on, and the macro simulator (blocks of 6 cells) has up to 19,127 runs by 2&middot;10<sup>17</sup> steps. Blocks with 2^k &minus; 1 copies in a list that grows slowly are the levels of a binary counter: F06.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

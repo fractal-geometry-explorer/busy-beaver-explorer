@@ -125,6 +125,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where">README</p>
       </div>
       <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 4 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 17,894 to 137,409 visited cells and compresses to 117 to 147 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -136,6 +141,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>One word per excursion, a counter on the left</h3>
         <p>Each excursion lengthens the <code>11010</code> block by one word (961, 962, … at 3·10<sup>7</sup> steps, 6,038 at 10<sup>9</sup>). The head turns inside the counter at depths in classes 25 cells apart, each class about 2.6 times rarer than the one before, the signature of a counter with 25-cell digits. Every digit has the form <code>11a0 11b0 1100 110c 0 11d0 11e0</code>: five bits, 28 of the 32 patterns seen. The first 1,260 cells of the tape are the same at steps 3·10<sup>7</sup> and 10<sup>9</sup>.</p>
         <p class="where">README</p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F06, block-list counters</h3>
+        <p>This machine has the table of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE read in a mirror with the states renamed (<code>related.json</code>), started in another state. On the screen the two runs have the same numbers within a few cells at every record (for example 137,409 and 137,401 visited cells at 1.6&middot;10<sup>10</sup> steps, a block of 27,165 five-cell words in both and 32 copies of a 25-cell word in both). That is an observation at the sampled records, not a proof that the two runs correspond. The description does not grow during the present epoch: 117 to 147 level-2 tokens at the four right-end records from 2.6&middot;10<sup>8</sup> to 1.6&middot;10<sup>10</sup> steps, and 306 to 314 runs in the macro simulator (blocks of 5 cells) at 80 sampled right-end records from 3&middot;10<sup>7</sup> to 10<sup>16</sup> steps. Only the block <code>(11010)^k</code> grows. The counter in the wall, with its five free cells per 25-cell digit, is described above; the sister's page has the periods 8, 64 and 512 of its first digits and the one overflow seen so far (between steps 1.4&middot;10<sup>6</sup> and 4.5&middot;10<sup>6</sup> in the sister's run). A counter that is rebuilt when it overflows belongs with the counter families (F06), not with the bounded engines (F01).</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

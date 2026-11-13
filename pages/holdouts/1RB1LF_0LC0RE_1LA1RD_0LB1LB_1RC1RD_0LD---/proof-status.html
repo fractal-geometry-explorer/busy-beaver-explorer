@@ -124,6 +124,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 21,829 cells have been visited and 14,286 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.8&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 10,701 to 100,856 visited cells and compresses to 10 to 23 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB1LF_0LC0RE_1LA1RD_0LB1LB_1RC1RD_0LD---</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -136,6 +141,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>What the tape is made of</h3>
         <p>Mostly the word 110, in a few long runs separated by markers (11110, 1111110, 00 …); the runs exchange length from sweep to sweep.</p>
         <p class="where">README (table)</p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F01, periodic blocks driven by a bounded engine</h3>
+        <p>The description is small and does not grow: 10 to 23 level-2 tokens at every record from 2.6&middot;10<sup>8</sup> to 1.8&middot;10<sup>10</sup> steps, and 9 to 19 runs in the macro simulator (blocks of 3 cells) at the sampled right-end records up to 10<sup>18</sup> steps. For example at the right-end records the tape is <code>(10)^3 001 (010)^3 (100)^3703 00101 0^6 1 0^4 (100)^19078 1010</code> at step 6,897,736,719 and <code>(10)^3 001 (010)^3 (100)^6716 (10)^3 (010)^26894 10</code> at step 17,594,309,535. Two or three long runs of one three-cell word and a handful of markers is the F01 shape. The engine is not known: in the macro simulator (blocks of 3 cells) the left end is extended only 3,666 times in the first 3&middot;10<sup>8</sup> steps and the shape of the markers differs from one extension to the next, so there is no single round to iterate yet.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

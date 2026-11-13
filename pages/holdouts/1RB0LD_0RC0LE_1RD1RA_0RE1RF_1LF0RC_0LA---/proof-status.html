@@ -124,6 +124,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 24,776 cells have been visited and 14,654 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.7&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 18,577 to 133,374 visited cells and compresses to 17 to 36 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LD_0RC0LE_1RD1RA_0RE1RF_1LF0RC_0LA---</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -139,6 +144,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <div class="card">
         <h3>Slow growth</h3>
         <p>Only the left side grows, 27,455 cells at 1.86&middot;10<sup>9</sup> steps.</p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F06, block-list counters</h3>
+        <p>The description grows slowly: 19, 24, 36 and 35 level-2 tokens at the left-end records at 2.8&middot;10<sup>8</sup>, 10<sup>9</sup>, 4.2&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps. At the last one the tape is a block <code>(010)^1537</code>, then a list of blocks of the words <code>10101</code> and <code>100</code> (3 to 1,184 copies each) closed by markers <code>1010 (01)^3</code>, and a last block <code>(10101)^21602</code>. A list of units of the same form whose number grows slowly is a list of counters (F06) and not a bounded description (F01): the token count nearly doubled on the screen.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

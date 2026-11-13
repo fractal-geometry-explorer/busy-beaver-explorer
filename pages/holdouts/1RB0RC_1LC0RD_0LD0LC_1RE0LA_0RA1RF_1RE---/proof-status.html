@@ -75,7 +75,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_1RE---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p>It is one of five machines that share states A to E (<code>1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA?RF_F---</code>) and differ only in what E writes on a 1 and in state F. All five run the same machinery, a nested base-5 odometer built from blocks of the word <code>1000</code>; they differ only in how a rare collision is resolved, the one place where state F is used.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -84,6 +84,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>Where a halt would have to come from.</b> The machine halts only in F reading a 1, and F is entered only from E reading a 1, right after D wrote a 1 on a 0: so a halt needs <code>D&gt;0 1 1</code> somewhere. In the run F is entered only twice in the first 2·10<sup>9</sup> steps (steps 49,249 and 390,893,438), always when two <code>g4</code> gadgets meet across an empty block (or at a gadget made by such an event), and it always reads a 0.</p>
       <p><b>No closed set of shapes.</b> The irregular gadgets form a closed alphabet, but the tape language they span contains halting tapes: the trap <code>101</code>, and a tape of regular gadgets with every block of length ≥ 2 that halts (both proved in Lean). So the decision has to come from relations between block lengths, which no shape-level (CTL-style) argument captures.</p>
       <p><b>Pushed to 1.91·10<sup>17</sup> steps.</b> An accelerated simulator, validated round by round against the plain machine up to 2·10<sup>10</sup> steps, finds no halt and no trap in the first 1.91·10<sup>17</sup> steps.</p>
+      <p><b>Family F05.</b> One of 40 holdouts on the same five-state core; the family's exact block-list map runs this machine for 1.9&middot;10<sup>200</sup> steps without a halt.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -106,6 +107,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>One of 40 holdouts on the same five-state core</h3>
+        <p>In frame A all 40 machines have states A to E of <code>1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??---</code> and differ in D1 (0LF or 1LF), in F0 and in the start state. This machine is the mirror image of that table with the states renamed A&rarr;B, B&rarr;C, C&rarr;D, D&rarr;E, E&rarr;A, F&rarr;F, with D1 = 1LF and F0 = 1LD: <code>step_img</code> proves that every step of the machine is a step of <code>1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LD---</code>, and <code>halts_iff</code> that it halts from blank tape if and only if <code>1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LD---</code> halts from blank tape started in state E. The tables of all 40 are compared by <code>frames.py</code>.</p>
+        <p class="where"><code>step_img</code>, <code>halts_iff</code>, <code>lean/Family.lean</code>; <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/frames.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The family's visit rule and its closed form</h3>
+        <p>In frame A a <em>visit</em> starts with the head in state A on the 0 in front of plain blocks <code>(10)^b1 1 (10)^b2 1 &#8230; 1</code> and ends when the head first steps left of that cell. <code>go_spec</code> proves for every depth that a clean visit turns the list l into <code>go n l</code> in exactly <code>goT n l</code> steps (the first block is spread, the rest gets five visits, the first block is folded back 5 shorter); <code>go_closed</code> gives the closed form (b1&minus;5, b2&minus;18, b3&minus;90, &#8230;, b<sub>k</sub>+12&middot;5<sup>k&minus;2</sup>) when b1 is odd and at least 7, the other blocks even and block i at least 2+18&middot;5<sup>i&minus;2</sup>. <code>visit</code> states it as a run of this machine. Also proved: the birth of a block, and that the entry into F after a visit that ends in state C on a phase-1 tail reads a 0 (<code>fevent</code>, <code>fevent_reads_zero</code>). The proofs are generated for this machine's own frame-A table; they never use F0.</p>
+        <p class="where"><code>go_spec</code>, <code>go_closed</code>, <code>visit_closed</code>, <code>visit</code>, <code>birth</code>, <code>fevent_reads_zero</code>, <code>lean/Family.lean</code> (written by <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_family_lean.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>What a clean visit conserves</h3>
+        <p>For the blocks after the first, the last one left out: a clean visit (a list the closed form applies to) changes neither the residue of block i modulo 18&middot;5<sup>i&minus;2</sup> nor the drift b<sub>i+1</sub> &minus; 5&middot;b<sub>i</sub> of two neighbours. So these numbers change only at the exceptional events (a block running out, a birth, an entry into F, the left end). This is a law between events, not a proof that the machine never halts.</p>
+        <p class="where"><code>tailEff_res</code>, <code>tailEff_drift</code>, <code>visit_conserves</code>, <code>lean/Family.lean</code></p>
       </div>
       <div class="card">
         <h3>Conversion sweeps</h3>
@@ -148,6 +164,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 1.9&middot;10<sup>200</sup> steps (exact block-list map)</h3>
+        <p>The machine run as a map on block lists (clean visits by the closed form, a Lean theorem; every other visit by the exact run-length simulator, memoised) reaches step 1.9&middot;10<sup>200</sup> without a halt: 503 returns to the left end, 211 entries into F, all reading 0, all with the tape of the proved harmless kind around the head (<code>010001000100[F]011010101010</code> (182&times;); <code>010001000100[F]011010110101</code> (29&times;)). The list has 143 blocks at the last left-end event. Its F-events (step and cell read) agree with the plain cell-by-cell simulation of the machine on the first 3&middot;10<sup>9</sup> steps (2 F-events).</p>
+        <p class="where"><code>data/f05_run.json</code>, <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py</code> (<code>hybrid.py</code>)</p>
+      </div>
       <div class="card">
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 81,407 cells have been visited and 20,546 of them hold a 1.</p>
@@ -197,6 +218,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
+        <h3>Halting would need two exceptional events close together</h3>
+        <p>A clean visit cannot halt, and in the runs every exceptional event with long blocks around it ends without a halt; short lists of the same shape do halt. When block i runs out, the next block has about the length of their drift, so a second event close by needs a drift near 0 at that moment. Observed at the left-end events of this run: after step 10<sup>20</sup> the smallest drift in absolute value is 28,930, after step 10<sup>100</sup> it is 128,916. New drifts are made of sums and differences of earlier blocks, which grow with the run, so close pairs of events should become ever rarer; but nothing proved keeps a drift away from 0, and the figures are sampled at the left-end events only.</p>
+        <p class="where"><code>data/f05_run.json</code> (<code>drift</code>), <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py</code></p>
+      </div>
+      <div class="card">
         <h3>Why it is hard</h3>
         <p>The odometer itself is regular, but the block lengths it drains come from earlier resets, and when a block runs empty the gadgets on both sides merge in ways that depend on their phases mod 5. The sequence of these events, and whether one ever produces <code>D&gt;0 1 1</code>, looks irregular; CTL with 4 to 8 states finds no closed invariant.</p>
       </div>
@@ -217,7 +243,8 @@ python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_1RE---/py/odometer.py 150000
 python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_1RE---/py/shapes.py 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_1RE--- 3 1,10,100,1001101,10011010,10011011,100110110,1001101100
 python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_1RE---/py/witness_search.py
 python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_1RE---/py/accsim.py validate 20000000000      # about 2 minutes
-python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_1RE---/py/accsim.py run 1e17 2400 log.txt       # 40 minutes</code></pre>
+python3 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_1RE---/py/accsim.py run 1e17 2400 log.txt       # 40 minutes
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_1RE--- 1e200          # the exact block-list map; writes data/f05_run.json</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_1RE---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -171,6 +171,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/validate.py</code>, <code>py/runs.py</code></p>
       </div>
       <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.7&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 39,174 to 337,953 visited cells and compresses to 20 to 27 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LF_1RC0RB_1LD0RA_0LE0LC_1LB1LF_1LD--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -202,6 +207,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Every transfer of the first 10<sup>14</sup> steps ends saturated</h3>
         <p>In 3,153,668 trips there are 168 transfers or nested levels with at least 3 shuttles; each ends with at least 6 saturated shuttles (the proved kind), after at most 20 unsaturated ones (60 in one level containing two inner transfers). D read a 1 63,281,275 times; the alternating stretch ending there was 2 cells long 218 times and 3 cells 21 times, never 1 (a halt). A candidate regular invariant (windows of 3 runs, lengths below 8 exact, else mod 4) did not stabilise: 263 windows, new ones still at 3.9&middot;10<sup>13</sup> steps.</p>
         <p class="where"><code>py/monitor.py</code>, README</p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F06, block-list counters</h3>
+        <p>The description grows slowly: 20 to 27 level-2 tokens at every record from 2.6&middot;10<sup>8</sup> to 1.7&middot;10<sup>10</sup> steps, and 12 to 47 runs in the macro simulator (blocks of 4 cells) at the sampled records up to 2&middot;10<sup>16</sup> steps. The machine shares its table with 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- (states renamed, some of the four mirrored; <code>related.json</code>), started in another state. On the screen the four runs show the same list of blocks at the same moments. For example near step 6.4&middot;10<sup>7</sup> all four tapes read (mirrored) blocks of 3, 1,546, 39, 1,753, 117, 1,467 and 997 pairs <code>01</code> and then a last block, of 4,405 pairs in 1RB1RF_1LC0LB&hellip; and of 4,407 pairs here. The four last blocks differ by 2, 4 and 6 pairs and the records come at slightly different steps. This is an observation at the sampled records: it is not a proof that the runs correspond, and nothing about halting is carried over. For 1RB1RF_1LC0LB&hellip; the right end is proved in Lean to be a base-3 counter on the separators of such a list (<code>bb6-1RB1RF_1LC0LB/lean/Counter.lean</code>). Those theorems are about that machine's table with its own state names; they apply here only after the renaming is carried through, which has not been done. A list of blocks with a base-3 counter is F06.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

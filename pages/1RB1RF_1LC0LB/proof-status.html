@@ -171,6 +171,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Closed tape languages built from windows of 2 to 7 cells (<code>tools/py/bbtools/ctl.py</code>) all cover the run and all still allow a halt, so they prove nothing here. The protection seems to be the alignment of the pairs <code>10</code> with E's sweep, which windows of raw cells do not record.</p>
         <p class="where"><code>python3 -m bbtools.ctl MACHINE K</code>, K = 2..7</p>
       </div>
+      <div class="card">
+        <h3>Size of the tape description (family screen)</h3>
+        <p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.7&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 39,174 to 337,949 visited cells and compresses to 20 to 27 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
+        <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---</code>, saved in <code>screen.json</code> next to it</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -188,6 +193,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>In front of a long block, the left end replays the run from blank tape</h3>
         <p>When the tape at a left-end moment starts <code>0 0 (10)^W 0</code> with W large (a wall), the following left-end moments repeat those of the run from blank tape, the blank run's last block replaced by the wall, and the wall shrinks by the same amounts every time: 1, 3, 2, 4, 2, 10, 6, 10, 6, 2, 6, 12, &hellip; whether W is 71, 257, 1,547 or 43,801. The first wall, 257 pairs at step 277,787, is followed by 29 replayed moments. Walls nest (at step 1.8&middot;10<sup>9</sup> the tape starts with walls of 1,768 and 10,762 pairs), so the run looks like a recursive counter. The count of replayed moments is a lower bound: the moments are taken where the head extends the tape on the left after extending it on the right, which the replay need not keep in step.</p>
         <p class="where"><code>py/replay.py</code> on <code>runs/left_1e10.txt</code></p>
+      </div>
+      <div class="card">
+        <h3>Proposed family: F06, block-list counters</h3>
+        <p>The description grows slowly: 20 to 27 level-2 tokens at every record from 2.6&middot;10<sup>8</sup> to 1.7&middot;10<sup>10</sup> steps, and 14 to 46 runs in the macro simulator (blocks of 4 cells) at the sampled records from 10<sup>6</sup> to 10<sup>17</sup> steps. Three holdouts share this machine's table from other start states (1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---, 1RB0LF_1RC0RB_1LD0RA_0LE0LC_1LB1LF_1LD---, 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---). On the screen the four runs show the same list of blocks at the same moments: near step 6.4&middot;10<sup>7</sup> blocks of 3, 1,546, 39, 1,753, 117, 1,467 and 997 pairs and a last block of 4,405, 4,409, 4,411 and 4,407 pairs. An observation at the sampled records, not a proof that the runs correspond. The base-3 counter on the separators is proved in Lean for this machine. A list of blocks counted in base 3, with walls, is F06.</p>
+        <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
