@@ -57,6 +57,11 @@ gcc -O2 -o /tmp/turns holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns
 /tmp/turns 1RB1LD_0LC0RA_1RA1LC_1RE0LC_---1RF_0RD0RB 100000000 100000000 100  # the turns of every tick
 ```
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: F with 0 under the head, 0 right, 0 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LD_0LC0RA_1RA1LC_1RE0LC_---1RF_0RD0RB/explainer.html`](../../pages/holdouts/1RB1LD_0LC0RA_1RA1LC_1RE0LC_---1RF_0RD0RB/explainer.html)

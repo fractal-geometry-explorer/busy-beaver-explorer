@@ -55,6 +55,11 @@ gcc -O2 -o nbhd holdouts/1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF/c/nbhd.c && .
 python3 holdouts/1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF/py/rules.py > holdouts/1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF/lean/Rules.lean
 ```
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: B with 0 under the head, 0 right, 1 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF/explainer.html`](../../pages/holdouts/1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF/explainer.html)

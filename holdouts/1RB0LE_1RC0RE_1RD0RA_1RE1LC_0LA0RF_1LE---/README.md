@@ -35,6 +35,11 @@ The question itself, as for the whole dense/sparse family.
 
 **Later**: set aside after the first pass.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: B with 1 under the head, 1 right, 1 two right; D with 0 under the head, 1 right, 1 two right; F with 1 left, 0 under the head.
+
 ## Check
 
 ```sh

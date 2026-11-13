@@ -74,7 +74,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1RE_1LC0LE_1RD0LB_0RA1RC_0RC0RF_1RA---</h1>
     <p class="machine">1RB1RE_1LC0LE_1RD0LB_0RA1RC_0RC0RF_1RA---</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -133,6 +133,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>8,000 epochs without a halt</h3>
         <p>An exact accelerated simulator (run-length tape with the shift rules of <code>bbtools.symtm</code>, and the proved cycle rule applied k times at once) runs 8,000 epochs from blank tape, about 10<sup>8021</sup> steps, without a halt. Its tape agrees cell for cell with the C simulator at the start of each of the first 8 epochs (to step 3,197,349,547).</p>
         <p class="where"><code>py/epochs.py</code>, <code>py/fastsim.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halting piece in a symbolic class search</h3>
+        <p>A class is the tape <code>&hellip; 1^n 0 0 A&gt;</code> in which n and every other run or block of at least 20 words are free. A symbolic simulator runs each class to the next such tape for all values at once, splitting it into pieces when the outcome depends on a residue or on the order of two counts. In 15 minutes: 2,517 classes, 67,561 pieces, every piece reaches a node, none halts, none is undecided. The set is <b>not closed</b>: 555 classes were still queued and the list of runs keeps getting longer. A plain simulator agrees on a random sample of 200 classes (8,165 piece runs).</p>
+        <p class="where"><code>holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/closure/pclosure.py</code>, <code>pvalidate.py</code> (settings in this machine's README)</p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>

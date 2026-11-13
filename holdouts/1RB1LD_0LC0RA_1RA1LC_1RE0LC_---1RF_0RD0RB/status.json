@@ -23,6 +23,12 @@
   },
   {
    "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: F with 0 under the head, 0 right, 0 two right. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
@@ -85,7 +91,8 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LD_0LC0RA_1RA1LC_1RE0LC_---1RF_0RD0RB/lean/check.sh",
-  "gcc -O2 -o turns holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c && ./turns 1RB1LD_0LC0RA_1RA1LC_1RE0LC_---1RF_0RD0RB 1000000000 100000 0"
+  "gcc -O2 -o turns holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c && ./turns 1RB1LD_0LC0RA_1RA1LC_1RE0LC_---1RF_0RD0RB 1000000000 100000 0",
+  "python3 holdouts/1RB1LD_0LC0RA_1RA1LC_1RE0LC_---1RF_0RD0RB/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
   "lede": "Nobody knows. This machine builds an irregular sequence of runs of ones, mostly 2, 6 or 10 long, next to a tail of 10s. Each tick the head zigzags across the tail and back. Now and then the sequence is rewritten far from its end. This page runs the real machine in your browser and shows what is known. The sweeps are proved in Lean.",

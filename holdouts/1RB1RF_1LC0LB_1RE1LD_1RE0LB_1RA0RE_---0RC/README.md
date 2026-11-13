@@ -157,6 +157,11 @@ Tape samples (periodic notation, `w^k` is the word w repeated k times; `X>b` is 
 - step 100,000,000: `100110^2 110^4 100110^2 110^6 10 011^5 010 011^3 1011011^2 1011^3 0111^4 010011^3 0111^3998 011 A>1 1001^907 1`
 - step 1,000,000,000: `110^4 100110^3 110^6 10 011^11 0100 1^3 011^2 10^2 0111^3 011^2 1011^4 011^6 1011^1088 10 B>1 0110^14656 011`
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: E with 0 under the head, 1 right, 0 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/explainer.html`](../../pages/holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/explainer.html)

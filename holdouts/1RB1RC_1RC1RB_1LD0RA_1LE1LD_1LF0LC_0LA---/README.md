@@ -66,6 +66,11 @@ a 1, and what they mean for the word.
 
 Open. The claims with what each rests on are in `status.json` and the proof-status page.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: D with 1 two left, 0 left, 0 under the head.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---/explainer.html`](../../pages/holdouts/1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---/explainer.html)

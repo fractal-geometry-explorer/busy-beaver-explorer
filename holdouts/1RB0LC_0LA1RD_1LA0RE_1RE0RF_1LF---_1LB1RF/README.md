@@ -57,6 +57,11 @@ invariant on that prefix. Later: this looks chaotic, and I did not find a macro 
 | `c/trfreq.c` | how often each transition is used |
 | `c/evt.c` | the tape around the head each time a given state reads a given symbol |
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: B with 1 under the head, 0 right, 1 two right.
+
 ## Check
 
 ```sh

@@ -25,6 +25,12 @@
   },
   {
    "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: C with 1 two left, 0 left, 0 under the head. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
@@ -115,7 +121,8 @@
   "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 10000000000",
   "cd tools/py && python3 -m bbtools.ctl 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 5",
   "gcc -O2 -o rvisits holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/rvisits.c && ./rvisits 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 2000000000 50",
-  "g++ -O2 -std=c++17 -o cpslru holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/cpslru.cpp && ./cpslru 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000001 300000 D - 8,2,6,0 && ./cpslru 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000000001 300000 A - 8,2,6,0 8,1,6,0"
+  "g++ -O2 -std=c++17 -o cpslru holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/cpslru.cpp && ./cpslru 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000001 300000 D - 8,2,6,0 && ./cpslru 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000000001 300000 A - 8,2,6,0 8,1,6,0",
+  "python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
   "lede": "This machine writes blocks of 1s on the left that change like the digits of a counter, and a long stretch of short words on the right that grows like a power of the step count. Its macro rules have not been worked out yet. It has run 10<sup>10</sup> steps without halting.",

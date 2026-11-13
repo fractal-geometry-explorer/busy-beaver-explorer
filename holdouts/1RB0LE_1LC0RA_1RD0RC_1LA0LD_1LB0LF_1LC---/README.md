@@ -32,6 +32,11 @@ The question itself; no macro structure is known.
 
 **Later**: set aside after the first pass.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: A with 1 two left, 1 left, 1 under the head.
+
 ## Check
 
 ```sh

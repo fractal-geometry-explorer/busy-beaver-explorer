@@ -23,6 +23,12 @@
   },
   {
    "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: D with 1 under the head, 0 right, 0 two right. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
@@ -88,7 +94,8 @@
   "python3 holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/py/gen_rules.py > /tmp/Rules.lean   # regenerates lean/Rules.lean",
   "cd holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF && gcc -O2 -o snap c/snap.c && ./snap 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF 3000000 4 > s.txt && python3 py/particles.py s.txt",
   "gcc -O2 -o drun c/drun.c && ./drun 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF 1000000000",
-  "gcc -O2 -o twin c/twin.c && ./twin 1000000000"
+  "gcc -O2 -o twin c/twin.c && ./twin 1000000000",
+  "python3 holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
   "lede": "Nobody knows yet. This machine keeps almost all of its tape as a plain <code>1010...</code> pattern that its head flips back and forth without changing anything; what matters are a dozen small defects, <em>particles</em>, that a little counter at the left end pushes around one at a time, like carries. Lean proves the machine can only halt in a rare event that, so far, has only happened at the far right wall of the tape, four times, early on.",

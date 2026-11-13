@@ -36,6 +36,11 @@ Open. Lean (`lean/Blank.lean`): the halting configurations, no halt in 10^4 step
 2. Check whether the inside of the word ever changes; if not, the ends are two separate counters and the machine may reduce to a pair of counters.
 3. Try `bbtools.ctl` with a larger window only if the words near the ends turn out to be regular.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: A with 1 under the head, 0 right, 0 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RD_0LC1LD_1RA1LA_1RE1LB_---0RF_1RA1RF/explainer.html`](../../pages/holdouts/1RB0RD_0LC1LD_1RA1LA_1RE1LB_---0RF_1RA1RF/explainer.html)

@@ -145,6 +145,11 @@ Growth class **sqrt/sqrt** (left: sqrt, exponent 0.405; right: sqrt,
 exponent 0.479). After 1,000,000,000 steps: 18,938 cells visited (8,418 left of the
 start, 5,248 right), 14,202 ones.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: B with 1 two left, 0 left, 0 under the head.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/explainer.html`](../../pages/holdouts/1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---/explainer.html)

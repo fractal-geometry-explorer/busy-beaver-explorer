@@ -1,6 +1,6 @@
 # 1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD
 
-bbchallenge id 100726, group G08 (two-sided sqrt growth). Whether it halts from blank tape is **open**. Pages:
+bbchallenge id 100726, group G08 (two-sided sqrt growth). Whether it halts from blank tape is **open**. Probable cryptid (Collatz-like, see the class search below); proposed for family F12. Pages:
 [`explainer.html`](../../pages/holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/explainer.html),
 [`proof-status.html`](../../pages/holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/proof-status.html), both built from
 [`status.json`](status.json).

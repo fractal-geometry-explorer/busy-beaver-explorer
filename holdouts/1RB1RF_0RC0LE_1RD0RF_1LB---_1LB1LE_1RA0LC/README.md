@@ -92,6 +92,11 @@ As for the twin: a regular description of the frozen part of the tape (resting r
 - `py/passes.py blocks K | cross | back D | tape STEPS N`: two-cell behaviour of every state, the words crossed whole, the way back from a halt, run-length tapes.
 - `py/rules.py`: writes `lean/Rules.lean` and `lean/Halt.lean`.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: B with 0 under the head, 0 right, 1 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RF_0RC0LE_1RD0RF_1LB---_1LB1LE_1RA0LC/explainer.html`](../../pages/holdouts/1RB1RF_0RC0LE_1RD0RF_1LB---_1LB1LE_1RA0LC/explainer.html)

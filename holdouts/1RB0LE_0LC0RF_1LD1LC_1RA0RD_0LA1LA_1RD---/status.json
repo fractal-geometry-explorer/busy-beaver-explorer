@@ -23,6 +23,12 @@
   },
   {
    "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: A with 0 under the head, 1 right, 1 two right. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "How a halt comes about",
    "text": "F reading 1 is the only halt. F is entered only from B reading 1 and B only from A reading 0 (<code>enter_F</code>, <code>enter_B</code>), so the machine halts exactly at <code>A&gt;0 1 1</code>. A is entered from D reading 0 and from E (<code>enter_A</code>); the E way is harmless, so a halt needs <code>D&gt;0 0 1 1</code> (<code>halt_D</code>).",
    "where": "<code>halt_F</code>, <code>halt_B</code>, <code>halt_A</code>, <code>halt_D</code>, <code>enter_F</code>, <code>enter_B</code>, <code>enter_A</code>, <code>lean/Halt.lean</code>"
@@ -85,7 +91,8 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LE_0LC0RF_1LD1LC_1RA0RD_0LA1LA_1RD---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_0LC0RF_1LD1LC_1RA0RD_0LA1LA_1RD--- 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_0LC0RF_1LD1LC_1RA0RD_0LA1LA_1RD--- 1000000000",
+  "python3 holdouts/1RB0LE_0LC0RF_1LD1LC_1RA0RD_0LA1LA_1RD---/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this machine has run 10<sup>11</sup> steps without stopping. Its head sweeps across a tape of short, irregular runs of 1s. This page runs the real machine in your browser and shows the one pattern that would make it stop.",

@@ -23,6 +23,12 @@
   },
   {
    "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: D with 1 two left, 1 left, 0 under the head. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
@@ -69,7 +75,8 @@
   "holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/lean/check.sh",
   "python3 holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/py/snapshots.py 2e7 R 100",
   "gcc -O2 -o haltwatch holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/c/haltwatch.c && ./haltwatch 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF 100000000",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF 1000000000",
+  "python3 holdouts/1RB0LE_0RC0RA_1RD1RB_0LA0RB_1LF---_1LD1LF/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this machine sweeps back and forth and leaves behind, on each side, a long sequence built from a few kinds of block, in an order that never settles into a repeat. Working out the rule behind that order is the open part.",

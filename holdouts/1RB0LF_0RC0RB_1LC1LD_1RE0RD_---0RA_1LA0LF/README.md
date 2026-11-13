@@ -107,6 +107,11 @@ gcc -O2 -o deep c/deep.c && ./deep 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF 100
 gcc -O2 -o twin c/twin.c && ./twin 1000000000                                                  # against the twin
 ```
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: D with 1 under the head, 0 right, 0 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html`](../../pages/holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html)

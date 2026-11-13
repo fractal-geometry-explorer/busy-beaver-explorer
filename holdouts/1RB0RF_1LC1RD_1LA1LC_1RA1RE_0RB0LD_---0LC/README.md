@@ -57,6 +57,11 @@ python3 holdouts/1RB0RF_1LC1RD_1LA1LC_1RA1RE_0RB0LD_---0LC/py/rules.py          
 python3 holdouts/1RB0RF_1LC1RD_1LA1LC_1RA1RE_0RB0LD_---0LC/py/observe.py 1e7 B 6  # the tape at the last moments each end grew
 ```
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: D with 0 under the head, 1 right, 0 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RF_1LC1RD_1LA1LC_1RA1RE_0RB0LD_---0LC/explainer.html`](../../pages/holdouts/1RB0RF_1LC1RD_1LA1LC_1RA1RE_0RB0LD_---0LC/explainer.html)

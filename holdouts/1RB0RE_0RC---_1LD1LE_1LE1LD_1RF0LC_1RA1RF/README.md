@@ -53,18 +53,66 @@ crossing starts a new epoch.
 `1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF` has identical configurations at 12 of the 13 epoch starts up to
 1.7·10^9 steps (about 1.5 times later); see its folder.
 
+## The tape as a list of blocks (F11, 13 November 2026)
+
+Read the tape as blocks of 1s separated by single 0s. Every meeting of the head with a block or a separator is one of
+the rules of `lean/Blocks.lean` (kernel; written by `py/blocks_rules.py`):
+
+| going | situation | what happens | rule |
+|---|---|---|---|
+| right, F | a block | crossed | `f_block` |
+| right, F | separator, then a block of one cell | separator filled, the cell erased, the next separator filled, F goes on: the blocks on both sides gain a cell each | `f_single` |
+| right, F | separator, then a block of two or more | **turn**: the block on the left gains two cells, the block on the right loses two, the head leaves in D | `f_turn` |
+| right, F | `0 0 0 1` | filled | `f_three_zeros` |
+| right, F | `0 0 0 0` (right end) | writes `1011`, leaves in E | `f_end` |
+| right, F | `0 0 1` | **halt** | `halt_F` |
+| left, D | a block | crossed and kept; the separator after it is filled and the next block is entered in E | `d_block`, `d_sep` |
+| left, E | a block | every second cell erased (the block becomes blocks of one cell); if its length is odd the next separator is filled and the next block is entered in D, if even E reaches the separator and turns right | `e_pairs`, `e_last`, `c_sep`, `c_last`, `e_turn` |
+
+So a leftward pass keeps and breaks up blocks in turn (that is the running parity of `lean/Rules.lean`, a block
+`1^(4k+3) 0` being the word `v^k u`), and a rightward pass merges what was broken, until it meets a block of two
+or more cells and turns there.
+
+`python3 py/blocks.py 100000 4016 70` prints the block lists at every turn. What they show (observed, one epoch
+followed turn by turn, steps 4,104 to 7,890):
+
+- **Growing phase.** The head bounces between the left end of the tape and a turning place that moves right, 2 to 20
+  cells per bounce, eating the blocks beyond it two cells at a time (27, 20, 24, 28, 32, 49, 53, 73, ... 155 cells
+  from the left end). At each turn on the right the zone is a list of blocks `1^(4k+3)` (the last one a cell
+  longer); at each turn on the left it is blocks `1^(4k+1)` separated by odd numbers of one-cell blocks.
+- **Crossing phase.** When the turning place reaches the right end of the tape, the head crosses back to the left end
+  in short bounces (8 to 28 cells wide), leaving behind it blocks of 3 and pairs `1, 5` (the 4-cell words `1110` and
+  `1011`), which the next growing phase eats.
+
 ## Halting
 
-Only B1 halts; B is entered only from A0 and A only from F1: halts iff `F> 1 0 1`. F crosses `1111` (proved). Not
-decoded: the rightward sweep over `0101` words and the turns at the walls, where the question lies.
+Only B1 halts; B is entered only from A0 and A only from F0 (`1RA`). So the machine halts exactly on `F> 0 0 1`:
+`halt_F` (`lean/Blocks.lean`) and, for the converse, `halt_route` (`lean/Route.lean`: two steps before any halt the
+machine is in F on `0 0 1`). An earlier version of this page said `F> 1 0 1`; that was wrong (F on a 1 stays in F).
 
-- CTL K = 3..6: halts remain. n-gram CPS 3..7: fails. No invariant a·ones + b·pos + W mod 2..12.
-- No halt in 3·10^9 steps.
+One way to put `0 0 1` on the tape is a turn at a block of exactly two cells that has another block after it
+(`turn_two`): the turn erases the block and leaves its separator next to the next one. In the run from blank tape
+(`c/turns.c`, 10^10 steps, 139,833 turns of F):
+
+- every turn was at a block of odd length (3: 36,463 times; 5: 46,436; 7: 19,254; 9: 20,280; ...), except 22 turns
+  at a block of exactly two cells, and each of those was the last block of the tape, with blank tape after it;
+- F met two 0s in a row 42 times, each time at the right end of the tape with only blank cells beyond.
+
+So up to 10^10 steps the question is decided at the right end only, about twice per epoch. This is an observation.
+What would make it a proof is an invariant that keeps every block that is turned at odd, away from the right end, and
+a description of the right end; neither is proved.
+
+Regular-language deciders tried here (all fail, i.e. their closed sets contain a halting configuration; none of this
+says anything about halting): see "Deciders tried" below.
+
+- No halt in 10^10 steps (`c/turns.c`).
 
 ## Notes for later
 
-- Decode the rightward sweep into letter rules (the alignment shifts by one cell; `0101` vs `1010` phase) and the
-  two turns; then the whole round is a map on binary words and the wall's motion can be stated.
+- The turning places and the left end are now rules on blocks; the missing piece is the format of the tape at the
+  start of an epoch (which blocks the crossing phase can leave) and what the right end does with it.
+- The three other machines with this table (see Related machines) obey the same block rules after renaming states
+  and mirroring; their runs are different.
 
 ## Pages
 

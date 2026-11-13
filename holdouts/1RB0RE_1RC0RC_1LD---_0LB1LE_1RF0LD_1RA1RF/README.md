@@ -41,6 +41,11 @@ Only C1 halts; C is entered only from B (moving right): halts iff `B> x 1`. CTL 
 
 - Prove the agreement with the twin as a simulation (a map from this machine's sweep configurations to the twin's).
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: A with 0 under the head, 1 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/explainer.html`](../../pages/holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/explainer.html)

@@ -58,6 +58,11 @@ between phases and how it makes the next run of ones, so there is no macro map y
 - Study the irregular region between phases: record it at each phase start and look for a rewriting system (it
   resembles the digit lists of 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD).
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: A with 0 under the head, 0 right, 1 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC/explainer.html`](../../pages/holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC/explainer.html)

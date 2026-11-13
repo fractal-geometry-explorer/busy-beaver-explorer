@@ -34,6 +34,11 @@ The question itself; no macro structure is known. NGramCPS (n ≤ 10) and window
 
 **Later**: set aside after the first pass.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: D with 0 two left, 1 left, 1 under the head.
+
 ## Check
 
 ```sh

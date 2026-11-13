@@ -11,10 +11,10 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "The tape holds two binary counters, U up and V down. When V runs out the machine either copies U into a new V or removes a few digits from the bottom of U and writes a new, longer V."
  ],
- "asof": "Status as of 12 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves the ticks and whole tick phases for arbitrary counters; the exact macro map finds no halt in the first 10<sup>465</sup> steps, and its shape is now described (copy steps and eat steps; checked by computation, not proved).",
-  "<b>Where a halt would come from.</b> Only from a rebuild after V reaches 0, and, in every case checked, only from an eat step whose walk runs through the counter to its top digits. The invariant method that settled two sibling machines (busycoq PRs #57, #58) does not carry over as it stands."
+  "<b>The question is open.</b> The macro map (copy steps and eat steps) is now written in closed form (checked against the exact rebuild, not proved); with it the run from blank tape goes through 100 million macro steps, more than 10<sup>153,000,000</sup> steps of the machine, without a halt. Lean proves the ticks and whole tick phases for arbitrary counters.",
+  "<b>Where a halt would come from.</b> Only from a rebuild after V reaches 0, and, in every case checked, only from an eat step whose walk runs through the counter to its top digits. In 100 million macro steps the longest walk read 750 of 29 million digits. The invariant that settled two sibling machines (busycoq PRs #57, #58) is about a regime where every rebuild reads the whole counter; here that is the event to exclude."
  ],
  "claims": [
   {
@@ -72,6 +72,24 @@
    "where": "<code>py/map.py check 100 40</code>, <code>py/map.py small 9</code>"
   },
   {
+   "level": "trusted",
+   "title": "The macro map in closed form",
+   "text": "The copy and eat steps written out completely, as a function of the macro state (a, b, n, N). Copy (a = 0): (1, b, n + 1, N + 2<sup>n+1</sup>). Eat (a = 1): (a', b', n', 2<sup>n'</sup> + (N &gt;&gt; s) &minus; &delta;) with n' = n + 3s/2 + 1, where s, a', b' and &delta; come from one pass over the low digits b<sub>0</sub>, b<sub>1</sub>, ... of N. If b<sub>0</sub> = b: s = 2, &delta; = 27 &minus; b<sub>1</sub> (b = 0) or 11 (b = 1). Otherwise the pass walks over the pairs (b<sub>1</sub>, b<sub>2</sub>), (b<sub>3</sub>, b<sub>4</sub>), ... in mode Q (b = 0) or R (b = 1), with k the number of pairs skipped since the last term. Q: (1,1) is skipped; (0,0) gives the term 2<sup>5k+9</sup> &minus; 48&middot;8<sup>k</sup> &minus; 10 and switches to R; (0,1) stops with last term (2<sup>2k+3</sup> &minus; 1) 2<sup>3k+6</sup> + 2<sup>3k+4</sup> + 1; (1,0) stops with (2<sup>2k+4</sup> &minus; 1) 2<sup>3k+6</sup> + 2<sup>3k+4</sup> + 1 &minus; e. R: (0,0) is skipped; (1,0) gives the term 2<sup>5k+4</sup> + 78&middot;8<sup>k</sup> &minus; 10 and stays in R; (0,1) stops with 2<sup>5k+5</sup> + 78&middot;8<sup>k</sup> + 1 &minus; e; (1,1) stops with 2<sup>5k+4</sup> + 78&middot;8<sup>k</sup> + 1. Here e is the digit after the stopping pair, &delta; is the sum of the terms, each shifted left by 3 places per pair read after it, a' is the upper digit of the stopping pair in Q and the lower one in R, and b' = a' xor e. So the flag b is a borrow pending on the counter, and R is Q with a borrow pending. The formulas were fitted to computed rebuilds and then compared with the exact rebuild: all 252 classes of low digits with s &le; 12 (b = 0 and 1), each with two values of n, and the first 279 macro steps of the run from blank tape (189 eats, 90 copies). No difference. They are not proved.",
+   "where": "<code>holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/py/closed.py</code> (<code>check 12</code>, <code>blank 280</code>)"
+  },
+  {
+   "level": "heuristic",
+   "title": "100 million macro steps of the map without a halt",
+   "text": "If the closed map is the rebuild for every counter (checked on the cases listed there, not proved), the run from blank tape goes through 100,000,000 macro steps (about a third of them copies) without an eat step whose walk reaches the top of the counter. At the end V has 510,093,834 digits, so the machine has run more than 10<sup>153,000,000</sup> steps (the last tick phase alone has more than 2<sup>510,093,832</sup> ticks).",
+   "where": "<code>holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/py/closed.py</code> (<code>run 100000000</code>)"
+  },
+  {
+   "level": "heuristic",
+   "title": "How long the walks get",
+   "text": "Of the 67 million eat steps of that run about half read s = 2 digits. Long walks are rare: s &ge; 64 in 11,488 eat steps, s &ge; 128 in 652, s &ge; 256 in 40, s &ge; 512 in 6; each doubling of s costs a factor of about 16. The longest walk read 750 digits when the counter had 29 million; after the first 3,000 macro steps no walk read more than 0.17% of the counter. This is a power-law tail, thinner than that of the sibling <code>1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---</code> (a factor of 8 to 10 per doubling there), so a walk across the whole counter looks very unlikely, but no bound on the walk is proved.",
+   "where": "<code>holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/py/closed.py</code> (<code>run 100000000</code>)"
+  },
+  {
    "level": "heuristic",
    "title": "What the rebuild map looks like in the run",
    "text": "The 293 rebuilds of a 90-second macro run end in all four headers; 96 are copies and the others eat s = 2, 4, 6, ... digits (about half of them 2). So this machine behaves like its sibling <code>1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---</code> with an extra copy step: a counter that gains long blocks on top and loses a few digits at the bottom by a walk that would have to cross the whole counter for anything unusual (such as a halt) to happen. The same chance argument suggests it never halts; it is a heuristic.",
@@ -89,23 +107,20 @@
   "python3 holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/py/map.py check 100 40       # copy/eat shape of the macro map, random 40-digit counters (90 s)",
   "python3 holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/py/map.py small 9            # the same for every 9-digit counter",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py 1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE > holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/lean/Phase.lean",
-  "python3 holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/py/map.py check 100 40       # copy/eat shape of the macro map, random 40-digit counters (90 s)",
-  "python3 holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/py/map.py small 9            # the same for every 9-digit counter",
-  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py 1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE > holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/lean/Phase.lean",
-  "python3 holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/py/map.py check 100 40       # copy/eat shape of the macro map, random 40-digit counters (90 s)",
-  "python3 holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/py/map.py small 9            # the same for every 9-digit counter",
-  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py 1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE > holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/lean/Phase.lean",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild.py 1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE validate 120          # macro run = counters.py run, state by state",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE run 1500        # the macro run, one line per rebuild",
-  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE halting 12      # which rebuilds halt, N < 2^12"
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE halting 12      # which rebuilds halt, N < 2^12",
+  "python3 holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/py/closed.py check 12          # the closed macro map against the exact rebuild, all classes with s <= 12 (3 min)",
+  "python3 holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/py/closed.py blank 280         # and the first 279 macro steps from blank tape (several minutes)",
+  "python3 holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/py/closed.py run 100000000     # 10^8 macro steps of the map, statistics of s (2 min)"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>465</sup> steps",
-    "text": "No halt in the exact macro simulation (293 rebuilds)."
+    "level": "heuristic",
+    "value": "10<sup>8</sup> macro steps",
+    "text": "No halt with the closed macro map (checked, not proved); 10<sup>465</sup> steps in the exact macro simulation."
    },
    {
     "level": "native",
@@ -159,6 +174,18 @@
     ]
    },
    {
+    "id": "closedmap",
+    "eyebrow": "The macro map in one formula",
+    "heading": "Try a macro step on any counter",
+    "html": [
+     "<p>The copy and eat steps can be written out completely. The formulas were fitted to computed rebuilds and agree with the exact rebuild on every case tried; they are not proved. Type a counter in binary and choose the two flags of the header; the page shows what the step reads, what is subtracted, and the next state.</p>",
+     "<p><label>N in binary: <input id=\"cm-n\" size=\"44\" value=\"101111101001\" style=\"font-family:monospace\"></label> <label>a <select id=\"cm-a\"><option>1</option><option>0</option></select></label> <label>b <select id=\"cm-b\"><option>0</option><option>1</option></select></label> <button id=\"cm-go\">step</button> <button id=\"cm-next\">use the result as the next state</button></p>",
+     "<pre id=\"cm-out\" style=\"white-space:pre-wrap;overflow-wrap:anywhere\"></pre>",
+     "<p>Copy (a = 0): N gets one more 1 on top, n grows by 1, a becomes 1. Eat (a = 1): s low digits are removed and the next counter is 2<sup>n'</sup> + (N &gt;&gt; s) &minus; &delta;, n' = n + 3s/2 + 1. If the lowest digit equals b the step reads two digits. Otherwise it walks over pairs of digits: in mode Q it skips pairs <code>11</code>, stops at a mixed pair, and at <code>00</code> changes to mode R; in mode R it skips <code>00</code>, passes pairs whose upper digit is 0, and stops at the first pair whose upper digit is 1. The flag b is a borrow pending on the counter; mode R is mode Q with a borrow pending.</p>",
+     "<script>(function(){function eat(b,N,L,log){if((N&1n)===BigInt(b)){var b1=(N>>1n)&1n;log.push('lowest digit equals b: read 2 digits');return [2n,N&1n,(N&1n)^b1,b===0?27n-b1:11n];}var mode=b,i=0n,k=0n,terms=[],U=N>>1n;while(true){if(2n*i+3n>BigInt(L))return null;var p=U&3n;U>>=2n;i++;var T,e,a2;if(mode===0){if(p===3n){k++;continue;}if(p===0n){log.push('Q: skipped '+k+' pairs 11, pair 00: go to R');terms.push([(1n<<(5n*k+9n))-(48n<<(3n*k))-10n,i]);mode=1;k=0n;continue;}e=U&1n;a2=p>>1n;log.push('Q: skipped '+k+' pairs 11, mixed pair: stop');if(p===2n)T=(((1n<<(2n*k+3n))-1n)<<(3n*k+6n))+(1n<<(3n*k+4n))+1n;else T=(((1n<<(2n*k+4n))-1n)<<(3n*k+6n))+(1n<<(3n*k+4n))+1n-e;}else{if(p===0n){k++;continue;}if(p===1n){log.push('R: skipped '+k+' pairs 00, pair with upper digit 0: go on');terms.push([(1n<<(5n*k+4n))+(78n<<(3n*k))-10n,i]);k=0n;continue;}e=U&1n;a2=p&1n;log.push('R: skipped '+k+' pairs 00, pair with upper digit 1: stop');if(p===2n)T=(1n<<(5n*k+5n))+(78n<<(3n*k))+1n-e;else T=(1n<<(5n*k+4n))+(78n<<(3n*k))+1n;}var d=T;terms.forEach(function(t){d+=t[0]<<(3n*(i-t[1]));});return [2n*i+2n,a2,a2^e,d];}}var last=null;function go(){var t=document.getElementById('cm-n').value.replace(/[^01]/g,'').replace(/^0+/,'');var a=+document.getElementById('cm-a').value,b=+document.getElementById('cm-b').value;var out=document.getElementById('cm-out');if(t.length<2){out.textContent='type at least two binary digits';return;}var N=BigInt('0b'+t),n=BigInt(t.length-1);if(a===0){if((N&(N+1n))===0n){out.textContent='copy of a counter of all ones: not covered by the map';last=null;return;}var N2=N+(1n<<(n+1n));last=[1,b,N2];out.textContent='copy: one more 1 on top\\nnext state: a = 1, b = '+b+', n = '+(n+1n)+'\\nnext counter = '+N2.toString(2);return;}var log=[],r=eat(b,N,t.length,log);if(!r||r[0]>BigInt(t.length-3)){out.textContent=log.join('\\n')+'\\nThe walk reaches the top of the counter: this is the case the map does not cover, and where a halt would have to come from.';last=null;return;}var s=r[0],n2=n+3n*s/2n+1n,N3=(1n<<n2)+(N>>s)-r[3];last=[Number(r[1]),Number(r[2]),N3];out.textContent=log.join('\\n')+'\\neat: digits read s = '+s+'   (the lowest '+s+': '+t.slice(t.length-Number(s))+')\\ndelta = '+r[3].toString(2)+' (binary)\\nnext state: a = '+r[1]+', b = '+r[2]+', n = '+n2+'\\nnext counter = 2^'+n2+' + (N >> '+s+') - delta =\\n'+N3.toString(2);}document.getElementById('cm-go').onclick=go;document.getElementById('cm-next').onclick=function(){if(last){document.getElementById('cm-a').value=last[0];document.getElementById('cm-b').value=last[1];document.getElementById('cm-n').value=last[2].toString(2);go();}};go();})();</script>"
+    ]
+   },
+   {
     "id": "halting",
     "eyebrow": "Where it could stop",
     "heading": "Halting, reduced to the rebuild map",
@@ -170,6 +197,6 @@
   ]
  },
  "family": "Up/down two counters with resets (G12 family 3b)",
- "summary": "Up/down counters; ticks and whole tick phases proved in Lean; macro map described as copy/eat steps with a digit walk (checked, not proved); no halt in ~10^465 steps; open.",
+ "summary": "Up/down counters; ticks and whole tick phases proved in Lean; macro map (copy/eat steps with a digit walk) in closed form (checked, not proved); with it no halt in 10^8 macro steps (more than 10^153,000,000 steps); open.",
  "decision": "open"
 }

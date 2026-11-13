@@ -46,6 +46,11 @@ and try a CTL restricted to the left part with the right part abstracted as `(11
 . /etc/profile.d/lean.sh && holdouts/1RB0RA_1RC1RF_1LD0LC_1RA1LE_1RA0LC_---0RD/lean/check.sh
 ```
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: A with 0 under the head, 1 right, 0 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RA_1RC1RF_1LD0LC_1RA1LE_1RA0LC_---0RD/explainer.html`](../../pages/holdouts/1RB0RA_1RC1RF_1LD0LC_1RA1LE_1RA0LC_---0RD/explainer.html)

@@ -11,10 +11,10 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "The tape holds two binary counters, U up and V down. When V runs out the machine reads a few digits off the bottom of U and writes a new, longer V; for an even U it simply halves it."
  ],
- "asof": "Status as of 12 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves the ticks, whole tick phases for arbitrary counters, and 11 rebuild rules. The rebuild's stopping rule is now known as a simple walk over the counter's digits (checked by computation, not proved), and the exact macro run finds no halt in the first 10<sup>3392</sup> steps.",
-  "<b>Where a halt would come from.</b> Only from a rebuild whose walk runs through the whole counter up to its top two digits; in the run it always stops at least 88 digits below. The invariant method that settled two sibling machines (busycoq PRs #57, #58) does not carry over as it stands."
+  "<b>The question is open.</b> The rebuild is now one short recursion on the counter (checked against the exact rebuild, not proved); with it the run from blank tape goes through 100 million rebuilds, more than 10<sup>257,000,000</sup> steps, without a halt. Lean proves the ticks, whole tick phases for arbitrary counters, and 11 rebuild rules.",
+  "<b>Where a halt would come from.</b> Only from a rebuild whose walk runs through the whole counter up to its top two digits. In 100 million rebuilds the longest walk read 1,877 of 74 million digits. Long walks have a power-law tail, so no size argument excludes them, and the invariant that settled two sibling machines (busycoq PRs #57, #58) is about a different regime, where every rebuild reads the whole counter."
  ],
  "claims": [
   {
@@ -96,6 +96,30 @@
    "where": "<code>py/walk.py top 12</code>"
   },
   {
+   "level": "trusted",
+   "title": "The whole rebuild as one short recursion on the counter",
+   "text": "The rebuild at a counter N (header <code>0110101</code>, V = 0 with n digits) is given by a function W(N) = (j, &delta;): the next macro state is (n + c, 2<sup>n+c</sup> + (N &gt;&gt; j) &minus; &delta;) with c = (5j + 1)/2. W is a recursion on N alone. N even: j = 1, &delta; = 4. N odd: skip the k pairs <code>11</code> above the lowest digit and look at the next pair. Pair (1,0), lower digit first: j = 2k + 3, &delta; = 1 + 2<sup>5k+5</sup>(2<sup>2k+4</sup> &minus; 1). Pair (0,1): j = 2k + 3, &delta; = 4 + 2<sup>5k+5</sup>(2<sup>2k+3</sup> &minus; 1). Pair (0,0): drop the 2k + 2 lowest digits, subtract 1 from what is left and apply W to that, giving (j<sub>2</sub>, &delta;<sub>2</sub>); then j = j<sub>2</sub> + 2k + 2 and &delta; = &delta;<sub>2</sub> + (2<sup>2k+3</sup> &minus; 1) 2<sup>c<sub>2</sub>+2+5k</sup>, c<sub>2</sub> = (5j<sub>2</sub> + 1)/2. So the states Q and R of the walk are &lsquo;no borrow&rsquo; and &lsquo;a borrow is pending in the rest of the counter&rsquo;. The recursion was read off computed rebuilds and then compared with the exact rebuild (the machine run cell by cell, tick runs jumped by the proved tick rules): all 127 classes of low digits with j &le; 13, each with two values of n; 2,000 random 400-digit counters (longest j = 21); and the first 300 rebuilds of the run from blank tape. No difference. It is not proved.",
+   "where": "<code>holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/map.py</code> (<code>check 13</code>, <code>random 2000 400</code>, <code>blank 300</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Why the proofs of the two siblings do not carry over",
+   "text": "The same exact macro simulation run on the sibling <code>1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---</code> (proved non-halting in busycoq PR #57) shows a different regime: there every rebuild reads the counter up to its top, and V grows by a factor of about 3.5 each time (54, 192, 528, 1,851 digits after the first four rebuilds). The wall invariant of that proof describes a counter that is converted as a whole at every wall. Here a rebuild reads a few low digits (half the time one digit), the counter is a long list of isolated 1s that are consumed far later, and reading up to the top is exactly the event that has to be excluded.",
+   "where": "<code>holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild.py 1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC--- run 4</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "100 million rebuilds of the map without a halt",
+   "text": "If the recursion above is the rebuild for every counter (checked on the cases listed there, not proved), the run from blank tape goes through 100,000,001 rebuilds without a walk reaching the top of the counter. At the end V has 856,139,383 digits, so the machine has run more than 10<sup>257,000,000</sup> steps (the last tick phase alone has more than 2<sup>856,139,381</sup> ticks). The run keeps the counter as a short low part plus the list of gaps between the isolated 1s above it and takes under two minutes.",
+   "where": "<code>holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/map.py</code> (<code>run 100000000</code>)"
+  },
+  {
+   "level": "heuristic",
+   "title": "How long the walks get",
+   "text": "In those 100 million rebuilds j = 1 occurs 48.1% of the time and j &equiv; 3 (mod 4), which puts two 1s an odd distance apart at the top of the counter, 35.4% of the time. Long walks are rare but not exponentially rare: j &ge; 65 in 46,700 rebuilds, j &ge; 129 in 6,114, j &ge; 257 in 691, j &ge; 513 in 62, j &ge; 1025 in 5; each doubling of j costs a factor of about 8 to 10. The longest walk read 1,877 digits when the counter had 74 million; after the first thousand rebuilds no walk read more than 0.23% of the counter. Above the irregular low digits the counter is a list of isolated 1s, and by the walk's rule a walk that has left the low digits stops at the first isolated 1 in an even position; so it cannot pass two isolated 1s an odd distance apart, and every rebuild with j &equiv; 3 (mod 4) puts the new top 1 an odd distance (7j + 1)/2 above the old one. This is why a halt looks very unlikely, and also why no simple invariant is known: the low digits, where the next j is decided, are what earlier subtractions of &delta; left behind.",
+   "where": "<code>holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/map.py</code> (<code>run 100000000</code>)"
+  },
+  {
    "level": "heuristic",
    "title": "What the counter looks like, and why a halt looks unlikely",
    "text": "Each rebuild that reads j digits puts a new block <code>1 0...0</code> with (7j &minus; 1)/2 zeros on top of the counter and removes j digits at the bottom, so the counter grows by about 2.5 j + 1 digits per rebuild: a stack of blocks <code>1 0<sup>a</sup></code> above a short stretch of irregular digits (what is left of old blocks after the subtractions of &delta;). The walk passes a run of ones in state Q and a run of zeros in state R, and R stops at the first 1 in an even position. To cross the whole stack, every block boundary met would have to sit at an odd position; the positions depend on j modulo 4 of the rebuilds that made the blocks, which behave irregularly. A random model gives a chance that shrinks geometrically with the number of blocks (already about 15 ones are never reached). This is a heuristic, not a proof: it is the kind of machine the community tracker calls a lottery.",
@@ -115,28 +139,22 @@
   "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py run 60            # the macro run against the walk; distance to the top of N",
   "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py top 12            # what the rebuilds not covered by the walk do",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- > holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/Phase.lean",
-  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py check 15          # the walk against the exact rebuild, every N < 2^15 (30 s)",
-  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py random 300 120    # 300 random 120-digit counters",
-  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py run 60            # the macro run against the walk; distance to the top of N",
-  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py top 12            # what the rebuilds not covered by the walk do",
-  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- > holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/Phase.lean",
-  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py check 15          # the walk against the exact rebuild, every N < 2^15 (30 s)",
-  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py random 300 120    # 300 random 120-digit counters",
-  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py run 60            # the macro run against the walk; distance to the top of N",
-  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/walk.py top 12            # what the rebuilds not covered by the walk do",
-  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/gen_phase.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- > holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/Phase.lean",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- validate 120          # macro run = counters.py run, state by state",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- run 1500        # the macro run, one line per rebuild",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- halting 12      # which rebuilds halt, N < 2^12",
-  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/gen_rebuild_rules.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- H163594 5 > holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/Rebuild.lean"
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/gen_rebuild_rules.py 1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC--- H163594 5 > holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/lean/Rebuild.lean",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/map.py check 13            # the closed rebuild map against the exact rebuild, all classes with j <= 13 (1 min)",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/map.py random 2000 400     # and 2,000 random 400-digit counters",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/map.py blank 300           # and the first 300 rebuilds from blank tape",
+  "python3 holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/py/map.py run 100000000       # 10^8 rebuilds of the map, statistics of j (2 min)"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "10<sup>3392</sup> steps",
-    "text": "No halt in the exact macro simulation (1,289 rebuilds)."
+    "level": "heuristic",
+    "value": "10<sup>8</sup> rebuilds",
+    "text": "No halt with the closed rebuild map (checked, not proved); 10<sup>3392</sup> steps in the exact macro simulation."
    },
    {
     "level": "kernel",
@@ -191,6 +209,18 @@
     ]
    },
    {
+    "id": "closedmap",
+    "eyebrow": "The rebuild in one formula",
+    "heading": "Try the rebuild on any counter",
+    "html": [
+     "<p>The whole rebuild can be written as a short recursion on the counter N. It was read off computed rebuilds and agrees with the exact rebuild on every case tried; it is not proved. Type a counter in binary (its top digit is the sentinel) and see which digits the walk reads, what is subtracted, and the next counter.</p>",
+     "<p><label>N in binary: <input id=\"cm-n\" size=\"48\" value=\"100000000001000000000010001000110001\" style=\"font-family:monospace\"></label> <button id=\"cm-go\">rebuild</button> <button id=\"cm-next\">use the result as the next N</button></p>",
+     "<pre id=\"cm-out\" style=\"white-space:pre-wrap;overflow-wrap:anywhere\"></pre>",
+     "<p>The rule: an even N loses one digit and &delta; = 4. For an odd N skip the pairs <code>11</code> above the lowest digit (k of them) and look at the next pair, lower digit first. (1,0) or (0,1): stop, with &delta; = 1 + 2<sup>5k+5</sup>(2<sup>2k+4</sup> &minus; 1) or 4 + 2<sup>5k+5</sup>(2<sup>2k+3</sup> &minus; 1). (0,0): drop those digits, subtract 1 from the rest and go on with that number; its &delta; gets (2<sup>2k+3</sup> &minus; 1) 2<sup>c<sub>2</sub>+2+5k</sup> added, c<sub>2</sub> the number of V digits the rest of the walk adds. The next counter is 2<sup>n+c</sup> + (N &gt;&gt; j) &minus; &delta; with c = (5j + 1)/2.</p>",
+     "<script>(function(){function W(U,log){if((U&1n)===0n){log.push('even: read 1 digit, delta = 4');return [1n,4n];}var k=0n;while(((U>>(2n*k+1n))&3n)===3n)k++;var p=(U>>(2n*k+1n))&3n;if(p===1n){log.push('skip '+k+' pairs 11, pair (1,0): stop');return [2n*k+3n,1n+(((1n<<(2n*k+4n))-1n)<<(5n*k+5n))];}if(p===2n){log.push('skip '+k+' pairs 11, pair (0,1): stop');return [2n*k+3n,4n+(((1n<<(2n*k+3n))-1n)<<(5n*k+5n))];}if((U>>(2n*k+2n))===0n)return null;log.push('skip '+k+' pairs 11, pair (0,0): subtract 1 from the rest and go on');var r=W((U>>(2n*k+2n))-1n,log);if(!r)return null;var c2=(5n*r[0]+1n)/2n;return [r[0]+2n*k+2n,r[1]+(((1n<<(2n*k+3n))-1n)<<(c2+2n+5n*k))];}var last=null;function go(){var t=document.getElementById('cm-n').value.replace(/[^01]/g,'');var out=document.getElementById('cm-out');if(t.length<2){out.textContent='type at least two binary digits';return;}var N=BigInt('0b'+t),n=BigInt(t.length-1),log=[],r=W(N,log);if(!r||r[0]>BigInt(t.length-2)){out.textContent=log.join('\\n')+'\\nThe walk reaches the top of the counter: this is the case the map does not cover, and the only way the machine can halt.';last=null;return;}var j=r[0],d=r[1],c=(5n*j+1n)/2n,N2=(1n<<(n+c))+(N>>j)-d;last=N2;out.textContent=log.join('\\n')+'\\ndigits read j = '+j+'   (the lowest '+j+': '+t.slice(t.length-Number(j))+')\\nV gets c = '+c+' more digits\\ndelta = '+d.toString(2)+' (binary)\\nnext counter = 2^'+(n+c)+' + (N >> '+j+') - delta =\\n'+N2.toString(2);}document.getElementById('cm-go').onclick=go;document.getElementById('cm-next').onclick=function(){if(last!==null){document.getElementById('cm-n').value=last.toString(2);go();}};go();})();</script>"
+    ]
+   },
+   {
     "id": "halting",
     "eyebrow": "Where it could stop",
     "heading": "Halting needs a walk across the whole counter",
@@ -203,6 +233,6 @@
   ]
  },
  "family": "Up/down two counters with resets (G12 family 3b)",
- "summary": "Up/down counters; ticks and whole tick phases proved in Lean; the rebuild's stopping rule found as a digit walk (checked, not proved); halts only if a walk crosses the whole counter; no halt in ~10^3392 steps; open.",
+ "summary": "Up/down counters; ticks and whole tick phases proved in Lean; the rebuild found as a closed recursion on the counter (checked, not proved); halts only if a walk crosses the whole counter; with the recursion no halt in 10^8 rebuilds (more than 10^257,000,000 steps); open.",
  "decision": "open"
 }

@@ -74,7 +74,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB---_1RC1RE_1LD0LE_1RF0LC_0RD0RA_0RB1RD</h1>
     <p class="machine">1RB---_1RC1RE_1LD0LE_1RF0LC_0RD0RA_0RB1RD</p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -140,6 +140,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>python3 py/phases.py orbit 3000</code></p>
       </div>
       <div class="card">
+        <h3>No halting piece in a symbolic search over every residue sequence</h3>
+        <p>A class is a phase start <code>P 1^n 01010 A&gt;0</code> in which n and every block of P of at least 20 words are free. A symbolic simulator (several free counts; it refuses any step whose outcome depends on them and the class is then split into pieces) runs each class to the next phase start, for all values at once and for every residue of n. In 25 minutes: 3,619 classes cut into 101,407 pieces, every piece reaches a phase start, none halts and none is undecided. The set is <b>not closed</b>: 891 classes were still queued and the stack of blocks in P keeps getting deeper (up to five free blocks; six with a threshold of 7 instead of 20, 2,418 classes, also no halt). On a random sample of 400 classes a plain simulator agrees in 16,900 piece runs and 2,400 class points.</p>
+        <p class="where"><code>holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/closure/pclosure.py</code>, <code>pvalidate.py</code> (settings in this machine's README)</p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 3.8&middot;10<sup>60</sup> steps</h3>
+        <p>The accelerated simulator (exact; its jumps are rules checked by symbolic runs) follows the run from blank tape to 3.8&middot;10<sup>60</sup> steps without a halt.</p>
+        <p class="where"><code>holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/closure/paccel.py</code> with <code>BBM</code> set to this machine, <code>BBEV=1 BBMIRROR=1</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB0LD_0RC1RA_1RD1RE_1LA0LE_0RA0RF_1RC--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1RE_1LC0LE_1RD0LB_0RA1RC_0RC0RF_1RA--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -162,7 +172,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>It halts if and only if the word dynamics, driven by the residues mod 3 of the counter, reaches a halting word. None is known; proving that none is reachable needs an invariant for an unbounded word.</p>
+        <p>It halts if and only if the word dynamics, driven by the residues mod 3 of the counter, reaches a halting word. None is known; proving that none is reachable needs an invariant for an unbounded word. The class search of 13 November finds no halting piece but does not close, because phases walk down chains of blocks of any length; a closed set needs a description of these chains.</p>
       </div>
     </div>
   </section>

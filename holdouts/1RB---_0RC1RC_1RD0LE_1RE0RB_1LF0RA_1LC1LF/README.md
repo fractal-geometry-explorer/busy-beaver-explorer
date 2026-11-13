@@ -38,6 +38,11 @@ with widths 2..6, plain and with `-H 2`, `-H 3`, `-U`.
   for 1RB1RF_1LC0LB; the per-visit rule (two a's off the first run) is the place to start, with `bbtools.cycles` at
   sample points at the left end.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: D with 0 under the head, 1 right, 1 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB---_0RC1RC_1RD0LE_1RE0RB_1LF0RA_1LC1LF/explainer.html`](../../pages/holdouts/1RB---_0RC1RC_1RD0LE_1RE0RB_1LF0RA_1LC1LF/explainer.html)

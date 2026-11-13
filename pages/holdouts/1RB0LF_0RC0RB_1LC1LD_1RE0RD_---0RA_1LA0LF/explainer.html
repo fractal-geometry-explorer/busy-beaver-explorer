@@ -279,6 +279,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <button type="button" data-f="open" aria-pressed="false">Open</button>
   </div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (E0); the generated statement covers every configuration.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)</div></div><div><b>Where a halt can come from</b><p>If the machine halts on its third step from a configuration, that configuration is one of: D with 1 under the head, 0 right, 0 two right. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_needs_drun</code>, <code>lean/Halt.lean</code></div></div><div><b>A halt needs a D-run</b><p>Two steps before a halt the head is in state D reading a 1: E (the halting state, on a 0) is entered only from D0, and D from C1 (then E reads the 1 that C wrote) or from D1.</p></div></div>
@@ -298,7 +299,8 @@ holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/lean/check.sh
 python3 holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/py/gen_rules.py &gt; /tmp/Rules.lean   # regenerates lean/Rules.lean
 cd holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF &amp;&amp; gcc -O2 -o snap c/snap.c &amp;&amp; ./snap 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF 3000000 4 &gt; s.txt &amp;&amp; python3 py/particles.py s.txt
 gcc -O2 -o drun c/drun.c &amp;&amp; ./drun 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF 1000000000
-gcc -O2 -o twin c/twin.c &amp;&amp; ./twin 1000000000</code></pre>
+gcc -O2 -o twin c/twin.c &amp;&amp; ./twin 1000000000
+python3 holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/py/route.py        # rewrites lean/Route.lean</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

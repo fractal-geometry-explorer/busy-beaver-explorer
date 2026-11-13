@@ -99,6 +99,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>step_none_iff</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
+        <h3>Where a halt can come from</h3>
+        <p>If the machine halts on its third step from a configuration, that configuration is one of: A with 0 under the head, 1 right, 0 two right. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.</p>
+        <p class="where"><code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)</p>
+      </div>
+      <div class="card">
         <h3>How a halt comes about</h3>
         <p>F reading 0 is the only halt. F is entered only from B reading 1 (<code>enter_F</code>); B is entered from A reading 0 and from E reading 0 (<code>enter_B</code>), and the E way is harmless because E is entered only from D reading 1 and B then reads the 0 that D wrote (<code>enter_E</code>, <code>via_E_safe</code>). So a halt needs <code>A&gt;0 1 0</code> (<code>halt_A</code>), and with <code>achain</code> the whole family <code>A&gt;0 1 (1 0)^n 0</code>.</p>
         <p class="where"><code>halt_F</code>, <code>halt_B</code>, <code>halt_A</code>, <code>enter_F</code>, <code>enter_B</code>, <code>enter_E</code>, <code>enter_A</code>, <code>lean/Halt.lean</code></p>
@@ -165,7 +170,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_1LC0RF_1LD1RC_1LA0RE_1LB1RD_---0RD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1LC0RF_1LD1RC_1LA0RE_1LB1RD_---0RD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1LC0RF_1LD1RC_1LA0RE_1LB1RD_---0RD 1000000000
+python3 holdouts/1RB0LC_1LC0RF_1LD1RC_1LA0RE_1LB1RD_---0RD/py/route.py        # rewrites lean/Route.lean</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_1LC0RF_1LD1RC_1LA0RE_1LB1RD_---0RD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

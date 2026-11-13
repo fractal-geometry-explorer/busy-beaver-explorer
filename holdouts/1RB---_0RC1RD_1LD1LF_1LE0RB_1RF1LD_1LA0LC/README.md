@@ -59,6 +59,11 @@ exact map on block lengths per sweep and look for a counter in it.
 | `lean/Rules.lean` | the sweep rules (kernel, written by `bbtools.symtm.prove`) |
 | `c/longrun.c`, `c/runhist.c`, `c/trfreq.c` | long run, run-length histogram at sweep ends, transition counts |
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: C with 1 two left, 0 left, 1 under the head; E with 0 under the head, 0 right.
+
 ## Check
 
 ```sh

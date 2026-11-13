@@ -55,6 +55,11 @@ python3 holdouts/1RB1RA_1LC0RE_1LE0LD_0LB1LB_1RA0LF_1LD---/py/rules.py > holdout
 . /etc/profile.d/lean.sh && holdouts/1RB1RA_1LC0RE_1LE0LD_0LB1LB_1RA0LF_1LD---/lean/check.sh
 ```
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: C with 1 two left, 1 left, 0 under the head.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RA_1LC0RE_1LE0LD_0LB1LB_1RA0LF_1LD---/explainer.html`](../../pages/holdouts/1RB1RA_1LC0RE_1LE0LD_0LB1LB_1RA0LF_1LD---/explainer.html)

@@ -25,6 +25,12 @@
   },
   {
    "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: B with 1 under the head, 1 right, 1 two right; D with 0 under the head, 1 right, 1 two right; F with 1 left, 0 under the head. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
@@ -87,7 +93,8 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE--- 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE--- 1000000000",
+  "python3 holdouts/1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
   "lede": "Nobody knows. This machine shuttles its tape between a dense encoding at the right end and a sparse one at the left end, scrambling it a little on every trip. This page runs it in your browser.",

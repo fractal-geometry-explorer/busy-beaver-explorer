@@ -48,3 +48,9 @@ Only the generated `lean/Blank.lean`: the halting configurations, no halt in 10^
   left). If it is a substitution, the tape is described for all time by a fixed point, and non-halting reduces to
   checking that no unit boundary produces `1 A>1` when the head passes it.
 - Once the units are known, prove the single-unit crossings with symtm and the end behaviour as rules.
+
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: D with 1 two left, 1 left, 0 under the head.
+

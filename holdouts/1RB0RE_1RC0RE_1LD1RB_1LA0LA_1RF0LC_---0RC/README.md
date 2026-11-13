@@ -36,6 +36,11 @@ Open. Lean (`lean/Blank.lean`): the halting configurations, no halt in 10^4 step
 2. Sample at the A-left events, write the tape as a list of numbers and look for a pass map, as for the 1RB0LA_1RC--- family.
 3. Check whether the map is a counter (growth exponent below 1 suggests passes of growing length).
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: A with 1 under the head, 0 right, 0 two right; B with 1 under the head, 0 right, 0 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RE_1RC0RE_1LD1RB_1LA0LA_1RF0LC_---0RC/explainer.html`](../../pages/holdouts/1RB0RE_1RC0RE_1LD1RB_1LA0LA_1RF0LC_---0RC/explainer.html)

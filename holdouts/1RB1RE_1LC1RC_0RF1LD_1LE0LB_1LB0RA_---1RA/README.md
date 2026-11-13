@@ -38,6 +38,11 @@ with widths 2..6, plain and with `-H 2`, `-H 3`, `-U`.
 - Look for the defect dynamics on the word `c = 11110`: how defects move per sweep and when they are created,
   possibly as a counter in the lengths of the c-runs.
 
+## Where a halt can come from
+
+`lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
+of: B with 1 under the head, 0 right, 0 two right.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RE_1LC1RC_0RF1LD_1LE0LB_1LB0RA_---1RA/explainer.html`](../../pages/holdouts/1RB1RE_1LC1RC_0RF1LD_1LE0LB_1LB0RA_---1RA/explainer.html)
